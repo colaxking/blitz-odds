@@ -6,7 +6,17 @@ alongside every call. (The project folder is still named `nfl-matchup-analyzer`
 so the scheduled update task and existing shortcuts keep working — only the
 app's on-page branding changed.)
 
-## Open it
+## Live site
+
+**https://blitz-odds.netlify.app**
+
+This folder is a git repo pushed to [github.com/colaxking/blitz-odds](https://github.com/colaxking/blitz-odds),
+which is linked to Netlify for continuous deployment — any push to `main` triggers
+an automatic rebuild and goes live within about a minute (Netlify uses atomic
+deploys, so there's no downtime during the swap). The weekly scheduled task
+commits and pushes automatically after each data refresh.
+
+## Open it locally
 
 Double-click `index.html` (or open it in any browser). No install, no build
 step, no server required — works on desktop and on a phone browser.
@@ -141,7 +151,9 @@ the season starts, the weekly run just checks and exits without changing anythin
 Once Week 18 wraps up, the same task also researches and fills in each playoff round
 as it's announced, and continues archiving results for weeks 19-22 (Wild Card through
 Super Bowl). Every run, it also checks for freshly posted betting lines on the next
-week or two of games and updates `data/odds-2026.json` accordingly.
+week or two of games and updates `data/odds-2026.json` accordingly. Finally, if
+anything changed, it commits and pushes to GitHub, which triggers Netlify to
+rebuild and publish the live site automatically — no manual redeploy needed.
 
 ## Path to a native mobile app
 

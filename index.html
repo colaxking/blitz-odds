@@ -275,6 +275,8 @@
   .diff-row .diff-value { font-weight: 700; }
   .diff-value.edge-a { color: var(--win); }
   .diff-value.edge-b { color: var(--edge-b); }
+  .diff-section-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 10px 0 2px; }
+  .diff-section-title:first-of-type { margin-top: 10px; }
   .impact-note {
     font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
   }
@@ -4505,16 +4507,21 @@ function TeamBadge({ team, favorites, onToggle, onSelect }) {
   );
 }
 
-function DiffRow({ label, rankA, rankB, teamAId, teamBId }) {
-  const diff = Math.abs(rankA - rankB);
-  const aIsBetter = rankA < rankB;
-  const edgeTeam = aIsBetter ? teamAId : teamBId;
-  const edgeClass = aIsBetter ? "edge-a" : "edge-b";
+/**
+ * Compares one team's offense rank against the OPPOSING team's defense rank
+ * (not offense-vs-offense) — e.g. "does the away team's pass offense (rank 11)
+ * beat the home team's pass defense (rank 7)?" Lower rank = better on both
+ * sides of the ball, so they're directly comparable on the same 1-32 scale.
+ */
+function DiffRow({ label, offRank, defRank, offTeamId, defTeamId }) {
+  const diff = Math.abs(offRank - defRank);
+  const offenseWins = offRank < defRank;
+  const edgeClass = offenseWins ? "edge-a" : "edge-b";
   return (
     <div className="diff-row">
       <span className="diff-label">{label}</span>
       <span className={"diff-value " + edgeClass}>
-        {diff === 0 ? "Even" : `${edgeTeam} by ${diff}`}
+        {diff === 0 ? "Even" : offenseWins ? `${offTeamId} offense by ${diff}` : `${defTeamId} defense by ${diff}`}
       </span>
     </div>
   );
@@ -4664,12 +4671,15 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
         </div>
       </div>
 
-      <DiffRow label="Total offense rank gap" rankA={away.stats.offense.rankTotal} rankB={home.stats.offense.rankTotal} teamAId={away.id} teamBId={home.id} />
-      <DiffRow label="Rush offense rank gap" rankA={away.stats.offense.rankRush} rankB={home.stats.offense.rankRush} teamAId={away.id} teamBId={home.id} />
-      <DiffRow label="Pass offense rank gap" rankA={away.stats.offense.rankPass} rankB={home.stats.offense.rankPass} teamAId={away.id} teamBId={home.id} />
-      <DiffRow label="Total defense rank gap" rankA={away.stats.defense.rankTotal} rankB={home.stats.defense.rankTotal} teamAId={away.id} teamBId={home.id} />
-      <DiffRow label="Rush defense rank gap" rankA={away.stats.defense.rankRush} rankB={home.stats.defense.rankRush} teamAId={away.id} teamBId={home.id} />
-      <DiffRow label="Pass defense rank gap" rankA={away.stats.defense.rankPass} rankB={home.stats.defense.rankPass} teamAId={away.id} teamBId={home.id} />
+      <div className="diff-section-title">{away.id} offense vs {home.id} defense</div>
+      <DiffRow label="Total" offRank={away.stats.offense.rankTotal} defRank={home.stats.defense.rankTotal} offTeamId={away.id} defTeamId={home.id} />
+      <DiffRow label="Rush" offRank={away.stats.offense.rankRush} defRank={home.stats.defense.rankRush} offTeamId={away.id} defTeamId={home.id} />
+      <DiffRow label="Pass" offRank={away.stats.offense.rankPass} defRank={home.stats.defense.rankPass} offTeamId={away.id} defTeamId={home.id} />
+
+      <div className="diff-section-title">{home.id} offense vs {away.id} defense</div>
+      <DiffRow label="Total" offRank={home.stats.offense.rankTotal} defRank={away.stats.defense.rankTotal} offTeamId={home.id} defTeamId={away.id} />
+      <DiffRow label="Rush" offRank={home.stats.offense.rankRush} defRank={away.stats.defense.rankRush} offTeamId={home.id} defTeamId={away.id} />
+      <DiffRow label="Pass" offRank={home.stats.offense.rankPass} defRank={away.stats.defense.rankPass} offTeamId={home.id} defTeamId={away.id} />
 
       {allAdjustments.map((a, i) => (
         <div key={i} className={"impact-note impact-" + a.status}>

@@ -155,6 +155,14 @@ week or two of games and updates `data/odds-2026.json` accordingly. Finally, if
 anything changed, it commits and pushes to GitHub, which triggers Netlify to
 rebuild and publish the live site automatically — no manual redeploy needed.
 
+## Working conventions for Claude
+
+Any push to `main` triggers a live Netlify deploy of this site, so for changes
+made interactively in chat (not the automated weekly task above): show a
+summary of what changed and get explicit approval from Dan before running
+`git push`. The weekly scheduled task is exempt from this and keeps
+auto-pushing on its own, as described above.
+
 ## Path to a native mobile app
 
 You said you might want native iOS/Android apps later. `js/predictionEngine.js`

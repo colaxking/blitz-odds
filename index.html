@@ -4652,6 +4652,12 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
           <div>Pass <RankPill rank={away.stats.offense.rankPass} /></div>
         </div>
         <div className="col">
+          <div className="label">{home.id} defense</div>
+          <div>Total <RankPill rank={home.stats.defense.rankTotal} /></div>
+          <div>Rush <RankPill rank={home.stats.defense.rankRush} /></div>
+          <div>Pass <RankPill rank={home.stats.defense.rankPass} /></div>
+        </div>
+        <div className="col">
           <div className="label">{home.id} offense</div>
           <div>Total <RankPill rank={home.stats.offense.rankTotal} /></div>
           <div>Rush <RankPill rank={home.stats.offense.rankRush} /></div>
@@ -4662,12 +4668,6 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
           <div>Total <RankPill rank={away.stats.defense.rankTotal} /></div>
           <div>Rush <RankPill rank={away.stats.defense.rankRush} /></div>
           <div>Pass <RankPill rank={away.stats.defense.rankPass} /></div>
-        </div>
-        <div className="col">
-          <div className="label">{home.id} defense</div>
-          <div>Total <RankPill rank={home.stats.defense.rankTotal} /></div>
-          <div>Rush <RankPill rank={home.stats.defense.rankRush} /></div>
-          <div>Pass <RankPill rank={home.stats.defense.rankPass} /></div>
         </div>
       </div>
 

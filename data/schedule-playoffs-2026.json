@@ -1,0 +1,42 @@
+{
+  "season": 2026,
+  "sourceNote": "Playoff matchups depend on final regular-season standings and seeding, which aren't known until Week 18 concludes. Each round starts empty (matchupsAnnounced: false) and gets filled in by the weekly update task once the real bracket is announced. The app only shows a round in the week picker once matchupsAnnounced is true.",
+  "rounds": [
+    {
+      "id": "wildcard",
+      "week": 19,
+      "label": "Wild Card Round",
+      "espnSeasonType": 3,
+      "espnWeek": 1,
+      "matchupsAnnounced": false,
+      "games": []
+    },
+    {
+      "id": "divisional",
+      "week": 20,
+      "label": "Divisional Round",
+      "espnSeasonType": 3,
+      "espnWeek": 2,
+      "matchupsAnnounced": false,
+      "games": []
+    },
+    {
+      "id": "conference",
+      "week": 21,
+      "label": "Conference Championships",
+      "espnSeasonType": 3,
+      "espnWeek": 3,
+      "matchupsAnnounced": false,
+      "games": []
+    },
+    {
+      "id": "superbowl",
+      "week": 22,
+      "label": "Super Bowl",
+      "espnSeasonType": 3,
+      "espnWeek": 5,
+      "matchupsAnnounced": false,
+      "games": []
+    }
+  ]
+}

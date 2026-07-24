@@ -1,0 +1,4862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blitz Odds — NFL Matchup Predictions</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjMyMCIgdmlld0JveD0iMCAwIDMyMCAzMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iMTYwIiBjeT0iMTYwIiByPSIxNTIiIGZpbGw9IiMwZDE0MjAiIHN0cm9rZT0iIzRmZDFjNSIgc3Ryb2tlLXdpZHRoPSIxMiIvPgogIDxjaXJjbGUgY3g9IjE2MCIgY3k9IjE2MCIgcj0iMTUyIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMyIvPgoKICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNjAsMTYwKSByb3RhdGUoLTI4KSI+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9IjAiIHJ4PSIxMTgiIHJ5PSI2NiIgZmlsbD0iIzhhNGEyOCIgc3Ryb2tlPSIjMWEwZDA1IiBzdHJva2Utd2lkdGg9IjEzIi8+CiAgICA8ZWxsaXBzZSBjeD0iLTM4IiBjeT0iLTI0IiByeD0iMzQiIHJ5PSIxMyIgZmlsbD0iI2M5OGE1NCIvPgogICAgPGxpbmUgeDE9Ii03NCIgeTE9IjAiIHgyPSI3NCIgeTI9IjAiIHN0cm9rZT0iIzFhMGQwNSIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iLTc0IiB5MT0iLTIiIHgyPSI3NCIgeTI9Ii0yIiBzdHJva2U9IiNmNGY2ZmEiIHN0cm9rZS13aWR0aD0iNyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8ZyBzdHJva2U9IiMxYTBkMDUiIHN0cm9rZS13aWR0aD0iMTEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CiAgICAgIDxsaW5lIHgxPSItMzQiIHkxPSItMTUiIHgyPSItMzQiIHkyPSIxMyIvPgogICAgICA8bGluZSB4MT0iMCIgeTE9Ii0xNSIgeDI9IjAiIHkyPSIxMyIvPgogICAgICA8bGluZSB4MT0iMzQiIHkxPSItMTUiIHgyPSIzNCIgeTI9IjEzIi8+CiAgICA8L2c+CiAgICA8ZyBzdHJva2U9IiNmNGY2ZmEiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj4KICAgICAgPGxpbmUgeDE9Ii0zNCIgeTE9Ii0xMyIgeDI9Ii0zNCIgeTI9IjExIi8+CiAgICAgIDxsaW5lIHgxPSIwIiB5MT0iLTEzIiB4Mj0iMCIgeTI9IjExIi8+CiAgICAgIDxsaW5lIHgxPSIzNCIgeTE9Ii0xMyIgeDI9IjM0IiB5Mj0iMTEiLz4KICAgIDwvZz4KICA8L2c+CgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE2MCwxNTgpIHJvdGF0ZSgxNikgc2NhbGUoMS4wNSkiPgogICAgPHBvbHlnb24gcG9pbnRzPSIxMCwtMTAwIC00NSwxMCAtNSwxMCAtMjUsMTAwIDU1LC0xMCAxMCwtMTAgMzAsLTEwMCIgZmlsbD0iI2ZmY2MwMCIgc3Ryb2tlPSIjMWEwZDA1IiBzdHJva2Utd2lkdGg9IjEzIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjEwLC0xMDAgLTQ1LDEwIC01LDEwIC0xOCw0MiAyMSwtNDYgNiwtNDYiIGZpbGw9IiNmZmYyYjAiLz4KICA8L2c+Cjwvc3ZnPgo=" />
+<script src="js/predictionEngine.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  :root {
+    --bg: #0b1220;
+    --card-bg: #131c2e;
+    --card-border: #223049;
+    --text: #eef2f8;
+    --text-dim: #9fb0c9;
+    --accent: #4fd1c5;
+    --win: #2ecc71;
+    --lose: #55617a;
+    --warn: #f5a524;
+    --out: #ef4444;
+    --star: #f5c518;
+    --demo: #a855f7;
+    --live: #ff3b30;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .app { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+  header.top { text-align: center; margin-bottom: 16px; }
+  header.top h1 { font-size: 1.6rem; margin: 0; letter-spacing: 0.5px; }
+  .brand-row { display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; margin-bottom: 4px; }
+  .brand-odds { color: var(--accent); }
+  header.top p { color: var(--text-dim); margin: 2px 0; font-size: 0.9rem; }
+
+  .controls-row {
+    display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
+    margin: 14px 0 8px;
+  }
+  select.week-select {
+    background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 8px 12px; font-size: 0.95rem;
+  }
+  .back-btn {
+    background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 8px 14px; font-size: 0.85rem; cursor: pointer;
+  }
+  .back-btn:hover { border-color: var(--accent); }
+
+  .favorites-bar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
+    margin: 10px 0 18px; min-height: 30px;
+  }
+  .favorites-bar .fav-label { font-size: 0.72rem; color: var(--text-dim); margin-right: 4px; }
+  .fav-chip {
+    display: flex; align-items: center; gap: 5px; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 3px 10px 3px 3px; cursor: pointer; font-size: 0.78rem;
+  }
+  .fav-chip:hover { border-color: var(--star); }
+  .fav-chip img { width: 20px; height: 20px; object-fit: contain; }
+
+  .disclaimer {
+    background: #1c2740; border: 1px solid var(--card-border); border-radius: 10px;
+    padding: 10px 14px; font-size: 0.8rem; color: var(--text-dim); margin: 8px 0 24px;
+  }
+  .demo-banner {
+    background: rgba(168,85,247,0.14); border: 1px solid rgba(168,85,247,0.4); color: #d6b8ff;
+    border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; margin: 8px 0 20px;
+  }
+  .schedule-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;
+  }
+  .game-card {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 16px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .game-card.is-historical { border-color: rgba(168,85,247,0.35); }
+  .game-card.is-live { border-color: var(--live); box-shadow: 0 0 0 1px rgba(255,59,48,0.3); }
+  .game-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); }
+  .live-tag {
+    display: inline-flex; align-items: center; gap: 4px; color: var(--live); font-weight: 700;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--live);
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .matchup-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .team-block { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 10px; position: relative; }
+  .team-block.winner { background: rgba(46, 204, 113, 0.12); border: 1px solid rgba(46, 204, 113, 0.4); }
+  .team-block.actual-winner { box-shadow: 0 0 0 2px var(--demo) inset; }
+  .team-click { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; padding: 0; color: inherit; font: inherit; }
+  .team-click:hover .team-name { text-decoration: underline; }
+  .badge-wrap { position: relative; width: 46px; height: 46px; }
+  .badge-img { width: 46px; height: 46px; object-fit: contain; border-radius: 50%; background: #fff; padding: 3px; }
+  .badge-fallback {
+    width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem; color: #fff;
+  }
+  .star-btn {
+    position: absolute; top: -6px; right: -6px; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.75rem; color: var(--text-dim); line-height: 1; padding: 0;
+  }
+  .star-btn.active { color: var(--star); border-color: var(--star); }
+  .team-name { font-size: 0.8rem; text-align: center; color: var(--text); }
+  .win-tag { font-size: 0.7rem; color: var(--win); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .at-sep { color: var(--text-dim); font-size: 0.75rem; padding: 0 4px; }
+  .confidence-bar-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-dim); }
+  .odds-row {
+    display: flex; flex-direction: column; gap: 4px; font-size: 0.74rem;
+    background: #1a2438; border-radius: 8px; padding: 8px 10px;
+  }
+  .odds-fields { display: flex; flex-wrap: wrap; gap: 12px; }
+  .odds-field { color: var(--text); }
+  .odds-label { color: var(--text-dim); text-transform: uppercase; font-size: 0.62rem; letter-spacing: 0.4px; margin-right: 4px; }
+  .odds-agree { font-size: 0.68rem; }
+  .odds-agree.agree { color: var(--win); }
+  .odds-agree.disagree { color: var(--warn); }
+  .confidence-bar { flex: 1; height: 6px; border-radius: 4px; background: var(--lose); overflow: hidden; display: flex; }
+  .confidence-bar > div { height: 100%; }
+  .stat-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+  .stat-compare .col { display: flex; flex-direction: column; gap: 3px; }
+  .stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; }
+  .rank-pill {
+    display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px;
+  }
+  .rank-good { background: rgba(46,204,113,0.18); color: #6be3a1; }
+  .rank-mid { background: rgba(245,165,36,0.18); color: var(--warn); }
+  .rank-bad { background: rgba(239,68,68,0.18); color: #ff8080; }
+  .diff-row {
+    display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem;
+    padding: 4px 8px; border-radius: 6px; background: #1a2438; margin-top: 6px;
+  }
+  .diff-row .diff-label { color: var(--text-dim); }
+  .diff-row .diff-value { font-weight: 700; }
+  .diff-value.edge-a { color: var(--win); }
+  .diff-value.edge-b { color: #7ab8ff; }
+  .impact-note {
+    font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
+  }
+  .impact-out { background: rgba(239,68,68,0.12); color: #ff9d9d; border: 1px solid rgba(239,68,68,0.3); }
+  .impact-questionable { background: rgba(245,165,36,0.12); color: #ffcf85; border: 1px solid rgba(245,165,36,0.3); }
+  .impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+  .injury-report { margin-bottom: 18px; }
+  .injury-report-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
+  .injury-list { display: flex; flex-direction: column; gap: 6px; }
+  .result-row {
+    display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;
+    padding: 6px 10px; border-radius: 8px; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3);
+  }
+  .result-row.live-row { background: rgba(255,59,48,0.1); border: 1px solid rgba(255,59,48,0.35); }
+  .result-row .score { font-weight: 700; }
+  .result-row .verdict.correct { color: var(--win); }
+  .result-row .verdict.incorrect { color: #ff8080; }
+  footer.app-footer { text-align: center; color: var(--text-dim); font-size: 0.72rem; margin-top: 32px; }
+
+  .team-view-header {
+    display: flex; align-items: center; gap: 16px; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 18px; margin-bottom: 18px;
+  }
+  .team-view-header img { width: 64px; height: 64px; object-fit: contain; background: #fff; border-radius: 50%; padding: 4px; }
+  .team-view-header h2 { margin: 0 0 4px; font-size: 1.3rem; }
+  .team-view-header .rec-line { color: var(--text-dim); font-size: 0.85rem; }
+
+  .team-schedule-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .team-schedule-table th {
+    text-align: left; color: var(--text-dim); font-weight: 600; font-size: 0.72rem; text-transform: uppercase;
+    padding: 8px 10px; border-bottom: 1px solid var(--card-border);
+  }
+  .team-schedule-table td { padding: 10px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
+  .team-schedule-table tr.bye-row td { color: var(--text-dim); font-style: italic; }
+  .team-schedule-table tr.playoff-row td { background: rgba(168,85,247,0.06); }
+  .opp-cell { display: flex; align-items: center; gap: 8px; }
+  .opp-cell img { width: 26px; height: 26px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; }
+  .pred-win { color: var(--win); font-weight: 700; }
+  .pred-lose { color: var(--text-dim); }
+  .hw-tag { font-size: 0.68rem; color: var(--text-dim); margin-left: 6px; }
+  .verdict-pill { font-size: 0.68rem; padding: 1px 6px; border-radius: 999px; margin-left: 6px; }
+  .verdict-pill.correct { background: rgba(46,204,113,0.18); color: #6be3a1; }
+  .verdict-pill.incorrect { background: rgba(239,68,68,0.18); color: #ff8080; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="application/json" id="teams-data">{
+  "season": 2025,
+  "seasonType": "regular_season_final",
+  "sourceNote": "Team offense/defense yards-per-game stats from The Football Database (footballdb.com), 2025 NFL regular season final totals. Ranks: 1 = best.",
+  "sourceUrl": "https://www.footballdb.com/statistics/nfl/team-stats/total-offense",
+  "teams": [
+    {
+      "id": "ARI",
+      "name": "Arizona Cardinals",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 93.1,
+          "passYdsPerGame": 232.6,
+          "totalYdsPerGame": 325.8,
+          "rankRush": 31,
+          "rankPass": 7,
+          "rankTotal": 19
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 126.9,
+          "passYdsAllowedPerGame": 230.8,
+          "totalYdsAllowedPerGame": 357.7,
+          "rankRush": 25,
+          "rankPass": 24,
+          "rankTotal": 27
+        }
+      }
+    },
+    {
+      "id": "ATL",
+      "name": "Atlanta Falcons",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 125.8,
+          "passYdsPerGame": 207.2,
+          "totalYdsPerGame": 333.0,
+          "rankRush": 8,
+          "rankPass": 19,
+          "rankTotal": 14
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 126.2,
+          "passYdsAllowedPerGame": 200.4,
+          "totalYdsAllowedPerGame": 326.6,
+          "rankRush": 24,
+          "rankPass": 13,
+          "rankTotal": 15
+        }
+      }
+    },
+    {
+      "id": "BAL",
+      "name": "Baltimore Ravens",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 156.6,
+          "passYdsPerGame": 175.6,
+          "totalYdsPerGame": 332.2,
+          "rankRush": 2,
+          "rankPass": 27,
+          "rankTotal": 16
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 106.6,
+          "passYdsAllowedPerGame": 247.9,
+          "totalYdsAllowedPerGame": 354.5,
+          "rankRush": 10,
+          "rankPass": 31,
+          "rankTotal": 24
+        }
+      }
+    },
+    {
+      "id": "BUF",
+      "name": "Buffalo Bills",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 159.6,
+          "passYdsPerGame": 216.6,
+          "totalYdsPerGame": 376.3,
+          "rankRush": 1,
+          "rankPass": 15,
+          "rankTotal": 4
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 136.2,
+          "passYdsAllowedPerGame": 156.9,
+          "totalYdsAllowedPerGame": 293.1,
+          "rankRush": 28,
+          "rankPass": 1,
+          "rankTotal": 7
+        }
+      }
+    },
+    {
+      "id": "CAR",
+      "name": "Carolina Panthers",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 116.3,
+          "passYdsPerGame": 179.3,
+          "totalYdsPerGame": 295.6,
+          "rankRush": 19,
+          "rankPass": 26,
+          "rankTotal": 27
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 123.3,
+          "passYdsAllowedPerGame": 203.9,
+          "totalYdsAllowedPerGame": 327.2,
+          "rankRush": 20,
+          "rankPass": 15,
+          "rankTotal": 16
+        }
+      }
+    },
+    {
+      "id": "CHI",
+      "name": "Chicago Bears",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 144.2,
+          "passYdsPerGame": 225.1,
+          "totalYdsPerGame": 369.2,
+          "rankRush": 3,
+          "rankPass": 10,
+          "rankTotal": 6
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 134.5,
+          "passYdsAllowedPerGame": 227.2,
+          "totalYdsAllowedPerGame": 361.8,
+          "rankRush": 27,
+          "rankPass": 22,
+          "rankTotal": 29
+        }
+      }
+    },
+    {
+      "id": "CIN",
+      "name": "Cincinnati Bengals",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 93.6,
+          "passYdsPerGame": 235.6,
+          "totalYdsPerGame": 329.2,
+          "rankRush": 29,
+          "rankPass": 6,
+          "rankTotal": 17
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 147.1,
+          "passYdsAllowedPerGame": 233.8,
+          "totalYdsAllowedPerGame": 380.9,
+          "rankRush": 32,
+          "rankPass": 26,
+          "rankTotal": 31
+        }
+      }
+    },
+    {
+      "id": "CLE",
+      "name": "Cleveland Browns",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 97.0,
+          "passYdsPerGame": 165.1,
+          "totalYdsPerGame": 262.1,
+          "rankRush": 27,
+          "rankPass": 31,
+          "rankTotal": 30
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 116.4,
+          "passYdsAllowedPerGame": 167.2,
+          "totalYdsAllowedPerGame": 283.6,
+          "rankRush": 16,
+          "rankPass": 3,
+          "rankTotal": 4
+        }
+      }
+    },
+    {
+      "id": "DAL",
+      "name": "Dallas Cowboys",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 125.6,
+          "passYdsPerGame": 266.3,
+          "totalYdsPerGame": 391.9,
+          "rankRush": 9,
+          "rankPass": 2,
+          "rankTotal": 2
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 125.5,
+          "passYdsAllowedPerGame": 251.5,
+          "totalYdsAllowedPerGame": 377.0,
+          "rankRush": 23,
+          "rankPass": 32,
+          "rankTotal": 30
+        }
+      }
+    },
+    {
+      "id": "DEN",
+      "name": "Denver Broncos",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 118.7,
+          "passYdsPerGame": 223.9,
+          "totalYdsPerGame": 342.6,
+          "rankRush": 16,
+          "rankPass": 11,
+          "rankTotal": 10
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 91.1,
+          "passYdsAllowedPerGame": 187.2,
+          "totalYdsAllowedPerGame": 278.2,
+          "rankRush": 2,
+          "rankPass": 7,
+          "rankTotal": 2
+        }
+      }
+    },
+    {
+      "id": "DET",
+      "name": "Detroit Lions",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 120.1,
+          "passYdsPerGame": 253.1,
+          "totalYdsPerGame": 373.2,
+          "rankRush": 14,
+          "rankPass": 3,
+          "rankTotal": 5
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 114.5,
+          "passYdsAllowedPerGame": 217.4,
+          "totalYdsAllowedPerGame": 331.9,
+          "rankRush": 14,
+          "rankPass": 20,
+          "rankTotal": 18
+        }
+      }
+    },
+    {
+      "id": "GB",
+      "name": "Green Bay Packers",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 119.8,
+          "passYdsPerGame": 212.8,
+          "totalYdsPerGame": 332.6,
+          "rankRush": 15,
+          "rankPass": 17,
+          "rankTotal": 15
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 117.7,
+          "passYdsAllowedPerGame": 194.1,
+          "totalYdsAllowedPerGame": 311.8,
+          "rankRush": 18,
+          "rankPass": 11,
+          "rankTotal": 12
+        }
+      }
+    },
+    {
+      "id": "HOU",
+      "name": "Houston Texans",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 108.9,
+          "passYdsPerGame": 218.1,
+          "totalYdsPerGame": 327.0,
+          "rankRush": 22,
+          "rankPass": 14,
+          "rankTotal": 18
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 93.7,
+          "passYdsAllowedPerGame": 183.5,
+          "totalYdsAllowedPerGame": 277.2,
+          "rankRush": 4,
+          "rankPass": 6,
+          "rankTotal": 1
+        }
+      }
+    },
+    {
+      "id": "IND",
+      "name": "Indianapolis Colts",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 118.1,
+          "passYdsPerGame": 227.8,
+          "totalYdsPerGame": 345.9,
+          "rankRush": 17,
+          "rankPass": 9,
+          "rankTotal": 9
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 101.9,
+          "passYdsAllowedPerGame": 247.9,
+          "totalYdsAllowedPerGame": 349.8,
+          "rankRush": 7,
+          "rankPass": 30,
+          "rankTotal": 23
+        }
+      }
+    },
+    {
+      "id": "JAX",
+      "name": "Jacksonville Jaguars",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 115.1,
+          "passYdsPerGame": 222.3,
+          "totalYdsPerGame": 337.4,
+          "rankRush": 20,
+          "rankPass": 12,
+          "rankTotal": 11
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 85.6,
+          "passYdsAllowedPerGame": 218.1,
+          "totalYdsAllowedPerGame": 303.6,
+          "rankRush": 1,
+          "rankPass": 21,
+          "rankTotal": 11
+        }
+      }
+    },
+    {
+      "id": "KC",
+      "name": "Kansas City Chiefs",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 106.6,
+          "passYdsPerGame": 214.1,
+          "totalYdsPerGame": 320.6,
+          "rankRush": 25,
+          "rankPass": 16,
+          "rankTotal": 20
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 105.7,
+          "passYdsAllowedPerGame": 195.8,
+          "totalYdsAllowedPerGame": 301.5,
+          "rankRush": 9,
+          "rankPass": 12,
+          "rankTotal": 10
+        }
+      }
+    },
+    {
+      "id": "LV",
+      "name": "Las Vegas Raiders",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 77.5,
+          "passYdsPerGame": 167.7,
+          "totalYdsPerGame": 245.2,
+          "rankRush": 32,
+          "rankPass": 28,
+          "rankTotal": 32
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 116.8,
+          "passYdsAllowedPerGame": 201.0,
+          "totalYdsAllowedPerGame": 317.8,
+          "rankRush": 17,
+          "rankPass": 14,
+          "rankTotal": 14
+        }
+      }
+    },
+    {
+      "id": "LAC",
+      "name": "Los Angeles Chargers",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 121.6,
+          "passYdsPerGame": 212.2,
+          "totalYdsPerGame": 333.8,
+          "rankRush": 12,
+          "rankPass": 18,
+          "rankTotal": 12
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 105.4,
+          "passYdsAllowedPerGame": 179.9,
+          "totalYdsAllowedPerGame": 285.2,
+          "rankRush": 8,
+          "rankPass": 5,
+          "rankTotal": 5
+        }
+      }
+    },
+    {
+      "id": "LAR",
+      "name": "Los Angeles Rams",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 126.6,
+          "passYdsPerGame": 268.1,
+          "totalYdsPerGame": 394.6,
+          "rankRush": 7,
+          "rankPass": 1,
+          "rankTotal": 1
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 110.8,
+          "passYdsAllowedPerGame": 216.7,
+          "totalYdsAllowedPerGame": 327.5,
+          "rankRush": 12,
+          "rankPass": 19,
+          "rankTotal": 17
+        }
+      }
+    },
+    {
+      "id": "MIA",
+      "name": "Miami Dolphins",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 120.2,
+          "passYdsPerGame": 180.5,
+          "totalYdsPerGame": 300.7,
+          "rankRush": 13,
+          "rankPass": 25,
+          "rankTotal": 26
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 132.4,
+          "passYdsAllowedPerGame": 216.4,
+          "totalYdsAllowedPerGame": 348.8,
+          "rankRush": 26,
+          "rankPass": 18,
+          "rankTotal": 22
+        }
+      }
+    },
+    {
+      "id": "MIN",
+      "name": "Minnesota Vikings",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 108.3,
+          "passYdsPerGame": 166.7,
+          "totalYdsPerGame": 275.0,
+          "rankRush": 23,
+          "rankPass": 29,
+          "rankTotal": 28
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 124.1,
+          "passYdsAllowedPerGame": 158.5,
+          "totalYdsAllowedPerGame": 282.6,
+          "rankRush": 21,
+          "rankPass": 2,
+          "rankTotal": 3
+        }
+      }
+    },
+    {
+      "id": "NE",
+      "name": "New England Patriots",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 128.9,
+          "passYdsPerGame": 250.5,
+          "totalYdsPerGame": 379.4,
+          "rankRush": 6,
+          "rankPass": 4,
+          "rankTotal": 3
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 101.7,
+          "passYdsAllowedPerGame": 193.5,
+          "totalYdsAllowedPerGame": 295.2,
+          "rankRush": 6,
+          "rankPass": 9,
+          "rankTotal": 8
+        }
+      }
+    },
+    {
+      "id": "NO",
+      "name": "New Orleans Saints",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 94.3,
+          "passYdsPerGame": 219.3,
+          "totalYdsPerGame": 313.6,
+          "rankRush": 28,
+          "rankPass": 13,
+          "rankTotal": 23
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 120.6,
+          "passYdsAllowedPerGame": 179.2,
+          "totalYdsAllowedPerGame": 299.8,
+          "rankRush": 19,
+          "rankPass": 4,
+          "rankTotal": 9
+        }
+      }
+    },
+    {
+      "id": "NYG",
+      "name": "New York Giants",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 129.1,
+          "passYdsPerGame": 204.4,
+          "totalYdsPerGame": 333.5,
+          "rankRush": 5,
+          "rankPass": 21,
+          "rankTotal": 13
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 145.3,
+          "passYdsAllowedPerGame": 214.2,
+          "totalYdsAllowedPerGame": 359.5,
+          "rankRush": 31,
+          "rankPass": 16,
+          "rankTotal": 28
+        }
+      }
+    },
+    {
+      "id": "NYJ",
+      "name": "New York Jets",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 123.3,
+          "passYdsPerGame": 140.3,
+          "totalYdsPerGame": 263.6,
+          "rankRush": 11,
+          "rankPass": 32,
+          "rankTotal": 29
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 139.5,
+          "passYdsAllowedPerGame": 216.1,
+          "totalYdsAllowedPerGame": 355.6,
+          "rankRush": 29,
+          "rankPass": 17,
+          "rankTotal": 25
+        }
+      }
+    },
+    {
+      "id": "PHI",
+      "name": "Philadelphia Eagles",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 116.9,
+          "passYdsPerGame": 194.3,
+          "totalYdsPerGame": 311.2,
+          "rankRush": 18,
+          "rankPass": 23,
+          "rankTotal": 24
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 124.4,
+          "passYdsAllowedPerGame": 189.8,
+          "totalYdsAllowedPerGame": 314.2,
+          "rankRush": 22,
+          "rankPass": 8,
+          "rankTotal": 13
+        }
+      }
+    },
+    {
+      "id": "PIT",
+      "name": "Pittsburgh Steelers",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 103.3,
+          "passYdsPerGame": 202.4,
+          "totalYdsPerGame": 305.6,
+          "rankRush": 26,
+          "rankPass": 22,
+          "rankTotal": 25
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 113.1,
+          "passYdsAllowedPerGame": 243.9,
+          "totalYdsAllowedPerGame": 356.9,
+          "rankRush": 13,
+          "rankPass": 29,
+          "rankTotal": 26
+        }
+      }
+    },
+    {
+      "id": "SF",
+      "name": "San Francisco 49ers",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 106.9,
+          "passYdsPerGame": 244.5,
+          "totalYdsPerGame": 351.4,
+          "rankRush": 24,
+          "rankPass": 5,
+          "rankTotal": 7
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 107.8,
+          "passYdsAllowedPerGame": 232.4,
+          "totalYdsAllowedPerGame": 340.2,
+          "rankRush": 11,
+          "rankPass": 25,
+          "rankTotal": 20
+        }
+      }
+    },
+    {
+      "id": "SEA",
+      "name": "Seattle Seahawks",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 123.3,
+          "passYdsPerGame": 228.1,
+          "totalYdsPerGame": 351.4,
+          "rankRush": 10,
+          "rankPass": 8,
+          "rankTotal": 8
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 91.9,
+          "passYdsAllowedPerGame": 193.9,
+          "totalYdsAllowedPerGame": 285.9,
+          "rankRush": 3,
+          "rankPass": 10,
+          "rankTotal": 6
+        }
+      }
+    },
+    {
+      "id": "TB",
+      "name": "Tampa Bay Buccaneers",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 114.5,
+          "passYdsPerGame": 205.9,
+          "totalYdsPerGame": 320.4,
+          "rankRush": 21,
+          "rankPass": 20,
+          "rankTotal": 21
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 99.1,
+          "passYdsAllowedPerGame": 238.2,
+          "totalYdsAllowedPerGame": 337.2,
+          "rankRush": 5,
+          "rankPass": 27,
+          "rankTotal": 19
+        }
+      }
+    },
+    {
+      "id": "TEN",
+      "name": "Tennessee Titans",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 93.5,
+          "passYdsPerGame": 166.1,
+          "totalYdsPerGame": 259.6,
+          "rankRush": 30,
+          "rankPass": 30,
+          "rankTotal": 31
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 114.6,
+          "passYdsAllowedPerGame": 230.5,
+          "totalYdsAllowedPerGame": 345.1,
+          "rankRush": 15,
+          "rankPass": 23,
+          "rankTotal": 21
+        }
+      }
+    },
+    {
+      "id": "WAS",
+      "name": "Washington Commanders",
+      "stats": {
+        "offense": {
+          "rushYdsPerGame": 134.7,
+          "passYdsPerGame": 184.1,
+          "totalYdsPerGame": 318.8,
+          "rankRush": 4,
+          "rankPass": 24,
+          "rankTotal": 22
+        },
+        "defense": {
+          "rushYdsAllowedPerGame": 141.5,
+          "passYdsAllowedPerGame": 242.5,
+          "totalYdsAllowedPerGame": 384.0,
+          "rankRush": 30,
+          "rankPass": 28,
+          "rankTotal": 32
+        }
+      }
+    }
+  ]
+}</script>
+<script type="application/json" id="players-data">{
+  "isDemoData": true,
+  "disclaimer": "Illustrative placeholder data assembled in the 2026 offseason (~7 weeks before Week 1) to demonstrate the injury-adjustment feature. Real injury statuses aren't finalized until practice/injury reports are released in-season (typically Wed-Fri of game week). Verify starters and update statuses once real reports are available.",
+  "players": {
+    "NE": [
+      {
+        "name": "Drake Maye",
+        "position": "QB",
+        "impactScore": 9,
+        "status": "active"
+      }
+    ],
+    "SEA": [
+      {
+        "name": "Sam Darnold",
+        "position": "QB",
+        "impactScore": 8,
+        "status": "active"
+      }
+    ],
+    "SF": [
+      {
+        "name": "Brock Purdy",
+        "position": "QB",
+        "impactScore": 8,
+        "status": "active"
+      }
+    ],
+    "LAR": [
+      {
+        "name": "Matthew Stafford",
+        "position": "QB",
+        "impactScore": 8,
+        "status": "active"
+      }
+    ],
+    "CHI": [
+      {
+        "name": "Caleb Williams",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "CAR": [
+      {
+        "name": "Bryce Young",
+        "position": "QB",
+        "impactScore": 6,
+        "status": "active"
+      }
+    ],
+    "TB": [
+      {
+        "name": "Baker Mayfield",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "CIN": [
+      {
+        "name": "Joe Burrow",
+        "position": "QB",
+        "impactScore": 9,
+        "status": "questionable"
+      }
+    ],
+    "NO": [
+      {
+        "name": "Tyler Shough",
+        "position": "QB",
+        "impactScore": 5,
+        "status": "active"
+      }
+    ],
+    "DET": [
+      {
+        "name": "Jared Goff",
+        "position": "QB",
+        "impactScore": 8,
+        "status": "active"
+      }
+    ],
+    "BUF": [
+      {
+        "name": "Josh Allen",
+        "position": "QB",
+        "impactScore": 10,
+        "status": "active"
+      }
+    ],
+    "HOU": [
+      {
+        "name": "C.J. Stroud",
+        "position": "QB",
+        "impactScore": 8,
+        "status": "active"
+      }
+    ],
+    "BAL": [
+      {
+        "name": "Lamar Jackson",
+        "position": "QB",
+        "impactScore": 10,
+        "status": "active"
+      }
+    ],
+    "IND": [
+      {
+        "name": "Daniel Jones",
+        "position": "QB",
+        "impactScore": 6,
+        "status": "active"
+      }
+    ],
+    "CLE": [
+      {
+        "name": "Myles Garrett",
+        "position": "Edge",
+        "impactScore": 7,
+        "status": "out"
+      }
+    ],
+    "JAX": [
+      {
+        "name": "Trevor Lawrence",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "ATL": [
+      {
+        "name": "Michael Penix Jr.",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "PIT": [
+      {
+        "name": "Aaron Rodgers",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "NYJ": [
+      {
+        "name": "Justin Fields",
+        "position": "QB",
+        "impactScore": 6,
+        "status": "active"
+      }
+    ],
+    "TEN": [
+      {
+        "name": "Cam Ward",
+        "position": "QB",
+        "impactScore": 6,
+        "status": "active"
+      }
+    ],
+    "ARI": [
+      {
+        "name": "Kyler Murray",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "LAC": [
+      {
+        "name": "Justin Herbert",
+        "position": "QB",
+        "impactScore": 9,
+        "status": "out"
+      }
+    ],
+    "MIA": [
+      {
+        "name": "Tua Tagovailoa",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "LV": [
+      {
+        "name": "Geno Smith",
+        "position": "QB",
+        "impactScore": 6,
+        "status": "active"
+      }
+    ],
+    "GB": [
+      {
+        "name": "Jordan Love",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "MIN": [
+      {
+        "name": "Justin Jefferson",
+        "position": "WR",
+        "impactScore": 8,
+        "status": "out"
+      }
+    ],
+    "WAS": [
+      {
+        "name": "Jayden Daniels",
+        "position": "QB",
+        "impactScore": 8,
+        "status": "active"
+      }
+    ],
+    "PHI": [
+      {
+        "name": "Jalen Hurts",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "DAL": [
+      {
+        "name": "Dak Prescott",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "NYG": [
+      {
+        "name": "Jaxson Dart",
+        "position": "QB",
+        "impactScore": 6,
+        "status": "active"
+      }
+    ],
+    "DEN": [
+      {
+        "name": "Bo Nix",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      }
+    ],
+    "KC": [
+      {
+        "name": "Patrick Mahomes",
+        "position": "QB",
+        "impactScore": 10,
+        "status": "active"
+      }
+    ]
+  }
+}</script>
+<script type="application/json" id="schedule-data">{
+  "season": 2026,
+  "sourceNote": "Compiled from Pro-Football-Reference (weeks 1-13) and NFL.com by-week schedule pages (weeks 14-18). Weeks 16-18 dates/times are partly flexed/TBD per NFL rules and will be finalized during the season. A handful of teams may show BYE in a given week if source data had a gap - flag it and we'll fill it in.",
+  "weeks": [
+    {
+      "week": 1,
+      "games": [
+        {
+          "away": "NE",
+          "home": "SEA",
+          "date": "Wed, Sep 9",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "SF",
+          "home": "LAR",
+          "date": "Thu, Sep 10",
+          "time": "8:35 PM ET"
+        },
+        {
+          "away": "CHI",
+          "home": "CAR",
+          "date": "Sun, Sep 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TB",
+          "home": "CIN",
+          "date": "Sun, Sep 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NO",
+          "home": "DET",
+          "date": "Sun, Sep 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "BUF",
+          "home": "HOU",
+          "date": "Sun, Sep 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "BAL",
+          "home": "IND",
+          "date": "Sun, Sep 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CLE",
+          "home": "JAX",
+          "date": "Sun, Sep 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ATL",
+          "home": "PIT",
+          "date": "Sun, Sep 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYJ",
+          "home": "TEN",
+          "date": "Sun, Sep 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ARI",
+          "home": "LAC",
+          "date": "Sun, Sep 13",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "MIA",
+          "home": "LV",
+          "date": "Sun, Sep 13",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "GB",
+          "home": "MIN",
+          "date": "Sun, Sep 13",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "WAS",
+          "home": "PHI",
+          "date": "Sun, Sep 13",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "DAL",
+          "home": "NYG",
+          "date": "Sun, Sep 13",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "DEN",
+          "home": "KC",
+          "date": "Mon, Sep 14",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "games": [
+        {
+          "away": "DET",
+          "home": "BUF",
+          "date": "Thu, Sep 17",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "CAR",
+          "home": "ATL",
+          "date": "Sun, Sep 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "MIN",
+          "home": "CHI",
+          "date": "Sun, Sep 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CIN",
+          "home": "HOU",
+          "date": "Sun, Sep 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "PIT",
+          "home": "NE",
+          "date": "Sun, Sep 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "GB",
+          "home": "NYJ",
+          "date": "Sun, Sep 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "PHI",
+          "home": "TEN",
+          "date": "Sun, Sep 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NO",
+          "home": "BAL",
+          "date": "Sun, Sep 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CLE",
+          "home": "TB",
+          "date": "Sun, Sep 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "JAX",
+          "home": "DEN",
+          "date": "Sun, Sep 20",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "LV",
+          "home": "LAC",
+          "date": "Sun, Sep 20",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "SEA",
+          "home": "ARI",
+          "date": "Sun, Sep 20",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "WAS",
+          "home": "DAL",
+          "date": "Sun, Sep 20",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "MIA",
+          "home": "SF",
+          "date": "Sun, Sep 20",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "IND",
+          "home": "KC",
+          "date": "Sun, Sep 20",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "NYG",
+          "home": "LAR",
+          "date": "Mon, Sep 21",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 3,
+      "games": [
+        {
+          "away": "ATL",
+          "home": "GB",
+          "date": "Thu, Sep 24",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "LAC",
+          "home": "BUF",
+          "date": "Sun, Sep 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CAR",
+          "home": "CLE",
+          "date": "Sun, Sep 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "HOU",
+          "home": "IND",
+          "date": "Sun, Sep 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYJ",
+          "home": "DET",
+          "date": "Sun, Sep 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NE",
+          "home": "JAX",
+          "date": "Sun, Sep 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "KC",
+          "home": "MIA",
+          "date": "Sun, Sep 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TEN",
+          "home": "NYG",
+          "date": "Sun, Sep 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CIN",
+          "home": "PIT",
+          "date": "Sun, Sep 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "SEA",
+          "home": "WAS",
+          "date": "Sun, Sep 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ARI",
+          "home": "SF",
+          "date": "Sun, Sep 27",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "MIN",
+          "home": "TB",
+          "date": "Sun, Sep 27",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "BAL",
+          "home": "DAL",
+          "date": "Sun, Sep 27",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "LV",
+          "home": "NO",
+          "date": "Sun, Sep 27",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "LAR",
+          "home": "DEN",
+          "date": "Sun, Sep 27",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "PHI",
+          "home": "CHI",
+          "date": "Mon, Sep 28",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 4,
+      "games": [
+        {
+          "away": "PIT",
+          "home": "CLE",
+          "date": "Thu, Oct 1",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "IND",
+          "home": "WAS",
+          "date": "Sun, Oct 4",
+          "time": "9:30 AM ET"
+        },
+        {
+          "away": "NE",
+          "home": "BUF",
+          "date": "Sun, Oct 4",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYJ",
+          "home": "CHI",
+          "date": "Sun, Oct 4",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "JAX",
+          "home": "CIN",
+          "date": "Sun, Oct 4",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "DAL",
+          "home": "HOU",
+          "date": "Sun, Oct 4",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ARI",
+          "home": "NYG",
+          "date": "Sun, Oct 4",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LAR",
+          "home": "PHI",
+          "date": "Sun, Oct 4",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TEN",
+          "home": "BAL",
+          "date": "Sun, Oct 4",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "GB",
+          "home": "TB",
+          "date": "Sun, Oct 4",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "MIA",
+          "home": "MIN",
+          "date": "Sun, Oct 4",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "KC",
+          "home": "LV",
+          "date": "Sun, Oct 4",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "LAC",
+          "home": "SEA",
+          "date": "Sun, Oct 4",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "DEN",
+          "home": "SF",
+          "date": "Sun, Oct 4",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "DET",
+          "home": "CAR",
+          "date": "Sun, Oct 4",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "ATL",
+          "home": "NO",
+          "date": "Mon, Oct 5",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 5,
+      "games": [
+        {
+          "away": "TB",
+          "home": "DAL",
+          "date": "Thu, Oct 8",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "PHI",
+          "home": "JAX",
+          "date": "Sun, Oct 11",
+          "time": "9:30 AM ET"
+        },
+        {
+          "away": "CIN",
+          "home": "MIA",
+          "date": "Sun, Oct 11",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "MIN",
+          "home": "NO",
+          "date": "Sun, Oct 11",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LV",
+          "home": "NE",
+          "date": "Sun, Oct 11",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CLE",
+          "home": "NYJ",
+          "date": "Sun, Oct 11",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "HOU",
+          "home": "TEN",
+          "date": "Sun, Oct 11",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "IND",
+          "home": "PIT",
+          "date": "Sun, Oct 11",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYG",
+          "home": "WAS",
+          "date": "Sun, Oct 11",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "DEN",
+          "home": "LAC",
+          "date": "Sun, Oct 11",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "DET",
+          "home": "ARI",
+          "date": "Sun, Oct 11",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "CHI",
+          "home": "GB",
+          "date": "Sun, Oct 11",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "SF",
+          "home": "SEA",
+          "date": "Sun, Oct 11",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "BAL",
+          "home": "ATL",
+          "date": "Sun, Oct 11",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "BUF",
+          "home": "LAR",
+          "date": "Mon, Oct 12",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 6,
+      "games": [
+        {
+          "away": "SEA",
+          "home": "DEN",
+          "date": "Thu, Oct 15",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "HOU",
+          "home": "JAX",
+          "date": "Sun, Oct 18",
+          "time": "9:30 AM ET"
+        },
+        {
+          "away": "CHI",
+          "home": "ATL",
+          "date": "Sun, Oct 18",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "BAL",
+          "home": "CLE",
+          "date": "Sun, Oct 18",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TEN",
+          "home": "IND",
+          "date": "Sun, Oct 18",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYJ",
+          "home": "NE",
+          "date": "Sun, Oct 18",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NO",
+          "home": "NYG",
+          "date": "Sun, Oct 18",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CAR",
+          "home": "PHI",
+          "date": "Sun, Oct 18",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "PIT",
+          "home": "TB",
+          "date": "Sun, Oct 18",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ARI",
+          "home": "LAR",
+          "date": "Sun, Oct 18",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "LAC",
+          "home": "KC",
+          "date": "Sun, Oct 18",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "BUF",
+          "home": "LV",
+          "date": "Sun, Oct 18",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "DAL",
+          "home": "GB",
+          "date": "Sun, Oct 18",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "WAS",
+          "home": "SF",
+          "date": "Mon, Oct 19",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 7,
+      "games": [
+        {
+          "away": "NE",
+          "home": "CHI",
+          "date": "Thu, Oct 22",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "PIT",
+          "home": "NO",
+          "date": "Sun, Oct 25",
+          "time": "9:30 AM ET"
+        },
+        {
+          "away": "SF",
+          "home": "ATL",
+          "date": "Sun, Oct 25",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TB",
+          "home": "CAR",
+          "date": "Sun, Oct 25",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYG",
+          "home": "HOU",
+          "date": "Sun, Oct 25",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "IND",
+          "home": "MIN",
+          "date": "Sun, Oct 25",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "MIA",
+          "home": "NYJ",
+          "date": "Sun, Oct 25",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CLE",
+          "home": "TEN",
+          "date": "Sun, Oct 25",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CIN",
+          "home": "BAL",
+          "date": "Sun, Oct 25",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "DEN",
+          "home": "ARI",
+          "date": "Sun, Oct 25",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "GB",
+          "home": "DET",
+          "date": "Sun, Oct 25",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "LAR",
+          "home": "LV",
+          "date": "Sun, Oct 25",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "KC",
+          "home": "SEA",
+          "date": "Sun, Oct 25",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "DAL",
+          "home": "PHI",
+          "date": "Mon, Oct 26",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 8,
+      "games": [
+        {
+          "away": "CAR",
+          "home": "GB",
+          "date": "Thu, Oct 29",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "BAL",
+          "home": "BUF",
+          "date": "Sun, Nov 1",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TEN",
+          "home": "CIN",
+          "date": "Sun, Nov 1",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ARI",
+          "home": "DAL",
+          "date": "Sun, Nov 1",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "MIN",
+          "home": "DET",
+          "date": "Sun, Nov 1",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "IND",
+          "home": "JAX",
+          "date": "Sun, Nov 1",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LV",
+          "home": "NYJ",
+          "date": "Sun, Nov 1",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CLE",
+          "home": "PIT",
+          "date": "Sun, Nov 1",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ATL",
+          "home": "TB",
+          "date": "Sun, Nov 1",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LAC",
+          "home": "LAR",
+          "date": "Sun, Nov 1",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "KC",
+          "home": "DEN",
+          "date": "Sun, Nov 1",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "NE",
+          "home": "MIA",
+          "date": "Sun, Nov 1",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "PHI",
+          "home": "WAS",
+          "date": "Sun, Nov 1",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "CHI",
+          "home": "SEA",
+          "date": "Mon, Nov 2",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 9,
+      "games": [
+        {
+          "away": "JAX",
+          "home": "BAL",
+          "date": "Thu, Nov 5",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "CIN",
+          "home": "ATL",
+          "date": "Sun, Nov 8",
+          "time": "9:30 AM ET"
+        },
+        {
+          "away": "DEN",
+          "home": "CAR",
+          "date": "Sun, Nov 8",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "DAL",
+          "home": "IND",
+          "date": "Sun, Nov 8",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYJ",
+          "home": "KC",
+          "date": "Sun, Nov 8",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "DET",
+          "home": "MIA",
+          "date": "Sun, Nov 8",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CLE",
+          "home": "NO",
+          "date": "Sun, Nov 8",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYG",
+          "home": "PHI",
+          "date": "Sun, Nov 8",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LAR",
+          "home": "WAS",
+          "date": "Sun, Nov 8",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "HOU",
+          "home": "LAC",
+          "date": "Sun, Nov 8",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "LV",
+          "home": "SF",
+          "date": "Sun, Nov 8",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "GB",
+          "home": "NE",
+          "date": "Sun, Nov 8",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "ARI",
+          "home": "SEA",
+          "date": "Sun, Nov 8",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "TB",
+          "home": "CHI",
+          "date": "Sun, Nov 8",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "BUF",
+          "home": "MIN",
+          "date": "Mon, Nov 9",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 10,
+      "games": [
+        {
+          "away": "WAS",
+          "home": "NYG",
+          "date": "Thu, Nov 12",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "NE",
+          "home": "DET",
+          "date": "Sun, Nov 15",
+          "time": "9:30 AM ET"
+        },
+        {
+          "away": "KC",
+          "home": "ATL",
+          "date": "Sun, Nov 15",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "HOU",
+          "home": "CLE",
+          "date": "Sun, Nov 15",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "MIA",
+          "home": "IND",
+          "date": "Sun, Nov 15",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "MIN",
+          "home": "GB",
+          "date": "Sun, Nov 15",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CAR",
+          "home": "NO",
+          "date": "Sun, Nov 15",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "BUF",
+          "home": "NYJ",
+          "date": "Sun, Nov 15",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "JAX",
+          "home": "TEN",
+          "date": "Sun, Nov 15",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LAR",
+          "home": "ARI",
+          "date": "Sun, Nov 15",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "SEA",
+          "home": "LV",
+          "date": "Sun, Nov 15",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "SF",
+          "home": "DAL",
+          "date": "Sun, Nov 15",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "PIT",
+          "home": "CIN",
+          "date": "Sun, Nov 15",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "LAC",
+          "home": "BAL",
+          "date": "Mon, Nov 16",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 11,
+      "games": [
+        {
+          "away": "IND",
+          "home": "HOU",
+          "date": "Thu, Nov 19",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "MIA",
+          "home": "BUF",
+          "date": "Sun, Nov 22",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "BAL",
+          "home": "CAR",
+          "date": "Sun, Nov 22",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NO",
+          "home": "CHI",
+          "date": "Sun, Nov 22",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TEN",
+          "home": "DAL",
+          "date": "Sun, Nov 22",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TB",
+          "home": "DET",
+          "date": "Sun, Nov 22",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ARI",
+          "home": "KC",
+          "date": "Sun, Nov 22",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "JAX",
+          "home": "NYG",
+          "date": "Sun, Nov 22",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYJ",
+          "home": "LAC",
+          "date": "Sun, Nov 22",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "LV",
+          "home": "DEN",
+          "date": "Sun, Nov 22",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "PIT",
+          "home": "PHI",
+          "date": "Sun, Nov 22",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "MIN",
+          "home": "SF",
+          "date": "Sun, Nov 22",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "CIN",
+          "home": "WAS",
+          "date": "Mon, Nov 23",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 12,
+      "games": [
+        {
+          "away": "GB",
+          "home": "LAR",
+          "date": "Wed, Nov 25",
+          "time": "8:00 PM ET"
+        },
+        {
+          "away": "CHI",
+          "home": "DET",
+          "date": "Thu, Nov 26",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "PHI",
+          "home": "DAL",
+          "date": "Thu, Nov 26",
+          "time": "4:30 PM ET"
+        },
+        {
+          "away": "KC",
+          "home": "BUF",
+          "date": "Thu, Nov 26",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "DEN",
+          "home": "PIT",
+          "date": "Fri, Nov 27",
+          "time": "3:00 PM ET"
+        },
+        {
+          "away": "NO",
+          "home": "CIN",
+          "date": "Sun, Nov 29",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LV",
+          "home": "CLE",
+          "date": "Sun, Nov 29",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYG",
+          "home": "IND",
+          "date": "Sun, Nov 29",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "BAL",
+          "home": "HOU",
+          "date": "Sun, Nov 29",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYJ",
+          "home": "MIA",
+          "date": "Sun, Nov 29",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ATL",
+          "home": "MIN",
+          "date": "Sun, Nov 29",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TEN",
+          "home": "JAX",
+          "date": "Sun, Nov 29",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "WAS",
+          "home": "ARI",
+          "date": "Sun, Nov 29",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "SEA",
+          "home": "SF",
+          "date": "Sun, Nov 29",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "NE",
+          "home": "LAC",
+          "date": "Sun, Nov 29",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "CAR",
+          "home": "TB",
+          "date": "Mon, Nov 30",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 13,
+      "games": [
+        {
+          "away": "KC",
+          "home": "LAR",
+          "date": "Thu, Dec 3",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "DET",
+          "home": "ATL",
+          "date": "Sun, Dec 6",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "JAX",
+          "home": "CHI",
+          "date": "Sun, Dec 6",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CIN",
+          "home": "CLE",
+          "date": "Sun, Dec 6",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "GB",
+          "home": "NO",
+          "date": "Sun, Dec 6",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "SF",
+          "home": "NYG",
+          "date": "Sun, Dec 6",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "WAS",
+          "home": "TEN",
+          "date": "Sun, Dec 6",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LAC",
+          "home": "TB",
+          "date": "Sun, Dec 6",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "PHI",
+          "home": "ARI",
+          "date": "Sun, Dec 6",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "MIA",
+          "home": "DEN",
+          "date": "Sun, Dec 6",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "CAR",
+          "home": "MIN",
+          "date": "Sun, Dec 6",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "BUF",
+          "home": "NE",
+          "date": "Sun, Dec 6",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "HOU",
+          "home": "PIT",
+          "date": "Sun, Dec 6",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "DAL",
+          "home": "SEA",
+          "date": "Mon, Dec 7",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 14,
+      "games": [
+        {
+          "away": "MIN",
+          "home": "NE",
+          "date": "Thu, Dec 10",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "TB",
+          "home": "BAL",
+          "date": "Sun, Dec 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NO",
+          "home": "CAR",
+          "date": "Sun, Dec 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ATL",
+          "home": "CLE",
+          "date": "Sun, Dec 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TEN",
+          "home": "DET",
+          "date": "Sun, Dec 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CHI",
+          "home": "MIA",
+          "date": "Sun, Dec 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "DEN",
+          "home": "NYJ",
+          "date": "Sun, Dec 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "IND",
+          "home": "PHI",
+          "date": "Sun, Dec 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "HOU",
+          "home": "WAS",
+          "date": "Sun, Dec 13",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LAC",
+          "home": "LV",
+          "date": "Sun, Dec 13",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "KC",
+          "home": "CIN",
+          "date": "Sun, Dec 13",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "NYG",
+          "home": "SEA",
+          "date": "Sun, Dec 13",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "LAR",
+          "home": "SF",
+          "date": "Sun, Dec 13",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "BUF",
+          "home": "GB",
+          "date": "Sun, Dec 13",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "PIT",
+          "home": "JAX",
+          "date": "Mon, Dec 14",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 15,
+      "games": [
+        {
+          "away": "SF",
+          "home": "LAC",
+          "date": "Thu, Dec 17",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "SEA",
+          "home": "PHI",
+          "date": "Thu, Dec 17",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "CHI",
+          "home": "BUF",
+          "date": "Thu, Dec 17",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "CIN",
+          "home": "CAR",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "MIA",
+          "home": "GB",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "JAX",
+          "home": "HOU",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "CLE",
+          "home": "NYG",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "BAL",
+          "home": "PIT",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NO",
+          "home": "TB",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "IND",
+          "home": "TEN",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ATL",
+          "home": "WAS",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYJ",
+          "home": "ARI",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "DAL",
+          "home": "LAR",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "DEN",
+          "home": "LV",
+          "date": "Sun, Dec 20",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "DET",
+          "home": "MIN",
+          "date": "Sun, Dec 20",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "NE",
+          "home": "KC",
+          "date": "Mon, Dec 21",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 16,
+      "games": [
+        {
+          "away": "HOU",
+          "home": "PHI",
+          "date": "Thu, Dec 24",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "GB",
+          "home": "CHI",
+          "date": "Fri, Dec 25",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "BUF",
+          "home": "DEN",
+          "date": "Fri, Dec 25",
+          "time": "4:30 PM ET"
+        },
+        {
+          "away": "LAR",
+          "home": "SEA",
+          "date": "Fri, Dec 25",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "CLE",
+          "home": "BAL",
+          "date": "Sun, Dec 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LAC",
+          "home": "MIA",
+          "date": "Sun, Dec 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "ARI",
+          "home": "NO",
+          "date": "Sun, Dec 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NE",
+          "home": "NYJ",
+          "date": "Sun, Dec 27",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "TEN",
+          "home": "LV",
+          "date": "Sun, Dec 27",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "SF",
+          "home": "KC",
+          "date": "Sun, Dec 27",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "JAX",
+          "home": "DAL",
+          "date": "Sun, Dec 27",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "NYG",
+          "home": "DET",
+          "date": "Mon, Dec 28",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "TB",
+          "home": "ATL",
+          "date": "Mon, Dec 28",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "CIN",
+          "home": "IND",
+          "date": "Mon, Dec 28",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "WAS",
+          "home": "MIN",
+          "date": "Mon, Dec 28",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "CAR",
+          "home": "PIT",
+          "date": "Mon, Dec 28",
+          "time": "8:15 PM ET"
+        }
+      ]
+    },
+    {
+      "week": 17,
+      "games": [
+        {
+          "away": "BAL",
+          "home": "CIN",
+          "date": "Thu, Dec 31",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "NO",
+          "home": "ATL",
+          "date": "Sun, Jan 3",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "SEA",
+          "home": "CAR",
+          "date": "Sun, Jan 3",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "IND",
+          "home": "CLE",
+          "date": "Sun, Jan 3",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "NYG",
+          "home": "DAL",
+          "date": "Sun, Jan 3",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "BUF",
+          "home": "MIA",
+          "date": "Sun, Jan 3",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "MIN",
+          "home": "NYJ",
+          "date": "Sun, Jan 3",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "PIT",
+          "home": "TEN",
+          "date": "Sun, Jan 3",
+          "time": "1:00 PM ET"
+        },
+        {
+          "away": "LV",
+          "home": "ARI",
+          "date": "Sun, Jan 3",
+          "time": "4:05 PM ET"
+        },
+        {
+          "away": "DET",
+          "home": "CHI",
+          "date": "Sun, Jan 3",
+          "time": "4:25 PM ET"
+        },
+        {
+          "away": "PHI",
+          "home": "SF",
+          "date": "Sun, Jan 3",
+          "time": "8:20 PM ET"
+        },
+        {
+          "away": "HOU",
+          "home": "GB",
+          "date": "Mon, Jan 4",
+          "time": "8:15 PM ET"
+        },
+        {
+          "away": "WAS",
+          "home": "JAX",
+          "date": "Mon, Jan 4",
+          "time": "TBD"
+        },
+        {
+          "away": "KC",
+          "home": "LAC",
+          "date": "Mon, Jan 4",
+          "time": "TBD"
+        },
+        {
+          "away": "DEN",
+          "home": "NE",
+          "date": "Mon, Jan 4",
+          "time": "TBD"
+        },
+        {
+          "away": "LAR",
+          "home": "TB",
+          "date": "Mon, Jan 4",
+          "time": "TBD"
+        }
+      ]
+    },
+    {
+      "week": 18,
+      "games": [
+        {
+          "away": "SF",
+          "home": "ARI",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "PIT",
+          "home": "BAL",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "NYJ",
+          "home": "BUF",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "ATL",
+          "home": "CAR",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "CLE",
+          "home": "CIN",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "LAC",
+          "home": "DEN",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "DET",
+          "home": "GB",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "TEN",
+          "home": "HOU",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "JAX",
+          "home": "IND",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "LV",
+          "home": "KC",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "SEA",
+          "home": "LAR",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "CHI",
+          "home": "MIN",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "MIA",
+          "home": "NE",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "TB",
+          "home": "NO",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "PHI",
+          "home": "NYG",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        },
+        {
+          "away": "DAL",
+          "home": "WAS",
+          "date": "Sun, Jan 10",
+          "time": "TBD"
+        }
+      ]
+    }
+  ]
+}</script>
+<script type="application/json" id="history-data">{
+  "weeks": [
+    {
+      "week": 1,
+      "isDemo": true,
+      "snapshotDate": "2026-09-14T00:00:00Z",
+      "note": "Illustrative sample only. The 2026 season hasn't been played yet (kickoff is Sept 9, 2026) -- these scores are made up to demonstrate the predicted-vs-actual view. Once Week 1 is actually played, a real snapshot will replace this.",
+      "teamStats": {
+        "ARI": {
+          "offense": {
+            "rushYdsPerGame": 93.1,
+            "passYdsPerGame": 232.6,
+            "totalYdsPerGame": 325.8,
+            "rankRush": 31,
+            "rankPass": 7,
+            "rankTotal": 19
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 126.9,
+            "passYdsAllowedPerGame": 230.8,
+            "totalYdsAllowedPerGame": 357.7,
+            "rankRush": 25,
+            "rankPass": 24,
+            "rankTotal": 27
+          }
+        },
+        "ATL": {
+          "offense": {
+            "rushYdsPerGame": 125.8,
+            "passYdsPerGame": 207.2,
+            "totalYdsPerGame": 333.0,
+            "rankRush": 8,
+            "rankPass": 19,
+            "rankTotal": 14
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 126.2,
+            "passYdsAllowedPerGame": 200.4,
+            "totalYdsAllowedPerGame": 326.6,
+            "rankRush": 24,
+            "rankPass": 13,
+            "rankTotal": 15
+          }
+        },
+        "BAL": {
+          "offense": {
+            "rushYdsPerGame": 156.6,
+            "passYdsPerGame": 175.6,
+            "totalYdsPerGame": 332.2,
+            "rankRush": 2,
+            "rankPass": 27,
+            "rankTotal": 16
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 106.6,
+            "passYdsAllowedPerGame": 247.9,
+            "totalYdsAllowedPerGame": 354.5,
+            "rankRush": 10,
+            "rankPass": 31,
+            "rankTotal": 24
+          }
+        },
+        "BUF": {
+          "offense": {
+            "rushYdsPerGame": 159.6,
+            "passYdsPerGame": 216.6,
+            "totalYdsPerGame": 376.3,
+            "rankRush": 1,
+            "rankPass": 15,
+            "rankTotal": 4
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 136.2,
+            "passYdsAllowedPerGame": 156.9,
+            "totalYdsAllowedPerGame": 293.1,
+            "rankRush": 28,
+            "rankPass": 1,
+            "rankTotal": 7
+          }
+        },
+        "CAR": {
+          "offense": {
+            "rushYdsPerGame": 116.3,
+            "passYdsPerGame": 179.3,
+            "totalYdsPerGame": 295.6,
+            "rankRush": 19,
+            "rankPass": 26,
+            "rankTotal": 27
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 123.3,
+            "passYdsAllowedPerGame": 203.9,
+            "totalYdsAllowedPerGame": 327.2,
+            "rankRush": 20,
+            "rankPass": 15,
+            "rankTotal": 16
+          }
+        },
+        "CHI": {
+          "offense": {
+            "rushYdsPerGame": 144.2,
+            "passYdsPerGame": 225.1,
+            "totalYdsPerGame": 369.2,
+            "rankRush": 3,
+            "rankPass": 10,
+            "rankTotal": 6
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 134.5,
+            "passYdsAllowedPerGame": 227.2,
+            "totalYdsAllowedPerGame": 361.8,
+            "rankRush": 27,
+            "rankPass": 22,
+            "rankTotal": 29
+          }
+        },
+        "CIN": {
+          "offense": {
+            "rushYdsPerGame": 93.6,
+            "passYdsPerGame": 235.6,
+            "totalYdsPerGame": 329.2,
+            "rankRush": 29,
+            "rankPass": 6,
+            "rankTotal": 17
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 147.1,
+            "passYdsAllowedPerGame": 233.8,
+            "totalYdsAllowedPerGame": 380.9,
+            "rankRush": 32,
+            "rankPass": 26,
+            "rankTotal": 31
+          }
+        },
+        "CLE": {
+          "offense": {
+            "rushYdsPerGame": 97.0,
+            "passYdsPerGame": 165.1,
+            "totalYdsPerGame": 262.1,
+            "rankRush": 27,
+            "rankPass": 31,
+            "rankTotal": 30
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 116.4,
+            "passYdsAllowedPerGame": 167.2,
+            "totalYdsAllowedPerGame": 283.6,
+            "rankRush": 16,
+            "rankPass": 3,
+            "rankTotal": 4
+          }
+        },
+        "DAL": {
+          "offense": {
+            "rushYdsPerGame": 125.6,
+            "passYdsPerGame": 266.3,
+            "totalYdsPerGame": 391.9,
+            "rankRush": 9,
+            "rankPass": 2,
+            "rankTotal": 2
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 125.5,
+            "passYdsAllowedPerGame": 251.5,
+            "totalYdsAllowedPerGame": 377.0,
+            "rankRush": 23,
+            "rankPass": 32,
+            "rankTotal": 30
+          }
+        },
+        "DEN": {
+          "offense": {
+            "rushYdsPerGame": 118.7,
+            "passYdsPerGame": 223.9,
+            "totalYdsPerGame": 342.6,
+            "rankRush": 16,
+            "rankPass": 11,
+            "rankTotal": 10
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 91.1,
+            "passYdsAllowedPerGame": 187.2,
+            "totalYdsAllowedPerGame": 278.2,
+            "rankRush": 2,
+            "rankPass": 7,
+            "rankTotal": 2
+          }
+        },
+        "DET": {
+          "offense": {
+            "rushYdsPerGame": 120.1,
+            "passYdsPerGame": 253.1,
+            "totalYdsPerGame": 373.2,
+            "rankRush": 14,
+            "rankPass": 3,
+            "rankTotal": 5
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 114.5,
+            "passYdsAllowedPerGame": 217.4,
+            "totalYdsAllowedPerGame": 331.9,
+            "rankRush": 14,
+            "rankPass": 20,
+            "rankTotal": 18
+          }
+        },
+        "GB": {
+          "offense": {
+            "rushYdsPerGame": 119.8,
+            "passYdsPerGame": 212.8,
+            "totalYdsPerGame": 332.6,
+            "rankRush": 15,
+            "rankPass": 17,
+            "rankTotal": 15
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 117.7,
+            "passYdsAllowedPerGame": 194.1,
+            "totalYdsAllowedPerGame": 311.8,
+            "rankRush": 18,
+            "rankPass": 11,
+            "rankTotal": 12
+          }
+        },
+        "HOU": {
+          "offense": {
+            "rushYdsPerGame": 108.9,
+            "passYdsPerGame": 218.1,
+            "totalYdsPerGame": 327.0,
+            "rankRush": 22,
+            "rankPass": 14,
+            "rankTotal": 18
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 93.7,
+            "passYdsAllowedPerGame": 183.5,
+            "totalYdsAllowedPerGame": 277.2,
+            "rankRush": 4,
+            "rankPass": 6,
+            "rankTotal": 1
+          }
+        },
+        "IND": {
+          "offense": {
+            "rushYdsPerGame": 118.1,
+            "passYdsPerGame": 227.8,
+            "totalYdsPerGame": 345.9,
+            "rankRush": 17,
+            "rankPass": 9,
+            "rankTotal": 9
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 101.9,
+            "passYdsAllowedPerGame": 247.9,
+            "totalYdsAllowedPerGame": 349.8,
+            "rankRush": 7,
+            "rankPass": 30,
+            "rankTotal": 23
+          }
+        },
+        "JAX": {
+          "offense": {
+            "rushYdsPerGame": 115.1,
+            "passYdsPerGame": 222.3,
+            "totalYdsPerGame": 337.4,
+            "rankRush": 20,
+            "rankPass": 12,
+            "rankTotal": 11
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 85.6,
+            "passYdsAllowedPerGame": 218.1,
+            "totalYdsAllowedPerGame": 303.6,
+            "rankRush": 1,
+            "rankPass": 21,
+            "rankTotal": 11
+          }
+        },
+        "KC": {
+          "offense": {
+            "rushYdsPerGame": 106.6,
+            "passYdsPerGame": 214.1,
+            "totalYdsPerGame": 320.6,
+            "rankRush": 25,
+            "rankPass": 16,
+            "rankTotal": 20
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 105.7,
+            "passYdsAllowedPerGame": 195.8,
+            "totalYdsAllowedPerGame": 301.5,
+            "rankRush": 9,
+            "rankPass": 12,
+            "rankTotal": 10
+          }
+        },
+        "LV": {
+          "offense": {
+            "rushYdsPerGame": 77.5,
+            "passYdsPerGame": 167.7,
+            "totalYdsPerGame": 245.2,
+            "rankRush": 32,
+            "rankPass": 28,
+            "rankTotal": 32
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 116.8,
+            "passYdsAllowedPerGame": 201.0,
+            "totalYdsAllowedPerGame": 317.8,
+            "rankRush": 17,
+            "rankPass": 14,
+            "rankTotal": 14
+          }
+        },
+        "LAC": {
+          "offense": {
+            "rushYdsPerGame": 121.6,
+            "passYdsPerGame": 212.2,
+            "totalYdsPerGame": 333.8,
+            "rankRush": 12,
+            "rankPass": 18,
+            "rankTotal": 12
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 105.4,
+            "passYdsAllowedPerGame": 179.9,
+            "totalYdsAllowedPerGame": 285.2,
+            "rankRush": 8,
+            "rankPass": 5,
+            "rankTotal": 5
+          }
+        },
+        "LAR": {
+          "offense": {
+            "rushYdsPerGame": 126.6,
+            "passYdsPerGame": 268.1,
+            "totalYdsPerGame": 394.6,
+            "rankRush": 7,
+            "rankPass": 1,
+            "rankTotal": 1
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 110.8,
+            "passYdsAllowedPerGame": 216.7,
+            "totalYdsAllowedPerGame": 327.5,
+            "rankRush": 12,
+            "rankPass": 19,
+            "rankTotal": 17
+          }
+        },
+        "MIA": {
+          "offense": {
+            "rushYdsPerGame": 120.2,
+            "passYdsPerGame": 180.5,
+            "totalYdsPerGame": 300.7,
+            "rankRush": 13,
+            "rankPass": 25,
+            "rankTotal": 26
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 132.4,
+            "passYdsAllowedPerGame": 216.4,
+            "totalYdsAllowedPerGame": 348.8,
+            "rankRush": 26,
+            "rankPass": 18,
+            "rankTotal": 22
+          }
+        },
+        "MIN": {
+          "offense": {
+            "rushYdsPerGame": 108.3,
+            "passYdsPerGame": 166.7,
+            "totalYdsPerGame": 275.0,
+            "rankRush": 23,
+            "rankPass": 29,
+            "rankTotal": 28
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 124.1,
+            "passYdsAllowedPerGame": 158.5,
+            "totalYdsAllowedPerGame": 282.6,
+            "rankRush": 21,
+            "rankPass": 2,
+            "rankTotal": 3
+          }
+        },
+        "NE": {
+          "offense": {
+            "rushYdsPerGame": 128.9,
+            "passYdsPerGame": 250.5,
+            "totalYdsPerGame": 379.4,
+            "rankRush": 6,
+            "rankPass": 4,
+            "rankTotal": 3
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 101.7,
+            "passYdsAllowedPerGame": 193.5,
+            "totalYdsAllowedPerGame": 295.2,
+            "rankRush": 6,
+            "rankPass": 9,
+            "rankTotal": 8
+          }
+        },
+        "NO": {
+          "offense": {
+            "rushYdsPerGame": 94.3,
+            "passYdsPerGame": 219.3,
+            "totalYdsPerGame": 313.6,
+            "rankRush": 28,
+            "rankPass": 13,
+            "rankTotal": 23
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 120.6,
+            "passYdsAllowedPerGame": 179.2,
+            "totalYdsAllowedPerGame": 299.8,
+            "rankRush": 19,
+            "rankPass": 4,
+            "rankTotal": 9
+          }
+        },
+        "NYG": {
+          "offense": {
+            "rushYdsPerGame": 129.1,
+            "passYdsPerGame": 204.4,
+            "totalYdsPerGame": 333.5,
+            "rankRush": 5,
+            "rankPass": 21,
+            "rankTotal": 13
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 145.3,
+            "passYdsAllowedPerGame": 214.2,
+            "totalYdsAllowedPerGame": 359.5,
+            "rankRush": 31,
+            "rankPass": 16,
+            "rankTotal": 28
+          }
+        },
+        "NYJ": {
+          "offense": {
+            "rushYdsPerGame": 123.3,
+            "passYdsPerGame": 140.3,
+            "totalYdsPerGame": 263.6,
+            "rankRush": 11,
+            "rankPass": 32,
+            "rankTotal": 29
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 139.5,
+            "passYdsAllowedPerGame": 216.1,
+            "totalYdsAllowedPerGame": 355.6,
+            "rankRush": 29,
+            "rankPass": 17,
+            "rankTotal": 25
+          }
+        },
+        "PHI": {
+          "offense": {
+            "rushYdsPerGame": 116.9,
+            "passYdsPerGame": 194.3,
+            "totalYdsPerGame": 311.2,
+            "rankRush": 18,
+            "rankPass": 23,
+            "rankTotal": 24
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 124.4,
+            "passYdsAllowedPerGame": 189.8,
+            "totalYdsAllowedPerGame": 314.2,
+            "rankRush": 22,
+            "rankPass": 8,
+            "rankTotal": 13
+          }
+        },
+        "PIT": {
+          "offense": {
+            "rushYdsPerGame": 103.3,
+            "passYdsPerGame": 202.4,
+            "totalYdsPerGame": 305.6,
+            "rankRush": 26,
+            "rankPass": 22,
+            "rankTotal": 25
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 113.1,
+            "passYdsAllowedPerGame": 243.9,
+            "totalYdsAllowedPerGame": 356.9,
+            "rankRush": 13,
+            "rankPass": 29,
+            "rankTotal": 26
+          }
+        },
+        "SF": {
+          "offense": {
+            "rushYdsPerGame": 106.9,
+            "passYdsPerGame": 244.5,
+            "totalYdsPerGame": 351.4,
+            "rankRush": 24,
+            "rankPass": 5,
+            "rankTotal": 7
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 107.8,
+            "passYdsAllowedPerGame": 232.4,
+            "totalYdsAllowedPerGame": 340.2,
+            "rankRush": 11,
+            "rankPass": 25,
+            "rankTotal": 20
+          }
+        },
+        "SEA": {
+          "offense": {
+            "rushYdsPerGame": 123.3,
+            "passYdsPerGame": 228.1,
+            "totalYdsPerGame": 351.4,
+            "rankRush": 10,
+            "rankPass": 8,
+            "rankTotal": 8
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 91.9,
+            "passYdsAllowedPerGame": 193.9,
+            "totalYdsAllowedPerGame": 285.9,
+            "rankRush": 3,
+            "rankPass": 10,
+            "rankTotal": 6
+          }
+        },
+        "TB": {
+          "offense": {
+            "rushYdsPerGame": 114.5,
+            "passYdsPerGame": 205.9,
+            "totalYdsPerGame": 320.4,
+            "rankRush": 21,
+            "rankPass": 20,
+            "rankTotal": 21
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 99.1,
+            "passYdsAllowedPerGame": 238.2,
+            "totalYdsAllowedPerGame": 337.2,
+            "rankRush": 5,
+            "rankPass": 27,
+            "rankTotal": 19
+          }
+        },
+        "TEN": {
+          "offense": {
+            "rushYdsPerGame": 93.5,
+            "passYdsPerGame": 166.1,
+            "totalYdsPerGame": 259.6,
+            "rankRush": 30,
+            "rankPass": 30,
+            "rankTotal": 31
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 114.6,
+            "passYdsAllowedPerGame": 230.5,
+            "totalYdsAllowedPerGame": 345.1,
+            "rankRush": 15,
+            "rankPass": 23,
+            "rankTotal": 21
+          }
+        },
+        "WAS": {
+          "offense": {
+            "rushYdsPerGame": 134.7,
+            "passYdsPerGame": 184.1,
+            "totalYdsPerGame": 318.8,
+            "rankRush": 4,
+            "rankPass": 24,
+            "rankTotal": 22
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 141.5,
+            "passYdsAllowedPerGame": 242.5,
+            "totalYdsAllowedPerGame": 384.0,
+            "rankRush": 30,
+            "rankPass": 28,
+            "rankTotal": 32
+          }
+        }
+      },
+      "impactPlayers": {
+        "NE": [
+          {
+            "name": "Drake Maye",
+            "position": "QB",
+            "impactScore": 9,
+            "status": "active"
+          }
+        ],
+        "SEA": [
+          {
+            "name": "Sam Darnold",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "SF": [
+          {
+            "name": "Brock Purdy",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "LAR": [
+          {
+            "name": "Matthew Stafford",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "CHI": [
+          {
+            "name": "Caleb Williams",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "CAR": [
+          {
+            "name": "Bryce Young",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "TB": [
+          {
+            "name": "Baker Mayfield",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "CIN": [
+          {
+            "name": "Joe Burrow",
+            "position": "QB",
+            "impactScore": 9,
+            "status": "questionable"
+          }
+        ],
+        "NO": [
+          {
+            "name": "Tyler Shough",
+            "position": "QB",
+            "impactScore": 5,
+            "status": "active"
+          }
+        ],
+        "DET": [
+          {
+            "name": "Jared Goff",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "BUF": [
+          {
+            "name": "Josh Allen",
+            "position": "QB",
+            "impactScore": 10,
+            "status": "active"
+          }
+        ],
+        "HOU": [
+          {
+            "name": "C.J. Stroud",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "BAL": [
+          {
+            "name": "Lamar Jackson",
+            "position": "QB",
+            "impactScore": 10,
+            "status": "active"
+          }
+        ],
+        "IND": [
+          {
+            "name": "Daniel Jones",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "CLE": [
+          {
+            "name": "Myles Garrett",
+            "position": "Edge",
+            "impactScore": 7,
+            "status": "out"
+          }
+        ],
+        "JAX": [
+          {
+            "name": "Trevor Lawrence",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "ATL": [
+          {
+            "name": "Michael Penix Jr.",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "PIT": [
+          {
+            "name": "Aaron Rodgers",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "NYJ": [
+          {
+            "name": "Justin Fields",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "TEN": [
+          {
+            "name": "Cam Ward",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "ARI": [
+          {
+            "name": "Kyler Murray",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "LAC": [
+          {
+            "name": "Justin Herbert",
+            "position": "QB",
+            "impactScore": 9,
+            "status": "out"
+          }
+        ],
+        "MIA": [
+          {
+            "name": "Tua Tagovailoa",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "LV": [
+          {
+            "name": "Geno Smith",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "GB": [
+          {
+            "name": "Jordan Love",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "MIN": [
+          {
+            "name": "Justin Jefferson",
+            "position": "WR",
+            "impactScore": 8,
+            "status": "out"
+          }
+        ],
+        "WAS": [
+          {
+            "name": "Jayden Daniels",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "PHI": [
+          {
+            "name": "Jalen Hurts",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "DAL": [
+          {
+            "name": "Dak Prescott",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "NYG": [
+          {
+            "name": "Jaxson Dart",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "DEN": [
+          {
+            "name": "Bo Nix",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "KC": [
+          {
+            "name": "Patrick Mahomes",
+            "position": "QB",
+            "impactScore": 10,
+            "status": "active"
+          }
+        ]
+      },
+      "results": {
+        "NE-SEA": {
+          "awayScore": 17,
+          "homeScore": 24,
+          "final": true
+        },
+        "SF-LAR": {
+          "awayScore": 20,
+          "homeScore": 27,
+          "final": true
+        },
+        "CHI-CAR": {
+          "awayScore": 23,
+          "homeScore": 20,
+          "final": true
+        },
+        "TB-CIN": {
+          "awayScore": 21,
+          "homeScore": 28,
+          "final": true
+        },
+        "NO-DET": {
+          "awayScore": 16,
+          "homeScore": 30,
+          "final": true
+        },
+        "BUF-HOU": {
+          "awayScore": 24,
+          "homeScore": 20,
+          "final": true
+        },
+        "BAL-IND": {
+          "awayScore": 27,
+          "homeScore": 17,
+          "final": true
+        },
+        "CLE-JAX": {
+          "awayScore": 13,
+          "homeScore": 26,
+          "final": true
+        },
+        "ATL-PIT": {
+          "awayScore": 19,
+          "homeScore": 22,
+          "final": true
+        },
+        "NYJ-TEN": {
+          "awayScore": 14,
+          "homeScore": 16,
+          "final": true
+        },
+        "ARI-LAC": {
+          "awayScore": 10,
+          "homeScore": 31,
+          "final": true
+        },
+        "MIA-LV": {
+          "awayScore": 23,
+          "homeScore": 20,
+          "final": true
+        },
+        "GB-MIN": {
+          "awayScore": 24,
+          "homeScore": 20,
+          "final": true
+        },
+        "WAS-PHI": {
+          "awayScore": 17,
+          "homeScore": 24,
+          "final": true
+        },
+        "DAL-NYG": {
+          "awayScore": 27,
+          "homeScore": 20,
+          "final": true
+        },
+        "DEN-KC": {
+          "awayScore": 16,
+          "homeScore": 27,
+          "final": true
+        }
+      }
+    }
+  ]
+}</script>
+<script type="application/json" id="playoffs-data">{
+  "season": 2026,
+  "sourceNote": "Playoff matchups depend on final regular-season standings and seeding, which aren't known until Week 18 concludes. Each round starts empty (matchupsAnnounced: false) and gets filled in by the weekly update task once the real bracket is announced. The app only shows a round in the week picker once matchupsAnnounced is true.",
+  "rounds": [
+    {
+      "id": "wildcard",
+      "week": 19,
+      "label": "Wild Card Round",
+      "espnSeasonType": 3,
+      "espnWeek": 1,
+      "matchupsAnnounced": false,
+      "games": []
+    },
+    {
+      "id": "divisional",
+      "week": 20,
+      "label": "Divisional Round",
+      "espnSeasonType": 3,
+      "espnWeek": 2,
+      "matchupsAnnounced": false,
+      "games": []
+    },
+    {
+      "id": "conference",
+      "week": 21,
+      "label": "Conference Championships",
+      "espnSeasonType": 3,
+      "espnWeek": 3,
+      "matchupsAnnounced": false,
+      "games": []
+    },
+    {
+      "id": "superbowl",
+      "week": 22,
+      "label": "Super Bowl",
+      "espnSeasonType": 3,
+      "espnWeek": 5,
+      "matchupsAnnounced": false,
+      "games": []
+    }
+  ]
+}
+</script>
+<script type="application/json" id="odds-data">{
+  "season": 2026,
+  "sourceNote": "Real sportsbook lines (spread, moneyline, total) sourced via public odds aggregation and refreshed by the weekly update task. Sportsbooks typically don't post lines until roughly 6-10 days before kickoff and they keep moving until game time, so upcoming weeks show \"Odds not yet posted\" until they're live. Week 1 below is an ILLUSTRATIVE SAMPLE (paired with the sample Week 1 results in history.json) to demonstrate the feature before the real season starts -- these are plausible-looking numbers, not real book prices.",
+  "weeks": {
+    "1": {
+      "isDemo": true,
+      "games": {
+        "NE-SEA": {
+          "favorite": "NE",
+          "spread": -1.5,
+          "moneylineHome": 75,
+          "moneylineAway": -130,
+          "overUnder": 42,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "SF-LAR": {
+          "favorite": "LAR",
+          "spread": -8.5,
+          "moneylineHome": -400,
+          "moneylineAway": 25,
+          "overUnder": 42.5,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "CHI-CAR": {
+          "favorite": "CHI",
+          "spread": -6,
+          "moneylineHome": 40,
+          "moneylineAway": -260,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "TB-CIN": {
+          "favorite": "TB",
+          "spread": -7.5,
+          "moneylineHome": 30,
+          "moneylineAway": -340,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "NO-DET": {
+          "favorite": "DET",
+          "spread": -7,
+          "moneylineHome": -310,
+          "moneylineAway": 30,
+          "overUnder": 39,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "BUF-HOU": {
+          "favorite": "BUF",
+          "spread": -2.5,
+          "moneylineHome": 65,
+          "moneylineAway": -150,
+          "overUnder": 40,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "BAL-IND": {
+          "favorite": "IND",
+          "spread": -6,
+          "moneylineHome": -260,
+          "moneylineAway": 40,
+          "overUnder": 38.5,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "CLE-JAX": {
+          "favorite": "JAX",
+          "spread": -9.5,
+          "moneylineHome": -450,
+          "moneylineAway": 20,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "ATL-PIT": {
+          "favorite": "ATL",
+          "spread": -9,
+          "moneylineHome": 25,
+          "moneylineAway": -430,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "NYJ-TEN": {
+          "favorite": "TEN",
+          "spread": 0,
+          "moneylineHome": -110,
+          "moneylineAway": -110,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "ARI-LAC": {
+          "favorite": "LAC",
+          "spread": -9.5,
+          "moneylineHome": -450,
+          "moneylineAway": 20,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "MIA-LV": {
+          "favorite": "LV",
+          "spread": 0,
+          "moneylineHome": -110,
+          "moneylineAway": -110,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "GB-MIN": {
+          "favorite": "GB",
+          "spread": -7.5,
+          "moneylineHome": 30,
+          "moneylineAway": -340,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "WAS-PHI": {
+          "favorite": "PHI",
+          "spread": -8.5,
+          "moneylineHome": -400,
+          "moneylineAway": 25,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "DAL-NYG": {
+          "favorite": "DAL",
+          "spread": -4.5,
+          "moneylineHome": 50,
+          "moneylineAway": -210,
+          "overUnder": 41.5,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "DEN-KC": {
+          "favorite": "DEN",
+          "spread": -8.5,
+          "moneylineHome": 25,
+          "moneylineAway": -400,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        }
+      }
+    },
+    "2": {
+      "isDemo": false,
+      "games": {}
+    },
+    "3": {
+      "isDemo": false,
+      "games": {}
+    },
+    "4": {
+      "isDemo": false,
+      "games": {}
+    },
+    "5": {
+      "isDemo": false,
+      "games": {}
+    },
+    "6": {
+      "isDemo": false,
+      "games": {}
+    },
+    "7": {
+      "isDemo": false,
+      "games": {}
+    },
+    "8": {
+      "isDemo": false,
+      "games": {}
+    },
+    "9": {
+      "isDemo": false,
+      "games": {}
+    },
+    "10": {
+      "isDemo": false,
+      "games": {}
+    },
+    "11": {
+      "isDemo": false,
+      "games": {}
+    },
+    "12": {
+      "isDemo": false,
+      "games": {}
+    },
+    "13": {
+      "isDemo": false,
+      "games": {}
+    },
+    "14": {
+      "isDemo": false,
+      "games": {}
+    },
+    "15": {
+      "isDemo": false,
+      "games": {}
+    },
+    "16": {
+      "isDemo": false,
+      "games": {}
+    },
+    "17": {
+      "isDemo": false,
+      "games": {}
+    },
+    "18": {
+      "isDemo": false,
+      "games": {}
+    },
+    "19": {
+      "isDemo": false,
+      "games": {}
+    },
+    "20": {
+      "isDemo": false,
+      "games": {}
+    },
+    "21": {
+      "isDemo": false,
+      "games": {}
+    },
+    "22": {
+      "isDemo": false,
+      "games": {}
+    }
+  }
+}</script>
+
+<script type="text/babel" data-presets="react">
+const { useMemo, useState, useEffect, useRef } = React;
+
+const TEAMS_DATA = JSON.parse(document.getElementById('teams-data').textContent);
+const PLAYERS_DATA = JSON.parse(document.getElementById('players-data').textContent);
+const SCHEDULE_DATA = JSON.parse(document.getElementById('schedule-data').textContent);
+const HISTORY_DATA = JSON.parse(document.getElementById('history-data').textContent);
+const PLAYOFFS_DATA = JSON.parse(document.getElementById('playoffs-data').textContent);
+const ODDS_DATA = JSON.parse(document.getElementById('odds-data').textContent);
+
+const TEAM_COLORS = {
+  ARI:"#97233F", ATL:"#A71930", BAL:"#241773", BUF:"#00338D", CAR:"#0085CA", CHI:"#0B162A",
+  CIN:"#FB4F14", CLE:"#311D00", DAL:"#041E42", DEN:"#FB4F14", DET:"#0076B6", GB:"#203731",
+  HOU:"#03202F", IND:"#002C5F", JAX:"#101820", KC:"#E31837", LAC:"#0080C6", LAR:"#003594",
+  LV:"#000000", MIA:"#008E97", MIN:"#4F2683", NE:"#002244", NO:"#D3BC8D", NYG:"#0B2265",
+  NYJ:"#125740", PHI:"#004C54", PIT:"#FFB612", SEA:"#002244", SF:"#AA0000", TB:"#D50A0A",
+  TEN:"#4B92DB", WAS:"#5A1414"
+};
+
+const TEAM_LOGO_CODE = { ARI: "AZ", LAR: "LA" };
+function logoUrl(teamId) {
+  const code = TEAM_LOGO_CODE[teamId] || teamId;
+  return `https://static.www.nfl.com/f_auto,h_100,dpr_2.0,q_auto,w_100/league/api/clubs/logos/${code}`;
+}
+
+const FAVORITES_KEY = "nfl-matchup-analyzer-favorites";
+function loadFavorites() {
+  try {
+    const raw = window.localStorage.getItem(FAVORITES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+function saveFavorites(list) {
+  try { window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+function baseTeam(id) {
+  return TEAMS_DATA.teams.find(t => t.id === id);
+}
+
+// ---- Regular season vs. playoff week routing -------------------------------
+// Weeks 1-18 are the fixed regular-season schedule. Weeks 19-22 are playoff
+// rounds (Wild Card/Divisional/Conference/Super Bowl) that only exist once
+// their matchups are announced (seeding isn't known until Week 18 ends).
+
+function getPlayoffRound(week) {
+  return PLAYOFFS_DATA.rounds.find(r => r.week === week) || null;
+}
+
+function isPlayoffAnnounced(round) {
+  return !!round && round.matchupsAnnounced && round.games && round.games.length > 0;
+}
+
+/** Every selectable period: all 18 regular weeks, plus any playoff round that's been announced. */
+function getSelectablePeriods() {
+  const periods = SCHEDULE_DATA.weeks.map(w => ({ week: w.week, label: `Week ${w.week}` }));
+  PLAYOFFS_DATA.rounds.forEach(r => {
+    if (isPlayoffAnnounced(r)) periods.push({ week: r.week, label: r.label });
+  });
+  return periods;
+}
+
+function getGamesForWeek(week) {
+  if (week <= 18) {
+    const w = SCHEDULE_DATA.weeks.find(w => w.week === week);
+    return w ? w.games : [];
+  }
+  const round = getPlayoffRound(week);
+  return isPlayoffAnnounced(round) ? round.games : [];
+}
+
+function getPeriodLabel(week) {
+  if (week <= 18) return `Week ${week}`;
+  const round = getPlayoffRound(week);
+  return round ? round.label : `Week ${week}`;
+}
+
+/** ESPN's public scoreboard uses its own season-type/week numbering for playoffs. */
+function getEspnParams(week) {
+  if (week <= 18) return { seasontype: 2, week };
+  const round = getPlayoffRound(week);
+  return round ? { seasontype: round.espnSeasonType, week: round.espnWeek } : null;
+}
+
+// ---- Betting odds (spread / moneyline / over-under) ------------------------
+// Real sportsbook lines, keyed by week number then "AWAY-HOME". Books don't
+// post lines until roughly 6-10 days before kickoff, so most future weeks
+// simply have no entry yet - getOdds returns null and the UI shows a
+// "not yet posted" fallback instead of guessing.
+
+function getOdds(week, away, home) {
+  const weekOdds = ODDS_DATA.weeks && ODDS_DATA.weeks[String(week)];
+  if (!weekOdds || !weekOdds.games) return null;
+  return weekOdds.games[`${away}-${home}`] || null;
+}
+
+function formatMoneyline(ml) {
+  if (ml == null) return "";
+  return ml > 0 ? `+${ml}` : `${ml}`;
+}
+
+function formatSpread(spreadForFavorite) {
+  // spread is stored relative to the favorite (negative). Display as e.g. "-3.5".
+  if (spreadForFavorite === 0) return "PK";
+  return spreadForFavorite > 0 ? `+${spreadForFavorite}` : `${spreadForFavorite}`;
+}
+
+// ---- History (frozen weekly snapshots) -------------------------------------
+
+function getHistorySnapshot(week) {
+  return (HISTORY_DATA.weeks || []).find(w => w.week === week) || null;
+}
+
+function getWeekContext(week) {
+  const snap = getHistorySnapshot(week);
+  if (!snap) {
+    return {
+      isHistorical: false,
+      isDemo: false,
+      note: null,
+      getTeam: (id) => baseTeam(id),
+      getPlayers: (id) => PLAYERS_DATA.players[id] || [],
+      getResult: (away, home) => null,
+    };
+  }
+  return {
+    isHistorical: true,
+    isDemo: !!snap.isDemo,
+    note: snap.note || null,
+    getTeam: (id) => {
+      const base = baseTeam(id);
+      const stats = snap.teamStats[id];
+      return stats ? { ...base, stats } : base;
+    },
+    getPlayers: (id) => (snap.impactPlayers && snap.impactPlayers[id]) || [],
+    getResult: (away, home) => (snap.results && snap.results[`${away}-${home}`]) || null,
+  };
+}
+
+// ---- Live scores (ESPN public scoreboard, no key required) -----------------
+// Note: this fetches directly from the browser. If you open index.html straight
+// from disk (file://) some browsers block cross-origin fetches from a "null"
+// origin. If live scores never appear, try serving the folder locally instead,
+// e.g. `python3 -m http.server` from inside nfl-matchup-analyzer/, then open
+// http://localhost:8000.
+
+const ESPN_ABBR_FIX = { WSH: "WAS" };
+
+async function fetchLiveScores(week) {
+  const params = getEspnParams(week);
+  if (!params) return {};
+  const url = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?year=2026&seasontype=${params.seasontype}&week=${params.week}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("ESPN scoreboard request failed: " + res.status);
+  const data = await res.json();
+  const map = {};
+  (data.events || []).forEach(event => {
+    const comp = event.competitions && event.competitions[0];
+    if (!comp) return;
+    const status = comp.status || event.status;
+    const home = comp.competitors.find(c => c.homeAway === "home");
+    const away = comp.competitors.find(c => c.homeAway === "away");
+    if (!home || !away) return;
+    const homeAbbr = ESPN_ABBR_FIX[home.team.abbreviation] || home.team.abbreviation;
+    const awayAbbr = ESPN_ABBR_FIX[away.team.abbreviation] || away.team.abbreviation;
+    map[`${awayAbbr}-${homeAbbr}`] = {
+      awayScore: away.score != null ? Number(away.score) : null,
+      homeScore: home.score != null ? Number(home.score) : null,
+      state: status.type.state, // 'pre' | 'in' | 'post'
+      period: status.period,
+      displayClock: status.displayClock,
+      shortDetail: status.type.shortDetail,
+    };
+  });
+  return map;
+}
+
+function useLiveScores(week) {
+  const [liveMap, setLiveMap] = useState({});
+  useEffect(() => {
+    let cancelled = false;
+    async function poll() {
+      try {
+        const map = await fetchLiveScores(week);
+        if (!cancelled) setLiveMap(map);
+      } catch (e) {
+        // Network hiccup or CORS block on file:// - just leave live scores empty,
+        // the app still works fine off historical/predicted data.
+      }
+    }
+    poll();
+    const timer = setInterval(poll, 30000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [week]);
+  return liveMap;
+}
+
+function rankClass(rank) {
+  if (rank <= 10) return "rank-good";
+  if (rank <= 21) return "rank-mid";
+  return "rank-bad";
+}
+
+function RankPill({ rank }) {
+  return <span className={"rank-pill " + rankClass(rank)}>#{rank}</span>;
+}
+
+function BrandLogo({ size }) {
+  const dim = size || 52;
+  return (
+    <svg width={dim} height={dim} viewBox="0 0 320 320" style={{ flexShrink: 0 }}>
+      <circle cx="160" cy="160" r="152" fill="#0d1420" stroke="#4fd1c5" strokeWidth="12" />
+      <circle cx="160" cy="160" r="152" fill="none" stroke="#000000" strokeWidth="3" />
+
+      <g transform="translate(160,160) rotate(-28)">
+        <ellipse cx="0" cy="0" rx="118" ry="66" fill="#8a4a28" stroke="#1a0d05" strokeWidth="13" />
+        <ellipse cx="-38" cy="-24" rx="34" ry="13" fill="#c98a54" />
+        <line x1="-74" y1="0" x2="74" y2="0" stroke="#1a0d05" strokeWidth="12" strokeLinecap="round" />
+        <line x1="-74" y1="-2" x2="74" y2="-2" stroke="#f4f6fa" strokeWidth="7" strokeLinecap="round" />
+        <g stroke="#1a0d05" strokeWidth="11" strokeLinecap="round">
+          <line x1="-34" y1="-15" x2="-34" y2="13" />
+          <line x1="0" y1="-15" x2="0" y2="13" />
+          <line x1="34" y1="-15" x2="34" y2="13" />
+        </g>
+        <g stroke="#f4f6fa" strokeWidth="6" strokeLinecap="round">
+          <line x1="-34" y1="-13" x2="-34" y2="11" />
+          <line x1="0" y1="-13" x2="0" y2="11" />
+          <line x1="34" y1="-13" x2="34" y2="11" />
+        </g>
+      </g>
+
+      <g transform="translate(160,158) rotate(16) scale(1.05)">
+        <polygon points="10,-100 -45,10 -5,10 -25,100 55,-10 10,-10 30,-100" fill="#ffcc00" stroke="#1a0d05" strokeWidth="13" strokeLinejoin="round" />
+        <polygon points="10,-100 -45,10 -5,10 -18,42 21,-46 6,-46" fill="#fff2b0" />
+      </g>
+    </svg>
+  );
+}
+
+function TeamLogo({ teamId, size }) {
+  const [failed, setFailed] = useState(false);
+  const dim = size || 46;
+  if (failed) {
+    const color = TEAM_COLORS[teamId] || "#666";
+    return (
+      <div className="badge-fallback" style={{ background: color, width: dim, height: dim, fontSize: dim * 0.3 }}>
+        {teamId}
+      </div>
+    );
+  }
+  return (
+    <img
+      className="badge-img"
+      src={logoUrl(teamId)}
+      alt={teamId}
+      style={{ width: dim, height: dim }}
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
+function FavoriteStar({ teamId, favorites, onToggle }) {
+  const active = favorites.includes(teamId);
+  return (
+    <button
+      className={"star-btn" + (active ? " active" : "")}
+      title={active ? "Remove from favorites" : "Add to favorites"}
+      onClick={(e) => { e.stopPropagation(); onToggle(teamId); }}
+    >
+      {active ? "★" : "☆"}
+    </button>
+  );
+}
+
+function TeamBadge({ team, favorites, onToggle, onSelect }) {
+  return (
+    <div className="badge-wrap">
+      <button className="team-click" onClick={() => onSelect(team.id)} style={{ position: "static" }}>
+        <TeamLogo teamId={team.id} />
+      </button>
+      <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggle} />
+    </div>
+  );
+}
+
+function DiffRow({ label, rankA, rankB, teamAId, teamBId }) {
+  const diff = Math.abs(rankA - rankB);
+  const aIsBetter = rankA < rankB;
+  const edgeTeam = aIsBetter ? teamAId : teamBId;
+  const edgeClass = aIsBetter ? "edge-a" : "edge-b";
+  return (
+    <div className="diff-row">
+      <span className="diff-label">{label}</span>
+      <span className={"diff-value " + edgeClass}>
+        {diff === 0 ? "Even" : `${edgeTeam} by ${diff}`}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Merge a live ESPN score (if any) with a frozen historical result (if any).
+ * Live, in-progress-or-final data always wins because it's the freshest;
+ * the history snapshot is the durable fallback once a week has been archived.
+ */
+function resolveScore(live, historical) {
+  if (live && (live.state === "in" || live.state === "post") && live.awayScore != null) {
+    return {
+      awayScore: live.awayScore,
+      homeScore: live.homeScore,
+      isFinal: live.state === "post",
+      isLive: live.state === "in",
+      period: live.period,
+      clock: live.displayClock,
+    };
+  }
+  if (historical) {
+    return { awayScore: historical.awayScore, homeScore: historical.homeScore, isFinal: true, isLive: false };
+  }
+  return null;
+}
+
+function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, live, week }) {
+  const home = context.getTeam(game.home);
+  const away = context.getTeam(game.away);
+  if (!home || !away) return null;
+  const homePlayers = context.getPlayers(game.home);
+  const awayPlayers = context.getPlayers(game.away);
+  const historicalResult = context.getResult(game.away, game.home);
+  const scoreInfo = resolveScore(live, historicalResult);
+  const odds = getOdds(week, game.away, game.home);
+
+  const prediction = useMemo(() => PredictionEngine.predictMatchup({
+    homeTeam: home,
+    awayTeam: away,
+    homeImpactPlayers: homePlayers,
+    awayImpactPlayers: awayPlayers
+  }), [game.home, game.away, context.isHistorical]);
+
+  const homeIsWinner = prediction.predictedWinner === home.id;
+  const homePct = (prediction.homeWinProbability * 100).toFixed(0);
+  const awayPct = (prediction.awayWinProbability * 100).toFixed(0);
+  const allAdjustments = [...prediction.homeAdjustments, ...prediction.awayAdjustments];
+  const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
+
+  let actualWinnerId = null;
+  let predictionCorrect = null;
+  if (scoreInfo && scoreInfo.isFinal) {
+    actualWinnerId = scoreInfo.homeScore > scoreInfo.awayScore ? home.id : away.id;
+    predictionCorrect = actualWinnerId === prediction.predictedWinner;
+  }
+
+  return (
+    <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (scoreInfo && scoreInfo.isLive ? " is-live" : "")}>
+      <div className="game-meta">
+        <span>{game.date}{game.time ? " • " + game.time : ""}</span>
+        {scoreInfo && scoreInfo.isLive ? (
+          <span className="live-tag"><span className="live-dot"></span>LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}</span>
+        ) : game.network ? <span>{game.network}</span> : null}
+      </div>
+
+      <div className="matchup-row">
+        <div className={"team-block" + (!homeIsWinner ? " winner" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
+          <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
+          <div className="team-name">{away.name}</div>
+          {!homeIsWinner && <div className="win-tag">Predicted Winner</div>}
+        </div>
+        <div className="at-sep">@</div>
+        <div className={"team-block" + (homeIsWinner ? " winner" : "") + (actualWinnerId === home.id ? " actual-winner" : "")}>
+          <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
+          <div className="team-name">{home.name}</div>
+          {homeIsWinner && <div className="win-tag">Predicted Winner</div>}
+        </div>
+      </div>
+
+      <div className="confidence-bar-wrap">
+        <span>{away.id} {awayPct}%</span>
+        <div className="confidence-bar">
+          <div style={{ width: awayPct + "%", background: "#55617a" }}></div>
+          <div style={{ width: homePct + "%", background: "#2ecc71" }}></div>
+        </div>
+        <span>{home.id} {homePct}%</span>
+      </div>
+
+      <div className="odds-row">
+        {odds ? (
+          <>
+            <div className="odds-fields">
+              <span className="odds-field"><span className="odds-label">Spread</span> {odds.favorite} {formatSpread(odds.spread)}</span>
+              <span className="odds-field"><span className="odds-label">ML</span> {away.id} {formatMoneyline(odds.moneylineAway)} / {home.id} {formatMoneyline(odds.moneylineHome)}</span>
+              <span className="odds-field"><span className="odds-label">O/U</span> {odds.overUnder}</span>
+            </div>
+            <div className={"odds-agree " + (modelAgreesWithMarket ? "agree" : "disagree")}>
+              {modelAgreesWithMarket ? "Model agrees with the market favorite" : "Model disagrees with the market favorite"}
+            </div>
+          </>
+        ) : (
+          <span className="hw-tag">Odds not yet posted for this game</span>
+        )}
+      </div>
+
+      {scoreInfo && (
+        <div className={"result-row" + (scoreInfo.isLive ? " live-row" : "")}>
+          <span>
+            {scoreInfo.isLive ? "Now: " : "Final: "}
+            <span className="score">{away.id} {scoreInfo.awayScore} - {scoreInfo.homeScore} {home.id}</span>
+          </span>
+          {scoreInfo.isFinal ? (
+            <span className={"verdict " + (predictionCorrect ? "correct" : "incorrect")}>
+              {predictionCorrect ? "Prediction correct ✓" : "Prediction missed ✗"}
+            </span>
+          ) : (
+            <span className="live-tag" style={{ fontSize: "0.68rem" }}>In progress</span>
+          )}
+        </div>
+      )}
+
+      <div className="stat-compare">
+        <div className="col">
+          <div className="label">{away.id} offense</div>
+          <div>Total <RankPill rank={away.stats.offense.rankTotal} /></div>
+          <div>Rush <RankPill rank={away.stats.offense.rankRush} /></div>
+          <div>Pass <RankPill rank={away.stats.offense.rankPass} /></div>
+        </div>
+        <div className="col">
+          <div className="label">{home.id} offense</div>
+          <div>Total <RankPill rank={home.stats.offense.rankTotal} /></div>
+          <div>Rush <RankPill rank={home.stats.offense.rankRush} /></div>
+          <div>Pass <RankPill rank={home.stats.offense.rankPass} /></div>
+        </div>
+        <div className="col">
+          <div className="label">{away.id} defense</div>
+          <div>Total <RankPill rank={away.stats.defense.rankTotal} /></div>
+          <div>Rush <RankPill rank={away.stats.defense.rankRush} /></div>
+          <div>Pass <RankPill rank={away.stats.defense.rankPass} /></div>
+        </div>
+        <div className="col">
+          <div className="label">{home.id} defense</div>
+          <div>Total <RankPill rank={home.stats.defense.rankTotal} /></div>
+          <div>Rush <RankPill rank={home.stats.defense.rankRush} /></div>
+          <div>Pass <RankPill rank={home.stats.defense.rankPass} /></div>
+        </div>
+      </div>
+
+      <DiffRow label="Total offense rank gap" rankA={away.stats.offense.rankTotal} rankB={home.stats.offense.rankTotal} teamAId={away.id} teamBId={home.id} />
+      <DiffRow label="Rush offense rank gap" rankA={away.stats.offense.rankRush} rankB={home.stats.offense.rankRush} teamAId={away.id} teamBId={home.id} />
+      <DiffRow label="Pass offense rank gap" rankA={away.stats.offense.rankPass} rankB={home.stats.offense.rankPass} teamAId={away.id} teamBId={home.id} />
+      <DiffRow label="Total defense rank gap" rankA={away.stats.defense.rankTotal} rankB={home.stats.defense.rankTotal} teamAId={away.id} teamBId={home.id} />
+      <DiffRow label="Rush defense rank gap" rankA={away.stats.defense.rankRush} rankB={home.stats.defense.rankRush} teamAId={away.id} teamBId={home.id} />
+      <DiffRow label="Pass defense rank gap" rankA={away.stats.defense.rankPass} rankB={home.stats.defense.rankPass} teamAId={away.id} teamBId={home.id} />
+
+      {allAdjustments.map((a, i) => (
+        <div key={i} className={"impact-note impact-" + a.status}>
+          <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
+          <span>
+            <strong>{a.player}</strong> ({a.position}) is <strong>{a.status}</strong> —
+            hurts {a.side === "offense" ? "their offense" : "their defense"},
+            shifting the odds toward the opponent.
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WeekView({ week, favorites, onToggleFavorite, onSelectTeam }) {
+  const games = getGamesForWeek(week);
+  const context = getWeekContext(week);
+  const liveMap = useLiveScores(week);
+  if (!games.length) return <p>No schedule data for this week yet.</p>;
+  return (
+    <div>
+      {context.isHistorical && (
+        <div className="demo-banner">
+          <strong>{context.isDemo ? "Sample historical snapshot" : "Historical snapshot"}</strong> — showing the
+          team stats and predictions as captured for {getPeriodLabel(week)}, plus the final result (live scores,
+          when a game is in progress, will override this automatically).{" "}
+          {context.note}
+        </div>
+      )}
+      <div className="schedule-grid">
+        {games.map((g, i) => (
+          <GameCard
+            key={i}
+            game={g}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
+            onSelectTeam={onSelectTeam}
+            context={context}
+            live={liveMap[`${g.away}-${g.home}`]}
+            week={week}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TeamSwitcher({ teamId, favorites, onSelectTeam }) {
+  const favIds = new Set(favorites);
+  const favTeams = TEAMS_DATA.teams
+    .filter(t => favIds.has(t.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const otherTeams = TEAMS_DATA.teams
+    .filter(t => !favIds.has(t.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return (
+    <select
+      className="week-select"
+      value={teamId}
+      onChange={(e) => onSelectTeam(e.target.value)}
+      aria-label="Switch team"
+    >
+      {favTeams.length > 0 && (
+        <optgroup label="★ Favorites">
+          {favTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </optgroup>
+      )}
+      <optgroup label="All Teams">
+        {otherTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+      </optgroup>
+    </select>
+  );
+}
+
+function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam }) {
+  const team = baseTeam(teamId);
+  if (!team) return <p>Unknown team.</p>;
+  const injuryReport = PLAYERS_DATA.players[teamId] || [];
+
+  function buildRow(week, game) {
+    const context = getWeekContext(week);
+    const isHome = game.home === teamId;
+    const oppId = isHome ? game.away : game.home;
+    const opp = context.getTeam(oppId);
+    const homeTeam = context.getTeam(game.home);
+    const awayTeam = context.getTeam(game.away);
+    const homePlayers = context.getPlayers(game.home);
+    const awayPlayers = context.getPlayers(game.away);
+    const prediction = PredictionEngine.predictMatchup({
+      homeTeam, awayTeam, homeImpactPlayers: homePlayers, awayImpactPlayers: awayPlayers
+    });
+    const teamWins = prediction.predictedWinner === teamId;
+    const teamWinProb = isHome ? prediction.homeWinProbability : prediction.awayWinProbability;
+    const result = context.getResult(game.away, game.home);
+    let actual = null;
+    if (result) {
+      const actualWinnerId = result.homeScore > result.awayScore ? game.home : game.away;
+      actual = {
+        winnerId: actualWinnerId,
+        teamWon: actualWinnerId === teamId,
+        correct: (actualWinnerId === teamId) === teamWins,
+        scoreLine: `${game.away} ${result.awayScore} - ${result.homeScore} ${game.home}`,
+      };
+    }
+    return { week, bye: false, opp, isHome, date: game.date, time: game.time, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week) };
+  }
+
+  const regularRows = SCHEDULE_DATA.weeks.map(w => {
+    const game = w.games.find(g => g.home === teamId || g.away === teamId);
+    if (!game) return { week: w.week, bye: true, label: `Week ${w.week}` };
+    return buildRow(w.week, game);
+  });
+
+  // Only append playoff rows once a round is announced AND this team is actually in it -
+  // no "TBD" placeholders for teams that aren't (or aren't yet known to be) playoff-bound.
+  const playoffRows = [];
+  PLAYOFFS_DATA.rounds.forEach(round => {
+    if (!isPlayoffAnnounced(round)) return;
+    const game = round.games.find(g => g.home === teamId || g.away === teamId);
+    if (game) playoffRows.push(buildRow(round.week, game));
+  });
+
+  const rows = [...regularRows, ...playoffRows];
+  const favCount = rows.filter(r => !r.bye && r.teamWins).length;
+  const totalGames = rows.filter(r => !r.bye).length;
+
+  return (
+    <div>
+      <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+        <button className="back-btn" onClick={onBack}>&larr; Back to week view</button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label htmlFor="team-switch-select" style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Team:</label>
+          <TeamSwitcher teamId={teamId} favorites={favorites} onSelectTeam={onSelectTeam} />
+        </div>
+      </div>
+      <div className="team-view-header">
+        <TeamLogo teamId={team.id} size={64} />
+        <div style={{ flex: 1 }}>
+          <h2>{team.name}</h2>
+          <div className="rec-line">
+            Off: Total <RankPill rank={team.stats.offense.rankTotal} /> Rush <RankPill rank={team.stats.offense.rankRush} /> Pass <RankPill rank={team.stats.offense.rankPass} />
+            &nbsp;&nbsp;Def: Total <RankPill rank={team.stats.defense.rankTotal} /> Rush <RankPill rank={team.stats.defense.rankRush} /> Pass <RankPill rank={team.stats.defense.rankPass} />
+          </div>
+          <div className="rec-line" style={{ marginTop: 6 }}>Model-predicted wins this season: {favCount} / {totalGames}</div>
+        </div>
+        <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
+      </div>
+
+      <div className="injury-report">
+        <h3 className="injury-report-title">Injury Report — This Week</h3>
+        {injuryReport.length === 0 ? (
+          <p className="hw-tag">No tracked impact players for this team right now.</p>
+        ) : (
+          <div className="injury-list">
+            {injuryReport.map((p, i) => (
+              <div key={i} className={"impact-note impact-" + p.status}>
+                <span>{p.status === "out" ? "⛔" : p.status === "questionable" ? "⚠️" : "✅"}</span>
+                <span><strong>{p.name}</strong> ({p.position}) — <strong>{p.status}</strong></span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <table className="team-schedule-table">
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th>Opponent</th>
+            <th>Date &amp; Time</th>
+            <th>Prediction</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.week} className={(r.bye ? "bye-row " : "") + (r.isPlayoff ? "playoff-row" : "")}>
+              <td>{r.label}</td>
+              {r.bye ? (
+                <td colSpan="4">BYE week</td>
+              ) : (
+                <>
+                  <td>
+                    <div className="opp-cell">
+                      <TeamLogo teamId={r.opp.id} size={26} />
+                      <span>{r.isHome ? "vs" : "@"} {r.opp.name}</span>
+                    </div>
+                  </td>
+                  <td>{r.date}{r.time ? ` • ${r.time}` : ""}</td>
+                  <td className={r.teamWins ? "pred-win" : "pred-lose"}>
+                    {r.teamWins ? "Predicted W" : "Predicted L"}
+                    <span className="hw-tag">({(r.confidence * 100).toFixed(0)}%)</span>
+                  </td>
+                  <td>
+                    {r.actual ? (
+                      <span>
+                        {r.actual.scoreLine}
+                        <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
+                          {r.actual.correct ? "✓" : "✗"}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="hw-tag">Not played yet</span>
+                    )}
+                  </td>
+                </>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function App() {
+  const [view, setView] = useState("week");
+  const [selectedWeek, setSelectedWeek] = useState(1);
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [favorites, setFavorites] = useState(loadFavorites);
+
+  useEffect(() => { saveFavorites(favorites); }, [favorites]);
+
+  function toggleFavorite(teamId) {
+    setFavorites(prev => prev.includes(teamId) ? prev.filter(t => t !== teamId) : [...prev, teamId]);
+  }
+
+  function selectTeam(teamId) {
+    setSelectedTeamId(teamId);
+    setView("team");
+  }
+
+  function backToWeek() {
+    setView("week");
+  }
+
+  const periods = getSelectablePeriods();
+
+  return (
+    <div className="app">
+      <header className="top">
+        <div className="brand-row" onClick={() => setView("week")}>
+          <BrandLogo size={52} />
+          <h1>Blitz <span className="brand-odds">Odds</span></h1>
+        </div>
+        <p>Predictions from run/pass/total offense &amp; defense rankings, adjusted for injured impact players</p>
+      </header>
+
+      <div className="controls-row">
+        {view === "week" ? (
+          <>
+            <label htmlFor="week-select" style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Week:</label>
+            <select
+              id="week-select"
+              className="week-select"
+              value={selectedWeek}
+              onChange={(e) => setSelectedWeek(Number(e.target.value))}
+            >
+              {periods.map(p => (
+                <option key={p.week} value={p.week}>
+                  {p.label}{getHistorySnapshot(p.week) ? " (has results)" : ""}
+                </option>
+              ))}
+            </select>
+          </>
+        ) : (
+          <button className="back-btn" onClick={backToWeek}>&larr; Back to week view</button>
+        )}
+      </div>
+
+      <div className="favorites-bar">
+        {favorites.length > 0 && <span className="fav-label">Favorites:</span>}
+        {favorites.map(teamId => {
+          const t = baseTeam(teamId);
+          if (!t) return null;
+          return (
+            <div key={teamId} className="fav-chip" onClick={() => selectTeam(teamId)}>
+              <img src={logoUrl(teamId)} alt={teamId} onError={(e) => { e.target.style.display = "none"; }} />
+              {t.name}
+            </div>
+          );
+        })}
+      </div>
+
+      {view === "week" && (
+        <div className="disclaimer">
+          <strong>How this works:</strong> each team gets an offense rating and a defense rating built from its
+          rush/pass/total yardage ranks (1 = best in the league). A matchup compares one team's offense rating to
+          the other's defense rating, adds a small home-field bonus, and converts the gap into a win probability.
+          If a star player is marked "out" or "questionable," their impact score docks their team's offense or
+          defense rating before the matchup is scored. While a game is being played, the score updates live
+          (polling every 30 seconds) with a <strong style={{ color: "var(--live)" }}>LIVE</strong> badge and running
+          score. Playoff rounds only appear in the Week dropdown once their matchups are actually announced.
+          Weeks marked "(has results)" show a frozen snapshot of that week's stats and predictions next to the
+          final score. Each card also shows the real sportsbook spread, moneyline, and over/under when a line has
+          been posted, alongside a note on whether the model's own pick agrees with the market favorite. Click any
+          team logo to see their full-season schedule, and click the star to favorite a team.
+        </div>
+      )}
+
+      {view === "week" ? (
+        <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} />
+      ) : (
+        <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} />
+      )}
+
+      <footer className="app-footer">
+        Team stats source: The Football Database (footballdb.com). Schedule source: Pro-Football-Reference &amp;
+        NFL.com, 2026 season. Team logos from NFL.com. Live scores from ESPN's public scoreboard API. Betting
+        odds are real sportsbook lines refreshed weekly (Week 1 is a labeled illustrative sample until real lines
+        post). Impact player data and any weeks marked "sample" are illustrative/placeholder pending real
+        in-season reports and results.
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

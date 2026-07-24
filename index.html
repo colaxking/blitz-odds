@@ -364,6 +364,16 @@
   .roster-group-label { font-weight: 700; text-transform: capitalize; margin-bottom: 6px; font-size: 0.85rem; }
   .roster-table-wrap { overflow-x: auto; }
   .roster-table { font-size: 0.8rem; }
+
+  /* Offense / Defense / Special Teams sub-tabs within Roster & Depth Chart */
+  .roster-side-tabs { display: flex; gap: 6px; margin: 4px 0 16px; flex-wrap: wrap; }
+  .roster-side-tab-btn {
+    background: var(--card-bg); color: var(--text-dim); border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 7px 16px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .roster-side-tab-btn:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
+  .roster-side-tab-btn.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -4810,6 +4820,44 @@ function espnTeamSlug(teamId) {
   return (ESPN_URL_ABBR_FIX[teamId] || teamId).toLowerCase();
 }
 
+// Side ("offense" | "defense" | "specialTeam") for each side-tab, in display order,
+// plus a preferred position-abbreviation order used to group the full roster table
+// within a side (unrecognized abbreviations sort alphabetically after these).
+const ROSTER_SIDES = ["offense", "defense", "specialTeam"];
+const ROSTER_SIDE_LABELS = { offense: "Offense", defense: "Defense", specialTeam: "Special Teams" };
+const POSITION_ORDER = {
+  offense: ["QB", "RB", "FB", "WR", "TE", "T", "OT", "LT", "RT", "G", "OG", "LG", "RG", "C", "OL"],
+  defense: ["DE", "DT", "NT", "DL", "EDGE", "LB", "OLB", "ILB", "MLB", "CB", "S", "FS", "SS", "DB", "NB"],
+  specialTeam: ["K", "PK", "P", "LS", "H", "KR", "PR"],
+};
+
+/** Best-effort classification of a depth-chart formation (e.g. "Base 3-4 D",
+ *  "3WR 1TE", "Special Teams") into a roster side, used only as a fallback when
+ *  none of a slot's athletes are found on the roster listing. */
+function classifyFormationSide(name) {
+  const n = (name || "").toLowerCase();
+  if (n.includes("special")) return "specialTeam";
+  if (/(3-4|4-3|nickel|dime|goal ?line d|^base d|\bd\b|defense)/.test(n)) return "defense";
+  return "offense";
+}
+
+function groupPlayersByPosition(players, side) {
+  const buckets = {};
+  players.forEach(p => {
+    const abbr = (p.position && p.position.abbreviation) || "Other";
+    (buckets[abbr] = buckets[abbr] || []).push(p);
+  });
+  const order = POSITION_ORDER[side] || [];
+  return Object.keys(buckets)
+    .sort((a, b) => {
+      const ra = order.indexOf(a), rb = order.indexOf(b);
+      const ia = ra === -1 ? order.length + a.charCodeAt(0) : ra;
+      const ib = rb === -1 ? order.length + b.charCodeAt(0) : rb;
+      return ia - ib;
+    })
+    .map(abbr => ({ abbr, players: buckets[abbr] }));
+}
+
 const rosterCache = {};
 async function fetchTeamRoster(teamId) {
   if (rosterCache[teamId]) return rosterCache[teamId];
@@ -4821,25 +4869,41 @@ async function fetchTeamRoster(teamId) {
   if (!rosterRes.ok) throw new Error("ESPN roster request failed: " + rosterRes.status);
   const rosterData = await rosterRes.json();
   const playersById = {};
+  const playerSideById = {};
   const fullRoster = (rosterData.athletes || []).map(group => {
     const players = (group.items || []).slice();
-    players.forEach(p => { playersById[p.id] = p; });
+    players.forEach(p => { playersById[p.id] = p; playerSideById[p.id] = group.position; });
     return { group: group.position, players };
   });
 
   let depthChart = [];
   if (depthRes.ok) {
     const depthData = await depthRes.json();
-    const positions = depthData.positions || {};
-    depthChart = Object.keys(positions).map(slug2 => {
-      const entry = positions[slug2];
-      const athletes = (entry.athletes || []).map(a => playersById[a.id] || a);
-      return {
-        slug: slug2,
-        label: (entry.position && (entry.position.displayName || entry.position.abbreviation)) || slug2.toUpperCase(),
-        athletes,
-      };
-    }).filter(g => g.athletes.length > 0);
+    // ESPN nests the real slot-by-slot depth order under depthchart[], one entry
+    // per formation (e.g. "Base 3-4 D", "3WR 1TE", "Special Teams"), each with
+    // its own positions dict - not a single flat "positions" object. Merge them,
+    // keeping the first occurrence of each position slug, and tag each slot with
+    // a side (offense/defense/specialTeam) so it can be filtered per side-tab.
+    const formations = Array.isArray(depthData.depthchart) ? depthData.depthchart : [];
+    const bySlug = {};
+    formations.forEach(formation => {
+      const positions = (formation && formation.positions) || {};
+      const formationSide = classifyFormationSide(formation && formation.name);
+      Object.keys(positions).forEach(slug2 => {
+        if (bySlug[slug2]) return;
+        const entry = positions[slug2];
+        const rawAthletes = entry.athletes || [];
+        const athletes = rawAthletes.map(a => playersById[a.id] || a);
+        const side = rawAthletes.map(a => playerSideById[a.id]).find(Boolean) || formationSide;
+        bySlug[slug2] = {
+          slug: slug2,
+          label: (entry.position && (entry.position.displayName || entry.position.abbreviation)) || slug2.toUpperCase(),
+          side,
+          athletes,
+        };
+      });
+    });
+    depthChart = Object.values(bySlug).filter(g => g.athletes.length > 0);
   }
 
   const result = { fullRoster, depthChart };
@@ -4924,15 +4988,40 @@ function useIsMobile(breakpoint = 860) {
 
 function DepthChartSection({ teamId }) {
   const { loading, error, data } = useTeamRoster(teamId);
+  const [side, setSide] = useState("offense");
   if (loading) return <p className="hw-tag">Loading roster…</p>;
   if (error || !data) return <p className="hw-tag">Roster data isn't available right now — try again in a bit.</p>;
+
+  const availableSides = ROSTER_SIDES.filter(
+    s => data.fullRoster.some(g => g.group === s) || data.depthChart.some(g => g.side === s)
+  );
+  const activeSide = availableSides.includes(side) ? side : (availableSides[0] || "offense");
+
+  const sideDepthChart = data.depthChart.filter(g => g.side === activeSide);
+  const rosterGroup = data.fullRoster.find(g => g.group === activeSide);
+  const positionGroups = rosterGroup ? groupPlayersByPosition(rosterGroup.players, activeSide) : [];
+
   return (
     <div>
-      {data.depthChart.length > 0 && (
+      <div className="roster-side-tabs" role="tablist">
+        {availableSides.map(s => (
+          <button
+            key={s}
+            className={"roster-side-tab-btn" + (activeSide === s ? " active" : "")}
+            onClick={() => setSide(s)}
+            role="tab"
+            aria-selected={activeSide === s}
+          >
+            {ROSTER_SIDE_LABELS[s] || s}
+          </button>
+        ))}
+      </div>
+
+      {sideDepthChart.length > 0 && (
         <div className="depth-chart-block">
           <h3 className="injury-report-title">Depth Chart</h3>
           <div className="depth-chart-grid">
-            {data.depthChart.map(group => (
+            {sideDepthChart.map(group => (
               <div className="depth-slot" key={group.slug}>
                 <div className="depth-slot-label">{group.label}</div>
                 <div className="depth-slot-players">
@@ -4949,31 +5038,35 @@ function DepthChartSection({ teamId }) {
           </div>
         </div>
       )}
+
       <div className="full-roster-block">
-        <h3 className="injury-report-title">Full Roster</h3>
-        {data.fullRoster.map(group => (
-          <div className="roster-group" key={group.group}>
-            <div className="roster-group-label">{group.group}</div>
-            <div className="roster-table-wrap">
-              <table className="team-schedule-table roster-table">
-                <thead>
-                  <tr><th>#</th><th>Player</th><th>Pos</th><th>Ht / Wt</th><th>Exp</th></tr>
-                </thead>
-                <tbody>
-                  {group.players.map(p => (
-                    <tr key={p.id}>
-                      <td>{p.jersey || "—"}</td>
-                      <td>{p.displayName}</td>
-                      <td>{(p.position && p.position.abbreviation) || "—"}</td>
-                      <td>{p.displayHeight ? `${p.displayHeight}, ${p.displayWeight}` : "—"}</td>
-                      <td>{p.experience && p.experience.years != null ? p.experience.years : "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <h3 className="injury-report-title">Full Roster — {ROSTER_SIDE_LABELS[activeSide] || activeSide}</h3>
+        {positionGroups.length === 0 ? (
+          <p className="hw-tag">No {(ROSTER_SIDE_LABELS[activeSide] || activeSide).toLowerCase()} players listed.</p>
+        ) : (
+          positionGroups.map(pg => (
+            <div className="roster-group" key={pg.abbr}>
+              <div className="roster-group-label">{pg.abbr}</div>
+              <div className="roster-table-wrap">
+                <table className="team-schedule-table roster-table">
+                  <thead>
+                    <tr><th>#</th><th>Player</th><th>Ht / Wt</th><th>Exp</th></tr>
+                  </thead>
+                  <tbody>
+                    {pg.players.map(p => (
+                      <tr key={p.id}>
+                        <td>{p.jersey || "—"}</td>
+                        <td>{p.displayName}</td>
+                        <td>{p.displayHeight ? `${p.displayHeight}, ${p.displayWeight}` : "—"}</td>
+                        <td>{p.experience && p.experience.years != null ? p.experience.years : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

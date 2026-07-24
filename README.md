@@ -45,6 +45,14 @@ nfl-matchup-analyzer/
 - **Team view** — click any team's logo or name to see that team's full 18-week
   schedule in one place, with a predicted result and confidence for every game and a
   bye week clearly marked.
+- **Roster & depth chart, team news** — the team view is now tabbed: "Schedule"
+  (the original full-season table) and "Roster & Depth Chart", which pulls that
+  team's live depth chart and full roster (position, jersey number, size,
+  experience) straight from ESPN's public API in the browser, same as live
+  scores. A "Team News" panel with recent headlines sits in a column to the
+  right of the tabs. On narrow/mobile screens there's no room for a side
+  column, so News becomes a third tab instead and everything stacks in one
+  column.
 - **Favorites** — click the star on any team to favorite it. Favorited teams appear
   in a bar under the header for one-click access to their full schedule. Favorites
   are saved in the browser (via localStorage) so they persist next time you open the

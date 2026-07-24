@@ -44,14 +44,71 @@
     margin: 14px 0 8px;
   }
   select.week-select {
-    background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
-    border-radius: 8px; padding: 8px 12px; font-size: 0.95rem;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background: var(--card-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239fb0c9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px 14px;
+    color: var(--text); border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 9px 34px 9px 16px; font-size: 0.88rem; font-weight: 600;
+    cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
   }
+  select.week-select:hover { border-color: rgba(79,209,197,0.5); }
+  select.week-select:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,209,197,0.18);
+  }
+  select.week-select option { background: var(--card-bg); color: var(--text); }
   .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
     background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
-    border-radius: 8px; padding: 8px 14px; font-size: 0.85rem; cursor: pointer;
+    border-radius: 999px; padding: 9px 16px 9px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
   }
-  .back-btn:hover { border-color: var(--accent); }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,209,197,0.08); }
+
+  .week-nav {
+    position: relative; display: flex; align-items: center; gap: 2px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px;
+    padding: 4px; box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset;
+  }
+  .week-nav-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%; border: none; background: transparent;
+    color: var(--text-dim); cursor: pointer; transition: background 0.15s, color 0.15s;
+  }
+  .week-nav-arrow:hover:not(:disabled) { background: rgba(79,209,197,0.12); color: var(--accent); }
+  .week-nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+  .week-nav-trigger {
+    display: flex; align-items: center; gap: 8px; background: transparent; border: none;
+    color: var(--text); font-size: 0.92rem; font-weight: 700; letter-spacing: 0.2px;
+    padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: background 0.15s;
+    min-width: 148px; justify-content: center;
+  }
+  .week-nav-trigger:hover { background: rgba(255,255,255,0.05); }
+  .week-nav-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .week-nav-result-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--demo); flex-shrink: 0; }
+  .week-nav-chevron { color: var(--text-dim); transition: transform 0.18s; display: flex; }
+  .week-nav-chevron.open { transform: rotate(180deg); }
+  .week-nav-panel {
+    position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5); padding: 8px; min-width: 240px; max-height: 380px;
+    overflow-y: auto; z-index: 30;
+  }
+  .week-nav-group-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim);
+    font-weight: 700; padding: 10px 12px 6px;
+  }
+  .week-nav-group-label:first-child { padding-top: 4px; }
+  .week-nav-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    background: none; border: none; color: var(--text); font-size: 0.86rem; text-align: left;
+    padding: 9px 12px; border-radius: 8px; cursor: pointer; transition: background 0.12s;
+  }
+  .week-nav-item:hover { background: rgba(79,209,197,0.08); }
+  .week-nav-item.active { background: rgba(79,209,197,0.16); color: var(--accent); font-weight: 700; }
+  .week-nav-result-badge {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+    background: rgba(168,85,247,0.18); color: #d6b8ff; padding: 2px 7px; border-radius: 999px;
+    flex-shrink: 0;
+  }
 
   .favorites-bar {
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
@@ -4668,7 +4725,10 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam })
   return (
     <div>
       <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
-        <button className="back-btn" onClick={onBack}>&larr; Back to week view</button>
+        <button className="back-btn" onClick={onBack}>
+          <ChevronIcon direction="left" size={13} />
+          <span>Back to week view</span>
+        </button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <label htmlFor="team-switch-select" style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Team:</label>
           <TeamSwitcher teamId={teamId} favorites={favorites} onSelectTeam={onSelectTeam} />
@@ -4754,6 +4814,110 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam })
   );
 }
 
+function ChevronIcon({ direction = "down", size = 14 }) {
+  const rotations = { down: 0, up: 180, left: 90, right: -90 };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ transform: `rotate(${rotations[direction]}deg)`, transition: "transform 0.18s" }}>
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function WeekNavItem({ period, active, hasResults, onClick }) {
+  return (
+    <button
+      className={"week-nav-item" + (active ? " active" : "")}
+      onClick={onClick}
+      role="option"
+      aria-selected={active}
+    >
+      <span>{period.label}</span>
+      {hasResults && <span className="week-nav-result-badge">Results</span>}
+    </button>
+  );
+}
+
+function WeekNav({ periods, selectedWeek, onSelectWeek }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+  const currentIndex = periods.findIndex(p => p.week === selectedWeek);
+  const current = currentIndex >= 0 ? periods[currentIndex] : periods[0];
+  const regular = periods.filter(p => p.week <= 18);
+  const playoffs = periods.filter(p => p.week > 18);
+
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  function goPrev() {
+    if (currentIndex > 0) onSelectWeek(periods[currentIndex - 1].week);
+  }
+  function goNext() {
+    if (currentIndex >= 0 && currentIndex < periods.length - 1) onSelectWeek(periods[currentIndex + 1].week);
+  }
+  function pick(week) {
+    onSelectWeek(week);
+    setOpen(false);
+  }
+
+  return (
+    <div className="week-nav" ref={containerRef}>
+      <button className="week-nav-arrow" onClick={goPrev} disabled={currentIndex <= 0} aria-label="Previous period">
+        <ChevronIcon direction="left" />
+      </button>
+      <button
+        className="week-nav-trigger"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        {current && getHistorySnapshot(current.week) && <span className="week-nav-result-dot" title="Has results" />}
+        <span>{current ? current.label : "Select week"}</span>
+        <span className={"week-nav-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
+      </button>
+      <button className="week-nav-arrow" onClick={goNext} disabled={currentIndex < 0 || currentIndex >= periods.length - 1} aria-label="Next period">
+        <ChevronIcon direction="right" />
+      </button>
+
+      {open && (
+        <div className="week-nav-panel" role="listbox">
+          <div className="week-nav-group-label">Regular season</div>
+          {regular.map(p => (
+            <WeekNavItem
+              key={p.week}
+              period={p}
+              active={p.week === selectedWeek}
+              hasResults={!!getHistorySnapshot(p.week)}
+              onClick={() => pick(p.week)}
+            />
+          ))}
+          {playoffs.length > 0 && <div className="week-nav-group-label">Playoffs</div>}
+          {playoffs.map(p => (
+            <WeekNavItem
+              key={p.week}
+              period={p}
+              active={p.week === selectedWeek}
+              hasResults={!!getHistorySnapshot(p.week)}
+              onClick={() => pick(p.week)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const [view, setView] = useState("week");
   const [selectedWeek, setSelectedWeek] = useState(1);
@@ -4789,23 +4953,12 @@ function App() {
 
       <div className="controls-row">
         {view === "week" ? (
-          <>
-            <label htmlFor="week-select" style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Week:</label>
-            <select
-              id="week-select"
-              className="week-select"
-              value={selectedWeek}
-              onChange={(e) => setSelectedWeek(Number(e.target.value))}
-            >
-              {periods.map(p => (
-                <option key={p.week} value={p.week}>
-                  {p.label}{getHistorySnapshot(p.week) ? " (has results)" : ""}
-                </option>
-              ))}
-            </select>
-          </>
+          <WeekNav periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
         ) : (
-          <button className="back-btn" onClick={backToWeek}>&larr; Back to week view</button>
+          <button className="back-btn" onClick={backToWeek}>
+            <ChevronIcon direction="left" size={13} />
+            <span>Back to week view</span>
+          </button>
         )}
       </div>
 

@@ -9,21 +9,78 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem("blitz-odds-theme");
+      var mode = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+      var resolved = mode === "system"
+        ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+        : mode;
+      if (resolved === "light") {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    } catch (e) {}
+  })();
+</script>
 <style>
   :root {
     --bg: #0b1220;
     --card-bg: #131c2e;
     --card-border: #223049;
+    --surface-2: #1a2438;
     --text: #eef2f8;
     --text-dim: #9fb0c9;
     --accent: #4fd1c5;
+    --accent-rgb: 79,209,197;
     --win: #2ecc71;
+    --win-rgb: 46,204,113;
     --lose: #55617a;
     --warn: #f5a524;
+    --warn-rgb: 245,165,36;
     --out: #ef4444;
+    --out-rgb: 239,68,68;
     --star: #f5c518;
     --demo: #a855f7;
+    --demo-rgb: 168,85,247;
     --live: #ff3b30;
+    --live-rgb: 255,59,48;
+    --edge-b: #7ab8ff;
+    --pill-good-text: #6be3a1;
+    --pill-bad-text: #ff8080;
+    --pill-out-text: #ff9d9d;
+    --pill-questionable-text: #ffcf85;
+    --pill-purple-text: #d6b8ff;
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239fb0c9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  }
+  html[data-theme="light"] {
+    --bg: #eef1f6;
+    --card-bg: #ffffff;
+    --card-border: #d7dee8;
+    --surface-2: #f1f4f9;
+    --text: #16202f;
+    --text-dim: #5b6b80;
+    --accent: #0f8f83;
+    --accent-rgb: 15,143,131;
+    --win: #1f9d54;
+    --win-rgb: 31,157,84;
+    --lose: #8a95a8;
+    --warn: #b5720a;
+    --warn-rgb: 181,114,10;
+    --out: #d33a3a;
+    --out-rgb: 211,58,58;
+    --star: #a8770a;
+    --demo: #8b3fd1;
+    --demo-rgb: 139,63,209;
+    --live: #d92d20;
+    --live-rgb: 217,45,32;
+    --edge-b: #1d6fc9;
+    --pill-good-text: #1a7a43;
+    --pill-bad-text: #b42318;
+    --pill-out-text: #b42318;
+    --pill-questionable-text: #92530a;
+    --pill-purple-text: #6b21a8;
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6b80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   }
   * { box-sizing: border-box; }
   body {
@@ -31,6 +88,7 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
+    transition: background 0.15s, color 0.15s;
   }
   .app { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
   header.top { text-align: center; margin-bottom: 16px; }
@@ -45,14 +103,16 @@
   }
   select.week-select {
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
-    background: var(--card-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239fb0c9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px 14px;
+    background-color: var(--card-bg);
+    background-image: var(--select-chevron);
+    background-repeat: no-repeat; background-position: right 10px center; background-size: 14px 14px;
     color: var(--text); border: 1px solid var(--card-border);
     border-radius: 999px; padding: 9px 34px 9px 16px; font-size: 0.88rem; font-weight: 600;
     cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
   }
-  select.week-select:hover { border-color: rgba(79,209,197,0.5); }
+  select.week-select:hover { border-color: rgba(var(--accent-rgb),0.5); }
   select.week-select:focus {
-    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,209,197,0.18);
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.18);
   }
   select.week-select option { background: var(--card-bg); color: var(--text); }
   .back-btn {
@@ -61,7 +121,22 @@
     border-radius: 999px; padding: 9px 16px 9px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
     transition: border-color 0.15s, background 0.15s, color 0.15s;
   }
-  .back-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,209,197,0.08); }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
+
+  .top-bar { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+  .theme-toggle {
+    display: inline-flex; align-items: center; gap: 2px; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 999px; padding: 3px;
+  }
+  .theme-toggle-btn {
+    display: flex; align-items: center; gap: 5px; background: transparent; border: none;
+    color: var(--text-dim); padding: 6px 10px; border-radius: 999px; cursor: pointer;
+    font-size: 0.72rem; font-weight: 600; transition: background 0.15s, color 0.15s;
+  }
+  .theme-toggle-btn:hover { color: var(--text); }
+  .theme-toggle-btn.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); }
+  .theme-toggle-label { display: none; }
+  @media (min-width: 480px) { .theme-toggle-label { display: inline; } }
 
   .week-nav {
     position: relative; display: flex; align-items: center; gap: 2px;
@@ -73,7 +148,7 @@
     width: 30px; height: 30px; border-radius: 50%; border: none; background: transparent;
     color: var(--text-dim); cursor: pointer; transition: background 0.15s, color 0.15s;
   }
-  .week-nav-arrow:hover:not(:disabled) { background: rgba(79,209,197,0.12); color: var(--accent); }
+  .week-nav-arrow:hover:not(:disabled) { background: rgba(var(--accent-rgb),0.12); color: var(--accent); }
   .week-nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
   .week-nav-trigger {
     display: flex; align-items: center; gap: 8px; background: transparent; border: none;
@@ -81,7 +156,7 @@
     padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: background 0.15s;
     min-width: 148px; justify-content: center;
   }
-  .week-nav-trigger:hover { background: rgba(255,255,255,0.05); }
+  .week-nav-trigger:hover { background: rgba(var(--accent-rgb),0.06); }
   .week-nav-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .week-nav-result-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--demo); flex-shrink: 0; }
   .week-nav-chevron { color: var(--text-dim); transition: transform 0.18s; display: flex; }
@@ -89,7 +164,7 @@
   .week-nav-panel {
     position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.5); padding: 8px; min-width: 240px; max-height: 380px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35); padding: 8px; min-width: 240px; max-height: 380px;
     overflow-y: auto; z-index: 30;
   }
   .week-nav-group-label {
@@ -102,11 +177,11 @@
     background: none; border: none; color: var(--text); font-size: 0.86rem; text-align: left;
     padding: 9px 12px; border-radius: 8px; cursor: pointer; transition: background 0.12s;
   }
-  .week-nav-item:hover { background: rgba(79,209,197,0.08); }
-  .week-nav-item.active { background: rgba(79,209,197,0.16); color: var(--accent); font-weight: 700; }
+  .week-nav-item:hover { background: rgba(var(--accent-rgb),0.08); }
+  .week-nav-item.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); font-weight: 700; }
   .week-nav-result-badge {
     font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
-    background: rgba(168,85,247,0.18); color: #d6b8ff; padding: 2px 7px; border-radius: 999px;
+    background: rgba(var(--demo-rgb),0.18); color: var(--pill-purple-text); padding: 2px 7px; border-radius: 999px;
     flex-shrink: 0;
   }
 
@@ -123,11 +198,11 @@
   .fav-chip img { width: 20px; height: 20px; object-fit: contain; }
 
   .disclaimer {
-    background: #1c2740; border: 1px solid var(--card-border); border-radius: 10px;
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 10px;
     padding: 10px 14px; font-size: 0.8rem; color: var(--text-dim); margin: 8px 0 24px;
   }
   .demo-banner {
-    background: rgba(168,85,247,0.14); border: 1px solid rgba(168,85,247,0.4); color: #d6b8ff;
+    background: rgba(var(--demo-rgb),0.14); border: 1px solid rgba(var(--demo-rgb),0.4); color: var(--pill-purple-text);
     border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; margin: 8px 0 20px;
   }
   .schedule-grid {
@@ -137,8 +212,8 @@
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 16px; display: flex; flex-direction: column; gap: 10px;
   }
-  .game-card.is-historical { border-color: rgba(168,85,247,0.35); }
-  .game-card.is-live { border-color: var(--live); box-shadow: 0 0 0 1px rgba(255,59,48,0.3); }
+  .game-card.is-historical { border-color: rgba(var(--demo-rgb),0.35); }
+  .game-card.is-live { border-color: var(--live); box-shadow: 0 0 0 1px rgba(var(--live-rgb),0.3); }
   .game-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); }
   .live-tag {
     display: inline-flex; align-items: center; gap: 4px; color: var(--live); font-weight: 700;
@@ -151,7 +226,7 @@
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
   .matchup-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .team-block { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 10px; position: relative; }
-  .team-block.winner { background: rgba(46, 204, 113, 0.12); border: 1px solid rgba(46, 204, 113, 0.4); }
+  .team-block.winner { background: rgba(var(--win-rgb), 0.12); border: 1px solid rgba(var(--win-rgb), 0.4); }
   .team-block.actual-winner { box-shadow: 0 0 0 2px var(--demo) inset; }
   .team-click { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; padding: 0; color: inherit; font: inherit; }
   .team-click:hover .team-name { text-decoration: underline; }
@@ -173,7 +248,7 @@
   .confidence-bar-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-dim); }
   .odds-row {
     display: flex; flex-direction: column; gap: 4px; font-size: 0.74rem;
-    background: #1a2438; border-radius: 8px; padding: 8px 10px;
+    background: var(--surface-2); border-radius: 8px; padding: 8px 10px;
   }
   .odds-fields { display: flex; flex-wrap: wrap; gap: 12px; }
   .odds-field { color: var(--text); }
@@ -189,34 +264,34 @@
   .rank-pill {
     display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px;
   }
-  .rank-good { background: rgba(46,204,113,0.18); color: #6be3a1; }
-  .rank-mid { background: rgba(245,165,36,0.18); color: var(--warn); }
-  .rank-bad { background: rgba(239,68,68,0.18); color: #ff8080; }
+  .rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
+  .rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
+  .rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
   .diff-row {
     display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem;
-    padding: 4px 8px; border-radius: 6px; background: #1a2438; margin-top: 6px;
+    padding: 4px 8px; border-radius: 6px; background: var(--surface-2); margin-top: 6px;
   }
   .diff-row .diff-label { color: var(--text-dim); }
   .diff-row .diff-value { font-weight: 700; }
   .diff-value.edge-a { color: var(--win); }
-  .diff-value.edge-b { color: #7ab8ff; }
+  .diff-value.edge-b { color: var(--edge-b); }
   .impact-note {
     font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
   }
-  .impact-out { background: rgba(239,68,68,0.12); color: #ff9d9d; border: 1px solid rgba(239,68,68,0.3); }
-  .impact-questionable { background: rgba(245,165,36,0.12); color: #ffcf85; border: 1px solid rgba(245,165,36,0.3); }
+  .impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
+  .impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
   .impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
   .injury-report { margin-bottom: 18px; }
   .injury-report-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
   .injury-list { display: flex; flex-direction: column; gap: 6px; }
   .result-row {
     display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;
-    padding: 6px 10px; border-radius: 8px; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3);
+    padding: 6px 10px; border-radius: 8px; background: rgba(var(--demo-rgb),0.1); border: 1px solid rgba(var(--demo-rgb),0.3);
   }
-  .result-row.live-row { background: rgba(255,59,48,0.1); border: 1px solid rgba(255,59,48,0.35); }
+  .result-row.live-row { background: rgba(var(--live-rgb),0.1); border: 1px solid rgba(var(--live-rgb),0.35); }
   .result-row .score { font-weight: 700; }
   .result-row .verdict.correct { color: var(--win); }
-  .result-row .verdict.incorrect { color: #ff8080; }
+  .result-row .verdict.incorrect { color: var(--pill-bad-text); }
   footer.app-footer { text-align: center; color: var(--text-dim); font-size: 0.72rem; margin-top: 32px; }
 
   .team-view-header {
@@ -234,15 +309,15 @@
   }
   .team-schedule-table td { padding: 10px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
   .team-schedule-table tr.bye-row td { color: var(--text-dim); font-style: italic; }
-  .team-schedule-table tr.playoff-row td { background: rgba(168,85,247,0.06); }
+  .team-schedule-table tr.playoff-row td { background: rgba(var(--demo-rgb),0.06); }
   .opp-cell { display: flex; align-items: center; gap: 8px; }
   .opp-cell img { width: 26px; height: 26px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; }
   .pred-win { color: var(--win); font-weight: 700; }
   .pred-lose { color: var(--text-dim); }
   .hw-tag { font-size: 0.68rem; color: var(--text-dim); margin-left: 6px; }
   .verdict-pill { font-size: 0.68rem; padding: 1px 6px; border-radius: 999px; margin-left: 6px; }
-  .verdict-pill.correct { background: rgba(46,204,113,0.18); color: #6be3a1; }
-  .verdict-pill.incorrect { background: rgba(239,68,68,0.18); color: #ff8080; }
+  .verdict-pill.correct { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
+  .verdict-pill.incorrect { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
 </style>
 </head>
 <body>
@@ -4523,8 +4598,8 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
       <div className="confidence-bar-wrap">
         <span>{away.id} {awayPct}%</span>
         <div className="confidence-bar">
-          <div style={{ width: awayPct + "%", background: "#55617a" }}></div>
-          <div style={{ width: homePct + "%", background: "#2ecc71" }}></div>
+          <div style={{ width: awayPct + "%", background: "var(--lose)" }}></div>
+          <div style={{ width: homePct + "%", background: "var(--win)" }}></div>
         </div>
         <span>{home.id} {homePct}%</span>
       </div>
@@ -4918,7 +4993,117 @@ function WeekNav({ periods, selectedWeek, onSelectWeek }) {
   );
 }
 
+function SunIcon({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="2" />
+      <g stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <line x1="12" y1="1.5" x2="12" y2="4" />
+        <line x1="12" y1="20" x2="12" y2="22.5" />
+        <line x1="1.5" y1="12" x2="4" y2="12" />
+        <line x1="20" y1="12" x2="22.5" y2="12" />
+        <line x1="4.5" y1="4.5" x2="6.2" y2="6.2" />
+        <line x1="17.8" y1="17.8" x2="19.5" y2="19.5" />
+        <line x1="4.5" y1="19.5" x2="6.2" y2="17.8" />
+        <line x1="17.8" y1="6.2" x2="19.5" y2="4.5" />
+      </g>
+    </svg>
+  );
+}
+
+function MoonIcon({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"
+        stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function SystemIcon({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <rect x="2.5" y="4" width="19" height="13" rx="1.6" stroke="currentColor" strokeWidth="2" />
+      <line x1="8" y1="20.5" x2="16" y2="20.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="12" y1="17" x2="12" y2="20.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+const THEME_STORAGE_KEY = "blitz-odds-theme";
+
+function useThemeManager() {
+  const [mode, setMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
+      return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+    } catch (e) {
+      return "system";
+    }
+  });
+
+  const getSystemPref = () =>
+    (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+
+  const [systemPref, setSystemPref] = useState(getSystemPref);
+
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => setSystemPref(mq.matches ? "dark" : "light");
+    if (mq.addEventListener) mq.addEventListener("change", handler);
+    else if (mq.addListener) mq.addListener(handler);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", handler);
+      else if (mq.removeListener) mq.removeListener(handler);
+    };
+  }, []);
+
+  const resolved = mode === "system" ? systemPref : mode;
+
+  useEffect(() => {
+    if (resolved === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+  }, [resolved]);
+
+  useEffect(() => {
+    try { localStorage.setItem(THEME_STORAGE_KEY, mode); } catch (e) {}
+  }, [mode]);
+
+  return [mode, setMode];
+}
+
+function ThemeToggle({ mode, setMode }) {
+  const options = [
+    { key: "light", label: "Light", Icon: SunIcon },
+    { key: "dark", label: "Dark", Icon: MoonIcon },
+    { key: "system", label: "System", Icon: SystemIcon },
+  ];
+  return (
+    <div className="theme-toggle" role="group" aria-label="Theme">
+      {options.map(opt => (
+        <button
+          key={opt.key}
+          className={"theme-toggle-btn" + (mode === opt.key ? " active" : "")}
+          onClick={() => setMode(opt.key)}
+          aria-pressed={mode === opt.key}
+          title={opt.label}
+        >
+          <opt.Icon size={13} />
+          <span className="theme-toggle-label">{opt.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function App() {
+  const [themeMode, setThemeMode] = useThemeManager();
   const [view, setView] = useState("week");
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
@@ -4943,6 +5128,9 @@ function App() {
 
   return (
     <div className="app">
+      <div className="top-bar">
+        <ThemeToggle mode={themeMode} setMode={setThemeMode} />
+      </div>
       <header className="top">
         <div className="brand-row" onClick={() => setView("week")}>
           <BrandLogo size={52} />

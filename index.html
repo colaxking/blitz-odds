@@ -206,11 +206,12 @@
     border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; margin: 8px 0 20px;
   }
   .schedule-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 400px)); gap: 16px;
   }
   .game-card {
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 16px; display: flex; flex-direction: column; gap: 10px;
+    width: 100%; height: 100%; box-sizing: border-box;
   }
   .game-card.is-historical { border-color: rgba(var(--demo-rgb),0.35); }
   .game-card.is-live { border-color: var(--live); box-shadow: 0 0 0 1px rgba(var(--live-rgb),0.3); }
@@ -244,6 +245,7 @@
   .star-btn.active { color: var(--star); border-color: var(--star); }
   .team-name { font-size: 0.8rem; text-align: center; color: var(--text); }
   .win-tag { font-size: 0.7rem; color: var(--win); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .win-tag-hidden { visibility: hidden; }
   .at-sep { color: var(--text-dim); font-size: 0.75rem; padding: 0 4px; }
   .confidence-bar-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-dim); }
   .odds-row {
@@ -4646,13 +4648,13 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
         <div className={"team-block" + (!homeIsWinner ? " winner" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
           <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{away.name}</div>
-          {!homeIsWinner && <div className="win-tag">Predicted Winner</div>}
+          <div className={"win-tag" + (!homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
         </div>
         <div className="at-sep">@</div>
         <div className={"team-block" + (homeIsWinner ? " winner" : "") + (actualWinnerId === home.id ? " actual-winner" : "")}>
           <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{home.name}</div>
-          {homeIsWinner && <div className="win-tag">Predicted Winner</div>}
+          <div className={"win-tag" + (homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
         </div>
       </div>
 
@@ -4749,8 +4751,21 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   );
 }
 
+/** Favorite-team games first (in schedule order), then every other game (in schedule order). */
+function sortGamesByFavorites(games, favorites) {
+  if (!favorites || !favorites.length) return games;
+  const favSet = new Set(favorites);
+  const favGames = [];
+  const otherGames = [];
+  games.forEach(g => {
+    (favSet.has(g.home) || favSet.has(g.away) ? favGames : otherGames).push(g);
+  });
+  return [...favGames, ...otherGames];
+}
+
 function WeekView({ week, favorites, onToggleFavorite, onSelectTeam }) {
-  const games = getGamesForWeek(week);
+  const scheduledGames = getGamesForWeek(week);
+  const games = useMemo(() => sortGamesByFavorites(scheduledGames, favorites), [scheduledGames, favorites]);
   const context = getWeekContext(week);
   const liveMap = useLiveScores(week);
   if (!games.length) return <p>No schedule data for this week yet.</p>;
@@ -4765,9 +4780,9 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam }) {
         </div>
       )}
       <div className="schedule-grid">
-        {games.map((g, i) => (
+        {games.map((g) => (
           <GameCard
-            key={i}
+            key={`${g.away}-${g.home}`}
             game={g}
             favorites={favorites}
             onToggleFavorite={onToggleFavorite}

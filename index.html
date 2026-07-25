@@ -5540,16 +5540,11 @@ function App() {
         <p>Predictions from run/pass/total offense &amp; defense rankings, adjusted for injured impact players</p>
       </header>
 
-      <div className="controls-row">
-        {view === "week" ? (
+      {view === "week" && (
+        <div className="controls-row">
           <WeekNav periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
-        ) : (
-          <button className="back-btn" onClick={backToWeek}>
-            <ChevronIcon direction="left" size={13} />
-            <span>Back to week view</span>
-          </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="favorites-bar">
         {favorites.length > 0 && <span className="fav-label">Favorites:</span>}

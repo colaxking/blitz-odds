@@ -4767,7 +4767,13 @@ const SCHEDULE_DATA = JSON.parse(document.getElementById('schedule-data').textCo
 const HISTORY_DATA = JSON.parse(document.getElementById('history-data').textContent);
 const PRESEASON_DATA = JSON.parse(document.getElementById('preseason-data').textContent);
 const PLAYOFFS_DATA = JSON.parse(document.getElementById('playoffs-data').textContent);
-const ODDS_DATA = JSON.parse(document.getElementById('odds-data').textContent);
+// ODDS_DATA starts out pointing at whatever was embedded in the page at last
+// deploy (a periodic mirror - see odds-2026.json's sourceNote). useLiveOddsData()
+// below swaps it for fresher data fetched at runtime from the odds-current
+// function, which the odds-refresh scheduled task writes to every few minutes
+// without triggering a redeploy. getOdds() always reads through this binding,
+// so it picks up whichever version is current at call time.
+let ODDS_DATA = JSON.parse(document.getElementById('odds-data').textContent);
 
 // Sportsbook preference: no sportsbook offers a public login/API for a
 // third-party site to pull an individual bettor's personal odds, so this is
@@ -4871,6 +4877,50 @@ function useLiveTeamsData() {
 
     refresh(); // also try once right away, in case the page has been open since before the first interval tick
     const timer = setInterval(refresh, TEAM_STATS_REFRESH_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, []);
+}
+
+// How often to check for fresh odds. Lines can move at any time once posted,
+// and in-season the odds-refresh scheduled task itself only writes as often
+// as every 15 minutes, so there's no point polling faster than that - but
+// this is a cheap read (a small JSON blob, not a deploy), so it can safely
+// poll more often than the old git-push design ever could.
+const ODDS_REFRESH_MS = 3 * 60 * 1000;
+
+/**
+ * Periodically re-fetches current odds from the odds-current Netlify function
+ * (backed by Netlify Blobs, written by the blitz-odds-odds-refresh scheduled
+ * task) and, if it parses successfully, swaps ODDS_DATA to the new document
+ * and forces a re-render so every GameCard/getOdds() call picks up the fresh
+ * lines. This is the odds equivalent of useLiveTeamsData() above, except the
+ * source is a runtime API instead of a static file, since odds change far
+ * more often than team stats. Same file:// / offline fallback behavior:
+ * silently keep whatever was last embedded or fetched.
+ */
+function useLiveOddsData() {
+  const [, forceRerender] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refresh() {
+      try {
+        const res = await fetch("/.netlify/functions/odds-current", { cache: "no-store" });
+        if (!res.ok) return;
+        const fresh = await res.json();
+        if (!cancelled && fresh && typeof fresh.weeks === "object") {
+          ODDS_DATA = fresh;
+          forceRerender(n => n + 1);
+        }
+      } catch (e) {
+        // Opened as file://, offline, function not deployed yet, or CORS-blocked -
+        // keep the last known-good data (the embedded blob, or a previous fetch).
+      }
+    }
+
+    refresh();
+    const timer = setInterval(refresh, ODDS_REFRESH_MS);
     return () => { cancelled = true; clearInterval(timer); };
   }, []);
 }
@@ -6597,6 +6647,7 @@ function App() {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   useLiveTeamsData(); // background-refreshes team ranks; re-renders the app when they change
+  useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
 

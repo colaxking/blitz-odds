@@ -1,0 +1,95 @@
+{
+  "season": 2026,
+  "sourceNote": "2026 NFL preseason schedule (Hall of Fame Game + Preseason Weeks 1-3), finalized by the NFL in June 2026. Sourced from NFL.com's official preseason schedule announcement. This file is the canonical source for the preseason-data block embedded in index.html - the weekly update task should treat it as read-only (matchups are fixed by the league) and only reference it, same as schedule-full-2026.json for the regular season. The odds-refresh task also matches incoming preseason odds against this file.",
+  "rounds": [
+    {
+      "id": "hof",
+      "week": -4,
+      "label": "Hall of Fame Game",
+      "espnSeasonType": 1,
+      "espnWeek": 0,
+      "matchupsAnnounced": true,
+      "games": [
+        { "away": "CAR", "home": "ARI", "date": "Thu, Aug 6", "time": "8:00 PM ET" }
+      ]
+    },
+    {
+      "id": "preseason1",
+      "week": -3,
+      "label": "Preseason Week 1",
+      "espnSeasonType": 1,
+      "espnWeek": 1,
+      "matchupsAnnounced": true,
+      "games": [
+        { "away": "DET", "home": "CIN", "date": "Thu, Aug 13", "time": "7:00 PM ET" },
+        { "away": "GB", "home": "PIT", "date": "Thu, Aug 13", "time": "7:00 PM ET" },
+        { "away": "IND", "home": "NE", "date": "Thu, Aug 13", "time": "7:30 PM ET" },
+        { "away": "LAC", "home": "HOU", "date": "Thu, Aug 13", "time": "8:00 PM ET" },
+        { "away": "ARI", "home": "LV", "date": "Thu, Aug 13", "time": "8:00 PM ET" },
+        { "away": "TEN", "home": "SF", "date": "Thu, Aug 13", "time": "9:00 PM ET" },
+        { "away": "DEN", "home": "ATL", "date": "Fri, Aug 14", "time": "7:00 PM ET" },
+        { "away": "TB", "home": "NYJ", "date": "Fri, Aug 14", "time": "7:00 PM ET" },
+        { "away": "MIA", "home": "WAS", "date": "Fri, Aug 14", "time": "7:00 PM ET" },
+        { "away": "CAR", "home": "BUF", "date": "Sat, Aug 15", "time": "1:00 PM ET" },
+        { "away": "CLE", "home": "CHI", "date": "Sat, Aug 15", "time": "1:00 PM ET" },
+        { "away": "MIN", "home": "NYG", "date": "Sat, Aug 15", "time": "1:00 PM ET" },
+        { "away": "LAR", "home": "KC", "date": "Sat, Aug 15", "time": "4:00 PM ET" },
+        { "away": "JAX", "home": "NO", "date": "Sat, Aug 15", "time": "4:00 PM ET" },
+        { "away": "PHI", "home": "BAL", "date": "Sat, Aug 15", "time": "7:00 PM ET" },
+        { "away": "DAL", "home": "SEA", "date": "Sat, Aug 15", "time": "8:00 PM ET" }
+      ]
+    },
+    {
+      "id": "preseason2",
+      "week": -2,
+      "label": "Preseason Week 2",
+      "espnSeasonType": 1,
+      "espnWeek": 2,
+      "matchupsAnnounced": true,
+      "games": [
+        { "away": "LV", "home": "HOU", "date": "Thu, Aug 20", "time": "8:00 PM ET" },
+        { "away": "SF", "home": "LAC", "date": "Thu, Aug 20", "time": "10:00 PM ET" },
+        { "away": "NYJ", "home": "PIT", "date": "Fri, Aug 21", "time": "7:00 PM ET" },
+        { "away": "CAR", "home": "JAX", "date": "Fri, Aug 21", "time": "7:30 PM ET" },
+        { "away": "GB", "home": "DEN", "date": "Fri, Aug 21", "time": "9:00 PM ET" },
+        { "away": "WAS", "home": "DET", "date": "Sat, Aug 22", "time": "12:00 PM ET" },
+        { "away": "BUF", "home": "CLE", "date": "Sat, Aug 22", "time": "1:00 PM ET" },
+        { "away": "ATL", "home": "IND", "date": "Sat, Aug 22", "time": "1:00 PM ET" },
+        { "away": "BAL", "home": "MIN", "date": "Sat, Aug 22", "time": "1:00 PM ET" },
+        { "away": "NO", "home": "LAR", "date": "Sat, Aug 22", "time": "4:00 PM ET" },
+        { "away": "NYG", "home": "MIA", "date": "Sat, Aug 22", "time": "4:00 PM ET" },
+        { "away": "CHI", "home": "CIN", "date": "Sat, Aug 22", "time": "7:00 PM ET" },
+        { "away": "PHI", "home": "NE", "date": "Sat, Aug 22", "time": "7:00 PM ET" },
+        { "away": "KC", "home": "TB", "date": "Sat, Aug 22", "time": "7:30 PM ET" },
+        { "away": "DAL", "home": "ARI", "date": "Sat, Aug 22", "time": "10:00 PM ET" },
+        { "away": "SEA", "home": "TEN", "date": "Sun, Aug 23", "time": "8:00 PM ET" }
+      ]
+    },
+    {
+      "id": "preseason3",
+      "week": -1,
+      "label": "Preseason Week 3",
+      "espnSeasonType": 1,
+      "espnWeek": 3,
+      "matchupsAnnounced": true,
+      "games": [
+        { "away": "PIT", "home": "BUF", "date": "Thu, Aug 27", "time": "7:00 PM ET" },
+        { "away": "NE", "home": "CLE", "date": "Thu, Aug 27", "time": "8:00 PM ET" },
+        { "away": "SF", "home": "LV", "date": "Thu, Aug 27", "time": "8:00 PM ET" },
+        { "away": "LAR", "home": "LAC", "date": "Thu, Aug 27", "time": "10:00 PM ET" },
+        { "away": "WAS", "home": "BAL", "date": "Fri, Aug 28", "time": "6:00 PM ET" },
+        { "away": "HOU", "home": "CAR", "date": "Fri, Aug 28", "time": "7:00 PM ET" },
+        { "away": "ATL", "home": "MIA", "date": "Fri, Aug 28", "time": "7:00 PM ET" },
+        { "away": "TB", "home": "JAX", "date": "Fri, Aug 28", "time": "7:30 PM ET" },
+        { "away": "NYG", "home": "NYJ", "date": "Fri, Aug 28", "time": "7:30 PM ET" },
+        { "away": "NO", "home": "DAL", "date": "Fri, Aug 28", "time": "8:00 PM ET" },
+        { "away": "ARI", "home": "GB", "date": "Fri, Aug 28", "time": "8:00 PM ET" },
+        { "away": "SEA", "home": "KC", "date": "Fri, Aug 28", "time": "8:00 PM ET" },
+        { "away": "CIN", "home": "PHI", "date": "Fri, Aug 28", "time": "8:00 PM ET" },
+        { "away": "MIN", "home": "DEN", "date": "Fri, Aug 28", "time": "9:00 PM ET" },
+        { "away": "DET", "home": "IND", "date": "Sat, Aug 29", "time": "1:00 PM ET" },
+        { "away": "CHI", "home": "TEN", "date": "Sat, Aug 29", "time": "6:00 PM ET" }
+      ]
+    }
+  ]
+}

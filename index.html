@@ -5032,6 +5032,19 @@ function getByeTeams(week) {
   return LIVE_TEAMS_LIST.map(t => t.id).filter(id => !playing.has(id));
 }
 
+// The full round labels ("Preseason Week 1", "Hall of Fame Game") read fine
+// in the week picker dropdown or on a mobile card, but wrap awkwardly in the
+// narrow "Week" column of the per-team schedule table (regular-season/playoff
+// labels like "Week 5" or "Wild Card" are short enough to never need this).
+// Used only there.
+function shortPeriodLabel(week, label) {
+  if (week < 1) {
+    if (week === -4) return "HOF Game";
+    return `Pre ${week + 4}`; // -3/-2/-1 -> Preseason Week 1/2/3
+  }
+  return label;
+}
+
 function getPeriodLabel(week) {
   if (week < 1) {
     const round = getPreseasonRound(week);
@@ -6350,7 +6363,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
               <tbody>
                 {displayRows.map(r => (
                   <tr key={r.week} className={(r.bye ? "bye-row " : "") + (r.isPlayoff ? "playoff-row" : "")}>
-                    <td>{r.label}</td>
+                    <td>{shortPeriodLabel(r.week, r.label)}</td>
                     {r.bye ? (
                       <td colSpan="5">BYE week</td>
                     ) : (

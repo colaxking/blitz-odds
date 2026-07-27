@@ -13,8 +13,9 @@ app's on-page branding changed.)
 This folder is a git repo pushed to [github.com/colaxking/blitz-odds](https://github.com/colaxking/blitz-odds),
 which is linked to Netlify for continuous deployment — any push to `main` triggers
 an automatic rebuild and goes live within about a minute (Netlify uses atomic
-deploys, so there's no downtime during the swap). The weekly scheduled task
-commits and pushes automatically after each data refresh.
+deploys, so there's no downtime during the swap). Two scheduled tasks commit
+and push automatically: a weekly task (stats/injuries/results/playoffs) and
+an hourly in-season task that refreshes betting odds from a live odds API.
 
 ## Open it locally
 
@@ -34,6 +35,7 @@ nfl-matchup-analyzer/
     ├── schedule-full-2026.json   # full 18-week 2026 regular season schedule
     ├── schedule-playoffs-2026.json  # postseason bracket, filled in round-by-round once seeding is known
     ├── odds-2026.json         # real sportsbook lines by week (spread/moneyline/O-U), filled in as they post
+    ├── odds-history.json     # timestamped snapshots of each game's line, appended whenever it actually moves
     └── history.json           # weekly archive: frozen stats + predictions + final scores
 ```
 
@@ -133,12 +135,15 @@ weights) live at the top of `js/predictionEngine.js` if you want to tune them.
 - **Live scores**: [ESPN's public scoreboard API](https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard),
   no key required. Used only for in-progress/just-finished scores; it doesn't affect the
   stats or predictions.
-- **Betting odds**: real sportsbook lines researched from public odds sources and refreshed
-  weekly (and re-checked as kickoff approaches, since lines move). They're shown purely as
+- **Betting odds**: real sportsbook lines pulled hourly (8am-11pm local, in-season) from
+  [TheOddsAPI](https://api.theoddsapi.com) (free tier), preferring DraftKings, then FanDuel,
+  BetMGM, or Caesars if the game's favorite book isn't posted yet. They're shown purely as
   an independent reference point next to the model's own prediction — the model doesn't use
   odds as an input, so a "model disagrees with the market" note just means the two takes
-  differ. Week 1's current lines are a clearly-marked sample, same as the Week 1 history
-  entry, since real books haven't posted 2026 lines this far out.
+  differ. Every time a line actually moves, the change is appended to `data/odds-history.json`
+  so there's a running record of how each game's spread/moneyline/total shifted over time.
+  Week 1's current lines are a clearly-marked sample, same as the Week 1 history entry, since
+  real books haven't posted 2026 lines this far out.
 - **Impact players / injury statuses**: **illustrative placeholder data**,
   not a real injury report. Built in July 2026, about 7 weeks before Week 1 —
   real injury designations aren't published until practice reports come out
@@ -148,20 +153,25 @@ weights) live at the top of `js/predictionEngine.js` if you want to tune them.
 
 ## Keeping it current
 
-This is now automated: a scheduled task (`nfl-matchup-analyzer-weekly-update`) runs
-every Tuesday at 9am. Once the season starts (Sept 9, 2026), each run checks whether
+This is now automated across two scheduled tasks. `nfl-matchup-analyzer-weekly-update`
+runs every Tuesday at 9am. Once the season starts (Sept 9, 2026), each run checks whether
 a new week has finished, and if so: pulls that week's final scores and updated team
 stats/injury report from public sources, archives a `data/history.json` snapshot for
 that week (replacing the Week 1 sample once real Week 1 is played), refreshes
 `data/teams.json` and `data/impact-players.json` with current numbers, and rebuilds
-`index.html` in place — all directly in this folder, since it's now connected. Before
-the season starts, the weekly run just checks and exits without changing anything.
-Once Week 18 wraps up, the same task also researches and fills in each playoff round
-as it's announced, and continues archiving results for weeks 19-22 (Wild Card through
-Super Bowl). Every run, it also checks for freshly posted betting lines on the next
-week or two of games and updates `data/odds-2026.json` accordingly. Finally, if
-anything changed, it commits and pushes to GitHub, which triggers Netlify to
-rebuild and publish the live site automatically — no manual redeploy needed.
+`index.html` in place. Before the season starts, the weekly run just checks and exits
+without changing anything. Once Week 18 wraps up, the same task also researches and
+fills in each playoff round as it's announced, and continues archiving results for
+weeks 19-22 (Wild Card through Super Bowl).
+
+`blitz-odds-odds-refresh` runs hourly, 8am-11pm local, in-season only (Sept-Feb), and
+pulls real lines from TheOddsAPI's free tier (25 requests/day, so hourly comfortably
+fits the budget). It updates `data/odds-2026.json` for whichever games have posted
+lines, and appends to `data/odds-history.json` whenever a line actually changes, building
+a durable line-movement history per game.
+
+Both tasks commit and push to GitHub whenever they change something, which triggers
+Netlify to rebuild and publish the live site automatically — no manual redeploy needed.
 
 ## Working conventions for Claude
 

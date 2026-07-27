@@ -5450,7 +5450,27 @@ async function fetchTeamRoster(teamId) {
         };
       });
     });
-    depthChart = Object.values(bySlug).filter(g => g.athletes.length > 0);
+    let depthSlots = Object.values(bySlug).filter(g => g.athletes.length > 0);
+    // ESPN doesn't disambiguate multiple wide-receiver slots in 3+ WR
+    // personnel groupings (e.g. "3WR 1TE") - every WR slot's
+    // position.displayName/abbreviation comes back as the generic "Wide
+    // Receiver"/"WR", unlike defensive slots which ESPN already labels
+    // Left/Right. Without this they'd all render with an identical,
+    // uninformative label. Number any slots that end up sharing an
+    // identical label within the same side, in the order ESPN lists them
+    // (which matches depth/formation order, e.g. starter first).
+    const labelCounts = {};
+    depthSlots.forEach(g => { labelCounts[g.side + "|" + g.label] = (labelCounts[g.side + "|" + g.label] || 0) + 1; });
+    const labelSeen = {};
+    depthSlots = depthSlots.map(g => {
+      const key = g.side + "|" + g.label;
+      if (labelCounts[key] > 1) {
+        labelSeen[key] = (labelSeen[key] || 0) + 1;
+        return { ...g, label: `${g.label} ${labelSeen[key]}` };
+      }
+      return g;
+    });
+    depthChart = depthSlots;
   }
 
   const result = { fullRoster, depthChart };

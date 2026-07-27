@@ -101,6 +101,12 @@
     display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
     margin: 14px 0 8px;
   }
+  @media (max-width: 480px) {
+    .controls-row { gap: 10px; }
+    .team-view-header { padding: 14px; gap: 12px; }
+    .team-view-header img { width: 52px; height: 52px; }
+    header.top h1 { font-size: 1.35rem; }
+  }
   select.week-select {
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
     background-color: var(--card-bg);
@@ -123,7 +129,7 @@
   }
   .back-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
 
-  .top-bar { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   .theme-toggle {
     display: inline-flex; align-items: center; gap: 2px; background: var(--card-bg);
     border: 1px solid var(--card-border); border-radius: 999px; padding: 3px;
@@ -137,6 +143,35 @@
   .theme-toggle-btn.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); }
   .theme-toggle-label { display: none; }
   @media (min-width: 480px) { .theme-toggle-label { display: inline; } }
+
+  .book-picker { position: relative; display: inline-flex; }
+  .book-picker-trigger {
+    display: flex; align-items: center; gap: 6px; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 999px; color: var(--text);
+    font-size: 0.78rem; font-weight: 600; padding: 7px 12px; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .book-picker-trigger:hover { border-color: var(--accent); }
+  .book-picker-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .book-picker-label-dim { color: var(--text-dim); font-weight: 500; }
+  .book-picker-chevron { color: var(--text-dim); transition: transform 0.18s; display: flex; }
+  .book-picker-chevron.open { transform: rotate(180deg); }
+  .book-picker-panel {
+    position: absolute; top: calc(100% + 10px); left: 0; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    padding: 8px; min-width: 200px; max-height: 320px; overflow-y: auto; z-index: 30;
+  }
+  .book-picker-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    background: none; border: none; color: var(--text); font-size: 0.84rem; text-align: left;
+    padding: 9px 12px; border-radius: 8px; cursor: pointer; transition: background 0.12s;
+  }
+  .book-picker-item:hover { background: rgba(var(--accent-rgb),0.08); }
+  .book-picker-item.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); font-weight: 700; }
+  .book-picker-hint {
+    font-size: 0.66rem; color: var(--text-dim); padding: 8px 12px 4px; border-top: 1px solid var(--card-border);
+    margin-top: 4px;
+  }
 
   .week-nav {
     position: relative; display: flex; align-items: center; gap: 2px;
@@ -258,6 +293,8 @@
   .odds-agree { font-size: 0.68rem; }
   .odds-agree.agree { color: var(--win); }
   .odds-agree.disagree { color: var(--warn); }
+  .odds-source { font-size: 0.64rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
+  .odds-fallback-note { font-size: 0.68rem; color: var(--text-dim); font-style: italic; }
   .confidence-bar { flex: 1; height: 6px; border-radius: 4px; background: var(--lose); overflow: hidden; display: flex; }
   .confidence-bar > div { height: 100%; }
   .stat-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
@@ -308,12 +345,47 @@
 
   .team-schedule-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   .team-schedule-table th {
-    text-align: left; color: var(--text-dim); font-weight: 600; font-size: 0.72rem; text-transform: uppercase;
-    padding: 8px 10px; border-bottom: 1px solid var(--card-border);
+    text-align: left; color: var(--text-dim); font-weight: 600; font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 10px; border-bottom: 1px solid var(--card-border); white-space: nowrap;
   }
-  .team-schedule-table td { padding: 10px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
+  .team-schedule-table td { padding: 12px 10px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
+  .team-schedule-table tbody tr:hover td { background: rgba(var(--accent-rgb),0.04); }
   .team-schedule-table tr.bye-row td { color: var(--text-dim); font-style: italic; }
+  .team-schedule-table tr.bye-row:hover td { background: transparent; }
   .team-schedule-table tr.playoff-row td { background: rgba(var(--demo-rgb),0.06); }
+  .team-schedule-table tr.playoff-row:hover td { background: rgba(var(--demo-rgb),0.1); }
+
+  /* Date/time and prediction cells break into two deliberate lines instead of
+     the browser wrapping the raw string at an arbitrary, ugly point. */
+  .date-cell, .pred-cell { white-space: nowrap; }
+  .date-cell .date-line, .pred-cell .pred-line { display: block; }
+  .date-cell .time-line {
+    display: block; color: var(--text-dim); font-size: 0.76rem; margin-top: 2px;
+  }
+  .pred-cell .pred-line { font-weight: 700; }
+  .pred-cell .pred-conf {
+    display: block; font-size: 0.72rem; color: var(--text-dim); font-weight: 500; margin-top: 2px;
+  }
+  .table-odds { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; white-space: nowrap; }
+  .table-odds .odds-line { font-weight: 600; }
+
+  /* Mobile card layout for the team schedule (replaces the table under ~860px so
+     columns like Date & Time don't get crushed into multi-line wraps). */
+  .schedule-mobile-list { display: flex; flex-direction: column; gap: 10px; }
+  .schedule-mobile-card {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 12px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .schedule-mobile-card.playoff-row { border-color: rgba(var(--demo-rgb),0.35); }
+  .schedule-mobile-card.bye-row { color: var(--text-dim); font-style: italic; }
+  .schedule-mobile-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.78rem; }
+  .schedule-mobile-week { font-weight: 700; color: var(--text); }
+  .schedule-mobile-date { color: var(--text-dim); text-align: right; }
+  .schedule-mobile-row { font-size: 0.85rem; }
+  .schedule-mobile-odds {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.74rem;
+    background: var(--surface-2); border-radius: 8px; padding: 6px 10px;
+  }
   .opp-cell { display: flex; align-items: center; gap: 8px; }
   .opp-cell img { width: 26px; height: 26px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; }
   .pred-win { color: var(--win); font-weight: 700; }
@@ -4056,7 +4128,7 @@
 </script>
 <script type="application/json" id="odds-data">{
   "season": 2026,
-  "sourceNote": "Real sportsbook lines (spread, moneyline, total) sourced via public odds aggregation and refreshed by the weekly update task. Sportsbooks typically don't post lines until roughly 6-10 days before kickoff and they keep moving until game time, so upcoming weeks show \"Odds not yet posted\" until they're live. Week 1 below is an ILLUSTRATIVE SAMPLE (paired with the sample Week 1 results in history.json) to demonstrate the feature before the real season starts -- these are plausible-looking numbers, not real book prices.",
+  "sourceNote": "Real sportsbook lines (spread, moneyline, total) sourced via public odds aggregation and refreshed by the weekly update task; treated as the ESPN Bet / default line. Sportsbooks typically don't post lines until roughly 6-10 days before kickoff and they keep moving until game time, so upcoming weeks show \"Odds not yet posted\" until they're live. Week 1 below is an ILLUSTRATIVE SAMPLE (paired with the sample Week 1 results in history.json) to demonstrate the feature before the real season starts -- these are plausible-looking numbers, not real book prices. Each game object may also carry an optional \"books\" map (e.g. draftkings/fanduel/betmgm/caesars/betrivers, each with spread, moneylineHome, moneylineAway, overUnder, favorite, asOf) with real per-sportsbook lines; the app shows that book's line when present for the user's selected sportsbook and falls back to this default line otherwise.",
   "weeks": {
     "1": {
       "isDemo": true,
@@ -4288,6 +4360,27 @@ const HISTORY_DATA = JSON.parse(document.getElementById('history-data').textCont
 const PLAYOFFS_DATA = JSON.parse(document.getElementById('playoffs-data').textContent);
 const ODDS_DATA = JSON.parse(document.getElementById('odds-data').textContent);
 
+// Sportsbook preference: no sportsbook offers a public login/API for a
+// third-party site to pull an individual bettor's personal odds, so this is
+// a saved local preference (which book's line to display), not a real
+// account login. When the chosen book has no line of its own yet, we fall
+// back to the default aggregated line, labeled as ESPN Bet.
+const SPORTSBOOKS = [
+  { id: "espnbet", label: "ESPN Bet" },
+  { id: "draftkings", label: "DraftKings" },
+  { id: "fanduel", label: "FanDuel" },
+  { id: "betmgm", label: "BetMGM" },
+  { id: "caesars", label: "Caesars Sportsbook" },
+  { id: "betrivers", label: "BetRivers" },
+];
+const DEFAULT_SPORTSBOOK_ID = "espnbet";
+const SPORTSBOOK_STORAGE_KEY = "blitz-odds-sportsbook";
+
+function getSportsbookLabel(id) {
+  const book = SPORTSBOOKS.find(b => b.id === id);
+  return book ? book.label : id;
+}
+
 const TEAM_COLORS = {
   ARI:"#97233F", ATL:"#A71930", BAL:"#241773", BUF:"#00338D", CAR:"#0085CA", CHI:"#0B162A",
   CIN:"#FB4F14", CLE:"#311D00", DAL:"#041E42", DEN:"#FB4F14", DET:"#0076B6", GB:"#203731",
@@ -4368,10 +4461,28 @@ function getEspnParams(week) {
 // simply have no entry yet - getOdds returns null and the UI shows a
 // "not yet posted" fallback instead of guessing.
 
-function getOdds(week, away, home) {
+function getOdds(week, away, home, preferredBookId) {
   const weekOdds = ODDS_DATA.weeks && ODDS_DATA.weeks[String(week)];
   if (!weekOdds || !weekOdds.games) return null;
-  return weekOdds.games[`${away}-${home}`] || null;
+  const game = weekOdds.games[`${away}-${home}`];
+  if (!game) return null;
+
+  const requestedId = preferredBookId || DEFAULT_SPORTSBOOK_ID;
+
+  // If we have a real line for the requested book, use it.
+  const bookLine = game.books && game.books[requestedId];
+  if (bookLine) {
+    return { ...bookLine, sportsbook: getSportsbookLabel(requestedId), isFallback: false };
+  }
+
+  // Otherwise fall back to the default aggregated line (labeled ESPN Bet).
+  // isFallback lets the UI note that the chosen book's own line isn't
+  // available yet rather than silently pretending it is.
+  return {
+    ...game,
+    sportsbook: getSportsbookLabel(DEFAULT_SPORTSBOOK_ID),
+    isFallback: requestedId !== DEFAULT_SPORTSBOOK_ID,
+  };
 }
 
 function formatMoneyline(ml) {
@@ -4605,7 +4716,7 @@ function resolveScore(live, historical) {
   return null;
 }
 
-function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, live, week }) {
+function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, live, week, sportsbookId }) {
   const home = context.getTeam(game.home);
   const away = context.getTeam(game.away);
   if (!home || !away) return null;
@@ -4613,7 +4724,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   const awayPlayers = context.getPlayers(game.away);
   const historicalResult = context.getResult(game.away, game.home);
   const scoreInfo = resolveScore(live, historicalResult);
-  const odds = getOdds(week, game.away, game.home);
+  const odds = getOdds(week, game.away, game.home, sportsbookId);
 
   const prediction = useMemo(() => PredictionEngine.predictMatchup({
     homeTeam: home,
@@ -4678,6 +4789,12 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
             <div className={"odds-agree " + (modelAgreesWithMarket ? "agree" : "disagree")}>
               {modelAgreesWithMarket ? "Model agrees with the market favorite" : "Model disagrees with the market favorite"}
             </div>
+            <div className="odds-source">Line: {odds.sportsbook}</div>
+            {odds.isFallback && (
+              <div className="odds-fallback-note">
+                No {getSportsbookLabel(sportsbookId)} line yet for this game — showing the {odds.sportsbook} default.
+              </div>
+            )}
           </>
         ) : (
           <span className="hw-tag">Odds not yet posted for this game</span>
@@ -4763,7 +4880,7 @@ function sortGamesByFavorites(games, favorites) {
   return [...favGames, ...otherGames];
 }
 
-function WeekView({ week, favorites, onToggleFavorite, onSelectTeam }) {
+function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookId }) {
   const scheduledGames = getGamesForWeek(week);
   const games = useMemo(() => sortGamesByFavorites(scheduledGames, favorites), [scheduledGames, favorites]);
   const context = getWeekContext(week);
@@ -4790,6 +4907,7 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam }) {
             context={context}
             live={liveMap[`${g.away}-${g.home}`]}
             week={week}
+            sportsbookId={sportsbookId}
           />
         ))}
       </div>
@@ -5116,7 +5234,7 @@ function TeamNewsPanel({ teamId }) {
   );
 }
 
-function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam }) {
+function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, sportsbookId }) {
   const team = baseTeam(teamId);
   if (!team) return <p>Unknown team.</p>;
   const injuryReport = PLAYERS_DATA.players[teamId] || [];
@@ -5164,7 +5282,8 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam })
         scoreLine: `${game.away} ${result.awayScore} - ${result.homeScore} ${game.home}`,
       };
     }
-    return { week, bye: false, opp, isHome, date: game.date, time: game.time, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week) };
+    const odds = getOdds(week, game.away, game.home, sportsbookId);
+    return { week, bye: false, opp, isHome, date: game.date, time: game.time, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
   }
 
   const regularRows = SCHEDULE_DATA.weeks.map(w => {
@@ -5243,13 +5362,64 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam })
 
       <div className="team-view-layout">
         <div className="team-view-main">
-          {activeTab === "schedule" && (
+          {activeTab === "schedule" && (isMobile ? (
+            <div className="schedule-mobile-list">
+              {rows.map(r => (
+                <div key={r.week} className={"schedule-mobile-card" + (r.bye ? " bye-row" : "") + (r.isPlayoff ? " playoff-row" : "")}>
+                  <div className="schedule-mobile-top">
+                    <span className="schedule-mobile-week">{r.label}</span>
+                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}</span>}
+                  </div>
+                  {r.bye ? (
+                    <div className="hw-tag">BYE week</div>
+                  ) : (
+                    <>
+                      <div className="opp-cell">
+                        <TeamLogo teamId={r.opp.id} size={26} />
+                        <span>{r.isHome ? "vs" : "@"} {r.opp.name}</span>
+                      </div>
+                      <div className="schedule-mobile-row">
+                        <span className={r.teamWins ? "pred-win" : "pred-lose"}>
+                          {r.teamWins ? "Predicted W" : "Predicted L"}
+                          <span className="hw-tag">({(r.confidence * 100).toFixed(0)}%)</span>
+                        </span>
+                      </div>
+                      <div className="schedule-mobile-odds">
+                        {r.odds ? (
+                          <>
+                            <span className="odds-field"><span className="odds-label">Spread</span> {r.odds.favorite} {formatSpread(r.odds.spread)}</span>
+                            <span className="odds-field"><span className="odds-label">O/U</span> {r.odds.overUnder}</span>
+                            <span className="odds-source">{r.odds.sportsbook}</span>
+                          </>
+                        ) : (
+                          <span className="hw-tag">Odds not yet posted</span>
+                        )}
+                      </div>
+                      <div className="schedule-mobile-row">
+                        {r.actual ? (
+                          <span>
+                            {r.actual.scoreLine}
+                            <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
+                              {r.actual.correct ? "✓" : "✗"}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="hw-tag">Not played yet</span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
             <table className="team-schedule-table">
               <thead>
                 <tr>
                   <th>Week</th>
                   <th>Opponent</th>
                   <th>Date &amp; Time</th>
+                  <th>Odds</th>
                   <th>Prediction</th>
                   <th>Result</th>
                 </tr>
@@ -5259,7 +5429,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam })
                   <tr key={r.week} className={(r.bye ? "bye-row " : "") + (r.isPlayoff ? "playoff-row" : "")}>
                     <td>{r.label}</td>
                     {r.bye ? (
-                      <td colSpan="4">BYE week</td>
+                      <td colSpan="5">BYE week</td>
                     ) : (
                       <>
                         <td>
@@ -5268,10 +5438,23 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam })
                             <span>{r.isHome ? "vs" : "@"} {r.opp.name}</span>
                           </div>
                         </td>
-                        <td>{r.date}{r.time ? ` • ${r.time}` : ""}</td>
-                        <td className={r.teamWins ? "pred-win" : "pred-lose"}>
-                          {r.teamWins ? "Predicted W" : "Predicted L"}
-                          <span className="hw-tag">({(r.confidence * 100).toFixed(0)}%)</span>
+                        <td className="date-cell">
+                          <span className="date-line">{r.date}</span>
+                          {r.time && <span className="time-line">{r.time}</span>}
+                        </td>
+                        <td>
+                          {r.odds ? (
+                            <span className="table-odds">
+                              <span className="odds-line">{r.odds.favorite} {formatSpread(r.odds.spread)} · O/U {r.odds.overUnder}</span>
+                              <span className="odds-source">{r.odds.sportsbook}</span>
+                            </span>
+                          ) : (
+                            <span className="hw-tag">Not posted yet</span>
+                          )}
+                        </td>
+                        <td className={"pred-cell " + (r.teamWins ? "pred-win" : "pred-lose")}>
+                          <span className="pred-line">{r.teamWins ? "Predicted W" : "Predicted L"}</span>
+                          <span className="pred-conf">{(r.confidence * 100).toFixed(0)}%</span>
                         </td>
                         <td>
                           {r.actual ? (
@@ -5291,7 +5474,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam })
                 ))}
               </tbody>
             </table>
-          )}
+          ))}
           {activeTab === "roster" && <DepthChartSection teamId={teamId} />}
           {isMobile && activeTab === "news" && <TeamNewsPanel teamId={teamId} />}
         </div>
@@ -5494,6 +5677,85 @@ function useThemeManager() {
   return [mode, setMode];
 }
 
+function useSportsbookManager() {
+  const [bookId, setBookId] = useState(() => {
+    try {
+      const saved = localStorage.getItem(SPORTSBOOK_STORAGE_KEY);
+      return SPORTSBOOKS.some(b => b.id === saved) ? saved : DEFAULT_SPORTSBOOK_ID;
+    } catch (e) {
+      return DEFAULT_SPORTSBOOK_ID;
+    }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(SPORTSBOOK_STORAGE_KEY, bookId); } catch (e) {}
+  }, [bookId]);
+
+  return [bookId, setBookId];
+}
+
+function SportsbookPicker({ bookId, setBookId }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+  const current = SPORTSBOOKS.find(b => b.id === bookId) || SPORTSBOOKS[0];
+
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  function pick(id) {
+    setBookId(id);
+    setOpen(false);
+  }
+
+  return (
+    <div className="book-picker" ref={containerRef}>
+      <button
+        className="book-picker-trigger"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        title="Choose which sportsbook's line to display"
+      >
+        <span className="book-picker-label-dim">Sportsbook:</span>
+        <span>{current.label}</span>
+        <span className={"book-picker-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
+      </button>
+      {open && (
+        <div className="book-picker-panel" role="listbox">
+          {SPORTSBOOKS.map(b => (
+            <button
+              key={b.id}
+              className={"book-picker-item" + (b.id === bookId ? " active" : "")}
+              role="option"
+              aria-selected={b.id === bookId}
+              onClick={() => pick(b.id)}
+            >
+              <span>{b.label}</span>
+              {b.id === DEFAULT_SPORTSBOOK_ID && <span className="book-picker-label-dim">Default</span>}
+            </button>
+          ))}
+          <div className="book-picker-hint">
+            Saved on this device only — not a sportsbook account login. Shows that book's line when we have
+            one, otherwise falls back to the default line.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ThemeToggle({ mode, setMode }) {
   const options = [
     { key: "light", label: "Light", Icon: SunIcon },
@@ -5520,6 +5782,7 @@ function ThemeToggle({ mode, setMode }) {
 
 function App() {
   const [themeMode, setThemeMode] = useThemeManager();
+  const [sportsbookId, setSportsbookId] = useSportsbookManager();
   const [view, setView] = useState("week");
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
@@ -5545,6 +5808,7 @@ function App() {
   return (
     <div className="app">
       <div className="top-bar">
+        <SportsbookPicker bookId={sportsbookId} setBookId={setSportsbookId} />
         <ThemeToggle mode={themeMode} setMode={setThemeMode} />
       </div>
       <header className="top">
@@ -5586,15 +5850,18 @@ function App() {
           score. Playoff rounds only appear in the Week dropdown once their matchups are actually announced.
           Weeks marked "(has results)" show a frozen snapshot of that week's stats and predictions next to the
           final score. Each card also shows the real sportsbook spread, moneyline, and over/under when a line has
-          been posted, alongside a note on whether the model's own pick agrees with the market favorite. Click any
-          team logo to see their full-season schedule, and click the star to favorite a team.
+          been posted, alongside a note on whether the model's own pick agrees with the market favorite. Use the
+          "Sportsbook" picker above to set which book's line you want to see (saved on this device, not a real
+          account login) — if that book doesn't have its own line for a game yet, the default line is shown
+          instead and labeled accordingly. Click any team logo to see their full-season schedule, and click the
+          star to favorite a team.
         </div>
       )}
 
       {view === "week" ? (
-        <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} />
+        <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} sportsbookId={sportsbookId} />
       ) : (
-        <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} />
+        <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} sportsbookId={sportsbookId} />
       )}
 
       <footer className="app-footer">

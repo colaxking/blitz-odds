@@ -92,10 +92,9 @@
   }
   .app { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
   header.top { text-align: center; margin-bottom: 16px; }
-  header.top h1 { font-size: 1.6rem; margin: 0; letter-spacing: 0.5px; }
-  .brand-row { display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; margin-bottom: 4px; }
+  header.top h1 { font-size: 1.85rem; margin: 0; letter-spacing: 0.3px; font-weight: 800; }
+  .brand-row { display: flex; align-items: center; justify-content: center; gap: 14px; cursor: pointer; margin-bottom: 6px; }
   .brand-odds { color: var(--accent); }
-  header.top p { color: var(--text-dim); margin: 2px 0; font-size: 0.9rem; }
 
   .controls-row {
     display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
@@ -105,22 +104,8 @@
     .controls-row { gap: 10px; }
     .team-view-header { padding: 14px; gap: 12px; }
     .team-view-header img { width: 52px; height: 52px; }
-    header.top h1 { font-size: 1.35rem; }
+    header.top h1 { font-size: 1.5rem; }
   }
-  select.week-select {
-    appearance: none; -webkit-appearance: none; -moz-appearance: none;
-    background-color: var(--card-bg);
-    background-image: var(--select-chevron);
-    background-repeat: no-repeat; background-position: right 10px center; background-size: 14px 14px;
-    color: var(--text); border: 1px solid var(--card-border);
-    border-radius: 999px; padding: 9px 34px 9px 16px; font-size: 0.88rem; font-weight: 600;
-    cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  select.week-select:hover { border-color: rgba(var(--accent-rgb),0.5); }
-  select.week-select:focus {
-    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.18);
-  }
-  select.week-select option { background: var(--card-bg); color: var(--text); }
   .back-btn {
     display: inline-flex; align-items: center; gap: 6px;
     background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
@@ -173,6 +158,44 @@
     margin-top: 4px;
   }
 
+  /* Team-view "Team:" switcher - a custom dropdown (not a native <select>)
+     so each row can carry its own favorite-star toggle button. */
+  .team-switcher { position: relative; display: inline-flex; }
+  .team-switcher-trigger {
+    display: flex; align-items: center; gap: 6px; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 999px; color: var(--text);
+    font-size: 0.85rem; font-weight: 600; padding: 7px 12px; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .team-switcher-trigger:hover { border-color: var(--accent); }
+  .team-switcher-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .team-switcher-chevron { color: var(--text-dim); transition: transform 0.18s; display: flex; }
+  .team-switcher-chevron.open { transform: rotate(180deg); }
+  .team-switcher-panel {
+    position: absolute; top: calc(100% + 10px); left: 0; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    padding: 8px; min-width: 240px; max-height: 360px; overflow-y: auto; z-index: 30;
+  }
+  .team-switcher-group-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim);
+    font-weight: 700; padding: 10px 12px 6px;
+  }
+  .team-switcher-group-label:first-child { padding-top: 4px; }
+  .team-switcher-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 4px; width: 100%;
+    border-radius: 8px; transition: background 0.12s;
+  }
+  .team-switcher-item:hover { background: rgba(var(--accent-rgb),0.08); }
+  .team-switcher-item.active { background: rgba(var(--accent-rgb),0.16); }
+  .team-switcher-item.active .team-switcher-item-name { color: var(--accent); font-weight: 700; }
+  .team-switcher-item-name {
+    flex: 1; background: none; border: none; color: var(--text); font-size: 0.86rem; text-align: left;
+    padding: 8px 4px 8px 12px; cursor: pointer; font-family: inherit; border-radius: 8px;
+  }
+  /* FavoriteStar is normally absolutely-positioned to sit on a team badge's
+     corner - here it needs to sit inline as a normal row item instead. */
+  .team-switcher-item .star-btn { position: static; flex-shrink: 0; margin-right: 8px; }
+
   .week-nav {
     position: relative; display: flex; align-items: center; gap: 2px;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px;
@@ -220,22 +243,51 @@
     flex-shrink: 0;
   }
 
+  /* Week nav (left) + "How this works" (right) on one plain row - not a
+     boxed/centered "button", each control keeps its own small pill styling.
+     Favorites always sit on their own line below, starting at the left. */
+  .header-toolbar {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 18px;
+    margin: 18px 0 8px;
+  }
+
   .favorites-bar {
-    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
-    margin: 10px 0 18px; min-height: 30px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-start;
+    margin: 10px 0 18px;
   }
   .favorites-bar .fav-label { font-size: 0.72rem; color: var(--text-dim); margin-right: 4px; }
   .fav-chip {
     display: flex; align-items: center; gap: 5px; background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 999px; padding: 3px 10px 3px 3px; cursor: pointer; font-size: 0.78rem;
+    transition: border-color 0.15s;
   }
   .fav-chip:hover { border-color: var(--star); }
   .fav-chip img { width: 20px; height: 20px; object-fit: contain; }
 
-  .disclaimer {
-    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 10px;
-    padding: 10px 14px; font-size: 0.8rem; color: var(--text-dim); margin: 8px 0 24px;
+  /* "How this works" toggle - just a quiet text link (no box) sitting inline
+     with the week nav in .header-toolbar. Its own height never changes, so
+     it can't push/misalign the week nav next to it when opened. */
+  .how-it-works-toggle {
+    cursor: pointer; background: none; border: none; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.78rem; font-weight: 600; color: var(--text-dim); padding: 3px 2px;
+    transition: color 0.15s;
   }
+  .how-it-works-toggle:hover, .how-it-works-toggle.open { color: var(--text); }
+  .how-it-works-toggle .how-it-works-icon { font-size: 0.88rem; line-height: 1; }
+  .how-it-works-toggle .how-it-works-chevron {
+    display: inline-block; color: var(--text-dim); font-size: 0.65rem; transition: transform 0.15s ease;
+  }
+  .how-it-works-toggle.open .how-it-works-chevron { transform: rotate(90deg); }
+
+  /* The expanded content itself: a full-width panel that appears ABOVE the
+     week nav row (not squeezed into it), so it never fights the toolbar's
+     layout regardless of how much text it holds. */
+  .how-it-works-panel {
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 10px;
+    padding: 12px 16px; margin: 16px 0 0; font-size: 0.8rem; color: var(--text-dim); line-height: 1.55;
+  }
+  .how-it-works-panel p { margin: 0; }
   .demo-banner {
     background: rgba(var(--demo-rgb),0.14); border: 1px solid rgba(var(--demo-rgb),0.4); color: var(--pill-purple-text);
     border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; margin: 8px 0 20px;
@@ -309,25 +361,27 @@
   .odds-fallback-note { font-size: 0.68rem; color: var(--text-dim); font-style: italic; }
   .confidence-bar { flex: 1; height: 6px; border-radius: 4px; background: var(--lose); overflow: hidden; display: flex; }
   .confidence-bar > div { height: 100%; }
-  .stat-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+  .stat-compare { display: grid; grid-template-columns: 1fr 1fr auto; column-gap: 10px; row-gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
   .stat-compare .col { display: flex; flex-direction: column; gap: 3px; }
-  .stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; }
+  .stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; white-space: nowrap; }
+  .diff-explainer {
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 6px 10px; font-size: 0.74rem; margin-top: 2px;
+  }
+  .diff-explainer summary {
+    cursor: pointer; list-style: none; color: var(--text); font-weight: 600;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .diff-explainer summary::-webkit-details-marker { display: none; }
+  .diff-explainer summary::after { content: "\25B8"; color: var(--text-dim); font-size: 0.65rem; transition: transform 0.15s ease; }
+  .diff-explainer[open] summary::after { transform: rotate(90deg); }
+  .diff-explainer p { color: var(--text-dim); font-size: 0.68rem; line-height: 1.4; margin: 6px 0 0; }
   .rank-pill {
     display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px;
   }
   .rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
   .rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
   .rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
-  .diff-row {
-    display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem;
-    padding: 4px 8px; border-radius: 6px; background: var(--surface-2); margin-top: 6px;
-  }
-  .diff-row .diff-label { color: var(--text-dim); }
-  .diff-row .diff-value { font-weight: 700; }
-  .diff-value.edge-a { color: var(--win); }
-  .diff-value.edge-b { color: var(--edge-b); }
-  .diff-section-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 10px 0 2px; }
-  .diff-section-title:first-of-type { margin-top: 10px; }
   .impact-note {
     font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
   }
@@ -4767,8 +4821,58 @@ function saveFavorites(list) {
   try { window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(list)); } catch (e) {}
 }
 
+// TEAMS_DATA.teams is the season snapshot embedded in the page at build time.
+// LIVE_TEAMS_LIST starts out pointing at that same array, but useLiveTeamsData()
+// (below) can swap it for a freshly-fetched one during the session, so ranks
+// (and everything derived from them - predictions, Total Difference, the
+// "why this pick" rationale) can update without a page reload. baseTeam()
+// always reads through this mutable binding rather than TEAMS_DATA directly.
+let LIVE_TEAMS_LIST = TEAMS_DATA.teams;
+
 function baseTeam(id) {
-  return TEAMS_DATA.teams.find(t => t.id === id);
+  return LIVE_TEAMS_LIST.find(t => t.id === id);
+}
+
+// How often to check data/teams.json for updated rankings. Team stats only
+// change after games are final (at most once a week), so this polls far less
+// aggressively than live scores do - it just needs to notice a refreshed
+// file sometime during a long-lived tab, not react within seconds.
+const TEAM_STATS_REFRESH_MS = 5 * 60 * 1000;
+
+/**
+ * Periodically re-fetches data/teams.json (relative to index.html) in the
+ * background and, if it parses successfully, swaps LIVE_TEAMS_LIST to the
+ * new team list and forces a re-render so every component reading through
+ * baseTeam() (and the GameCard prediction/rationale, whose useMemo depends
+ * on the actual team objects) picks up the new ranks. This only works when
+ * the app is served over http(s) - if it's opened straight from disk
+ * (file://) the fetch will fail and we silently keep whatever was embedded
+ * in the page, same as the live-scores fallback behavior.
+ */
+function useLiveTeamsData() {
+  const [, forceRerender] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refresh() {
+      try {
+        const res = await fetch("data/teams.json", { cache: "no-store" });
+        if (!res.ok) return;
+        const fresh = await res.json();
+        if (!cancelled && fresh && Array.isArray(fresh.teams)) {
+          LIVE_TEAMS_LIST = fresh.teams;
+          forceRerender(n => n + 1);
+        }
+      } catch (e) {
+        // Opened as file://, offline, or CORS-blocked - keep the last known-good data.
+      }
+    }
+
+    refresh(); // also try once right away, in case the page has been open since before the first interval tick
+    const timer = setInterval(refresh, TEAM_STATS_REFRESH_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, []);
 }
 
 // ---- Preseason vs. regular season vs. playoff week routing -----------------
@@ -4825,7 +4929,7 @@ function getByeTeams(week) {
   if (!games.length) return [];
   const playing = new Set();
   games.forEach(g => { playing.add(g.away); playing.add(g.home); });
-  return TEAMS_DATA.teams.map(t => t.id).filter(id => !playing.has(id));
+  return LIVE_TEAMS_LIST.map(t => t.id).filter(id => !playing.has(id));
 }
 
 function getPeriodLabel(week) {
@@ -4994,8 +5098,12 @@ function BrandLogo({ size }) {
   const dim = size || 52;
   return (
     <svg width={dim} height={dim} viewBox="0 0 320 320" style={{ flexShrink: 0 }}>
+      {/* A second stroke used to sit at this exact same radius (black, 3px)
+          on top of the teal one below - at small render sizes the two
+          overlapping strokes anti-aliased into a fuzzy, muddy-looking edge
+          instead of a crisp ring, which is what made the logo look "off."
+          One clean stroke reads much better small. */}
       <circle cx="160" cy="160" r="152" fill="#0d1420" stroke="#4fd1c5" strokeWidth="12" />
-      <circle cx="160" cy="160" r="152" fill="none" stroke="#000000" strokeWidth="3" />
 
       <g transform="translate(160,160) rotate(-28)">
         <ellipse cx="0" cy="0" rx="118" ry="66" fill="#8a4a28" stroke="#1a0d05" strokeWidth="13" />
@@ -5069,23 +5177,113 @@ function TeamBadge({ team, favorites, onToggle, onSelect }) {
 }
 
 /**
- * Compares one team's offense rank against the OPPOSING team's defense rank
- * (not offense-vs-offense) — e.g. "does the away team's pass offense (rank 11)
- * beat the home team's pass defense (rank 7)?" Lower rank = better on both
- * sides of the ball, so they're directly comparable on the same 1-32 scale.
+ * Signed rank gap between one team's offense rank and the OPPOSING team's
+ * defense rank in one stat category (Total, Rush, or Pass) — e.g. does the
+ * away team's rush offense (rank 16) beat the home team's rush defense
+ * (rank 9)? Lower rank = better on both sides of the ball, so they're
+ * directly comparable on the same 1-32 scale. Always labeled with the
+ * offense team's id: positive means that team's offense has the edge,
+ * negative means the opponent's defense has the edge, 0 is a wash.
+ * Rendered as a rank-pill, same visual language as RankPill, so it sits
+ * flush in line with the "Total/Rush/Pass <RankPill>" rows next to it.
  */
-function DiffRow({ label, offRank, defRank, offTeamId, defTeamId }) {
-  const diff = Math.abs(offRank - defRank);
-  const offenseWins = offRank < defRank;
-  const edgeClass = offenseWins ? "edge-a" : "edge-b";
+function DiffPill({ offRank, defRank, offTeamId }) {
+  const diff = defRank - offRank;
+  const cls = diff > 0 ? "rank-good" : diff < 0 ? "rank-bad" : "rank-mid";
   return (
-    <div className="diff-row">
-      <span className="diff-label">{label}</span>
-      <span className={"diff-value " + edgeClass}>
-        {diff === 0 ? "Even" : offenseWins ? `${offTeamId} offense by ${diff}` : `${defTeamId} defense by ${diff}`}
-      </span>
-    </div>
+    <span className={"rank-pill " + cls}>
+      {diff === 0 ? "Even" : `${diff > 0 ? "+" : ""}${diff} ${offTeamId}`}
+    </span>
   );
+}
+
+/**
+ * Every offense-vs-opposing-defense rank comparison for one matchup, across
+ * all three stat categories and both directions (away offense vs home
+ * defense, home offense vs away defense) — the same six comparisons behind
+ * the "Total Difference" column's DiffPills. Feeds the per-matchup "why this
+ * pick" explanation below.
+ */
+function computeCategoryEdges(away, home) {
+  const categories = [
+    { label: "Total", key: "rankTotal" },
+    { label: "Rush", key: "rankRush" },
+    { label: "Pass", key: "rankPass" },
+  ];
+  const edges = [];
+  categories.forEach(({ label, key }) => {
+    edges.push({
+      category: label,
+      offTeamId: away.id, offRank: away.stats.offense[key],
+      defTeamId: home.id, defRank: home.stats.defense[key],
+    });
+    edges.push({
+      category: label,
+      offTeamId: home.id, offRank: home.stats.offense[key],
+      defTeamId: away.id, defRank: away.stats.defense[key],
+    });
+  });
+  return edges.map((e) => {
+    const diff = e.defRank - e.offRank;
+    return { ...e, diff, favoredTeamId: diff === 0 ? null : diff > 0 ? e.offTeamId : e.defTeamId };
+  });
+}
+
+/** Plain-English description of one category edge, e.g. "KC's rush offense
+ *  (#5) has a 12-spot edge over DEN's rush defense (#17)". */
+function describeEdge(e) {
+  const gap = Math.abs(e.diff);
+  const cat = e.category.toLowerCase();
+  return e.diff > 0
+    ? `${e.offTeamId}'s ${cat} offense (#${e.offRank}) has a ${gap}-spot edge over ${e.defTeamId}'s ${cat} defense (#${e.defRank})`
+    : `${e.defTeamId}'s ${cat} defense (#${e.defRank}) has a ${gap}-spot edge over ${e.offTeamId}'s ${cat} offense (#${e.offRank})`;
+}
+
+/**
+ * Builds a short paragraph explaining why the model picked its winner for
+ * THIS specific matchup: the biggest per-category rank edges in the
+ * winner's favor, home field if it applies, the loser's most impactful
+ * injury if one is in play, and whether the pick agrees with the betting
+ * market. Every input comes from this game's own data, so the text is
+ * different for every card.
+ */
+function buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket }) {
+  const winner = homeIsWinner ? home : away;
+  const loser = homeIsWinner ? away : home;
+  const loserAdjustments = homeIsWinner ? prediction.awayAdjustments : prediction.homeAdjustments;
+  const confidencePct = Math.round(prediction.confidence * 100);
+
+  const winningEdges = computeCategoryEdges(away, home)
+    .filter((e) => e.favoredTeamId === winner.id)
+    .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+  const sentences = [`The model gives ${winner.name} a ${confidencePct}% chance to win this one.`];
+
+  if (winningEdges.length) {
+    const top = winningEdges.slice(0, 2).map(describeEdge);
+    sentences.push(
+      top.length > 1 ? `The biggest factors: ${top[0]}, and ${top[1]}.` : `The biggest factor: ${top[0]}.`
+    );
+  } else {
+    sentences.push(`${away.name} and ${home.name} grade out close to even across offense and defense.`);
+  }
+
+  if (homeIsWinner) {
+    sentences.push(`Home field adds a small extra boost on top of that.`);
+  }
+
+  if (loserAdjustments && loserAdjustments.length) {
+    const biggest = [...loserAdjustments].sort((a, b) => Math.abs(b.ratingDelta) - Math.abs(a.ratingDelta))[0];
+    sentences.push(
+      `${loser.id} is also dealing with ${biggest.player} (${biggest.position}) listed as ${biggest.status}, which tips things further ${winner.id}'s way.`
+    );
+  }
+
+  if (odds && modelAgreesWithMarket === false) {
+    sentences.push(`Note: the sportsbook favorite (${odds.favorite}) disagrees with this pick.`);
+  }
+
+  return sentences.join(" ");
 }
 
 /**
@@ -5120,18 +5318,24 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   const scoreInfo = resolveScore(live, historicalResult);
   const odds = getOdds(week, game.away, game.home, sportsbookId);
 
+  // Depends on the actual team/player objects (not just their ids) so that
+  // if team stats or impact players ever update mid-session — e.g. a future
+  // live-refresh of teams.json — the prediction, the Total Difference pills,
+  // and the "why this pick" rationale below all recompute with the new
+  // ranks instead of holding onto a stale memoized value.
   const prediction = useMemo(() => PredictionEngine.predictMatchup({
     homeTeam: home,
     awayTeam: away,
     homeImpactPlayers: homePlayers,
     awayImpactPlayers: awayPlayers
-  }), [game.home, game.away, context.isHistorical]);
+  }), [game.home, game.away, context.isHistorical, home, away, homePlayers, awayPlayers]);
 
   const homeIsWinner = prediction.predictedWinner === home.id;
   const homePct = (prediction.homeWinProbability * 100).toFixed(0);
   const awayPct = (prediction.awayWinProbability * 100).toFixed(0);
   const allAdjustments = [...prediction.homeAdjustments, ...prediction.awayAdjustments];
   const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
+  const rationale = buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket });
 
   let actualWinnerId = null;
   let predictionCorrect = null;
@@ -5225,6 +5429,13 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
           <div>Pass <RankPill rank={home.stats.defense.rankPass} /></div>
         </div>
         <div className="col">
+          <div className="label">Total Difference</div>
+          <div>Total <DiffPill offRank={away.stats.offense.rankTotal} defRank={home.stats.defense.rankTotal} offTeamId={away.id} /></div>
+          <div>Rush <DiffPill offRank={away.stats.offense.rankRush} defRank={home.stats.defense.rankRush} offTeamId={away.id} /></div>
+          <div>Pass <DiffPill offRank={away.stats.offense.rankPass} defRank={home.stats.defense.rankPass} offTeamId={away.id} /></div>
+        </div>
+
+        <div className="col">
           <div className="label">{home.id} offense</div>
           <div>Total <RankPill rank={home.stats.offense.rankTotal} /></div>
           <div>Rush <RankPill rank={home.stats.offense.rankRush} /></div>
@@ -5236,17 +5447,18 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
           <div>Rush <RankPill rank={away.stats.defense.rankRush} /></div>
           <div>Pass <RankPill rank={away.stats.defense.rankPass} /></div>
         </div>
+        <div className="col">
+          <div className="label">&nbsp;</div>
+          <div>Total <DiffPill offRank={home.stats.offense.rankTotal} defRank={away.stats.defense.rankTotal} offTeamId={home.id} /></div>
+          <div>Rush <DiffPill offRank={home.stats.offense.rankRush} defRank={away.stats.defense.rankRush} offTeamId={home.id} /></div>
+          <div>Pass <DiffPill offRank={home.stats.offense.rankPass} defRank={away.stats.defense.rankPass} offTeamId={home.id} /></div>
+        </div>
       </div>
 
-      <div className="diff-section-title">{away.id} offense vs {home.id} defense</div>
-      <DiffRow label="Total" offRank={away.stats.offense.rankTotal} defRank={home.stats.defense.rankTotal} offTeamId={away.id} defTeamId={home.id} />
-      <DiffRow label="Rush" offRank={away.stats.offense.rankRush} defRank={home.stats.defense.rankRush} offTeamId={away.id} defTeamId={home.id} />
-      <DiffRow label="Pass" offRank={away.stats.offense.rankPass} defRank={home.stats.defense.rankPass} offTeamId={away.id} defTeamId={home.id} />
-
-      <div className="diff-section-title">{home.id} offense vs {away.id} defense</div>
-      <DiffRow label="Total" offRank={home.stats.offense.rankTotal} defRank={away.stats.defense.rankTotal} offTeamId={home.id} defTeamId={away.id} />
-      <DiffRow label="Rush" offRank={home.stats.offense.rankRush} defRank={away.stats.defense.rankRush} offTeamId={home.id} defTeamId={away.id} />
-      <DiffRow label="Pass" offRank={home.stats.offense.rankPass} defRank={away.stats.defense.rankPass} offTeamId={home.id} defTeamId={away.id} />
+      <details className="diff-explainer">
+        <summary>Why {prediction.predictedWinner} is favored</summary>
+        <p>{rationale}</p>
+      </details>
 
       {allAdjustments.map((a, i) => (
         <div key={i} className={"impact-note impact-" + a.status}>
@@ -5326,30 +5538,105 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
   );
 }
 
-function TeamSwitcher({ teamId, favorites, onSelectTeam }) {
+/** Row of favorited-team chips for quick nav. Renders nothing when there are
+ *  no favorites yet, so it never reserves empty space on the page. Used both
+ *  inside the week view's header toolbar and standalone on the team view. */
+function FavoritesBar({ favorites, onSelect }) {
+  if (!favorites.length) return null;
+  return (
+    <div className="favorites-bar">
+      <span className="fav-label">Favorites:</span>
+      {favorites.map(teamId => {
+        const t = baseTeam(teamId);
+        if (!t) return null;
+        return (
+          <div key={teamId} className="fav-chip" onClick={() => onSelect(teamId)}>
+            <img src={logoUrl(teamId)} alt={teamId} onError={(e) => { e.target.style.display = "none"; }} />
+            {t.name}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * Custom dropdown (not a native <select>) so each row can carry its own
+ * favorite-star toggle - a native <select>'s <option> can't hold an
+ * interactive element, so favoriting/unfavoriting from here wouldn't be
+ * possible with a plain select. Clicking a team's name switches to it and
+ * closes the panel; clicking its star toggles favorite status in place,
+ * re-sorting it into/out of the Favorites group without closing the panel.
+ */
+function TeamSwitcher({ teamId, favorites, onSelectTeam, onToggleFavorite }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
   const favIds = new Set(favorites);
-  const favTeams = TEAMS_DATA.teams
+  const favTeams = LIVE_TEAMS_LIST
     .filter(t => favIds.has(t.id))
     .sort((a, b) => a.name.localeCompare(b.name));
-  const otherTeams = TEAMS_DATA.teams
+  const otherTeams = LIVE_TEAMS_LIST
     .filter(t => !favIds.has(t.id))
     .sort((a, b) => a.name.localeCompare(b.name));
+  const current = baseTeam(teamId);
+
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  function pick(id) {
+    onSelectTeam(id);
+    setOpen(false);
+  }
+
+  function renderRow(t) {
+    return (
+      <div key={t.id} className={"team-switcher-item" + (t.id === teamId ? " active" : "")}>
+        <button type="button" className="team-switcher-item-name" onClick={() => pick(t.id)}>
+          {t.name}
+        </button>
+        <FavoriteStar teamId={t.id} favorites={favorites} onToggle={onToggleFavorite} />
+      </div>
+    );
+  }
+
   return (
-    <select
-      className="week-select"
-      value={teamId}
-      onChange={(e) => onSelectTeam(e.target.value)}
-      aria-label="Switch team"
-    >
-      {favTeams.length > 0 && (
-        <optgroup label="★ Favorites">
-          {favTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </optgroup>
+    <div className="team-switcher" ref={containerRef}>
+      <button
+        type="button"
+        className="team-switcher-trigger"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Switch team"
+      >
+        <span>{current ? current.name : teamId}</span>
+        <span className={"team-switcher-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
+      </button>
+      {open && (
+        <div className="team-switcher-panel" role="listbox">
+          {favTeams.length > 0 && (
+            <>
+              <div className="team-switcher-group-label">★ Favorites</div>
+              {favTeams.map(renderRow)}
+            </>
+          )}
+          <div className="team-switcher-group-label">All Teams</div>
+          {otherTeams.map(renderRow)}
+        </div>
       )}
-      <optgroup label="All Teams">
-        {otherTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-      </optgroup>
-    </select>
+    </div>
   );
 }
 
@@ -5369,29 +5656,65 @@ function espnTeamSlug(teamId) {
 // within a side (unrecognized abbreviations sort alphabetically after these).
 const ROSTER_SIDES = ["offense", "defense", "specialTeam"];
 const ROSTER_SIDE_LABELS = { offense: "Offense", defense: "Defense", specialTeam: "Special Teams" };
+// Full-roster listings use a player's generic primary position abbreviation
+// (e.g. "DE", "LB", "CB"), but depth-chart SLOTS are side-specific ("LDE"/
+// "RDE", "WLB"/"SLB"/"LILB"/"RILB", "LCB"/"RCB", etc.) since a depth chart is
+// about who starts on which specific side of the formation. Both forms need
+// an entry here so depth-chart cards sort into the exact same D-line / LB /
+// secondary grouping as the full roster table beneath them - confirmed
+// against ESPN's live depth-chart API response (LDE, RDE, NT, DT, WLB,
+// LILB, RILB, SLB, LCB, SS were all observed directly; MLB/LOLB/ROLB/RDT/
+// LDT/FS are the standard counterparts ESPN uses for the same scheme).
 const POSITION_ORDER = {
   offense: ["QB", "RB", "FB", "WR", "TE", "T", "OT", "LT", "RT", "G", "OG", "LG", "RG", "C", "OL"],
-  defense: ["DE", "DT", "NT", "DL", "EDGE", "LB", "OLB", "ILB", "MLB", "CB", "S", "FS", "SS", "DB", "NB"],
+  defense: [
+    "DE", "LDE", "RDE",
+    "DT", "LDT", "RDT",
+    "NT",
+    "DL",
+    "EDGE",
+    "LB", "OLB", "LOLB", "ROLB", "MLB", "WLB", "SLB", "ILB", "LILB", "RILB",
+    "CB", "LCB", "RCB",
+    "S", "FS", "SS",
+    "DB",
+    "NB",
+  ],
   specialTeam: ["K", "PK", "P", "LS", "H", "KR", "PR"],
 };
 
-/** Best-effort classification of a depth-chart formation (e.g. "Base 3-4 D",
- *  "3WR 1TE", "Special Teams") into a roster side, used only as a fallback when
- *  none of a slot's athletes are found on the roster listing. */
+/** Classifies a depth-chart formation (e.g. "Base 3-4 D", "3WR 1TE",
+ *  "Special Teams", "Punt", "Kickoff Return") into a roster side. This is
+ *  the sole signal used to route a formation's slots to a side-tab, so it
+ *  casts a wide net for special-teams formation names - ESPN doesn't always
+ *  literally include the word "special" (punt/kickoff/field-goal units are
+ *  their own named formations) - to avoid punter/kicker/returner slots
+ *  silently falling through to the offense default below. */
 function classifyFormationSide(name) {
   const n = (name || "").toLowerCase();
-  if (n.includes("special")) return "specialTeam";
+  if (/(special|punt|kick|field ?goal|\bfg\b|return)/.test(n)) return "specialTeam";
   if (/(3-4|4-3|nickel|dime|goal ?line d|^base d|\bd\b|defense)/.test(n)) return "defense";
   return "offense";
 }
 
-function groupPlayersByPosition(players, side) {
+/**
+ * @param {Array} players - a side's full roster listing
+ * @param {string} side - "offense" | "defense" | "specialTeam"
+ * @param {Object} [depthRankById] - optional {playerId: 1-based depth rank},
+ *   built from the same team's depth chart (see buildDepthRankMap). When
+ *   given, players within each position group are sorted starter-first;
+ *   players with no depth-chart entry sort after everyone who has one.
+ */
+function groupPlayersByPosition(players, side, depthRankById) {
   const buckets = {};
   players.forEach(p => {
     const abbr = (p.position && p.position.abbreviation) || "Other";
     (buckets[abbr] = buckets[abbr] || []).push(p);
   });
   const order = POSITION_ORDER[side] || [];
+  const rankOf = p => {
+    const r = depthRankById && depthRankById[p.id];
+    return r != null ? r : Infinity;
+  };
   return Object.keys(buckets)
     .sort((a, b) => {
       const ra = order.indexOf(a), rb = order.indexOf(b);
@@ -5399,7 +5722,34 @@ function groupPlayersByPosition(players, side) {
       const ib = rb === -1 ? order.length + b.charCodeAt(0) : rb;
       return ia - ib;
     })
-    .map(abbr => ({ abbr, players: buckets[abbr] }));
+    .map(abbr => ({
+      abbr,
+      players: depthRankById ? buckets[abbr].slice().sort((p1, p2) => rankOf(p1) - rankOf(p2)) : buckets[abbr],
+    }));
+}
+
+/** Position-group index for one depth-chart slot, used to sort the depth
+ *  chart cards into the same QB/RB/FB/WR/TE/O-line order as the full roster
+ *  table below them (POSITION_ORDER). Unrecognized slots sort last. */
+function depthSlotOrderIndex(slot, side) {
+  const order = POSITION_ORDER[side] || [];
+  const i = order.indexOf(slot.posAbbr);
+  return i === -1 ? order.length : i;
+}
+
+/** Flattens a side's depth-chart slots into {playerId: 1-based rank}, taking
+ *  the best (lowest/starter-most) rank if a player somehow appears in more
+ *  than one slot. Used to sort the full roster table starters-first. */
+function buildDepthRankMap(depthSlots) {
+  const rankById = {};
+  depthSlots.forEach(slot => {
+    slot.athletes.forEach((p, i) => {
+      if (!p || !p.id) return;
+      const rank = i + 1;
+      if (rankById[p.id] == null || rank < rankById[p.id]) rankById[p.id] = rank;
+    });
+  });
+  return rankById;
 }
 
 const rosterCache = {};
@@ -5445,6 +5795,10 @@ async function fetchTeamRoster(teamId) {
         bySlug[slug2] = {
           slug: slug2,
           label: (entry.position && (entry.position.displayName || entry.position.abbreviation)) || slug2.toUpperCase(),
+          // Raw position abbreviation (e.g. "LT", "RG", "WR") kept separately
+          // from the display label above, so depth-chart cards can be sorted
+          // the same way the full roster table already is, via POSITION_ORDER.
+          posAbbr: (entry.position && entry.position.abbreviation) || null,
           side,
           athletes,
         };
@@ -5564,9 +5918,15 @@ function DepthChartSection({ teamId }) {
   );
   const activeSide = availableSides.includes(side) ? side : (availableSides[0] || "offense");
 
-  const sideDepthChart = data.depthChart.filter(g => g.side === activeSide);
+  // Depth-chart cards in the same QB/RB/FB/WR/TE/O-line order as the full
+  // roster table below (both driven by POSITION_ORDER), instead of whatever
+  // order ESPN happens to return the formations/slots in.
+  const sideDepthChart = data.depthChart
+    .filter(g => g.side === activeSide)
+    .sort((a, b) => depthSlotOrderIndex(a, activeSide) - depthSlotOrderIndex(b, activeSide));
+  const depthRankById = buildDepthRankMap(sideDepthChart);
   const rosterGroup = data.fullRoster.find(g => g.group === activeSide);
-  const positionGroups = rosterGroup ? groupPlayersByPosition(rosterGroup.players, activeSide) : [];
+  const positionGroups = rosterGroup ? groupPlayersByPosition(rosterGroup.players, activeSide, depthRankById) : [];
 
   return (
     <div>
@@ -5744,8 +6104,8 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
           <span>Back to week view</span>
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label htmlFor="team-switch-select" style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Team:</label>
-          <TeamSwitcher teamId={teamId} favorites={favorites} onSelectTeam={onSelectTeam} />
+          <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Team:</span>
+          <TeamSwitcher teamId={teamId} favorites={favorites} onSelectTeam={onSelectTeam} onToggleFavorite={onToggleFavorite} />
         </div>
       </div>
       <div className="team-view-header">
@@ -6234,6 +6594,9 @@ function App() {
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [favorites, setFavorites] = useState(loadFavorites);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+
+  useLiveTeamsData(); // background-refreshes team ranks; re-renders the app when they change
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
 
@@ -6260,50 +6623,48 @@ function App() {
       </div>
       <header className="top">
         <div className="brand-row" onClick={() => setView("week")}>
-          <BrandLogo size={52} />
+          <BrandLogo size={64} />
           <h1>Blitz <span className="brand-odds">Odds</span></h1>
         </div>
-        <p>Predictions from run/pass/total offense &amp; defense rankings, adjusted for injured impact players</p>
       </header>
 
+      {view === "week" && showHowItWorks && (
+        <div className="how-it-works-panel">
+          <p>
+            Each team gets an offense rating and a defense rating built from its
+            rush/pass/total yardage ranks (1 = best in the league). A matchup compares one team's offense rating to
+            the other's defense rating, adds a small home-field bonus, and converts the gap into a win probability.
+            If a star player is marked "out" or "questionable," their impact score docks their team's offense or
+            defense rating before the matchup is scored. While a game is being played, the score updates live
+            (polling every 30 seconds) with a <strong style={{ color: "var(--live)" }}>LIVE</strong> badge and running
+            score. Playoff rounds only appear in the Week dropdown once their matchups are actually announced.
+            Weeks marked "(has results)" show a frozen snapshot of that week's stats and predictions next to the
+            final score. Each card also shows the real sportsbook spread, moneyline, and over/under when a line has
+            been posted, alongside a note on whether the model's own pick agrees with the market favorite. Use the
+            "Sportsbook" picker above to set which book's line you want to see (saved on this device, not a real
+            account login) — if that book doesn't have its own line for a game yet, the default line is shown
+            instead and labeled accordingly. Click any team logo to see their full-season schedule, and click the
+            star to favorite a team.
+          </p>
+        </div>
+      )}
+
       {view === "week" && (
-        <div className="controls-row">
+        <div className="header-toolbar">
           <WeekNav periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
+          <button
+            type="button"
+            className={"how-it-works-toggle" + (showHowItWorks ? " open" : "")}
+            onClick={() => setShowHowItWorks(v => !v)}
+            aria-expanded={showHowItWorks}
+          >
+            <span className="how-it-works-icon">&#9432;</span> How this works
+            <span className="how-it-works-chevron">&#9656;</span>
+          </button>
         </div>
       )}
 
-      <div className="favorites-bar">
-        {favorites.length > 0 && <span className="fav-label">Favorites:</span>}
-        {favorites.map(teamId => {
-          const t = baseTeam(teamId);
-          if (!t) return null;
-          return (
-            <div key={teamId} className="fav-chip" onClick={() => selectTeam(teamId)}>
-              <img src={logoUrl(teamId)} alt={teamId} onError={(e) => { e.target.style.display = "none"; }} />
-              {t.name}
-            </div>
-          );
-        })}
-      </div>
-
-      {view === "week" && (
-        <div className="disclaimer">
-          <strong>How this works:</strong> each team gets an offense rating and a defense rating built from its
-          rush/pass/total yardage ranks (1 = best in the league). A matchup compares one team's offense rating to
-          the other's defense rating, adds a small home-field bonus, and converts the gap into a win probability.
-          If a star player is marked "out" or "questionable," their impact score docks their team's offense or
-          defense rating before the matchup is scored. While a game is being played, the score updates live
-          (polling every 30 seconds) with a <strong style={{ color: "var(--live)" }}>LIVE</strong> badge and running
-          score. Playoff rounds only appear in the Week dropdown once their matchups are actually announced.
-          Weeks marked "(has results)" show a frozen snapshot of that week's stats and predictions next to the
-          final score. Each card also shows the real sportsbook spread, moneyline, and over/under when a line has
-          been posted, alongside a note on whether the model's own pick agrees with the market favorite. Use the
-          "Sportsbook" picker above to set which book's line you want to see (saved on this device, not a real
-          account login) — if that book doesn't have its own line for a game yet, the default line is shown
-          instead and labeled accordingly. Click any team logo to see their full-season schedule, and click the
-          star to favorite a team.
-        </div>
-      )}
+      <FavoritesBar favorites={favorites} onSelect={selectTeam} />
 
       {view === "week" ? (
         <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} sportsbookId={sportsbookId} />

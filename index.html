@@ -240,6 +240,18 @@
     background: rgba(var(--demo-rgb),0.14); border: 1px solid rgba(var(--demo-rgb),0.4); color: var(--pill-purple-text);
     border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; margin: 8px 0 20px;
   }
+  .bye-banner {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 10px 14px; margin: 8px 0 20px;
+  }
+  .bye-banner-label { font-size: 0.8rem; font-weight: 700; color: var(--text-dim); white-space: nowrap; }
+  .bye-teams { display: flex; flex-wrap: wrap; gap: 8px; }
+  .bye-team-chip {
+    display: flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 4px 12px 4px 4px; font-size: 0.78rem;
+  }
+  .bye-team-chip img { width: 20px; height: 20px; object-fit: contain; }
   .schedule-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 400px)); gap: 16px;
   }
@@ -4129,7 +4141,7 @@
 </script>
 <script type="application/json" id="odds-data">{
   "season": 2026,
-  "sourceNote": "Real sportsbook lines (spread, moneyline, total) sourced via public odds aggregation and refreshed by the weekly update task; treated as the ESPN Bet / default line. Sportsbooks typically don't post lines until roughly 6-10 days before kickoff and they keep moving until game time, so upcoming weeks show \"Odds not yet posted\" until they're live. Week 1 below is an ILLUSTRATIVE SAMPLE (paired with the sample Week 1 results in history.json) to demonstrate the feature before the real season starts -- these are plausible-looking numbers, not real book prices. Each game object may also carry an optional \"books\" map (e.g. draftkings/fanduel/betmgm/caesars/betrivers, each with spread, moneylineHome, moneylineAway, overUnder, favorite, asOf) with real per-sportsbook lines; the app shows that book's line when present for the user's selected sportsbook and falls back to this default line otherwise.",
+  "sourceNote": "Real sportsbook lines (spread, moneyline, total) sourced via public odds aggregation and refreshed by the weekly update task; treated as the DraftKings / default line. Sportsbooks typically don't post lines until roughly 6-10 days before kickoff and they keep moving until game time, so upcoming weeks show \"Odds not yet posted\" until they're live. Week 1 below is an ILLUSTRATIVE SAMPLE (paired with the sample Week 1 results in history.json) to demonstrate the feature before the real season starts -- these are plausible-looking numbers, not real book prices. Each game object may also carry an optional \"books\" map (e.g. draftkings/fanduel/betmgm/caesars/betrivers, each with spread, moneylineHome, moneylineAway, overUnder, favorite, asOf) with real per-sportsbook lines; the app shows that book's line when present for the user's selected sportsbook and falls back to this default line otherwise.",
   "weeks": {
     "1": {
       "isDemo": true,
@@ -4365,16 +4377,16 @@ const ODDS_DATA = JSON.parse(document.getElementById('odds-data').textContent);
 // third-party site to pull an individual bettor's personal odds, so this is
 // a saved local preference (which book's line to display), not a real
 // account login. When the chosen book has no line of its own yet, we fall
-// back to the default aggregated line, labeled as ESPN Bet.
+// back to the default aggregated line, labeled as DraftKings (ESPN's
+// official sportsbook partner as of the 2025 ESPN Bet shutdown).
 const SPORTSBOOKS = [
-  { id: "espnbet", label: "ESPN Bet", short: "ESPN Bet" },
   { id: "draftkings", label: "DraftKings", short: "DraftKings" },
   { id: "fanduel", label: "FanDuel", short: "FanDuel" },
   { id: "betmgm", label: "BetMGM", short: "BetMGM" },
   { id: "caesars", label: "Caesars Sportsbook", short: "Caesars" },
   { id: "betrivers", label: "BetRivers", short: "BetRivers" },
 ];
-const DEFAULT_SPORTSBOOK_ID = "espnbet";
+const DEFAULT_SPORTSBOOK_ID = "draftkings";
 const SPORTSBOOK_STORAGE_KEY = "blitz-odds-sportsbook";
 
 function getSportsbookLabel(id) {
@@ -4448,6 +4460,17 @@ function getGamesForWeek(week) {
   return isPlayoffAnnounced(round) ? round.games : [];
 }
 
+/** Teams with no game in a given regular-season week (i.e. on a bye). Byes
+ *  don't apply to playoff weeks, so this only looks at weeks 1-18. */
+function getByeTeams(week) {
+  if (week > 18) return [];
+  const games = getGamesForWeek(week);
+  if (!games.length) return [];
+  const playing = new Set();
+  games.forEach(g => { playing.add(g.away); playing.add(g.home); });
+  return TEAMS_DATA.teams.map(t => t.id).filter(id => !playing.has(id));
+}
+
 function getPeriodLabel(week) {
   if (week <= 18) return `Week ${week}`;
   const round = getPlayoffRound(week);
@@ -4481,7 +4504,7 @@ function getOdds(week, away, home, preferredBookId) {
     return { ...bookLine, sportsbook: getSportsbookLabel(requestedId), isFallback: false };
   }
 
-  // Otherwise fall back to the default aggregated line (labeled ESPN Bet).
+  // Otherwise fall back to the default aggregated line (labeled DraftKings).
   // isFallback lets the UI note that the chosen book's own line isn't
   // available yet rather than silently pretending it is.
   return {
@@ -4891,9 +4914,26 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
   const games = useMemo(() => sortGamesByFavorites(scheduledGames, favorites), [scheduledGames, favorites]);
   const context = getWeekContext(week);
   const liveMap = useLiveScores(week);
+  const byeTeams = useMemo(() => getByeTeams(week), [week]);
   if (!games.length) return <p>No schedule data for this week yet.</p>;
   return (
     <div>
+      {byeTeams.length > 0 && (
+        <div className="bye-banner">
+          <span className="bye-banner-label">On bye — {getPeriodLabel(week)}:</span>
+          <div className="bye-teams">
+            {byeTeams.map(id => {
+              const team = baseTeam(id);
+              return (
+                <span key={id} className="bye-team-chip">
+                  <img src={logoUrl(id)} alt={id} onError={(e) => { e.target.style.display = "none"; }} />
+                  {team ? team.name : id}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {context.isHistorical && (
         <div className="demo-banner">
           <strong>{context.isDemo ? "Sample historical snapshot" : "Historical snapshot"}</strong> — showing the

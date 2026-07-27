@@ -368,6 +368,7 @@
   }
   .table-odds { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; white-space: nowrap; }
   .table-odds .odds-line { font-weight: 600; }
+  .table-odds .odds-fallback-note-sm { font-size: 0.66rem; color: var(--text-dim); font-style: italic; }
 
   /* Mobile card layout for the team schedule (replaces the table under ~860px so
      columns like Date & Time don't get crushed into multi-line wraps). */
@@ -4366,12 +4367,12 @@ const ODDS_DATA = JSON.parse(document.getElementById('odds-data').textContent);
 // account login. When the chosen book has no line of its own yet, we fall
 // back to the default aggregated line, labeled as ESPN Bet.
 const SPORTSBOOKS = [
-  { id: "espnbet", label: "ESPN Bet" },
-  { id: "draftkings", label: "DraftKings" },
-  { id: "fanduel", label: "FanDuel" },
-  { id: "betmgm", label: "BetMGM" },
-  { id: "caesars", label: "Caesars Sportsbook" },
-  { id: "betrivers", label: "BetRivers" },
+  { id: "espnbet", label: "ESPN Bet", short: "ESPN Bet" },
+  { id: "draftkings", label: "DraftKings", short: "DraftKings" },
+  { id: "fanduel", label: "FanDuel", short: "FanDuel" },
+  { id: "betmgm", label: "BetMGM", short: "BetMGM" },
+  { id: "caesars", label: "Caesars Sportsbook", short: "Caesars" },
+  { id: "betrivers", label: "BetRivers", short: "BetRivers" },
 ];
 const DEFAULT_SPORTSBOOK_ID = "espnbet";
 const SPORTSBOOK_STORAGE_KEY = "blitz-odds-sportsbook";
@@ -4379,6 +4380,11 @@ const SPORTSBOOK_STORAGE_KEY = "blitz-odds-sportsbook";
 function getSportsbookLabel(id) {
   const book = SPORTSBOOKS.find(b => b.id === id);
   return book ? book.label : id;
+}
+
+function getSportsbookShortLabel(id) {
+  const book = SPORTSBOOKS.find(b => b.id === id);
+  return book ? book.short : id;
 }
 
 const TEAM_COLORS = {
@@ -5389,7 +5395,9 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                           <>
                             <span className="odds-field"><span className="odds-label">Spread</span> {r.odds.favorite} {formatSpread(r.odds.spread)}</span>
                             <span className="odds-field"><span className="odds-label">O/U</span> {r.odds.overUnder}</span>
-                            <span className="odds-source">{r.odds.sportsbook}</span>
+                            <span className="odds-source">
+                              {r.odds.sportsbook}{r.odds.isFallback ? ` — no ${getSportsbookLabel(sportsbookId)} line yet` : ""}
+                            </span>
                           </>
                         ) : (
                           <span className="hw-tag">Odds not yet posted</span>
@@ -5447,6 +5455,9 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                             <span className="table-odds">
                               <span className="odds-line">{r.odds.favorite} {formatSpread(r.odds.spread)} · O/U {r.odds.overUnder}</span>
                               <span className="odds-source">{r.odds.sportsbook}</span>
+                              {r.odds.isFallback && (
+                                <span className="odds-fallback-note-sm">No {getSportsbookShortLabel(sportsbookId)} line</span>
+                              )}
                             </span>
                           ) : (
                             <span className="hw-tag">Not posted yet</span>

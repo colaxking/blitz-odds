@@ -4761,12 +4761,19 @@
 <script type="text/babel" data-presets="react">
 const { useMemo, useState, useEffect, useRef } = React;
 
-const TEAMS_DATA = JSON.parse(document.getElementById('teams-data').textContent);
-const PLAYERS_DATA = JSON.parse(document.getElementById('players-data').textContent);
-const SCHEDULE_DATA = JSON.parse(document.getElementById('schedule-data').textContent);
-const HISTORY_DATA = JSON.parse(document.getElementById('history-data').textContent);
-const PRESEASON_DATA = JSON.parse(document.getElementById('preseason-data').textContent);
-const PLAYOFFS_DATA = JSON.parse(document.getElementById('playoffs-data').textContent);
+// These six all start out pointing at whatever was embedded in the page at
+// last deploy, and are `let` (not `const`) so useLiveSiteData() below can
+// swap each one for fresher data fetched at runtime from the site-data-current
+// function - the same live-without-a-deploy pattern already used for odds.
+// Every read of these goes through a function call made at render/access
+// time (baseTeam(), getPlayers(), getHistorySnapshot(), etc.), never a
+// top-level destructure, so reassigning the binding is safe.
+let TEAMS_DATA = JSON.parse(document.getElementById('teams-data').textContent);
+let PLAYERS_DATA = JSON.parse(document.getElementById('players-data').textContent);
+let SCHEDULE_DATA = JSON.parse(document.getElementById('schedule-data').textContent);
+let HISTORY_DATA = JSON.parse(document.getElementById('history-data').textContent);
+let PRESEASON_DATA = JSON.parse(document.getElementById('preseason-data').textContent);
+let PLAYOFFS_DATA = JSON.parse(document.getElementById('playoffs-data').textContent);
 // ODDS_DATA starts out pointing at whatever was embedded in the page at last
 // deploy (a periodic mirror - see odds-2026.json's sourceNote). useLiveOddsData()
 // below swaps it for fresher data fetched at runtime from the odds-current
@@ -4828,7 +4835,7 @@ function saveFavorites(list) {
 }
 
 // TEAMS_DATA.teams is the season snapshot embedded in the page at build time.
-// LIVE_TEAMS_LIST starts out pointing at that same array, but useLiveTeamsData()
+// LIVE_TEAMS_LIST starts out pointing at that same array, but useLiveSiteData()
 // (below) can swap it for a freshly-fetched one during the session, so ranks
 // (and everything derived from them - predictions, Total Difference, the
 // "why this pick" rationale) can update without a page reload. baseTeam()
@@ -4839,23 +4846,32 @@ function baseTeam(id) {
   return LIVE_TEAMS_LIST.find(t => t.id === id);
 }
 
-// How often to check data/teams.json for updated rankings. Team stats only
-// change after games are final (at most once a week), so this polls far less
-// aggressively than live scores do - it just needs to notice a refreshed
-// file sometime during a long-lived tab, not react within seconds.
-const TEAM_STATS_REFRESH_MS = 5 * 60 * 1000;
+// How often to check for updated team stats/injuries/history/playoffs. These
+// only change when the weekly scheduled task runs (at most once a week), so
+// this polls far less aggressively than odds or live scores do - it just
+// needs to notice a refresh sometime during a long-lived tab, not react
+// within seconds.
+const SITE_DATA_REFRESH_MS = 5 * 60 * 1000;
 
 /**
- * Periodically re-fetches data/teams.json (relative to index.html) in the
- * background and, if it parses successfully, swaps LIVE_TEAMS_LIST to the
- * new team list and forces a re-render so every component reading through
- * baseTeam() (and the GameCard prediction/rationale, whose useMemo depends
- * on the actual team objects) picks up the new ranks. This only works when
- * the app is served over http(s) - if it's opened straight from disk
- * (file://) the fetch will fail and we silently keep whatever was embedded
- * in the page, same as the live-scores fallback behavior.
+ * Periodically re-fetches the combined snapshot from the site-data-current
+ * Netlify function (backed by Netlify Blobs, written by the
+ * nfl-matchup-analyzer-weekly-update scheduled task) and, for whichever of
+ * teams/players/schedule/history/preseason/playoffs are present in the
+ * response, swaps the corresponding TEAMS_DATA/PLAYERS_DATA/SCHEDULE_DATA/
+ * HISTORY_DATA/PRESEASON_DATA/PLAYOFFS_DATA binding and forces a re-render so
+ * every component reading through them (baseTeam(), getPlayers(),
+ * getHistorySnapshot(), getPreseasonRound(), getPlayoffRound(), the schedule
+ * table, etc.) picks up the change. The function omits any key that's never
+ * been published, so a partial response only ever updates what actually
+ * changed - nothing gets reset to empty. Replaces the old teams-only
+ * useLiveTeamsData(); this is the same idea, generalized to everything the
+ * weekly task maintains, so none of it needs a redeploy to go live. This
+ * only works when the app is served over http(s) - if it's opened straight
+ * from disk (file://) the fetch will fail and we silently keep whatever was
+ * embedded in the page, same as the live-scores fallback behavior.
  */
-function useLiveTeamsData() {
+function useLiveSiteData() {
   const [, forceRerender] = useState(0);
 
   useEffect(() => {
@@ -4863,20 +4879,46 @@ function useLiveTeamsData() {
 
     async function refresh() {
       try {
-        const res = await fetch("data/teams.json", { cache: "no-store" });
+        const res = await fetch("/.netlify/functions/site-data-current", { cache: "no-store" });
         if (!res.ok) return;
         const fresh = await res.json();
-        if (!cancelled && fresh && Array.isArray(fresh.teams)) {
-          LIVE_TEAMS_LIST = fresh.teams;
-          forceRerender(n => n + 1);
+        if (cancelled || !fresh || typeof fresh !== "object") return;
+
+        let changed = false;
+        if (fresh.teams && Array.isArray(fresh.teams.teams)) {
+          TEAMS_DATA = fresh.teams;
+          LIVE_TEAMS_LIST = fresh.teams.teams;
+          changed = true;
         }
+        if (fresh.players && typeof fresh.players.players === "object") {
+          PLAYERS_DATA = fresh.players;
+          changed = true;
+        }
+        if (fresh.schedule && Array.isArray(fresh.schedule.weeks)) {
+          SCHEDULE_DATA = fresh.schedule;
+          changed = true;
+        }
+        if (fresh.history && Array.isArray(fresh.history.weeks)) {
+          HISTORY_DATA = fresh.history;
+          changed = true;
+        }
+        if (fresh.preseason && Array.isArray(fresh.preseason.rounds)) {
+          PRESEASON_DATA = fresh.preseason;
+          changed = true;
+        }
+        if (fresh.playoffs && Array.isArray(fresh.playoffs.rounds)) {
+          PLAYOFFS_DATA = fresh.playoffs;
+          changed = true;
+        }
+        if (changed) forceRerender(n => n + 1);
       } catch (e) {
-        // Opened as file://, offline, or CORS-blocked - keep the last known-good data.
+        // Opened as file://, offline, function not deployed yet, or CORS-blocked -
+        // keep the last known-good data (the embedded blobs, or a previous fetch).
       }
     }
 
     refresh(); // also try once right away, in case the page has been open since before the first interval tick
-    const timer = setInterval(refresh, TEAM_STATS_REFRESH_MS);
+    const timer = setInterval(refresh, SITE_DATA_REFRESH_MS);
     return () => { cancelled = true; clearInterval(timer); };
   }, []);
 }
@@ -4893,9 +4935,9 @@ const ODDS_REFRESH_MS = 3 * 60 * 1000;
  * (backed by Netlify Blobs, written by the blitz-odds-odds-refresh scheduled
  * task) and, if it parses successfully, swaps ODDS_DATA to the new document
  * and forces a re-render so every GameCard/getOdds() call picks up the fresh
- * lines. This is the odds equivalent of useLiveTeamsData() above, except the
- * source is a runtime API instead of a static file, since odds change far
- * more often than team stats. Same file:// / offline fallback behavior:
+ * lines. This is the same idea as useLiveSiteData() below, kept as its own
+ * hook with a much shorter poll interval, since odds change far more often
+ * than team stats/history/playoffs do. Same file:// / offline fallback behavior:
  * silently keep whatever was last embedded or fetched.
  */
 function useLiveOddsData() {
@@ -6646,7 +6688,7 @@ function App() {
   const [favorites, setFavorites] = useState(loadFavorites);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
 
-  useLiveTeamsData(); // background-refreshes team ranks; re-renders the app when they change
+  useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);

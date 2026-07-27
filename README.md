@@ -16,14 +16,21 @@ an automatic rebuild and goes live within about a minute (Netlify uses atomic
 deploys, so there's no downtime during the swap).
 
 Netlify's free plan is credit-metered (300 credits/month, 15 credits per production
-deploy — about 20 deploys/month, hard capped). Only one scheduled task pushes to git:
-`nfl-matchup-analyzer-weekly-update`, once a week. Betting odds change far more often
-than that (every 15 minutes in season), so `blitz-odds-odds-refresh` publishes those
-through a Netlify Function backed by Netlify Blobs (`netlify/functions/odds-update.mts`
-/ `odds-current.mts`) instead of git — the live site fetches current odds at runtime,
-the same way it already polls ESPN for live scores. That keeps odds near-real-time
-without ever touching the deploy budget, and keeps only one task writing to the git
-repo (two tasks racing on the same repo was leaving stale lock files behind).
+deploy — about 20 deploys/month, hard capped). Neither scheduled task depends on a
+deploy to get new data live anymore. Both publish through a Netlify Function backed
+by a Netlify Blobs store, and the live page fetches current data from those functions
+at runtime, the same way it already polls ESPN for live scores:
+
+- `blitz-odds-odds-refresh` → `netlify/functions/odds-update.mts` / `odds-current.mts`
+  (betting odds, up to every 15 minutes in season)
+- `nfl-matchup-analyzer-weekly-update` → `netlify/functions/site-data-update.mts` /
+  `site-data-current.mts` (team stats, injuries, schedule, history, preseason, playoffs)
+
+Only `nfl-matchup-analyzer-weekly-update` still commits and pushes to git, and only for
+durable version history — it publishes live first, then git second, so a slow or failed
+push no longer means stale data on the live site. It's also the only task touching git
+at all now (two tasks racing on the same repo used to leave stale lock files behind),
+and it only runs weekly, well inside the deploy budget above.
 
 ## Open it locally
 
@@ -40,7 +47,9 @@ nfl-matchup-analyzer/
 │   ├── track.mts                    # first-party analytics ingest (Blobs-backed)
 │   ├── analytics-summary.mts        # first-party analytics summary (Blobs-backed)
 │   ├── odds-update.mts              # secret-authed write endpoint for the odds-refresh task (Blobs-backed)
-│   └── odds-current.mts             # public read endpoint the live site polls for current odds (Blobs-backed)
+│   ├── odds-current.mts             # public read endpoint the live site polls for current odds (Blobs-backed)
+│   ├── site-data-update.mts         # secret-authed write endpoint for the weekly-update task (teams/players/schedule/history/preseason/playoffs)
+│   └── site-data-current.mts        # public read endpoint the live site polls for all of the above in one combined snapshot
 └── data/
     ├── teams.json                   # 2025 season final offense/defense stats + ranks, all 32 teams
     ├── impact-players.json          # sample injury/impact-player data (see disclaimer below)
@@ -111,15 +120,19 @@ nfl-matchup-analyzer/
   shows a labeled **illustrative sample** (realistic-looking but made-up numbers) so you
   can see the feature before real lines exist.
 
-`index.html` embeds copies of seven of the JSON files directly in the page
-(teams, players, schedule, history, preseason, playoffs, odds) so it can be
+`index.html` embeds copies of seven JSON files directly in the page (teams,
+players, schedule, history, preseason, playoffs, odds) so it can still be
 opened straight from disk without hitting browser file:// security
-restrictions. The `data/` files are the source of truth for everything except
-odds — edit them, then re-run the same templating step to refresh
-`index.html` (or ask me to do it). Odds are the one exception: the live page
-fetches current odds at runtime from the `odds-current` function rather than
-relying solely on the embedded blob, so odds can update without a redeploy;
-the embedded copy and `data/odds-2026.json` are just a periodic mirror.
+restrictions, and so there's something to show on first paint before the
+runtime fetch below resolves. But that embedded copy is just a fallback: once
+the page loads over http(s), it fetches current data at runtime from
+`site-data-current` (teams/players/schedule/history/preseason/playoffs) and
+`odds-current` (odds), and swaps in whatever's fresher — so every one of
+these seven can update live without a redeploy. The `data/*.json` files on
+disk remain the source of truth that the scheduled tasks edit and publish
+from; edit them yourself and ask me to push a refresh through the same
+functions (or just re-run the templating step) if you want to change
+something by hand.
 
 ## How the prediction works
 
@@ -181,8 +194,19 @@ weights) live at the top of `js/predictionEngine.js` if you want to tune them.
 
 ## Keeping it current
 
-This is automated across two scheduled tasks, which deliberately use two different
-publishing paths so they don't collide with each other or with Netlify's deploy budget.
+This is automated across two scheduled tasks. Both publish live through a Netlify
+Function + Blobs store first, so changes reach the live site in seconds, independent of
+any git push or Netlify build; git is now purely for durable, versioned history, not
+for making anything visible to visitors.
+
+`blitz-odds-odds-refresh` runs every 15 minutes, 8am-11pm local, Aug through Feb
+(preseason through the playoffs), and pulls real lines from the SportsGameOdds API's
+free tier, self-throttling against its 2,500-objects/month cap. It `POST`s updates to
+`netlify/functions/odds-update.mts`, which writes to a Netlify Blobs store; the live
+site's `odds-current` function serves that store to the page at runtime. It never
+touches git at all — it also mirrors `data/odds-2026.json` / `data/odds-history.json`
+on disk (without committing them) so the weekly task's `index.html` rebuild always
+picks up current odds.
 
 `nfl-matchup-analyzer-weekly-update` runs every Tuesday at 9am and is the **only** task
 that touches git. It archives completed preseason rounds (Hall of Fame Game, Preseason
@@ -190,30 +214,32 @@ Weeks 1-3) as soon as they finish, and once the regular season starts (Sept 9, 2
 each run checks whether a new week has finished, and if so: pulls that week's final
 scores and updated team stats/injury report from public sources, archives a
 `data/history.json` snapshot for that week (replacing the Week 1 sample once real Week 1
-is played), refreshes `data/teams.json` and `data/impact-players.json` with current
-numbers, and rebuilds `index.html` in place. Once Week 18 wraps up, the same task also
-researches and fills in each playoff round as it's announced, and continues archiving
-results for weeks 19-22 (Wild Card through Super Bowl). It commits and pushes to GitHub
-whenever it changes something — roughly weekly, well inside Netlify's ~20 free
-deploys/month.
-
-`blitz-odds-odds-refresh` runs every 15 minutes, 8am-11pm local, Aug through Feb
-(preseason through the playoffs), and pulls real lines from the SportsGameOdds API's
-free tier, self-throttling against its 2,500-objects/month cap. Instead of committing
-to git, it `POST`s updates to `netlify/functions/odds-update.mts`, which writes to a
-Netlify Blobs store; the live site's `odds-current` function serves that store to the
-page at runtime. This means odds can refresh as often as every 15 minutes without ever
-costing a deploy credit or fighting the weekly task for the git repo. It also mirrors
-`data/odds-2026.json` / `data/odds-history.json` on disk (without committing them) so
-the weekly task's `index.html` rebuild always picks up current odds.
+is played), and refreshes `data/teams.json` and `data/impact-players.json` with current
+numbers. Once Week 18 wraps up, the same task also researches and fills in each playoff
+round as it's announced, and continues archiving results for weeks 19-22 (Wild Card
+through Super Bowl). Whatever changed gets `POST`ed to `netlify/functions/site-data-update.mts`
+first — live within seconds — *then* the task rebuilds `index.html`'s embedded fallback
+copy and commits/pushes to GitHub for a durable record. It only runs weekly, well inside
+Netlify's ~20 free deploys/month, and if that push is ever slow or fails, the live site
+already has the update regardless.
 
 ## Working conventions for Claude
 
 Any push to `main` triggers a live Netlify deploy of this site, so for changes
-made interactively in chat (not the automated weekly task above): show a
+made interactively in chat (not the automated scheduled tasks above): show a
 summary of what changed and get explicit approval from Dan before running
-`git push`. The weekly scheduled task is exempt from this and keeps
-auto-pushing on its own, as described above.
+`git push`. The scheduled tasks are exempt from this and keep publishing and
+pushing on their own, as described above - though note only the weekly task
+still pushes to git at all; the odds task never does.
+
+If you're adding or changing anything the live site should show without a
+redeploy, follow the existing pattern rather than inventing a new one: write
+to the appropriate Netlify Blobs store through a secret-authed `*-update.mts`
+function, read it back through a public `*-current.mts` function, and have
+`index.html` poll the latter into a `let`-bound module-level variable (see
+`useLiveOddsData()` / `useLiveSiteData()`) rather than a `const` read once at
+load. Keep secrets separate per write endpoint (`ODDS_UPDATE_SECRET`,
+`SITE_DATA_UPDATE_SECRET`) so adding one never risks breaking another.
 
 ## Path to a native mobile app
 

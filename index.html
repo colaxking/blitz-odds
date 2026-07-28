@@ -382,6 +382,20 @@
   .rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
   .rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
   .rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
+  .rank-good-slight { background: rgba(var(--win-rgb),0.12); color: var(--pill-good-text); }
+  .rank-good-moderate { background: rgba(var(--win-rgb),0.22); color: var(--pill-good-text); }
+  .rank-good-significant { background: rgba(var(--win-rgb),0.34); color: var(--pill-good-text); font-weight: 700; }
+  .rank-bad-slight { background: rgba(var(--out-rgb),0.12); color: var(--pill-bad-text); }
+  .rank-bad-moderate { background: rgba(var(--out-rgb),0.22); color: var(--pill-bad-text); }
+  .rank-bad-significant { background: rgba(var(--out-rgb),0.34); color: var(--pill-bad-text); font-weight: 700; }
+  .gradation-legend {
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 0.68rem;
+    color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 8px 12px; margin-bottom: 14px;
+  }
+  .gradation-legend-group { display: flex; align-items: center; gap: 6px; }
+  .gradation-legend-label { font-weight: 600; color: var(--text); margin-right: 2px; }
+  .gradation-legend .rank-pill { margin-left: 0; }
   .impact-note {
     font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
   }
@@ -5300,9 +5314,18 @@ function TeamBadge({ team, favorites, onToggle, onSelect }) {
  * Rendered as a rank-pill, same visual language as RankPill, so it sits
  * flush in line with the "Total/Rush/Pass <RankPill>" rows next to it.
  */
+function gradationTier(diff) {
+  const gap = Math.abs(diff);
+  if (gap === 0) return null;
+  if (gap >= 17) return "significant";
+  if (gap >= 9) return "moderate";
+  return "slight";
+}
+
 function DiffPill({ offRank, defRank, offTeamId }) {
   const diff = defRank - offRank;
-  const cls = diff > 0 ? "rank-good" : diff < 0 ? "rank-bad" : "rank-mid";
+  const tier = gradationTier(diff);
+  const cls = tier === null ? "rank-mid" : diff > 0 ? `rank-good-${tier}` : `rank-bad-${tier}`;
   return (
     <span className={"rank-pill " + cls}>
       {diff === 0 ? "Even" : `${diff > 0 ? "+" : ""}${diff} ${offTeamId}`}
@@ -5599,6 +5622,28 @@ function sortGamesByFavorites(games, favorites) {
   return [...favGames, ...otherGames];
 }
 
+/** Explains the green (advantage) / red (disadvantage) shading used on the
+ *  Total/Rush/Pass DiffPills throughout this week's matchup cards, across
+ *  the same three tiers gradationTier() computes: slight/moderate/significant. */
+function GradationLegend() {
+  return (
+    <div className="gradation-legend">
+      <div className="gradation-legend-group">
+        <span className="gradation-legend-label">Advantage</span>
+        <span className="rank-pill rank-good-slight">Slight</span>
+        <span className="rank-pill rank-good-moderate">Moderate</span>
+        <span className="rank-pill rank-good-significant">Significant</span>
+      </div>
+      <div className="gradation-legend-group">
+        <span className="gradation-legend-label">Disadvantage</span>
+        <span className="rank-pill rank-bad-slight">Slight</span>
+        <span className="rank-pill rank-bad-moderate">Moderate</span>
+        <span className="rank-pill rank-bad-significant">Significant</span>
+      </div>
+    </div>
+  );
+}
+
 function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookId }) {
   const scheduledGames = getGamesForWeek(week);
   const games = useMemo(() => sortGamesByFavorites(scheduledGames, favorites), [scheduledGames, favorites]);
@@ -5632,6 +5677,7 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
           {context.note}
         </div>
       )}
+      <GradationLegend />
       <div className="schedule-grid">
         {games.map((g) => (
           <GameCard

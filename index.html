@@ -48,6 +48,8 @@
     --edge-b: #7ab8ff;
     --pill-good-text: #6be3a1;
     --pill-bad-text: #ff8080;
+    --pill-good-fill-text: #062b16;
+    --pill-bad-fill-text: #2a0505;
     --pill-out-text: #ff9d9d;
     --pill-questionable-text: #ffcf85;
     --pill-purple-text: #d6b8ff;
@@ -77,6 +79,8 @@
     --edge-b: #1d6fc9;
     --pill-good-text: #1a7a43;
     --pill-bad-text: #b42318;
+    --pill-good-fill-text: #ffffff;
+    --pill-bad-fill-text: #ffffff;
     --pill-out-text: #b42318;
     --pill-questionable-text: #92530a;
     --pill-purple-text: #6b21a8;
@@ -378,16 +382,23 @@
   .diff-explainer p { color: var(--text-dim); font-size: 0.68rem; line-height: 1.4; margin: 6px 0 0; }
   .rank-pill {
     display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px;
+    border: 1px solid transparent;
   }
   .rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
   .rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
   .rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
-  .rank-good-slight { background: rgba(var(--win-rgb),0.12); color: var(--pill-good-text); }
-  .rank-good-moderate { background: rgba(var(--win-rgb),0.22); color: var(--pill-good-text); }
-  .rank-good-significant { background: rgba(var(--win-rgb),0.34); color: var(--pill-good-text); font-weight: 700; }
-  .rank-bad-slight { background: rgba(var(--out-rgb),0.12); color: var(--pill-bad-text); }
-  .rank-bad-moderate { background: rgba(var(--out-rgb),0.22); color: var(--pill-bad-text); }
-  .rank-bad-significant { background: rgba(var(--out-rgb),0.34); color: var(--pill-bad-text); font-weight: 700; }
+  .rank-good-slight { background: rgba(var(--win-rgb),0.10); color: var(--pill-good-text); }
+  .rank-good-moderate {
+    background: rgba(var(--win-rgb),0.24); color: var(--pill-good-text);
+    border-color: rgba(var(--win-rgb),0.65); font-weight: 700;
+  }
+  .rank-good-significant { background: var(--win); color: var(--pill-good-fill-text); border-color: var(--win); font-weight: 800; }
+  .rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
+  .rank-bad-moderate {
+    background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text);
+    border-color: rgba(var(--out-rgb),0.65); font-weight: 700;
+  }
+  .rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
   .gradation-legend {
     display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 0.68rem;
     color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border);

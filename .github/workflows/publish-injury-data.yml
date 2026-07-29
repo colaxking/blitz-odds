@@ -1,0 +1,36 @@
+name: Publish injury data to Netlify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/impact-players.json'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build payload and publish
+        env:
+          SITE_DATA_UPDATE_SECRET: ${{ secrets.SITE_DATA_UPDATE_SECRET }}
+        run: |
+          if [ -z "$SITE_DATA_UPDATE_SECRET" ]; then
+            echo "::error::SITE_DATA_UPDATE_SECRET repo secret is not set. Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          payload=$(jq -n --slurpfile data data/impact-players.json '{players: $data[0]}')
+          http_code=$(curl -sS -o /tmp/response.txt -w "%{http_code}" -X POST \
+            "https://blitz-odds.netlify.app/.netlify/functions/site-data-update" \
+            -H "x-site-data-update-secret: $SITE_DATA_UPDATE_SECRET" \
+            -H "Content-Type: application/json" \
+            --data "$payload")
+          echo "HTTP status: $http_code"
+          cat /tmp/response.txt
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+            echo "::error::Publish failed with status $http_code"
+            exit 1
+          fi
+          echo "Published injury data successfully."

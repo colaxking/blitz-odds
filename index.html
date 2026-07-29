@@ -491,9 +491,10 @@
     font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim);
     font-weight: 700; margin: 0 0 10px;
   }
-  .settings-section .book-picker, .settings-section .theme-toggle { width: 100%; }
-  .settings-section .book-picker-trigger { width: 100%; justify-content: space-between; }
-  .settings-section .book-picker-panel { position: static; margin-top: 8px; box-shadow: none; width: 100%; }
+  .settings-section .book-picker { width: 100%; display: block; }
+  .settings-section .theme-toggle { width: 100%; }
+  .settings-section .book-picker-trigger { width: 100%; justify-content: space-between; box-sizing: border-box; }
+  .settings-section .book-picker-panel { position: static; margin-top: 8px; box-shadow: none; width: 100%; box-sizing: border-box; }
   .settings-section .theme-toggle { justify-content: space-between; }
   .settings-section .theme-toggle-btn { flex: 1; justify-content: center; }
   .settings-section .theme-toggle-label { display: inline; }

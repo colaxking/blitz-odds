@@ -95,10 +95,20 @@
     transition: background 0.15s, color 0.15s;
   }
   .app { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
-  header.top { text-align: center; margin-bottom: 16px; }
+  header.top { position: relative; text-align: center; margin-bottom: 16px; }
   header.top h1 { font-size: 1.85rem; margin: 0; letter-spacing: 0.3px; font-weight: 800; }
   .brand-row { display: flex; align-items: center; justify-content: center; gap: 14px; cursor: pointer; margin-bottom: 6px; }
   .brand-odds { color: var(--accent); }
+
+  .settings-btn {
+    position: absolute; top: 2px; right: 0; display: flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--card-border);
+    color: var(--text-dim); cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .settings-btn:hover, .settings-btn:focus-visible { color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
+  @media (max-width: 480px) {
+    .settings-btn { width: 34px; height: 34px; top: 0; }
+  }
 
   .controls-row {
     display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
@@ -118,7 +128,6 @@
   }
   .back-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
 
-  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   .theme-toggle {
     display: inline-flex; align-items: center; gap: 2px; background: var(--card-bg);
     border: 1px solid var(--card-border); border-radius: 999px; padding: 3px;
@@ -460,6 +469,57 @@
     from { transform: translateY(16px); opacity: 0.6; }
     to { transform: translateY(0); opacity: 1; }
   }
+
+  .settings-modal-overlay {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.6); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
+  }
+  .settings-modal {
+    position: relative; width: 100%; max-width: 440px; max-height: 88vh; overflow-y: auto;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+  }
+  .settings-modal-close {
+    position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--card-border); background: var(--surface-2); color: var(--text);
+    font-size: 1.1rem; line-height: 1; cursor: pointer;
+  }
+  .settings-modal-title { font-size: 1.05rem; font-weight: 800; margin: 0 0 16px; padding-right: 30px; }
+  .settings-section { margin-bottom: 20px; }
+  .settings-section:last-child { margin-bottom: 4px; }
+  .settings-section-title {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim);
+    font-weight: 700; margin: 0 0 10px;
+  }
+  .settings-section .book-picker, .settings-section .theme-toggle { width: 100%; }
+  .settings-section .book-picker-trigger { width: 100%; justify-content: space-between; }
+  .settings-section .book-picker-panel { position: static; margin-top: 8px; box-shadow: none; width: 100%; }
+  .settings-section .theme-toggle { justify-content: space-between; }
+  .settings-section .theme-toggle-btn { flex: 1; justify-content: center; }
+  .settings-section .theme-toggle-label { display: inline; }
+
+  .fav-picker-list { max-height: 320px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 12px; padding: 6px; }
+  .fav-picker-group-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim);
+    font-weight: 700; padding: 10px 8px 6px;
+  }
+  .fav-picker-group-label:first-child { padding-top: 4px; }
+  .fav-picker-item {
+    display: flex; align-items: center; gap: 10px; width: 100%; border-radius: 8px; padding: 6px 8px;
+    transition: background 0.12s;
+  }
+  .fav-picker-item:hover { background: rgba(var(--accent-rgb),0.08); }
+  .fav-picker-item img { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
+  .fav-picker-item-name { flex: 1; font-size: 0.86rem; }
+  .fav-picker-item .star-btn { position: static; flex-shrink: 0; }
+  @media (max-width: 640px) {
+    .settings-modal-overlay { align-items: flex-end; padding: 0; }
+    .settings-modal {
+      max-width: 100%; max-height: 85vh; border-radius: 16px 16px 0 0;
+      padding: 20px 16px 24px; animation: injury-sheet-up 0.18s ease-out;
+    }
+  }
+
   .result-row {
     display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;
     padding: 6px 10px; border-radius: 8px; background: rgba(var(--demo-rgb),0.1); border: 1px solid rgba(var(--demo-rgb),0.3);
@@ -6111,6 +6171,89 @@ function TeamSwitcher({ teamId, favorites, onSelectTeam, onToggleFavorite }) {
   );
 }
 
+// Favorite-team picker used inside the Settings modal - lets you star/unstar
+// any team from one scrollable list. Unlike TeamSwitcher (used on the team
+// page), clicking a row here never navigates anywhere, it only toggles that
+// team's favorite status.
+function FavoriteTeamsPicker({ favorites, onToggleFavorite }) {
+  const favIds = new Set(favorites);
+  const favTeams = LIVE_TEAMS_LIST
+    .filter(t => favIds.has(t.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const otherTeams = LIVE_TEAMS_LIST
+    .filter(t => !favIds.has(t.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  function renderRow(t) {
+    return (
+      <div key={t.id} className="fav-picker-item">
+        <TeamLogo teamId={t.id} size={24} />
+        <span className="fav-picker-item-name">{t.name}</span>
+        <FavoriteStar teamId={t.id} favorites={favorites} onToggle={onToggleFavorite} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="fav-picker-list">
+      {favTeams.length > 0 && (
+        <>
+          <div className="fav-picker-group-label">★ Favorites</div>
+          {favTeams.map(renderRow)}
+        </>
+      )}
+      <div className="fav-picker-group-label">All Teams</div>
+      {otherTeams.map(renderRow)}
+    </div>
+  );
+}
+
+function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode, favorites, onToggleFavorite, onClose }) {
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return ReactDOM.createPortal(
+    <div
+      className="settings-modal-overlay"
+      ref={overlayRef}
+      onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
+        <button type="button" className="settings-modal-close" onClick={onClose} aria-label="Close">×</button>
+        <h2 className="settings-modal-title">Settings</h2>
+
+        <div className="settings-section">
+          <h3 className="settings-section-title">Sportsbook</h3>
+          <SportsbookPicker bookId={sportsbookId} setBookId={setSportsbookId} />
+        </div>
+
+        <div className="settings-section">
+          <h3 className="settings-section-title">Theme</h3>
+          <ThemeToggle mode={themeMode} setMode={setThemeMode} />
+        </div>
+
+        <div className="settings-section">
+          <h3 className="settings-section-title">Favorite Teams</h3>
+          <FavoriteTeamsPicker favorites={favorites} onToggleFavorite={onToggleFavorite} />
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ---- Roster, depth chart & team news (ESPN public API, no key required) ---
 // Same approach as live scores: fetched directly from the browser, results
 // cached per team for the session so switching tabs doesn't re-fetch. If this
@@ -6799,6 +6942,18 @@ function ChevronIcon({ direction = "down", size = 14 }) {
   );
 }
 
+function GearIcon({ size = 20 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="2" />
+      <path
+        d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.5-2.4.6a7.7 7.7 0 0 0-1.7-1L14.9 3h-3.8l-.4 2.6a7.7 7.7 0 0 0-1.7 1l-2.4-.6-2 3.5 2 1.5a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.5 2.4-.6a7.7 7.7 0 0 0 1.7 1l.4 2.6h3.8l.4-2.6a7.7 7.7 0 0 0 1.7-1l2.4.6 2-3.5-2-1.5Z"
+        stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function WeekNavItem({ period, active, hasResults, onClick }) {
   return (
     <button
@@ -7101,6 +7256,7 @@ function App() {
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [favorites, setFavorites] = useState(loadFavorites);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
@@ -7124,11 +7280,16 @@ function App() {
 
   return (
     <div className="app">
-      <div className="top-bar">
-        <SportsbookPicker bookId={sportsbookId} setBookId={setSportsbookId} />
-        <ThemeToggle mode={themeMode} setMode={setThemeMode} />
-      </div>
       <header className="top">
+        <button
+          type="button"
+          className="settings-btn"
+          onClick={() => setShowSettings(true)}
+          aria-label="Open settings"
+          title="Settings"
+        >
+          <GearIcon size={19} />
+        </button>
         <div className="brand-row" onClick={() => setView("week")}>
           <BrandLogo size={64} />
           <h1>Blitz <span className="brand-odds">Odds</span></h1>
@@ -7148,10 +7309,10 @@ function App() {
             Weeks marked "(has results)" show a frozen snapshot of that week's stats and predictions next to the
             final score. Each card also shows the real sportsbook spread, moneyline, and over/under when a line has
             been posted, alongside a note on whether the model's own pick agrees with the market favorite. Use the
-            "Sportsbook" picker above to set which book's line you want to see (saved on this device, not a real
-            account login) — if that book doesn't have its own line for a game yet, the default line is shown
-            instead and labeled accordingly. Click any team logo to see their full-season schedule, and click the
-            star to favorite a team.
+            "Sportsbook" picker in Settings (gear icon, top right) to set which book's line you want to see (saved
+            on this device, not a real account login) — if that book doesn't have its own line for a game yet, the
+            default line is shown instead and labeled accordingly. Click any team logo to see their full-season
+            schedule, and click the star to favorite a team.
           </p>
         </div>
       )}
@@ -7186,6 +7347,18 @@ function App() {
         post). Impact player data and any weeks marked "sample" are illustrative/placeholder pending real
         in-season reports and results.
       </footer>
+
+      {showSettings && (
+        <SettingsModal
+          sportsbookId={sportsbookId}
+          setSportsbookId={setSportsbookId}
+          themeMode={themeMode}
+          setThemeMode={setThemeMode}
+          favorites={favorites}
+          onToggleFavorite={toggleFavorite}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
   );
 }

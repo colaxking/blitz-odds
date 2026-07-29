@@ -1,6 +1,6 @@
 {
   "isDemoData": false,
-  "disclaimer": "Injury statuses reflect NFL training camp reports as of July 28, 2026 (all 32 teams fully in camp, regular season starts Sept 9). This is pre-season camp/PUP-list information, not an official in-season practice-participation report (those begin Wed-Fri of game week once the season starts) - verify and update once real weekly injury reports are available.",
+  "disclaimer": "Injury statuses reflect training camp reports as of July 28, 2026. Notable updates: Mahomes and Daniel Jones fully cleared for camp; Kittle and Ramsey opened camp on PUP; Penix Jr. cleared for individual/7-on-7 work; Nabers avoided PUP with Week 1 outlook improving; Panthers rookie OLB Nic Scourton lost for the season with a torn ACL. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
   "players": {
     "NE": [
       {
@@ -29,7 +29,7 @@
         "name": "George Kittle",
         "position": "TE",
         "impactScore": 7,
-        "status": "questionable"
+        "status": "out"
       }
     ],
     "LAR": [
@@ -65,6 +65,12 @@
         "name": "Ikem Ekwonu",
         "position": "OT",
         "impactScore": 6,
+        "status": "out"
+      },
+      {
+        "name": "Nic Scourton",
+        "position": "OLB",
+        "impactScore": 5,
         "status": "out"
       }
     ],
@@ -129,7 +135,7 @@
         "name": "Daniel Jones",
         "position": "QB",
         "impactScore": 6,
-        "status": "questionable"
+        "status": "active"
       }
     ],
     "CLE": [
@@ -159,7 +165,7 @@
         "name": "Michael Penix Jr.",
         "position": "QB",
         "impactScore": 7,
-        "status": "out"
+        "status": "questionable"
       }
     ],
     "PIT": [
@@ -173,7 +179,7 @@
         "name": "Jalen Ramsey",
         "position": "CB",
         "impactScore": 8,
-        "status": "questionable"
+        "status": "out"
       }
     ],
     "NYJ": [
@@ -281,7 +287,7 @@
         "name": "Malik Nabers",
         "position": "WR",
         "impactScore": 8,
-        "status": "out"
+        "status": "questionable"
       }
     ],
     "DEN": [
@@ -297,7 +303,7 @@
         "name": "Patrick Mahomes",
         "position": "QB",
         "impactScore": 10,
-        "status": "questionable"
+        "status": "active"
       },
       {
         "name": "Justin Fields",

@@ -98,7 +98,8 @@
         position: p.position,
         status: p.status,
         side: isDefensive ? "defense" : "offense",
-        ratingDelta: -delta
+        ratingDelta: -delta,
+        injury: p.injury || null
       });
     });
 

@@ -416,6 +416,50 @@
   .injury-report { margin-bottom: 18px; }
   .injury-report-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
   .injury-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .injury-info-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; margin-left: 6px; padding: 0; vertical-align: -4px;
+    border-radius: 50%; border: 1px solid currentColor; background: transparent;
+    color: inherit; opacity: 0.75; font-size: 0.72rem; line-height: 1; cursor: pointer;
+  }
+  .injury-info-btn:hover, .injury-info-btn:focus-visible { opacity: 1; }
+  .injury-modal-overlay {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.6); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
+  }
+  .injury-modal {
+    position: relative; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+  }
+  .injury-modal-close {
+    position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--card-border); background: var(--surface-2); color: var(--text);
+    font-size: 1.1rem; line-height: 1; cursor: pointer;
+  }
+  .injury-modal-header { display: flex; align-items: flex-start; gap: 10px; padding-right: 30px; margin-bottom: 14px; }
+  .injury-modal-status-icon { font-size: 1.1rem; margin-top: 2px; }
+  .injury-modal-name { font-size: 1.05rem; font-weight: 700; }
+  .injury-modal-meta { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+  .injury-modal-body { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .injury-modal-row { display: flex; gap: 8px; font-size: 0.85rem; }
+  .injury-modal-label { flex: 0 0 60px; color: var(--text-dim); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; padding-top: 2px; }
+  .injury-modal-value { font-weight: 600; }
+  .injury-modal-note { font-size: 0.85rem; color: var(--text); line-height: 1.45; margin: 4px 0 0; }
+  .injury-modal-empty { color: var(--text-dim); }
+  .injury-modal-disclaimer { font-size: 0.68rem; color: var(--text-dim); margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--card-border); }
+  @media (max-width: 640px) {
+    .injury-modal-overlay { align-items: flex-end; padding: 0; }
+    .injury-modal {
+      max-width: 100%; max-height: 80vh; border-radius: 16px 16px 0 0;
+      padding: 20px 16px 24px; animation: injury-sheet-up 0.18s ease-out;
+    }
+  }
+  @keyframes injury-sheet-up {
+    from { transform: translateY(16px); opacity: 0.6; }
+    to { transform: translateY(0); opacity: 1; }
+  }
   .result-row {
     display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;
     padding: 6px 10px; border-radius: 8px; background: rgba(var(--demo-rgb),0.1); border: 1px solid rgba(var(--demo-rgb),0.3);
@@ -5392,6 +5436,115 @@ function TeamLogo({ teamId, size }) {
   );
 }
 
+function formatInjurySince(since) {
+  if (!since) return null;
+  const parts = since.split("-").map(Number);
+  const y = parts[0], m = parts[1], d = parts[2];
+  if (!y || !m) return null;
+  const date = new Date(y, m - 1, d || 1);
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July",
+    "August", "September", "October", "November", "December"];
+  const label = d ? (monthNames[m - 1] + " " + d + ", " + y) : (monthNames[m - 1] + " " + y);
+  const days = Math.floor((Date.now() - date.getTime()) / 86400000);
+  let duration = null;
+  if (days >= 0) {
+    if (d && days < 60) {
+      duration = days <= 1 ? "1 day ago" : days + " days ago";
+    } else {
+      const months = Math.max(1, Math.round(days / 30.44));
+      duration = months === 1 ? "about 1 month ago" : "about " + months + " months ago";
+    }
+  }
+  return { label, duration };
+}
+
+function InjuryDetailModal({ player, onClose }) {
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  const injury = player.injury;
+  const since = injury ? formatInjurySince(injury.since) : null;
+  const statusLabel = player.status === "out" ? "Out" : player.status === "questionable" ? "Questionable" : "Active";
+  const statusIcon = player.status === "out" ? "⛔" : player.status === "questionable" ? "⚠️" : "✅";
+
+  return ReactDOM.createPortal(
+    <div
+      className="injury-modal-overlay"
+      ref={overlayRef}
+      onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="injury-modal" role="dialog" aria-modal="true" aria-label={player.name + " injury details"}>
+        <button type="button" className="injury-modal-close" onClick={onClose} aria-label="Close">×</button>
+        <div className="injury-modal-header">
+          <span className={"injury-modal-status-icon impact-" + player.status}>{statusIcon}</span>
+          <div>
+            <div className="injury-modal-name">{player.name}</div>
+            <div className="injury-modal-meta">
+              {player.position} · <span className={"impact-" + player.status}>{statusLabel}</span>
+            </div>
+          </div>
+        </div>
+        {injury ? (
+          <div className="injury-modal-body">
+            <div className="injury-modal-row">
+              <span className="injury-modal-label">Injury</span>
+              <span className="injury-modal-value">{injury.type}</span>
+            </div>
+            {since && (
+              <div className="injury-modal-row">
+                <span className="injury-modal-label">Since</span>
+                <span className="injury-modal-value">
+                  {since.label}{since.duration ? " (" + since.duration + ")" : ""}
+                </span>
+              </div>
+            )}
+            {injury.note && <p className="injury-modal-note">{injury.note}</p>}
+          </div>
+        ) : (
+          <p className="injury-modal-note injury-modal-empty">
+            No detailed injury report tracked yet for this status — check back as camp/practice reports update.
+          </p>
+        )}
+        <p className="injury-modal-disclaimer">
+          Unofficial — based on team and media injury reports, not the league's official practice report.
+        </p>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function InjuryInfoButton({ player }) {
+  const [open, setOpen] = useState(false);
+  if (!player || !player.name) return null;
+  return (
+    <React.Fragment>
+      <button
+        type="button"
+        className="injury-info-btn"
+        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+        aria-label={"Injury details for " + player.name}
+        title="Injury details"
+      >
+        ⓘ
+      </button>
+      {open && <InjuryDetailModal player={player} onClose={() => setOpen(false)} />}
+    </React.Fragment>
+  );
+}
+
 function FavoriteStar({ teamId, favorites, onToggle }) {
   const active = favorites.includes(teamId);
   return (
@@ -5716,6 +5869,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
             <strong>{a.player}</strong> ({a.position}) is <strong>{a.status}</strong> —
             hurts {a.side === "offense" ? "their offense" : "their defense"},
             shifting the odds toward the opponent.
+            <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury }} />
           </span>
         </div>
       ))}
@@ -6420,7 +6574,10 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
             {injuryReport.map((p, i) => (
               <div key={i} className={"impact-note impact-" + p.status}>
                 <span>{p.status === "out" ? "⛔" : p.status === "questionable" ? "⚠️" : "✅"}</span>
-                <span><strong>{p.name}</strong> ({p.position}) — <strong>{p.status}</strong></span>
+                <span>
+                  <strong>{p.name}</strong> ({p.position}) — <strong>{p.status}</strong>
+                  <InjuryInfoButton player={p} />
+                </span>
               </div>
             ))}
           </div>

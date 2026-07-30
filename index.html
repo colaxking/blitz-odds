@@ -658,6 +658,20 @@
   .news-item-headline { font-size: 0.84rem; font-weight: 600; line-height: 1.3; }
   .news-item:hover .news-item-headline { color: var(--accent); }
   .news-item-meta { font-size: 0.7rem; color: var(--text-dim); margin-top: 4px; }
+  .news-pagination {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-border);
+  }
+  .news-page-btn {
+    display: inline-flex; align-items: center; gap: 4px; background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 8px; color: var(--text);
+    font-size: 0.76rem; font-weight: 600; padding: 6px 10px; cursor: pointer;
+  }
+  .news-page-btn:hover:not(:disabled), .news-page-btn:focus-visible:not(:disabled) {
+    border-color: var(--accent); color: var(--accent);
+  }
+  .news-page-btn:disabled { opacity: 0.4; cursor: default; }
+  .news-page-indicator { font-size: 0.72rem; color: var(--text-dim); }
 
   /* Depth chart */
   .depth-chart-block { margin-bottom: 22px; }
@@ -6830,25 +6844,178 @@ function PlayerHistoryModal({ player, onClose }) {
   );
 }
 
+// ---- Team news: ESPN + a second, independent source, deduplicated --------
+// ESPN's team-news endpoint (used below) is the primary source, but it's a
+// single outlet. This blends in CBS Sports' general NFL RSS feed as a
+// second, independent source, filtered down client-side to whichever
+// team's page is open, so the panel isn't single-sourced. A raw RSS feed
+// has no CORS headers at all, so it can't be fetched directly from the
+// browser - rss2json.com exists specifically to solve that (their own docs
+// show the api_key used straight from client-side JS, confirming it's
+// meant for exactly this). Fetched once for the whole league, not once per
+// team, since it's the same feed URL regardless of team - a single shared
+// fetch also avoids rss2json's anonymous-tier "new feed" burst limit, which
+// only applies per distinct feed URL. If it's ever unavailable (throttled,
+// offline, CORS-blocked), fetchLeagueNewsFeed() fails soft to an empty
+// list rather than breaking the panel - the ESPN half still renders on its
+// own, same as before this was added.
+// rss2json's own docs use this key directly in client-side sample code
+// (e.g. jQuery .ajax() calls) - it's meant to be embedded in a browser
+// app like this one, not kept server-side. It lifts the anonymous tier's
+// "new feed" burst throttle mentioned above and raises the rate limit.
+const RSS2JSON_API_KEY = "0xcemmcvfabsgqs9x1jwxx5yntebmgxkkupxssko";
+
+let leagueNewsFeedPromise = null;
+function fetchLeagueNewsFeed() {
+  if (leagueNewsFeedPromise) return leagueNewsFeedPromise;
+  leagueNewsFeedPromise = (async () => {
+    try {
+      const feedUrl = encodeURIComponent("https://www.cbssports.com/rss/headlines/nfl/");
+      const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}&count=50&api_key=${RSS2JSON_API_KEY}`);
+      if (!res.ok) throw new Error("rss2json request failed: " + res.status);
+      const data = await res.json();
+      if (data.status !== "ok") throw new Error("rss2json status: " + data.status);
+      return (data.items || []).map(item => ({
+        headline: item.title,
+        published: parsePubDateToIso(item.pubDate),
+        url: item.link,
+        image: (item.enclosure && item.enclosure.link) || item.thumbnail || null,
+        source: "CBS Sports",
+      }));
+    } catch (e) {
+      return [];
+    }
+  })();
+  // A throttled/offline attempt shouldn't permanently poison the feed for
+  // the rest of the session - let the next team-page visit try again
+  // rather than caching an empty result forever.
+  leagueNewsFeedPromise.then(items => {
+    if (!items.length) leagueNewsFeedPromise = null;
+  });
+  return leagueNewsFeedPromise;
+}
+
+/** rss2json normalizes pubDate to "YYYY-MM-DD HH:MM:SS" (no timezone
+ *  marker, UTC) rather than passing through RSS's native RFC-822 format -
+ *  handle both, since that normalization isn't formally documented/
+ *  guaranteed to never change. */
+function parsePubDateToIso(pubDate) {
+  if (!pubDate) return null;
+  let d = new Date(pubDate);
+  if (Number.isNaN(d.getTime())) d = new Date(pubDate.replace(" ", "T") + "Z");
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/** A team's own most-recognizable name word (e.g. "Cardinals", "49ers") -
+ *  used to filter the shared league-wide feed down to articles about one
+ *  team. Simple substring/word-boundary matching on the mascot name catches
+ *  the large majority of real team-news headlines without needing a
+ *  hand-maintained keyword list per team. */
+function getTeamNewsKeyword(team) {
+  if (!team || !team.name) return null;
+  const words = team.name.trim().split(/\s+/);
+  return words[words.length - 1] || null;
+}
+
+function filterLeagueFeedForTeam(feedItems, team) {
+  const keyword = getTeamNewsKeyword(team);
+  if (!keyword) return [];
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`\\b${escaped}\\b`, "i");
+  return feedItems.filter(item => item.headline && re.test(item.headline));
+}
+
+function normalizeForDedup(str) {
+  return (str || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function normalizeUrlForDedup(url) {
+  if (!url) return "";
+  try {
+    const u = new URL(url);
+    return (u.hostname + u.pathname).toLowerCase().replace(/\/$/, "");
+  } catch (e) {
+    return url.toLowerCase();
+  }
+}
+
+/** Token-overlap similarity between two headlines (Dice coefficient over
+ *  word sets) - catches the same story covered by two outlets with
+ *  different exact wording, which an exact string/URL match alone would
+ *  miss (e.g. an ESPN headline and a CBS headline about the same trade). */
+function headlineSimilarity(a, b) {
+  const wordsA = new Set(normalizeForDedup(a).split(" ").filter(Boolean));
+  const wordsB = new Set(normalizeForDedup(b).split(" ").filter(Boolean));
+  if (!wordsA.size || !wordsB.size) return 0;
+  let shared = 0;
+  wordsA.forEach(w => { if (wordsB.has(w)) shared++; });
+  return (2 * shared) / (wordsA.size + wordsB.size);
+}
+
+const DUPLICATE_HEADLINE_THRESHOLD = 0.6;
+
+/** Merges articles from multiple sources into one newest-first list with
+ *  duplicates dropped: an exact repeated URL, or a different URL whose
+ *  headline is similar enough (see headlineSimilarity) to almost certainly
+ *  be the same underlying story. Whichever copy sorts first by published
+ *  date wins the slot. */
+function mergeAndDedupeNews(sourceLists) {
+  const merged = [];
+  sourceLists.forEach(list => merged.push(...list));
+  merged.sort((a, b) => new Date(b.published || 0) - new Date(a.published || 0));
+
+  const kept = [];
+  const seenUrls = new Set();
+  merged.forEach(article => {
+    const urlKey = normalizeUrlForDedup(article.url);
+    if (urlKey && seenUrls.has(urlKey)) return;
+    const isDuplicate = kept.some(k => headlineSimilarity(k.headline, article.headline) >= DUPLICATE_HEADLINE_THRESHOLD);
+    if (isDuplicate) return;
+    if (urlKey) seenUrls.add(urlKey);
+    kept.push(article);
+  });
+  return kept;
+}
+
 const newsCache = {};
 async function fetchTeamNews(teamId) {
   if (newsCache[teamId]) return newsCache[teamId];
-  const slug = espnTeamSlug(teamId);
-  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?team=${slug}`);
-  if (!res.ok) throw new Error("ESPN news request failed: " + res.status);
-  const data = await res.json();
-  const articles = (data.articles || [])
-    .filter(a => a.type !== "Media")
-    .slice(0, 8)
-    .map(a => ({
-      id: a.id,
-      headline: a.headline,
-      published: a.published,
-      url: a.links && a.links.web && a.links.web.href,
-      image: a.images && a.images[0] && a.images[0].url,
+
+  const promise = (async () => {
+    const slug = espnTeamSlug(teamId);
+    const [espnArticles, leagueFeed] = await Promise.all([
+      (async () => {
+        try {
+          const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?team=${slug}`);
+          if (!res.ok) throw new Error("ESPN news request failed: " + res.status);
+          const data = await res.json();
+          return (data.articles || [])
+            .filter(a => a.type !== "Media")
+            .map(a => ({
+              headline: a.headline,
+              published: a.published,
+              url: a.links && a.links.web && a.links.web.href,
+              image: a.images && a.images[0] && a.images[0].url,
+              source: "ESPN",
+            }));
+        } catch (e) {
+          return [];
+        }
+      })(),
+      fetchLeagueNewsFeed(),
+    ]);
+
+    const team = baseTeam(teamId);
+    const cbsArticles = filterLeagueFeedForTeam(leagueFeed, team);
+    return mergeAndDedupeNews([espnArticles, cbsArticles]).map((a, i) => ({
+      ...a,
+      id: a.url || `${a.source || "news"}-${i}`,
     }));
-  newsCache[teamId] = articles;
-  return articles;
+  })();
+
+  newsCache[teamId] = promise;
+  promise.catch(() => { delete newsCache[teamId]; });
+  return promise;
 }
 
 function useTeamNews(teamId) {
@@ -7027,8 +7194,23 @@ function DepthChartSection({ teamId }) {
   );
 }
 
+const TEAM_NEWS_PAGE_SIZE = 6;
+
 function TeamNewsPanel({ teamId }) {
   const { loading, error, data } = useTeamNews(teamId);
+  const [page, setPage] = useState(0);
+
+  // A fresh team (or a just-finished reload of the same team) should always
+  // open on the newest stories, not leave the reader stranded on whatever
+  // later page they'd paged to for the last team.
+  useEffect(() => { setPage(0); }, [teamId]);
+
+  const totalPages = data && data.length ? Math.ceil(data.length / TEAM_NEWS_PAGE_SIZE) : 1;
+  const safePage = Math.min(page, totalPages - 1);
+  const pageItems = data
+    ? data.slice(safePage * TEAM_NEWS_PAGE_SIZE, safePage * TEAM_NEWS_PAGE_SIZE + TEAM_NEWS_PAGE_SIZE)
+    : [];
+
   return (
     <div className="team-news-panel">
       <h3 className="injury-report-title">Team News</h3>
@@ -7037,17 +7219,42 @@ function TeamNewsPanel({ teamId }) {
         <p className="hw-tag">No recent news available right now.</p>
       )}
       {!loading && data && data.length > 0 && (
-        <div className="news-list">
-          {data.map(a => (
-            <a key={a.id} className="news-item" href={a.url} target="_blank" rel="noopener noreferrer">
-              {a.image && <img className="news-item-img" src={a.image} alt="" loading="lazy" />}
-              <div className="news-item-body">
-                <div className="news-item-headline">{a.headline}</div>
-                <div className="news-item-meta">{timeAgo(a.published)}</div>
-              </div>
-            </a>
-          ))}
-        </div>
+        <React.Fragment>
+          <div className="news-list">
+            {pageItems.map(a => (
+              <a key={a.id} className="news-item" href={a.url} target="_blank" rel="noopener noreferrer">
+                {a.image && <img className="news-item-img" src={a.image} alt="" loading="lazy" />}
+                <div className="news-item-body">
+                  <div className="news-item-headline">{a.headline}</div>
+                  <div className="news-item-meta">
+                    {timeAgo(a.published)}{a.source ? ` · ${a.source}` : ""}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="news-pagination">
+              <button
+                type="button"
+                className="news-page-btn"
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={safePage === 0}
+              >
+                <ChevronIcon direction="left" size={11} /> Newer
+              </button>
+              <span className="news-page-indicator">Page {safePage + 1} of {totalPages}</span>
+              <button
+                type="button"
+                className="news-page-btn"
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={safePage >= totalPages - 1}
+              >
+                Older <ChevronIcon direction="right" size={11} />
+              </button>
+            </div>
+          )}
+        </React.Fragment>
       )}
     </div>
   );

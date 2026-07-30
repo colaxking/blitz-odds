@@ -326,14 +326,18 @@
     width: 100%; height: 100%; box-sizing: border-box;
   }
   .game-card.is-historical { border-color: rgba(var(--demo-rgb),0.35); }
-  .game-card.is-division { border-color: rgba(var(--accent-rgb),0.45); box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.15); }
+  .game-card.is-division {
+    border-color: var(--accent); border-width: 2px;
+    background-color: rgba(var(--accent-rgb),0.07);
+    box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.3), 0 0 18px rgba(var(--accent-rgb),0.14);
+  }
   .game-card.is-live { border-color: var(--live); box-shadow: 0 0 0 1px rgba(var(--live-rgb),0.3); }
   .game-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); }
   .game-meta-left { display: flex; align-items: center; }
   .division-tag {
-    display: inline-flex; align-items: center; margin-left: 6px; padding: 1px 7px;
-    border-radius: 999px; background: rgba(var(--accent-rgb),0.16); color: var(--accent);
-    font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    display: inline-flex; align-items: center; margin-left: 6px; padding: 2px 8px;
+    border-radius: 999px; background: var(--accent); color: var(--card-bg);
+    font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
   }
   .live-tag {
     display: inline-flex; align-items: center; gap: 4px; color: var(--live); font-weight: 700;

@@ -5327,6 +5327,77 @@ function getGamesForWeek(week) {
   return isPlayoffAnnounced(round) ? round.games : [];
 }
 
+// ---- Default ("current") week for the week picker --------------------------
+// The picker should open on whichever period - preseason round, regular
+// week, or announced playoff round - is "current" right now, then roll
+// forward to the next one the morning after that period's last game. Game
+// data only carries a date/time string per game ("Wed, Sep 9" / "8:20 PM ET",
+// sometimes "TBD" for not-yet-flexed weeks 16-18), not a real timestamp, so
+// this section turns that into one.
+const MONTH_INDEX_BY_ABBR = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+// Local wall-clock hour (Eastern Time) at which the default view rolls
+// forward to the next period, counted from the calendar day *after* that
+// period's last game. Comfortably past midnight so a Monday/Sunday-night
+// game that runs past midnight ET doesn't roll the picker forward before
+// it's actually over.
+const WEEK_ROLLOVER_HOUR_ET = 8;
+
+/** Calendar date (year/month/day, ET) of the game with the latest date in
+ *  a list, or null if none parse. Only the date matters here, not kickoff
+ *  time - "TBD" times (unflexed weeks 16-18) don't block finding the day a
+ *  game is on, only its exact hour, which this doesn't need. NFL seasons
+ *  start in September and run into the following January/February, so any
+ *  game dated January-June is rolled to seasonYear + 1. */
+function latestGameDateMs(games, seasonYear) {
+  let latest = null;
+  (games || []).forEach(g => {
+    if (!g || !g.date) return;
+    const m = /([A-Za-z]+)\s+(\d+)\s*$/.exec(g.date);
+    if (!m) return;
+    const month = MONTH_INDEX_BY_ABBR[m[1]];
+    if (month == null) return;
+    const day = parseInt(m[2], 10);
+    const year = month <= 5 ? seasonYear + 1 : seasonYear;
+    // Midnight ET on the game's calendar date - a fixed -05:00 offset is
+    // used year-round rather than modeling EDT/EST precisely, since every
+    // comparison built on this only needs day-level precision.
+    const ms = Date.parse(`${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}T00:00:00-05:00`);
+    if (!Number.isNaN(ms) && (latest === null || ms > latest)) latest = ms;
+  });
+  return latest;
+}
+
+/** Timestamp at which a period stops being "current" and the picker's
+ *  default should roll forward to the next one: the morning
+ *  (WEEK_ROLLOVER_HOUR_ET, ET) after its latest game's calendar date. Null
+ *  if the period has no games to anchor on (shouldn't happen for anything
+ *  getSelectablePeriods() returns, but callers treat null as "always
+ *  current" so a data gap can't get the picker stuck). */
+function getPeriodRolloverMs(week, seasonYear) {
+  const lastGameDayMs = latestGameDateMs(getGamesForWeek(week), seasonYear);
+  if (lastGameDayMs == null) return null;
+  return lastGameDayMs + (24 + WEEK_ROLLOVER_HOUR_ET) * 60 * 60 * 1000;
+}
+
+/** The week picker's default selection: the earliest selectable period
+ *  (preseason round / regular week / announced playoff round) that hasn't
+ *  rolled over yet. Before the season starts this naturally resolves to the
+ *  first preseason round or Week 1; after the last announced period's games
+ *  are done (e.g. the offseason after the Super Bowl, or the gap between
+ *  Week 18 ending and the playoff bracket being announced) it holds on the
+ *  last available period instead of snapping back to Week 1. */
+function getDefaultWeek() {
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  const periods = getSelectablePeriods();
+  if (!periods.length) return 1;
+  const now = Date.now();
+  for (const p of periods) {
+    const rollover = getPeriodRolloverMs(p.week, seasonYear);
+    if (rollover == null || now < rollover) return p.week;
+  }
+  return periods[periods.length - 1].week;
+}
+
 /** Teams with no game in a given regular-season week (i.e. on a bye). Byes
  *  don't apply to preseason or playoff weeks, so this only looks at weeks 1-18. */
 function getByeTeams(week) {
@@ -7558,7 +7629,7 @@ function App() {
   const [themeMode, setThemeMode] = useThemeManager();
   const [sportsbookId, setSportsbookId] = useSportsbookManager();
   const [view, setView] = useState("week");
-  const [selectedWeek, setSelectedWeek] = useState(1);
+  const [selectedWeek, setSelectedWeek] = useState(() => getDefaultWeek());
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [favorites, setFavorites] = useState(loadFavorites);
   const [showHowItWorks, setShowHowItWorks] = useState(false);

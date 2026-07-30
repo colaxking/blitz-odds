@@ -458,6 +458,35 @@
   .injury-modal-note { font-size: 0.85rem; color: var(--text); line-height: 1.45; margin: 4px 0 0; }
   .injury-modal-empty { color: var(--text-dim); }
   .injury-modal-disclaimer { font-size: 0.68rem; color: var(--text-dim); margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--card-border); }
+
+  /* Player name -> career history (NCAA/NFL background, rookie marker) */
+  .roster-player-name-btn, .depth-player-name-btn {
+    background: none; border: none; padding: 0; margin: 0; font: inherit; color: inherit;
+    cursor: pointer; text-align: left;
+  }
+  .roster-player-name-btn:hover, .roster-player-name-btn:focus-visible,
+  .depth-player-name-btn:hover, .depth-player-name-btn:focus-visible {
+    color: var(--accent); text-decoration: underline;
+  }
+  .rookie-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 15px; height: 15px; padding: 0 3px; margin-left: 5px;
+    border-radius: 4px; background: rgba(var(--accent-rgb),0.18); color: var(--accent);
+    font-size: 0.62rem; font-weight: 800; line-height: 1; vertical-align: 2px;
+  }
+  .player-modal-headshot {
+    width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--surface-2);
+    flex-shrink: 0; border: 1px solid var(--card-border);
+  }
+  .player-modal-section-title {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim);
+    font-weight: 700; margin: 14px 0 6px;
+  }
+  .injury-modal-body .player-modal-section-title:first-child { margin-top: 0; }
+  .player-history-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 2px; }
+  .player-history-table th, .player-history-table td { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--card-border); }
+  .player-history-table th { color: var(--text-dim); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 700; }
+  .player-history-table tr:last-child td { border-bottom: none; }
   @media (max-width: 640px) {
     .injury-modal-overlay { align-items: flex-end; padding: 0; }
     .injury-modal {
@@ -6460,6 +6489,239 @@ function useTeamRoster(teamId) {
   return state;
 }
 
+// ---- Player career history (NCAA background + full NFL team history +
+// rookie status) for the roster-view "click a name" modal. Rookie status
+// itself needs no extra fetch - the roster/depth-chart payload we already
+// have per player includes experience.years, so a 0 there is used directly
+// as the rookie marker in the table/cards. This block only covers the
+// deeper bio fetched on click: draft info + NFL team-by-season history
+// straight from ESPN's public APIs (same approach as roster/news above -
+// always live, never a static/stale local copy).
+//
+// Two independent calls, on two different ESPN subdomains:
+//  - site.api.espn.com/apis/common/v3/.../stats: same subdomain the roster
+//    and news calls above already use successfully from the browser, so
+//    it's the trusted source for NFL team-by-season history.
+//  - sports.core.api.espn.com/.../athletes/{id}: a lower-level API that
+//    carries draft round/pick/year and debut year. If a browser ever blocks
+//    this one (CORS policies can differ per ESPN subdomain), it fails on
+//    its own without taking down the team-history half of the modal.
+const playerBioCache = {};
+async function fetchPlayerBio(playerId) {
+  if (playerBioCache[playerId]) return playerBioCache[playerId];
+
+  const promise = (async () => {
+    const [draftInfo, nflHistory] = await Promise.all([
+      fetchPlayerDraftInfo(playerId),
+      fetchPlayerNflHistory(playerId),
+    ]);
+    return { draft: draftInfo.draft, debutYear: draftInfo.debutYear, draftError: draftInfo.error, nflHistory, nflHistoryError: nflHistory === null };
+  })();
+  playerBioCache[playerId] = promise;
+  promise.catch(() => { delete playerBioCache[playerId]; });
+  return promise;
+}
+
+async function fetchPlayerDraftInfo(playerId) {
+  try {
+    const res = await fetch(`https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/${playerId}`);
+    if (!res.ok) throw new Error("ESPN athlete request failed: " + res.status);
+    const athlete = await res.json();
+    const draft = athlete.draft
+      ? {
+          year: athlete.draft.year,
+          round: athlete.draft.round,
+          selection: athlete.draft.selection,
+          displayText: athlete.draft.displayText,
+        }
+      : null;
+    return { draft, debutYear: athlete.debutYear || null, error: null };
+  } catch (e) {
+    return { draft: null, debutYear: null, error: e };
+  }
+}
+
+/** Full NFL team-by-season history, collapsed into contiguous team ranges
+ *  (e.g. "Detroit Lions  2009-2020" / "LA Rams  2021-2025"), newest first.
+ *  Pulled from every stat category (not just one) so a position change
+ *  mid-career doesn't drop seasons that only show up under a different stat
+ *  category. Returns null (rather than []) on fetch failure, distinct from
+ *  a genuinely empty history, so the modal can tell "no data yet" apart
+ *  from "couldn't load". */
+async function fetchPlayerNflHistory(playerId) {
+  try {
+    const res = await fetch(`https://site.api.espn.com/apis/common/v3/sports/football/nfl/athletes/${playerId}/stats`);
+    if (!res.ok) throw new Error("ESPN stats request failed: " + res.status);
+    const statsData = await res.json();
+    const teamsBySlug = statsData.teams || {};
+    const seen = {};
+    const seasons = [];
+    (statsData.categories || []).forEach(cat => {
+      (cat.statistics || []).forEach(row => {
+        const year = row.season && row.season.year;
+        const slug = row.teamSlug;
+        if (!year || !slug) return;
+        const key = slug + "|" + year;
+        if (seen[key]) return;
+        seen[key] = true;
+        const teamInfo = teamsBySlug[slug];
+        seasons.push({ year, teamSlug: slug, teamName: (teamInfo && teamInfo.displayName) || slug });
+      });
+    });
+    seasons.sort((a, b) => a.year - b.year);
+    const collapsed = [];
+    seasons.forEach(entry => {
+      const last = collapsed[collapsed.length - 1];
+      if (last && last.teamSlug === entry.teamSlug && entry.year === last.endYear + 1) {
+        last.endYear = entry.year;
+      } else {
+        collapsed.push({ teamSlug: entry.teamSlug, teamName: entry.teamName, startYear: entry.year, endYear: entry.year });
+      }
+    });
+    return collapsed.reverse();
+  } catch (e) {
+    return null;
+  }
+}
+
+function usePlayerBio(playerId) {
+  const [state, setState] = useState({ loading: true, error: null, data: null });
+  useEffect(() => {
+    let cancelled = false;
+    setState({ loading: true, error: null, data: null });
+    fetchPlayerBio(playerId)
+      .then(data => { if (!cancelled) setState({ loading: false, error: null, data }); })
+      .catch(e => { if (!cancelled) setState({ loading: false, error: e, data: null }); });
+    return () => { cancelled = true; };
+  }, [playerId]);
+  return state;
+}
+
+function draftSummary(draft) {
+  if (!draft || !draft.year) return "Undrafted";
+  if (draft.round && draft.selection) return `${draft.year} \u00b7 Round ${draft.round}, Pick ${draft.selection}`;
+  return `${draft.year} NFL Draft`;
+}
+
+/** Roster-view "click a name" modal: NCAA background + NFL draft/team
+ *  history + rookie marker for one player. College and rookie status are
+ *  passed in from the roster/depth-chart data the caller already has (no
+ *  extra fetch needed for those); draft info and team-by-season history are
+ *  fetched live from ESPN on open, per fetchPlayerBio above. */
+function PlayerHistoryModal({ player, onClose }) {
+  const overlayRef = useRef(null);
+  const { loading, error, data } = usePlayerBio(player.id);
+
+  useEffect(() => {
+    function onKeyDown(e) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return ReactDOM.createPortal(
+    <div
+      className="injury-modal-overlay"
+      ref={overlayRef}
+      onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="injury-modal" role="dialog" aria-modal="true" aria-label={player.name + " player history"}>
+        <button type="button" className="injury-modal-close" onClick={onClose} aria-label="Close">×</button>
+        <div className="injury-modal-header">
+          <img
+            className="player-modal-headshot"
+            src={`https://a.espncdn.com/i/headshots/nfl/players/full/${player.id}.png`}
+            alt=""
+            loading="lazy"
+            onError={(e) => { e.target.style.visibility = "hidden"; }}
+          />
+          <div>
+            <div className="injury-modal-name">
+              {player.name}
+              {player.isRookie && <span className="rookie-badge" title="Rookie">R</span>}
+            </div>
+            <div className="injury-modal-meta">
+              {[player.position, player.jersey ? "#" + player.jersey : null, player.college || null]
+                .filter(Boolean)
+                .join(" \u00b7 ")}
+            </div>
+          </div>
+        </div>
+
+        <div className="injury-modal-body">
+          <div className="player-modal-section-title">NCAA Background</div>
+          <div className="injury-modal-row">
+            <span className="injury-modal-label">College</span>
+            <span className="injury-modal-value">{player.college || "\u2014"}</span>
+          </div>
+
+          <div className="player-modal-section-title">NFL Draft</div>
+          {loading ? (
+            <p className="injury-modal-note injury-modal-empty">Loading draft info…</p>
+          ) : (
+            <React.Fragment>
+              <div className="injury-modal-row">
+                <span className="injury-modal-label">Drafted</span>
+                <span className="injury-modal-value">
+                  {data && !data.draftError ? draftSummary(data.draft) : "Not available right now"}
+                </span>
+              </div>
+              {data && data.debutYear && (
+                <div className="injury-modal-row">
+                  <span className="injury-modal-label">Debut</span>
+                  <span className="injury-modal-value">{data.debutYear}</span>
+                </div>
+              )}
+              <div className="injury-modal-row">
+                <span className="injury-modal-label">Exp</span>
+                <span className="injury-modal-value">
+                  {player.isRookie
+                    ? "Rookie"
+                    : player.experienceYears != null
+                    ? `${player.experienceYears} season${player.experienceYears === 1 ? "" : "s"}`
+                    : "\u2014"}
+                </span>
+              </div>
+            </React.Fragment>
+          )}
+
+          <div className="player-modal-section-title">NFL Career</div>
+          {loading ? (
+            <p className="injury-modal-note injury-modal-empty">Loading team history…</p>
+          ) : data && data.nflHistoryError ? (
+            <p className="injury-modal-note injury-modal-empty">Team history isn't available right now — try again in a bit.</p>
+          ) : data && data.nflHistory && data.nflHistory.length > 0 ? (
+            <table className="player-history-table">
+              <thead><tr><th>Team</th><th>Seasons</th></tr></thead>
+              <tbody>
+                {data.nflHistory.map((h, i) => (
+                  <tr key={h.teamSlug + i}>
+                    <td>{h.teamName}</td>
+                    <td>{h.startYear === h.endYear ? h.startYear : `${h.startYear}\u2013${h.endYear}`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="injury-modal-note injury-modal-empty">
+              {player.isRookie ? "No NFL regular-season history yet \u2014 first season on the roster." : "No NFL regular-season history on record."}
+            </p>
+          )}
+        </div>
+
+        <p className="injury-modal-disclaimer">
+          Live from ESPN — college reflects the most recent school on file; NFL history reflects regular-season stat credit by team.
+        </p>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 const newsCache = {};
 async function fetchTeamNews(teamId) {
   if (newsCache[teamId]) return newsCache[teamId];
@@ -6525,6 +6787,7 @@ function useIsMobile(breakpoint = 860) {
 function DepthChartSection({ teamId }) {
   const { loading, error, data } = useTeamRoster(teamId);
   const [side, setSide] = useState("offense");
+  const [historyPlayer, setHistoryPlayer] = useState(null);
   if (loading) return <p className="hw-tag">Loading roster…</p>;
   if (error || !data) return <p className="hw-tag">Roster data isn't available right now — try again in a bit.</p>;
 
@@ -6567,13 +6830,31 @@ function DepthChartSection({ teamId }) {
               <div className="depth-slot" key={group.slug}>
                 <div className="depth-slot-label">{group.label}</div>
                 <div className="depth-slot-players">
-                  {group.athletes.map((p, i) => (
-                    <div className="depth-player" key={p.id || i}>
-                      <span className="depth-player-rank">{i + 1}</span>
-                      <span className="depth-player-name">{p.shortName || p.displayName}</span>
-                      {p.jersey && <span className="depth-player-jersey">#{p.jersey}</span>}
-                    </div>
-                  ))}
+                  {group.athletes.map((p, i) => {
+                    const isRookie = !!(p.experience && p.experience.years === 0);
+                    return (
+                      <div className="depth-player" key={p.id || i}>
+                        <span className="depth-player-rank">{i + 1}</span>
+                        <button
+                          type="button"
+                          className="depth-player-name depth-player-name-btn"
+                          onClick={() => setHistoryPlayer({
+                            id: p.id,
+                            name: p.displayName || p.shortName,
+                            position: (p.position && p.position.abbreviation) || group.posAbbr || group.label,
+                            jersey: p.jersey,
+                            college: p.college && p.college.name,
+                            isRookie,
+                            experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
+                          })}
+                        >
+                          {p.shortName || p.displayName}
+                        </button>
+                        {isRookie && <span className="rookie-badge" title="Rookie">R</span>}
+                        {p.jersey && <span className="depth-player-jersey">#{p.jersey}</span>}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -6595,14 +6876,34 @@ function DepthChartSection({ teamId }) {
                     <tr><th>#</th><th>Player</th><th>Ht / Wt</th><th>Exp</th></tr>
                   </thead>
                   <tbody>
-                    {pg.players.map(p => (
-                      <tr key={p.id}>
-                        <td>{p.jersey || "—"}</td>
-                        <td>{p.displayName}</td>
-                        <td>{p.displayHeight ? `${p.displayHeight}, ${p.displayWeight}` : "—"}</td>
-                        <td>{p.experience && p.experience.years != null ? p.experience.years : "—"}</td>
-                      </tr>
-                    ))}
+                    {pg.players.map(p => {
+                      const isRookie = !!(p.experience && p.experience.years === 0);
+                      return (
+                        <tr key={p.id}>
+                          <td>{p.jersey || "—"}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="roster-player-name-btn"
+                              onClick={() => setHistoryPlayer({
+                                id: p.id,
+                                name: p.displayName,
+                                position: pg.abbr,
+                                jersey: p.jersey,
+                                college: p.college && p.college.name,
+                                isRookie,
+                                experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
+                              })}
+                            >
+                              {p.displayName}
+                            </button>
+                            {isRookie && <span className="rookie-badge" title="Rookie">R</span>}
+                          </td>
+                          <td>{p.displayHeight ? `${p.displayHeight}, ${p.displayWeight}` : "—"}</td>
+                          <td>{p.experience && p.experience.years != null ? p.experience.years : "—"}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -6610,6 +6911,10 @@ function DepthChartSection({ teamId }) {
           ))
         )}
       </div>
+
+      {historyPlayer && (
+        <PlayerHistoryModal player={historyPlayer} onClose={() => setHistoryPlayer(null)} />
+      )}
     </div>
   );
 }

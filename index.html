@@ -326,8 +326,15 @@
     width: 100%; height: 100%; box-sizing: border-box;
   }
   .game-card.is-historical { border-color: rgba(var(--demo-rgb),0.35); }
+  .game-card.is-division { border-color: rgba(var(--accent-rgb),0.45); box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.15); }
   .game-card.is-live { border-color: var(--live); box-shadow: 0 0 0 1px rgba(var(--live-rgb),0.3); }
   .game-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); }
+  .game-meta-left { display: flex; align-items: center; }
+  .division-tag {
+    display: inline-flex; align-items: center; margin-left: 6px; padding: 1px 7px;
+    border-radius: 999px; background: rgba(var(--accent-rgb),0.16); color: var(--accent);
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+  }
   .live-tag {
     display: inline-flex; align-items: center; gap: 4px; color: var(--live); font-weight: 700;
     font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;
@@ -5152,6 +5159,27 @@ function baseTeam(id) {
   return LIVE_TEAMS_LIST.find(t => t.id === id);
 }
 
+// ---- Division alignment (for highlighting division games) -----------------
+// The NFL's 8-division, 4-team alignment is essentially static reference
+// data - it only changes on the rare franchise relocation, not week to week
+// or season to season - so unlike team stats/rosters this is safe to keep
+// as a plain hardcoded map rather than something fetched live.
+const TEAM_DIVISION = {
+  BUF: "AFC East", MIA: "AFC East", NE: "AFC East", NYJ: "AFC East",
+  BAL: "AFC North", CIN: "AFC North", CLE: "AFC North", PIT: "AFC North",
+  HOU: "AFC South", IND: "AFC South", JAX: "AFC South", TEN: "AFC South",
+  DEN: "AFC West", KC: "AFC West", LV: "AFC West", LAC: "AFC West",
+  DAL: "NFC East", NYG: "NFC East", PHI: "NFC East", WAS: "NFC East",
+  CHI: "NFC North", DET: "NFC North", GB: "NFC North", MIN: "NFC North",
+  ATL: "NFC South", CAR: "NFC South", NO: "NFC South", TB: "NFC South",
+  ARI: "NFC West", LAR: "NFC West", SF: "NFC West", SEA: "NFC West",
+};
+
+function isDivisionGame(homeId, awayId) {
+  const div = TEAM_DIVISION[homeId];
+  return !!div && div === TEAM_DIVISION[awayId];
+}
+
 // How often to check for updated team stats/injuries/history/playoffs. These
 // only change when the weekly scheduled task runs (at most once a week), so
 // this polls far less aggressively than odds or live scores do - it just
@@ -5952,10 +5980,15 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
     predictionCorrect = actualWinnerId === prediction.predictedWinner;
   }
 
+  const divisionGame = isDivisionGame(home.id, away.id);
+
   return (
-    <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (scoreInfo && scoreInfo.isLive ? " is-live" : "")}>
+    <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (divisionGame ? " is-division" : "") + (scoreInfo && scoreInfo.isLive ? " is-live" : "")}>
       <div className="game-meta">
-        <span>{game.date}{game.time ? " • " + game.time : ""}</span>
+        <span className="game-meta-left">
+          {game.date}{game.time ? " • " + game.time : ""}
+          {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
+        </span>
         {scoreInfo && scoreInfo.isLive ? (
           <span className="live-tag"><span className="live-dot"></span>LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}</span>
         ) : game.network ? <span>{game.network}</span> : null}

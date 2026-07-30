@@ -1,6 +1,6 @@
 {
   "isDemoData": false,
-  "disclaimer": "Injury statuses reflect training camp reports as of July 28, 2026. Notable updates: Mahomes and Daniel Jones fully cleared for camp; Kittle and Ramsey opened camp on PUP; Penix Jr. cleared for individual/7-on-7 work; Nabers avoided PUP with Week 1 outlook improving; Panthers rookie OLB Nic Scourton lost for the season with a torn ACL. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available. [auto-publish workflow test \u2014 verified 2026-07-28]",
+  "disclaimer": "Injury statuses reflect training camp reports as of July 30, 2026. Notable updates: Falcons QB Tua Tagovailoa sidelined by a minor back flare-up (expected back within about a week); Penix Jr. still limited to individual/7-on-7 work and likely to miss Week 1; Eagles LB Jonathan Greenard (pectoral) opened camp on PUP; Nabers and Jefferson both back to practice with improving Week 1 outlooks; Kittle, Ramsey, Ekwonu, and Parsons remain on PUP with no status change. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
   "players": {
     "NE": [
       {
@@ -179,7 +179,12 @@
         "name": "Tua Tagovailoa",
         "position": "QB",
         "impactScore": 7,
-        "status": "active"
+        "status": "questionable",
+        "injury": {
+          "type": "Back injury (flare-up)",
+          "since": "2026-07-29",
+          "note": "Sidelined at Falcons camp after a back issue flared up. Described as minor and 'not considered serious,' with an expected return to practice within about a week."
+        }
       },
       {
         "name": "Michael Penix Jr.",
@@ -189,7 +194,7 @@
         "injury": {
           "type": "ACL reconstruction (left knee)",
           "since": "2025-11-25",
-          "note": "Recovering from left knee ACL surgery on Nov. 25. Cleared for individual and 7-on-7 work at camp, but not yet full team/contact drills."
+          "note": "Recovering from left knee ACL surgery on Nov. 25. Limited to individual/7-on-7 work, not yet cleared for 11-on-11s; reportedly could be another ~4 weeks from full clearance and 'probably won't' play Week 1."
         }
       }
     ],
@@ -287,8 +292,8 @@
         "status": "questionable",
         "injury": {
           "type": "Hamstring strain (mild)",
-          "since": "2026-07",
-          "note": "Left a camp practice with hamstring tightness. Already back to practice and ramping up; expected to play Week 1."
+          "since": "2026-07-24",
+          "note": "Left practice July 24 with a hamstring strain that an MRI confirmed as mild. Returned to practice July 29; Week 1 vs. Chicago (Sept. 8) remains the target for full speed."
         }
       }
     ],
@@ -306,6 +311,17 @@
         "position": "QB",
         "impactScore": 7,
         "status": "active"
+      },
+      {
+        "name": "Jonathan Greenard",
+        "position": "Edge",
+        "impactScore": 7,
+        "status": "out",
+        "injury": {
+          "type": "Pectoral strain",
+          "since": "2026-07-29",
+          "note": "Strained lifting weights ahead of camp; placed on PUP list on the first day of training camp. Traded to Philadelphia from Minnesota in April 2026 on a 4-year, $100M deal; injury is not expected to be long-term."
+        }
       }
     ],
     "DAL": [
@@ -331,7 +347,7 @@
         "injury": {
           "type": "ACL + meniscus recovery (right knee)",
           "since": "2025-09",
-          "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery. Avoided the PUP list to open camp."
+          "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery to clear scar tissue. Looked good in a full practice July 29; Week 1 vs. Dallas is now a realistic possibility."
         }
       }
     ],

@@ -4658,7 +4658,7 @@ function InjuryDetailModal({ player, onClose }) {
           <div>
             <div className="injury-modal-name">{player.name}</div>
             <div className="injury-modal-meta">
-              {player.position} · <span className={"impact-" + player.status}>{statusLabel}</span>
+              {player.teamId ? player.teamId + " · " : ""}{player.position} · <span className={"impact-" + player.status}>{statusLabel}</span>
             </div>
           </div>
         </div>
@@ -4901,7 +4901,10 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   const homeIsWinner = prediction.predictedWinner === home.id;
   const homePct = (prediction.homeWinProbability * 100).toFixed(0);
   const awayPct = (prediction.awayWinProbability * 100).toFixed(0);
-  const allAdjustments = [...prediction.homeAdjustments, ...prediction.awayAdjustments];
+  const allAdjustments = [
+    ...prediction.homeAdjustments.map(a => ({ ...a, teamId: home.id, teamName: home.name })),
+    ...prediction.awayAdjustments.map(a => ({ ...a, teamId: away.id, teamName: away.name }))
+  ];
   const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
   const rationale = buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket });
 
@@ -5037,10 +5040,10 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
         <div key={i} className={"impact-note impact-" + a.status}>
           <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
           <span>
-            <strong>{a.player}</strong> ({a.position}) is <strong>{a.status}</strong> —
-            hurts {a.side === "offense" ? "their offense" : "their defense"},
+            <strong>{a.player}</strong> ({a.teamId} · {a.position}) is <strong>{a.status}</strong> —
+            hurts {a.teamName}'s {a.side === "offense" ? "offense" : "defense"},
             shifting the odds toward the opponent.
-            <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury }} />
+            <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury, teamId: a.teamId, teamName: a.teamName }} />
           </span>
         </div>
       ))}

@@ -4921,12 +4921,12 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
     <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (divisionGame ? " is-division" : "") + (scoreInfo && scoreInfo.isLive ? " is-live" : "")}>
       <div className="game-meta">
         <span className="game-meta-left">
-          {game.date}{game.time ? " • " + game.time : ""}
+          {game.date}{game.time ? " • " + game.time : ""}{game.network ? " • " + game.network : ""}
           {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
         </span>
         {scoreInfo && scoreInfo.isLive ? (
           <span className="live-tag"><span className="live-dot"></span>LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}</span>
-        ) : game.network ? <span>{game.network}</span> : null}
+        ) : null}
       </div>
 
       <div className="matchup-row">

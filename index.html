@@ -6471,7 +6471,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
       };
     }
     const odds = getOdds(week, game.away, game.home, sportsbookId);
-    return { week, bye: false, opp, isHome, date: game.date, time: game.time, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
+    return { week, bye: false, opp, isHome, date: game.date, time: game.time, network: game.network, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
   }
 
   const regularRows = SCHEDULE_DATA.weeks.map(w => {
@@ -6589,7 +6589,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                 <div key={r.week} className={"schedule-mobile-card" + (r.bye ? " bye-row" : "") + (r.isPlayoff ? " playoff-row" : "")}>
                   <div className="schedule-mobile-top">
                     <span className="schedule-mobile-week">{r.label}</span>
-                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}</span>}
+                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}{r.network ? ` • ${r.network}` : ""}</span>}
                   </div>
                   {r.bye ? (
                     <div className="hw-tag">BYE week</div>
@@ -6664,6 +6664,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                         <td className="date-cell">
                           <span className="date-line">{r.date}</span>
                           {r.time && <span className="time-line">{r.time}</span>}
+                          {r.network && <span className="time-line">{r.network}</span>}
                         </td>
                         <td>
                           {r.odds ? (

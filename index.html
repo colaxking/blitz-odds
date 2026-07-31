@@ -3771,7 +3771,7 @@
 }</script>
 <script type="application/json" id="preseason-data">{
   "season": 2026,
-  "sourceNote": "2026 NFL preseason schedule (Hall of Fame Game + Preseason Weeks 1-3), finalized by the NFL in June 2026. Sourced from NFL.com's official preseason schedule announcement.",
+  "sourceNote": "2026 NFL preseason schedule (Hall of Fame Game + Preseason Weeks 1-3), finalized by the NFL in June 2026. Sourced from NFL.com's official preseason schedule announcement. This file is the canonical source for the preseason-data block embedded in index.html - the weekly update task should treat it as read-only (matchups are fixed by the league) and only reference it, same as schedule-full-2026.json for the regular season. The odds-refresh task also matches incoming preseason odds against this file.",
   "rounds": [
     {
       "id": "hof",
@@ -3785,7 +3785,8 @@
           "away": "CAR",
           "home": "ARI",
           "date": "Thu, Aug 6",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "NBC"
         }
       ]
     },
@@ -3801,97 +3802,113 @@
           "away": "DET",
           "home": "CIN",
           "date": "Thu, Aug 13",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "GB",
           "home": "PIT",
           "date": "Thu, Aug 13",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "IND",
           "home": "NE",
           "date": "Thu, Aug 13",
-          "time": "7:30 PM ET"
+          "time": "7:30 PM ET",
+          "network": "Local"
         },
         {
           "away": "LAC",
           "home": "HOU",
           "date": "Thu, Aug 13",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "ARI",
           "home": "LV",
           "date": "Thu, Aug 13",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "TEN",
           "home": "SF",
           "date": "Thu, Aug 13",
-          "time": "9:00 PM ET"
+          "time": "9:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "DEN",
           "home": "ATL",
           "date": "Fri, Aug 14",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "TB",
           "home": "NYJ",
           "date": "Fri, Aug 14",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "MIA",
           "home": "WAS",
           "date": "Fri, Aug 14",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "CAR",
           "home": "BUF",
           "date": "Sat, Aug 15",
-          "time": "1:00 PM ET"
+          "time": "1:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "CLE",
           "home": "CHI",
           "date": "Sat, Aug 15",
-          "time": "1:00 PM ET"
+          "time": "1:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "MIN",
           "home": "NYG",
           "date": "Sat, Aug 15",
-          "time": "1:00 PM ET"
+          "time": "1:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "LAR",
           "home": "KC",
           "date": "Sat, Aug 15",
-          "time": "4:00 PM ET"
+          "time": "4:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "JAX",
           "home": "NO",
           "date": "Sat, Aug 15",
-          "time": "4:00 PM ET"
+          "time": "4:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "PHI",
           "home": "BAL",
           "date": "Sat, Aug 15",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "DAL",
           "home": "SEA",
           "date": "Sat, Aug 15",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "NFL Network"
         }
       ]
     },
@@ -3907,97 +3924,113 @@
           "away": "LV",
           "home": "HOU",
           "date": "Thu, Aug 20",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "ESPN"
         },
         {
           "away": "SF",
           "home": "LAC",
           "date": "Thu, Aug 20",
-          "time": "10:00 PM ET"
+          "time": "10:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "NYJ",
           "home": "PIT",
           "date": "Fri, Aug 21",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "CAR",
           "home": "JAX",
           "date": "Fri, Aug 21",
-          "time": "7:30 PM ET"
+          "time": "7:30 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "GB",
           "home": "DEN",
           "date": "Fri, Aug 21",
-          "time": "9:00 PM ET"
+          "time": "9:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "WAS",
           "home": "DET",
           "date": "Sat, Aug 22",
-          "time": "12:00 PM ET"
+          "time": "12:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "BUF",
           "home": "CLE",
           "date": "Sat, Aug 22",
-          "time": "1:00 PM ET"
+          "time": "1:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "ATL",
           "home": "IND",
           "date": "Sat, Aug 22",
-          "time": "1:00 PM ET"
+          "time": "1:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "BAL",
           "home": "MIN",
           "date": "Sat, Aug 22",
-          "time": "1:00 PM ET"
+          "time": "1:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "NO",
           "home": "LAR",
           "date": "Sat, Aug 22",
-          "time": "4:00 PM ET"
+          "time": "4:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "NYG",
           "home": "MIA",
           "date": "Sat, Aug 22",
-          "time": "4:00 PM ET"
+          "time": "4:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "CHI",
           "home": "CIN",
           "date": "Sat, Aug 22",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "PHI",
           "home": "NE",
           "date": "Sat, Aug 22",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "KC",
           "home": "TB",
           "date": "Sat, Aug 22",
-          "time": "7:30 PM ET"
+          "time": "7:30 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "DAL",
           "home": "ARI",
           "date": "Sat, Aug 22",
-          "time": "10:00 PM ET"
+          "time": "10:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "SEA",
           "home": "TEN",
           "date": "Sun, Aug 23",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "FOX"
         }
       ]
     },
@@ -4013,97 +4046,113 @@
           "away": "PIT",
           "home": "BUF",
           "date": "Thu, Aug 27",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "NE",
           "home": "CLE",
           "date": "Thu, Aug 27",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "Prime Video"
         },
         {
           "away": "SF",
           "home": "LV",
           "date": "Thu, Aug 27",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "LAR",
           "home": "LAC",
           "date": "Thu, Aug 27",
-          "time": "10:00 PM ET"
+          "time": "10:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "WAS",
           "home": "BAL",
           "date": "Fri, Aug 28",
-          "time": "6:00 PM ET"
+          "time": "6:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "HOU",
           "home": "CAR",
           "date": "Fri, Aug 28",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "ATL",
           "home": "MIA",
           "date": "Fri, Aug 28",
-          "time": "7:00 PM ET"
+          "time": "7:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "TB",
           "home": "JAX",
           "date": "Fri, Aug 28",
-          "time": "7:30 PM ET"
+          "time": "7:30 PM ET",
+          "network": "Local"
         },
         {
           "away": "NYG",
           "home": "NYJ",
           "date": "Fri, Aug 28",
-          "time": "7:30 PM ET"
+          "time": "7:30 PM ET",
+          "network": "Local"
         },
         {
           "away": "NO",
           "home": "DAL",
           "date": "Fri, Aug 28",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "ARI",
           "home": "GB",
           "date": "Fri, Aug 28",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "Local"
         },
         {
           "away": "SEA",
           "home": "KC",
           "date": "Fri, Aug 28",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "ESPN App"
         },
         {
           "away": "CIN",
           "home": "PHI",
           "date": "Fri, Aug 28",
-          "time": "8:00 PM ET"
+          "time": "8:00 PM ET",
+          "network": "CBS"
         },
         {
           "away": "MIN",
           "home": "DEN",
           "date": "Fri, Aug 28",
-          "time": "9:00 PM ET"
+          "time": "9:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "DET",
           "home": "IND",
           "date": "Sat, Aug 29",
-          "time": "1:00 PM ET"
+          "time": "1:00 PM ET",
+          "network": "NFL Network"
         },
         {
           "away": "CHI",
           "home": "TEN",
           "date": "Sat, Aug 29",
-          "time": "6:00 PM ET"
+          "time": "6:00 PM ET",
+          "network": "NFL Network"
         }
       ]
     }

@@ -11,8 +11,16 @@ import type { Context, Config } from "@netlify/functions";
 // function instead of hitting the vendor API directly.
 //
 // This is intentionally a narrow allowlisted proxy (only 'usage' and
-// 'events'), not a general passthrough. The vendor API key lives in this
-// site's env vars and is never exposed to the caller.
+// 'events'), not a general passthrough. The vendor API key(s) live in this
+// site's env vars and are never exposed to the caller.
+//
+// Key fail-safe (added 2026-07-31): SPORTSGAMEODDS_API_KEY is the primary
+// key. SPORTSGAMEODDS_API_KEY_BACKUP holds the previous key as a fallback -
+// if the vendor rejects the primary key with 401/403 (revoked, rotated
+// wrong, plan issue, etc.), this proxy automatically retries once with the
+// backup key before giving up. If both keys fail, behavior is unchanged
+// from before this fail-safe existed: the vendor's actual error response
+// (401/403 and body) is passed straight through to the caller.
 
 const API_BASE = "https://api.sportsgameodds.com/v2";
 
@@ -45,6 +53,10 @@ const FORWARDABLE_EVENT_PARAMS = [
   "cursor",
 ];
 
+function isAuthRejection(status: number): boolean {
+  return status === 401 || status === 403;
+}
+
 export default async (req: Request, _context: Context) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -54,8 +66,9 @@ export default async (req: Request, _context: Context) => {
     return jsonResponse(405, { ok: false, error: "Method not allowed" });
   }
 
-  const apiKey = process.env.SPORTSGAMEODDS_API_KEY;
-  if (!apiKey) {
+  const primaryKey = process.env.SPORTSGAMEODDS_API_KEY;
+  const backupKey = process.env.SPORTSGAMEODDS_API_KEY_BACKUP;
+  if (!primaryKey && !backupKey) {
     // Fail closed, same pattern as odds-update.mts: refuse to proceed
     // rather than calling the vendor API with no key.
     return jsonResponse(500, { ok: false, error: "SPORTSGAMEODDS_API_KEY not configured on this site" });
@@ -79,7 +92,29 @@ export default async (req: Request, _context: Context) => {
   }
 
   try {
-    const upstream = await fetch(upstreamUrl, { headers: { "x-api-key": apiKey } });
+    // Prefer the primary key. If it's missing (shouldn't normally happen
+    // once both are configured, but handled defensively), go straight to
+    // the backup instead of erroring.
+    const firstKey = primaryKey ?? backupKey!;
+    const firstKeyLabel = primaryKey ? "primary" : "backup";
+
+    let upstream = await fetch(upstreamUrl, { headers: { "x-api-key": firstKey } });
+    let usedKey = firstKeyLabel;
+
+    // Only retry with the backup key if we tried the primary first, the
+    // primary was specifically rejected on auth grounds, and a distinct
+    // backup key is actually configured.
+    if (firstKeyLabel === "primary" && isAuthRejection(upstream.status) && backupKey && backupKey !== primaryKey) {
+      const retry = await fetch(upstreamUrl, { headers: { "x-api-key": backupKey } });
+      if (!isAuthRejection(retry.status)) {
+        upstream = retry;
+        usedKey = "backup";
+      }
+      // If the backup also comes back 401/403, fall through and return the
+      // primary attempt's response - same fail-through behavior as before
+      // this fail-safe existed (vendor's real error, passed straight along).
+    }
+
     const text = await upstream.text();
     // Pass the vendor's status/body straight through so the caller can
     // apply the same success/error handling it already has for the
@@ -89,6 +124,7 @@ export default async (req: Request, _context: Context) => {
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-store",
+        "X-Odds-Key-Used": usedKey,
         ...CORS_HEADERS,
       },
     });

@@ -1,0 +1,51 @@
+name: Blitz Odds - odds refresh
+
+# Runs the odds refresh without Claude: pulls live NFL lines from
+# SportsGameOdds (via the odds-proxy Netlify function), publishes them to
+# the live site, and commits the on-disk mirror (data/odds-2026.json /
+# data/odds-history.json) back to this repo.
+#
+# Cron below is in UTC. The old Claude-scheduled version ran hourly,
+# 8am-11pm *local* time, Aug through Feb. 8am-11pm Eastern is roughly
+# 12:00-04:00 UTC (the next day) during EDT (Mar-Nov) and 13:00-05:00 UTC
+# during EST (Nov-Mar) - the schedule below uses the EST offset (13-23,0-5)
+# as a safe year-round approximation; adjust if you want DST precision.
+on:
+  schedule:
+    - cron: "0 13-23,0-5 * 7,8,9,10,11,12,1,2 *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blitz-odds-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run odds refresh
+        env:
+          ODDS_UPDATE_SECRET: ${{ secrets.ODDS_UPDATE_SECRET }}
+        run: node scripts/odds-refresh.mjs
+
+      - name: Commit on-disk mirror if changed
+        run: |
+          if git diff --quiet -- data/odds-2026.json data/odds-history.json; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "blitz-odds-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/odds-2026.json data/odds-history.json
+          git commit -m "Odds refresh: automated update via GitHub Actions"
+          git push

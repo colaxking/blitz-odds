@@ -483,12 +483,17 @@
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 15px; height: 15px; padding: 0 3px; margin-left: 5px;
     border-radius: 4px; background: rgba(var(--accent-rgb),0.18); color: var(--accent);
-    font-size: 0.62rem; font-weight: 800; line-height: 1; vertical-align: 2px;
+    font-size: 0.62rem; font-weight: 800; line-height: 1; vertical-align: 2px; flex-shrink: 0;
   }
   .roster-injury-flag {
-    display: inline-flex; align-items: center; gap: 2px; margin-left: 5px; font-size: 0.72rem;
-    vertical-align: 1px;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 15px; height: 15px; padding: 0 3px; margin-left: 5px;
+    border-radius: 4px; border: none; cursor: pointer; flex-shrink: 0;
+    font-size: 0.66rem; font-weight: 800; line-height: 1; vertical-align: 2px;
   }
+  .roster-injury-flag.impact-out { background: rgba(var(--out-rgb),0.18); color: var(--pill-out-text); }
+  .roster-injury-flag.impact-questionable { background: rgba(var(--warn-rgb),0.18); color: var(--pill-questionable-text); }
+  .roster-injury-flag:hover, .roster-injury-flag:focus-visible { filter: brightness(1.2); }
   .player-modal-headshot {
     width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--surface-2);
     flex-shrink: 0; border: 1px solid var(--card-border);
@@ -685,7 +690,7 @@
   .depth-slot-players { display: flex; flex-direction: column; gap: 3px; }
   .depth-player { display: flex; align-items: center; gap: 6px; font-size: 0.83rem; }
   .depth-player-rank { color: var(--text-dim); font-size: 0.7rem; width: 12px; flex-shrink: 0; }
-  .depth-player-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .depth-player-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; min-width: 0; }
   .depth-player-jersey { color: var(--text-dim); font-size: 0.72rem; margin-left: auto; flex-shrink: 0; }
 
   /* Full roster */
@@ -6297,13 +6302,29 @@ function buildInjuryLookup(teamId) {
  *  InjuryDetailModal with the full note. Renders nothing for players who
  *  aren't in the tracked impact-players list. */
 function RosterInjuryFlag({ impactPlayer }) {
-  if (!impactPlayer) return null;
-  const icon = impactPlayer.status === "out" ? "\u26d4" : impactPlayer.status === "questionable" ? "\u26a0\ufe0f" : "\u2705";
+  const [open, setOpen] = useState(false);
+  // Only flags players actually tracked as injured (out/questionable) - a
+  // healthy "active" impact player (e.g. a notable non-injured starter)
+  // isn't an injury and shouldn't show a flag here. Since this reads
+  // straight off the current impactPlayer.status on every render, a player
+  // rolls off the roster/depth-chart view the moment the underlying
+  // impact-players data marks them "active" again - no separate timer or
+  // expiry to maintain, just whatever the latest published status says.
+  if (!impactPlayer || (impactPlayer.status !== "out" && impactPlayer.status !== "questionable")) return null;
+  const icon = impactPlayer.status === "out" ? "\u26d4" : "\u26a0\ufe0f";
   return (
-    <span className={"roster-injury-flag impact-" + impactPlayer.status} title={impactPlayer.status}>
-      {icon}
-      <InjuryInfoButton player={impactPlayer} />
-    </span>
+    <React.Fragment>
+      <button
+        type="button"
+        className={"roster-injury-flag impact-" + impactPlayer.status}
+        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+        aria-label={"Injury details for " + impactPlayer.name}
+        title={impactPlayer.status === "out" ? "Out" : "Questionable"}
+      >
+        {icon}
+      </button>
+      {open && <InjuryDetailModal player={impactPlayer} onClose={() => setOpen(false)} />}
+    </React.Fragment>
   );
 }
 

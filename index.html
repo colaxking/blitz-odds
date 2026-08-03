@@ -6136,47 +6136,64 @@ function PlayerHistoryModal({ player, onClose }) {
   );
 }
 
-// ---- Team news: ESPN + a second, independent source, deduplicated --------
+// ---- Team news: ESPN + two independent RSS sources, deduplicated --------
 // ESPN's team-news endpoint (used below) is the primary source, but it's a
-// single outlet. This blends in CBS Sports' general NFL RSS feed as a
-// second, independent source, filtered down client-side to whichever
-// team's page is open, so the panel isn't single-sourced. A raw RSS feed
-// has no CORS headers at all, so it can't be fetched directly from the
-// browser - rss2json.com exists specifically to solve that (their own docs
-// show the api_key used straight from client-side JS, confirming it's
-// meant for exactly this). Fetched once for the whole league, not once per
-// team, since it's the same feed URL regardless of team - a single shared
-// fetch also avoids rss2json's anonymous-tier "new feed" burst limit, which
-// only applies per distinct feed URL. If it's ever unavailable (throttled,
-// offline, CORS-blocked), fetchLeagueNewsFeed() fails soft to an empty
-// list rather than breaking the panel - the ESPN half still renders on its
-// own, same as before this was added.
+// single outlet. This blends in CBS Sports' and FOX Sports' general NFL
+// RSS feeds as independent second/third sources, filtered down
+// client-side to whichever team's page is open, so the panel isn't
+// single- or dual-sourced. A raw RSS feed has no CORS headers at all, so
+// it can't be fetched directly from the browser - rss2json.com exists
+// specifically to solve that (their own docs show the api_key used
+// straight from client-side JS, confirming it's meant for exactly this).
+// Each feed is fetched once for the whole league, not once per team,
+// since it's the same feed URL regardless of team - a single shared fetch
+// per source also avoids rss2json's anonymous-tier "new feed" burst
+// limit, which only applies per distinct feed URL. If either feed is ever
+// unavailable (throttled, offline, CORS-blocked), it fails soft to an
+// empty list for that source rather than breaking the panel - the other
+// sources still render on their own.
 // rss2json's own docs use this key directly in client-side sample code
 // (e.g. jQuery .ajax() calls) - it's meant to be embedded in a browser
 // app like this one, not kept server-side. It lifts the anonymous tier's
 // "new feed" burst throttle mentioned above and raises the rate limit.
 const RSS2JSON_API_KEY = "0xcemmcvfabsgqs9x1jwxx5yntebmgxkkupxssko";
 
+// FOX Sports' official free RSS feed, no key required beyond the partner
+// key baked into the URL itself (FOX's own RSS-feeds page publishes this
+// exact URL for public subscription - see foxsports.com/rss-feeds).
+const FOX_NFL_RSS_URL = "https://api.foxsports.com/v2/content/optimized-rss?partnerKey=MB0Wehpmuj2lUhuRhQaafhBjAJqaPU244mlTDK1i&size=30&tags=fs/nfl";
+
+async function fetchRssFeedViaJson(feedUrl, sourceName) {
+  try {
+    const encoded = encodeURIComponent(feedUrl);
+    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encoded}&count=50&api_key=${RSS2JSON_API_KEY}`);
+    if (!res.ok) throw new Error(`rss2json request failed for ${sourceName}: ` + res.status);
+    const data = await res.json();
+    if (data.status !== "ok") throw new Error(`rss2json status for ${sourceName}: ` + data.status);
+    return (data.items || []).map(item => ({
+      headline: item.title,
+      published: parsePubDateToIso(item.pubDate),
+      url: item.link,
+      image: (item.enclosure && item.enclosure.link) || item.thumbnail || null,
+      source: sourceName,
+    }));
+  } catch (e) {
+    return [];
+  }
+}
+
 let leagueNewsFeedPromise = null;
 function fetchLeagueNewsFeed() {
   if (leagueNewsFeedPromise) return leagueNewsFeedPromise;
   leagueNewsFeedPromise = (async () => {
-    try {
-      const feedUrl = encodeURIComponent("https://www.cbssports.com/rss/headlines/nfl/");
-      const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}&count=50&api_key=${RSS2JSON_API_KEY}`);
-      if (!res.ok) throw new Error("rss2json request failed: " + res.status);
-      const data = await res.json();
-      if (data.status !== "ok") throw new Error("rss2json status: " + data.status);
-      return (data.items || []).map(item => ({
-        headline: item.title,
-        published: parsePubDateToIso(item.pubDate),
-        url: item.link,
-        image: (item.enclosure && item.enclosure.link) || item.thumbnail || null,
-        source: "CBS Sports",
-      }));
-    } catch (e) {
-      return [];
-    }
+    const [cbsItems, foxItems] = await Promise.all([
+      fetchRssFeedViaJson("https://www.cbssports.com/rss/headlines/nfl/", "CBS Sports"),
+      fetchRssFeedViaJson(FOX_NFL_RSS_URL, "FOX Sports"),
+    ]);
+    // Dedupe here too (not just in fetchTeamNews/useLeagueNews below) so
+    // every caller of fetchLeagueNewsFeed gets an already-clean combined
+    // list, in case CBS and FOX both cover the same story.
+    return mergeAndDedupeNews([cbsItems, foxItems]);
   })();
   // A throttled/offline attempt shouldn't permanently poison the feed for
   // the rest of the session - let the next team-page visit try again
@@ -6298,8 +6315,8 @@ async function fetchTeamNews(teamId) {
     ]);
 
     const team = baseTeam(teamId);
-    const cbsArticles = filterLeagueFeedForTeam(leagueFeed, team);
-    return mergeAndDedupeNews([espnArticles, cbsArticles]).map((a, i) => ({
+    const leagueArticles = filterLeagueFeedForTeam(leagueFeed, team);
+    return mergeAndDedupeNews([espnArticles, leagueArticles]).map((a, i) => ({
       ...a,
       id: a.url || `${a.source || "news"}-${i}`,
     }));
@@ -6323,12 +6340,13 @@ function useTeamNews(teamId) {
   return state;
 }
 
-/** Shared with the team-news panel's CBS half (fetchLeagueNewsFeed) - one
- *  fetch for the whole league, reused here for a week-view-wide ticker
- *  instead of a per-team feed. Runs mergeAndDedupeNews for the same
- *  near-duplicate-headline cleanup + newest-first sort the team panel gets,
- *  even though there's only one source here, so the ticker doesn't show two
- *  near-identical headlines back to back when an outlet republishes one. */
+/** Shared with the team-news panel's CBS+FOX half (fetchLeagueNewsFeed) -
+ *  one fetch per source for the whole league, reused here for a
+ *  week-view-wide ticker instead of a per-team feed. Runs
+ *  mergeAndDedupeNews again for the same near-duplicate-headline cleanup +
+ *  newest-first sort the team panel gets (fetchLeagueNewsFeed already
+ *  dedupes internally, but re-running it here is harmless/idempotent and
+ *  keeps this function correct even if that internal dedup ever changes). */
 function useLeagueNews() {
   const [state, setState] = useState({ loading: true, error: null, data: null });
   useEffect(() => {

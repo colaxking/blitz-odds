@@ -427,6 +427,43 @@
   .gradation-legend-group { display: flex; align-items: center; gap: 6px; }
   .gradation-legend-label { font-weight: 600; color: var(--text); margin-right: 2px; }
   .gradation-legend .rank-pill { margin-left: 0; }
+
+  .news-ticker {
+    display: flex; align-items: center; gap: 12px; background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 0;
+    margin-bottom: 14px; overflow: hidden;
+  }
+  .news-ticker-label {
+    flex-shrink: 0; margin-left: 12px; font-size: 0.66rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
+    background: rgba(var(--accent-rgb),0.16); border-radius: 999px; padding: 3px 9px;
+    white-space: nowrap;
+  }
+  .news-ticker-track-wrap { flex: 1; overflow: hidden; min-width: 0; }
+  .news-ticker-track {
+    display: flex; align-items: center; width: max-content;
+    animation: news-ticker-scroll 60s linear infinite;
+  }
+  .news-ticker-track-wrap:hover .news-ticker-track { animation-play-state: paused; }
+  .news-ticker-item {
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    color: var(--text); text-decoration: none; font-size: 0.8rem; padding: 0 28px 0 0;
+  }
+  .news-ticker-item:hover .news-ticker-headline { text-decoration: underline; color: var(--accent); }
+  .news-ticker-source {
+    flex-shrink: 0; color: var(--text-dim); font-size: 0.64rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.4px; border: 1px solid var(--card-border);
+    border-radius: 4px; padding: 1px 5px;
+  }
+  .news-ticker-time { flex-shrink: 0; color: var(--text-dim); font-size: 0.72rem; }
+  @keyframes news-ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .news-ticker-track { animation: none; }
+    .news-ticker-track-wrap { overflow-x: auto; }
+  }
   .impact-note {
     font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
   }
@@ -5421,6 +5458,7 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
         </div>
       )}
       <GradationLegend />
+      <NewsTicker />
       <div className="schedule-grid">
         {games.map((g) => (
           <GameCard
@@ -6283,6 +6321,72 @@ function useTeamNews(teamId) {
     return () => { cancelled = true; };
   }, [teamId]);
   return state;
+}
+
+/** Shared with the team-news panel's CBS half (fetchLeagueNewsFeed) - one
+ *  fetch for the whole league, reused here for a week-view-wide ticker
+ *  instead of a per-team feed. Runs mergeAndDedupeNews for the same
+ *  near-duplicate-headline cleanup + newest-first sort the team panel gets,
+ *  even though there's only one source here, so the ticker doesn't show two
+ *  near-identical headlines back to back when an outlet republishes one. */
+function useLeagueNews() {
+  const [state, setState] = useState({ loading: true, error: null, data: null });
+  useEffect(() => {
+    let cancelled = false;
+    fetchLeagueNewsFeed()
+      .then(items => {
+        if (cancelled) return;
+        setState({ loading: false, error: null, data: mergeAndDedupeNews([items]) });
+      })
+      .catch(e => { if (!cancelled) setState({ loading: false, error: e, data: null }); });
+    return () => { cancelled = true; };
+  }, []);
+  return state;
+}
+
+const NEWS_TICKER_ITEM_COUNT = 15;
+
+/** Scrolling headline ticker for the week view, sitting under the
+ *  advantage/disadvantage legend. Two copies of the headline list are
+ *  rendered back to back and the track is animated exactly -50% of its own
+ *  width, which is what makes the loop seamless (the moment the first copy
+ *  scrolls fully offscreen, the second copy is sitting in the exact spot
+ *  the first one started in). Renders nothing while loading or if the feed
+ *  comes back empty, so it never reserves layout space with nothing to show. */
+function NewsTicker() {
+  const { loading, error, data } = useLeagueNews();
+  if (loading || error || !data || data.length === 0) return null;
+  const items = data.slice(0, NEWS_TICKER_ITEM_COUNT);
+
+  function renderItems(keyPrefix, hidden) {
+    return items.map((item, i) => (
+      <a
+        key={keyPrefix + (item.id || i)}
+        className="news-ticker-item"
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        tabIndex={hidden ? -1 : undefined}
+        aria-hidden={hidden || undefined}
+      >
+        {item.source && <span className="news-ticker-source">{item.source}</span>}
+        <span className="news-ticker-headline">{item.headline}</span>
+        {item.published && <span className="news-ticker-time">{timeAgo(item.published)}</span>}
+      </a>
+    ));
+  }
+
+  return (
+    <div className="news-ticker">
+      <span className="news-ticker-label">NFL News</span>
+      <div className="news-ticker-track-wrap">
+        <div className="news-ticker-track">
+          {renderItems("a-", false)}
+          {renderItems("b-", true)}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function timeAgo(iso) {

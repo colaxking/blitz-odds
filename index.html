@@ -6008,12 +6008,17 @@ function PlayerHistoryModal({ player, onClose }) {
                   <span className="injury-modal-value">{player.injury.type}</span>
                 </div>
               )}
-              {player.injury && player.injury.since && (
-                <div className="injury-modal-row">
-                  <span className="injury-modal-label">Since</span>
-                  <span className="injury-modal-value">{formatInjurySince(player.injury.since)}</span>
-                </div>
-              )}
+              {player.injury && player.injury.since && formatInjurySince(player.injury.since) && (() => {
+                const since = formatInjurySince(player.injury.since);
+                return (
+                  <div className="injury-modal-row">
+                    <span className="injury-modal-label">Since</span>
+                    <span className="injury-modal-value">
+                      {since.label}{since.duration ? " (" + since.duration + ")" : ""}
+                    </span>
+                  </div>
+                );
+              })()}
               {player.injury && player.injury.note ? (
                 <p className="injury-modal-note">{player.injury.note}</p>
               ) : (

@@ -182,9 +182,13 @@ async function fetchEventsPage(params, attempt = 1) {
   const url = `${SITE_BASE}/.netlify/functions/odds-proxy?endpoint=events&${params.toString()}`;
   const res = await fetch(url, { cache: "no-store" });
   const body = await res.json().catch(() => null);
-  if (body && body.success === false && /rate limit/i.test(body.error || "") && attempt <= 3) {
-    log(`rate limited, backing off (attempt ${attempt})...`);
-    await sleep(18000);
+  if (body && body.success === false && /rate limit/i.test(body.error || "") && attempt <= 5) {
+    // Linear backoff up to 60s - the vendor's per-minute rate limit (a
+    // separate thing from the monthly object budget checked above) needs
+    // more than a few seconds to clear, especially mid a FULL sweep.
+    const backoffMs = Math.min(15000 * attempt, 60000);
+    log(`rate limited, backing off ${backoffMs}ms (attempt ${attempt})...`);
+    await sleep(backoffMs);
     return fetchEventsPage(params, attempt + 1);
   }
   if (!res.ok || !body || body.success === false) {
@@ -196,7 +200,14 @@ async function fetchEventsPage(params, attempt = 1) {
 async function fetchAllEvents({ startsAfter, startsBefore }) {
   const events = [];
   let cursor;
+  let pageNum = 0;
   do {
+    if (pageNum > 0) {
+      // Throttle between pages so a FULL sweep's back-to-back pagination
+      // doesn't itself burst past the vendor's per-minute rate limit.
+      await sleep(1500);
+    }
+    pageNum += 1;
     const params = new URLSearchParams({
       leagueID: "NFL",
       oddsAvailable: "true",

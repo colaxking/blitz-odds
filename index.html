@@ -485,6 +485,10 @@
     border-radius: 4px; background: rgba(var(--accent-rgb),0.18); color: var(--accent);
     font-size: 0.62rem; font-weight: 800; line-height: 1; vertical-align: 2px;
   }
+  .roster-injury-flag {
+    display: inline-flex; align-items: center; gap: 2px; margin-left: 5px; font-size: 0.72rem;
+    vertical-align: 1px;
+  }
   .player-modal-headshot {
     width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--surface-2);
     flex-shrink: 0; border: 1px solid var(--card-border);
@@ -6270,6 +6274,39 @@ function useIsMobile(breakpoint = 860) {
   return isMobile;
 }
 
+/** Roster/depth-chart names come live from ESPN; the curated injury data
+ *  in data/impact-players.json is keyed by team + player name instead of
+ *  ESPN's athlete id, so this is a best-effort name match (case/punctuation
+ *  insensitive) between the two sources. */
+function normalizePlayerName(name) {
+  return (name || "").toLowerCase().replace(/[^a-z\s]/g, "").trim();
+}
+
+/** teamId -> {normalizedName: impactPlayer} lookup, rebuilt from module-
+ *  level PLAYERS_DATA on every render (not memoized) so a live data refresh
+ *  (see useLiveSiteData) is picked up immediately without a page reload. */
+function buildInjuryLookup(teamId) {
+  const impactPlayers = PLAYERS_DATA.players[teamId] || [];
+  const byName = {};
+  impactPlayers.forEach(p => { byName[normalizePlayerName(p.name)] = p; });
+  return byName;
+}
+
+/** Small status icon (matches the Injury Report section's convention) plus
+ *  the same ⓘ button used there, so tapping/clicking it opens the shared
+ *  InjuryDetailModal with the full note. Renders nothing for players who
+ *  aren't in the tracked impact-players list. */
+function RosterInjuryFlag({ impactPlayer }) {
+  if (!impactPlayer) return null;
+  const icon = impactPlayer.status === "out" ? "\u26d4" : impactPlayer.status === "questionable" ? "\u26a0\ufe0f" : "\u2705";
+  return (
+    <span className={"roster-injury-flag impact-" + impactPlayer.status} title={impactPlayer.status}>
+      {icon}
+      <InjuryInfoButton player={impactPlayer} />
+    </span>
+  );
+}
+
 function DepthChartSection({ teamId }) {
   const { loading, error, data } = useTeamRoster(teamId);
   const [side, setSide] = useState("offense");
@@ -6291,6 +6328,7 @@ function DepthChartSection({ teamId }) {
   const depthRankById = buildDepthRankMap(sideDepthChart);
   const rosterGroup = data.fullRoster.find(g => g.group === activeSide);
   const positionGroups = rosterGroup ? groupPlayersByPosition(rosterGroup.players, activeSide, depthRankById) : [];
+  const injuryByName = buildInjuryLookup(teamId);
 
   return (
     <div>
@@ -6337,6 +6375,7 @@ function DepthChartSection({ teamId }) {
                           {p.shortName || p.displayName}
                         </button>
                         {isRookie && <span className="rookie-badge" title="Rookie">R</span>}
+                        <RosterInjuryFlag impactPlayer={injuryByName[normalizePlayerName(p.displayName || p.shortName)]} />
                         {p.jersey && <span className="depth-player-jersey">#{p.jersey}</span>}
                       </div>
                     );
@@ -6384,6 +6423,7 @@ function DepthChartSection({ teamId }) {
                               {p.displayName}
                             </button>
                             {isRookie && <span className="rookie-badge" title="Rookie">R</span>}
+                            <RosterInjuryFlag impactPlayer={injuryByName[normalizePlayerName(p.displayName)]} />
                           </td>
                           <td>{p.displayHeight ? `${p.displayHeight}, ${p.displayWeight}` : "—"}</td>
                           <td>{p.experience && p.experience.years != null ? p.experience.years : "—"}</td>
@@ -6573,7 +6613,10 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
         </div>
       </div>
       <div className="team-view-header">
-        <TeamLogo teamId={team.id} size={64} />
+        <div className="badge-wrap" style={{ width: 64, height: 64 }}>
+          <TeamLogo teamId={team.id} size={64} />
+          <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
+        </div>
         <div style={{ flex: 1 }}>
           <h2>{team.name}</h2>
           <div className="rec-line">
@@ -6582,7 +6625,6 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
           </div>
           <div className="rec-line" style={{ marginTop: 6 }}>Model-predicted wins this season: {favCount} / {totalGames}</div>
         </div>
-        <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
       </div>
 
       <div className="injury-report">

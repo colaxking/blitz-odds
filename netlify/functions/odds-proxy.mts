@@ -31,6 +31,10 @@ import type { Context, Config } from "@netlify/functions";
 // Falls back to the older SPORTSGAMEODDS_API_KEY / SPORTSGAMEODDS_API_KEY_
 // BACKUP vars if none of the _1/_2/_3 vars are set, so this doesn't break
 // if the multi-key vars are ever removed.
+//
+// Note: Netlify functions bake env vars in at build time, not read them
+// live - a rebuild is required any time the _1/_2/_3 vars change for a
+// running deploy to actually pick them up (2026-08-03 rebuild trigger).
 
 const API_BASE = "https://api.sportsgameodds.com/v2";
 const PER_KEY_MONTHLY_CAP = 2500;

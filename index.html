@@ -488,12 +488,11 @@
   .roster-injury-flag {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 15px; height: 15px; padding: 0 3px; margin-left: 5px;
-    border-radius: 4px; border: none; cursor: pointer; flex-shrink: 0;
+    border-radius: 4px; flex-shrink: 0;
     font-size: 0.66rem; font-weight: 800; line-height: 1; vertical-align: 2px;
   }
-  .roster-injury-flag.impact-out { background: rgba(var(--out-rgb),0.18); color: var(--pill-out-text); }
+  .roster-injury-flag.impact-out { background: rgba(var(--out-rgb),0.18); color: var(--out); }
   .roster-injury-flag.impact-questionable { background: rgba(var(--warn-rgb),0.18); color: var(--pill-questionable-text); }
-  .roster-injury-flag:hover, .roster-injury-flag:focus-visible { filter: brightness(1.2); }
   .player-modal-headshot {
     width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--surface-2);
     flex-shrink: 0; border: 1px solid var(--card-border);
@@ -5985,6 +5984,7 @@ function PlayerHistoryModal({ player, onClose }) {
             <div className="injury-modal-name">
               {player.name}
               {player.isRookie && <span className="rookie-badge" title="Rookie">R</span>}
+              <RosterInjuryFlag impactPlayer={player.injuryStatus ? { status: player.injuryStatus, name: player.name } : null} />
             </div>
             <div className="injury-modal-meta">
               {[player.position, player.jersey ? "#" + player.jersey : null, player.college || null]
@@ -5995,6 +5995,35 @@ function PlayerHistoryModal({ player, onClose }) {
         </div>
 
         <div className="injury-modal-body">
+          {(player.injuryStatus === "out" || player.injuryStatus === "questionable") && (
+            <React.Fragment>
+              <div className="player-modal-section-title">Injury Report</div>
+              <div className="injury-modal-row">
+                <span className="injury-modal-label">Status</span>
+                <span className="injury-modal-value">{player.injuryStatus === "out" ? "Out" : "Questionable"}</span>
+              </div>
+              {player.injury && player.injury.type && (
+                <div className="injury-modal-row">
+                  <span className="injury-modal-label">Injury</span>
+                  <span className="injury-modal-value">{player.injury.type}</span>
+                </div>
+              )}
+              {player.injury && player.injury.since && (
+                <div className="injury-modal-row">
+                  <span className="injury-modal-label">Since</span>
+                  <span className="injury-modal-value">{formatInjurySince(player.injury.since)}</span>
+                </div>
+              )}
+              {player.injury && player.injury.note ? (
+                <p className="injury-modal-note">{player.injury.note}</p>
+              ) : (
+                <p className="injury-modal-note injury-modal-empty">
+                  No detailed injury report tracked yet for this status — check back as camp/practice reports update.
+                </p>
+              )}
+            </React.Fragment>
+          )}
+
           <div className="player-modal-section-title">NCAA Background</div>
           <div className="injury-modal-row">
             <span className="injury-modal-label">College</span>
@@ -6302,29 +6331,23 @@ function buildInjuryLookup(teamId) {
  *  InjuryDetailModal with the full note. Renders nothing for players who
  *  aren't in the tracked impact-players list. */
 function RosterInjuryFlag({ impactPlayer }) {
-  const [open, setOpen] = useState(false);
-  // Only flags players actually tracked as injured (out/questionable) - a
-  // healthy "active" impact player (e.g. a notable non-injured starter)
-  // isn't an injury and shouldn't show a flag here. Since this reads
-  // straight off the current impactPlayer.status on every render, a player
-  // rolls off the roster/depth-chart view the moment the underlying
-  // impact-players data marks them "active" again - no separate timer or
-  // expiry to maintain, just whatever the latest published status says.
+  // Purely a visual marker next to the player's name - only shown for
+  // players actually tracked as injured (out/questionable), not healthy
+  // "active" impact players. It reads straight off impactPlayer.status on
+  // every render, so a player rolls off the roster/depth-chart view the
+  // moment the underlying impact-players data marks them "active" again -
+  // no separate timer or expiry to maintain. Clicking the player's name
+  // opens PlayerHistoryModal, which shows the full injury details itself,
+  // so this badge doesn't need its own click target.
   if (!impactPlayer || (impactPlayer.status !== "out" && impactPlayer.status !== "questionable")) return null;
-  const icon = impactPlayer.status === "out" ? "\u26d4" : "\u26a0\ufe0f";
+  const label = impactPlayer.status === "out" ? "O" : "\u26a0\ufe0f";
   return (
-    <React.Fragment>
-      <button
-        type="button"
-        className={"roster-injury-flag impact-" + impactPlayer.status}
-        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
-        aria-label={"Injury details for " + impactPlayer.name}
-        title={impactPlayer.status === "out" ? "Out" : "Questionable"}
-      >
-        {icon}
-      </button>
-      {open && <InjuryDetailModal player={impactPlayer} onClose={() => setOpen(false)} />}
-    </React.Fragment>
+    <span
+      className={"roster-injury-flag impact-" + impactPlayer.status}
+      title={(impactPlayer.status === "out" ? "Out" : "Questionable") + (impactPlayer.name ? " \u2014 " + impactPlayer.name : "")}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -6383,15 +6406,20 @@ function DepthChartSection({ teamId }) {
                         <button
                           type="button"
                           className="depth-player-name depth-player-name-btn"
-                          onClick={() => setHistoryPlayer({
-                            id: p.id,
-                            name: p.displayName || p.shortName,
-                            position: (p.position && p.position.abbreviation) || group.posAbbr || group.label,
-                            jersey: p.jersey,
-                            college: p.college && p.college.name,
-                            isRookie,
-                            experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
-                          })}
+                          onClick={() => {
+                            const impactMatch = injuryByName[normalizePlayerName(p.displayName || p.shortName)];
+                            setHistoryPlayer({
+                              id: p.id,
+                              name: p.displayName || p.shortName,
+                              position: (p.position && p.position.abbreviation) || group.posAbbr || group.label,
+                              jersey: p.jersey,
+                              college: p.college && p.college.name,
+                              isRookie,
+                              experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
+                              injuryStatus: impactMatch ? impactMatch.status : null,
+                              injury: impactMatch ? impactMatch.injury : null,
+                            });
+                          }}
                         >
                           {p.shortName || p.displayName}
                         </button>
@@ -6431,15 +6459,20 @@ function DepthChartSection({ teamId }) {
                             <button
                               type="button"
                               className="roster-player-name-btn"
-                              onClick={() => setHistoryPlayer({
-                                id: p.id,
-                                name: p.displayName,
-                                position: pg.abbr,
-                                jersey: p.jersey,
-                                college: p.college && p.college.name,
-                                isRookie,
-                                experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
-                              })}
+                              onClick={() => {
+                                const impactMatch = injuryByName[normalizePlayerName(p.displayName)];
+                                setHistoryPlayer({
+                                  id: p.id,
+                                  name: p.displayName,
+                                  position: pg.abbr,
+                                  jersey: p.jersey,
+                                  college: p.college && p.college.name,
+                                  isRookie,
+                                  experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
+                                  injuryStatus: impactMatch ? impactMatch.status : null,
+                                  injury: impactMatch ? impactMatch.injury : null,
+                                });
+                              }}
                             >
                               {p.displayName}
                             </button>

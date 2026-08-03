@@ -12,7 +12,10 @@
  *   1. Acquire a short-lived concurrency lock (netlify/functions/odds-lock)
  *      so overlapping runs can't double-spend the SportsGameOdds quota.
  *   2. Check this month's API usage and skip the fetch if we're pacing
- *      ahead of budget (2,500 objects/month on the free tier).
+ *      ahead of budget. odds-proxy now spreads calls across multiple
+ *      SportsGameOdds accounts (2,500 objects/month each on the free
+ *      tier), so the usable budget scales with however many keys are
+ *      configured there - see checkBudget() below.
  *   3. Decide FULL vs NEAR sweep mode (near-term games get checked far more
  *      often than games a month out, since that's where lines actually move).
  *   4. Fetch events from SportsGameOdds via the odds-proxy Netlify function.
@@ -48,6 +51,9 @@ const ANCHOR_DAY = Number(process.env.ANCHOR_DAY || 31);
 const BOOKMAKERS = ["draftkings", "fanduel", "betmgm", "caesars"];
 const NEAR_WINDOW_DAYS = 10;
 const FULL_SWEEP_STALE_HOURS = 20;
+// Fallback only - used if odds-proxy's usage response doesn't report a
+// totalCap (e.g. still running the old single-key build). Once the
+// multi-key proxy is live, the real cap comes from that response instead.
 const MONTHLY_BUDGET = 2500;
 
 const TEAM_MAP = {
@@ -148,7 +154,12 @@ async function checkBudget() {
     return { proceed: true, usage: null };
   }
   const body = await res.json().catch(() => null);
-  const usage = body?.data?.rateLimits?.["per-month"]?.["current-entities"];
+  // odds-proxy reports combined usage/cap across every SportsGameOdds key
+  // it's configured with (data.totalUsage / data.totalCap). Fall back to
+  // the older single-key shape (data.rateLimits...) plus the hardcoded
+  // MONTHLY_BUDGET if that's all the proxy has deployed.
+  const usage = body?.data?.totalUsage ?? body?.data?.rateLimits?.["per-month"]?.["current-entities"];
+  const cap = body?.data?.totalCap ?? MONTHLY_BUDGET;
   if (typeof usage !== "number") {
     log("warning: could not parse usage from response, proceeding cautiously this run.", JSON.stringify(body).slice(0, 300));
     return { proceed: true, usage: null };
@@ -158,9 +169,10 @@ async function checkBudget() {
   const { start, end } = cycleBounds(now);
   const daysInCycle = Math.round((end - start) / 86400000);
   const dayOfCycle = Math.floor((now - start) / 86400000) + 1;
-  const paceAllowance = MONTHLY_BUDGET * (dayOfCycle / daysInCycle) * 0.95;
+  const paceAllowance = cap * (dayOfCycle / daysInCycle) * 0.95;
 
-  log(`budget: usage=${usage} paceAllowance=${paceAllowance.toFixed(1)} dayOfCycle=${dayOfCycle}/${daysInCycle} account=${body?.data?.email || "?"}`);
+  const accountCount = body?.data?.perKey?.length;
+  log(`budget: usage=${usage} cap=${cap}${accountCount ? ` (${accountCount} accounts)` : ""} paceAllowance=${paceAllowance.toFixed(1)} dayOfCycle=${dayOfCycle}/${daysInCycle}`);
 
   if (usage >= paceAllowance) {
     return { proceed: false, usage, paceAllowance };
@@ -183,9 +195,10 @@ async function fetchEventsPage(params, attempt = 1) {
   const res = await fetch(url, { cache: "no-store" });
   const body = await res.json().catch(() => null);
   if (body && body.success === false && /rate limit/i.test(body.error || "") && attempt <= 5) {
-    // Linear backoff up to 60s - the vendor's per-minute rate limit (a
-    // separate thing from the monthly object budget checked above) needs
-    // more than a few seconds to clear, especially mid a FULL sweep.
+    // odds-proxy already rotates across every configured SportsGameOdds
+    // key before returning an error, so a rate limit reaching us here
+    // means every account hit the vendor's per-minute limit at once.
+    // Linear backoff up to 60s gives that a chance to clear.
     const backoffMs = Math.min(15000 * attempt, 60000);
     log(`rate limited, backing off ${backoffMs}ms (attempt ${attempt})...`);
     await sleep(backoffMs);

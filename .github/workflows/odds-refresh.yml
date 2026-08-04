@@ -11,8 +11,8 @@ name: Blitz Odds - odds refresh
 # during EST (Nov-Mar) - the schedule below uses the EST offset (13-23,0-5)
 # as a safe year-round approximation; adjust if you want DST precision.
 on:
-  schedule:
-    - cron: "0 13-23,0-5 * 7,8,9,10,11,12,1,2 *"
+  #schedule:
+    #- cron: "0 13-23,0-5 * 7,8,9,10,11,12,1,2 *"
   workflow_dispatch: {}
 
 permissions:

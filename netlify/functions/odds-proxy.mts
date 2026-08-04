@@ -34,7 +34,9 @@ import type { Context, Config } from "@netlify/functions";
 //
 // Note: Netlify functions bake env vars in at build time, not read them
 // live - a rebuild is required any time the _1/_2/_3 vars change for a
-// running deploy to actually pick them up (2026-08-03 rebuild trigger).
+// running deploy to actually pick them up (2026-08-03 rebuild trigger;
+// 2026-08-04 rebuild trigger after rotating SPORTSGAMEODDS_API_KEY_3 to
+// the tycoon2face@gmail.com account).
 
 const API_BASE = "https://api.sportsgameodds.com/v2";
 const PER_KEY_MONTHLY_CAP = 2500;

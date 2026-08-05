@@ -38,8 +38,8 @@
   var OUT_MULTIPLIER = 0.8;
   var QUESTIONABLE_MULTIPLIER = 0.35;
 
-  var DEFENSIVE_POSITIONS = { "Edge": 1, "DE": 1, "DT": 1, "LB": 1, "CB": 1, "S": 1, "DL": 1 };
-
+  var DEFENSIVE_POSITIONS = { "Edge": 1, "DE": 1, "DT": 1, "LB": 1, "OLB": 1, "ILB": 1, "MLB": 1, "CB": 1, "S": 1, "DL": 1 };
+  
   /** Convert a 1..32 rank (1 = best) into a 1..32 score (32 = best). */
   function rankToScore(rank) {
     return (NUM_TEAMS + 1) - rank;

@@ -4973,22 +4973,111 @@ async function fetchLiveScores(week) {
   return map;
 }
 
+// ---- Adaptive polling for live scores --------------------------------
+// ESPN's scoreboard endpoint is unofficial and publishes no documented rate
+// limit. Community consensus (see ESPN hidden-API docs/discussions) is to
+// stay around 30-60s between calls and back off if requests start failing,
+// rather than hammering it on a fixed timer regardless of game state.
+//
+// Strategy:
+//  - 30s cadence only while at least one game is actually in progress.
+//  - 5 min cadence when nothing is live (pre-game or all games final) -
+//    scores can't change, so there's no reason to poll fast.
+//  - Pause entirely when the tab isn't visible (backgrounded/minimized).
+//  - Exponential backoff (starting at 60s, capped at 8 min) on any fetch
+//    error, e.g. a 429 or transient network failure, so a bad stretch
+//    doesn't turn into a tight retry loop.
+//  - A short in-memory cache dedupes bursty calls (e.g. two components
+//    mounting/polling around the same time) so they share one fetch.
+
+const LIVE_POLL_MS = 30000;      // cadence while a game is in progress
+const IDLE_POLL_MS = 5 * 60000;  // cadence when nothing is live
+const BACKOFF_BASE_MS = 60000;   // first retry delay after an error
+const BACKOFF_MAX_MS = 8 * 60000; // cap on backoff delay
+const CACHE_TTL_MS = 15000;      // min gap between real network calls
+
+let liveScoresCache = { week: null, at: 0, promise: null, data: null };
+
+function fetchLiveScoresCached(week) {
+  const now = Date.now();
+  if (
+    liveScoresCache.week === week &&
+    liveScoresCache.data &&
+    now - liveScoresCache.at < CACHE_TTL_MS
+  ) {
+    return Promise.resolve(liveScoresCache.data);
+  }
+  if (liveScoresCache.week === week && liveScoresCache.promise) {
+    return liveScoresCache.promise;
+  }
+  const promise = fetchLiveScores(week).then(
+    (data) => {
+      liveScoresCache = { week, at: Date.now(), promise: null, data };
+      return data;
+    },
+    (err) => {
+      liveScoresCache = { week, at: 0, promise: null, data: liveScoresCache.data };
+      throw err;
+    }
+  );
+  liveScoresCache = { week, at: now, promise, data: liveScoresCache.data };
+  return promise;
+}
+
+function hasLiveGame(map) {
+  return Object.values(map).some((g) => g.state === "in");
+}
+
 function useLiveScores(week) {
   const [liveMap, setLiveMap] = useState({});
   useEffect(() => {
     let cancelled = false;
+    let timer = null;
+    let backoff = BACKOFF_BASE_MS;
+
+    function schedule(ms) {
+      if (cancelled) return;
+      timer = setTimeout(poll, ms);
+    }
+
     async function poll() {
+      if (document.hidden) {
+        // Don't spend requests on a backgrounded tab; check again shortly
+        // after it would have been due, then reassess visibility.
+        schedule(LIVE_POLL_MS);
+        return;
+      }
       try {
-        const map = await fetchLiveScores(week);
-        if (!cancelled) setLiveMap(map);
+        const map = await fetchLiveScoresCached(week);
+        if (cancelled) return;
+        setLiveMap(map);
+        backoff = BACKOFF_BASE_MS; // reset after a success
+        schedule(hasLiveGame(map) ? LIVE_POLL_MS : IDLE_POLL_MS);
       } catch (e) {
-        // Network hiccup or CORS block on file:// - just leave live scores empty,
-        // the app still works fine off historical/predicted data.
+        // Network hiccup, CORS block on file://, or ESPN throttling.
+        // Leave whatever live scores we already have and back off.
+        if (cancelled) return;
+        schedule(backoff);
+        backoff = Math.min(backoff * 2, BACKOFF_MAX_MS);
       }
     }
+
+    function onVisibilityChange() {
+      // Coming back into view - poll right away instead of waiting out
+      // whatever interval was scheduled while hidden.
+      if (!document.hidden && timer) {
+        clearTimeout(timer);
+        poll();
+      }
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
     poll();
-    const timer = setInterval(poll, 30000);
-    return () => { cancelled = true; clearInterval(timer); };
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [week]);
   return liveMap;
 }

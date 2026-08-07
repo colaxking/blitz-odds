@@ -427,44 +427,6 @@
   .gradation-legend-group { display: flex; align-items: center; gap: 6px; }
   .gradation-legend-label { font-weight: 600; color: var(--text); margin-right: 2px; }
   .gradation-legend .rank-pill { margin-left: 0; }
-
-  .news-ticker {
-    display: flex; align-items: center; gap: 12px; background: var(--surface-2);
-    border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 0;
-    margin-bottom: 14px; overflow: hidden;
-  }
-  .news-ticker-label {
-    flex-shrink: 0; margin-left: 12px; font-size: 0.66rem; font-weight: 800;
-    text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
-    background: rgba(var(--accent-rgb),0.16); border-radius: 999px; padding: 3px 9px;
-    white-space: nowrap;
-  }
-  .news-ticker-track-wrap { flex: 1; overflow: hidden; min-width: 0; }
-  .news-ticker-track {
-    display: flex; align-items: center; width: max-content;
-    animation: news-ticker-scroll 120s linear infinite;
-  }
-  .news-ticker-track-wrap:hover .news-ticker-track { animation-play-state: paused; }
-  .news-ticker-item {
-    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
-    color: var(--text); text-decoration: none; font-size: 0.8rem; padding: 0 28px 0 0;
-  }
-  .news-ticker-headline { font-size: 0.8rem; font-weight: 500; font-family: inherit; }
-  .news-ticker-item:hover .news-ticker-headline { text-decoration: underline; color: var(--accent); }
-  .news-ticker-source {
-    flex-shrink: 0; color: var(--text-dim); font-size: 0.64rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.4px; border: 1px solid var(--card-border);
-    border-radius: 4px; padding: 1px 5px;
-  }
-  .news-ticker-time { flex-shrink: 0; color: var(--text-dim); font-size: 0.72rem; }
-  @keyframes news-ticker-scroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .news-ticker-track { animation: none; }
-    .news-ticker-track-wrap { overflow-x: auto; }
-  }
   .impact-note {
     font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
   }
@@ -521,16 +483,8 @@
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 15px; height: 15px; padding: 0 3px; margin-left: 5px;
     border-radius: 4px; background: rgba(var(--accent-rgb),0.18); color: var(--accent);
-    font-size: 0.62rem; font-weight: 800; line-height: 1; vertical-align: 2px; flex-shrink: 0;
+    font-size: 0.62rem; font-weight: 800; line-height: 1; vertical-align: 2px;
   }
-  .roster-injury-flag {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 15px; height: 15px; padding: 0 3px; margin-left: 5px;
-    border-radius: 4px; flex-shrink: 0;
-    font-size: 0.66rem; font-weight: 800; line-height: 1; vertical-align: 2px;
-  }
-  .roster-injury-flag.impact-out { background: rgba(var(--out-rgb),0.18); color: var(--out); }
-  .roster-injury-flag.impact-questionable { background: rgba(var(--warn-rgb),0.18); color: var(--pill-questionable-text); }
   .player-modal-headshot {
     width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--surface-2);
     flex-shrink: 0; border: 1px solid var(--card-border);
@@ -727,7 +681,7 @@
   .depth-slot-players { display: flex; flex-direction: column; gap: 3px; }
   .depth-player { display: flex; align-items: center; gap: 6px; font-size: 0.83rem; }
   .depth-player-rank { color: var(--text-dim); font-size: 0.7rem; width: 12px; flex-shrink: 0; }
-  .depth-player-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; min-width: 0; }
+  .depth-player-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .depth-player-jersey { color: var(--text-dim); font-size: 0.72rem; margin-left: auto; flex-shrink: 0; }
 
   /* Full roster */
@@ -1624,7 +1578,7 @@
         "status": "active"
       },
       {
-        "name": "Shemar Stewart",
+        "name": "Shemar Steward",
         "position": "DE",
         "impactScore": 6,
         "status": "questionable",
@@ -1953,8 +1907,7 @@
       }
     ]
   }
-}
-</script>
+}</script>
 <script type="application/json" id="schedule-data">{
   "season": 2026,
   "sourceNote": "Compiled from Pro-Football-Reference (weeks 1-13) and NFL.com by-week schedule pages (weeks 14-18). Weeks 16-18 dates/times are partly flexed/TBD per NFL rules and will be finalized during the season. A handful of teams may show BYE in a given week if source data had a gap - flag it and we'll fill it in.",
@@ -1966,113 +1919,97 @@
           "away": "NE",
           "home": "SEA",
           "date": "Wed, Sep 9",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "SF",
           "home": "LAR",
           "date": "Thu, Sep 10",
-          "time": "8:35 PM ET",
-          "network": "Netflix"
+          "time": "8:35 PM ET"
         },
         {
           "away": "CHI",
           "home": "CAR",
           "date": "Sun, Sep 13",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TB",
           "home": "CIN",
           "date": "Sun, Sep 13",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NO",
           "home": "DET",
           "date": "Sun, Sep 13",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BUF",
           "home": "HOU",
           "date": "Sun, Sep 13",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BAL",
           "home": "IND",
           "date": "Sun, Sep 13",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CLE",
           "home": "JAX",
           "date": "Sun, Sep 13",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ATL",
           "home": "PIT",
           "date": "Sun, Sep 13",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYJ",
           "home": "TEN",
           "date": "Sun, Sep 13",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ARI",
           "home": "LAC",
           "date": "Sun, Sep 13",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "MIA",
           "home": "LV",
           "date": "Sun, Sep 13",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "GB",
           "home": "MIN",
           "date": "Sun, Sep 13",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "WAS",
           "home": "PHI",
           "date": "Sun, Sep 13",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "DAL",
           "home": "NYG",
           "date": "Sun, Sep 13",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "DEN",
           "home": "KC",
           "date": "Mon, Sep 14",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -2083,113 +2020,97 @@
           "away": "DET",
           "home": "BUF",
           "date": "Thu, Sep 17",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "CAR",
           "home": "ATL",
           "date": "Sun, Sep 20",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIN",
           "home": "CHI",
           "date": "Sun, Sep 20",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CIN",
           "home": "HOU",
           "date": "Sun, Sep 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "PIT",
           "home": "NE",
           "date": "Sun, Sep 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "GB",
           "home": "NYJ",
           "date": "Sun, Sep 20",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "PHI",
           "home": "TEN",
           "date": "Sun, Sep 20",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NO",
           "home": "BAL",
           "date": "Sun, Sep 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CLE",
           "home": "TB",
           "date": "Sun, Sep 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "JAX",
           "home": "DEN",
           "date": "Sun, Sep 20",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "LV",
           "home": "LAC",
           "date": "Sun, Sep 20",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "SEA",
           "home": "ARI",
           "date": "Sun, Sep 20",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "WAS",
           "home": "DAL",
           "date": "Sun, Sep 20",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "MIA",
           "home": "SF",
           "date": "Sun, Sep 20",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "IND",
           "home": "KC",
           "date": "Sun, Sep 20",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "NYG",
           "home": "LAR",
           "date": "Mon, Sep 21",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -2200,113 +2121,97 @@
           "away": "ATL",
           "home": "GB",
           "date": "Thu, Sep 24",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "LAC",
           "home": "BUF",
           "date": "Sun, Sep 27",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CAR",
           "home": "CLE",
           "date": "Sun, Sep 27",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "HOU",
           "home": "IND",
           "date": "Sun, Sep 27",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYJ",
           "home": "DET",
           "date": "Sun, Sep 27",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NE",
           "home": "JAX",
           "date": "Sun, Sep 27",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "KC",
           "home": "MIA",
           "date": "Sun, Sep 27",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TEN",
           "home": "NYG",
           "date": "Sun, Sep 27",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CIN",
           "home": "PIT",
           "date": "Sun, Sep 27",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "SEA",
           "home": "WAS",
           "date": "Sun, Sep 27",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ARI",
           "home": "SF",
           "date": "Sun, Sep 27",
-          "time": "4:05 PM ET",
-          "network": "FOX"
+          "time": "4:05 PM ET"
         },
         {
           "away": "MIN",
           "home": "TB",
           "date": "Sun, Sep 27",
-          "time": "4:05 PM ET",
-          "network": "FOX"
+          "time": "4:05 PM ET"
         },
         {
           "away": "BAL",
           "home": "DAL",
           "date": "Sun, Sep 27",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "LV",
           "home": "NO",
           "date": "Sun, Sep 27",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "LAR",
           "home": "DEN",
           "date": "Sun, Sep 27",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "PHI",
           "home": "CHI",
           "date": "Mon, Sep 28",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -2317,113 +2222,97 @@
           "away": "PIT",
           "home": "CLE",
           "date": "Thu, Oct 1",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "IND",
           "home": "WAS",
           "date": "Sun, Oct 4",
-          "time": "9:30 AM ET",
-          "network": "NFL Network"
+          "time": "9:30 AM ET"
         },
         {
           "away": "NE",
           "home": "BUF",
           "date": "Sun, Oct 4",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYJ",
           "home": "CHI",
           "date": "Sun, Oct 4",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "JAX",
           "home": "CIN",
           "date": "Sun, Oct 4",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "DAL",
           "home": "HOU",
           "date": "Sun, Oct 4",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ARI",
           "home": "NYG",
           "date": "Sun, Oct 4",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LAR",
           "home": "PHI",
           "date": "Sun, Oct 4",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TEN",
           "home": "BAL",
           "date": "Sun, Oct 4",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "GB",
           "home": "TB",
           "date": "Sun, Oct 4",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIA",
           "home": "MIN",
           "date": "Sun, Oct 4",
-          "time": "4:05 PM ET",
-          "network": "FOX"
+          "time": "4:05 PM ET"
         },
         {
           "away": "KC",
           "home": "LV",
           "date": "Sun, Oct 4",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "LAC",
           "home": "SEA",
           "date": "Sun, Oct 4",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "DEN",
           "home": "SF",
           "date": "Sun, Oct 4",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "DET",
           "home": "CAR",
           "date": "Sun, Oct 4",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "ATL",
           "home": "NO",
           "date": "Mon, Oct 5",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -2434,106 +2323,91 @@
           "away": "TB",
           "home": "DAL",
           "date": "Thu, Oct 8",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "PHI",
           "home": "JAX",
           "date": "Sun, Oct 11",
-          "time": "9:30 AM ET",
-          "network": "NFL Network"
+          "time": "9:30 AM ET"
         },
         {
           "away": "CIN",
           "home": "MIA",
           "date": "Sun, Oct 11",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIN",
           "home": "NO",
           "date": "Sun, Oct 11",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LV",
           "home": "NE",
           "date": "Sun, Oct 11",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CLE",
           "home": "NYJ",
           "date": "Sun, Oct 11",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "HOU",
           "home": "TEN",
           "date": "Sun, Oct 11",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "IND",
           "home": "PIT",
           "date": "Sun, Oct 11",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYG",
           "home": "WAS",
           "date": "Sun, Oct 11",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "DEN",
           "home": "LAC",
           "date": "Sun, Oct 11",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "DET",
           "home": "ARI",
           "date": "Sun, Oct 11",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "CHI",
           "home": "GB",
           "date": "Sun, Oct 11",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "SF",
           "home": "SEA",
           "date": "Sun, Oct 11",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "BAL",
           "home": "ATL",
           "date": "Sun, Oct 11",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "BUF",
           "home": "LAR",
           "date": "Mon, Oct 12",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -2544,99 +2418,85 @@
           "away": "SEA",
           "home": "DEN",
           "date": "Thu, Oct 15",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "HOU",
           "home": "JAX",
           "date": "Sun, Oct 18",
-          "time": "9:30 AM ET",
-          "network": "NFL Network"
+          "time": "9:30 AM ET"
         },
         {
           "away": "CHI",
           "home": "ATL",
           "date": "Sun, Oct 18",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BAL",
           "home": "CLE",
           "date": "Sun, Oct 18",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TEN",
           "home": "IND",
           "date": "Sun, Oct 18",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYJ",
           "home": "NE",
           "date": "Sun, Oct 18",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NO",
           "home": "NYG",
           "date": "Sun, Oct 18",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CAR",
           "home": "PHI",
           "date": "Sun, Oct 18",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "PIT",
           "home": "TB",
           "date": "Sun, Oct 18",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ARI",
           "home": "LAR",
           "date": "Sun, Oct 18",
-          "time": "4:05 PM ET",
-          "network": "FOX"
+          "time": "4:05 PM ET"
         },
         {
           "away": "LAC",
           "home": "KC",
           "date": "Sun, Oct 18",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "BUF",
           "home": "LV",
           "date": "Sun, Oct 18",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "DAL",
           "home": "GB",
           "date": "Sun, Oct 18",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "WAS",
           "home": "SF",
           "date": "Mon, Oct 19",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -2647,99 +2507,85 @@
           "away": "NE",
           "home": "CHI",
           "date": "Thu, Oct 22",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "PIT",
           "home": "NO",
           "date": "Sun, Oct 25",
-          "time": "9:30 AM ET",
-          "network": "NFL Network"
+          "time": "9:30 AM ET"
         },
         {
           "away": "SF",
           "home": "ATL",
           "date": "Sun, Oct 25",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TB",
           "home": "CAR",
           "date": "Sun, Oct 25",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYG",
           "home": "HOU",
           "date": "Sun, Oct 25",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "IND",
           "home": "MIN",
           "date": "Sun, Oct 25",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIA",
           "home": "NYJ",
           "date": "Sun, Oct 25",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CLE",
           "home": "TEN",
           "date": "Sun, Oct 25",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CIN",
           "home": "BAL",
           "date": "Sun, Oct 25",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "DEN",
           "home": "ARI",
           "date": "Sun, Oct 25",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "GB",
           "home": "DET",
           "date": "Sun, Oct 25",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "LAR",
           "home": "LV",
           "date": "Sun, Oct 25",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "KC",
           "home": "SEA",
           "date": "Sun, Oct 25",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "DAL",
           "home": "PHI",
           "date": "Mon, Oct 26",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -2750,99 +2596,85 @@
           "away": "CAR",
           "home": "GB",
           "date": "Thu, Oct 29",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "BAL",
           "home": "BUF",
           "date": "Sun, Nov 1",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TEN",
           "home": "CIN",
           "date": "Sun, Nov 1",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ARI",
           "home": "DAL",
           "date": "Sun, Nov 1",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIN",
           "home": "DET",
           "date": "Sun, Nov 1",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "IND",
           "home": "JAX",
           "date": "Sun, Nov 1",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LV",
           "home": "NYJ",
           "date": "Sun, Nov 1",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CLE",
           "home": "PIT",
           "date": "Sun, Nov 1",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ATL",
           "home": "TB",
           "date": "Sun, Nov 1",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LAC",
           "home": "LAR",
           "date": "Sun, Nov 1",
-          "time": "4:05 PM ET",
-          "network": "FOX"
+          "time": "4:05 PM ET"
         },
         {
           "away": "KC",
           "home": "DEN",
           "date": "Sun, Nov 1",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "NE",
           "home": "MIA",
           "date": "Sun, Nov 1",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "PHI",
           "home": "WAS",
           "date": "Sun, Nov 1",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "CHI",
           "home": "SEA",
           "date": "Mon, Nov 2",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -2853,106 +2685,91 @@
           "away": "JAX",
           "home": "BAL",
           "date": "Thu, Nov 5",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "CIN",
           "home": "ATL",
           "date": "Sun, Nov 8",
-          "time": "9:30 AM ET",
-          "network": "NFL Network"
+          "time": "9:30 AM ET"
         },
         {
           "away": "DEN",
           "home": "CAR",
           "date": "Sun, Nov 8",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "DAL",
           "home": "IND",
           "date": "Sun, Nov 8",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYJ",
           "home": "KC",
           "date": "Sun, Nov 8",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "DET",
           "home": "MIA",
           "date": "Sun, Nov 8",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CLE",
           "home": "NO",
           "date": "Sun, Nov 8",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYG",
           "home": "PHI",
           "date": "Sun, Nov 8",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LAR",
           "home": "WAS",
           "date": "Sun, Nov 8",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "HOU",
           "home": "LAC",
           "date": "Sun, Nov 8",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "LV",
           "home": "SF",
           "date": "Sun, Nov 8",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "GB",
           "home": "NE",
           "date": "Sun, Nov 8",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "ARI",
           "home": "SEA",
           "date": "Sun, Nov 8",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "TB",
           "home": "CHI",
           "date": "Sun, Nov 8",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "BUF",
           "home": "MIN",
           "date": "Mon, Nov 9",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -2963,99 +2780,85 @@
           "away": "WAS",
           "home": "NYG",
           "date": "Thu, Nov 12",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "NE",
           "home": "DET",
           "date": "Sun, Nov 15",
-          "time": "9:30 AM ET",
-          "network": "FOX"
+          "time": "9:30 AM ET"
         },
         {
           "away": "KC",
           "home": "ATL",
           "date": "Sun, Nov 15",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "HOU",
           "home": "CLE",
           "date": "Sun, Nov 15",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIA",
           "home": "IND",
           "date": "Sun, Nov 15",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIN",
           "home": "GB",
           "date": "Sun, Nov 15",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CAR",
           "home": "NO",
           "date": "Sun, Nov 15",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BUF",
           "home": "NYJ",
           "date": "Sun, Nov 15",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "JAX",
           "home": "TEN",
           "date": "Sun, Nov 15",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LAR",
           "home": "ARI",
           "date": "Sun, Nov 15",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "SEA",
           "home": "LV",
           "date": "Sun, Nov 15",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "SF",
           "home": "DAL",
           "date": "Sun, Nov 15",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "PIT",
           "home": "CIN",
           "date": "Sun, Nov 15",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "LAC",
           "home": "BAL",
           "date": "Mon, Nov 16",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -3066,92 +2869,79 @@
           "away": "IND",
           "home": "HOU",
           "date": "Thu, Nov 19",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "MIA",
           "home": "BUF",
           "date": "Sun, Nov 22",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BAL",
           "home": "CAR",
           "date": "Sun, Nov 22",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NO",
           "home": "CHI",
           "date": "Sun, Nov 22",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TEN",
           "home": "DAL",
           "date": "Sun, Nov 22",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TB",
           "home": "DET",
           "date": "Sun, Nov 22",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ARI",
           "home": "KC",
           "date": "Sun, Nov 22",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "JAX",
           "home": "NYG",
           "date": "Sun, Nov 22",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYJ",
           "home": "LAC",
           "date": "Sun, Nov 22",
-          "time": "4:05 PM ET",
-          "network": "FOX"
+          "time": "4:05 PM ET"
         },
         {
           "away": "LV",
           "home": "DEN",
           "date": "Sun, Nov 22",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "PIT",
           "home": "PHI",
           "date": "Sun, Nov 22",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "MIN",
           "home": "SF",
           "date": "Sun, Nov 22",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "CIN",
           "home": "WAS",
           "date": "Mon, Nov 23",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -3162,113 +2952,97 @@
           "away": "GB",
           "home": "LAR",
           "date": "Wed, Nov 25",
-          "time": "8:00 PM ET",
-          "network": "Netflix"
+          "time": "8:00 PM ET"
         },
         {
           "away": "CHI",
           "home": "DET",
           "date": "Thu, Nov 26",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "PHI",
           "home": "DAL",
           "date": "Thu, Nov 26",
-          "time": "4:30 PM ET",
-          "network": "FOX"
+          "time": "4:30 PM ET"
         },
         {
           "away": "KC",
           "home": "BUF",
           "date": "Thu, Nov 26",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "DEN",
           "home": "PIT",
           "date": "Fri, Nov 27",
-          "time": "3:00 PM ET",
-          "network": "Prime Video"
+          "time": "3:00 PM ET"
         },
         {
           "away": "NO",
           "home": "CIN",
           "date": "Sun, Nov 29",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LV",
           "home": "CLE",
           "date": "Sun, Nov 29",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYG",
           "home": "IND",
           "date": "Sun, Nov 29",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BAL",
           "home": "HOU",
           "date": "Sun, Nov 29",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYJ",
           "home": "MIA",
           "date": "Sun, Nov 29",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ATL",
           "home": "MIN",
           "date": "Sun, Nov 29",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TEN",
           "home": "JAX",
           "date": "Sun, Nov 29",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "WAS",
           "home": "ARI",
           "date": "Sun, Nov 29",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "SEA",
           "home": "SF",
           "date": "Sun, Nov 29",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "NE",
           "home": "LAC",
           "date": "Sun, Nov 29",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "CAR",
           "home": "TB",
           "date": "Mon, Nov 30",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -3279,99 +3053,85 @@
           "away": "KC",
           "home": "LAR",
           "date": "Thu, Dec 3",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "DET",
           "home": "ATL",
           "date": "Sun, Dec 6",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "JAX",
           "home": "CHI",
           "date": "Sun, Dec 6",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CIN",
           "home": "CLE",
           "date": "Sun, Dec 6",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "GB",
           "home": "NO",
           "date": "Sun, Dec 6",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "SF",
           "home": "NYG",
           "date": "Sun, Dec 6",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "WAS",
           "home": "TEN",
           "date": "Sun, Dec 6",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LAC",
           "home": "TB",
           "date": "Sun, Dec 6",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "PHI",
           "home": "ARI",
           "date": "Sun, Dec 6",
-          "time": "4:05 PM ET",
-          "network": "FOX"
+          "time": "4:05 PM ET"
         },
         {
           "away": "MIA",
           "home": "DEN",
           "date": "Sun, Dec 6",
-          "time": "4:05 PM ET",
-          "network": "FOX"
+          "time": "4:05 PM ET"
         },
         {
           "away": "CAR",
           "home": "MIN",
           "date": "Sun, Dec 6",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "BUF",
           "home": "NE",
           "date": "Sun, Dec 6",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "HOU",
           "home": "PIT",
           "date": "Sun, Dec 6",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "DAL",
           "home": "SEA",
           "date": "Mon, Dec 7",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -3382,106 +3142,91 @@
           "away": "MIN",
           "home": "NE",
           "date": "Thu, Dec 10",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "TB",
           "home": "BAL",
           "date": "Sun, Dec 13",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NO",
           "home": "CAR",
           "date": "Sun, Dec 13",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ATL",
           "home": "CLE",
           "date": "Sun, Dec 13",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TEN",
           "home": "DET",
           "date": "Sun, Dec 13",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CHI",
           "home": "MIA",
           "date": "Sun, Dec 13",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "DEN",
           "home": "NYJ",
           "date": "Sun, Dec 13",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "IND",
           "home": "PHI",
           "date": "Sun, Dec 13",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "HOU",
           "home": "WAS",
           "date": "Sun, Dec 13",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LAC",
           "home": "LV",
           "date": "Sun, Dec 13",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "KC",
           "home": "CIN",
           "date": "Sun, Dec 13",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "NYG",
           "home": "SEA",
           "date": "Sun, Dec 13",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "LAR",
           "home": "SF",
           "date": "Sun, Dec 13",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "BUF",
           "home": "GB",
           "date": "Sun, Dec 13",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "PIT",
           "home": "JAX",
           "date": "Mon, Dec 14",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -3492,113 +3237,97 @@
           "away": "SF",
           "home": "LAC",
           "date": "Thu, Dec 17",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "SEA",
           "home": "PHI",
           "date": "Thu, Dec 17",
-          "time": "8:15 PM ET",
-          "network": "FOX"
+          "time": "8:15 PM ET"
         },
         {
           "away": "CHI",
           "home": "BUF",
           "date": "Thu, Dec 17",
-          "time": "8:15 PM ET",
-          "network": "CBS"
+          "time": "8:15 PM ET"
         },
         {
           "away": "CIN",
           "home": "CAR",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIA",
           "home": "GB",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "JAX",
           "home": "HOU",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CLE",
           "home": "NYG",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BAL",
           "home": "PIT",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NO",
           "home": "TB",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "IND",
           "home": "TEN",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ATL",
           "home": "WAS",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYJ",
           "home": "ARI",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "DAL",
           "home": "LAR",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "DEN",
           "home": "LV",
           "date": "Sun, Dec 20",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "DET",
           "home": "MIN",
           "date": "Sun, Dec 20",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "NE",
           "home": "KC",
           "date": "Mon, Dec 21",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         }
       ]
     },
@@ -3609,85 +3338,73 @@
           "away": "HOU",
           "home": "PHI",
           "date": "Thu, Dec 24",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "GB",
           "home": "CHI",
           "date": "Fri, Dec 25",
-          "time": "1:00 PM ET",
-          "network": "Netflix"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BUF",
           "home": "DEN",
           "date": "Fri, Dec 25",
-          "time": "4:30 PM ET",
-          "network": "Netflix"
+          "time": "4:30 PM ET"
         },
         {
           "away": "LAR",
           "home": "SEA",
           "date": "Fri, Dec 25",
-          "time": "8:15 PM ET",
-          "network": "FOX"
+          "time": "8:15 PM ET"
         },
         {
           "away": "CLE",
           "home": "BAL",
           "date": "Sun, Dec 27",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LAC",
           "home": "MIA",
           "date": "Sun, Dec 27",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ARI",
           "home": "NO",
           "date": "Sun, Dec 27",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NE",
           "home": "NYJ",
           "date": "Sun, Dec 27",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "TEN",
           "home": "LV",
           "date": "Sun, Dec 27",
-          "time": "4:05 PM ET",
-          "network": "FOX"
+          "time": "4:05 PM ET"
         },
         {
           "away": "SF",
           "home": "KC",
           "date": "Sun, Dec 27",
-          "time": "4:25 PM ET",
-          "network": "CBS"
+          "time": "4:25 PM ET"
         },
         {
           "away": "JAX",
           "home": "DAL",
           "date": "Sun, Dec 27",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "NYG",
           "home": "DET",
           "date": "Mon, Dec 28",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         },
         {
           "away": "TB",
@@ -3722,85 +3439,73 @@
           "away": "BAL",
           "home": "CIN",
           "date": "Thu, Dec 31",
-          "time": "8:15 PM ET",
-          "network": "Prime Video"
+          "time": "8:15 PM ET"
         },
         {
           "away": "NO",
           "home": "ATL",
           "date": "Sun, Jan 3",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "SEA",
           "home": "CAR",
           "date": "Sun, Jan 3",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "IND",
           "home": "CLE",
           "date": "Sun, Jan 3",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NYG",
           "home": "DAL",
           "date": "Sun, Jan 3",
-          "time": "1:00 PM ET",
-          "network": "FOX"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BUF",
           "home": "MIA",
           "date": "Sun, Jan 3",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIN",
           "home": "NYJ",
           "date": "Sun, Jan 3",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "PIT",
           "home": "TEN",
           "date": "Sun, Jan 3",
-          "time": "1:00 PM ET",
-          "network": "CBS"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LV",
           "home": "ARI",
           "date": "Sun, Jan 3",
-          "time": "4:05 PM ET",
-          "network": "CBS"
+          "time": "4:05 PM ET"
         },
         {
           "away": "DET",
           "home": "CHI",
           "date": "Sun, Jan 3",
-          "time": "4:25 PM ET",
-          "network": "FOX"
+          "time": "4:25 PM ET"
         },
         {
           "away": "PHI",
           "home": "SF",
           "date": "Sun, Jan 3",
-          "time": "8:20 PM ET",
-          "network": "NBC"
+          "time": "8:20 PM ET"
         },
         {
           "away": "HOU",
           "home": "GB",
           "date": "Mon, Jan 4",
-          "time": "8:15 PM ET",
-          "network": "ESPN"
+          "time": "8:15 PM ET"
         },
         {
           "away": "WAS",
@@ -3932,7 +3637,2059 @@
   ]
 }</script>
 <script type="application/json" id="history-data">{
-  "weeks": []
+  "weeks": [
+    {
+      "week": -4,
+      "isDemo": false,
+      "snapshotDate": "2026-08-07T14:02:47Z",
+      "note": "Preseason - Hall of Fame Game (Aug 6, 2026). Stats reflect end of prior regular season, not yet updated for 2026.",
+      "teamStats": {
+        "ARI": {
+          "offense": {
+            "rushYdsPerGame": 93.1,
+            "passYdsPerGame": 232.6,
+            "totalYdsPerGame": 325.8,
+            "rankRush": 31,
+            "rankPass": 7,
+            "rankTotal": 19
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 126.9,
+            "passYdsAllowedPerGame": 230.8,
+            "totalYdsAllowedPerGame": 357.7,
+            "rankRush": 25,
+            "rankPass": 24,
+            "rankTotal": 27
+          }
+        },
+        "ATL": {
+          "offense": {
+            "rushYdsPerGame": 125.8,
+            "passYdsPerGame": 207.2,
+            "totalYdsPerGame": 333.0,
+            "rankRush": 8,
+            "rankPass": 19,
+            "rankTotal": 14
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 126.2,
+            "passYdsAllowedPerGame": 200.4,
+            "totalYdsAllowedPerGame": 326.6,
+            "rankRush": 24,
+            "rankPass": 13,
+            "rankTotal": 15
+          }
+        },
+        "BAL": {
+          "offense": {
+            "rushYdsPerGame": 156.6,
+            "passYdsPerGame": 175.6,
+            "totalYdsPerGame": 332.2,
+            "rankRush": 2,
+            "rankPass": 27,
+            "rankTotal": 16
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 106.6,
+            "passYdsAllowedPerGame": 247.9,
+            "totalYdsAllowedPerGame": 354.5,
+            "rankRush": 10,
+            "rankPass": 31,
+            "rankTotal": 24
+          }
+        },
+        "BUF": {
+          "offense": {
+            "rushYdsPerGame": 159.6,
+            "passYdsPerGame": 216.6,
+            "totalYdsPerGame": 376.3,
+            "rankRush": 1,
+            "rankPass": 15,
+            "rankTotal": 4
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 136.2,
+            "passYdsAllowedPerGame": 156.9,
+            "totalYdsAllowedPerGame": 293.1,
+            "rankRush": 28,
+            "rankPass": 1,
+            "rankTotal": 7
+          }
+        },
+        "CAR": {
+          "offense": {
+            "rushYdsPerGame": 116.3,
+            "passYdsPerGame": 179.3,
+            "totalYdsPerGame": 295.6,
+            "rankRush": 19,
+            "rankPass": 26,
+            "rankTotal": 27
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 123.3,
+            "passYdsAllowedPerGame": 203.9,
+            "totalYdsAllowedPerGame": 327.2,
+            "rankRush": 20,
+            "rankPass": 15,
+            "rankTotal": 16
+          }
+        },
+        "CHI": {
+          "offense": {
+            "rushYdsPerGame": 144.2,
+            "passYdsPerGame": 225.1,
+            "totalYdsPerGame": 369.2,
+            "rankRush": 3,
+            "rankPass": 10,
+            "rankTotal": 6
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 134.5,
+            "passYdsAllowedPerGame": 227.2,
+            "totalYdsAllowedPerGame": 361.8,
+            "rankRush": 27,
+            "rankPass": 22,
+            "rankTotal": 29
+          }
+        },
+        "CIN": {
+          "offense": {
+            "rushYdsPerGame": 93.6,
+            "passYdsPerGame": 235.6,
+            "totalYdsPerGame": 329.2,
+            "rankRush": 29,
+            "rankPass": 6,
+            "rankTotal": 17
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 147.1,
+            "passYdsAllowedPerGame": 233.8,
+            "totalYdsAllowedPerGame": 380.9,
+            "rankRush": 32,
+            "rankPass": 26,
+            "rankTotal": 31
+          }
+        },
+        "CLE": {
+          "offense": {
+            "rushYdsPerGame": 97.0,
+            "passYdsPerGame": 165.1,
+            "totalYdsPerGame": 262.1,
+            "rankRush": 27,
+            "rankPass": 31,
+            "rankTotal": 30
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 116.4,
+            "passYdsAllowedPerGame": 167.2,
+            "totalYdsAllowedPerGame": 283.6,
+            "rankRush": 16,
+            "rankPass": 3,
+            "rankTotal": 4
+          }
+        },
+        "DAL": {
+          "offense": {
+            "rushYdsPerGame": 125.6,
+            "passYdsPerGame": 266.3,
+            "totalYdsPerGame": 391.9,
+            "rankRush": 9,
+            "rankPass": 2,
+            "rankTotal": 2
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 125.5,
+            "passYdsAllowedPerGame": 251.5,
+            "totalYdsAllowedPerGame": 377.0,
+            "rankRush": 23,
+            "rankPass": 32,
+            "rankTotal": 30
+          }
+        },
+        "DEN": {
+          "offense": {
+            "rushYdsPerGame": 118.7,
+            "passYdsPerGame": 223.9,
+            "totalYdsPerGame": 342.6,
+            "rankRush": 16,
+            "rankPass": 11,
+            "rankTotal": 10
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 91.1,
+            "passYdsAllowedPerGame": 187.2,
+            "totalYdsAllowedPerGame": 278.2,
+            "rankRush": 2,
+            "rankPass": 7,
+            "rankTotal": 2
+          }
+        },
+        "DET": {
+          "offense": {
+            "rushYdsPerGame": 120.1,
+            "passYdsPerGame": 253.1,
+            "totalYdsPerGame": 373.2,
+            "rankRush": 14,
+            "rankPass": 3,
+            "rankTotal": 5
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 114.5,
+            "passYdsAllowedPerGame": 217.4,
+            "totalYdsAllowedPerGame": 331.9,
+            "rankRush": 14,
+            "rankPass": 20,
+            "rankTotal": 18
+          }
+        },
+        "GB": {
+          "offense": {
+            "rushYdsPerGame": 119.8,
+            "passYdsPerGame": 212.8,
+            "totalYdsPerGame": 332.6,
+            "rankRush": 15,
+            "rankPass": 17,
+            "rankTotal": 15
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 117.7,
+            "passYdsAllowedPerGame": 194.1,
+            "totalYdsAllowedPerGame": 311.8,
+            "rankRush": 18,
+            "rankPass": 11,
+            "rankTotal": 12
+          }
+        },
+        "HOU": {
+          "offense": {
+            "rushYdsPerGame": 108.9,
+            "passYdsPerGame": 218.1,
+            "totalYdsPerGame": 327.0,
+            "rankRush": 22,
+            "rankPass": 14,
+            "rankTotal": 18
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 93.7,
+            "passYdsAllowedPerGame": 183.5,
+            "totalYdsAllowedPerGame": 277.2,
+            "rankRush": 4,
+            "rankPass": 6,
+            "rankTotal": 1
+          }
+        },
+        "IND": {
+          "offense": {
+            "rushYdsPerGame": 118.1,
+            "passYdsPerGame": 227.8,
+            "totalYdsPerGame": 345.9,
+            "rankRush": 17,
+            "rankPass": 9,
+            "rankTotal": 9
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 101.9,
+            "passYdsAllowedPerGame": 247.9,
+            "totalYdsAllowedPerGame": 349.8,
+            "rankRush": 7,
+            "rankPass": 30,
+            "rankTotal": 23
+          }
+        },
+        "JAX": {
+          "offense": {
+            "rushYdsPerGame": 115.1,
+            "passYdsPerGame": 222.3,
+            "totalYdsPerGame": 337.4,
+            "rankRush": 20,
+            "rankPass": 12,
+            "rankTotal": 11
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 85.6,
+            "passYdsAllowedPerGame": 218.1,
+            "totalYdsAllowedPerGame": 303.6,
+            "rankRush": 1,
+            "rankPass": 21,
+            "rankTotal": 11
+          }
+        },
+        "KC": {
+          "offense": {
+            "rushYdsPerGame": 106.6,
+            "passYdsPerGame": 214.1,
+            "totalYdsPerGame": 320.6,
+            "rankRush": 25,
+            "rankPass": 16,
+            "rankTotal": 20
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 105.7,
+            "passYdsAllowedPerGame": 195.8,
+            "totalYdsAllowedPerGame": 301.5,
+            "rankRush": 9,
+            "rankPass": 12,
+            "rankTotal": 10
+          }
+        },
+        "LV": {
+          "offense": {
+            "rushYdsPerGame": 77.5,
+            "passYdsPerGame": 167.7,
+            "totalYdsPerGame": 245.2,
+            "rankRush": 32,
+            "rankPass": 28,
+            "rankTotal": 32
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 116.8,
+            "passYdsAllowedPerGame": 201.0,
+            "totalYdsAllowedPerGame": 317.8,
+            "rankRush": 17,
+            "rankPass": 14,
+            "rankTotal": 14
+          }
+        },
+        "LAC": {
+          "offense": {
+            "rushYdsPerGame": 121.6,
+            "passYdsPerGame": 212.2,
+            "totalYdsPerGame": 333.8,
+            "rankRush": 12,
+            "rankPass": 18,
+            "rankTotal": 12
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 105.4,
+            "passYdsAllowedPerGame": 179.9,
+            "totalYdsAllowedPerGame": 285.2,
+            "rankRush": 8,
+            "rankPass": 5,
+            "rankTotal": 5
+          }
+        },
+        "LAR": {
+          "offense": {
+            "rushYdsPerGame": 126.6,
+            "passYdsPerGame": 268.1,
+            "totalYdsPerGame": 394.6,
+            "rankRush": 7,
+            "rankPass": 1,
+            "rankTotal": 1
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 110.8,
+            "passYdsAllowedPerGame": 216.7,
+            "totalYdsAllowedPerGame": 327.5,
+            "rankRush": 12,
+            "rankPass": 19,
+            "rankTotal": 17
+          }
+        },
+        "MIA": {
+          "offense": {
+            "rushYdsPerGame": 120.2,
+            "passYdsPerGame": 180.5,
+            "totalYdsPerGame": 300.7,
+            "rankRush": 13,
+            "rankPass": 25,
+            "rankTotal": 26
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 132.4,
+            "passYdsAllowedPerGame": 216.4,
+            "totalYdsAllowedPerGame": 348.8,
+            "rankRush": 26,
+            "rankPass": 18,
+            "rankTotal": 22
+          }
+        },
+        "MIN": {
+          "offense": {
+            "rushYdsPerGame": 108.3,
+            "passYdsPerGame": 166.7,
+            "totalYdsPerGame": 275.0,
+            "rankRush": 23,
+            "rankPass": 29,
+            "rankTotal": 28
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 124.1,
+            "passYdsAllowedPerGame": 158.5,
+            "totalYdsAllowedPerGame": 282.6,
+            "rankRush": 21,
+            "rankPass": 2,
+            "rankTotal": 3
+          }
+        },
+        "NE": {
+          "offense": {
+            "rushYdsPerGame": 128.9,
+            "passYdsPerGame": 250.5,
+            "totalYdsPerGame": 379.4,
+            "rankRush": 6,
+            "rankPass": 4,
+            "rankTotal": 3
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 101.7,
+            "passYdsAllowedPerGame": 193.5,
+            "totalYdsAllowedPerGame": 295.2,
+            "rankRush": 6,
+            "rankPass": 9,
+            "rankTotal": 8
+          }
+        },
+        "NO": {
+          "offense": {
+            "rushYdsPerGame": 94.3,
+            "passYdsPerGame": 219.3,
+            "totalYdsPerGame": 313.6,
+            "rankRush": 28,
+            "rankPass": 13,
+            "rankTotal": 23
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 120.6,
+            "passYdsAllowedPerGame": 179.2,
+            "totalYdsAllowedPerGame": 299.8,
+            "rankRush": 19,
+            "rankPass": 4,
+            "rankTotal": 9
+          }
+        },
+        "NYG": {
+          "offense": {
+            "rushYdsPerGame": 129.1,
+            "passYdsPerGame": 204.4,
+            "totalYdsPerGame": 333.5,
+            "rankRush": 5,
+            "rankPass": 21,
+            "rankTotal": 13
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 145.3,
+            "passYdsAllowedPerGame": 214.2,
+            "totalYdsAllowedPerGame": 359.5,
+            "rankRush": 31,
+            "rankPass": 16,
+            "rankTotal": 28
+          }
+        },
+        "NYJ": {
+          "offense": {
+            "rushYdsPerGame": 123.3,
+            "passYdsPerGame": 140.3,
+            "totalYdsPerGame": 263.6,
+            "rankRush": 11,
+            "rankPass": 32,
+            "rankTotal": 29
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 139.5,
+            "passYdsAllowedPerGame": 216.1,
+            "totalYdsAllowedPerGame": 355.6,
+            "rankRush": 29,
+            "rankPass": 17,
+            "rankTotal": 25
+          }
+        },
+        "PHI": {
+          "offense": {
+            "rushYdsPerGame": 116.9,
+            "passYdsPerGame": 194.3,
+            "totalYdsPerGame": 311.2,
+            "rankRush": 18,
+            "rankPass": 23,
+            "rankTotal": 24
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 124.4,
+            "passYdsAllowedPerGame": 189.8,
+            "totalYdsAllowedPerGame": 314.2,
+            "rankRush": 22,
+            "rankPass": 8,
+            "rankTotal": 13
+          }
+        },
+        "PIT": {
+          "offense": {
+            "rushYdsPerGame": 103.3,
+            "passYdsPerGame": 202.4,
+            "totalYdsPerGame": 305.6,
+            "rankRush": 26,
+            "rankPass": 22,
+            "rankTotal": 25
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 113.1,
+            "passYdsAllowedPerGame": 243.9,
+            "totalYdsAllowedPerGame": 356.9,
+            "rankRush": 13,
+            "rankPass": 29,
+            "rankTotal": 26
+          }
+        },
+        "SF": {
+          "offense": {
+            "rushYdsPerGame": 106.9,
+            "passYdsPerGame": 244.5,
+            "totalYdsPerGame": 351.4,
+            "rankRush": 24,
+            "rankPass": 5,
+            "rankTotal": 7
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 107.8,
+            "passYdsAllowedPerGame": 232.4,
+            "totalYdsAllowedPerGame": 340.2,
+            "rankRush": 11,
+            "rankPass": 25,
+            "rankTotal": 20
+          }
+        },
+        "SEA": {
+          "offense": {
+            "rushYdsPerGame": 123.3,
+            "passYdsPerGame": 228.1,
+            "totalYdsPerGame": 351.4,
+            "rankRush": 10,
+            "rankPass": 8,
+            "rankTotal": 8
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 91.9,
+            "passYdsAllowedPerGame": 193.9,
+            "totalYdsAllowedPerGame": 285.9,
+            "rankRush": 3,
+            "rankPass": 10,
+            "rankTotal": 6
+          }
+        },
+        "TB": {
+          "offense": {
+            "rushYdsPerGame": 114.5,
+            "passYdsPerGame": 205.9,
+            "totalYdsPerGame": 320.4,
+            "rankRush": 21,
+            "rankPass": 20,
+            "rankTotal": 21
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 99.1,
+            "passYdsAllowedPerGame": 238.2,
+            "totalYdsAllowedPerGame": 337.2,
+            "rankRush": 5,
+            "rankPass": 27,
+            "rankTotal": 19
+          }
+        },
+        "TEN": {
+          "offense": {
+            "rushYdsPerGame": 93.5,
+            "passYdsPerGame": 166.1,
+            "totalYdsPerGame": 259.6,
+            "rankRush": 30,
+            "rankPass": 30,
+            "rankTotal": 31
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 114.6,
+            "passYdsAllowedPerGame": 230.5,
+            "totalYdsAllowedPerGame": 345.1,
+            "rankRush": 15,
+            "rankPass": 23,
+            "rankTotal": 21
+          }
+        },
+        "WAS": {
+          "offense": {
+            "rushYdsPerGame": 134.7,
+            "passYdsPerGame": 184.1,
+            "totalYdsPerGame": 318.8,
+            "rankRush": 4,
+            "rankPass": 24,
+            "rankTotal": 22
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 141.5,
+            "passYdsAllowedPerGame": 242.5,
+            "totalYdsAllowedPerGame": 384.0,
+            "rankRush": 30,
+            "rankPass": 28,
+            "rankTotal": 32
+          }
+        }
+      },
+      "impactPlayers": {
+        "NE": [
+          {
+            "name": "Drake Maye",
+            "position": "QB",
+            "impactScore": 9,
+            "status": "active"
+          }
+        ],
+        "SEA": [
+          {
+            "name": "Sam Darnold",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          },
+          {
+            "name": "Nick Emmanwori",
+            "position": "S",
+            "impactScore": 7,
+            "status": "out",
+            "injury": {
+              "type": "Right ankle surgery (arthroscopic cleanup)",
+              "since": "2026-07",
+              "note": "Had a minor arthroscopic procedure earlier this month on lingering soreness from an ankle injury first suffered before Super Bowl LX. Opened camp on PUP; Seahawks expect him ready for the Sept. 9 season opener vs. New England."
+            }
+          }
+        ],
+        "SF": [
+          {
+            "name": "Brock Purdy",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          },
+          {
+            "name": "George Kittle",
+            "position": "TE",
+            "impactScore": 7,
+            "status": "out",
+            "injury": {
+              "type": "Torn Achilles tendon",
+              "since": "2026-01-11",
+              "note": "Suffered in the 49ers' Jan. 11 playoff win over the Eagles. Opened training camp on the PUP list; GM John Lynch says the rehab is 'coming tremendous.'"
+            }
+          },
+          {
+            "name": "Ricky Pearsall",
+            "position": "WR",
+            "impactScore": 7,
+            "status": "out",
+            "injury": {
+              "type": "PCL knee surgery - season-ending",
+              "since": "2026-08-01",
+              "note": "GM John Lynch announced Pearsall will have surgery on his PCL and is out for the entire 2026 season; placed on injured reserve. Recurring swelling in the same knee had limited him to two camp practices. 49ers re-signed Deebo Samuel in response."
+            }
+          },
+          {
+            "name": "Mike Evans",
+            "position": "WR",
+            "impactScore": 8,
+            "status": "questionable",
+            "injury": {
+              "type": "Quad strain",
+              "since": "2026-08-03",
+              "note": "Missed Monday's practice with a quad strain, his first missed session since signing a 3-year, $60.4M deal with San Francisco this offseason after 12 seasons in Tampa Bay. Considered minor and could resolve relatively quickly, per Ian Rapoport; no firm return date given."
+            }
+          }
+        ],
+        "LAR": [
+          {
+            "name": "Matthew Stafford",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          },
+          {
+            "name": "Myles Garrett",
+            "position": "Edge",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "CHI": [
+          {
+            "name": "Caleb Williams",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          },
+          {
+            "name": "Coby Bryant",
+            "position": "S",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Hyperextended left knee, bone bruise, small fracture",
+              "since": "2026-08-03",
+              "note": "Hurt in one-on-one drills during the Bears' first padded training camp practice. Expected to miss 8-10 weeks; no surgery required, per Adam Schefter. Was Chicago's marquee free-agent addition this offseason (3-year, $40M deal)."
+            }
+          }
+        ],
+        "CAR": [
+          {
+            "name": "Bryce Young",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          },
+          {
+            "name": "Ikem Ekwonu",
+            "position": "OT",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Ruptured patellar tendon (right knee) - surgically repaired",
+              "since": "2026-01",
+              "note": "Suffered in the Panthers' January playoff loss to the Rams. Underwent surgery in early August to repair the tendon; GM Dan Morgan says Ekwonu is \"attacking\" his rehab and remains optimistic he can return at some point this season."
+            }
+          },
+          {
+            "name": "Nic Scourton",
+            "position": "OLB",
+            "impactScore": 5,
+            "status": "out",
+            "injury": {
+              "type": "Torn ACL",
+              "since": "2026-07",
+              "note": "Non-contact tear suffered on the first day of training camp practice \u2014 out for the season. The injury happened during the mandatory acclimation period, which the NFLPA is investigating."
+            }
+          },
+          {
+            "name": "Taylor Moton",
+            "position": "RT",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Blood clot in lung",
+              "since": "2026-06",
+              "note": "Diagnosed with a blood clot in his lung in late June and placed on the reserve/non-football injury (NFI) list; immediately started on blood thinners and is reportedly responding well to treatment. Expected to miss the start of the regular season, per ESPN, though the team believes he could return at some point during the year."
+            }
+          }
+        ],
+        "TB": [
+          {
+            "name": "Baker Mayfield",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "CIN": [
+          {
+            "name": "Joe Burrow",
+            "position": "QB",
+            "impactScore": 9,
+            "status": "active"
+          },
+          {
+            "name": "Shemar Steward",
+            "position": "DE",
+            "impactScore": 6,
+            "status": "questionable",
+            "injury": {
+              "type": "Hyperextended knee (no ligament damage)",
+              "since": "2026-07-29",
+              "note": "Carted off during Cincinnati's first padded/11-on-11 training camp practice. Follow-up testing showed no ligament damage; coach Zac Taylor said the 2025 first-round pick avoided a major injury and is considered week-to-week."
+            }
+          }
+        ],
+        "NO": [
+          {
+            "name": "Tyler Shough",
+            "position": "QB",
+            "impactScore": 5,
+            "status": "active"
+          },
+          {
+            "name": "Bryan Bresee",
+            "position": "DT",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Torn ACL - confirmed, season-ending surgery",
+              "since": "2026-07-29",
+              "note": "HC Kellen Moore confirmed Aug. 2 that Bresee's non-contact knee injury from the first day of camp is a torn ACL and he will undergo season-ending surgery, missing all of 2026. Started all 15 games in 2025."
+            }
+          }
+        ],
+        "DET": [
+          {
+            "name": "Jared Goff",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "BUF": [
+          {
+            "name": "Josh Allen",
+            "position": "QB",
+            "impactScore": 10,
+            "status": "active"
+          }
+        ],
+        "HOU": [
+          {
+            "name": "C.J. Stroud",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "BAL": [
+          {
+            "name": "Lamar Jackson",
+            "position": "QB",
+            "impactScore": 10,
+            "status": "active"
+          }
+        ],
+        "IND": [
+          {
+            "name": "Daniel Jones",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "CLE": [
+          {
+            "name": "Jeremiah Owusu-Koramoah",
+            "position": "LB",
+            "impactScore": 7,
+            "status": "out",
+            "injury": {
+              "type": "Chronic neck injury",
+              "since": "2024-10",
+              "note": "Originally hurt in an October 2024 collision with Derrick Henry. Placed on reserve/PUP for a second straight season; not expected to play in 2026."
+            }
+          }
+        ],
+        "JAX": [
+          {
+            "name": "Trevor Lawrence",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "ATL": [
+          {
+            "name": "Tua Tagovailoa",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "questionable",
+            "injury": {
+              "type": "Back injury (flare-up)",
+              "since": "2026-07-29",
+              "note": "Missed the start of camp with back tightness. Progressed to full 11-on-11 team work Monday, Aug. 3 (his first full team snaps of camp), was pulled back to a limited practice Tuesday, Aug. 4 as a precaution, then returned to 11-on-11 again Wednesday, Aug. 5 in the team's second padded practice. Tua says he expects to be full-go soon and could 'likely' play if it were a game week; still in a QB competition with Michael Penix Jr."
+            }
+          },
+          {
+            "name": "Michael Penix Jr.",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "questionable",
+            "injury": {
+              "type": "ACL reconstruction (left knee)",
+              "since": "2025-11-25",
+              "note": "Recovering from left knee ACL surgery on Nov. 25. Limited to individual/7-on-7 work, not yet cleared for 11-on-11s; reportedly could be another ~4 weeks from full clearance and 'probably won't' play Week 1."
+            }
+          },
+          {
+            "name": "Jalon Walker",
+            "position": "Edge",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Torn ACL - confirmed, season-ending",
+              "since": "2026-08-04",
+              "note": "Carted off during an 11-on-11 period at Tuesday's practice; an MRI later that evening confirmed a torn ACL, per The Athletic's Josh Kendall. The 2025 first-round pick (No. 15 overall) will miss the entire 2026 season."
+            }
+          }
+        ],
+        "PIT": [
+          {
+            "name": "Aaron Rodgers",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          },
+          {
+            "name": "Jalen Ramsey",
+            "position": "CB",
+            "impactScore": 8,
+            "status": "out",
+            "injury": {
+              "type": "Knee injury",
+              "since": "2026-06",
+              "note": "Hurt during minicamp; opened camp on PUP. GM Omar Khan estimated he'd be out 'a couple of weeks' - no surgery required. Began rehab work (stretching, light jogging) Aug. 1-2, an early sign of progress."
+            }
+          }
+        ],
+        "NYJ": [
+          {
+            "name": "Geno Smith",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "TEN": [
+          {
+            "name": "Cam Ward",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "ARI": [
+          {
+            "name": "Jacoby Brissett",
+            "position": "QB",
+            "impactScore": 5,
+            "status": "active"
+          }
+        ],
+        "LAC": [
+          {
+            "name": "Justin Herbert",
+            "position": "QB",
+            "impactScore": 9,
+            "status": "active"
+          }
+        ],
+        "MIA": [
+          {
+            "name": "Malik Willis",
+            "position": "QB",
+            "impactScore": 5,
+            "status": "active"
+          }
+        ],
+        "LV": [
+          {
+            "name": "Kirk Cousins",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "GB": [
+          {
+            "name": "Jordan Love",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          },
+          {
+            "name": "Micah Parsons",
+            "position": "Edge",
+            "impactScore": 9,
+            "status": "out",
+            "injury": {
+              "type": "Torn ACL + meniscus repair (left knee)",
+              "since": "2025-12",
+              "note": "Suffered in Week 15 last season vs. Denver. Placed on PUP to open camp; targeting a return around Week 6."
+            }
+          },
+          {
+            "name": "Josh Jacobs",
+            "position": "RB",
+            "impactScore": 7,
+            "status": "questionable",
+            "injury": {
+              "type": "Groin injury (mild)",
+              "since": "2026-08-06",
+              "note": "Sat out Thursday's practice with a groin issue. Coach Matt LaFleur and Jacobs both described it as minor (a 'tweak'); not expected to cost him significant time."
+            }
+          }
+        ],
+        "MIN": [
+          {
+            "name": "Justin Jefferson",
+            "position": "WR",
+            "impactScore": 8,
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring strain (mild)",
+              "since": "2026-07-24",
+              "note": "Left practice July 24 with a hamstring strain that an MRI confirmed as mild. Returned to practice July 29; Week 1 vs. Chicago (Sept. 8) remains the target for full speed."
+            }
+          }
+        ],
+        "WAS": [
+          {
+            "name": "Jayden Daniels",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "PHI": [
+          {
+            "name": "Jalen Hurts",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          },
+          {
+            "name": "Jonathan Greenard",
+            "position": "Edge",
+            "impactScore": 7,
+            "status": "out",
+            "injury": {
+              "type": "Pectoral strain",
+              "since": "2026-07-29",
+              "note": "Strained lifting weights ahead of camp; placed on PUP list on the first day of training camp. Traded to Philadelphia from Minnesota in April 2026 on a 4-year, $100M deal; injury is not expected to be long-term."
+            }
+          },
+          {
+            "name": "DeVonta Smith",
+            "position": "WR",
+            "impactScore": 7,
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring strain (minor)",
+              "since": "2026-08-03",
+              "note": "Missed practice Monday and Tuesday with a hamstring injury suffered at Eagles training camp; the team says it's not serious and there's no long-term concern, but is being handled cautiously as a soft-tissue issue with no firm return timetable."
+            }
+          }
+        ],
+        "DAL": [
+          {
+            "name": "Dak Prescott",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "NYG": [
+          {
+            "name": "Jaxson Dart",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          },
+          {
+            "name": "Malik Nabers",
+            "position": "WR",
+            "impactScore": 8,
+            "status": "questionable",
+            "injury": {
+              "type": "ACL + meniscus recovery (right knee)",
+              "since": "2025-09",
+              "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery to clear scar tissue. Took part in the individual portion of a full-team practice July 29-30 for the first time since the injury and 'looked good,' but coach John Harbaugh and GM Joe Schoen won't yet commit to a Week 1 (vs. Dallas) timeline, saying his workload will be managed day-to-day."
+            }
+          }
+        ],
+        "DEN": [
+          {
+            "name": "Bo Nix",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "KC": [
+          {
+            "name": "Patrick Mahomes",
+            "position": "QB",
+            "impactScore": 10,
+            "status": "active",
+            "injury": {
+              "type": "Torn ACL/LCL (left knee) - fully cleared",
+              "since": "2025-12-14",
+              "note": "Suffered the injury Dec. 14, 2025 vs. the Chargers, ending his 2025 season; had knee debridement surgery in May. Fully cleared off the PUP list for camp and has been a full practice participant, including 11-on-11 team drills, since late July."
+            }
+          },
+          {
+            "name": "Justin Fields",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ]
+      },
+      "results": {
+        "CAR-ARI": {
+          "awayScore": 33,
+          "homeScore": 30,
+          "final": true
+        }
+      }
+    },
+    {
+      "week": 1,
+      "isDemo": true,
+      "snapshotDate": "2026-09-14T00:00:00Z",
+      "note": "Illustrative sample only. The 2026 season hasn't been played yet (kickoff is Sept 9, 2026) -- these scores are made up to demonstrate the predicted-vs-actual view. Once Week 1 is actually played, a real snapshot will replace this.",
+      "teamStats": {
+        "ARI": {
+          "offense": {
+            "rushYdsPerGame": 93.1,
+            "passYdsPerGame": 232.6,
+            "totalYdsPerGame": 325.8,
+            "rankRush": 31,
+            "rankPass": 7,
+            "rankTotal": 19
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 126.9,
+            "passYdsAllowedPerGame": 230.8,
+            "totalYdsAllowedPerGame": 357.7,
+            "rankRush": 25,
+            "rankPass": 24,
+            "rankTotal": 27
+          }
+        },
+        "ATL": {
+          "offense": {
+            "rushYdsPerGame": 125.8,
+            "passYdsPerGame": 207.2,
+            "totalYdsPerGame": 333.0,
+            "rankRush": 8,
+            "rankPass": 19,
+            "rankTotal": 14
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 126.2,
+            "passYdsAllowedPerGame": 200.4,
+            "totalYdsAllowedPerGame": 326.6,
+            "rankRush": 24,
+            "rankPass": 13,
+            "rankTotal": 15
+          }
+        },
+        "BAL": {
+          "offense": {
+            "rushYdsPerGame": 156.6,
+            "passYdsPerGame": 175.6,
+            "totalYdsPerGame": 332.2,
+            "rankRush": 2,
+            "rankPass": 27,
+            "rankTotal": 16
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 106.6,
+            "passYdsAllowedPerGame": 247.9,
+            "totalYdsAllowedPerGame": 354.5,
+            "rankRush": 10,
+            "rankPass": 31,
+            "rankTotal": 24
+          }
+        },
+        "BUF": {
+          "offense": {
+            "rushYdsPerGame": 159.6,
+            "passYdsPerGame": 216.6,
+            "totalYdsPerGame": 376.3,
+            "rankRush": 1,
+            "rankPass": 15,
+            "rankTotal": 4
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 136.2,
+            "passYdsAllowedPerGame": 156.9,
+            "totalYdsAllowedPerGame": 293.1,
+            "rankRush": 28,
+            "rankPass": 1,
+            "rankTotal": 7
+          }
+        },
+        "CAR": {
+          "offense": {
+            "rushYdsPerGame": 116.3,
+            "passYdsPerGame": 179.3,
+            "totalYdsPerGame": 295.6,
+            "rankRush": 19,
+            "rankPass": 26,
+            "rankTotal": 27
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 123.3,
+            "passYdsAllowedPerGame": 203.9,
+            "totalYdsAllowedPerGame": 327.2,
+            "rankRush": 20,
+            "rankPass": 15,
+            "rankTotal": 16
+          }
+        },
+        "CHI": {
+          "offense": {
+            "rushYdsPerGame": 144.2,
+            "passYdsPerGame": 225.1,
+            "totalYdsPerGame": 369.2,
+            "rankRush": 3,
+            "rankPass": 10,
+            "rankTotal": 6
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 134.5,
+            "passYdsAllowedPerGame": 227.2,
+            "totalYdsAllowedPerGame": 361.8,
+            "rankRush": 27,
+            "rankPass": 22,
+            "rankTotal": 29
+          }
+        },
+        "CIN": {
+          "offense": {
+            "rushYdsPerGame": 93.6,
+            "passYdsPerGame": 235.6,
+            "totalYdsPerGame": 329.2,
+            "rankRush": 29,
+            "rankPass": 6,
+            "rankTotal": 17
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 147.1,
+            "passYdsAllowedPerGame": 233.8,
+            "totalYdsAllowedPerGame": 380.9,
+            "rankRush": 32,
+            "rankPass": 26,
+            "rankTotal": 31
+          }
+        },
+        "CLE": {
+          "offense": {
+            "rushYdsPerGame": 97.0,
+            "passYdsPerGame": 165.1,
+            "totalYdsPerGame": 262.1,
+            "rankRush": 27,
+            "rankPass": 31,
+            "rankTotal": 30
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 116.4,
+            "passYdsAllowedPerGame": 167.2,
+            "totalYdsAllowedPerGame": 283.6,
+            "rankRush": 16,
+            "rankPass": 3,
+            "rankTotal": 4
+          }
+        },
+        "DAL": {
+          "offense": {
+            "rushYdsPerGame": 125.6,
+            "passYdsPerGame": 266.3,
+            "totalYdsPerGame": 391.9,
+            "rankRush": 9,
+            "rankPass": 2,
+            "rankTotal": 2
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 125.5,
+            "passYdsAllowedPerGame": 251.5,
+            "totalYdsAllowedPerGame": 377.0,
+            "rankRush": 23,
+            "rankPass": 32,
+            "rankTotal": 30
+          }
+        },
+        "DEN": {
+          "offense": {
+            "rushYdsPerGame": 118.7,
+            "passYdsPerGame": 223.9,
+            "totalYdsPerGame": 342.6,
+            "rankRush": 16,
+            "rankPass": 11,
+            "rankTotal": 10
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 91.1,
+            "passYdsAllowedPerGame": 187.2,
+            "totalYdsAllowedPerGame": 278.2,
+            "rankRush": 2,
+            "rankPass": 7,
+            "rankTotal": 2
+          }
+        },
+        "DET": {
+          "offense": {
+            "rushYdsPerGame": 120.1,
+            "passYdsPerGame": 253.1,
+            "totalYdsPerGame": 373.2,
+            "rankRush": 14,
+            "rankPass": 3,
+            "rankTotal": 5
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 114.5,
+            "passYdsAllowedPerGame": 217.4,
+            "totalYdsAllowedPerGame": 331.9,
+            "rankRush": 14,
+            "rankPass": 20,
+            "rankTotal": 18
+          }
+        },
+        "GB": {
+          "offense": {
+            "rushYdsPerGame": 119.8,
+            "passYdsPerGame": 212.8,
+            "totalYdsPerGame": 332.6,
+            "rankRush": 15,
+            "rankPass": 17,
+            "rankTotal": 15
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 117.7,
+            "passYdsAllowedPerGame": 194.1,
+            "totalYdsAllowedPerGame": 311.8,
+            "rankRush": 18,
+            "rankPass": 11,
+            "rankTotal": 12
+          }
+        },
+        "HOU": {
+          "offense": {
+            "rushYdsPerGame": 108.9,
+            "passYdsPerGame": 218.1,
+            "totalYdsPerGame": 327.0,
+            "rankRush": 22,
+            "rankPass": 14,
+            "rankTotal": 18
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 93.7,
+            "passYdsAllowedPerGame": 183.5,
+            "totalYdsAllowedPerGame": 277.2,
+            "rankRush": 4,
+            "rankPass": 6,
+            "rankTotal": 1
+          }
+        },
+        "IND": {
+          "offense": {
+            "rushYdsPerGame": 118.1,
+            "passYdsPerGame": 227.8,
+            "totalYdsPerGame": 345.9,
+            "rankRush": 17,
+            "rankPass": 9,
+            "rankTotal": 9
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 101.9,
+            "passYdsAllowedPerGame": 247.9,
+            "totalYdsAllowedPerGame": 349.8,
+            "rankRush": 7,
+            "rankPass": 30,
+            "rankTotal": 23
+          }
+        },
+        "JAX": {
+          "offense": {
+            "rushYdsPerGame": 115.1,
+            "passYdsPerGame": 222.3,
+            "totalYdsPerGame": 337.4,
+            "rankRush": 20,
+            "rankPass": 12,
+            "rankTotal": 11
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 85.6,
+            "passYdsAllowedPerGame": 218.1,
+            "totalYdsAllowedPerGame": 303.6,
+            "rankRush": 1,
+            "rankPass": 21,
+            "rankTotal": 11
+          }
+        },
+        "KC": {
+          "offense": {
+            "rushYdsPerGame": 106.6,
+            "passYdsPerGame": 214.1,
+            "totalYdsPerGame": 320.6,
+            "rankRush": 25,
+            "rankPass": 16,
+            "rankTotal": 20
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 105.7,
+            "passYdsAllowedPerGame": 195.8,
+            "totalYdsAllowedPerGame": 301.5,
+            "rankRush": 9,
+            "rankPass": 12,
+            "rankTotal": 10
+          }
+        },
+        "LV": {
+          "offense": {
+            "rushYdsPerGame": 77.5,
+            "passYdsPerGame": 167.7,
+            "totalYdsPerGame": 245.2,
+            "rankRush": 32,
+            "rankPass": 28,
+            "rankTotal": 32
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 116.8,
+            "passYdsAllowedPerGame": 201.0,
+            "totalYdsAllowedPerGame": 317.8,
+            "rankRush": 17,
+            "rankPass": 14,
+            "rankTotal": 14
+          }
+        },
+        "LAC": {
+          "offense": {
+            "rushYdsPerGame": 121.6,
+            "passYdsPerGame": 212.2,
+            "totalYdsPerGame": 333.8,
+            "rankRush": 12,
+            "rankPass": 18,
+            "rankTotal": 12
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 105.4,
+            "passYdsAllowedPerGame": 179.9,
+            "totalYdsAllowedPerGame": 285.2,
+            "rankRush": 8,
+            "rankPass": 5,
+            "rankTotal": 5
+          }
+        },
+        "LAR": {
+          "offense": {
+            "rushYdsPerGame": 126.6,
+            "passYdsPerGame": 268.1,
+            "totalYdsPerGame": 394.6,
+            "rankRush": 7,
+            "rankPass": 1,
+            "rankTotal": 1
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 110.8,
+            "passYdsAllowedPerGame": 216.7,
+            "totalYdsAllowedPerGame": 327.5,
+            "rankRush": 12,
+            "rankPass": 19,
+            "rankTotal": 17
+          }
+        },
+        "MIA": {
+          "offense": {
+            "rushYdsPerGame": 120.2,
+            "passYdsPerGame": 180.5,
+            "totalYdsPerGame": 300.7,
+            "rankRush": 13,
+            "rankPass": 25,
+            "rankTotal": 26
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 132.4,
+            "passYdsAllowedPerGame": 216.4,
+            "totalYdsAllowedPerGame": 348.8,
+            "rankRush": 26,
+            "rankPass": 18,
+            "rankTotal": 22
+          }
+        },
+        "MIN": {
+          "offense": {
+            "rushYdsPerGame": 108.3,
+            "passYdsPerGame": 166.7,
+            "totalYdsPerGame": 275.0,
+            "rankRush": 23,
+            "rankPass": 29,
+            "rankTotal": 28
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 124.1,
+            "passYdsAllowedPerGame": 158.5,
+            "totalYdsAllowedPerGame": 282.6,
+            "rankRush": 21,
+            "rankPass": 2,
+            "rankTotal": 3
+          }
+        },
+        "NE": {
+          "offense": {
+            "rushYdsPerGame": 128.9,
+            "passYdsPerGame": 250.5,
+            "totalYdsPerGame": 379.4,
+            "rankRush": 6,
+            "rankPass": 4,
+            "rankTotal": 3
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 101.7,
+            "passYdsAllowedPerGame": 193.5,
+            "totalYdsAllowedPerGame": 295.2,
+            "rankRush": 6,
+            "rankPass": 9,
+            "rankTotal": 8
+          }
+        },
+        "NO": {
+          "offense": {
+            "rushYdsPerGame": 94.3,
+            "passYdsPerGame": 219.3,
+            "totalYdsPerGame": 313.6,
+            "rankRush": 28,
+            "rankPass": 13,
+            "rankTotal": 23
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 120.6,
+            "passYdsAllowedPerGame": 179.2,
+            "totalYdsAllowedPerGame": 299.8,
+            "rankRush": 19,
+            "rankPass": 4,
+            "rankTotal": 9
+          }
+        },
+        "NYG": {
+          "offense": {
+            "rushYdsPerGame": 129.1,
+            "passYdsPerGame": 204.4,
+            "totalYdsPerGame": 333.5,
+            "rankRush": 5,
+            "rankPass": 21,
+            "rankTotal": 13
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 145.3,
+            "passYdsAllowedPerGame": 214.2,
+            "totalYdsAllowedPerGame": 359.5,
+            "rankRush": 31,
+            "rankPass": 16,
+            "rankTotal": 28
+          }
+        },
+        "NYJ": {
+          "offense": {
+            "rushYdsPerGame": 123.3,
+            "passYdsPerGame": 140.3,
+            "totalYdsPerGame": 263.6,
+            "rankRush": 11,
+            "rankPass": 32,
+            "rankTotal": 29
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 139.5,
+            "passYdsAllowedPerGame": 216.1,
+            "totalYdsAllowedPerGame": 355.6,
+            "rankRush": 29,
+            "rankPass": 17,
+            "rankTotal": 25
+          }
+        },
+        "PHI": {
+          "offense": {
+            "rushYdsPerGame": 116.9,
+            "passYdsPerGame": 194.3,
+            "totalYdsPerGame": 311.2,
+            "rankRush": 18,
+            "rankPass": 23,
+            "rankTotal": 24
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 124.4,
+            "passYdsAllowedPerGame": 189.8,
+            "totalYdsAllowedPerGame": 314.2,
+            "rankRush": 22,
+            "rankPass": 8,
+            "rankTotal": 13
+          }
+        },
+        "PIT": {
+          "offense": {
+            "rushYdsPerGame": 103.3,
+            "passYdsPerGame": 202.4,
+            "totalYdsPerGame": 305.6,
+            "rankRush": 26,
+            "rankPass": 22,
+            "rankTotal": 25
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 113.1,
+            "passYdsAllowedPerGame": 243.9,
+            "totalYdsAllowedPerGame": 356.9,
+            "rankRush": 13,
+            "rankPass": 29,
+            "rankTotal": 26
+          }
+        },
+        "SF": {
+          "offense": {
+            "rushYdsPerGame": 106.9,
+            "passYdsPerGame": 244.5,
+            "totalYdsPerGame": 351.4,
+            "rankRush": 24,
+            "rankPass": 5,
+            "rankTotal": 7
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 107.8,
+            "passYdsAllowedPerGame": 232.4,
+            "totalYdsAllowedPerGame": 340.2,
+            "rankRush": 11,
+            "rankPass": 25,
+            "rankTotal": 20
+          }
+        },
+        "SEA": {
+          "offense": {
+            "rushYdsPerGame": 123.3,
+            "passYdsPerGame": 228.1,
+            "totalYdsPerGame": 351.4,
+            "rankRush": 10,
+            "rankPass": 8,
+            "rankTotal": 8
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 91.9,
+            "passYdsAllowedPerGame": 193.9,
+            "totalYdsAllowedPerGame": 285.9,
+            "rankRush": 3,
+            "rankPass": 10,
+            "rankTotal": 6
+          }
+        },
+        "TB": {
+          "offense": {
+            "rushYdsPerGame": 114.5,
+            "passYdsPerGame": 205.9,
+            "totalYdsPerGame": 320.4,
+            "rankRush": 21,
+            "rankPass": 20,
+            "rankTotal": 21
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 99.1,
+            "passYdsAllowedPerGame": 238.2,
+            "totalYdsAllowedPerGame": 337.2,
+            "rankRush": 5,
+            "rankPass": 27,
+            "rankTotal": 19
+          }
+        },
+        "TEN": {
+          "offense": {
+            "rushYdsPerGame": 93.5,
+            "passYdsPerGame": 166.1,
+            "totalYdsPerGame": 259.6,
+            "rankRush": 30,
+            "rankPass": 30,
+            "rankTotal": 31
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 114.6,
+            "passYdsAllowedPerGame": 230.5,
+            "totalYdsAllowedPerGame": 345.1,
+            "rankRush": 15,
+            "rankPass": 23,
+            "rankTotal": 21
+          }
+        },
+        "WAS": {
+          "offense": {
+            "rushYdsPerGame": 134.7,
+            "passYdsPerGame": 184.1,
+            "totalYdsPerGame": 318.8,
+            "rankRush": 4,
+            "rankPass": 24,
+            "rankTotal": 22
+          },
+          "defense": {
+            "rushYdsAllowedPerGame": 141.5,
+            "passYdsAllowedPerGame": 242.5,
+            "totalYdsAllowedPerGame": 384.0,
+            "rankRush": 30,
+            "rankPass": 28,
+            "rankTotal": 32
+          }
+        }
+      },
+      "impactPlayers": {
+        "NE": [
+          {
+            "name": "Drake Maye",
+            "position": "QB",
+            "impactScore": 9,
+            "status": "active"
+          }
+        ],
+        "SEA": [
+          {
+            "name": "Sam Darnold",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "SF": [
+          {
+            "name": "Brock Purdy",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          },
+          {
+            "name": "George Kittle",
+            "position": "TE",
+            "impactScore": 7,
+            "status": "questionable"
+          }
+        ],
+        "LAR": [
+          {
+            "name": "Matthew Stafford",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          },
+          {
+            "name": "Myles Garrett",
+            "position": "Edge",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "CHI": [
+          {
+            "name": "Caleb Williams",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "CAR": [
+          {
+            "name": "Bryce Young",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          },
+          {
+            "name": "Ikem Ekwonu",
+            "position": "OT",
+            "impactScore": 6,
+            "status": "out"
+          }
+        ],
+        "TB": [
+          {
+            "name": "Baker Mayfield",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "CIN": [
+          {
+            "name": "Joe Burrow",
+            "position": "QB",
+            "impactScore": 9,
+            "status": "active"
+          }
+        ],
+        "NO": [
+          {
+            "name": "Tyler Shough",
+            "position": "QB",
+            "impactScore": 5,
+            "status": "active"
+          }
+        ],
+        "DET": [
+          {
+            "name": "Jared Goff",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "BUF": [
+          {
+            "name": "Josh Allen",
+            "position": "QB",
+            "impactScore": 10,
+            "status": "active"
+          }
+        ],
+        "HOU": [
+          {
+            "name": "C.J. Stroud",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "BAL": [
+          {
+            "name": "Lamar Jackson",
+            "position": "QB",
+            "impactScore": 10,
+            "status": "active"
+          }
+        ],
+        "IND": [
+          {
+            "name": "Daniel Jones",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "questionable"
+          }
+        ],
+        "CLE": [
+          {
+            "name": "Jeremiah Owusu-Koramoah",
+            "position": "LB",
+            "impactScore": 7,
+            "status": "out"
+          }
+        ],
+        "JAX": [
+          {
+            "name": "Trevor Lawrence",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "ATL": [
+          {
+            "name": "Tua Tagovailoa",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          },
+          {
+            "name": "Michael Penix Jr.",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "out"
+          }
+        ],
+        "PIT": [
+          {
+            "name": "Aaron Rodgers",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          },
+          {
+            "name": "Jalen Ramsey",
+            "position": "CB",
+            "impactScore": 8,
+            "status": "questionable"
+          }
+        ],
+        "NYJ": [
+          {
+            "name": "Geno Smith",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "TEN": [
+          {
+            "name": "Cam Ward",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "ARI": [
+          {
+            "name": "Jacoby Brissett",
+            "position": "QB",
+            "impactScore": 5,
+            "status": "active"
+          }
+        ],
+        "LAC": [
+          {
+            "name": "Justin Herbert",
+            "position": "QB",
+            "impactScore": 9,
+            "status": "active"
+          }
+        ],
+        "MIA": [
+          {
+            "name": "Malik Willis",
+            "position": "QB",
+            "impactScore": 5,
+            "status": "active"
+          }
+        ],
+        "LV": [
+          {
+            "name": "Kirk Cousins",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ],
+        "GB": [
+          {
+            "name": "Jordan Love",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          },
+          {
+            "name": "Micah Parsons",
+            "position": "Edge",
+            "impactScore": 9,
+            "status": "out"
+          }
+        ],
+        "MIN": [
+          {
+            "name": "Justin Jefferson",
+            "position": "WR",
+            "impactScore": 8,
+            "status": "questionable"
+          }
+        ],
+        "WAS": [
+          {
+            "name": "Jayden Daniels",
+            "position": "QB",
+            "impactScore": 8,
+            "status": "active"
+          }
+        ],
+        "PHI": [
+          {
+            "name": "Jalen Hurts",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "DAL": [
+          {
+            "name": "Dak Prescott",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "NYG": [
+          {
+            "name": "Jaxson Dart",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          },
+          {
+            "name": "Malik Nabers",
+            "position": "WR",
+            "impactScore": 8,
+            "status": "out"
+          }
+        ],
+        "DEN": [
+          {
+            "name": "Bo Nix",
+            "position": "QB",
+            "impactScore": 7,
+            "status": "active"
+          }
+        ],
+        "KC": [
+          {
+            "name": "Patrick Mahomes",
+            "position": "QB",
+            "impactScore": 10,
+            "status": "questionable"
+          },
+          {
+            "name": "Justin Fields",
+            "position": "QB",
+            "impactScore": 6,
+            "status": "active"
+          }
+        ]
+      },
+      "results": {
+        "NE-SEA": {
+          "awayScore": 17,
+          "homeScore": 24,
+          "final": true
+        },
+        "SF-LAR": {
+          "awayScore": 20,
+          "homeScore": 27,
+          "final": true
+        },
+        "CHI-CAR": {
+          "awayScore": 23,
+          "homeScore": 20,
+          "final": true
+        },
+        "TB-CIN": {
+          "awayScore": 21,
+          "homeScore": 28,
+          "final": true
+        },
+        "NO-DET": {
+          "awayScore": 16,
+          "homeScore": 30,
+          "final": true
+        },
+        "BUF-HOU": {
+          "awayScore": 24,
+          "homeScore": 20,
+          "final": true
+        },
+        "BAL-IND": {
+          "awayScore": 27,
+          "homeScore": 17,
+          "final": true
+        },
+        "CLE-JAX": {
+          "awayScore": 13,
+          "homeScore": 26,
+          "final": true
+        },
+        "ATL-PIT": {
+          "awayScore": 19,
+          "homeScore": 22,
+          "final": true
+        },
+        "NYJ-TEN": {
+          "awayScore": 14,
+          "homeScore": 16,
+          "final": true
+        },
+        "ARI-LAC": {
+          "awayScore": 10,
+          "homeScore": 31,
+          "final": true
+        },
+        "MIA-LV": {
+          "awayScore": 23,
+          "homeScore": 20,
+          "final": true
+        },
+        "GB-MIN": {
+          "awayScore": 24,
+          "homeScore": 20,
+          "final": true
+        },
+        "WAS-PHI": {
+          "awayScore": 17,
+          "homeScore": 24,
+          "final": true
+        },
+        "DAL-NYG": {
+          "awayScore": 27,
+          "homeScore": 20,
+          "final": true
+        },
+        "DEN-KC": {
+          "awayScore": 16,
+          "homeScore": 27,
+          "final": true
+        }
+      }
+    }
+  ]
 }</script>
 <script type="application/json" id="preseason-data">{
   "season": 2026,
@@ -3943,15 +5700,14 @@
       "week": -4,
       "label": "Hall of Fame Game",
       "espnSeasonType": 1,
-      "espnWeek": 1,
+      "espnWeek": 0,
       "matchupsAnnounced": true,
       "games": [
         {
           "away": "CAR",
           "home": "ARI",
           "date": "Thu, Aug 6",
-          "time": "8:00 PM ET",
-          "network": "NBC"
+          "time": "8:00 PM ET"
         }
       ]
     },
@@ -3960,120 +5716,104 @@
       "week": -3,
       "label": "Preseason Week 1",
       "espnSeasonType": 1,
-      "espnWeek": 2,
+      "espnWeek": 1,
       "matchupsAnnounced": true,
       "games": [
         {
           "away": "DET",
           "home": "CIN",
           "date": "Thu, Aug 13",
-          "time": "7:00 PM ET",
-          "network": "Local"
+          "time": "7:00 PM ET"
         },
         {
           "away": "GB",
           "home": "PIT",
           "date": "Thu, Aug 13",
-          "time": "7:00 PM ET",
-          "network": "NFL Network"
+          "time": "7:00 PM ET"
         },
         {
           "away": "IND",
           "home": "NE",
           "date": "Thu, Aug 13",
-          "time": "7:30 PM ET",
-          "network": "Local"
+          "time": "7:30 PM ET"
         },
         {
           "away": "LAC",
           "home": "HOU",
           "date": "Thu, Aug 13",
-          "time": "8:00 PM ET",
-          "network": "Local"
+          "time": "8:00 PM ET"
         },
         {
           "away": "ARI",
           "home": "LV",
           "date": "Thu, Aug 13",
-          "time": "8:00 PM ET",
-          "network": "ESPN App"
+          "time": "8:00 PM ET"
         },
         {
           "away": "TEN",
           "home": "SF",
           "date": "Thu, Aug 13",
-          "time": "9:00 PM ET",
-          "network": "NFL Network"
+          "time": "9:00 PM ET"
         },
         {
           "away": "DEN",
           "home": "ATL",
           "date": "Fri, Aug 14",
-          "time": "7:00 PM ET",
-          "network": "ESPN App"
+          "time": "7:00 PM ET"
         },
         {
           "away": "TB",
           "home": "NYJ",
           "date": "Fri, Aug 14",
-          "time": "7:00 PM ET",
-          "network": "NFL Network"
+          "time": "7:00 PM ET"
         },
         {
           "away": "MIA",
           "home": "WAS",
           "date": "Fri, Aug 14",
-          "time": "7:00 PM ET",
-          "network": "Local"
+          "time": "7:00 PM ET"
         },
         {
           "away": "CAR",
           "home": "BUF",
           "date": "Sat, Aug 15",
-          "time": "1:00 PM ET",
-          "network": "Local"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CLE",
           "home": "CHI",
           "date": "Sat, Aug 15",
-          "time": "1:00 PM ET",
-          "network": "NFL Network"
+          "time": "1:00 PM ET"
         },
         {
           "away": "MIN",
           "home": "NYG",
           "date": "Sat, Aug 15",
-          "time": "1:00 PM ET",
-          "network": "ESPN App"
+          "time": "1:00 PM ET"
         },
         {
           "away": "LAR",
           "home": "KC",
           "date": "Sat, Aug 15",
-          "time": "4:00 PM ET",
-          "network": "NFL Network"
+          "time": "4:00 PM ET"
         },
         {
           "away": "JAX",
           "home": "NO",
           "date": "Sat, Aug 15",
-          "time": "4:00 PM ET",
-          "network": "ESPN App"
+          "time": "4:00 PM ET"
         },
         {
           "away": "PHI",
           "home": "BAL",
           "date": "Sat, Aug 15",
-          "time": "7:00 PM ET",
-          "network": "ESPN App"
+          "time": "7:00 PM ET"
         },
         {
           "away": "DAL",
           "home": "SEA",
           "date": "Sat, Aug 15",
-          "time": "8:00 PM ET",
-          "network": "NFL Network"
+          "time": "8:00 PM ET"
         }
       ]
     },
@@ -4082,120 +5822,104 @@
       "week": -2,
       "label": "Preseason Week 2",
       "espnSeasonType": 1,
-      "espnWeek": 3,
+      "espnWeek": 2,
       "matchupsAnnounced": true,
       "games": [
         {
           "away": "LV",
           "home": "HOU",
           "date": "Thu, Aug 20",
-          "time": "8:00 PM ET",
-          "network": "ESPN"
+          "time": "8:00 PM ET"
         },
         {
           "away": "SF",
           "home": "LAC",
           "date": "Thu, Aug 20",
-          "time": "10:00 PM ET",
-          "network": "NFL Network"
+          "time": "10:00 PM ET"
         },
         {
           "away": "NYJ",
           "home": "PIT",
           "date": "Fri, Aug 21",
-          "time": "7:00 PM ET",
-          "network": "NFL Network"
+          "time": "7:00 PM ET"
         },
         {
           "away": "CAR",
           "home": "JAX",
           "date": "Fri, Aug 21",
-          "time": "7:30 PM ET",
-          "network": "ESPN App"
+          "time": "7:30 PM ET"
         },
         {
           "away": "GB",
           "home": "DEN",
           "date": "Fri, Aug 21",
-          "time": "9:00 PM ET",
-          "network": "NFL Network"
+          "time": "9:00 PM ET"
         },
         {
           "away": "WAS",
           "home": "DET",
           "date": "Sat, Aug 22",
-          "time": "12:00 PM ET",
-          "network": "Local"
+          "time": "12:00 PM ET"
         },
         {
           "away": "BUF",
           "home": "CLE",
           "date": "Sat, Aug 22",
-          "time": "1:00 PM ET",
-          "network": "NFL Network"
+          "time": "1:00 PM ET"
         },
         {
           "away": "ATL",
           "home": "IND",
           "date": "Sat, Aug 22",
-          "time": "1:00 PM ET",
-          "network": "Local"
+          "time": "1:00 PM ET"
         },
         {
           "away": "BAL",
           "home": "MIN",
           "date": "Sat, Aug 22",
-          "time": "1:00 PM ET",
-          "network": "ESPN App"
+          "time": "1:00 PM ET"
         },
         {
           "away": "NO",
           "home": "LAR",
           "date": "Sat, Aug 22",
-          "time": "4:00 PM ET",
-          "network": "ESPN App"
+          "time": "4:00 PM ET"
         },
         {
           "away": "NYG",
           "home": "MIA",
           "date": "Sat, Aug 22",
-          "time": "4:00 PM ET",
-          "network": "NFL Network"
+          "time": "4:00 PM ET"
         },
         {
           "away": "CHI",
           "home": "CIN",
           "date": "Sat, Aug 22",
-          "time": "7:00 PM ET",
-          "network": "Local"
+          "time": "7:00 PM ET"
         },
         {
           "away": "PHI",
           "home": "NE",
           "date": "Sat, Aug 22",
-          "time": "7:00 PM ET",
-          "network": "NFL Network"
+          "time": "7:00 PM ET"
         },
         {
           "away": "KC",
           "home": "TB",
           "date": "Sat, Aug 22",
-          "time": "7:30 PM ET",
-          "network": "ESPN App"
+          "time": "7:30 PM ET"
         },
         {
           "away": "DAL",
           "home": "ARI",
           "date": "Sat, Aug 22",
-          "time": "10:00 PM ET",
-          "network": "NFL Network"
+          "time": "10:00 PM ET"
         },
         {
           "away": "SEA",
           "home": "TEN",
           "date": "Sun, Aug 23",
-          "time": "8:00 PM ET",
-          "network": "FOX"
+          "time": "8:00 PM ET"
         }
       ]
     },
@@ -4204,126 +5928,109 @@
       "week": -1,
       "label": "Preseason Week 3",
       "espnSeasonType": 1,
-      "espnWeek": 4,
+      "espnWeek": 3,
       "matchupsAnnounced": true,
       "games": [
         {
           "away": "PIT",
           "home": "BUF",
           "date": "Thu, Aug 27",
-          "time": "7:00 PM ET",
-          "network": "NFL Network"
+          "time": "7:00 PM ET"
         },
         {
           "away": "NE",
           "home": "CLE",
           "date": "Thu, Aug 27",
-          "time": "8:00 PM ET",
-          "network": "Prime Video"
+          "time": "8:00 PM ET"
         },
         {
           "away": "SF",
           "home": "LV",
           "date": "Thu, Aug 27",
-          "time": "8:00 PM ET",
-          "network": "ESPN App"
+          "time": "8:00 PM ET"
         },
         {
           "away": "LAR",
           "home": "LAC",
           "date": "Thu, Aug 27",
-          "time": "10:00 PM ET",
-          "network": "NFL Network"
+          "time": "10:00 PM ET"
         },
         {
           "away": "WAS",
           "home": "BAL",
           "date": "Fri, Aug 28",
-          "time": "6:00 PM ET",
-          "network": "NFL Network"
+          "time": "6:00 PM ET"
         },
         {
           "away": "HOU",
           "home": "CAR",
           "date": "Fri, Aug 28",
-          "time": "7:00 PM ET",
-          "network": "Local"
+          "time": "7:00 PM ET"
         },
         {
           "away": "ATL",
           "home": "MIA",
           "date": "Fri, Aug 28",
-          "time": "7:00 PM ET",
-          "network": "Local"
+          "time": "7:00 PM ET"
         },
         {
           "away": "TB",
           "home": "JAX",
           "date": "Fri, Aug 28",
-          "time": "7:30 PM ET",
-          "network": "Local"
+          "time": "7:30 PM ET"
         },
         {
           "away": "NYG",
           "home": "NYJ",
           "date": "Fri, Aug 28",
-          "time": "7:30 PM ET",
-          "network": "Local"
+          "time": "7:30 PM ET"
         },
         {
           "away": "NO",
           "home": "DAL",
           "date": "Fri, Aug 28",
-          "time": "8:00 PM ET",
-          "network": "ESPN App"
+          "time": "8:00 PM ET"
         },
         {
           "away": "ARI",
           "home": "GB",
           "date": "Fri, Aug 28",
-          "time": "8:00 PM ET",
-          "network": "Local"
+          "time": "8:00 PM ET"
         },
         {
           "away": "SEA",
           "home": "KC",
           "date": "Fri, Aug 28",
-          "time": "8:00 PM ET",
-          "network": "ESPN App"
+          "time": "8:00 PM ET"
         },
         {
           "away": "CIN",
           "home": "PHI",
           "date": "Fri, Aug 28",
-          "time": "8:00 PM ET",
-          "network": "CBS"
+          "time": "8:00 PM ET"
         },
         {
           "away": "MIN",
           "home": "DEN",
           "date": "Fri, Aug 28",
-          "time": "9:00 PM ET",
-          "network": "NFL Network"
+          "time": "9:00 PM ET"
         },
         {
           "away": "DET",
           "home": "IND",
           "date": "Sat, Aug 29",
-          "time": "1:00 PM ET",
-          "network": "NFL Network"
+          "time": "1:00 PM ET"
         },
         {
           "away": "CHI",
           "home": "TEN",
           "date": "Sat, Aug 29",
-          "time": "6:00 PM ET",
-          "network": "NFL Network"
+          "time": "6:00 PM ET"
         }
       ]
     }
   ]
-}
-</script>
+}</script>
 <script type="application/json" id="playoffs-data">{
   "season": 2026,
   "sourceNote": "Playoff matchups depend on final regular-season standings and seeding, which aren't known until Week 18 concludes. Each round starts empty (matchupsAnnounced: false) and gets filled in by the weekly update task once the real bracket is announced. The app only shows a round in the week picker once matchupsAnnounced is true.",
@@ -4365,15 +6072,159 @@
       "games": []
     }
   ]
-}
-</script>
+}</script>
 <script type="application/json" id="odds-data">{
   "season": 2026,
-  "sourceNote": "Real sportsbook lines (spread, moneyline, total) sourced via public odds aggregation and refreshed by the weekly update task; treated as the DraftKings / default line. Sportsbooks typically don't post lines until roughly 6-10 days before kickoff and they keep moving until game time, so upcoming weeks show \"Odds not yet posted\" until they're live. Each game object may also carry an optional \"books\" map (e.g. draftkings/fanduel/betmgm/caesars/betrivers, each with spread, moneylineHome, moneylineAway, overUnder, favorite, asOf) with real per-sportsbook lines; the app shows that book's line when present for the user's selected sportsbook and falls back to this default line otherwise.",
+  "sourceNote": "Real sportsbook lines (spread, moneyline, total) via the SportsGameOdds API, pushed by the blitz-odds-odds-refresh scheduled task through the odds-update Netlify function (Netlify Blobs), NOT by a git commit -- this file on disk is a periodic mirror of that blob for local dev/reference, refreshed whenever the weekly-update task runs, but the live site fetches current odds at runtime from /.netlify/functions/odds-current rather than reading this file directly. Sportsbooks typically don't post lines until roughly 6-10 days before kickoff, so upcoming weeks show \"Odds not yet posted\" until they're live. Weeks -4 through -1 are the 2026 preseason (Hall of Fame Game, Preseason Weeks 1-3), matched against data/schedule-preseason-2026.json. Week 1 below is an ILLUSTRATIVE SAMPLE (paired with the sample Week 1 results in history.json) to demonstrate the feature before the real season starts -- these are plausible-looking numbers, not real book prices. Each game object may also carry an optional \"books\" map (draftkings/fanduel/betmgm/caesars/betrivers, each with spread, moneylineHome, moneylineAway, overUnder, favorite, asOf) with real per-sportsbook lines; the app shows that book's line when present for the user's selected sportsbook and falls back to this default line otherwise.",
   "weeks": {
-    "1": {
+    "-4": {
       "isDemo": false,
       "games": {}
+    },
+    "-3": {
+      "isDemo": false,
+      "games": {}
+    },
+    "-2": {
+      "isDemo": false,
+      "games": {}
+    },
+    "-1": {
+      "isDemo": false,
+      "games": {}
+    },
+    "1": {
+      "isDemo": true,
+      "games": {
+        "NE-SEA": {
+          "favorite": "NE",
+          "spread": -1.5,
+          "moneylineHome": 75,
+          "moneylineAway": -130,
+          "overUnder": 42,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "SF-LAR": {
+          "favorite": "LAR",
+          "spread": -8.5,
+          "moneylineHome": -400,
+          "moneylineAway": 25,
+          "overUnder": 42.5,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "CHI-CAR": {
+          "favorite": "CHI",
+          "spread": -6,
+          "moneylineHome": 40,
+          "moneylineAway": -260,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "TB-CIN": {
+          "favorite": "TB",
+          "spread": -7.5,
+          "moneylineHome": 30,
+          "moneylineAway": -340,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "NO-DET": {
+          "favorite": "DET",
+          "spread": -7,
+          "moneylineHome": -310,
+          "moneylineAway": 30,
+          "overUnder": 39,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "BUF-HOU": {
+          "favorite": "BUF",
+          "spread": -2.5,
+          "moneylineHome": 65,
+          "moneylineAway": -150,
+          "overUnder": 40,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "BAL-IND": {
+          "favorite": "IND",
+          "spread": -6,
+          "moneylineHome": -260,
+          "moneylineAway": 40,
+          "overUnder": 38.5,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "CLE-JAX": {
+          "favorite": "JAX",
+          "spread": -9.5,
+          "moneylineHome": -450,
+          "moneylineAway": 20,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "ATL-PIT": {
+          "favorite": "ATL",
+          "spread": -9,
+          "moneylineHome": 25,
+          "moneylineAway": -430,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "NYJ-TEN": {
+          "favorite": "TEN",
+          "spread": 0,
+          "moneylineHome": -110,
+          "moneylineAway": -110,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "ARI-LAC": {
+          "favorite": "LAC",
+          "spread": -9.5,
+          "moneylineHome": -450,
+          "moneylineAway": 20,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "MIA-LV": {
+          "favorite": "LV",
+          "spread": 0,
+          "moneylineHome": -110,
+          "moneylineAway": -110,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "GB-MIN": {
+          "favorite": "GB",
+          "spread": -7.5,
+          "moneylineHome": 30,
+          "moneylineAway": -340,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "WAS-PHI": {
+          "favorite": "PHI",
+          "spread": -8.5,
+          "moneylineHome": -400,
+          "moneylineAway": 25,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "DAL-NYG": {
+          "favorite": "DAL",
+          "spread": -4.5,
+          "moneylineHome": 50,
+          "moneylineAway": -210,
+          "overUnder": 41.5,
+          "asOf": "2026-09-07T12:00:00Z"
+        },
+        "DEN-KC": {
+          "favorite": "DEN",
+          "spread": -8.5,
+          "moneylineHome": 25,
+          "moneylineAway": -400,
+          "overUnder": 38,
+          "asOf": "2026-09-07T12:00:00Z"
+        }
+      }
     },
     "2": {
       "isDemo": false,
@@ -4973,111 +6824,22 @@ async function fetchLiveScores(week) {
   return map;
 }
 
-// ---- Adaptive polling for live scores --------------------------------
-// ESPN's scoreboard endpoint is unofficial and publishes no documented rate
-// limit. Community consensus (see ESPN hidden-API docs/discussions) is to
-// stay around 30-60s between calls and back off if requests start failing,
-// rather than hammering it on a fixed timer regardless of game state.
-//
-// Strategy:
-//  - 30s cadence only while at least one game is actually in progress.
-//  - 5 min cadence when nothing is live (pre-game or all games final) -
-//    scores can't change, so there's no reason to poll fast.
-//  - Pause entirely when the tab isn't visible (backgrounded/minimized).
-//  - Exponential backoff (starting at 60s, capped at 8 min) on any fetch
-//    error, e.g. a 429 or transient network failure, so a bad stretch
-//    doesn't turn into a tight retry loop.
-//  - A short in-memory cache dedupes bursty calls (e.g. two components
-//    mounting/polling around the same time) so they share one fetch.
-
-const LIVE_POLL_MS = 30000;      // cadence while a game is in progress
-const IDLE_POLL_MS = 5 * 60000;  // cadence when nothing is live
-const BACKOFF_BASE_MS = 60000;   // first retry delay after an error
-const BACKOFF_MAX_MS = 8 * 60000; // cap on backoff delay
-const CACHE_TTL_MS = 15000;      // min gap between real network calls
-
-let liveScoresCache = { week: null, at: 0, promise: null, data: null };
-
-function fetchLiveScoresCached(week) {
-  const now = Date.now();
-  if (
-    liveScoresCache.week === week &&
-    liveScoresCache.data &&
-    now - liveScoresCache.at < CACHE_TTL_MS
-  ) {
-    return Promise.resolve(liveScoresCache.data);
-  }
-  if (liveScoresCache.week === week && liveScoresCache.promise) {
-    return liveScoresCache.promise;
-  }
-  const promise = fetchLiveScores(week).then(
-    (data) => {
-      liveScoresCache = { week, at: Date.now(), promise: null, data };
-      return data;
-    },
-    (err) => {
-      liveScoresCache = { week, at: 0, promise: null, data: liveScoresCache.data };
-      throw err;
-    }
-  );
-  liveScoresCache = { week, at: now, promise, data: liveScoresCache.data };
-  return promise;
-}
-
-function hasLiveGame(map) {
-  return Object.values(map).some((g) => g.state === "in");
-}
-
 function useLiveScores(week) {
   const [liveMap, setLiveMap] = useState({});
   useEffect(() => {
     let cancelled = false;
-    let timer = null;
-    let backoff = BACKOFF_BASE_MS;
-
-    function schedule(ms) {
-      if (cancelled) return;
-      timer = setTimeout(poll, ms);
-    }
-
     async function poll() {
-      if (document.hidden) {
-        // Don't spend requests on a backgrounded tab; check again shortly
-        // after it would have been due, then reassess visibility.
-        schedule(LIVE_POLL_MS);
-        return;
-      }
       try {
-        const map = await fetchLiveScoresCached(week);
-        if (cancelled) return;
-        setLiveMap(map);
-        backoff = BACKOFF_BASE_MS; // reset after a success
-        schedule(hasLiveGame(map) ? LIVE_POLL_MS : IDLE_POLL_MS);
+        const map = await fetchLiveScores(week);
+        if (!cancelled) setLiveMap(map);
       } catch (e) {
-        // Network hiccup, CORS block on file://, or ESPN throttling.
-        // Leave whatever live scores we already have and back off.
-        if (cancelled) return;
-        schedule(backoff);
-        backoff = Math.min(backoff * 2, BACKOFF_MAX_MS);
+        // Network hiccup or CORS block on file:// - just leave live scores empty,
+        // the app still works fine off historical/predicted data.
       }
     }
-
-    function onVisibilityChange() {
-      // Coming back into view - poll right away instead of waiting out
-      // whatever interval was scheduled while hidden.
-      if (!document.hidden && timer) {
-        clearTimeout(timer);
-        poll();
-      }
-    }
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
     poll();
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
+    const timer = setInterval(poll, 30000);
+    return () => { cancelled = true; clearInterval(timer); };
   }, [week]);
   return liveMap;
 }
@@ -5206,7 +6968,7 @@ function InjuryDetailModal({ player, onClose }) {
           <div>
             <div className="injury-modal-name">{player.name}</div>
             <div className="injury-modal-meta">
-              {player.teamId ? player.teamId + " · " : ""}{player.position} · <span className={"impact-" + player.status}>{statusLabel}</span>
+              {player.position} · <span className={"impact-" + player.status}>{statusLabel}</span>
             </div>
           </div>
         </div>
@@ -5449,10 +7211,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   const homeIsWinner = prediction.predictedWinner === home.id;
   const homePct = (prediction.homeWinProbability * 100).toFixed(0);
   const awayPct = (prediction.awayWinProbability * 100).toFixed(0);
-  const allAdjustments = [
-    ...prediction.homeAdjustments.map(a => ({ ...a, teamId: home.id, teamName: home.name })),
-    ...prediction.awayAdjustments.map(a => ({ ...a, teamId: away.id, teamName: away.name }))
-  ];
+  const allAdjustments = [...prediction.homeAdjustments, ...prediction.awayAdjustments];
   const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
   const rationale = buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket });
 
@@ -5469,12 +7228,12 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
     <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (divisionGame ? " is-division" : "") + (scoreInfo && scoreInfo.isLive ? " is-live" : "")}>
       <div className="game-meta">
         <span className="game-meta-left">
-          {game.date}{game.time ? " • " + game.time : ""}{game.network ? " • " + game.network : ""}
+          {game.date}{game.time ? " • " + game.time : ""}
           {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
         </span>
         {scoreInfo && scoreInfo.isLive ? (
           <span className="live-tag"><span className="live-dot"></span>LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}</span>
-        ) : null}
+        ) : game.network ? <span>{game.network}</span> : null}
       </div>
 
       <div className="matchup-row">
@@ -5588,10 +7347,10 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
         <div key={i} className={"impact-note impact-" + a.status}>
           <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
           <span>
-            <strong>{a.player}</strong> ({a.teamId} · {a.position}) is <strong>{a.status}</strong> —
-            hurts {a.teamName}'s {a.side === "offense" ? "offense" : "defense"},
+            <strong>{a.player}</strong> ({a.position}) is <strong>{a.status}</strong> —
+            hurts {a.side === "offense" ? "their offense" : "their defense"},
             shifting the odds toward the opponent.
-            <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury, teamId: a.teamId, teamName: a.teamName }} />
+            <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury }} />
           </span>
         </div>
       ))}
@@ -5667,7 +7426,6 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
         </div>
       )}
       <GradationLegend />
-      <NewsTicker />
       <div className="schedule-grid">
         {games.map((g) => (
           <GameCard
@@ -6231,7 +7989,6 @@ function PlayerHistoryModal({ player, onClose }) {
             <div className="injury-modal-name">
               {player.name}
               {player.isRookie && <span className="rookie-badge" title="Rookie">R</span>}
-              <RosterInjuryFlag impactPlayer={player.injuryStatus ? { status: player.injuryStatus, name: player.name } : null} />
             </div>
             <div className="injury-modal-meta">
               {[player.position, player.jersey ? "#" + player.jersey : null, player.college || null]
@@ -6242,40 +7999,6 @@ function PlayerHistoryModal({ player, onClose }) {
         </div>
 
         <div className="injury-modal-body">
-          {(player.injuryStatus === "out" || player.injuryStatus === "questionable") && (
-            <React.Fragment>
-              <div className="player-modal-section-title">Injury Report</div>
-              <div className="injury-modal-row">
-                <span className="injury-modal-label">Status</span>
-                <span className="injury-modal-value">{player.injuryStatus === "out" ? "Out" : "Questionable"}</span>
-              </div>
-              {player.injury && player.injury.type && (
-                <div className="injury-modal-row">
-                  <span className="injury-modal-label">Injury</span>
-                  <span className="injury-modal-value">{player.injury.type}</span>
-                </div>
-              )}
-              {player.injury && player.injury.since && formatInjurySince(player.injury.since) && (() => {
-                const since = formatInjurySince(player.injury.since);
-                return (
-                  <div className="injury-modal-row">
-                    <span className="injury-modal-label">Since</span>
-                    <span className="injury-modal-value">
-                      {since.label}{since.duration ? " (" + since.duration + ")" : ""}
-                    </span>
-                  </div>
-                );
-              })()}
-              {player.injury && player.injury.note ? (
-                <p className="injury-modal-note">{player.injury.note}</p>
-              ) : (
-                <p className="injury-modal-note injury-modal-empty">
-                  No detailed injury report tracked yet for this status — check back as camp/practice reports update.
-                </p>
-              )}
-            </React.Fragment>
-          )}
-
           <div className="player-modal-section-title">NCAA Background</div>
           <div className="injury-modal-row">
             <span className="injury-modal-label">College</span>
@@ -6345,64 +8068,47 @@ function PlayerHistoryModal({ player, onClose }) {
   );
 }
 
-// ---- Team news: ESPN + two independent RSS sources, deduplicated --------
+// ---- Team news: ESPN + a second, independent source, deduplicated --------
 // ESPN's team-news endpoint (used below) is the primary source, but it's a
-// single outlet. This blends in CBS Sports' and FOX Sports' general NFL
-// RSS feeds as independent second/third sources, filtered down
-// client-side to whichever team's page is open, so the panel isn't
-// single- or dual-sourced. A raw RSS feed has no CORS headers at all, so
-// it can't be fetched directly from the browser - rss2json.com exists
-// specifically to solve that (their own docs show the api_key used
-// straight from client-side JS, confirming it's meant for exactly this).
-// Each feed is fetched once for the whole league, not once per team,
-// since it's the same feed URL regardless of team - a single shared fetch
-// per source also avoids rss2json's anonymous-tier "new feed" burst
-// limit, which only applies per distinct feed URL. If either feed is ever
-// unavailable (throttled, offline, CORS-blocked), it fails soft to an
-// empty list for that source rather than breaking the panel - the other
-// sources still render on their own.
+// single outlet. This blends in CBS Sports' general NFL RSS feed as a
+// second, independent source, filtered down client-side to whichever
+// team's page is open, so the panel isn't single-sourced. A raw RSS feed
+// has no CORS headers at all, so it can't be fetched directly from the
+// browser - rss2json.com exists specifically to solve that (their own docs
+// show the api_key used straight from client-side JS, confirming it's
+// meant for exactly this). Fetched once for the whole league, not once per
+// team, since it's the same feed URL regardless of team - a single shared
+// fetch also avoids rss2json's anonymous-tier "new feed" burst limit, which
+// only applies per distinct feed URL. If it's ever unavailable (throttled,
+// offline, CORS-blocked), fetchLeagueNewsFeed() fails soft to an empty
+// list rather than breaking the panel - the ESPN half still renders on its
+// own, same as before this was added.
 // rss2json's own docs use this key directly in client-side sample code
 // (e.g. jQuery .ajax() calls) - it's meant to be embedded in a browser
 // app like this one, not kept server-side. It lifts the anonymous tier's
 // "new feed" burst throttle mentioned above and raises the rate limit.
 const RSS2JSON_API_KEY = "0xcemmcvfabsgqs9x1jwxx5yntebmgxkkupxssko";
 
-// FOX Sports' official free RSS feed, no key required beyond the partner
-// key baked into the URL itself (FOX's own RSS-feeds page publishes this
-// exact URL for public subscription - see foxsports.com/rss-feeds).
-const FOX_NFL_RSS_URL = "https://api.foxsports.com/v2/content/optimized-rss?partnerKey=MB0Wehpmuj2lUhuRhQaafhBjAJqaPU244mlTDK1i&size=30&tags=fs/nfl";
-
-async function fetchRssFeedViaJson(feedUrl, sourceName) {
-  try {
-    const encoded = encodeURIComponent(feedUrl);
-    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encoded}&count=50&api_key=${RSS2JSON_API_KEY}`);
-    if (!res.ok) throw new Error(`rss2json request failed for ${sourceName}: ` + res.status);
-    const data = await res.json();
-    if (data.status !== "ok") throw new Error(`rss2json status for ${sourceName}: ` + data.status);
-    return (data.items || []).map(item => ({
-      headline: item.title,
-      published: parsePubDateToIso(item.pubDate),
-      url: item.link,
-      image: (item.enclosure && item.enclosure.link) || item.thumbnail || null,
-      source: sourceName,
-    }));
-  } catch (e) {
-    return [];
-  }
-}
-
 let leagueNewsFeedPromise = null;
 function fetchLeagueNewsFeed() {
   if (leagueNewsFeedPromise) return leagueNewsFeedPromise;
   leagueNewsFeedPromise = (async () => {
-    const [cbsItems, foxItems] = await Promise.all([
-      fetchRssFeedViaJson("https://www.cbssports.com/rss/headlines/nfl/", "CBS Sports"),
-      fetchRssFeedViaJson(FOX_NFL_RSS_URL, "FOX Sports"),
-    ]);
-    // Dedupe here too (not just in fetchTeamNews/useLeagueNews below) so
-    // every caller of fetchLeagueNewsFeed gets an already-clean combined
-    // list, in case CBS and FOX both cover the same story.
-    return mergeAndDedupeNews([cbsItems, foxItems]);
+    try {
+      const feedUrl = encodeURIComponent("https://www.cbssports.com/rss/headlines/nfl/");
+      const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}&count=50&api_key=${RSS2JSON_API_KEY}`);
+      if (!res.ok) throw new Error("rss2json request failed: " + res.status);
+      const data = await res.json();
+      if (data.status !== "ok") throw new Error("rss2json status: " + data.status);
+      return (data.items || []).map(item => ({
+        headline: item.title,
+        published: parsePubDateToIso(item.pubDate),
+        url: item.link,
+        image: (item.enclosure && item.enclosure.link) || item.thumbnail || null,
+        source: "CBS Sports",
+      }));
+    } catch (e) {
+      return [];
+    }
   })();
   // A throttled/offline attempt shouldn't permanently poison the feed for
   // the rest of the session - let the next team-page visit try again
@@ -6524,8 +8230,8 @@ async function fetchTeamNews(teamId) {
     ]);
 
     const team = baseTeam(teamId);
-    const leagueArticles = filterLeagueFeedForTeam(leagueFeed, team);
-    return mergeAndDedupeNews([espnArticles, leagueArticles]).map((a, i) => ({
+    const cbsArticles = filterLeagueFeedForTeam(leagueFeed, team);
+    return mergeAndDedupeNews([espnArticles, cbsArticles]).map((a, i) => ({
       ...a,
       id: a.url || `${a.source || "news"}-${i}`,
     }));
@@ -6547,73 +8253,6 @@ function useTeamNews(teamId) {
     return () => { cancelled = true; };
   }, [teamId]);
   return state;
-}
-
-/** Shared with the team-news panel's CBS+FOX half (fetchLeagueNewsFeed) -
- *  one fetch per source for the whole league, reused here for a
- *  week-view-wide ticker instead of a per-team feed. Runs
- *  mergeAndDedupeNews again for the same near-duplicate-headline cleanup +
- *  newest-first sort the team panel gets (fetchLeagueNewsFeed already
- *  dedupes internally, but re-running it here is harmless/idempotent and
- *  keeps this function correct even if that internal dedup ever changes). */
-function useLeagueNews() {
-  const [state, setState] = useState({ loading: true, error: null, data: null });
-  useEffect(() => {
-    let cancelled = false;
-    fetchLeagueNewsFeed()
-      .then(items => {
-        if (cancelled) return;
-        setState({ loading: false, error: null, data: mergeAndDedupeNews([items]) });
-      })
-      .catch(e => { if (!cancelled) setState({ loading: false, error: e, data: null }); });
-    return () => { cancelled = true; };
-  }, []);
-  return state;
-}
-
-const NEWS_TICKER_ITEM_COUNT = 15;
-
-/** Scrolling headline ticker for the week view, sitting under the
- *  advantage/disadvantage legend. Two copies of the headline list are
- *  rendered back to back and the track is animated exactly -50% of its own
- *  width, which is what makes the loop seamless (the moment the first copy
- *  scrolls fully offscreen, the second copy is sitting in the exact spot
- *  the first one started in). Renders nothing while loading or if the feed
- *  comes back empty, so it never reserves layout space with nothing to show. */
-function NewsTicker() {
-  const { loading, error, data } = useLeagueNews();
-  if (loading || error || !data || data.length === 0) return null;
-  const items = data.slice(0, NEWS_TICKER_ITEM_COUNT);
-
-  function renderItems(keyPrefix, hidden) {
-    return items.map((item, i) => (
-      <a
-        key={keyPrefix + (item.id || i)}
-        className="news-ticker-item"
-        href={item.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        tabIndex={hidden ? -1 : undefined}
-        aria-hidden={hidden || undefined}
-      >
-        {item.source && <span className="news-ticker-source">{item.source}</span>}
-        <span className="news-ticker-headline">{item.headline}</span>
-        {item.published && <span className="news-ticker-time">{timeAgo(item.published)}</span>}
-      </a>
-    ));
-  }
-
-  return (
-    <div className="news-ticker">
-      <span className="news-ticker-label">NFL News</span>
-      <div className="news-ticker-track-wrap">
-        <div className="news-ticker-track">
-          {renderItems("a-", false)}
-          {renderItems("b-", true)}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function timeAgo(iso) {
@@ -6644,49 +8283,6 @@ function useIsMobile(breakpoint = 860) {
   return isMobile;
 }
 
-/** Roster/depth-chart names come live from ESPN; the curated injury data
- *  in data/impact-players.json is keyed by team + player name instead of
- *  ESPN's athlete id, so this is a best-effort name match (case/punctuation
- *  insensitive) between the two sources. */
-function normalizePlayerName(name) {
-  return (name || "").toLowerCase().replace(/[^a-z\s]/g, "").trim();
-}
-
-/** teamId -> {normalizedName: impactPlayer} lookup, rebuilt from module-
- *  level PLAYERS_DATA on every render (not memoized) so a live data refresh
- *  (see useLiveSiteData) is picked up immediately without a page reload. */
-function buildInjuryLookup(teamId) {
-  const impactPlayers = PLAYERS_DATA.players[teamId] || [];
-  const byName = {};
-  impactPlayers.forEach(p => { byName[normalizePlayerName(p.name)] = p; });
-  return byName;
-}
-
-/** Small status icon (matches the Injury Report section's convention) plus
- *  the same ⓘ button used there, so tapping/clicking it opens the shared
- *  InjuryDetailModal with the full note. Renders nothing for players who
- *  aren't in the tracked impact-players list. */
-function RosterInjuryFlag({ impactPlayer }) {
-  // Purely a visual marker next to the player's name - only shown for
-  // players actually tracked as injured (out/questionable), not healthy
-  // "active" impact players. It reads straight off impactPlayer.status on
-  // every render, so a player rolls off the roster/depth-chart view the
-  // moment the underlying impact-players data marks them "active" again -
-  // no separate timer or expiry to maintain. Clicking the player's name
-  // opens PlayerHistoryModal, which shows the full injury details itself,
-  // so this badge doesn't need its own click target.
-  if (!impactPlayer || (impactPlayer.status !== "out" && impactPlayer.status !== "questionable")) return null;
-  const label = impactPlayer.status === "out" ? "O" : "\u26a0\ufe0f";
-  return (
-    <span
-      className={"roster-injury-flag impact-" + impactPlayer.status}
-      title={(impactPlayer.status === "out" ? "Out" : "Questionable") + (impactPlayer.name ? " \u2014 " + impactPlayer.name : "")}
-    >
-      {label}
-    </span>
-  );
-}
-
 function DepthChartSection({ teamId }) {
   const { loading, error, data } = useTeamRoster(teamId);
   const [side, setSide] = useState("offense");
@@ -6708,7 +8304,6 @@ function DepthChartSection({ teamId }) {
   const depthRankById = buildDepthRankMap(sideDepthChart);
   const rosterGroup = data.fullRoster.find(g => g.group === activeSide);
   const positionGroups = rosterGroup ? groupPlayersByPosition(rosterGroup.players, activeSide, depthRankById) : [];
-  const injuryByName = buildInjuryLookup(teamId);
 
   return (
     <div>
@@ -6742,25 +8337,19 @@ function DepthChartSection({ teamId }) {
                         <button
                           type="button"
                           className="depth-player-name depth-player-name-btn"
-                          onClick={() => {
-                            const impactMatch = injuryByName[normalizePlayerName(p.displayName || p.shortName)];
-                            setHistoryPlayer({
-                              id: p.id,
-                              name: p.displayName || p.shortName,
-                              position: (p.position && p.position.abbreviation) || group.posAbbr || group.label,
-                              jersey: p.jersey,
-                              college: p.college && p.college.name,
-                              isRookie,
-                              experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
-                              injuryStatus: impactMatch ? impactMatch.status : null,
-                              injury: impactMatch ? impactMatch.injury : null,
-                            });
-                          }}
+                          onClick={() => setHistoryPlayer({
+                            id: p.id,
+                            name: p.displayName || p.shortName,
+                            position: (p.position && p.position.abbreviation) || group.posAbbr || group.label,
+                            jersey: p.jersey,
+                            college: p.college && p.college.name,
+                            isRookie,
+                            experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
+                          })}
                         >
                           {p.shortName || p.displayName}
                         </button>
                         {isRookie && <span className="rookie-badge" title="Rookie">R</span>}
-                        <RosterInjuryFlag impactPlayer={injuryByName[normalizePlayerName(p.displayName || p.shortName)]} />
                         {p.jersey && <span className="depth-player-jersey">#{p.jersey}</span>}
                       </div>
                     );
@@ -6795,25 +8384,19 @@ function DepthChartSection({ teamId }) {
                             <button
                               type="button"
                               className="roster-player-name-btn"
-                              onClick={() => {
-                                const impactMatch = injuryByName[normalizePlayerName(p.displayName)];
-                                setHistoryPlayer({
-                                  id: p.id,
-                                  name: p.displayName,
-                                  position: pg.abbr,
-                                  jersey: p.jersey,
-                                  college: p.college && p.college.name,
-                                  isRookie,
-                                  experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
-                                  injuryStatus: impactMatch ? impactMatch.status : null,
-                                  injury: impactMatch ? impactMatch.injury : null,
-                                });
-                              }}
+                              onClick={() => setHistoryPlayer({
+                                id: p.id,
+                                name: p.displayName,
+                                position: pg.abbr,
+                                jersey: p.jersey,
+                                college: p.college && p.college.name,
+                                isRookie,
+                                experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
+                              })}
                             >
                               {p.displayName}
                             </button>
                             {isRookie && <span className="rookie-badge" title="Rookie">R</span>}
-                            <RosterInjuryFlag impactPlayer={injuryByName[normalizePlayerName(p.displayName)]} />
                           </td>
                           <td>{p.displayHeight ? `${p.displayHeight}, ${p.displayWeight}` : "—"}</td>
                           <td>{p.experience && p.experience.years != null ? p.experience.years : "—"}</td>
@@ -6950,7 +8533,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
       };
     }
     const odds = getOdds(week, game.away, game.home, sportsbookId);
-    return { week, bye: false, opp, isHome, date: game.date, time: game.time, network: game.network, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
+    return { week, bye: false, opp, isHome, date: game.date, time: game.time, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
   }
 
   const regularRows = SCHEDULE_DATA.weeks.map(w => {
@@ -7003,10 +8586,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
         </div>
       </div>
       <div className="team-view-header">
-        <div className="badge-wrap" style={{ width: 64, height: 64 }}>
-          <TeamLogo teamId={team.id} size={64} />
-          <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
-        </div>
+        <TeamLogo teamId={team.id} size={64} />
         <div style={{ flex: 1 }}>
           <h2>{team.name}</h2>
           <div className="rec-line">
@@ -7015,6 +8595,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
           </div>
           <div className="rec-line" style={{ marginTop: 6 }}>Model-predicted wins this season: {favCount} / {totalGames}</div>
         </div>
+        <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
       </div>
 
       <div className="injury-report">
@@ -7070,7 +8651,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                 <div key={r.week} className={"schedule-mobile-card" + (r.bye ? " bye-row" : "") + (r.isPlayoff ? " playoff-row" : "")}>
                   <div className="schedule-mobile-top">
                     <span className="schedule-mobile-week">{r.label}</span>
-                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}{r.network ? ` • ${r.network}` : ""}</span>}
+                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}</span>}
                   </div>
                   {r.bye ? (
                     <div className="hw-tag">BYE week</div>
@@ -7145,7 +8726,6 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                         <td className="date-cell">
                           <span className="date-line">{r.date}</span>
                           {r.time && <span className="time-line">{r.time}</span>}
-                          {r.network && <span className="time-line">{r.network}</span>}
                         </td>
                         <td>
                           {r.odds ? (
@@ -7608,8 +9188,8 @@ function App() {
       <footer className="app-footer">
         Team stats source: The Football Database (footballdb.com). Schedule source: Pro-Football-Reference &amp;
         NFL.com, 2026 season. Team logos from NFL.com. Live scores from ESPN's public scoreboard API. Betting
-        odds are real sportsbook lines refreshed weekly (upcoming weeks show "Odds not yet posted" until lines go
-        live). Impact player data and any weeks marked "sample" are illustrative/placeholder pending real
+        odds are real sportsbook lines refreshed weekly (Week 1 is a labeled illustrative sample until real lines
+        post). Impact player data and any weeks marked "sample" are illustrative/placeholder pending real
         in-season reports and results.
       </footer>
 

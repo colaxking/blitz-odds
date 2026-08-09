@@ -433,6 +433,42 @@
   .gradation-legend-group { display: flex; align-items: center; gap: 6px; }
   .gradation-legend-label { font-weight: 600; color: var(--text); margin-right: 2px; }
   .gradation-legend .rank-pill { margin-left: 0; }
+  .news-ticker {
+    display: flex; align-items: center; gap: 12px; background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 0;
+    margin-bottom: 14px; overflow: hidden;
+  }
+  .news-ticker-label {
+    flex-shrink: 0; margin-left: 12px; font-size: 0.66rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
+    white-space: nowrap;
+  }
+  .news-ticker-track-wrap { flex: 1; overflow: hidden; min-width: 0; }
+  .news-ticker-track {
+    display: flex; align-items: center; width: max-content;
+    animation: news-ticker-scroll 120s linear infinite;
+  }
+  .news-ticker-track-wrap:hover .news-ticker-track { animation-play-state: paused; }
+  .news-ticker-item {
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    color: var(--text); text-decoration: none; font-size: 0.8rem; padding: 0 28px 0 0;
+  }
+  .news-ticker-headline { font-size: 0.8rem; font-weight: 500; font-family: inherit; }
+  .news-ticker-item:hover .news-ticker-headline { text-decoration: underline; color: var(--accent); }
+  .news-ticker-source {
+    flex-shrink: 0; color: var(--text-dim); font-size: 0.64rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.4px; border: 1px solid var(--card-border);
+    border-radius: 4px; padding: 1px 5px;
+  }
+  .news-ticker-time { flex-shrink: 0; color: var(--text-dim); font-size: 0.72rem; }
+  @keyframes news-ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .news-ticker-track { animation: none; }
+    .news-ticker-track-wrap { overflow-x: auto; }
+  }
   .impact-note {
     font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
   }
@@ -491,6 +527,14 @@
     border-radius: 4px; background: rgba(var(--accent-rgb),0.18); color: var(--accent);
     font-size: 0.62rem; font-weight: 800; line-height: 1; vertical-align: 2px;
   }
+  .roster-injury-flag {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 15px; height: 15px; padding: 0 3px; margin-left: 5px;
+    border-radius: 4px; flex-shrink: 0;
+    font-size: 0.66rem; font-weight: 800; line-height: 1; vertical-align: 2px;
+  }
+  .roster-injury-flag.impact-out { background: rgba(var(--out-rgb),0.18); color: var(--out); }
+  .roster-injury-flag.impact-questionable { background: rgba(var(--warn-rgb),0.18); color: var(--pill-questionable-text); }
   .player-modal-headshot {
     width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--surface-2);
     flex-shrink: 0; border: 1px solid var(--card-border);
@@ -5753,22 +5797,111 @@ async function fetchLiveScores(week) {
   return map;
 }
 
+// ---- Adaptive polling for live scores --------------------------------
+// ESPN's scoreboard endpoint is unofficial and publishes no documented rate
+// limit. Community consensus (see ESPN hidden-API docs/discussions) is to
+// stay around 30-60s between calls and back off if requests start failing,
+// rather than hammering it on a fixed timer regardless of game state.
+//
+// Strategy:
+//  - 30s cadence only while at least one game is actually in progress.
+//  - 5 min cadence when nothing is live (pre-game or all games final) -
+//    scores can't change, so there's no reason to poll fast.
+//  - Pause entirely when the tab isn't visible (backgrounded/minimized).
+//  - Exponential backoff (starting at 60s, capped at 8 min) on any fetch
+//    error, e.g. a 429 or transient network failure, so a bad stretch
+//    doesn't turn into a tight retry loop.
+//  - A short in-memory cache dedupes bursty calls (e.g. two components
+//    mounting/polling around the same time) so they share one fetch.
+
+const LIVE_POLL_MS = 30000;      // cadence while a game is in progress
+const IDLE_POLL_MS = 5 * 60000;  // cadence when nothing is live
+const BACKOFF_BASE_MS = 60000;   // first retry delay after an error
+const BACKOFF_MAX_MS = 8 * 60000; // cap on backoff delay
+const CACHE_TTL_MS = 15000;      // min gap between real network calls
+
+let liveScoresCache = { week: null, at: 0, promise: null, data: null };
+
+function fetchLiveScoresCached(week) {
+  const now = Date.now();
+  if (
+    liveScoresCache.week === week &&
+    liveScoresCache.data &&
+    now - liveScoresCache.at < CACHE_TTL_MS
+  ) {
+    return Promise.resolve(liveScoresCache.data);
+  }
+  if (liveScoresCache.week === week && liveScoresCache.promise) {
+    return liveScoresCache.promise;
+  }
+  const promise = fetchLiveScores(week).then(
+    (data) => {
+      liveScoresCache = { week, at: Date.now(), promise: null, data };
+      return data;
+    },
+    (err) => {
+      liveScoresCache = { week, at: 0, promise: null, data: liveScoresCache.data };
+      throw err;
+    }
+  );
+  liveScoresCache = { week, at: now, promise, data: liveScoresCache.data };
+  return promise;
+}
+
+function hasLiveGame(map) {
+  return Object.values(map).some((g) => g.state === "in");
+}
+
 function useLiveScores(week) {
   const [liveMap, setLiveMap] = useState({});
   useEffect(() => {
     let cancelled = false;
+    let timer = null;
+    let backoff = BACKOFF_BASE_MS;
+
+    function schedule(ms) {
+      if (cancelled) return;
+      timer = setTimeout(poll, ms);
+    }
+
     async function poll() {
+      if (document.hidden) {
+        // Don't spend requests on a backgrounded tab; check again shortly
+        // after it would have been due, then reassess visibility.
+        schedule(LIVE_POLL_MS);
+        return;
+      }
       try {
-        const map = await fetchLiveScores(week);
-        if (!cancelled) setLiveMap(map);
+        const map = await fetchLiveScoresCached(week);
+        if (cancelled) return;
+        setLiveMap(map);
+        backoff = BACKOFF_BASE_MS; // reset after a success
+        schedule(hasLiveGame(map) ? LIVE_POLL_MS : IDLE_POLL_MS);
       } catch (e) {
-        // Network hiccup or CORS block on file:// - just leave live scores empty,
-        // the app still works fine off historical/predicted data.
+        // Network hiccup, CORS block on file://, or ESPN throttling.
+        // Leave whatever live scores we already have and back off.
+        if (cancelled) return;
+        schedule(backoff);
+        backoff = Math.min(backoff * 2, BACKOFF_MAX_MS);
       }
     }
+
+    function onVisibilityChange() {
+      // Coming back into view - poll right away instead of waiting out
+      // whatever interval was scheduled while hidden.
+      if (!document.hidden && timer) {
+        clearTimeout(timer);
+        poll();
+      }
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
     poll();
-    const timer = setInterval(poll, 30000);
-    return () => { cancelled = true; clearInterval(timer); };
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [week]);
   return liveMap;
 }
@@ -5897,7 +6030,7 @@ function InjuryDetailModal({ player, onClose }) {
           <div>
             <div className="injury-modal-name">{player.name}</div>
             <div className="injury-modal-meta">
-              {player.position} · <span className={"impact-" + player.status}>{statusLabel}</span>
+              {player.teamId ? player.teamId + " · " : ""}{player.position} · <span className={"impact-" + player.status}>{statusLabel}</span>
             </div>
           </div>
         </div>
@@ -6140,7 +6273,10 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   const homeIsWinner = prediction.predictedWinner === home.id;
   const homePct = (prediction.homeWinProbability * 100).toFixed(0);
   const awayPct = (prediction.awayWinProbability * 100).toFixed(0);
-  const allAdjustments = [...prediction.homeAdjustments, ...prediction.awayAdjustments];
+  const allAdjustments = [
+    ...prediction.homeAdjustments.map(a => ({ ...a, teamId: home.id, teamName: home.name })),
+    ...prediction.awayAdjustments.map(a => ({ ...a, teamId: away.id, teamName: away.name }))
+  ];
   const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
   const rationale = buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket });
 
@@ -6279,10 +6415,10 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
         <div key={i} className={"impact-note impact-" + a.status}>
           <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
           <span>
-            <strong>{a.player}</strong> ({a.position}) is <strong>{a.status}</strong> —
-            hurts {a.side === "offense" ? "their offense" : "their defense"},
+            <strong>{a.player}</strong> ({a.teamId} · {a.position}) is <strong>{a.status}</strong> —
+            hurts {a.teamName}'s {a.side === "offense" ? "offense" : "defense"},
             shifting the odds toward the opponent.
-            <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury }} />
+            <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury, teamId: a.teamId, teamName: a.teamName }} />
           </span>
         </div>
       ))}
@@ -6358,6 +6494,7 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
         </div>
       )}
       <GradationLegend />
+      <NewsTicker />
       <div className="schedule-grid">
         {games.map((g) => (
           <GameCard
@@ -6921,6 +7058,7 @@ function PlayerHistoryModal({ player, onClose }) {
             <div className="injury-modal-name">
               {player.name}
               {player.isRookie && <span className="rookie-badge" title="Rookie">R</span>}
+              <RosterInjuryFlag impactPlayer={player.injuryStatus ? { status: player.injuryStatus, name: player.name } : null} />
             </div>
             <div className="injury-modal-meta">
               {[player.position, player.jersey ? "#" + player.jersey : null, player.college || null]
@@ -6931,6 +7069,40 @@ function PlayerHistoryModal({ player, onClose }) {
         </div>
 
         <div className="injury-modal-body">
+          {(player.injuryStatus === "out" || player.injuryStatus === "questionable") && (
+            <React.Fragment>
+              <div className="player-modal-section-title">Injury Report</div>
+              <div className="injury-modal-row">
+                <span className="injury-modal-label">Status</span>
+                <span className="injury-modal-value">{player.injuryStatus === "out" ? "Out" : "Questionable"}</span>
+              </div>
+              {player.injury && player.injury.type && (
+                <div className="injury-modal-row">
+                  <span className="injury-modal-label">Injury</span>
+                  <span className="injury-modal-value">{player.injury.type}</span>
+                </div>
+              )}
+              {player.injury && player.injury.since && formatInjurySince(player.injury.since) && (() => {
+                const since = formatInjurySince(player.injury.since);
+                return (
+                  <div className="injury-modal-row">
+                    <span className="injury-modal-label">Since</span>
+                    <span className="injury-modal-value">
+                      {since.label}{since.duration ? " (" + since.duration + ")" : ""}
+                    </span>
+                  </div>
+                );
+              })()}
+              {player.injury && player.injury.note ? (
+                <p className="injury-modal-note">{player.injury.note}</p>
+              ) : (
+                <p className="injury-modal-note injury-modal-empty">
+                  No detailed injury report tracked yet for this status \u2014 check back as camp/practice reports update.
+                </p>
+              )}
+            </React.Fragment>
+          )}
+
           <div className="player-modal-section-title">NCAA Background</div>
           <div className="injury-modal-row">
             <span className="injury-modal-label">College</span>
@@ -7000,47 +7172,64 @@ function PlayerHistoryModal({ player, onClose }) {
   );
 }
 
-// ---- Team news: ESPN + a second, independent source, deduplicated --------
+// ---- Team news: ESPN + two independent RSS sources, deduplicated --------
 // ESPN's team-news endpoint (used below) is the primary source, but it's a
-// single outlet. This blends in CBS Sports' general NFL RSS feed as a
-// second, independent source, filtered down client-side to whichever
-// team's page is open, so the panel isn't single-sourced. A raw RSS feed
-// has no CORS headers at all, so it can't be fetched directly from the
-// browser - rss2json.com exists specifically to solve that (their own docs
-// show the api_key used straight from client-side JS, confirming it's
-// meant for exactly this). Fetched once for the whole league, not once per
-// team, since it's the same feed URL regardless of team - a single shared
-// fetch also avoids rss2json's anonymous-tier "new feed" burst limit, which
-// only applies per distinct feed URL. If it's ever unavailable (throttled,
-// offline, CORS-blocked), fetchLeagueNewsFeed() fails soft to an empty
-// list rather than breaking the panel - the ESPN half still renders on its
-// own, same as before this was added.
+// single outlet. This blends in CBS Sports' and FOX Sports' general NFL
+// RSS feeds as independent second/third sources, filtered down
+// client-side to whichever team's page is open, so the panel isn't
+// single- or dual-sourced. A raw RSS feed has no CORS headers at all, so
+// it can't be fetched directly from the browser - rss2json.com exists
+// specifically to solve that (their own docs show the api_key used
+// straight from client-side JS, confirming it's meant for exactly this).
+// Each feed is fetched once for the whole league, not once per team,
+// since it's the same feed URL regardless of team - a single shared fetch
+// per source also avoids rss2json's anonymous-tier "new feed" burst
+// limit, which only applies per distinct feed URL. If either feed is ever
+// unavailable (throttled, offline, CORS-blocked), it fails soft to an
+// empty list for that source rather than breaking the panel - the other
+// sources still render on their own.
 // rss2json's own docs use this key directly in client-side sample code
 // (e.g. jQuery .ajax() calls) - it's meant to be embedded in a browser
 // app like this one, not kept server-side. It lifts the anonymous tier's
 // "new feed" burst throttle mentioned above and raises the rate limit.
 const RSS2JSON_API_KEY = "0xcemmcvfabsgqs9x1jwxx5yntebmgxkkupxssko";
 
+// FOX Sports' official free RSS feed, no key required beyond the partner
+// key baked into the URL itself (FOX's own RSS-feeds page publishes this
+// exact URL for public subscription - see foxsports.com/rss-feeds).
+const FOX_NFL_RSS_URL = "https://api.foxsports.com/v2/content/optimized-rss?partnerKey=MB0Wehpmuj2lUhuRhQaafhBjAJqaPU244mlTDK1i&size=30&tags=fs/nfl";
+
+async function fetchRssFeedViaJson(feedUrl, sourceName) {
+  try {
+    const encoded = encodeURIComponent(feedUrl);
+    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encoded}&count=50&api_key=${RSS2JSON_API_KEY}`);
+    if (!res.ok) throw new Error(`rss2json request failed for ${sourceName}: ` + res.status);
+    const data = await res.json();
+    if (data.status !== "ok") throw new Error(`rss2json status for ${sourceName}: ` + data.status);
+    return (data.items || []).map(item => ({
+      headline: item.title,
+      published: parsePubDateToIso(item.pubDate),
+      url: item.link,
+      image: (item.enclosure && item.enclosure.link) || item.thumbnail || null,
+      source: sourceName,
+    }));
+  } catch (e) {
+    return [];
+  }
+}
+
 let leagueNewsFeedPromise = null;
 function fetchLeagueNewsFeed() {
   if (leagueNewsFeedPromise) return leagueNewsFeedPromise;
   leagueNewsFeedPromise = (async () => {
-    try {
-      const feedUrl = encodeURIComponent("https://www.cbssports.com/rss/headlines/nfl/");
-      const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}&count=50&api_key=${RSS2JSON_API_KEY}`);
-      if (!res.ok) throw new Error("rss2json request failed: " + res.status);
-      const data = await res.json();
-      if (data.status !== "ok") throw new Error("rss2json status: " + data.status);
-      return (data.items || []).map(item => ({
-        headline: item.title,
-        published: parsePubDateToIso(item.pubDate),
-        url: item.link,
-        image: (item.enclosure && item.enclosure.link) || item.thumbnail || null,
-        source: "CBS Sports",
-      }));
-    } catch (e) {
-      return [];
-    }
+    const [cbsItems, foxItems] = await Promise.all([
+      fetchRssFeedViaJson("https://www.cbssports.com/rss/headlines/nfl/", "CBS Sports"),
+      fetchRssFeedViaJson(FOX_NFL_RSS_URL, "FOX Sports"),
+    ]);
+    // Dedupe here too (not just in fetchTeamNews/useLeagueNews below) so
+    // every caller of fetchLeagueNewsFeed gets an already-clean combined
+    // list, in case CBS and FOX both cover the same story.
+    return mergeAndDedupeNews([cbsItems, foxItems]);
   })();
   // A throttled/offline attempt shouldn't permanently poison the feed for
   // the rest of the session - let the next team-page visit try again
@@ -7162,8 +7351,8 @@ async function fetchTeamNews(teamId) {
     ]);
 
     const team = baseTeam(teamId);
-    const cbsArticles = filterLeagueFeedForTeam(leagueFeed, team);
-    return mergeAndDedupeNews([espnArticles, cbsArticles]).map((a, i) => ({
+    const leagueArticles = filterLeagueFeedForTeam(leagueFeed, team);
+    return mergeAndDedupeNews([espnArticles, leagueArticles]).map((a, i) => ({
       ...a,
       id: a.url || `${a.source || "news"}-${i}`,
     }));
@@ -7185,6 +7374,73 @@ function useTeamNews(teamId) {
     return () => { cancelled = true; };
   }, [teamId]);
   return state;
+}
+
+/** Shared with the team-news panel's CBS+FOX half (fetchLeagueNewsFeed) -
+ *  one fetch per source for the whole league, reused here for a
+ *  week-view-wide ticker instead of a per-team feed. Runs
+ *  mergeAndDedupeNews again for the same near-duplicate-headline cleanup +
+ *  newest-first sort the team panel gets (fetchLeagueNewsFeed already
+ *  dedupes internally, but re-running it here is harmless/idempotent and
+ *  keeps this function correct even if that internal dedup ever changes). */
+function useLeagueNews() {
+  const [state, setState] = useState({ loading: true, error: null, data: null });
+  useEffect(() => {
+    let cancelled = false;
+    fetchLeagueNewsFeed()
+      .then(items => {
+        if (cancelled) return;
+        setState({ loading: false, error: null, data: mergeAndDedupeNews([items]) });
+      })
+      .catch(e => { if (!cancelled) setState({ loading: false, error: e, data: null }); });
+    return () => { cancelled = true; };
+  }, []);
+  return state;
+}
+
+const NEWS_TICKER_ITEM_COUNT = 15;
+
+/** Scrolling headline ticker for the week view, sitting under the
+ *  advantage/disadvantage legend. Two copies of the headline list are
+ *  rendered back to back and the track is animated exactly -50% of its own
+ *  width, which is what makes the loop seamless (the moment the first copy
+ *  scrolls fully offscreen, the second copy is sitting in the exact spot
+ *  the first one started in). Renders nothing while loading or if the feed
+ *  comes back empty, so it never reserves layout space with nothing to show. */
+function NewsTicker() {
+  const { loading, error, data } = useLeagueNews();
+  if (loading || error || !data || data.length === 0) return null;
+  const items = data.slice(0, NEWS_TICKER_ITEM_COUNT);
+
+  function renderItems(keyPrefix, hidden) {
+    return items.map((item, i) => (
+      <a
+        key={keyPrefix + (item.id || i)}
+        className="news-ticker-item"
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        tabIndex={hidden ? -1 : undefined}
+        aria-hidden={hidden || undefined}
+      >
+        {item.source && <span className="news-ticker-source">{item.source}</span>}
+        <span className="news-ticker-headline">{item.headline}</span>
+        {item.published && <span className="news-ticker-time">{timeAgo(item.published)}</span>}
+      </a>
+    ));
+  }
+
+  return (
+    <div className="news-ticker">
+      <span className="news-ticker-label">NFL News</span>
+      <div className="news-ticker-track-wrap">
+        <div className="news-ticker-track">
+          {renderItems("a-", false)}
+          {renderItems("b-", true)}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function timeAgo(iso) {
@@ -7215,6 +7471,45 @@ function useIsMobile(breakpoint = 860) {
   return isMobile;
 }
 
+/** Roster/depth-chart names come live from ESPN; the curated injury data
+ *  in data/impact-players.json is keyed by team + player name instead of
+ *  ESPN's athlete id, so this is a best-effort name match (case/punctuation
+ *  insensitive) between the two sources. */
+function normalizePlayerName(name) {
+  return (name || "").toLowerCase().replace(/[^a-z\s]/g, "").trim();
+}
+
+/** teamId -> {normalizedName: impactPlayer} lookup, rebuilt from module-
+ *  level PLAYERS_DATA on every render (not memoized) so a live data refresh
+ *  (see useLiveSiteData) is picked up immediately without a page reload. */
+function buildInjuryLookup(teamId) {
+  const impactPlayers = PLAYERS_DATA.players[teamId] || [];
+  const byName = {};
+  impactPlayers.forEach(p => { byName[normalizePlayerName(p.name)] = p; });
+  return byName;
+}
+
+/** Purely a visual marker next to the player's name - only shown for
+ *  players actually tracked as injured (out/questionable), not healthy
+ *  "active" impact players. It reads straight off impactPlayer.status on
+ *  every render, so a player rolls off the roster/depth-chart view the
+ *  moment the underlying impact-players data marks them "active" again -
+ *  no separate timer or expiry to maintain. Clicking the player's name
+ *  opens PlayerHistoryModal, which shows the full injury details itself,
+ *  so this badge doesn't need its own click target. */
+function RosterInjuryFlag({ impactPlayer }) {
+  if (!impactPlayer || (impactPlayer.status !== "out" && impactPlayer.status !== "questionable")) return null;
+  const label = impactPlayer.status === "out" ? "O" : "⚠️";
+  return (
+    <span
+      className={"roster-injury-flag impact-" + impactPlayer.status}
+      title={(impactPlayer.status === "out" ? "Out" : "Questionable") + (impactPlayer.name ? " — " + impactPlayer.name : "")}
+    >
+      {label}
+    </span>
+  );
+}
+
 function DepthChartSection({ teamId }) {
   const { loading, error, data } = useTeamRoster(teamId);
   const [side, setSide] = useState("offense");
@@ -7236,6 +7531,7 @@ function DepthChartSection({ teamId }) {
   const depthRankById = buildDepthRankMap(sideDepthChart);
   const rosterGroup = data.fullRoster.find(g => g.group === activeSide);
   const positionGroups = rosterGroup ? groupPlayersByPosition(rosterGroup.players, activeSide, depthRankById) : [];
+  const injuryByName = buildInjuryLookup(teamId);
 
   return (
     <div>
@@ -7269,19 +7565,25 @@ function DepthChartSection({ teamId }) {
                         <button
                           type="button"
                           className="depth-player-name depth-player-name-btn"
-                          onClick={() => setHistoryPlayer({
-                            id: p.id,
-                            name: p.displayName || p.shortName,
-                            position: (p.position && p.position.abbreviation) || group.posAbbr || group.label,
-                            jersey: p.jersey,
-                            college: p.college && p.college.name,
-                            isRookie,
-                            experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
-                          })}
+                          onClick={() => {
+                            const impactMatch = injuryByName[normalizePlayerName(p.displayName || p.shortName)];
+                            setHistoryPlayer({
+                              id: p.id,
+                              name: p.displayName || p.shortName,
+                              position: (p.position && p.position.abbreviation) || group.posAbbr || group.label,
+                              jersey: p.jersey,
+                              college: p.college && p.college.name,
+                              isRookie,
+                              experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
+                              injuryStatus: impactMatch ? impactMatch.status : null,
+                              injury: impactMatch ? impactMatch.injury : null,
+                            });
+                          }}
                         >
                           {p.shortName || p.displayName}
                         </button>
                         {isRookie && <span className="rookie-badge" title="Rookie">R</span>}
+                        <RosterInjuryFlag impactPlayer={injuryByName[normalizePlayerName(p.displayName || p.shortName)]} />
                         {p.jersey && <span className="depth-player-jersey">#{p.jersey}</span>}
                       </div>
                     );
@@ -7316,19 +7618,25 @@ function DepthChartSection({ teamId }) {
                             <button
                               type="button"
                               className="roster-player-name-btn"
-                              onClick={() => setHistoryPlayer({
-                                id: p.id,
-                                name: p.displayName,
-                                position: pg.abbr,
-                                jersey: p.jersey,
-                                college: p.college && p.college.name,
-                                isRookie,
-                                experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
-                              })}
+                              onClick={() => {
+                                const impactMatch = injuryByName[normalizePlayerName(p.displayName)];
+                                setHistoryPlayer({
+                                  id: p.id,
+                                  name: p.displayName,
+                                  position: pg.abbr,
+                                  jersey: p.jersey,
+                                  college: p.college && p.college.name,
+                                  isRookie,
+                                  experienceYears: p.experience && p.experience.years != null ? p.experience.years : null,
+                                  injuryStatus: impactMatch ? impactMatch.status : null,
+                                  injury: impactMatch ? impactMatch.injury : null,
+                                });
+                              }}
                             >
                               {p.displayName}
                             </button>
                             {isRookie && <span className="rookie-badge" title="Rookie">R</span>}
+                            <RosterInjuryFlag impactPlayer={injuryByName[normalizePlayerName(p.displayName)]} />
                           </td>
                           <td>{p.displayHeight ? `${p.displayHeight}, ${p.displayWeight}` : "—"}</td>
                           <td>{p.experience && p.experience.years != null ? p.experience.years : "—"}</td>
@@ -7465,7 +7773,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
       };
     }
     const odds = getOdds(week, game.away, game.home, sportsbookId);
-    return { week, bye: false, opp, isHome, date: game.date, time: game.time, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
+    return { week, bye: false, opp, isHome, date: game.date, time: game.time, network: game.network, international: !!game.international, note: game.note, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
   }
 
   const regularRows = SCHEDULE_DATA.weeks.map(w => {
@@ -7518,7 +7826,10 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
         </div>
       </div>
       <div className="team-view-header">
-        <TeamLogo teamId={team.id} size={64} />
+        <div className="badge-wrap" style={{ width: 64, height: 64 }}>
+          <TeamLogo teamId={team.id} size={64} />
+          <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
+        </div>
         <div style={{ flex: 1 }}>
           <h2>{team.name}</h2>
           <div className="rec-line">
@@ -7527,7 +7838,6 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
           </div>
           <div className="rec-line" style={{ marginTop: 6 }}>Model-predicted wins this season: {favCount} / {totalGames}</div>
         </div>
-        <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
       </div>
 
       <div className="injury-report">
@@ -7583,7 +7893,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                 <div key={r.week} className={"schedule-mobile-card" + (r.bye ? " bye-row" : "") + (r.isPlayoff ? " playoff-row" : "")}>
                   <div className="schedule-mobile-top">
                     <span className="schedule-mobile-week">{r.label}</span>
-                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}</span>}
+                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}{r.network ? ` • ${r.network}` : ""}</span>}
                   </div>
                   {r.bye ? (
                     <div className="hw-tag">BYE week</div>
@@ -7592,6 +7902,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                       <div className="opp-cell">
                         <TeamLogo teamId={r.opp.id} size={26} />
                         <span>{r.isHome ? "vs" : "@"} {r.opp.name}</span>
+                        {r.international && <span className="international-tag" title={r.note || "International Game"}>🌍 International</span>}
                       </div>
                       <div className="schedule-mobile-row">
                         <span className={r.teamWins ? "pred-win" : "pred-lose"}>
@@ -7653,11 +7964,13 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                           <div className="opp-cell">
                             <TeamLogo teamId={r.opp.id} size={26} />
                             <span>{r.isHome ? "vs" : "@"} {r.opp.name}</span>
+                            {r.international && <span className="international-tag" title={r.note || "International Game"}>🌍 International</span>}
                           </div>
                         </td>
                         <td className="date-cell">
                           <span className="date-line">{r.date}</span>
                           {r.time && <span className="time-line">{r.time}</span>}
+                          {r.network && <span className="time-line">{r.network}</span>}
                         </td>
                         <td>
                           {r.odds ? (
@@ -8120,8 +8433,8 @@ function App() {
       <footer className="app-footer">
         Team stats source: The Football Database (footballdb.com). Schedule source: Pro-Football-Reference &amp;
         NFL.com, 2026 season. Team logos from NFL.com. Live scores from ESPN's public scoreboard API. Betting
-        odds are real sportsbook lines refreshed weekly (Week 1 is a labeled illustrative sample until real lines
-        post). Impact player data and any weeks marked "sample" are illustrative/placeholder pending real
+        odds are real sportsbook lines refreshed weekly (upcoming weeks show "Odds not yet posted" until lines go
+        live). Impact player data and any weeks marked "sample" are illustrative/placeholder pending real
         in-season reports and results.
       </footer>
 

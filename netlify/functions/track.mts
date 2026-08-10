@@ -20,7 +20,31 @@ function jsonResponse(status: number, body: unknown, extraHeaders?: Record<strin
 
 const VALID_TYPES = new Set(["pageview", "team_click", "favorite"]);
 
-export default async (req: Request, _context: Context) => {
+// Best-effort extraction of Netlify's built-in geolocation (derived from the
+// edge node that served the request, via the `x-nf-geo` header). This is
+// approximate (city-level at best) and never involves storing a raw IP.
+function extractLocation(context: Context): Record<string, unknown> | null {
+  try {
+    const geo = context && (context as any).geo;
+    if (!geo) return null;
+
+    const location: Record<string, unknown> = {};
+    if (geo.city) location.city = String(geo.city).slice(0, 128);
+    if (geo.country && geo.country.name) location.country = String(geo.country.name).slice(0, 128);
+    if (geo.country && geo.country.code) location.countryCode = String(geo.country.code).slice(0, 8);
+    if (geo.subdivision && geo.subdivision.name) location.region = String(geo.subdivision.name).slice(0, 128);
+    if (geo.subdivision && geo.subdivision.code) location.regionCode = String(geo.subdivision.code).slice(0, 16);
+    if (geo.timezone) location.timezone = String(geo.timezone).slice(0, 64);
+    if (typeof geo.latitude === "number" && Number.isFinite(geo.latitude)) location.lat = geo.latitude;
+    if (typeof geo.longitude === "number" && Number.isFinite(geo.longitude)) location.lon = geo.longitude;
+
+    return Object.keys(location).length > 0 ? location : null;
+  } catch {
+    return null;
+  }
+}
+
+export default async (req: Request, context: Context) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
@@ -68,6 +92,11 @@ export default async (req: Request, _context: Context) => {
 
     if (week !== undefined && week !== null && week !== "") {
       record.week = String(week).slice(0, 32);
+    }
+
+    const location = extractLocation(context);
+    if (location) {
+      record.location = location;
     }
 
     const store = getStore("blitz-analytics");

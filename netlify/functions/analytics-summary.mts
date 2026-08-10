@@ -10,6 +10,17 @@ const CORS_HEADERS: Record<string, string> = {
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
+type LocationInfo = {
+  city?: string;
+  country?: string;
+  countryCode?: string;
+  region?: string;
+  regionCode?: string;
+  timezone?: string;
+  lat?: number;
+  lon?: number;
+};
+
 type EventRecord = {
   type?: string;
   visitorId?: string;
@@ -18,6 +29,7 @@ type EventRecord = {
   teamName?: string;
   adding?: boolean;
   week?: string;
+  location?: LocationInfo;
 };
 
 function jsonResponse(status: number, body: unknown) {
@@ -60,6 +72,18 @@ function buildZeroFilledSeries(
   return series;
 }
 
+type LocationBucket = {
+  label: string;
+  country?: string;
+  countryCode?: string;
+  region?: string;
+  city?: string;
+  lat?: number;
+  lon?: number;
+  pageviews: number;
+  uniqueVisitors: number;
+};
+
 function emptySummary(now: number) {
   return {
     totalPageviews: 0,
@@ -70,6 +94,9 @@ function emptySummary(now: number) {
     teamClicksByTeam: {} as Record<string, number>,
     favoritesByTeam: {} as Record<string, number>,
     topFavoriteTeam: null as string | null,
+    viewsByCountry: [] as LocationBucket[],
+    viewsByCity: [] as LocationBucket[],
+    topLocation: null as string | null,
     lastUpdated: new Date(now).toISOString(),
   };
 }
@@ -183,6 +210,78 @@ export default async (req: Request, _context: Context) => {
     }
     const topFavoriteTeam = sortedFavEntries.length > 0 ? sortedFavEntries[0][0] : null;
 
+    // --- viewsByCountry / viewsByCity: where unique views are coming from ---
+    // Grouped from pageview events that carried a `location` (Netlify's
+    // built-in edge geolocation - see track.mts). "Unique" here means
+    // distinct visitorIds seen at that location, not raw pageview count.
+    type Agg = {
+      country?: string;
+      countryCode?: string;
+      region?: string;
+      city?: string;
+      lat?: number;
+      lon?: number;
+      pageviews: number;
+      visitors: Set<string>;
+    };
+
+    const countryAgg = new Map<string, Agg>();
+    const cityAgg = new Map<string, Agg>();
+
+    for (const pv of pageviews) {
+      const loc = pv.location;
+      if (!loc) continue;
+
+      if (loc.country) {
+        const key = loc.country;
+        const entry =
+          countryAgg.get(key) ||
+          ({ country: loc.country, countryCode: loc.countryCode, pageviews: 0, visitors: new Set<string>() } as Agg);
+        entry.pageviews += 1;
+        if (pv.visitorId) entry.visitors.add(pv.visitorId);
+        countryAgg.set(key, entry);
+      }
+
+      if (loc.city) {
+        const key = [loc.city, loc.region, loc.country].filter(Boolean).join(", ");
+        const entry =
+          cityAgg.get(key) ||
+          ({
+            country: loc.country,
+            countryCode: loc.countryCode,
+            region: loc.region,
+            city: loc.city,
+            lat: loc.lat,
+            lon: loc.lon,
+            pageviews: 0,
+            visitors: new Set<string>(),
+          } as Agg);
+        entry.pageviews += 1;
+        if (pv.visitorId) entry.visitors.add(pv.visitorId);
+        cityAgg.set(key, entry);
+      }
+    }
+
+    function toSortedBuckets(agg: Map<string, Agg>): LocationBucket[] {
+      return Array.from(agg.entries())
+        .map(([label, v]) => ({
+          label,
+          country: v.country,
+          countryCode: v.countryCode,
+          region: v.region,
+          city: v.city,
+          lat: v.lat,
+          lon: v.lon,
+          pageviews: v.pageviews,
+          uniqueVisitors: v.visitors.size,
+        }))
+        .sort((a, b) => b.uniqueVisitors - a.uniqueVisitors || b.pageviews - a.pageviews);
+    }
+
+    const viewsByCountry = toSortedBuckets(countryAgg);
+    const viewsByCity = toSortedBuckets(cityAgg);
+    const topLocation = viewsByCity.length > 0 ? viewsByCity[0].label : null;
+
     return jsonResponse(200, {
       totalPageviews,
       uniqueVisitors,
@@ -192,6 +291,9 @@ export default async (req: Request, _context: Context) => {
       teamClicksByTeam,
       favoritesByTeam,
       topFavoriteTeam,
+      viewsByCountry,
+      viewsByCity,
+      topLocation,
       lastUpdated: new Date(now).toISOString(),
     });
   } catch (err) {

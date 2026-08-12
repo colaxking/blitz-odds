@@ -1,6 +1,6 @@
 {
   "isDemoData": false,
-  "disclaimer": "Injury statuses reflect training camp reports as of Aug. 9, 2026 (night update). New: Jayden Reed (GB) added as questionable with a foot sprain; Kyler Gordon (CHI) added as out on PUP with a lingering calf strain. Refreshed: Malik Nabers (NYG) now trending toward playing Week 1 vs. Dallas after 9-of-10 padded practices with no setback; Laremy Tunsil (WAS) replacement plan updated - Brandon Coleman, not Andrew Wylie, is the frontrunner at left tackle. All other tracked situations (Emmanwori, Kittle, Pearsall, Evans, Bryant, Ekwonu, Moton, Scourton, Stewart, Bresee, Owusu-Koramoah, Tua, Penix, Walker, Ramsey, Parsons, Jacobs, Jefferson, Greenard, DeVonta Smith, Mahomes) confirmed unchanged after a fresh check of today's camp news. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
+  "disclaimer": "Injury statuses reflect training camp reports as of Aug. 11, 2026 (evening update). Updated: Coby Bryant (CHI) underwent knee surgery and is now expected to miss 4-6 months, worse than the initial 8-10 week outlook. All other tracked situations (Emmanwori, Kittle, Pearsall, Evans, Gordon, Burden, Ekwonu, Moton, Scourton, Stewart, Bresee, Owusu-Koramoah, Penix, Walker, Ramsey, Parsons, Reed, Jacobs, Greenard, DeVonta Smith, Nabers, Tunsil, Jefferson, Mahomes, Kyler Murray) confirmed unchanged after a fresh check of today's camp news, injury reports, and beat-writer/insider updates. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
   "players": {
     "NE": [
       {
@@ -21,11 +21,11 @@
         "name": "Nick Emmanwori",
         "position": "S",
         "impactScore": 7,
-        "status": "out",
+        "status": "active",
         "injury": {
-          "type": "Right ankle surgery (arthroscopic cleanup)",
+          "type": "Right ankle surgery (recovered)",
           "since": "2026-07",
-          "note": "Had a minor arthroscopic procedure earlier this month on lingering soreness from an ankle injury first suffered before Super Bowl LX. Opened camp on PUP; Seahawks expect him ready for the Sept. 9 season opener vs. New England."
+          "note": "Passed his physical and was activated off the PUP list; practiced Aug. 10 for the first time this camp. On track to start at safety in Seattle's Sept. 9 season opener vs. New England."
         }
       }
     ],
@@ -66,7 +66,7 @@
         "injury": {
           "type": "Quad strain",
           "since": "2026-08-03",
-          "note": "Missed Monday's practice with a quad strain, his first missed session since signing a 3-year, $60.4M deal with San Francisco this offseason after 12 seasons in Tampa Bay. Considered minor and could resolve relatively quickly, per Ian Rapoport; no firm return date given."
+          "note": "Returned to the field Aug. 11 for a joint practice vs. Tennessee, working individual drills after a week away. HC Kyle Shanahan continues to take a cautious approach given Evans' age (turns 33 this month) and 2025 injury history, but he's trending positive and not expected to linger into the season."
         }
       }
     ],
@@ -97,9 +97,9 @@
         "impactScore": 6,
         "status": "out",
         "injury": {
-          "type": "Hyperextended left knee, bone bruise, small fracture",
+          "type": "Hyperextended left knee, bone bruise, small fracture - underwent surgery",
           "since": "2026-08-03",
-          "note": "Hurt in one-on-one drills during the Bears' first padded training camp practice. Expected to miss 8-10 weeks; no surgery required, per Adam Schefter. Was Chicago's marquee free-agent addition this offseason (3-year, $40M deal)."
+          "note": "HC Ben Johnson announced Aug. 11 that Bryant underwent knee surgery and will now miss 4-6 months, a significant setback from the initial 8-10 week outlook (surgery wasn't originally expected). Bears remain hopeful he could be available if Chicago makes the playoffs. Was Chicago's marquee free-agent addition this offseason (3-year, $40M deal)."
         }
       },
       {
@@ -111,6 +111,17 @@
           "type": "Calf strain (soft-tissue)",
           "since": "2026-07-25",
           "note": "Opened training camp on the PUP list with a calf injury that also sidelined him for OTAs and minicamp. GM Ryan Poles said Aug. 6 there's been a frustrating 'delay' in his recovery with no firm return timetable; Gordon says he believes he'll be ready soon."
+        }
+      },
+      {
+        "name": "Luther Burden III",
+        "position": "WR",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Groin injury",
+          "since": "2026-08-08",
+          "note": "Hurt getting tangled up with CB Tyrique Stevenson on the final rep of red-zone one-on-ones. Expected to miss the rest of the preseason (about a month) but the Bears believe he'll be ready for the Sept. 13 opener at Carolina. Poised for a bigger role after the DJ Moore trade to Buffalo; caught 47 passes for 652 yards and 2 TDs as a rookie in 2025."
         }
       }
     ],
@@ -307,7 +318,7 @@
         "injury": {
           "type": "Knee injury",
           "since": "2026-06",
-          "note": "Hurt during minicamp; opened camp on PUP, no surgery required. Began light rehab (stretching, jogging) Aug. 1-2, but Steelers Depot's Mark Kaboly said Aug. 7 he 'wouldn't anticipate' Ramsey practicing at all during camp - next appearance may come at the Sept. 13 season opener vs. the Jets."
+          "note": "Hurt during minicamp; opened camp on PUP, no surgery required. Steelers Depot's Mark Kaboly said Aug. 7 he 'wouldn't anticipate' Ramsey practicing at all during camp, but spotted him doing field work alongside Joey Porter Jr. on Aug. 10, calling it 'good news' - a positive sign, though still no timetable for a return to full practice; next game appearance may come at the Sept. 13 season opener vs. the Jets."
         }
       }
     ],
@@ -397,14 +408,20 @@
     ],
     "MIN": [
       {
+        "name": "Kyler Murray",
+        "position": "QB",
+        "impactScore": 7,
+        "status": "active"
+      },
+      {
         "name": "Justin Jefferson",
         "position": "WR",
         "impactScore": 8,
-        "status": "questionable",
+        "status": "active",
         "injury": {
-          "type": "Hamstring strain (mild)",
+          "type": "Hamstring strain (recovered)",
           "since": "2026-07-24",
-          "note": "Left practice July 24 with a hamstring strain that an MRI confirmed as mild. Returned to practice July 29; Week 1 vs. Chicago (Sept. 8) remains the target for full speed."
+          "note": "Returned to practice July 29 after a mild hamstring strain; fully participated with no limitations in Sunday's (Aug. 9) public training camp practice. On track for Week 1 vs. Chicago."
         }
       }
     ],

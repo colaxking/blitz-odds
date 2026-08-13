@@ -5653,6 +5653,39 @@ const SPORTSBOOKS = [
 const DEFAULT_SPORTSBOOK_ID = "draftkings";
 const SPORTSBOOK_STORAGE_KEY = "blitz-odds-sportsbook";
 
+// Time zone preference for displayed kickoff times. "auto" (the default)
+// means "whatever the device's own zone is right now", resolved fresh each
+// time rather than saved as a fixed zone, so someone who travels still sees
+// local kickoff times without touching Settings. Picking any other entry
+// pins the display to that zone and is remembered across visits.
+const TIMEZONE_AUTO = "auto";
+const TIMEZONE_STORAGE_KEY = "blitz-odds-timezone";
+const TIMEZONES = [
+  { id: "America/New_York", label: "Eastern Time" },
+  { id: "America/Chicago", label: "Central Time" },
+  { id: "America/Denver", label: "Mountain Time" },
+  { id: "America/Phoenix", label: "Arizona (no DST)" },
+  { id: "America/Los_Angeles", label: "Pacific Time" },
+  { id: "America/Anchorage", label: "Alaska Time" },
+  { id: "Pacific/Honolulu", label: "Hawaii Time" },
+  { id: "America/Puerto_Rico", label: "Atlantic Time" },
+  { id: "Europe/London", label: "London" },
+  { id: "Europe/Paris", label: "Central Europe" },
+  { id: "Asia/Tokyo", label: "Tokyo" },
+  { id: "Australia/Sydney", label: "Sydney" },
+];
+
+/** The device's own IANA zone (e.g. "America/Chicago"), used whenever the
+ *  saved preference is TIMEZONE_AUTO. Falls back to Eastern - the schedule's
+ *  own native zone - if the browser won't say (very old browsers only). */
+function detectDeviceTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York";
+  } catch (e) {
+    return "America/New_York";
+  }
+}
+
 function getSportsbookLabel(id) {
   const book = SPORTSBOOKS.find(b => b.id === id);
   return book ? book.label : id;
@@ -5966,6 +5999,105 @@ function getDefaultWeek() {
     if (rollover == null || now < rollover) return p.week;
   }
   return periods[periods.length - 1].week;
+}
+
+// ---- Displaying kickoff times in the viewer's own time zone ---------------
+// Every game in the schedule data carries its date/time as plain Eastern
+// Time strings ("Wed, Sep 9" / "8:20 PM ET") straight from the source
+// listings, never a real timestamp. To show a kickoff in someone else's zone
+// we first have to turn those two strings back into a real instant, then
+// re-format that instant in whichever zone they want to see.
+
+/** Converts a "wall clock" date/time as read in `timeZone` into a real UTC
+ *  timestamp, without hardcoding that zone's offset or DST rules. Works by
+ *  guessing the UTC instant equals the wall-clock numbers, checking what
+ *  that guess actually reads as in `timeZone`, and correcting the gap -
+ *  converges in at most two passes for every real IANA zone (including ones
+ *  with fractional-hour offsets). This is the standard offset-free trick for
+ *  zoned-wall-time -> UTC conversion in plain JS (no Temporal/date library
+ *  available here). */
+function zonedWallTimeToUtcMs(year, month, day, hour, minute, timeZone) {
+  // `target` is the wall-clock numbers reinterpreted as if they were UTC -
+  // fixed for the whole loop. Each pass checks what the current `guess`
+  // instant actually reads as in `timeZone` and nudges `guess` by the gap
+  // between that reading and `target`, until the reading matches (comparing
+  // against the fixed target, not the shifting guess, is what makes this
+  // converge instead of oscillate).
+  const target = Date.UTC(year, month, day, hour, minute);
+  let guess = target;
+  for (let i = 0; i < 2; i++) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hour12: false,
+    }).formatToParts(new Date(guess));
+    const map = {};
+    parts.forEach(p => { map[p.type] = p.value; });
+    const localAsUtc = Date.UTC(
+      parseInt(map.year, 10),
+      parseInt(map.month, 10) - 1,
+      parseInt(map.day, 10),
+      map.hour === "24" ? 0 : parseInt(map.hour, 10),
+      parseInt(map.minute, 10)
+    );
+    const diff = localAsUtc - target;
+    if (diff === 0) break;
+    guess -= diff;
+  }
+  return guess;
+}
+
+/** Parses this schedule's "8:20 PM ET" / "1:00 PM ET" style strings into
+ *  { hour24, minute }, or null for anything that doesn't match (e.g. "TBD"
+ *  on unflexed weeks 16-18, which is left alone rather than guessed at). */
+function parseClockTime(timeStr) {
+  const m = /(\d{1,2}):(\d{2})\s*(AM|PM)/i.exec(timeStr || "");
+  if (!m) return null;
+  let hour = parseInt(m[1], 10) % 12;
+  if (/pm/i.test(m[3])) hour += 12;
+  return { hour24: hour, minute: parseInt(m[2], 10) };
+}
+
+/** Given a game's raw {date, time} strings (always Eastern Time, no year)
+ *  plus the season year those belong to, returns the real UTC instant of
+ *  kickoff, or null if either piece doesn't parse. */
+function gameKickoffUtcMs(dateStr, timeStr, seasonYear) {
+  const dm = /([A-Za-z]+)\s+(\d+)\s*$/.exec(dateStr || "");
+  if (!dm) return null;
+  const month = MONTH_INDEX_BY_ABBR[dm[1]];
+  if (month == null) return null;
+  const day = parseInt(dm[2], 10);
+  const year = month <= 5 ? seasonYear + 1 : seasonYear;
+  const clock = parseClockTime(timeStr);
+  if (!clock) return null;
+  return zonedWallTimeToUtcMs(year, month, day, clock.hour24, clock.minute, "America/New_York");
+}
+
+/** Re-renders a game's {date, time} in the given IANA zone, e.g. turning
+ *  ("Sun, Sep 13", "1:00 PM ET") into ("Sun, Sep 13", "12:00 PM CT") for a
+ *  Central-time viewer. Falls back to the original ET strings untouched
+ *  whenever the zone is Eastern (nothing to convert), the time can't be
+ *  parsed (e.g. "TBD"), or the zone itself is missing/invalid - so callers
+ *  can pass this through unconditionally without special-casing those
+ *  cases. Formatting (not just the math) happens in the target zone, so a
+ *  late ET kickoff that lands after midnight somewhere further east/west
+ *  correctly rolls the displayed date to the next/previous calendar day. */
+function formatGameDateTimeInZone(dateStr, timeStr, seasonYear, timeZone) {
+  const fallback = { date: dateStr, time: timeStr };
+  if (!timeZone || timeZone === "America/New_York") return fallback;
+  const utcMs = gameKickoffUtcMs(dateStr, timeStr, seasonYear);
+  if (utcMs == null) return fallback;
+  try {
+    const instant = new Date(utcMs);
+    const date = new Intl.DateTimeFormat("en-US", {
+      timeZone, weekday: "short", month: "short", day: "numeric",
+    }).format(instant);
+    const time = new Intl.DateTimeFormat("en-US", {
+      timeZone, hour: "numeric", minute: "2-digit", timeZoneName: "short",
+    }).format(instant);
+    return { date, time };
+  } catch (e) {
+    return fallback;
+  }
 }
 
 /** Teams with no game in a given regular-season week (i.e. on a bye). Byes
@@ -6575,7 +6707,7 @@ function resolveScore(live, historical) {
   return null;
 }
 
-function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, live, week, sportsbookId }) {
+function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, live, week, sportsbookId, tz }) {
   const home = context.getTeam(game.home);
   const away = context.getTeam(game.away);
   if (!home || !away) return null;
@@ -6584,6 +6716,8 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   const historicalResult = context.getResult(game.away, game.home);
   const scoreInfo = resolveScore(live, historicalResult);
   const odds = getOdds(week, game.away, game.home, sportsbookId);
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
 
   // Depends on the actual team/player objects (not just their ids) so that
   // if team stats or impact players ever update mid-session — e.g. a future
@@ -6621,7 +6755,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
     <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (divisionGame ? " is-division" : "") + (internationalGame ? " is-international" : "") + (scoreInfo && scoreInfo.isLive ? " is-live" : "")}>
       <div className="game-meta">
         <span className="game-meta-left">
-          {game.date}{game.time ? " • " + game.time : ""}
+          {shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}
           {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
           {internationalGame && <span className="international-tag" title={game.note || "International Game"}>🌍 International</span>}
         </span>
@@ -6786,7 +6920,7 @@ function GradationLegend() {
   );
 }
 
-function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookId }) {
+function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookId, tz }) {
   const scheduledGames = getGamesForWeek(week);
   const games = useMemo(() => sortGamesByFavorites(scheduledGames, favorites), [scheduledGames, favorites]);
   const context = getWeekContext(week);
@@ -6833,6 +6967,7 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
             live={liveMap[`${g.away}-${g.home}`]}
             week={week}
             sportsbookId={sportsbookId}
+            tz={tz}
           />
         ))}
       </div>
@@ -6979,7 +7114,7 @@ function FavoriteTeamsPicker({ favorites, onToggleFavorite }) {
   );
 }
 
-function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode, favorites, onToggleFavorite, onClose }) {
+function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode, tzId, setTzId, resolvedTz, favorites, onToggleFavorite, onClose }) {
   const overlayRef = useRef(null);
 
   useEffect(() => {
@@ -7013,6 +7148,11 @@ function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode,
         <div className="settings-section">
           <h3 className="settings-section-title">Theme</h3>
           <ThemeToggle mode={themeMode} setMode={setThemeMode} />
+        </div>
+
+        <div className="settings-section">
+          <h3 className="settings-section-title">Time Zone</h3>
+          <TimezonePicker tzId={tzId} setTzId={setTzId} resolvedTz={resolvedTz} />
         </div>
 
         <div className="settings-section">
@@ -8050,12 +8190,13 @@ function TeamNewsPanel({ teamId }) {
   );
 }
 
-function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, sportsbookId }) {
+function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, sportsbookId, tz }) {
   const team = baseTeam(teamId);
   if (!team) return <p>Unknown team.</p>;
   const injuryReport = PLAYERS_DATA.players[teamId] || [];
   const isMobile = useIsMobile(860);
   const [activeTab, setActiveTab] = useState("schedule");
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
 
   const tabs = isMobile
     ? [
@@ -8099,7 +8240,8 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
       };
     }
     const odds = getOdds(week, game.away, game.home, sportsbookId);
-    return { week, bye: false, opp, isHome, date: game.date, time: game.time, network: game.network, international: !!game.international, note: game.note, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
+    const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
+    return { week, bye: false, opp, isHome, date: shownTime.date, time: shownTime.time, network: game.network, international: !!game.international, note: game.note, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
   }
 
   const regularRows = SCHEDULE_DATA.weeks.map(w => {
@@ -8640,6 +8782,107 @@ function SportsbookPicker({ bookId, setBookId }) {
   );
 }
 
+/** Saved time zone preference for displayed kickoff times: TIMEZONE_AUTO
+ *  (the default) or one of TIMEZONES' ids. Persisted the same way as the
+ *  sportsbook/theme preferences - a local-only setting remembered across
+ *  visits via localStorage, not tied to any account. */
+function useTimezoneManager() {
+  const [tzId, setTzId] = useState(() => {
+    try {
+      const saved = localStorage.getItem(TIMEZONE_STORAGE_KEY);
+      return saved === TIMEZONE_AUTO || TIMEZONES.some(z => z.id === saved) ? saved : TIMEZONE_AUTO;
+    } catch (e) {
+      return TIMEZONE_AUTO;
+    }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(TIMEZONE_STORAGE_KEY, tzId); } catch (e) {}
+  }, [tzId]);
+
+  // The zone actually used for formatting: re-resolved on every render when
+  // set to "auto" so a device zone change (e.g. travel) takes effect
+  // immediately without the user having to touch Settings.
+  const resolvedTz = tzId === TIMEZONE_AUTO ? detectDeviceTimezone() : tzId;
+
+  return [tzId, setTzId, resolvedTz];
+}
+
+function TimezonePicker({ tzId, setTzId, resolvedTz }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+  const current = tzId === TIMEZONE_AUTO
+    ? TIMEZONES.find(z => z.id === resolvedTz)
+    : TIMEZONES.find(z => z.id === tzId);
+  const currentLabel = tzId === TIMEZONE_AUTO
+    ? `Auto${current ? ` (${current.label})` : ""}`
+    : (current ? current.label : tzId);
+
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  function pick(id) {
+    setTzId(id);
+    setOpen(false);
+  }
+
+  return (
+    <div className="book-picker" ref={containerRef}>
+      <button
+        className="book-picker-trigger"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        title="Choose which time zone kickoff times are shown in"
+      >
+        <span className="book-picker-label-dim">Time zone:</span>
+        <span>{currentLabel}</span>
+        <span className={"book-picker-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
+      </button>
+      {open && (
+        <div className="book-picker-panel" role="listbox">
+          <button
+            className={"book-picker-item" + (tzId === TIMEZONE_AUTO ? " active" : "")}
+            role="option"
+            aria-selected={tzId === TIMEZONE_AUTO}
+            onClick={() => pick(TIMEZONE_AUTO)}
+          >
+            <span>Auto (this device)</span>
+            <span className="book-picker-label-dim">Default</span>
+          </button>
+          {TIMEZONES.map(z => (
+            <button
+              key={z.id}
+              className={"book-picker-item" + (tzId === z.id ? " active" : "")}
+              role="option"
+              aria-selected={tzId === z.id}
+              onClick={() => pick(z.id)}
+            >
+              <span>{z.label}</span>
+            </button>
+          ))}
+          <div className="book-picker-hint">
+            Saved on this device only. Kickoff times are listed in Eastern by the league; this only changes
+            how they're displayed here.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ThemeToggle({ mode, setMode }) {
   const options = [
     { key: "light", label: "Light", Icon: SunIcon },
@@ -8667,6 +8910,7 @@ function ThemeToggle({ mode, setMode }) {
 function App() {
   const [themeMode, setThemeMode] = useThemeManager();
   const [sportsbookId, setSportsbookId] = useSportsbookManager();
+  const [tzId, setTzId, resolvedTz] = useTimezoneManager();
   const [view, setView] = useState("week");
   const [selectedWeek, setSelectedWeek] = useState(() => getDefaultWeek());
   const [selectedTeamId, setSelectedTeamId] = useState(null);
@@ -8751,9 +8995,9 @@ function App() {
       <FavoritesBar favorites={favorites} onSelect={selectTeam} />
 
       {view === "week" ? (
-        <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} sportsbookId={sportsbookId} />
+        <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} />
       ) : (
-        <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} sportsbookId={sportsbookId} />
+        <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} />
       )}
 
       <footer className="app-footer">
@@ -8770,6 +9014,9 @@ function App() {
           setSportsbookId={setSportsbookId}
           themeMode={themeMode}
           setThemeMode={setThemeMode}
+          tzId={tzId}
+          setTzId={setTzId}
+          resolvedTz={resolvedTz}
           favorites={favorites}
           onToggleFavorite={toggleFavorite}
           onClose={() => setShowSettings(false)}

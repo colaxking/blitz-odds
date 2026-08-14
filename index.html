@@ -6133,6 +6133,83 @@ function getDefaultWeek() {
   return periods[periods.length - 1].week;
 }
 
+// ---- schema.org SportsEvent structured data (client-side JSON-LD) ---------
+// Builds a startDate ISO timestamp for a game the same way latestGameDateMs
+// does (fixed -05:00 ET offset, month<=5 rolls to seasonYear+1), but returns
+// null instead of skipping when the time isn't a real kickoff yet ("TBD" for
+// unflexed weeks 16-18) - callers omit that game from structured data rather
+// than publish a guessed time.
+function iso8601GameStart(game, seasonYear) {
+  if (!game || !game.date || !game.time) return null;
+  const dm = /([A-Za-z]+)\s+(\d+)\s*$/.exec(game.date);
+  if (!dm) return null;
+  const month = MONTH_INDEX_BY_ABBR[dm[1]];
+  if (month == null) return null;
+  const day = parseInt(dm[2], 10);
+  const year = month <= 5 ? seasonYear + 1 : seasonYear;
+  const tm = /(\d{1,2}):(\d{2})\s*(AM|PM)/i.exec(game.time);
+  if (!tm) return null;
+  let hour = parseInt(tm[1], 10) % 12;
+  if (/pm/i.test(tm[3])) hour += 12;
+  const minute = parseInt(tm[2], 10);
+  const pad = n => String(n).padStart(2, "0");
+  return `${year}-${pad(month + 1)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00-05:00`;
+}
+
+/** schema.org SportsEvent object for one game, or null if it can't be built
+ *  (no confirmed kickoff time yet). Team names come through baseTeam() so
+ *  they read as full names ("Kansas City Chiefs") rather than ids. */
+function gameToSportsEvent(game, seasonYear) {
+  const startDate = iso8601GameStart(game, seasonYear);
+  if (!startDate) return null;
+  const home = baseTeam(game.home);
+  const away = baseTeam(game.away);
+  const homeName = home ? home.name : game.home;
+  const awayName = away ? away.name : game.away;
+  const event = {
+    "@type": "SportsEvent",
+    "name": `${awayName} at ${homeName}`,
+    "sport": "American Football",
+    "startDate": startDate,
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "eventStatus": "https://schema.org/EventScheduled",
+    "homeTeam": { "@type": "SportsTeam", "name": homeName },
+    "awayTeam": { "@type": "SportsTeam", "name": awayName },
+    "url": "https://blitz-odds.netlify.app/"
+  };
+  if (game.international && game.note) {
+    event.location = { "@type": "Place", "name": game.note.replace(/^International Game\s*—\s*/, "") };
+  }
+  return event;
+}
+
+/** Injects/updates/removes a single <script type="application/ld+json"> in
+ *  <head> holding SportsEvent markup for the games currently on screen.
+ *  Client-side only (same rendering path Googlebot already renders
+ *  correctly for page content) - re-runs whenever the visible game list
+ *  changes, e.g. switching weeks. */
+function useSportsEventJsonLd(games, seasonYear) {
+  useEffect(() => {
+    const events = (games || []).map(g => gameToSportsEvent(g, seasonYear)).filter(Boolean);
+    let script = document.getElementById("sports-event-jsonld");
+    if (!events.length) {
+      if (script) script.remove();
+      return;
+    }
+    if (!script) {
+      script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.id = "sports-event-jsonld";
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": events });
+    return () => {
+      const el = document.getElementById("sports-event-jsonld");
+      if (el) el.remove();
+    };
+  }, [games, seasonYear]);
+}
+
 // ---- Displaying kickoff times in the viewer's own time zone ---------------
 // Every game in the schedule data carries its date/time as plain Eastern
 // Time strings ("Wed, Sep 9" / "8:20 PM ET") straight from the source
@@ -7140,6 +7217,8 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
   const games = useMemo(() => sortGamesForDisplay(scheduledGames, favorites, liveMap), [scheduledGames, favorites, liveMap]);
   const context = getWeekContext(week);
   const byeTeams = useMemo(() => getByeTeams(week), [week]);
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  useSportsEventJsonLd(games, seasonYear);
   if (!games.length) return <p>No schedule data for this week yet.</p>;
   return (
     <div>

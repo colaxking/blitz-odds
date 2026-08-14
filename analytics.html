@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Blitz Odds — Analytics</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --card-bg: #131c2e;
+    --card-border: #223049;
+    --accent: #4fd1c5;
+    --accent-dim: #0f8f83;
+    --text: #e7edf7;
+    --text-dim: #8a95a8;
+    --text-faint: #556077;
+    --live: #ff3b30;
+    --good: #6be3a1;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  body { padding: 20px 16px 60px; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px 16px;
+    margin-bottom: 22px;
+  }
+  header h1 {
+    font-size: 1.35rem; margin: 0; letter-spacing: -0.01em;
+  }
+  header h1 span { color: var(--accent); }
+  .status-line {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.78rem; color: var(--text-dim);
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--good);
+    box-shadow: 0 0 0 3px rgba(107,227,161,0.15);
+  }
+  .status-dot.stale { background: #d9a02d; box-shadow: 0 0 0 3px rgba(217,160,45,0.15); }
+  .status-dot.error { background: var(--live); box-shadow: 0 0 0 3px rgba(255,59,48,0.15); }
+  #refreshBtn {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    color: var(--text); font-family: inherit; font-size: 0.78rem;
+    padding: 5px 10px; border-radius: 7px; cursor: pointer;
+  }
+  #refreshBtn:hover { border-color: var(--accent-dim); }
+  #refreshBtn:disabled { opacity: 0.5; cursor: default; }
+
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 18px;
+  }
+  .kpi {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .kpi .label {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-dim); margin-bottom: 6px;
+  }
+  .kpi .value { font-size: 1.6rem; font-weight: 650; letter-spacing: -0.01em; }
+  .kpi .sub { font-size: 0.74rem; color: var(--text-faint); margin-top: 3px; }
+
+  .grid {
+    display: grid; grid-template-columns: 2fr 1fr; gap: 14px;
+  }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 16px; margin-bottom: 14px;
+  }
+  .card h2 {
+    font-size: 0.85rem; margin: 0 0 12px; color: var(--text-dim);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .chart-wrap { position: relative; height: 220px; }
+  .chart-wrap.short { height: 170px; }
+
+  .bar-list { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: grid; grid-template-columns: 90px 1fr 40px; align-items: center; gap: 8px; }
+  .bar-row .bname { font-size: 0.78rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { background: #0d1526; border-radius: 5px; height: 9px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-dim), var(--accent)); border-radius: 5px; }
+  .bar-row .bval { font-size: 0.76rem; color: var(--text-dim); text-align: right; }
+
+  table.loc-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  table.loc-table th {
+    text-align: left; color: var(--text-faint); font-weight: 600;
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 0 8px 8px 0; border-bottom: 1px solid var(--card-border);
+  }
+  table.loc-table td { padding: 7px 8px 7px 0; border-bottom: 1px solid #182238; }
+  table.loc-table tr:last-child td { border-bottom: none; }
+  table.loc-table td.num { text-align: right; color: var(--text-dim); }
+
+  .empty { color: var(--text-faint); font-size: 0.82rem; padding: 20px 0; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Blitz <span>Odds</span> — Analytics</h1>
+    <div class="status-line">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Loading…</span>
+      <button id="refreshBtn">Refresh</button>
+    </div>
+  </header>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="label">Total pageviews</div>
+      <div class="value" id="kpiPageviews">—</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Unique visitors</div>
+      <div class="value" id="kpiVisitors">—</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Top favorite</div>
+      <div class="value" id="kpiFavTeam">—</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Top location</div>
+      <div class="value" id="kpiTopLoc" style="font-size:1.05rem;">—</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Pageviews — last 30 days</h2>
+        <div class="chart-wrap"><canvas id="dayChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Pageviews — last 48 hours</h2>
+        <div class="chart-wrap short"><canvas id="hourChart"></canvas></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h2>Team clicks</h2>
+        <div class="bar-list" id="teamClicksList"></div>
+      </div>
+      <div class="card">
+        <h2>Favorited teams</h2>
+        <div class="bar-list" id="favTeamsList"></div>
+      </div>
+      <div class="card">
+        <h2>Top cities</h2>
+        <table class="loc-table" id="cityTable">
+          <thead><tr><th>City</th><th class="num">Visitors</th><th class="num">Views</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var ENDPOINT = "/.netlify/functions/analytics-summary";
+  var REFRESH_MS = 60000;
+
+  var dayChart = null;
+  var hourChart = null;
+  var refreshTimer = null;
+  var lastGoodFetch = null;
+
+  var gridColor = "rgba(255,255,255,0.05)";
+  var tickColor = "#556077";
+
+  function fmtNum(n) {
+    if (typeof n !== "number") return "0";
+    return n.toLocaleString("en-US");
+  }
+
+  function fmtDayLabel(bucket) {
+    var d = new Date(bucket + "T00:00:00Z");
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  function fmtHourLabel(bucket) {
+    var d = new Date(bucket);
+    return d.toLocaleTimeString("en-US", { hour: "numeric" });
+  }
+
+  function setStatus(state, text) {
+    var dot = document.getElementById("statusDot");
+    dot.className = "status-dot" + (state === "error" ? " error" : state === "stale" ? " stale" : "");
+    document.getElementById("statusText").textContent = text;
+  }
+
+  function renderBarList(containerId, dataObj, emptyMsg) {
+    var el = document.getElementById(containerId);
+    var entries = Object.entries(dataObj || {}).slice(0, 8);
+    if (entries.length === 0) {
+      el.innerHTML = '<div class="empty">' + emptyMsg + "</div>";
+      return;
+    }
+    var max = Math.max.apply(null, entries.map(function (e) { return e[1]; }));
+    el.innerHTML = entries
+      .map(function (e) {
+        var pct = max > 0 ? Math.max(4, Math.round((e[1] / max) * 100)) : 0;
+        return (
+          '<div class="bar-row"><div class="bname">' +
+          escapeHtml(e[0]) +
+          '</div><div class="bar-track"><div class="bar-fill" style="width:' +
+          pct +
+          '%"></div></div><div class="bval">' +
+          fmtNum(e[1]) +
+          "</div></div>"
+        );
+      })
+      .join("");
+  }
+
+  function renderCityTable(cities) {
+    var tbody = document.querySelector("#cityTable tbody");
+    var top = (cities || []).slice(0, 8);
+    if (top.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" class="empty">No location data yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = top
+      .map(function (c) {
+        return (
+          "<tr><td>" +
+          escapeHtml(c.label || "Unknown") +
+          '</td><td class="num">' +
+          fmtNum(c.uniqueVisitors) +
+          '</td><td class="num">' +
+          fmtNum(c.pageviews) +
+          "</td></tr>"
+        );
+      })
+      .join("");
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function renderDayChart(series) {
+    var labels = series.map(function (p) { return fmtDayLabel(p.bucket); });
+    var values = series.map(function (p) { return p.count; });
+    var ctx = document.getElementById("dayChart").getContext("2d");
+    if (dayChart) {
+      dayChart.data.labels = labels;
+      dayChart.data.datasets[0].data = values;
+      dayChart.update("none");
+      return;
+    }
+    dayChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: values,
+            backgroundColor: "#0f8f83",
+            borderRadius: 3,
+            maxBarThickness: 16,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: tickColor, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
+          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, precision: 0, font: { size: 10 } } },
+        },
+      },
+    });
+  }
+
+  function renderHourChart(series) {
+    var labels = series.map(function (p, i) { return i % 4 === 0 ? fmtHourLabel(p.bucket) : ""; });
+    var values = series.map(function (p) { return p.count; });
+    var ctx = document.getElementById("hourChart").getContext("2d");
+    if (hourChart) {
+      hourChart.data.labels = labels;
+      hourChart.data.datasets[0].data = values;
+      hourChart.update("none");
+      return;
+    }
+    hourChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: values,
+            borderColor: "#4fd1c5",
+            backgroundColor: "rgba(79,209,197,0.12)",
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 10 } } },
+          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, precision: 0, font: { size: 10 } } },
+        },
+      },
+    });
+  }
+
+  function render(data) {
+    document.getElementById("kpiPageviews").textContent = fmtNum(data.totalPageviews);
+    document.getElementById("kpiVisitors").textContent = fmtNum(data.uniqueVisitors);
+    document.getElementById("kpiFavTeam").textContent = data.topFavoriteTeam || "—";
+    document.getElementById("kpiTopLoc").textContent = data.topLocation || "—";
+
+    try {
+      if (window.Chart) {
+        renderDayChart(data.pageviewsByDay || []);
+        renderHourChart(data.pageviewsByHour || []);
+      }
+    } catch (e) {
+      /* chart rendering is best-effort; other sections should still work */
+    }
+    renderBarList("teamClicksList", data.teamClicksByTeam, "No team clicks yet");
+    renderBarList("favTeamsList", data.favoritesByTeam, "No favorites yet");
+    renderCityTable(data.viewsByCity);
+  }
+
+  function fetchAndRender(isManual) {
+    var btn = document.getElementById("refreshBtn");
+    if (isManual) btn.disabled = true;
+    setStatus(lastGoodFetch ? "stale" : "loading", "Refreshing…");
+
+    fetch(ENDPOINT, { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        render(data);
+        lastGoodFetch = new Date();
+        setStatus("ok", "Updated " + lastGoodFetch.toLocaleTimeString());
+      })
+      .catch(function (err) {
+        setStatus("error", "Couldn't refresh (" + err.message + ")" + (lastGoodFetch ? " — showing last good data from " + lastGoodFetch.toLocaleTimeString() : ""));
+      })
+      .finally(function () {
+        if (isManual) btn.disabled = false;
+      });
+  }
+
+  document.getElementById("refreshBtn").addEventListener("click", function () {
+    fetchAndRender(true);
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) fetchAndRender(false);
+  });
+
+  fetchAndRender(false);
+  refreshTimer = setInterval(function () {
+    if (!document.hidden) fetchAndRender(false);
+  }, REFRESH_MS);
+})();
+</script>
+</body>
+</html>

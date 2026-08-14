@@ -56,6 +56,20 @@
   #refreshBtn:hover { border-color: var(--accent-dim); }
   #refreshBtn:disabled { opacity: 0.5; cursor: default; }
 
+  .card-head-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px;
+  }
+  .card-head-row h2 { margin-bottom: 0 !important; }
+  .range-pills { display: flex; gap: 4px; background: #0d1526; border-radius: 8px; padding: 3px; }
+  .range-pill {
+    background: none; border: none; color: var(--text-dim);
+    font-family: inherit; font-size: 0.72rem; font-weight: 600;
+    padding: 5px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .range-pill:hover { color: var(--text); }
+  .range-pill.active { background: var(--accent-dim); color: #fff; }
+
   .kpi-row {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 12px; margin-bottom: 18px;
@@ -140,12 +154,16 @@
   <div class="grid">
     <div>
       <div class="card">
-        <h2>Pageviews — last 30 days</h2>
-        <div class="chart-wrap"><canvas id="dayChart"></canvas></div>
-      </div>
-      <div class="card">
-        <h2>Pageviews — last 48 hours</h2>
-        <div class="chart-wrap short"><canvas id="hourChart"></canvas></div>
+        <div class="card-head-row">
+          <h2 style="margin:0;">Pageviews</h2>
+          <div class="range-pills" id="rangePills">
+            <button class="range-pill" data-range="24h">24H</button>
+            <button class="range-pill" data-range="7d">7D</button>
+            <button class="range-pill active" data-range="30d">30D</button>
+            <button class="range-pill" data-range="3m">3M</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="pvChart"></canvas></div>
       </div>
     </div>
     <div>
@@ -168,7 +186,7 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
 <script>
 (function () {
   "use strict";
@@ -176,10 +194,11 @@
   var ENDPOINT = "/.netlify/functions/analytics-summary";
   var REFRESH_MS = 60000;
 
-  var dayChart = null;
-  var hourChart = null;
+  var pvChart = null;
   var refreshTimer = null;
   var lastGoodFetch = null;
+  var currentRange = "30d";
+  var latestData = null;
 
   var gridColor = "rgba(255,255,255,0.05)";
   var tickColor = "#556077";
@@ -197,6 +216,11 @@
   function fmtHourLabel(bucket) {
     var d = new Date(bucket);
     return d.toLocaleTimeString("en-US", { hour: "numeric" });
+  }
+
+  function fmtMonthLabel(bucket) {
+    var d = new Date(bucket + "-01T00:00:00Z");
+    return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
   }
 
   function setStatus(state, text) {
@@ -257,73 +281,86 @@
     });
   }
 
-  function renderDayChart(series) {
-    var labels = series.map(function (p) { return fmtDayLabel(p.bucket); });
-    var values = series.map(function (p) { return p.count; });
-    var ctx = document.getElementById("dayChart").getContext("2d");
-    if (dayChart) {
-      dayChart.data.labels = labels;
-      dayChart.data.datasets[0].data = values;
-      dayChart.update("none");
-      return;
+  // Builds { labels, values, type } for the currently selected range from
+  // whatever granularity the API gives us (hourly/daily/monthly buckets).
+  function buildSeriesForRange(range, data) {
+    if (range === "24h") {
+      var hrs = (data.pageviewsByHour || []).slice(-24);
+      return {
+        type: "line",
+        labels: hrs.map(function (p, i) { return i % 3 === 0 ? fmtHourLabel(p.bucket) : ""; }),
+        values: hrs.map(function (p) { return p.count; }),
+      };
     }
-    dayChart = new Chart(ctx, {
+    if (range === "7d") {
+      var d7 = (data.pageviewsByDay || []).slice(-7);
+      return {
+        type: "bar",
+        labels: d7.map(function (p) { return fmtDayLabel(p.bucket); }),
+        values: d7.map(function (p) { return p.count; }),
+      };
+    }
+    if (range === "3m") {
+      var months = (data.pageviewsByMonth || []).slice(-3);
+      return {
+        type: "bar",
+        labels: months.map(function (p) { return fmtMonthLabel(p.bucket); }),
+        values: months.map(function (p) { return p.count; }),
+      };
+    }
+    // default: 30d
+    var d30 = data.pageviewsByDay || [];
+    return {
       type: "bar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            data: values,
-            backgroundColor: "#0f8f83",
-            borderRadius: 3,
-            maxBarThickness: 16,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: tickColor, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
-          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, precision: 0, font: { size: 10 } } },
-        },
-      },
-    });
+      labels: d30.map(function (p) { return fmtDayLabel(p.bucket); }),
+      values: d30.map(function (p) { return p.count; }),
+    };
   }
 
-  function renderHourChart(series) {
-    var labels = series.map(function (p, i) { return i % 4 === 0 ? fmtHourLabel(p.bucket) : ""; });
-    var values = series.map(function (p) { return p.count; });
-    var ctx = document.getElementById("hourChart").getContext("2d");
-    if (hourChart) {
-      hourChart.data.labels = labels;
-      hourChart.data.datasets[0].data = values;
-      hourChart.update("none");
+  function renderPvChart(range, data) {
+    var series = buildSeriesForRange(range, data);
+    var ctx = document.getElementById("pvChart").getContext("2d");
+    var isLine = series.type === "line";
+
+    var dataset = isLine
+      ? {
+          data: series.values,
+          borderColor: "#4fd1c5",
+          backgroundColor: "rgba(79,209,197,0.12)",
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+          borderWidth: 2,
+        }
+      : {
+          data: series.values,
+          backgroundColor: "#0f8f83",
+          borderRadius: 3,
+          maxBarThickness: 26,
+        };
+
+    if (pvChart && pvChart.config.type === series.type) {
+      pvChart.data.labels = series.labels;
+      pvChart.data.datasets[0] = dataset;
+      pvChart.update("none");
       return;
     }
-    hourChart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            data: values,
-            borderColor: "#4fd1c5",
-            backgroundColor: "rgba(79,209,197,0.12)",
-            fill: true,
-            tension: 0.3,
-            pointRadius: 0,
-            borderWidth: 2,
-          },
-        ],
-      },
+    if (pvChart) {
+      pvChart.destroy();
+      pvChart = null;
+    }
+    pvChart = new Chart(ctx, {
+      type: series.type,
+      data: { labels: series.labels, datasets: [dataset] },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: series.values.length > 0 },
+        },
         scales: {
-          x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 10 } } },
+          x: { grid: { display: false }, ticks: { color: tickColor, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
           y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, precision: 0, font: { size: 10 } } },
         },
       },
@@ -338,8 +375,7 @@
 
     try {
       if (window.Chart) {
-        renderDayChart(data.pageviewsByDay || []);
-        renderHourChart(data.pageviewsByHour || []);
+        renderPvChart(currentRange, data);
       }
     } catch (e) {
       /* chart rendering is best-effort; other sections should still work */
@@ -360,6 +396,7 @@
         return res.json();
       })
       .then(function (data) {
+        latestData = data;
         render(data);
         lastGoodFetch = new Date();
         setStatus("ok", "Updated " + lastGoodFetch.toLocaleTimeString());
@@ -374,6 +411,21 @@
 
   document.getElementById("refreshBtn").addEventListener("click", function () {
     fetchAndRender(true);
+  });
+
+  document.getElementById("rangePills").addEventListener("click", function (e) {
+    var btn = e.target.closest(".range-pill");
+    if (!btn || btn.classList.contains("active")) return;
+    document.querySelectorAll(".range-pill").forEach(function (p) { p.classList.remove("active"); });
+    btn.classList.add("active");
+    currentRange = btn.getAttribute("data-range");
+    if (latestData && window.Chart) {
+      try {
+        renderPvChart(currentRange, latestData);
+      } catch (e2) {
+        /* ignore */
+      }
+    }
   });
 
   document.addEventListener("visibilitychange", function () {

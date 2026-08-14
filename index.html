@@ -8446,8 +8446,14 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
         isLive: true,
         awayScore: scoreInfo.awayScore,
         homeScore: scoreInfo.homeScore,
+        awayAbbr: game.away,
+        homeAbbr: game.home,
         scoreLine: `${game.away} ${scoreInfo.awayScore} - ${scoreInfo.homeScore} ${game.home}`,
         clockLabel: scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : "In progress",
+        possession: scoreInfo.possession,
+        downDistanceText: scoreInfo.downDistanceText,
+        isRedZone: scoreInfo.isRedZone,
+        lastPlay: scoreInfo.lastPlay,
       };
     }
     const odds = getOdds(week, game.away, game.home, sportsbookId);
@@ -8608,9 +8614,16 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                             <span className="live-tag" style={{ fontSize: "0.76rem" }}>
                               <span className="live-dot"></span>
                               <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
-                                {r.actual.scoreLine}
+                                {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
+                                {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
+                                {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
                               </LiveScoreFlash>
                               {" • " + r.actual.clockLabel}
+                              {r.actual.downDistanceText && (
+                                <span className={"down-distance" + (r.actual.isRedZone ? " is-redzone" : "")}>
+                                  {r.actual.downDistanceText}
+                                </span>
+                              )}
                             </span>
                           ) : (
                             <span>
@@ -8624,6 +8637,9 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                           <span className="hw-tag">Not played yet</span>
                         )}
                       </div>
+                      {r.actual && r.actual.isLive && r.actual.lastPlay && (
+                        <div className="last-play">{r.actual.lastPlay}</div>
+                      )}
                     </>
                   )}
                 </div>
@@ -8685,9 +8701,16 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                               <span className="live-tag" style={{ fontSize: "0.76rem" }}>
                                 <span className="live-dot"></span>
                                 <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
-                                  {r.actual.scoreLine}
+                                  {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
+                                  {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
+                                  {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
                                 </LiveScoreFlash>
                                 {" • " + r.actual.clockLabel}
+                                {r.actual.downDistanceText && (
+                                  <span className={"down-distance" + (r.actual.isRedZone ? " is-redzone" : "")}>
+                                    {r.actual.downDistanceText}
+                                  </span>
+                                )}
                               </span>
                             ) : (
                               <span>
@@ -8699,6 +8722,9 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                             )
                           ) : (
                             <span className="hw-tag">Not played yet</span>
+                          )}
+                          {r.actual && r.actual.isLive && r.actual.lastPlay && (
+                            <div className="last-play">{r.actual.lastPlay}</div>
                           )}
                         </td>
                       </>

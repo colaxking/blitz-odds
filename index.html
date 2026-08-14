@@ -347,7 +347,7 @@
   }
   .live-tag {
     display: inline-flex; align-items: center; gap: 4px; color: var(--live); font-weight: 700;
-    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
   }
   .live-dot {
     width: 7px; height: 7px; border-radius: 50%; background: var(--live);
@@ -649,6 +649,13 @@
   .team-view-header h2 { margin: 0 0 4px; font-size: 1.3rem; }
   .team-view-header .rec-line { color: var(--text-dim); font-size: 0.85rem; }
 
+  /* Live-score cells in the Result column don't wrap (see .live-tag's
+     white-space: nowrap) so the score/clock never breaks into a squeezed
+     word-per-line stack. That can occasionally push the table's natural
+     width past its container on a narrower desktop viewport, so it scrolls
+     horizontally here rather than fighting the table back down to a width
+     that breaks the live cell. */
+  .team-schedule-table-wrap { overflow-x: auto; }
   .team-schedule-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   .team-schedule-table th {
     text-align: left; color: var(--text-dim); font-weight: 600; font-size: 0.7rem; text-transform: uppercase;
@@ -717,7 +724,17 @@
 
   /* Team view layout: main column + news column on desktop, stacked (with News as its own tab) on mobile */
   .team-view-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; margin-top: 16px; }
-  @media (max-width: 860px) { .team-view-layout { grid-template-columns: 1fr; } }
+  /* Stacks earlier than the mobile-card breakpoint (860px, see useIsMobile)
+     on purpose: from 860px up to ~1099px the desktop table is already in
+     play (not the mobile cards), but reserving 300px + gap for the news
+     column left too little room for the table - particularly the Result
+     column's live score/clock, which doesn't wrap (see .live-tag) and was
+     getting clipped. Stacking the news column below instead of squeezing
+     it in beside the table at these in-between widths avoids that; the
+     .app max-width (1100px) means side-by-side never gets less room than
+     this even on much wider screens, so 1100px is also where it's safe to
+     switch back. */
+  @media (max-width: 1099px) { .team-view-layout { grid-template-columns: 1fr; } }
   .team-view-main { min-width: 0; }
 
   /* Team news panel */
@@ -8534,6 +8551,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
               ))}
             </div>
           ) : (
+            <div className="team-schedule-table-wrap">
             <table className="team-schedule-table">
               <thead>
                 <tr>
@@ -8610,6 +8628,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                 ))}
               </tbody>
             </table>
+            </div>
               )}
             </>
           )}

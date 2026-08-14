@@ -7101,6 +7101,19 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
       )}
       {internationalGame && game.note && <div className="odds-fallback-note" style={{marginTop: "-4px"}}>{game.note}</div>}
 
+      {/* Final score + prediction verdict shown above the team logos so the
+          outcome is the first thing visible on a completed game's card. */}
+      {scoreInfo && scoreInfo.isFinal && (
+        <div className="result-row">
+          <span>
+            Final: <span className="score">{away.id} {scoreInfo.awayScore} - {scoreInfo.homeScore} {home.id}</span>
+          </span>
+          <span className={"verdict " + (predictionCorrect ? "correct" : "incorrect")}>
+            {predictionCorrect ? "Prediction correct ✓" : "Prediction missed ✗"}
+          </span>
+        </div>
+      )}
+
       <div className="matchup-row">
         <div className={"team-block" + (!homeIsWinner ? " winner" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
           <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
@@ -7146,20 +7159,6 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
           <span className="hw-tag">Odds not yet posted for this game</span>
         )}
       </div>
-
-      {/* Live score lives in game-meta-left now (top of the card) - this
-          row only needs to cover the final result, once there is one, plus
-          the prediction verdict that goes with it. */}
-      {scoreInfo && scoreInfo.isFinal && (
-        <div className="result-row">
-          <span>
-            Final: <span className="score">{away.id} {scoreInfo.awayScore} - {scoreInfo.homeScore} {home.id}</span>
-          </span>
-          <span className={"verdict " + (predictionCorrect ? "correct" : "incorrect")}>
-            {predictionCorrect ? "Prediction correct ✓" : "Prediction missed ✗"}
-          </span>
-        </div>
-      )}
 
       <div className="stat-compare">
         <div className="col">
@@ -7221,27 +7220,38 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
 }
 
 /** Live games first (schedule order), then favorite-team games (schedule
- *  order), then everything else (schedule order). A game that's both live
- *  and a favorite only appears once, in the live group, so it doesn't
- *  duplicate or bounce between groups. `liveMap` is optional - without it
- *  (or with nothing live) this behaves exactly like the old favorites-only
- *  sort. */
-function sortGamesForDisplay(games, favorites, liveMap) {
+ *  order), then everything else still to be played (schedule order), with
+ *  completed games pushed to the very bottom (schedule order) regardless of
+ *  favorite status - once a game is final there's less reason for it to sit
+ *  above games still to be decided. A game that's both live and a favorite
+ *  only appears once, in the live group, so it doesn't duplicate or bounce
+ *  between groups. `liveMap` is optional - without it (or with nothing live)
+ *  this behaves exactly like the old favorites-only sort, aside from the
+ *  completed-games grouping below (which only kicks in once `context` is
+ *  passed so a historical result can be resolved). */
+function sortGamesForDisplay(games, favorites, liveMap, context) {
   const favSet = new Set(favorites || []);
   const liveGames = [];
   const favGames = [];
   const otherGames = [];
+  const completedGames = [];
   games.forEach(g => {
     const live = liveMap && liveMap[`${g.away}-${g.home}`];
     if (live && live.state === "in") {
       liveGames.push(g);
+      return;
+    }
+    const historicalResult = context && context.getResult ? context.getResult(g.away, g.home) : null;
+    const scoreInfo = resolveScore(live, historicalResult);
+    if (scoreInfo && scoreInfo.isFinal) {
+      completedGames.push(g);
     } else if (favSet.has(g.home) || favSet.has(g.away)) {
       favGames.push(g);
     } else {
       otherGames.push(g);
     }
   });
-  return [...liveGames, ...favGames, ...otherGames];
+  return [...liveGames, ...favGames, ...otherGames, ...completedGames];
 }
 
 /** Explains the green (advantage) / red (disadvantage) shading used on the
@@ -7269,8 +7279,8 @@ function GradationLegend() {
 function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookId, tz }) {
   const scheduledGames = getGamesForWeek(week);
   const liveMap = useLiveScores(week);
-  const games = useMemo(() => sortGamesForDisplay(scheduledGames, favorites, liveMap), [scheduledGames, favorites, liveMap]);
   const context = getWeekContext(week);
+  const games = useMemo(() => sortGamesForDisplay(scheduledGames, favorites, liveMap, context), [scheduledGames, favorites, liveMap, context]);
   const byeTeams = useMemo(() => getByeTeams(week), [week]);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   useSportsEventJsonLd(games, seasonYear);

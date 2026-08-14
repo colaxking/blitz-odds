@@ -293,68 +293,28 @@
     });
   }
 
-  // Builds { labels, values, type } for the currently selected range from
-  // whatever granularity the API gives us (hourly/daily/monthly buckets).
-  function buildSeriesForRange(range, data) {
-    if (range === "24h") {
-      var hrs = (data.pageviewsByHour || []).slice(-24);
-      return {
-        type: "line",
-        labels: hrs.map(function (p, i) { return i % 3 === 0 ? fmtHourLabel(p.bucket) : ""; }),
-        values: hrs.map(function (p) { return p.count; }),
-      };
-    }
-    if (range === "7d") {
-      var d7 = (data.pageviewsByDay || []).slice(-7);
-      return {
-        type: "bar",
-        labels: d7.map(function (p) { return fmtDayLabel(p.bucket); }),
-        values: d7.map(function (p) { return p.count; }),
-      };
-    }
-    if (range === "3m") {
-      var months3 = (data.pageviewsByMonth || []).slice(-3);
-      return {
-        type: "bar",
-        labels: months3.map(function (p) { return fmtMonthLabel(p.bucket); }),
-        values: months3.map(function (p) { return p.count; }),
-      };
-    }
-    if (range === "6m") {
-      var months6 = (data.pageviewsByMonth || []).slice(-6);
-      return {
-        type: "bar",
-        labels: months6.map(function (p) { return fmtMonthLabel(p.bucket); }),
-        values: months6.map(function (p) { return p.count; }),
-      };
-    }
-    if (range === "1y") {
-      var months12 = (data.pageviewsByMonth || []).slice(-12);
-      return {
-        type: "bar",
-        labels: months12.map(function (p) { return fmtMonthLabel(p.bucket); }),
-        values: months12.map(function (p) { return p.count; }),
-      };
-    }
-    if (range === "all") {
-      var monthsAll = data.pageviewsByMonth || [];
-      return {
-        type: "bar",
-        labels: monthsAll.map(function (p) { return fmtMonthLabel(p.bucket); }),
-        values: monthsAll.map(function (p) { return p.count; }),
-      };
-    }
-    // default: 30d
-    var d30 = data.pageviewsByDay || [];
+  // The API now returns a single `series` shaped for whatever granularity
+  // the requested range calls for (hour/day/month), already bucketed and
+  // zero-filled server-side. The chart just needs to format labels and pick
+  // bar vs. line based on that granularity.
+  function seriesToChartInput(series) {
+    var points = (series && series.points) || [];
+    var granularity = (series && series.granularity) || "day";
+    var labelFn =
+      granularity === "hour"
+        ? function (p, i) { return i % 3 === 0 ? fmtHourLabel(p.bucket) : ""; }
+        : granularity === "month"
+        ? function (p) { return fmtMonthLabel(p.bucket); }
+        : function (p) { return fmtDayLabel(p.bucket); };
     return {
-      type: "bar",
-      labels: d30.map(function (p) { return fmtDayLabel(p.bucket); }),
-      values: d30.map(function (p) { return p.count; }),
+      type: granularity === "hour" ? "line" : "bar",
+      labels: points.map(labelFn),
+      values: points.map(function (p) { return p.count; }),
     };
   }
 
-  function renderPvChart(range, data) {
-    var series = buildSeriesForRange(range, data);
+  function renderPvChart(data) {
+    var series = seriesToChartInput(data.series);
     var ctx = document.getElementById("pvChart").getContext("2d");
     var isLine = series.type === "line";
 
@@ -411,7 +371,7 @@
 
     try {
       if (window.Chart) {
-        renderPvChart(currentRange, data);
+        renderPvChart(data);
       }
     } catch (e) {
       /* chart rendering is best-effort; other sections should still work */
@@ -421,23 +381,32 @@
     renderCityTable(data.viewsByCity);
   }
 
+  // Every widget on the page is scoped to `currentRange` server-side, so
+  // switching ranges re-fetches rather than re-slicing already-fetched data.
   function fetchAndRender(isManual) {
     var btn = document.getElementById("refreshBtn");
     if (isManual) btn.disabled = true;
     setStatus(lastGoodFetch ? "stale" : "loading", "Refreshing…");
 
-    fetch(ENDPOINT, { cache: "no-store" })
+    var url = ENDPOINT + "?range=" + encodeURIComponent(currentRange);
+    var requestRange = currentRange;
+
+    fetch(url, { cache: "no-store" })
       .then(function (res) {
         if (!res.ok) throw new Error("HTTP " + res.status);
         return res.json();
       })
       .then(function (data) {
+        // If the user flipped ranges again while this request was in
+        // flight, drop the stale response instead of rendering it.
+        if (requestRange !== currentRange) return;
         latestData = data;
         render(data);
         lastGoodFetch = new Date();
         setStatus("ok", "Updated " + lastGoodFetch.toLocaleTimeString());
       })
       .catch(function (err) {
+        if (requestRange !== currentRange) return;
         setStatus("error", "Couldn't refresh (" + err.message + ")" + (lastGoodFetch ? " — showing last good data from " + lastGoodFetch.toLocaleTimeString() : ""));
       })
       .finally(function () {
@@ -455,13 +424,7 @@
     document.querySelectorAll(".range-pill").forEach(function (p) { p.classList.remove("active"); });
     btn.classList.add("active");
     currentRange = btn.getAttribute("data-range");
-    if (latestData && window.Chart) {
-      try {
-        renderPvChart(currentRange, latestData);
-      } catch (e2) {
-        /* ignore */
-      }
-    }
+    fetchAndRender(false);
   });
 
   document.addEventListener("visibilitychange", function () {

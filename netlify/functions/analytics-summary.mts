@@ -10,6 +10,41 @@ const CORS_HEADERS: Record<string, string> = {
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
+type Range = "24h" | "7d" | "30d" | "3m" | "6m" | "1y" | "all";
+const VALID_RANGES = new Set<Range>(["24h", "7d", "30d", "3m", "6m", "1y", "all"]);
+
+// Start of the UTC month that is `n` months before `now`'s month (n=0 -> this
+// month's start). Used so "3m"/"6m"/"1y" line up on calendar-month
+// boundaries the same way pageviewsByMonth buckets do, rather than a rough
+// 90/180/365-day approximation that would straddle a month.
+function monthsAgoStart(now: number, n: number): number {
+  const d = new Date(now);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - n, 1);
+}
+
+// Resolves a range key to { cutoff, granularity, bucketCount }. cutoff is
+// null for "all" (no lower bound). granularity picks which bucketing
+// function/step the series uses; bucketCount is how many buckets to
+// zero-fill so empty periods still render instead of being omitted.
+function resolveRange(range: Range, now: number, monthsAvailable: number) {
+  switch (range) {
+    case "24h":
+      return { cutoff: now - 24 * HOUR_MS, granularity: "hour" as const, bucketCount: 24 };
+    case "7d":
+      return { cutoff: now - 7 * DAY_MS, granularity: "day" as const, bucketCount: 7 };
+    case "30d":
+      return { cutoff: now - 30 * DAY_MS, granularity: "day" as const, bucketCount: 30 };
+    case "3m":
+      return { cutoff: monthsAgoStart(now, 2), granularity: "month" as const, bucketCount: 3 };
+    case "6m":
+      return { cutoff: monthsAgoStart(now, 5), granularity: "month" as const, bucketCount: 6 };
+    case "1y":
+      return { cutoff: monthsAgoStart(now, 11), granularity: "month" as const, bucketCount: 12 };
+    case "all":
+      return { cutoff: null, granularity: "month" as const, bucketCount: Math.max(monthsAvailable, 1) };
+  }
+}
+
 type LocationInfo = {
   city?: string;
   country?: string;
@@ -72,6 +107,14 @@ function buildZeroFilledSeries(
   return series;
 }
 
+function buildZeroFilledMonthSeries(now: number, count: number): { bucket: string; count: number }[] {
+  const series: { bucket: string; count: number }[] = [];
+  for (let i = count - 1; i >= 0; i--) {
+    series.push({ bucket: monthBucketLabel(monthsAgoStart(now, i)), count: 0 });
+  }
+  return series;
+}
+
 type LocationBucket = {
   label: string;
   country?: string;
@@ -84,13 +127,19 @@ type LocationBucket = {
   uniqueVisitors: number;
 };
 
-function emptySummary(now: number) {
+function emptySummary(now: number, range: Range) {
+  const { granularity, bucketCount } = resolveRange(range, now, 1);
+  const points =
+    granularity === "hour"
+      ? buildZeroFilledSeries(now, bucketCount, HOUR_MS, hourBucketLabel)
+      : granularity === "day"
+      ? buildZeroFilledSeries(now, bucketCount, DAY_MS, dayBucketLabel)
+      : buildZeroFilledMonthSeries(now, bucketCount);
   return {
+    range,
     totalPageviews: 0,
     uniqueVisitors: 0,
-    pageviewsByHour: buildZeroFilledSeries(now, 48, HOUR_MS, hourBucketLabel),
-    pageviewsByDay: buildZeroFilledSeries(now, 30, DAY_MS, dayBucketLabel),
-    pageviewsByMonth: [] as { bucket: string; count: number }[],
+    series: { granularity, points },
     teamClicksByTeam: {} as Record<string, number>,
     favoritesByTeam: {} as Record<string, number>,
     topFavoriteTeam: null as string | null,
@@ -112,12 +161,16 @@ export default async (req: Request, _context: Context) => {
 
   const now = Date.now();
 
+  const url = new URL(req.url);
+  const rangeParam = url.searchParams.get("range") || "30d";
+  const range: Range = VALID_RANGES.has(rangeParam as Range) ? (rangeParam as Range) : "30d";
+
   try {
     const store = getStore("blitz-analytics");
     const { blobs } = await store.list();
 
     if (!blobs || blobs.length === 0) {
-      return jsonResponse(200, emptySummary(now));
+      return jsonResponse(200, emptySummary(now, range));
     }
 
     const records = await Promise.all(
@@ -131,9 +184,19 @@ export default async (req: Request, _context: Context) => {
       })
     );
 
-    const validRecords = records.filter(
+    const allValidRecords = records.filter(
       (r): r is EventRecord => !!r && typeof r === "object" && typeof r.ts === "number"
     );
+
+    // How many distinct months of data exist at all - used so "all" zero-fills
+    // exactly as many months as there's history for, no more, no less.
+    const monthsAvailable = new Set(allValidRecords.map((r) => monthBucketLabel(r.ts!))).size;
+    const { cutoff, granularity, bucketCount } = resolveRange(range, now, monthsAvailable);
+
+    // Every widget on the dashboard - KPIs, team clicks, favorites, cities,
+    // and the chart - is scoped to this same window, so switching ranges
+    // moves the whole page together instead of just the chart.
+    const validRecords = cutoff === null ? allValidRecords : allValidRecords.filter((r) => r.ts! >= cutoff);
 
     const pageviews = validRecords.filter((r) => r.type === "pageview");
     const teamClicks = validRecords.filter((r) => r.type === "team_click");
@@ -151,39 +214,23 @@ export default async (req: Request, _context: Context) => {
     }
     const uniqueVisitors = uniqueVisitorSet.size;
 
-    // --- pageviewsByHour: last 48 hours, zero-filled ---
-    const hourSeries = buildZeroFilledSeries(now, 48, HOUR_MS, hourBucketLabel);
-    const hourIndex = new Map(hourSeries.map((entry, idx) => [entry.bucket, idx]));
-    const hourCutoff = now - 48 * HOUR_MS;
-    for (const pv of pageviews) {
-      if (pv.ts! >= hourCutoff) {
-        const label = hourBucketLabel(pv.ts!);
-        const idx = hourIndex.get(label);
-        if (idx !== undefined) hourSeries[idx].count += 1;
-      }
+    // --- series: bucketed pageviews at whatever granularity this range
+    // calls for (hour/day/month), zero-filled so gaps still render ---
+    let seriesPoints: { bucket: string; count: number }[];
+    if (granularity === "hour") {
+      seriesPoints = buildZeroFilledSeries(now, bucketCount, HOUR_MS, hourBucketLabel);
+    } else if (granularity === "day") {
+      seriesPoints = buildZeroFilledSeries(now, bucketCount, DAY_MS, dayBucketLabel);
+    } else {
+      seriesPoints = buildZeroFilledMonthSeries(now, bucketCount);
     }
-
-    // --- pageviewsByDay: last 30 days, zero-filled ---
-    const daySeries = buildZeroFilledSeries(now, 30, DAY_MS, dayBucketLabel);
-    const dayIndex = new Map(daySeries.map((entry, idx) => [entry.bucket, idx]));
-    const dayCutoff = now - 30 * DAY_MS;
+    const seriesIndex = new Map(seriesPoints.map((entry, idx) => [entry.bucket, idx]));
+    const labelFn = granularity === "hour" ? hourBucketLabel : granularity === "day" ? dayBucketLabel : monthBucketLabel;
     for (const pv of pageviews) {
-      if (pv.ts! >= dayCutoff) {
-        const label = dayBucketLabel(pv.ts!);
-        const idx = dayIndex.get(label);
-        if (idx !== undefined) daySeries[idx].count += 1;
-      }
+      const label = labelFn(pv.ts!);
+      const idx = seriesIndex.get(label);
+      if (idx !== undefined) seriesPoints[idx].count += 1;
     }
-
-    // --- pageviewsByMonth: all time ---
-    const monthMap = new Map<string, number>();
-    for (const pv of pageviews) {
-      const label = monthBucketLabel(pv.ts!);
-      monthMap.set(label, (monthMap.get(label) || 0) + 1);
-    }
-    const monthSeries = Array.from(monthMap.entries())
-      .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
-      .map(([bucket, count]) => ({ bucket, count }));
 
     // --- teamClicksByTeam: sorted desc ---
     const teamMap = new Map<string, number>();
@@ -283,11 +330,10 @@ export default async (req: Request, _context: Context) => {
     const topLocation = viewsByCity.length > 0 ? viewsByCity[0].label : null;
 
     return jsonResponse(200, {
+      range,
       totalPageviews,
       uniqueVisitors,
-      pageviewsByHour: hourSeries,
-      pageviewsByDay: daySeries,
-      pageviewsByMonth: monthSeries,
+      series: { granularity, points: seriesPoints },
       teamClicksByTeam,
       favoritesByTeam,
       topFavoriteTeam,
@@ -299,7 +345,7 @@ export default async (req: Request, _context: Context) => {
   } catch (err) {
     // On any unexpected failure, still return a well-formed zeroed structure
     // rather than an error, per spec.
-    return jsonResponse(200, emptySummary(now));
+    return jsonResponse(200, emptySummary(now, range));
   }
 };
 

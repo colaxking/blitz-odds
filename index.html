@@ -365,7 +365,7 @@
      awkwardly. Muted/italic so it reads as a caption, not a headline. */
   .last-play {
     font-size: 0.72rem; color: var(--text-dim); font-style: italic;
-    margin-top: 2px; line-height: 1.35;
+    margin-top: 2px; line-height: 1.35; overflow-wrap: break-word;
   }
   /* Replaces the scheduled date/time in game-meta-left once a game goes
      live - the score itself, styled as a highlighted pill so it reads as
@@ -684,13 +684,23 @@
   .team-view-header h2 { margin: 0 0 4px; font-size: 1.3rem; }
   .team-view-header .rec-line { color: var(--text-dim); font-size: 0.85rem; }
 
-  /* Live-score cells in the Result column don't wrap (see .live-tag's
-     white-space: nowrap) so the score/clock never breaks into a squeezed
-     word-per-line stack. That can occasionally push the table's natural
-     width past its container on a narrower desktop viewport, so it scrolls
-     horizontally here rather than fighting the table back down to a width
-     that breaks the live cell. */
+  /* The Result column used to cram score + clock + down/distance into one
+     nowrap span, with the play-by-play text right after it - long enough
+     combined that it could push the table wider than its container and
+     get clipped off the right edge instead of actually scrolling into
+     view. Now only the short, atomic pieces (the score, the clock) stay
+     nowrap; the clock/down-distance line and the last-play caption are
+     their own lines below the score and wrap normally within the column,
+     so nothing depends on the viewport being wide enough to fit it all
+     on one row. overflow-x stays as a safety net for edge cases, not the
+     primary way to see the Result column. */
   .team-schedule-table-wrap { overflow-x: auto; }
+  .result-cell { max-width: 220px; }
+  .result-cell .live-tag { white-space: nowrap; }
+  .live-clock-line {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+    margin-top: 3px; font-size: 0.72rem; color: var(--text-dim); font-weight: 600;
+  }
   .team-schedule-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   .team-schedule-table th {
     text-align: left; color: var(--text-dim); font-weight: 600; font-size: 0.7rem; text-transform: uppercase;
@@ -8611,20 +8621,24 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                       <div className="schedule-mobile-row">
                         {r.actual ? (
                           r.actual.isLive ? (
-                            <span className="live-tag" style={{ fontSize: "0.76rem" }}>
-                              <span className="live-dot"></span>
-                              <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
-                                {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
-                                {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
-                                {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
-                              </LiveScoreFlash>
-                              {" • " + r.actual.clockLabel}
-                              {r.actual.downDistanceText && (
-                                <span className={"down-distance" + (r.actual.isRedZone ? " is-redzone" : "")}>
-                                  {r.actual.downDistanceText}
-                                </span>
-                              )}
-                            </span>
+                            <>
+                              <span className="live-tag" style={{ fontSize: "0.76rem" }}>
+                                <span className="live-dot"></span>
+                                <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
+                                  {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
+                                  {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
+                                  {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
+                                </LiveScoreFlash>
+                              </span>
+                              <div className="live-clock-line">
+                                <span>{r.actual.clockLabel}</span>
+                                {r.actual.downDistanceText && (
+                                  <span className={"down-distance" + (r.actual.isRedZone ? " is-redzone" : "")}>
+                                    {r.actual.downDistanceText}
+                                  </span>
+                                )}
+                              </div>
+                            </>
                           ) : (
                             <span>
                               {r.actual.scoreLine}
@@ -8695,23 +8709,27 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                           <span className="pred-line">{r.teamWins ? "Predicted W" : "Predicted L"}</span>
                           <span className="pred-conf">{(r.confidence * 100).toFixed(0)}%</span>
                         </td>
-                        <td>
+                        <td className="result-cell">
                           {r.actual ? (
                             r.actual.isLive ? (
-                              <span className="live-tag" style={{ fontSize: "0.76rem" }}>
-                                <span className="live-dot"></span>
-                                <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
-                                  {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
-                                  {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
-                                  {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
-                                </LiveScoreFlash>
-                                {" • " + r.actual.clockLabel}
-                                {r.actual.downDistanceText && (
-                                  <span className={"down-distance" + (r.actual.isRedZone ? " is-redzone" : "")}>
-                                    {r.actual.downDistanceText}
-                                  </span>
-                                )}
-                              </span>
+                              <>
+                                <span className="live-tag" style={{ fontSize: "0.76rem" }}>
+                                  <span className="live-dot"></span>
+                                  <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
+                                    {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
+                                    {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
+                                    {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
+                                  </LiveScoreFlash>
+                                </span>
+                                <div className="live-clock-line">
+                                  <span>{r.actual.clockLabel}</span>
+                                  {r.actual.downDistanceText && (
+                                    <span className={"down-distance" + (r.actual.isRedZone ? " is-redzone" : "")}>
+                                      {r.actual.downDistanceText}
+                                    </span>
+                                  )}
+                                </div>
+                              </>
                             ) : (
                               <span>
                                 {r.actual.scoreLine}

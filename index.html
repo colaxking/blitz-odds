@@ -7050,16 +7050,28 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   );
 }
 
-/** Favorite-team games first (in schedule order), then every other game (in schedule order). */
-function sortGamesByFavorites(games, favorites) {
-  if (!favorites || !favorites.length) return games;
-  const favSet = new Set(favorites);
+/** Live games first (schedule order), then favorite-team games (schedule
+ *  order), then everything else (schedule order). A game that's both live
+ *  and a favorite only appears once, in the live group, so it doesn't
+ *  duplicate or bounce between groups. `liveMap` is optional - without it
+ *  (or with nothing live) this behaves exactly like the old favorites-only
+ *  sort. */
+function sortGamesForDisplay(games, favorites, liveMap) {
+  const favSet = new Set(favorites || []);
+  const liveGames = [];
   const favGames = [];
   const otherGames = [];
   games.forEach(g => {
-    (favSet.has(g.home) || favSet.has(g.away) ? favGames : otherGames).push(g);
+    const live = liveMap && liveMap[`${g.away}-${g.home}`];
+    if (live && live.state === "in") {
+      liveGames.push(g);
+    } else if (favSet.has(g.home) || favSet.has(g.away)) {
+      favGames.push(g);
+    } else {
+      otherGames.push(g);
+    }
   });
-  return [...favGames, ...otherGames];
+  return [...liveGames, ...favGames, ...otherGames];
 }
 
 /** Explains the green (advantage) / red (disadvantage) shading used on the
@@ -7086,9 +7098,9 @@ function GradationLegend() {
 
 function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookId, tz }) {
   const scheduledGames = getGamesForWeek(week);
-  const games = useMemo(() => sortGamesByFavorites(scheduledGames, favorites), [scheduledGames, favorites]);
-  const context = getWeekContext(week);
   const liveMap = useLiveScores(week);
+  const games = useMemo(() => sortGamesForDisplay(scheduledGames, favorites, liveMap), [scheduledGames, favorites, liveMap]);
+  const context = getWeekContext(week);
   const byeTeams = useMemo(() => getByeTeams(week), [week]);
   if (!games.length) return <p>No schedule data for this week yet.</p>;
   return (

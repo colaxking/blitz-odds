@@ -1588,6 +1588,7 @@
         "position": "S",
         "impactScore": 7,
         "status": "active",
+        "activatedDate": "2026-08-10",
         "injury": {
           "type": "Right ankle surgery (recovered)",
           "since": "2026-07",
@@ -2017,6 +2018,7 @@
         "position": "WR",
         "impactScore": 8,
         "status": "active",
+        "activatedDate": "2026-07-29",
         "injury": {
           "type": "Hamstring strain (recovered)",
           "since": "2026-07-24",
@@ -2114,6 +2116,7 @@
         "position": "QB",
         "impactScore": 10,
         "status": "active",
+        "activatedDate": "2026-07-28",
         "injury": {
           "type": "Torn ACL/LCL (left knee) - fully cleared",
           "since": "2025-12-14",
@@ -7024,6 +7027,25 @@ function LiveScoreFlash({ awayScore, homeScore, className, children }) {
   );
 }
 
+/** Sort priority for injury-note groupings across the app: active players
+ *  first, then questionable, then out (unrecognized statuses sort last). */
+const STATUS_ORDER = { active: 0, questionable: 1, out: 2 };
+
+/** How long a recently-activated player stays visible in injury lists after
+ *  coming off injured/questionable status. Requires an `activatedDate`
+ *  (ISO date string) on the player record, set by the weekly-update
+ *  pipeline whenever a status transitions to "active". Players without an
+ *  activatedDate (not yet backfilled, or never injured to begin with) are
+ *  shown indefinitely rather than hidden, so this stays backwards-compatible
+ *  until that field is populated everywhere. */
+const ACTIVE_VISIBILITY_DAYS = 7;
+function isVisibleInInjuryReport(p) {
+  if (p.status !== "active" || !p.activatedDate) return true;
+  const activated = new Date(p.activatedDate);
+  if (isNaN(activated.getTime())) return true;
+  return (Date.now() - activated.getTime()) <= ACTIVE_VISIBILITY_DAYS * 24 * 60 * 60 * 1000;
+}
+
 function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, live, week, sportsbookId, tz }) {
   const home = context.getTeam(game.home);
   const away = context.getTeam(game.away);
@@ -7055,6 +7077,12 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
     ...prediction.homeAdjustments.map(a => ({ ...a, teamId: home.id, teamName: home.name })),
     ...prediction.awayAdjustments.map(a => ({ ...a, teamId: away.id, teamName: away.name }))
   ];
+  // Group by status - questionable players first, then out - rather than
+  // interleaving by team. Array.sort is stable, so within each status group
+  // the home-then-away order above is preserved.
+  const sortedAdjustments = [...allAdjustments].sort(
+    (a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
+  );
   const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
   const rationale = buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket });
 
@@ -7205,7 +7233,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
         <p>{rationale}</p>
       </details>
 
-      {allAdjustments.map((a, i) => (
+      {sortedAdjustments.map((a, i) => (
         <div key={i} className={"impact-note impact-" + a.status}>
           <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
           <span>
@@ -8551,7 +8579,9 @@ function TeamNewsPanel({ teamId }) {
 function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, sportsbookId, tz }) {
   const team = baseTeam(teamId);
   if (!team) return <p>Unknown team.</p>;
-  const injuryReport = PLAYERS_DATA.players[teamId] || [];
+  const injuryReport = [...(PLAYERS_DATA.players[teamId] || [])]
+    .filter(isVisibleInInjuryReport)
+    .sort((a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3));
   const isMobile = useIsMobile(860);
   const [activeTab, setActiveTab] = useState("schedule");
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();

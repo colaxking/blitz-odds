@@ -61,7 +61,7 @@
     flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px;
   }
   .card-head-row h2 { margin-bottom: 0 !important; }
-  .range-pills { display: flex; gap: 4px; background: #0d1526; border-radius: 8px; padding: 3px; }
+  .range-pills { display: flex; gap: 4px; background: #0d1526; border-radius: 8px; padding: 3px; flex-wrap: wrap; }
   .range-pill {
     background: none; border: none; color: var(--text-dim);
     font-family: inherit; font-size: 0.72rem; font-weight: 600;
@@ -161,6 +161,9 @@
             <button class="range-pill" data-range="7d">7D</button>
             <button class="range-pill active" data-range="30d">30D</button>
             <button class="range-pill" data-range="3m">3M</button>
+            <button class="range-pill" data-range="6m">6M</button>
+            <button class="range-pill" data-range="1y">1Y</button>
+            <button class="range-pill" data-range="all">ALL</button>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="pvChart"></canvas></div>
@@ -227,6 +230,15 @@
     var dot = document.getElementById("statusDot");
     dot.className = "status-dot" + (state === "error" ? " error" : state === "stale" ? " stale" : "");
     document.getElementById("statusText").textContent = text;
+  }
+
+  function omitUnknown(obj) {
+    if (!obj) return obj;
+    var out = {};
+    Object.keys(obj).forEach(function (k) {
+      if (k !== "unknown") out[k] = obj[k];
+    });
+    return out;
   }
 
   function renderBarList(containerId, dataObj, emptyMsg) {
@@ -301,11 +313,35 @@
       };
     }
     if (range === "3m") {
-      var months = (data.pageviewsByMonth || []).slice(-3);
+      var months3 = (data.pageviewsByMonth || []).slice(-3);
       return {
         type: "bar",
-        labels: months.map(function (p) { return fmtMonthLabel(p.bucket); }),
-        values: months.map(function (p) { return p.count; }),
+        labels: months3.map(function (p) { return fmtMonthLabel(p.bucket); }),
+        values: months3.map(function (p) { return p.count; }),
+      };
+    }
+    if (range === "6m") {
+      var months6 = (data.pageviewsByMonth || []).slice(-6);
+      return {
+        type: "bar",
+        labels: months6.map(function (p) { return fmtMonthLabel(p.bucket); }),
+        values: months6.map(function (p) { return p.count; }),
+      };
+    }
+    if (range === "1y") {
+      var months12 = (data.pageviewsByMonth || []).slice(-12);
+      return {
+        type: "bar",
+        labels: months12.map(function (p) { return fmtMonthLabel(p.bucket); }),
+        values: months12.map(function (p) { return p.count; }),
+      };
+    }
+    if (range === "all") {
+      var monthsAll = data.pageviewsByMonth || [];
+      return {
+        type: "bar",
+        labels: monthsAll.map(function (p) { return fmtMonthLabel(p.bucket); }),
+        values: monthsAll.map(function (p) { return p.count; }),
       };
     }
     // default: 30d
@@ -381,7 +417,7 @@
       /* chart rendering is best-effort; other sections should still work */
     }
     renderBarList("teamClicksList", data.teamClicksByTeam, "No team clicks yet");
-    renderBarList("favTeamsList", data.favoritesByTeam, "No favorites yet");
+    renderBarList("favTeamsList", omitUnknown(data.favoritesByTeam), "No favorites yet");
     renderCityTable(data.viewsByCity);
   }
 

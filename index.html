@@ -354,6 +354,11 @@
     animation: pulse 1.4s infinite;
   }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .down-distance {
+    margin-left: 6px; padding-left: 6px; border-left: 1px solid rgba(var(--live-rgb),0.4);
+    color: var(--text-dim); font-weight: 600; text-transform: none; letter-spacing: normal;
+  }
+  .down-distance.is-redzone { color: var(--live); font-weight: 700; }
   /* Replaces the scheduled date/time in game-meta-left once a game goes
      live - the score itself, styled as a highlighted pill so it reads as
      the headline fact on the card rather than blending into the meta row
@@ -362,6 +367,14 @@
     display: inline-flex; align-items: center; font-weight: 800; font-size: 0.82rem; letter-spacing: 0.2px;
     color: var(--live); background: rgba(var(--live-rgb),0.14); border: 1px solid rgba(var(--live-rgb),0.35);
     border-radius: 6px; padding: 2px 9px;
+  }
+  /* Football glyph inline with the top-of-card score, next to whichever
+     side has the ball. Sized down from native emoji size (~1.15em at
+     default) to ~0.72em so it reads as a small icon riding the score
+     text's baseline rather than a mismatched, oversized glyph. */
+  .poss-ball {
+    display: inline-flex; align-items: center; font-size: 0.72em; margin: 0 3px; line-height: 1;
+    transform: translateY(-0.5px);
   }
   /* Generic "something just changed" flash, applied (via LiveScoreFlash)
      only on the poll where a live score actually moves - not on every
@@ -393,6 +406,15 @@
     cursor: pointer; font-size: 0.75rem; color: var(--text-dim); line-height: 1; padding: 0;
   }
   .star-btn.active { color: var(--star); border-color: var(--star); }
+  /* Small football glyph overlaid on the badge of whichever team currently
+     has the ball, bottom-right so it doesn't collide with the favorite
+     star (top-right). Only ever rendered while a game is live. */
+  .possession-icon {
+    position: absolute; bottom: -4px; right: -4px; font-size: 0.85rem; line-height: 1;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 50%;
+    width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+  }
   .team-name { font-size: 0.8rem; text-align: center; color: var(--text); }
   .win-tag { font-size: 0.7rem; color: var(--win); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
   .win-tag-hidden { visibility: hidden; }
@@ -6318,6 +6340,17 @@ async function fetchLiveScores(week) {
     if (!home || !away) return;
     const homeAbbr = ESPN_ABBR_FIX[home.team.abbreviation] || home.team.abbreviation;
     const awayAbbr = ESPN_ABBR_FIX[away.team.abbreviation] || away.team.abbreviation;
+    // Possession/down-distance only exist on ESPN's payload while a game is
+    // actually in progress. situation.possession is a team id string - match
+    // it against the home/away competitor ids (not our local abbreviations)
+    // to resolve which side has the ball, so GameCard can just consume
+    // 'home' | 'away' | null without knowing anything about ESPN's ids.
+    const situation = comp.situation;
+    let possession = null;
+    if (situation && situation.possession) {
+      if (situation.possession === home.id) possession = "home";
+      else if (situation.possession === away.id) possession = "away";
+    }
     map[`${awayAbbr}-${homeAbbr}`] = {
       awayScore: away.score != null ? Number(away.score) : null,
       homeScore: home.score != null ? Number(home.score) : null,
@@ -6325,6 +6358,9 @@ async function fetchLiveScores(week) {
       period: status.period,
       displayClock: status.displayClock,
       shortDetail: status.type.shortDetail,
+      possession,
+      downDistanceText: situation ? (situation.shortDownDistanceText || situation.downDistanceText || null) : null,
+      isRedZone: !!(situation && situation.isRedZone),
     };
   });
   return map;
@@ -6629,13 +6665,16 @@ function FavoriteStar({ teamId, favorites, onToggle }) {
   );
 }
 
-function TeamBadge({ team, favorites, onToggle, onSelect }) {
+function TeamBadge({ team, favorites, onToggle, onSelect, hasPossession }) {
   return (
     <div className="badge-wrap">
       <button className="team-click" onClick={() => onSelect(team.id)} style={{ position: "static" }}>
         <TeamLogo teamId={team.id} />
       </button>
       <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggle} />
+      {hasPossession && (
+        <span className="possession-icon" title="Has the ball">🏈</span>
+      )}
     </div>
   );
 }
@@ -6773,6 +6812,9 @@ function resolveScore(live, historical) {
       isLive: live.state === "in",
       period: live.period,
       clock: live.displayClock,
+      possession: live.state === "in" ? live.possession : null,
+      downDistanceText: live.state === "in" ? live.downDistanceText : null,
+      isRedZone: live.state === "in" ? live.isRedZone : false,
     };
   }
   if (historical) {
@@ -6865,7 +6907,9 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
         <span className="game-meta-left">
           {scoreInfo && scoreInfo.isLive ? (
             <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline">
+              {scoreInfo.possession === "away" && <span className="poss-ball">🏈</span>}
               {away.id} {scoreInfo.awayScore} – {scoreInfo.homeScore} {home.id}
+              {scoreInfo.possession === "home" && <span className="poss-ball">🏈</span>}
             </LiveScoreFlash>
           ) : (
             <>{shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}</>
@@ -6874,20 +6918,28 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
           {internationalGame && <span className="international-tag" title={game.note || "International Game"}>🌍 International</span>}
         </span>
         {scoreInfo && scoreInfo.isLive ? (
-          <span className="live-tag"><span className="live-dot"></span>LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}</span>
+          <span className="live-tag">
+            <span className="live-dot"></span>
+            LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}
+            {scoreInfo.downDistanceText && (
+              <span className={"down-distance" + (scoreInfo.isRedZone ? " is-redzone" : "")}>
+                {scoreInfo.downDistanceText}
+              </span>
+            )}
+          </span>
         ) : game.network ? <span>{game.network}</span> : null}
       </div>
       {internationalGame && game.note && <div className="odds-fallback-note" style={{marginTop: "-4px"}}>{game.note}</div>}
 
       <div className="matchup-row">
         <div className={"team-block" + (!homeIsWinner ? " winner" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
-          <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
+          <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} hasPossession={!!(scoreInfo && scoreInfo.isLive && scoreInfo.possession === "away")} />
           <div className="team-name">{away.name}</div>
           <div className={"win-tag" + (!homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
         </div>
         <div className="at-sep">@</div>
         <div className={"team-block" + (homeIsWinner ? " winner" : "") + (actualWinnerId === home.id ? " actual-winner" : "")}>
-          <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
+          <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} hasPossession={!!(scoreInfo && scoreInfo.isLive && scoreInfo.possession === "home")} />
           <div className="team-name">{home.name}</div>
           <div className={"win-tag" + (homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
         </div>

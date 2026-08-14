@@ -86,14 +86,19 @@
   .kpi .sub { font-size: 0.74rem; color: var(--text-faint); margin-top: 3px; }
 
   .grid {
-    display: grid; grid-template-columns: 2fr 1fr; gap: 14px;
+    column-count: 3; column-gap: 14px;
   }
-  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .grid .card {
+    break-inside: avoid; -webkit-column-break-inside: avoid; margin-bottom: 14px;
+  }
+  @media (max-width: 900px) { .grid { column-count: 2; } }
+  @media (max-width: 620px) { .grid { column-count: 1; } }
 
   .card {
     background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 14px; padding: 16px; margin-bottom: 14px;
   }
+  .grid .card { margin-bottom: 14px; }
   .card h2 {
     font-size: 0.85rem; margin: 0 0 12px; color: var(--text-dim);
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
@@ -118,7 +123,7 @@
   table.loc-table tr:last-child td { border-bottom: none; }
   table.loc-table td.num { text-align: right; color: var(--text-dim); }
 
-  .empty { color: var(--text-faint); font-size: 0.82rem; padding: 20px 0; text-align: center; }
+  .empty { color: var(--text-faint); font-size: 0.78rem; padding: 4px 0; text-align: left; }
 </style>
 </head>
 <body>
@@ -151,52 +156,49 @@
     </div>
   </div>
 
-  <div class="grid">
-    <div>
-      <div class="card">
-        <div class="card-head-row">
-          <h2 style="margin:0;">Pageviews</h2>
-          <div class="range-pills" id="rangePills">
-            <button class="range-pill" data-range="24h">24H</button>
-            <button class="range-pill" data-range="7d">7D</button>
-            <button class="range-pill active" data-range="30d">30D</button>
-            <button class="range-pill" data-range="3m">3M</button>
-            <button class="range-pill" data-range="6m">6M</button>
-            <button class="range-pill" data-range="1y">1Y</button>
-            <button class="range-pill" data-range="all">ALL</button>
-          </div>
-        </div>
-        <div class="chart-wrap"><canvas id="pvChart"></canvas></div>
+  <div class="card">
+    <div class="card-head-row">
+      <h2 style="margin:0;">Pageviews</h2>
+      <div class="range-pills" id="rangePills">
+        <button class="range-pill" data-range="24h">24H</button>
+        <button class="range-pill" data-range="7d">7D</button>
+        <button class="range-pill active" data-range="30d">30D</button>
+        <button class="range-pill" data-range="3m">3M</button>
+        <button class="range-pill" data-range="6m">6M</button>
+        <button class="range-pill" data-range="1y">1Y</button>
+        <button class="range-pill" data-range="all">ALL</button>
       </div>
     </div>
-    <div>
-      <div class="card">
-        <h2>Team clicks</h2>
-        <div class="bar-list" id="teamClicksList"></div>
-      </div>
-      <div class="card">
-        <h2>Favorited teams</h2>
-        <div class="bar-list" id="favTeamsList"></div>
-      </div>
-      <div class="card">
-        <h2>Roster views by team</h2>
-        <div class="bar-list" id="rosterViewsList"></div>
-      </div>
-      <div class="card">
-        <h2>Depth chart side views</h2>
-        <div class="bar-list" id="depthSideList"></div>
-      </div>
-      <div class="card">
-        <h2>Most viewed players</h2>
-        <div class="bar-list" id="topPlayersList"></div>
-      </div>
-      <div class="card">
-        <h2>Top cities</h2>
-        <table class="loc-table" id="cityTable">
-          <thead><tr><th>City</th><th class="num">Visitors</th><th class="num">Views</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <div class="chart-wrap"><canvas id="pvChart"></canvas></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Team clicks</h2>
+      <div class="bar-list" id="teamClicksList"></div>
+    </div>
+    <div class="card">
+      <h2>Favorited teams</h2>
+      <div class="bar-list" id="favTeamsList"></div>
+    </div>
+    <div class="card">
+      <h2>Roster views by team</h2>
+      <div class="bar-list" id="rosterViewsList"></div>
+    </div>
+    <div class="card">
+      <h2>Depth chart side views</h2>
+      <div class="bar-list" id="depthSideList"></div>
+    </div>
+    <div class="card">
+      <h2>Most viewed players</h2>
+      <div class="bar-list" id="topPlayersList"></div>
+    </div>
+    <div class="card">
+      <h2>Top cities</h2>
+      <table class="loc-table" id="cityTable">
+        <thead><tr><th>City</th><th class="num">Visitors</th><th class="num">Views</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 </div>

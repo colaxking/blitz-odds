@@ -359,6 +359,14 @@
     color: var(--text-dim); font-weight: 600; text-transform: none; letter-spacing: normal;
   }
   .down-distance.is-redzone { color: var(--live); font-weight: 700; }
+  /* Most recent play, shown as its own line under the game-meta row (LIVE
+     tag + down/distance) rather than crammed inline - ESPN's play text can
+     run 15-25 words, too long to sit next to the score without wrapping
+     awkwardly. Muted/italic so it reads as a caption, not a headline. */
+  .last-play {
+    font-size: 0.72rem; color: var(--text-dim); font-style: italic;
+    margin-top: 2px; line-height: 1.35;
+  }
   /* Replaces the scheduled date/time in game-meta-left once a game goes
      live - the score itself, styled as a highlighted pill so it reads as
      the headline fact on the card rather than blending into the meta row
@@ -6352,6 +6360,7 @@ async function fetchLiveScores(week) {
       possession,
       downDistanceText: situation ? (situation.shortDownDistanceText || situation.downDistanceText || null) : null,
       isRedZone: !!(situation && situation.isRedZone),
+      lastPlay: situation && situation.lastPlay ? situation.lastPlay.text || null : null,
     };
   });
   return map;
@@ -6803,6 +6812,7 @@ function resolveScore(live, historical) {
       possession: live.state === "in" ? live.possession : null,
       downDistanceText: live.state === "in" ? live.downDistanceText : null,
       isRedZone: live.state === "in" ? live.isRedZone : false,
+      lastPlay: live.state === "in" ? live.lastPlay : null,
     };
   }
   if (historical) {
@@ -6917,6 +6927,9 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
           </span>
         ) : game.network ? <span>{game.network}</span> : null}
       </div>
+      {scoreInfo && scoreInfo.isLive && scoreInfo.lastPlay && (
+        <div className="last-play">{scoreInfo.lastPlay}</div>
+      )}
       {internationalGame && game.note && <div className="odds-fallback-note" style={{marginTop: "-4px"}}>{game.note}</div>}
 
       <div className="matchup-row">

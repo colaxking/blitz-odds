@@ -550,11 +550,15 @@
 
   .injury-info-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 20px; height: 20px; margin-left: 6px; padding: 0; vertical-align: -4px;
-    border: none; background: transparent;
-    color: inherit; opacity: 0.75; font-size: 0.72rem; line-height: 1; cursor: pointer;
+    width: 15px; height: 15px; margin-left: 6px; padding: 0; vertical-align: middle;
+    position: relative; top: -1px;
+    border: none; border-radius: 50%; background: rgba(var(--accent-rgb),0.18);
+    color: var(--accent); opacity: 0.9; font-size: 0.68rem; font-weight: 800; font-style: italic; font-family: Georgia, "Times New Roman", serif; line-height: 1;
+    cursor: pointer; transition: background 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
   }
-  .injury-info-btn:hover, .injury-info-btn:focus-visible { opacity: 1; }
+  .injury-info-btn:hover, .injury-info-btn:focus-visible {
+    opacity: 1; background: rgba(var(--accent-rgb),0.32); transform: scale(1.12);
+  }
   .injury-modal-overlay {
     position: fixed; inset: 0; background: rgba(4,8,16,0.6); backdrop-filter: blur(2px);
     display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
@@ -6817,7 +6821,7 @@ function InjuryInfoButton({ player }) {
         aria-label={"Injury details for " + player.name}
         title="Injury details"
       >
-        ℹ
+        i
       </button>
       {open && <InjuryDetailModal player={player} onClose={() => setOpen(false)} />}
     </React.Fragment>

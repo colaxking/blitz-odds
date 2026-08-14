@@ -551,7 +551,7 @@
   .injury-info-btn {
     display: inline-flex; align-items: center; justify-content: center;
     width: 20px; height: 20px; margin-left: 6px; padding: 0; vertical-align: -4px;
-    border-radius: 50%; border: 1px solid currentColor; background: transparent;
+    border: none; background: transparent;
     color: inherit; opacity: 0.75; font-size: 0.72rem; line-height: 1; cursor: pointer;
   }
   .injury-info-btn:hover, .injury-info-btn:focus-visible { opacity: 1; }
@@ -6817,7 +6817,7 @@ function InjuryInfoButton({ player }) {
         aria-label={"Injury details for " + player.name}
         title="Injury details"
       >
-        ⓘ
+        ℹ
       </button>
       {open && <InjuryDetailModal player={player} onClose={() => setOpen(false)} />}
     </React.Fragment>

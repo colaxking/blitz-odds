@@ -406,15 +406,6 @@
     cursor: pointer; font-size: 0.75rem; color: var(--text-dim); line-height: 1; padding: 0;
   }
   .star-btn.active { color: var(--star); border-color: var(--star); }
-  /* Small football glyph overlaid on the badge of whichever team currently
-     has the ball, bottom-right so it doesn't collide with the favorite
-     star (top-right). Only ever rendered while a game is live. */
-  .possession-icon {
-    position: absolute; bottom: -4px; right: -4px; font-size: 0.85rem; line-height: 1;
-    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 50%;
-    width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
-  }
   .team-name { font-size: 0.8rem; text-align: center; color: var(--text); }
   .win-tag { font-size: 0.7rem; color: var(--win); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
   .win-tag-hidden { visibility: hidden; }
@@ -6665,16 +6656,13 @@ function FavoriteStar({ teamId, favorites, onToggle }) {
   );
 }
 
-function TeamBadge({ team, favorites, onToggle, onSelect, hasPossession }) {
+function TeamBadge({ team, favorites, onToggle, onSelect }) {
   return (
     <div className="badge-wrap">
       <button className="team-click" onClick={() => onSelect(team.id)} style={{ position: "static" }}>
         <TeamLogo teamId={team.id} />
       </button>
       <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggle} />
-      {hasPossession && (
-        <span className="possession-icon" title="Has the ball">🏈</span>
-      )}
     </div>
   );
 }
@@ -6933,13 +6921,13 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
 
       <div className="matchup-row">
         <div className={"team-block" + (!homeIsWinner ? " winner" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
-          <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} hasPossession={!!(scoreInfo && scoreInfo.isLive && scoreInfo.possession === "away")} />
+          <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{away.name}</div>
           <div className={"win-tag" + (!homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
         </div>
         <div className="at-sep">@</div>
         <div className={"team-block" + (homeIsWinner ? " winner" : "") + (actualWinnerId === home.id ? " actual-winner" : "")}>
-          <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} hasPossession={!!(scoreInfo && scoreInfo.isLive && scoreInfo.possession === "home")} />
+          <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{home.name}</div>
           <div className={"win-tag" + (homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
         </div>

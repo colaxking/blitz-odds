@@ -7032,15 +7032,19 @@ function LiveScoreFlash({ awayScore, homeScore, className, children }) {
 const STATUS_ORDER = { active: 0, questionable: 1, out: 2 };
 
 /** How long a recently-activated player stays visible in injury lists after
- *  coming off injured/questionable status. Requires an `activatedDate`
- *  (ISO date string) on the player record, set by the weekly-update
- *  pipeline whenever a status transitions to "active". Players without an
- *  activatedDate (not yet backfilled, or never injured to begin with) are
- *  shown indefinitely rather than hidden, so this stays backwards-compatible
- *  until that field is populated everywhere. */
+ *  coming off injured/questionable status. Only applies to players who
+ *  actually have injury history (an `injury` object) - a player who's
+ *  always been "active" with no injury on record was never news for an
+ *  injury report and is filtered out unconditionally, regardless of date.
+ *  For a recovered player, visibility is keyed off `activatedDate` (ISO
+ *  date string, set by the weekly-update pipeline whenever a status
+ *  transitions to "active"); if that field hasn't been backfilled yet, the
+ *  player is shown until it is, rather than hidden. */
 const ACTIVE_VISIBILITY_DAYS = 7;
 function isVisibleInInjuryReport(p) {
-  if (p.status !== "active" || !p.activatedDate) return true;
+  if (p.status !== "active") return true;
+  if (!p.injury) return false;
+  if (!p.activatedDate) return true;
   const activated = new Date(p.activatedDate);
   if (isNaN(activated.getTime())) return true;
   return (Date.now() - activated.getTime()) <= ACTIVE_VISIBILITY_DAYS * 24 * 60 * 60 * 1000;

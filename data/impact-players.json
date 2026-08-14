@@ -1,6 +1,6 @@
 {
   "isDemoData": false,
-  "disclaimer": "Injury statuses reflect reports as of Aug. 12, 2026 (evening update). Refreshed: DeVonta Smith (PHI) - showed first sign of on-field progress Aug. 11 (light work with training staff) after missing a second straight week of practice. Malik Nabers (NYG) - Aug. 12 update: decreased practice workload tied to preseason-opener game-plan installation, not a setback; still has a real chance to play Week 1. Micah Parsons (GB) - added detail that he's expected to open the season on PUP (missing at least 4 games) per Aug. 10 comments. George Kittle (SF) - added his own Week 1 optimism/running-routes update. All other tracked situations (Emmanwori, Pearsall, Evans, Coby Bryant, Gordon, Burden, Ekwonu, Moton, Scourton, Stewart, Bresee, Owusu-Koramoah, Penix, Walker, Ramsey, Greenard, Reed, Jacobs, Tunsil, Jefferson, Mahomes, Kyler Murray) confirmed unchanged after a fresh check of today's camp news, nfl.com/injuries, and insider (Schefter/Rapoport/Pelissero/beat writer) searches. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
+  "disclaimer": "Injury statuses reflect training camp reports as of Aug. 13, 2026 (evening update). New: 49ers Edge Nick Bosa (knee tendinitis in surgically repaired ACL knee) added as out, week-to-week per HC Kyle Shanahan, targeting Week 1. Ravens CB Marlon Humphrey (groin strain) added as questionable; fellow CB Nate Wiggins upgraded to questionable (from out) after HC Jesse Minter said Aug. 13 both are trending well to potentially return to practice next week. All other tracked situations (Emmanwori, Kittle, Pearsall, Evans, Coby Bryant, Gordon, Burden, Ekwonu, Moton, Scourton, Stewart, Bresee, Owusu-Koramoah, Penix, Walker, Ramsey, Parsons, Reed, Jacobs, Nabers, Jefferson, Mahomes, Kyler Murray, Greenard, DeVonta Smith, Tunsil) confirmed unchanged after a fresh check of today's camp news, nfl.com/injuries, and insider (Schefter/Rapoport/Pelissero) searches. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
   "players": {
     "NE": [
       {
@@ -67,6 +67,17 @@
           "type": "Quad strain",
           "since": "2026-08-03",
           "note": "Returned to the field Aug. 11 for a joint practice vs. Tennessee, working individual drills after a week away. HC Kyle Shanahan continues to take a cautious approach given Evans' age (turns 33 this month) and 2025 injury history, but he's trending positive and not expected to linger into the season."
+        }
+      },
+      {
+        "name": "Nick Bosa",
+        "position": "Edge",
+        "impactScore": 9,
+        "status": "out",
+        "injury": {
+          "type": "Knee tendinitis (surgically repaired right knee)",
+          "since": "2026-08",
+          "note": "Dealing with tendinitis in the knee he had surgically repaired for a torn ACL in 2025; not practicing and considered 'week-to-week' by HC Kyle Shanahan, who called the tendinitis a normal part of ACL recovery seen in roughly 90% of players. Goal remains for Bosa to play Week 1 vs. the Rams on Sept. 10."
         }
       }
     ],
@@ -151,7 +162,7 @@
         "injury": {
           "type": "Torn ACL",
           "since": "2026-07",
-          "note": "Non-contact tear suffered on the first day of training camp practice \u2014 out for the season. The injury happened during the mandatory acclimation period, which the NFLPA is investigating."
+          "note": "Non-contact tear suffered on the first day of training camp practice — out for the season. The injury happened during the mandatory acclimation period, which the NFLPA is investigating."
         }
       },
       {
@@ -242,6 +253,28 @@
         "position": "QB",
         "impactScore": 10,
         "status": "active"
+      },
+      {
+        "name": "Nate Wiggins",
+        "position": "CB",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Left leg injury (no structural damage)",
+          "since": "2026-08-11",
+          "note": "Carted off during Tuesday's practice after tangling feet with WR Ja'Kobi Lane in 1-on-1 drills. Early testing/MRI showed no structural damage. HC Jesse Minter said Aug. 13 that Wiggins is trending well to potentially return to practice next week, though unlikely to play in Saturday's preseason opener vs. Philadelphia."
+        }
+      },
+      {
+        "name": "Marlon Humphrey",
+        "position": "CB",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Groin strain",
+          "since": "2026-08-12",
+          "note": "Left Wednesday's practice with a trainer with a groin issue. HC Jesse Minter said Aug. 13 that Humphrey is trending well to potentially return to practice next week, dealing with 'a couple small things,' though unlikely to play in Saturday's preseason opener vs. Philadelphia."
+        }
       }
     ],
     "IND": [
@@ -438,9 +471,9 @@
         "impactScore": 7,
         "status": "out",
         "injury": {
-          "type": "Torn triceps (right arm) - likely surgery",
+          "type": "Torn triceps (right arm) - underwent surgery",
           "since": "2026-08-08",
-          "note": "Hurt in a one-on-one pass-rush rep vs. Odafe Oweh during Saturday's practice. Expected to need surgery and miss a significant portion of the 2026 season, per NFL Network. Washington's plan is to move Brandon Coleman back to left tackle to replace him, with Andrew Wylie as a depth option."
+          "note": "Hurt in a one-on-one pass-rush rep vs. Odafe Oweh during Saturday's practice; underwent surgery to repair the torn triceps. HC Dan Quinn didn't disclose an exact timeline, but recovery from this type of injury typically runs 4-7 months, likely sidelining him for most if not all of the 2026 season. Washington moved Brandon Coleman to left tackle in his place, with Andrew Wylie as depth; Quinn said the team isn't looking outside the building for additional O-line help."
         }
       }
     ],

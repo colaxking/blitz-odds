@@ -18,7 +18,14 @@ function jsonResponse(status: number, body: unknown, extraHeaders?: Record<strin
   });
 }
 
-const VALID_TYPES = new Set(["pageview", "team_click", "favorite"]);
+const VALID_TYPES = new Set([
+  "pageview",
+  "team_click",
+  "favorite",
+  "team_tab",
+  "roster_side",
+  "player_view",
+]);
 
 // Best-effort extraction of Netlify's built-in geolocation (derived from the
 // edge node that served the request, via the `x-nf-geo` header). This is
@@ -62,7 +69,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -81,13 +88,32 @@ export default async (req: Request, context: Context) => {
       ts: timestamp,
     };
 
-    if (type === "team_click" || type === "favorite") {
+    if (
+      type === "team_click" ||
+      type === "favorite" ||
+      type === "team_tab" ||
+      type === "roster_side" ||
+      type === "player_view"
+    ) {
       record.team = team ? String(team).slice(0, 64) : "unknown";
       if (teamName) record.teamName = String(teamName).slice(0, 128);
     }
 
     if (type === "favorite") {
       record.adding = adding === true;
+    }
+
+    if (type === "team_tab" && tab) {
+      record.tab = String(tab).slice(0, 64);
+    }
+
+    if (type === "roster_side" && side) {
+      record.side = String(side).slice(0, 64);
+    }
+
+    if (type === "player_view") {
+      if (player) record.player = String(player).slice(0, 128);
+      if (source) record.source = String(source).slice(0, 32);
     }
 
     if (week !== undefined && week !== null && week !== "") {

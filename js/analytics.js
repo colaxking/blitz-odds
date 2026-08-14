@@ -13,6 +13,13 @@
  *  - "favorite" whenever a `.star-btn` (the favorite-star toggle) is clicked,
  *    with `adding: true/false` depending on whether the star was being turned
  *    on or off at the moment of the click
+ *  - "team_tab" whenever a tab inside a team page (Schedule / Roster & Depth
+ *    Chart / News) is opened, via `.team-tab-btn`
+ *  - "roster_side" whenever the Offense/Defense/Special Teams side toggle
+ *    inside the depth chart is clicked, via `.roster-side-tab-btn`
+ *  - "player_view" whenever a player's name is clicked to open their detail
+ *    modal, from either the depth chart (`.depth-player-name-btn`) or the
+ *    full roster table (`.roster-player-name-btn`)
  *
  * The click listener is registered in the CAPTURE phase, not bubble. The
  * favorite star's own onClick calls `event.stopPropagation()` (to keep the
@@ -134,6 +141,37 @@
       return { team: team, teamName: teamName };
     }
 
+    // Team-page-only controls (team tabs, roster side toggle, player names)
+    // don't live inside a ".team-block" the way logo/star clicks do - the
+    // page they're on only ever shows one team at a time, in
+    // ".team-view-header", so that's read instead. Same read-only
+    // logo-alt / fallback-text / heading-text pattern as findTeamInfo.
+    function findActiveTeamContext() {
+      var team = null;
+      var teamName = null;
+      try {
+        var header = document.querySelector(".team-view-header");
+        if (!header) return { team: null, teamName: null };
+        var img = header.querySelector("img.badge-img");
+        if (img && img.getAttribute("alt")) {
+          team = img.getAttribute("alt");
+        }
+        if (!team) {
+          var fallback = header.querySelector(".badge-fallback");
+          if (fallback && fallback.textContent) {
+            team = fallback.textContent.trim();
+          }
+        }
+        var nameEl = header.querySelector("h2");
+        if (nameEl && nameEl.textContent) {
+          teamName = nameEl.textContent.trim();
+        }
+      } catch (e) {
+        /* ignore, return whatever was found so far */
+      }
+      return { team: team, teamName: teamName };
+    }
+
     function handleDocumentClick(event) {
       try {
         var target = event && event.target;
@@ -172,6 +210,51 @@
             team: teamVal,
             teamName: ci.teamName || undefined,
             week: getCurrentWeekLabel(),
+          });
+          return;
+        }
+
+        var teamTabEl = target.closest(".team-tab-btn");
+        if (teamTabEl) {
+          var ttCtx = findActiveTeamContext();
+          sendEvent({
+            type: "team_tab",
+            visitorId: visitorId,
+            ts: Date.now(),
+            team: ttCtx.team || "unknown",
+            teamName: ttCtx.teamName || undefined,
+            tab: teamTabEl.textContent ? teamTabEl.textContent.trim() : undefined,
+          });
+          return;
+        }
+
+        var rosterSideEl = target.closest(".roster-side-tab-btn");
+        if (rosterSideEl) {
+          var rsCtx = findActiveTeamContext();
+          sendEvent({
+            type: "roster_side",
+            visitorId: visitorId,
+            ts: Date.now(),
+            team: rsCtx.team || "unknown",
+            teamName: rsCtx.teamName || undefined,
+            side: rosterSideEl.textContent ? rosterSideEl.textContent.trim() : undefined,
+          });
+          return;
+        }
+
+        var depthPlayerEl = target.closest(".depth-player-name-btn");
+        var rosterPlayerEl = !depthPlayerEl ? target.closest(".roster-player-name-btn") : null;
+        var playerEl = depthPlayerEl || rosterPlayerEl;
+        if (playerEl) {
+          var pvCtx = findActiveTeamContext();
+          sendEvent({
+            type: "player_view",
+            visitorId: visitorId,
+            ts: Date.now(),
+            team: pvCtx.team || "unknown",
+            teamName: pvCtx.teamName || undefined,
+            player: playerEl.textContent ? playerEl.textContent.trim() : undefined,
+            source: depthPlayerEl ? "depth_chart" : "full_roster",
           });
         }
       } catch (e) {

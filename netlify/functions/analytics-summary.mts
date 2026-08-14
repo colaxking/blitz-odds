@@ -64,6 +64,10 @@ type EventRecord = {
   teamName?: string;
   adding?: boolean;
   week?: string;
+  tab?: string;
+  side?: string;
+  player?: string;
+  source?: string;
   location?: LocationInfo;
 };
 
@@ -115,6 +119,24 @@ function buildZeroFilledMonthSeries(now: number, count: number): { bucket: strin
   return series;
 }
 
+// Tallies `keyFn(record)` across `records`, sorted descending, as a plain
+// {label: count} object - the shape every bar-list widget on the dashboard
+// consumes. Records with no usable key are skipped rather than lumped into
+// "unknown", since an absent tab/side/player name means the click handler
+// couldn't find a value, not that the value legitimately was "unknown".
+function sortedCounts(records: EventRecord[], keyFn: (r: EventRecord) => string | undefined): Record<string, number> {
+  const map = new Map<string, number>();
+  for (const r of records) {
+    const key = keyFn(r);
+    if (!key) continue;
+    map.set(key, (map.get(key) || 0) + 1);
+  }
+  const sorted = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  const out: Record<string, number> = {};
+  for (const [k, v] of sorted) out[k] = v;
+  return out;
+}
+
 type LocationBucket = {
   label: string;
   country?: string;
@@ -143,6 +165,9 @@ function emptySummary(now: number, range: Range) {
     teamClicksByTeam: {} as Record<string, number>,
     favoritesByTeam: {} as Record<string, number>,
     topFavoriteTeam: null as string | null,
+    rosterViewsByTeam: {} as Record<string, number>,
+    depthChartSideViews: {} as Record<string, number>,
+    topViewedPlayers: {} as Record<string, number>,
     viewsByCountry: [] as LocationBucket[],
     viewsByCity: [] as LocationBucket[],
     topLocation: null as string | null,
@@ -257,6 +282,24 @@ export default async (req: Request, _context: Context) => {
     }
     const topFavoriteTeam = sortedFavEntries.length > 0 ? sortedFavEntries[0][0] : null;
 
+    // --- rosterViewsByTeam: how many times each team's "Roster & Depth
+    // Chart" tab was opened - which team pages people actually dig into,
+    // not just click through to ---
+    const rosterTabOpens = validRecords.filter(
+      (r) => r.type === "team_tab" && r.tab === "Roster & Depth Chart"
+    );
+    const rosterViewsByTeam = sortedCounts(rosterTabOpens, (r) => r.team);
+
+    // --- depthChartSideViews: Offense/Defense/Special Teams toggle clicks,
+    // aggregated across all teams - which side of the ball people look at ---
+    const rosterSideClicks = validRecords.filter((r) => r.type === "roster_side");
+    const depthChartSideViews = sortedCounts(rosterSideClicks, (r) => r.side);
+
+    // --- topViewedPlayers: player-name clicks from either the depth chart
+    // or the full roster table, aggregated by player across all teams ---
+    const playerViews = validRecords.filter((r) => r.type === "player_view");
+    const topViewedPlayers = sortedCounts(playerViews, (r) => r.player);
+
     // --- viewsByCountry / viewsByCity: where unique views are coming from ---
     // Grouped from pageview events that carried a `location` (Netlify's
     // built-in edge geolocation - see track.mts). "Unique" here means
@@ -337,6 +380,9 @@ export default async (req: Request, _context: Context) => {
       teamClicksByTeam,
       favoritesByTeam,
       topFavoriteTeam,
+      rosterViewsByTeam,
+      depthChartSideViews,
+      topViewedPlayers,
       viewsByCountry,
       viewsByCity,
       topLocation,

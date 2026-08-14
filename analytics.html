@@ -179,6 +179,18 @@
         <div class="bar-list" id="favTeamsList"></div>
       </div>
       <div class="card">
+        <h2>Roster views by team</h2>
+        <div class="bar-list" id="rosterViewsList"></div>
+      </div>
+      <div class="card">
+        <h2>Depth chart side views</h2>
+        <div class="bar-list" id="depthSideList"></div>
+      </div>
+      <div class="card">
+        <h2>Most viewed players</h2>
+        <div class="bar-list" id="topPlayersList"></div>
+      </div>
+      <div class="card">
         <h2>Top cities</h2>
         <table class="loc-table" id="cityTable">
           <thead><tr><th>City</th><th class="num">Visitors</th><th class="num">Views</th></tr></thead>
@@ -378,6 +390,9 @@
     }
     renderBarList("teamClicksList", data.teamClicksByTeam, "No team clicks yet");
     renderBarList("favTeamsList", omitUnknown(data.favoritesByTeam), "No favorites yet");
+    renderBarList("rosterViewsList", omitUnknown(data.rosterViewsByTeam), "No roster/depth chart views yet");
+    renderBarList("depthSideList", data.depthChartSideViews, "No depth chart activity yet");
+    renderBarList("topPlayersList", data.topViewedPlayers, "No player lookups yet");
     renderCityTable(data.viewsByCity);
   }
 

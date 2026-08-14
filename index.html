@@ -354,6 +354,11 @@
     animation: pulse 1.4s infinite;
   }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  /* Replaces the scheduled date/time in game-meta-left once a game goes
+     live - the score itself, not uppercased/letter-spaced like the LIVE
+     badge next to it, so the two read as "label + value" rather than
+     competing for emphasis. */
+  .live-score-inline { font-weight: 800; color: var(--text); font-size: 0.8rem; letter-spacing: 0.2px; }
   .matchup-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .team-block { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 10px; position: relative; }
   .team-block.winner { background: rgba(var(--win-rgb), 0.12); border: 1px solid rgba(var(--win-rgb), 0.4); }
@@ -640,6 +645,8 @@
   .team-schedule-table tr.bye-row:hover td { background: transparent; }
   .team-schedule-table tr.playoff-row td { background: rgba(var(--demo-rgb),0.06); }
   .team-schedule-table tr.playoff-row:hover td { background: rgba(var(--demo-rgb),0.1); }
+  .team-schedule-table tr.live-row td { background: rgba(var(--live-rgb),0.08); }
+  .team-schedule-table tr.live-row:hover td { background: rgba(var(--live-rgb),0.12); }
 
   /* Date/time and prediction cells break into two deliberate lines instead of
      the browser wrapping the raw string at an arbitrary, ugly point. */
@@ -665,6 +672,7 @@
   }
   .schedule-mobile-card.playoff-row { border-color: rgba(var(--demo-rgb),0.35); }
   .schedule-mobile-card.bye-row { color: var(--text-dim); font-style: italic; }
+  .schedule-mobile-card.live-row { border-color: var(--live); box-shadow: 0 0 0 1px rgba(var(--live-rgb),0.3); }
   .schedule-mobile-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.78rem; }
   .schedule-mobile-week { font-weight: 700; color: var(--text); }
   .schedule-mobile-date { color: var(--text-dim); text-align: right; }
@@ -6755,7 +6763,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
     <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (divisionGame ? " is-division" : "") + (internationalGame ? " is-international" : "") + (scoreInfo && scoreInfo.isLive ? " is-live" : "")}>
       <div className="game-meta">
         <span className="game-meta-left">
-          {shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}
+          {scoreInfo && scoreInfo.isLive ? (
+            <span className="live-score-inline">{away.id} {scoreInfo.awayScore} – {scoreInfo.homeScore} {home.id}</span>
+          ) : (
+            <>{shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}</>
+          )}
           {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
           {internationalGame && <span className="international-tag" title={game.note || "International Game"}>🌍 International</span>}
         </span>
@@ -6822,7 +6834,9 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
               {predictionCorrect ? "Prediction correct ✓" : "Prediction missed ✗"}
             </span>
           ) : (
-            <span className="live-tag" style={{ fontSize: "0.68rem" }}>In progress</span>
+            <span className="live-tag" style={{ fontSize: "0.68rem" }}>
+              <span className="live-dot"></span>{scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : "In progress"}
+            </span>
           )}
         </div>
       )}
@@ -8197,6 +8211,12 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
   const isMobile = useIsMobile(860);
   const [activeTab, setActiveTab] = useState("schedule");
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  // Only the chronologically "current" period can have a game in progress
+  // right now, so that's the only week worth polling ESPN for here - same
+  // adaptive-polling hook the week view uses, so this schedule tab picks up
+  // score/clock changes live while it's open instead of needing a refresh.
+  const currentWeek = useMemo(() => getDefaultWeek(), []);
+  const liveMap = useLiveScores(currentWeek);
 
   const tabs = isMobile
     ? [
@@ -8229,14 +8249,26 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
     const teamWins = prediction.predictedWinner === teamId;
     const teamWinProb = isHome ? prediction.homeWinProbability : prediction.awayWinProbability;
     const result = context.getResult(game.away, game.home);
+    // Live data only applies to this row's own week - a stray live entry
+    // from a different week (shouldn't happen, but the map is keyed by
+    // matchup, not week) can't leak into a different week's row.
+    const live = week === currentWeek ? liveMap[`${game.away}-${game.home}`] : null;
+    const scoreInfo = resolveScore(live, result);
     let actual = null;
-    if (result) {
-      const actualWinnerId = result.homeScore > result.awayScore ? game.home : game.away;
+    if (scoreInfo && scoreInfo.isFinal) {
+      const actualWinnerId = scoreInfo.homeScore > scoreInfo.awayScore ? game.home : game.away;
       actual = {
+        isLive: false,
         winnerId: actualWinnerId,
         teamWon: actualWinnerId === teamId,
         correct: (actualWinnerId === teamId) === teamWins,
-        scoreLine: `${game.away} ${result.awayScore} - ${result.homeScore} ${game.home}`,
+        scoreLine: `${game.away} ${scoreInfo.awayScore} - ${scoreInfo.homeScore} ${game.home}`,
+      };
+    } else if (scoreInfo && scoreInfo.isLive) {
+      actual = {
+        isLive: true,
+        scoreLine: `${game.away} ${scoreInfo.awayScore} - ${scoreInfo.homeScore} ${game.home}`,
+        clockLabel: scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : "In progress",
       };
     }
     const odds = getOdds(week, game.away, game.home, sportsbookId);
@@ -8358,7 +8390,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
               {isMobile ? (
             <div className="schedule-mobile-list">
               {displayRows.map(r => (
-                <div key={r.week} className={"schedule-mobile-card" + (r.bye ? " bye-row" : "") + (r.isPlayoff ? " playoff-row" : "")}>
+                <div key={r.week} className={"schedule-mobile-card" + (r.bye ? " bye-row" : "") + (r.isPlayoff ? " playoff-row" : "") + (r.actual && r.actual.isLive ? " live-row" : "")}>
                   <div className="schedule-mobile-top">
                     <span className="schedule-mobile-week">{r.label}</span>
                     {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}{r.network ? ` • ${r.network}` : ""}</span>}
@@ -8393,12 +8425,18 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                       </div>
                       <div className="schedule-mobile-row">
                         {r.actual ? (
-                          <span>
-                            {r.actual.scoreLine}
-                            <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
-                              {r.actual.correct ? "✓" : "✗"}
+                          r.actual.isLive ? (
+                            <span className="live-tag" style={{ fontSize: "0.76rem" }}>
+                              <span className="live-dot"></span>{r.actual.scoreLine} • {r.actual.clockLabel}
                             </span>
-                          </span>
+                          ) : (
+                            <span>
+                              {r.actual.scoreLine}
+                              <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
+                                {r.actual.correct ? "✓" : "✗"}
+                              </span>
+                            </span>
+                          )
                         ) : (
                           <span className="hw-tag">Not played yet</span>
                         )}
@@ -8422,7 +8460,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
               </thead>
               <tbody>
                 {displayRows.map(r => (
-                  <tr key={r.week} className={(r.bye ? "bye-row " : "") + (r.isPlayoff ? "playoff-row" : "")}>
+                  <tr key={r.week} className={(r.bye ? "bye-row " : "") + (r.isPlayoff ? "playoff-row" : "") + (r.actual && r.actual.isLive ? " live-row" : "")}>
                     <td>{shortPeriodLabel(r.week, r.label)}</td>
                     {r.bye ? (
                       <td colSpan="5">BYE week</td>
@@ -8459,12 +8497,18 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                         </td>
                         <td>
                           {r.actual ? (
-                            <span>
-                              {r.actual.scoreLine}
-                              <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
-                                {r.actual.correct ? "✓" : "✗"}
+                            r.actual.isLive ? (
+                              <span className="live-tag" style={{ fontSize: "0.76rem" }}>
+                                <span className="live-dot"></span>{r.actual.scoreLine} • {r.actual.clockLabel}
                               </span>
-                            </span>
+                            ) : (
+                              <span>
+                                {r.actual.scoreLine}
+                                <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
+                                  {r.actual.correct ? "✓" : "✗"}
+                                </span>
+                              </span>
+                            )
                           ) : (
                             <span className="hw-tag">Not played yet</span>
                           )}

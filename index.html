@@ -6133,6 +6133,47 @@ function getDefaultWeek() {
   return periods[periods.length - 1].week;
 }
 
+// ---- NFL team home stadiums (for SportsEvent location markup) -------------
+// Static reference data - like TEAM_DIVISION, this only changes on the rare
+// stadium move/naming-rights swap, so it's safe to hardcode rather than
+// fetch. Used to satisfy schema.org SportsEvent's required `location`
+// property for domestic games; international games get their venue from the
+// schedule data's `note` field instead (see gameToSportsEvent).
+const TEAM_STADIUM = {
+  BUF: { name: "Highmark Stadium", city: "Orchard Park", state: "NY" },
+  MIA: { name: "Hard Rock Stadium", city: "Miami Gardens", state: "FL" },
+  NE: { name: "Gillette Stadium", city: "Foxborough", state: "MA" },
+  NYJ: { name: "MetLife Stadium", city: "East Rutherford", state: "NJ" },
+  BAL: { name: "M&T Bank Stadium", city: "Baltimore", state: "MD" },
+  CIN: { name: "Paycor Stadium", city: "Cincinnati", state: "OH" },
+  CLE: { name: "Huntington Bank Field", city: "Cleveland", state: "OH" },
+  PIT: { name: "Acrisure Stadium", city: "Pittsburgh", state: "PA" },
+  HOU: { name: "NRG Stadium", city: "Houston", state: "TX" },
+  IND: { name: "Lucas Oil Stadium", city: "Indianapolis", state: "IN" },
+  JAX: { name: "EverBank Stadium", city: "Jacksonville", state: "FL" },
+  TEN: { name: "Nissan Stadium", city: "Nashville", state: "TN" },
+  DEN: { name: "Empower Field at Mile High", city: "Denver", state: "CO" },
+  KC: { name: "GEHA Field at Arrowhead Stadium", city: "Kansas City", state: "MO" },
+  LV: { name: "Allegiant Stadium", city: "Las Vegas", state: "NV" },
+  LAC: { name: "SoFi Stadium", city: "Inglewood", state: "CA" },
+  DAL: { name: "AT&T Stadium", city: "Arlington", state: "TX" },
+  NYG: { name: "MetLife Stadium", city: "East Rutherford", state: "NJ" },
+  PHI: { name: "Lincoln Financial Field", city: "Philadelphia", state: "PA" },
+  WAS: { name: "Commanders Field", city: "Landover", state: "MD" },
+  CHI: { name: "Soldier Field", city: "Chicago", state: "IL" },
+  DET: { name: "Ford Field", city: "Detroit", state: "MI" },
+  GB: { name: "Lambeau Field", city: "Green Bay", state: "WI" },
+  MIN: { name: "U.S. Bank Stadium", city: "Minneapolis", state: "MN" },
+  ATL: { name: "Mercedes-Benz Stadium", city: "Atlanta", state: "GA" },
+  CAR: { name: "Bank of America Stadium", city: "Charlotte", state: "NC" },
+  NO: { name: "Caesars Superdome", city: "New Orleans", state: "LA" },
+  TB: { name: "Raymond James Stadium", city: "Tampa", state: "FL" },
+  ARI: { name: "State Farm Stadium", city: "Glendale", state: "AZ" },
+  LAR: { name: "SoFi Stadium", city: "Inglewood", state: "CA" },
+  SF: { name: "Levi's Stadium", city: "Santa Clara", state: "CA" },
+  SEA: { name: "Lumen Field", city: "Seattle", state: "WA" },
+};
+
 // ---- schema.org SportsEvent structured data (client-side JSON-LD) ---------
 // Builds a startDate ISO timestamp for a game the same way latestGameDateMs
 // does (fixed -05:00 ET offset, month<=5 rolls to seasonYear+1), but returns
@@ -6179,6 +6220,20 @@ function gameToSportsEvent(game, seasonYear) {
   };
   if (game.international && game.note) {
     event.location = { "@type": "Place", "name": game.note.replace(/^International Game\s*—\s*/, "") };
+  } else {
+    const stadium = TEAM_STADIUM[game.home];
+    if (stadium) {
+      event.location = {
+        "@type": "Place",
+        "name": stadium.name,
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": stadium.city,
+          "addressRegion": stadium.state,
+          "addressCountry": "US"
+        }
+      };
+    }
   }
   return event;
 }

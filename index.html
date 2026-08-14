@@ -485,7 +485,18 @@
     text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
     white-space: nowrap;
   }
-  .news-ticker-track-wrap { flex: 1; overflow: hidden; min-width: 0; }
+  .news-ticker-track-wrap {
+    flex: 1; overflow: hidden; min-width: 0;
+    /* Without this, iOS Safari's automatic font-boosting scales headline
+       text size based on line length inside this horizontally-scrolling
+       container - so a short headline (e.g. a Fox Sports one-liner) renders
+       at the CSS-defined 0.8rem while a longer one gets bumped up, even
+       though every .news-ticker-headline has the identical font-size rule.
+       Locking text-size-adjust to 100% disables that per-line heuristic so
+       every headline renders at the same size regardless of length. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   .news-ticker-track {
     display: flex; align-items: center; width: max-content;
     animation: news-ticker-scroll 120s linear infinite;
@@ -495,7 +506,10 @@
     display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
     color: var(--text); text-decoration: none; font-size: 0.8rem; padding: 0 28px 0 0;
   }
-  .news-ticker-headline { font-size: 0.8rem; font-weight: 500; font-family: inherit; }
+  .news-ticker-headline {
+    font-size: 0.8rem; font-weight: 500; font-family: inherit;
+    -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+  }
   .news-ticker-item:hover .news-ticker-headline { text-decoration: underline; color: var(--accent); }
   .news-ticker-source {
     flex-shrink: 0; color: var(--text-dim); font-size: 0.64rem; font-weight: 700;

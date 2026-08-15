@@ -697,17 +697,21 @@
   .score-link-btn:hover, .score-link-btn:focus-visible {
     opacity: 0.82; outline: 2px solid rgba(var(--accent-rgb),0.45); outline-offset: 2px;
   }
-  /* Small always-visible glyph after every clickable score - the button's
+  /* Small always-visible badge after every clickable score - the button's
      own hover/focus affordance only shows once someone's already pointing
-     at it, which doesn't help on a touch screen. This sits there at rest
-     so a person scanning the card knows the score itself is tappable,
-     without needing a label wide enough to fit "Box score" next to a
-     compact live-score pill. */
+     at it, which doesn't help on a touch screen. A plain glyph reads as
+     near-invisible clutter against the card, so this is a filled pill
+     (accent-colored background, not just a muted icon) so it reads as
+     its own distinct, obviously-tappable element even at a glance. */
   .boxscore-hint-icon {
-    display: inline-flex; align-items: center; margin-left: 5px; font-size: 0.72em;
-    opacity: 0.55; line-height: 1; transform: translateY(-0.5px);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: 6px; padding: 3px; border-radius: 5px;
+    background: rgba(var(--accent-rgb),0.22); color: var(--accent);
+    flex-shrink: 0;
   }
-  .score-link-btn:hover .boxscore-hint-icon, .score-link-btn:focus-visible .boxscore-hint-icon { opacity: 0.95; }
+  .score-link-btn:hover .boxscore-hint-icon, .score-link-btn:focus-visible .boxscore-hint-icon {
+    background: rgba(var(--accent-rgb),0.4);
+  }
 
   .boxscore-modal-overlay {
     position: fixed; inset: 0; background: rgba(4,8,16,0.6); backdrop-filter: blur(2px);
@@ -6699,7 +6703,11 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children }) {
         title="View box score"
       >
         {children}
-        <span className="boxscore-hint-icon" aria-hidden="true">▤</span>
+        <svg className="boxscore-hint-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+          <rect x="1" y="8.5" width="3.2" height="6.5" rx="0.6" fill="currentColor"></rect>
+          <rect x="6.4" y="4.5" width="3.2" height="10.5" rx="0.6" fill="currentColor"></rect>
+          <rect x="11.8" y="1" width="3.2" height="14" rx="0.6" fill="currentColor"></rect>
+        </svg>
       </button>
       {open && <BoxScoreModal week={week} awayAbbr={awayAbbr} homeAbbr={homeAbbr} onClose={() => setOpen(false)} />}
     </React.Fragment>

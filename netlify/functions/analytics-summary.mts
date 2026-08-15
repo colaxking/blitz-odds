@@ -69,6 +69,7 @@ type EventRecord = {
   player?: string;
   source?: string;
   location?: LocationInfo;
+  device?: string;
 };
 
 function jsonResponse(status: number, body: unknown) {
@@ -149,6 +150,12 @@ type LocationBucket = {
   uniqueVisitors: number;
 };
 
+type DeviceBucket = {
+  label: string;
+  pageviews: number;
+  uniqueVisitors: number;
+};
+
 function emptySummary(now: number, range: Range) {
   const { granularity, bucketCount } = resolveRange(range, now, 1);
   const points =
@@ -171,6 +178,7 @@ function emptySummary(now: number, range: Range) {
     viewsByCountry: [] as LocationBucket[],
     viewsByCity: [] as LocationBucket[],
     topLocation: null as string | null,
+    viewsByDevice: [] as DeviceBucket[],
     lastUpdated: new Date(now).toISOString(),
   };
 }
@@ -372,6 +380,22 @@ export default async (req: Request, _context: Context) => {
     const viewsByCity = toSortedBuckets(cityAgg);
     const topLocation = viewsByCity.length > 0 ? viewsByCity[0].label : null;
 
+    // --- viewsByDevice: mobile/tablet/desktop split, from pageview events
+    // that carried a `device` (client-side UA sniff - see js/analytics.js).
+    // Same "unique = distinct visitorIds" convention as country/city above,
+    // scoped to pageviews so it reflects sessions, not every click event.
+    const deviceAgg = new Map<string, { pageviews: number; visitors: Set<string> }>();
+    for (const pv of pageviews) {
+      const key = pv.device || "unknown";
+      const entry = deviceAgg.get(key) || { pageviews: 0, visitors: new Set<string>() };
+      entry.pageviews += 1;
+      if (pv.visitorId) entry.visitors.add(pv.visitorId);
+      deviceAgg.set(key, entry);
+    }
+    const viewsByDevice: DeviceBucket[] = Array.from(deviceAgg.entries())
+      .map(([label, v]) => ({ label, pageviews: v.pageviews, uniqueVisitors: v.visitors.size }))
+      .sort((a, b) => b.uniqueVisitors - a.uniqueVisitors || b.pageviews - a.pageviews);
+
     return jsonResponse(200, {
       range,
       totalPageviews,
@@ -386,6 +410,7 @@ export default async (req: Request, _context: Context) => {
       viewsByCountry,
       viewsByCity,
       topLocation,
+      viewsByDevice,
       lastUpdated: new Date(now).toISOString(),
     });
   } catch (err) {

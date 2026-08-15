@@ -66,6 +66,27 @@
 
     var visitorId = getVisitorId();
 
+    // Coarse device bucketing from the UA string - "mobile" / "tablet" /
+    // "desktop". Order matters: iPad's UA doesn't contain "Mobile", and
+    // Android tablets omit "Mobile" too, so both are checked before the
+    // general mobile check below. Best-effort only; never blocks tracking.
+    function detectDeviceType() {
+      try {
+        var ua = (navigator && navigator.userAgent) || "";
+        var isIpadOS13Plus =
+          /Macintosh/.test(ua) && typeof document !== "undefined" && "ontouchend" in document;
+        if (/iPad/.test(ua) || isIpadOS13Plus) return "tablet";
+        if (/Android/.test(ua) && !/Mobile/.test(ua)) return "tablet";
+        if (/Tablet|Kindle|Silk|PlayBook/.test(ua)) return "tablet";
+        if (/Mobi|iPhone|iPod|Android/.test(ua)) return "mobile";
+        return "desktop";
+      } catch (e) {
+        return "unknown";
+      }
+    }
+
+    var deviceType = detectDeviceType();
+
     function getCurrentWeekLabel() {
       try {
         // The custom week dropdown ("WeekNav") renders its current selection
@@ -84,6 +105,7 @@
 
     function sendEvent(payload) {
       try {
+        payload.device = deviceType;
         var body = JSON.stringify(payload);
         if (window.fetch) {
           fetch(ENDPOINT, {

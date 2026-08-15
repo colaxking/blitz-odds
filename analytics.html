@@ -200,6 +200,10 @@
         <tbody></tbody>
       </table>
     </div>
+    <div class="card">
+      <h2>Devices</h2>
+      <div class="bar-list" id="deviceList"></div>
+    </div>
   </div>
 </div>
 
@@ -301,6 +305,23 @@
       .join("");
   }
 
+  // viewsByDevice arrives pre-sorted (desc by uniqueVisitors) as
+  // [{label:"mobile", uniqueVisitors, pageviews}, ...]. renderBarList wants
+  // a plain {label: count} object, insertion-ordered - so this reshapes
+  // without re-sorting, then drops "unknown" and title-cases for display.
+  function deviceBarData(list) {
+    var raw = {};
+    (list || []).forEach(function (d) {
+      raw[d.label] = d.uniqueVisitors;
+    });
+    var filtered = omitUnknown(raw);
+    var out = {};
+    Object.keys(filtered).forEach(function (k) {
+      out[k.charAt(0).toUpperCase() + k.slice(1)] = filtered[k];
+    });
+    return out;
+  }
+
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -396,6 +417,7 @@
     renderBarList("depthSideList", data.depthChartSideViews, "No depth chart activity yet");
     renderBarList("topPlayersList", data.topViewedPlayers, "No player lookups yet");
     renderCityTable(data.viewsByCity);
+    renderBarList("deviceList", deviceBarData(data.viewsByDevice), "No device data yet");
   }
 
   // Every widget on the page is scoped to `currentRange` server-side, so

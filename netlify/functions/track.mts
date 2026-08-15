@@ -27,6 +27,12 @@ const VALID_TYPES = new Set([
   "player_view",
 ]);
 
+// Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
+// Anything else (missing, malformed, or a detection failure on the client,
+// which sends "unknown") is simply omitted from the record rather than
+// stored - same convention as location below.
+const VALID_DEVICES = new Set(["mobile", "tablet", "desktop"]);
+
 // Best-effort extraction of Netlify's built-in geolocation (derived from the
 // edge node that served the request, via the `x-nf-geo` header). This is
 // approximate (city-level at best) and never involves storing a raw IP.
@@ -69,7 +75,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -118,6 +124,10 @@ export default async (req: Request, context: Context) => {
 
     if (week !== undefined && week !== null && week !== "") {
       record.week = String(week).slice(0, 32);
+    }
+
+    if (typeof device === "string" && VALID_DEVICES.has(device)) {
+      record.device = device;
     }
 
     const location = extractLocation(context);

@@ -786,12 +786,20 @@
   .team-view-header .rec-line { color: var(--text-dim); font-size: 0.85rem; }
 
   /* Running tally of prediction/spread accuracy, shown once at least one
-     game has finished - not before, since 0/0 isn't useful information. */
+     game has finished - not before, since 0/0 isn't useful information.
+     Title (optional - the week view uses it to name the period, the team
+     page omits it since the page header already gives that context) stacks
+     above the stats row so a long period name (e.g. "Hall of Fame Game")
+     never has to share a row with the numbers. */
   .accuracy-summary {
-    display: flex; flex-wrap: wrap; gap: 12px; background: var(--card-bg); border: 1px solid var(--card-border);
+    display: flex; flex-direction: column; gap: 10px; background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 14px; padding: 14px 18px; margin-bottom: 18px;
   }
-  .accuracy-stat { display: flex; align-items: center; gap: 10px; flex: 1 1 220px; min-width: 0; }
+  .accuracy-summary-title {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); font-weight: 700;
+  }
+  .accuracy-summary-stats { display: flex; flex-wrap: wrap; gap: 10px 20px; }
+  .accuracy-stat { display: flex; align-items: center; gap: 10px; flex: 1 1 200px; min-width: 0; }
   .accuracy-stat-label {
     font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim);
     font-weight: 700; flex-shrink: 0;
@@ -799,6 +807,11 @@
   .accuracy-stat-value { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.85rem; font-weight: 700; }
   .accuracy-count.correct { color: var(--win); }
   .accuracy-count.incorrect { color: var(--text-dim); font-weight: 500; }
+  /* Below ~360px even "Predictions"/"Spreads" can get tight next to the
+     numbers - stack label above value rather than let them crowd together. */
+  @media (max-width: 380px) {
+    .accuracy-stat { flex-direction: column; align-items: flex-start; gap: 2px; }
+  }
 
   /* The Result column used to cram score + clock + down/distance into one
      nowrap span, with the play-by-play text right after it - long enough
@@ -7808,23 +7821,26 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
       )}
       {weekAccuracy.finished > 0 && (
         <div className="accuracy-summary">
-          <div className="accuracy-stat">
-            <span className="accuracy-stat-label">{getPeriodLabel(week)} Predictions</span>
-            <span className="accuracy-stat-value">
-              <span className="accuracy-count correct">{weekAccuracy.predCorrect} correct</span>
-              <span className="accuracy-count incorrect">{weekAccuracy.predIncorrect} incorrect</span>
-            </span>
-          </div>
-          <div className="accuracy-stat">
-            <span className="accuracy-stat-label">{getPeriodLabel(week)} Spreads</span>
-            {(weekAccuracy.spreadCorrect + weekAccuracy.spreadIncorrect) > 0 ? (
+          <div className="accuracy-summary-title">{getPeriodLabel(week)} Accuracy</div>
+          <div className="accuracy-summary-stats">
+            <div className="accuracy-stat">
+              <span className="accuracy-stat-label">Predictions</span>
               <span className="accuracy-stat-value">
-                <span className="accuracy-count correct">{weekAccuracy.spreadCorrect} correct</span>
-                <span className="accuracy-count incorrect">{weekAccuracy.spreadIncorrect} incorrect</span>
+                <span className="accuracy-count correct">{weekAccuracy.predCorrect} correct</span>
+                <span className="accuracy-count incorrect">{weekAccuracy.predIncorrect} incorrect</span>
               </span>
-            ) : (
-              <span className="accuracy-stat-value hw-tag" style={{ marginLeft: 0 }}>No odds data for finished games</span>
-            )}
+            </div>
+            <div className="accuracy-stat">
+              <span className="accuracy-stat-label">Spreads</span>
+              {(weekAccuracy.spreadCorrect + weekAccuracy.spreadIncorrect) > 0 ? (
+                <span className="accuracy-stat-value">
+                  <span className="accuracy-count correct">{weekAccuracy.spreadCorrect} correct</span>
+                  <span className="accuracy-count incorrect">{weekAccuracy.spreadIncorrect} incorrect</span>
+                </span>
+              ) : (
+                <span className="accuracy-stat-value hw-tag" style={{ marginLeft: 0 }}>No odds data for finished games</span>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -9229,23 +9245,25 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
 
       {finishedRows.length > 0 && (
         <div className="accuracy-summary">
-          <div className="accuracy-stat">
-            <span className="accuracy-stat-label">Predictions</span>
-            <span className="accuracy-stat-value">
-              <span className="accuracy-count correct">{predCorrectCount} correct</span>
-              <span className="accuracy-count incorrect">{predIncorrectCount} incorrect</span>
-            </span>
-          </div>
-          <div className="accuracy-stat">
-            <span className="accuracy-stat-label">Spreads</span>
-            {spreadCoverages.length > 0 ? (
+          <div className="accuracy-summary-stats">
+            <div className="accuracy-stat">
+              <span className="accuracy-stat-label">Predictions</span>
               <span className="accuracy-stat-value">
-                <span className="accuracy-count correct">{spreadCorrectCount} correct</span>
-                <span className="accuracy-count incorrect">{spreadIncorrectCount} incorrect</span>
+                <span className="accuracy-count correct">{predCorrectCount} correct</span>
+                <span className="accuracy-count incorrect">{predIncorrectCount} incorrect</span>
               </span>
-            ) : (
-              <span className="accuracy-stat-value hw-tag" style={{ marginLeft: 0 }}>No odds data for finished games</span>
-            )}
+            </div>
+            <div className="accuracy-stat">
+              <span className="accuracy-stat-label">Spreads</span>
+              {spreadCoverages.length > 0 ? (
+                <span className="accuracy-stat-value">
+                  <span className="accuracy-count correct">{spreadCorrectCount} correct</span>
+                  <span className="accuracy-count incorrect">{spreadIncorrectCount} incorrect</span>
+                </span>
+              ) : (
+                <span className="accuracy-stat-value hw-tag" style={{ marginLeft: 0 }}>No odds data for finished games</span>
+              )}
+            </div>
           </div>
         </div>
       )}

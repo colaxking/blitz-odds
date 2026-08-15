@@ -754,12 +754,21 @@
   .boxscore-stats-table td:first-child, .boxscore-stats-table td:last-child { text-align: center; font-weight: 700; width: 30%; }
   .boxscore-stat-label { text-align: center; color: var(--text-dim); font-size: 0.76rem; }
   /* Full per-player stat lines (all athletes, not just the top performer),
-     grouped by team then by category (Passing/Rushing/Receiving/Fumbles).
-     Fumbles' LOST column is what actually surfaces turnovers per player,
-     alongside the INT column already in the Passing table. */
-  .boxscore-player-team { margin-bottom: 14px; }
-  .boxscore-player-team:last-child { margin-bottom: 0; }
-  .boxscore-player-team-abbr { font-weight: 800; font-size: 0.8rem; margin-bottom: 6px; }
+     one team visible at a time via tabs (Passing/Rushing/Receiving/Fumbles
+     stacked per team was a lot of vertical scroll for a modal). Fumbles'
+     LOST column is what actually surfaces turnovers per player, alongside
+     the INT column already in the Passing table. */
+  .boxscore-team-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .boxscore-team-tab-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 7px 10px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .boxscore-team-tab-btn:hover { color: var(--text); }
+  .boxscore-team-tab-btn.active {
+    color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-rgb),0.1);
+  }
   .boxscore-player-category { margin-bottom: 10px; }
   .boxscore-player-category:last-child { margin-bottom: 0; }
   .boxscore-player-category-title {
@@ -6764,6 +6773,18 @@ const BOXSCORE_PLAYER_CATEGORIES = [
   { key: "fumbles", label: "Fumbles", columns: ["FUM", "LOST"] },
 ];
 
+/** "Haynes King" -> "H. King", "Anthony Tyus III" -> "A. Tyus III". The
+ *  player-stat tables are narrow enough that full first names routinely got
+ *  clipped by the ellipsis; a first initial reliably leaves room for the
+ *  full last name (suffixes included) to display, and the full name is
+ *  still available as a hover/long-press tooltip via `title`. */
+function abbreviatePlayerName(fullName) {
+  if (!fullName) return fullName;
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) return fullName;
+  return `${parts[0].charAt(0)}. ${parts.slice(1).join(" ")}`;
+}
+
 function buildTeamPlayerStats(teamBox) {
   if (!teamBox) return null;
   const categories = BOXSCORE_PLAYER_CATEGORIES.map(catDef => {
@@ -6777,7 +6798,8 @@ function buildTeamPlayerStats(teamBox) {
       label: catDef.label,
       columns: cols.map(c => c.label),
       rows: stat.athletes.map(a => ({
-        name: a.athlete.displayName,
+        name: abbreviatePlayerName(a.athlete.displayName),
+        fullName: a.athlete.displayName,
         values: cols.map(c => (a.stats[c.idx] != null ? a.stats[c.idx] : "—")),
       })),
     };
@@ -6814,6 +6836,9 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children }) {
 function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
   const overlayRef = useRef(null);
   const [state, setState] = useState({ status: "loading", data: null, error: null });
+  // Which team's Player Stats are showing - null until data loads, at which
+  // point it defaults to the away team (see currentTeamAbbr below).
+  const [activeBoxTeam, setActiveBoxTeam] = useState(null);
 
   useEffect(() => {
     function onKeyDown(e) { if (e.key === "Escape") onClose(); }
@@ -6944,37 +6969,58 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
           </div>
         )}
 
-        {playerStats && playerStats.length > 0 && (
-          <div className="boxscore-players-section">
-            <div className="player-modal-section-title">Player Stats</div>
-            {playerStats.map(team => (
-              <div key={team.abbr} className="boxscore-player-team">
-                <div className="boxscore-player-team-abbr">{team.abbr}</div>
-                {team.categories.map(cat => (
-                  <div key={cat.label} className="boxscore-player-category">
-                    <div className="boxscore-player-category-title">{cat.label}</div>
-                    <table className="boxscore-player-table">
-                      <thead>
-                        <tr>
-                          <th></th>
-                          {cat.columns.map(col => <th key={col}>{col}</th>)}
+        {playerStats && playerStats.length > 0 && (() => {
+          // Default to the away team until the viewer picks a tab; fall back
+          // to whichever team actually has stats if activeBoxTeam somehow
+          // doesn't match either (shouldn't happen, but cheap to guard).
+          const currentAbbr = (activeBoxTeam && playerStats.some(t => t.abbr === activeBoxTeam))
+            ? activeBoxTeam
+            : playerStats[0].abbr;
+          const currentTeam = playerStats.find(t => t.abbr === currentAbbr);
+          return (
+            <div className="boxscore-players-section">
+              <div className="player-modal-section-title">Player Stats</div>
+              {playerStats.length > 1 && (
+                <div className="boxscore-team-tabs" role="tablist">
+                  {playerStats.map(team => (
+                    <button
+                      key={team.abbr}
+                      type="button"
+                      className={"boxscore-team-tab-btn" + (team.abbr === currentAbbr ? " active" : "")}
+                      onClick={() => setActiveBoxTeam(team.abbr)}
+                      role="tab"
+                      aria-selected={team.abbr === currentAbbr}
+                    >
+                      <TeamLogo teamId={team.abbr} size={18} />
+                      <span>{team.abbr}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {currentTeam && currentTeam.categories.map(cat => (
+                <div key={cat.label} className="boxscore-player-category">
+                  <div className="boxscore-player-category-title">{cat.label}</div>
+                  <table className="boxscore-player-table">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        {cat.columns.map(col => <th key={col}>{col}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cat.rows.map((row, i) => (
+                        <tr key={i}>
+                          <td title={row.fullName}>{row.name}</td>
+                          {row.values.map((v, j) => <td key={j}>{v}</td>)}
                         </tr>
-                      </thead>
-                      <tbody>
-                        {cat.rows.map((row, i) => (
-                          <tr key={i}>
-                            <td>{row.name}</td>
-                            {row.values.map((v, j) => <td key={j}>{v}</td>)}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </div>
     </div>,
     document.body

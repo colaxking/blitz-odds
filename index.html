@@ -399,16 +399,19 @@
   }
   /* Generic "something just changed" flash, applied (via LiveScoreFlash)
      only on the poll where a live score actually moves - not on every
-     30s poll regardless of change. Ends by fading back to whatever
-     background the element normally has (transparent for a plain score,
-     the live-score-inline pill's tint for the top-of-card score), so it
-     reads as a brief highlight rather than a hard flash-then-snap. */
+     30s poll regardless of change. Uses the win-green accent rather than
+     the live-red already used by the LIVE badge, so a scoring change
+     reads as its own distinct signal instead of blending into the rest
+     of the live styling. Ends by fading back to whatever background the
+     element normally has (transparent for a plain score, the
+     live-score-inline pill's tint for the top-of-card score), so it
+     reads as a held highlight rather than a hard flash-then-snap. */
   @keyframes score-flash {
-    0% { background-color: rgba(var(--live-rgb), 0.7); transform: scale(1.14); }
-    55% { background-color: rgba(var(--live-rgb), 0.7); transform: scale(1.14); }
-    100% { background-color: rgba(var(--live-rgb), 0); transform: scale(1); }
+    0% { background-color: rgba(var(--win-rgb), 0.75); transform: scale(1.14); }
+    70% { background-color: rgba(var(--win-rgb), 0.75); transform: scale(1.14); }
+    100% { background-color: rgba(var(--win-rgb), 0); transform: scale(1); }
   }
-  .score-flash { display: inline-flex; border-radius: 6px; animation: score-flash 1.4s ease-out; }
+  .score-flash { display: inline-flex; border-radius: 6px; animation: score-flash 3.2s ease-out; }
   .matchup-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .team-block { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 10px; position: relative; }
   .team-block.winner { background: rgba(var(--win-rgb), 0.12); border: 1px solid rgba(var(--win-rgb), 0.4); }
@@ -6597,12 +6600,47 @@ function hasLiveGame(map) {
   return Object.values(map).some((g) => g.state === "in");
 }
 
+/**
+ * ESPN's `situation.possession` briefly drops out of the payload around
+ * dead-ball moments - timeouts, the gap right after a score before the
+ * next kickoff/snap is spotted, two-minute warning, etc. - even though a
+ * team clearly still "has the ball" from a broadcast-viewer's point of
+ * view. Rather than let the football icon flicker away every time that
+ * happens, remember the last known possession per game (keyed the same
+ * way as the live map) and keep showing it until either a new team is
+ * reported with the ball or the game itself is no longer in progress.
+ * Mutates and reuses the same store object across polls so it persists
+ * for the life of the hook without needing extra state.
+ */
+function applyStickyPossession(map, lastPossessionStore) {
+  const result = {};
+  Object.keys(map).forEach((key) => {
+    const game = map[key];
+    let possession = game.possession;
+    if (game.state === "in") {
+      if (possession) {
+        lastPossessionStore[key] = possession;
+      } else if (lastPossessionStore[key]) {
+        possession = lastPossessionStore[key];
+      }
+    } else {
+      // Pregame or final - nothing to hold onto (or hold over from a
+      // previous week's game reusing the same matchup key).
+      delete lastPossessionStore[key];
+    }
+    result[key] = possession === game.possession ? game : { ...game, possession };
+  });
+  return result;
+}
+
 function useLiveScores(week) {
   const [liveMap, setLiveMap] = useState({});
+  const lastPossessionRef = useRef({});
   useEffect(() => {
     let cancelled = false;
     let timer = null;
     let backoff = BACKOFF_BASE_MS;
+    lastPossessionRef.current = {}; // fresh week, fresh memory
 
     function schedule(ms) {
       if (cancelled) return;
@@ -6619,7 +6657,7 @@ function useLiveScores(week) {
       try {
         const map = await fetchLiveScoresCached(week);
         if (cancelled) return;
-        setLiveMap(map);
+        setLiveMap(applyStickyPossession(map, lastPossessionRef.current));
         backoff = BACKOFF_BASE_MS; // reset after a success
         schedule(hasLiveGame(map) ? LIVE_POLL_MS : IDLE_POLL_MS);
       } catch (e) {
@@ -7006,8 +7044,11 @@ function resolveScore(live, historical) {
  * polls doesn't cause a false flash, and a genuinely stale score (points
  * unchanged for several polls) stays quiet. The very first render for a
  * given game never flashes - there's nothing to compare against yet - so
- * opening a page mid-game doesn't flash immediately.
+ * opening a page mid-game doesn't flash immediately. Held for 3s (rather
+ * than a quick blink) so it's easy to catch even if you glance over a
+ * beat after the poll lands.
  */
+const SCORE_FLASH_MS = 3000;
 function LiveScoreFlash({ awayScore, homeScore, className, children }) {
   const prevKeyRef = useRef(null);
   const [justScored, setJustScored] = useState(false);
@@ -7019,7 +7060,7 @@ function LiveScoreFlash({ awayScore, homeScore, className, children }) {
     prevKeyRef.current = key;
     if (prev !== null && prev !== key) {
       setJustScored(true);
-      const timer = setTimeout(() => setJustScored(false), 1400);
+      const timer = setTimeout(() => setJustScored(false), SCORE_FLASH_MS);
       return () => clearTimeout(timer);
     }
   }, [awayScore, homeScore]);

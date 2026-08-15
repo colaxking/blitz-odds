@@ -785,6 +785,21 @@
   .team-view-header h2 { margin: 0 0 4px; font-size: 1.3rem; }
   .team-view-header .rec-line { color: var(--text-dim); font-size: 0.85rem; }
 
+  /* Running tally of prediction/spread accuracy, shown once at least one
+     game has finished - not before, since 0/0 isn't useful information. */
+  .accuracy-summary {
+    display: flex; flex-wrap: wrap; gap: 12px; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 14px 18px; margin-bottom: 18px;
+  }
+  .accuracy-stat { display: flex; align-items: center; gap: 10px; flex: 1 1 220px; min-width: 0; }
+  .accuracy-stat-label {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim);
+    font-weight: 700; flex-shrink: 0;
+  }
+  .accuracy-stat-value { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.85rem; font-weight: 700; }
+  .accuracy-count.correct { color: var(--win); }
+  .accuracy-count.incorrect { color: var(--text-dim); font-weight: 500; }
+
   /* The Result column used to cram score + clock + down/distance into one
      nowrap span, with the play-by-play text right after it - long enough
      combined that it could push the table wider than its container and
@@ -6548,6 +6563,24 @@ function formatSpread(spreadForFavorite) {
   return spreadForFavorite > 0 ? `+${spreadForFavorite}` : `${spreadForFavorite}`;
 }
 
+/**
+ * Did `teamAbbr` cover the spread in a finished schedule row? `r.odds.spread`
+ * is stored relative to `r.odds.favorite` (negative). Flip its sign when
+ * teamAbbr is the underdog, then compare the adjusted score to the
+ * opponent's. Returns true (covered), false (did not cover), or null
+ * (push, or the row can't be evaluated - no odds / not final / no scores).
+ */
+function getSpreadCoverage(r, teamAbbr) {
+  if (!r.odds || !r.actual || r.actual.isLive) return null;
+  if (r.actual.homeScore == null || r.actual.awayScore == null) return null;
+  const teamScore = r.isHome ? r.actual.homeScore : r.actual.awayScore;
+  const oppScore = r.isHome ? r.actual.awayScore : r.actual.homeScore;
+  const teamSpread = r.odds.favorite === teamAbbr ? r.odds.spread : -r.odds.spread;
+  const adjustedTeamScore = teamScore + teamSpread;
+  if (adjustedTeamScore === oppScore) return null;
+  return adjustedTeamScore > oppScore;
+}
+
 // ---- History (frozen weekly snapshots) -------------------------------------
 
 function getHistorySnapshot(week) {
@@ -9026,6 +9059,8 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
         teamWon: actualWinnerId === teamId,
         correct: (actualWinnerId === teamId) === teamWins,
         scoreLine: `${game.away} ${scoreInfo.awayScore} - ${scoreInfo.homeScore} ${game.home}`,
+        awayScore: scoreInfo.awayScore,
+        homeScore: scoreInfo.homeScore,
         awayAbbr: game.away,
         homeAbbr: game.home,
       };
@@ -9086,6 +9121,18 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
   const favCount = rows.filter(r => !r.bye && r.teamWins).length;
   const totalGames = rows.filter(r => !r.bye).length;
 
+  // Prediction/spread accuracy tally - runs over every finished game
+  // (preseason included, independent of the preseason-collapse toggle above)
+  // so the summary reflects results as soon as a week wraps, not just once
+  // the regular season starts.
+  const allRows = [...preseasonRows, ...rows];
+  const finishedRows = allRows.filter(r => !r.bye && r.actual && !r.actual.isLive);
+  const predCorrectCount = finishedRows.filter(r => r.actual.correct).length;
+  const predIncorrectCount = finishedRows.length - predCorrectCount;
+  const spreadCoverages = finishedRows.map(r => getSpreadCoverage(r, teamId)).filter(v => v !== null);
+  const spreadCorrectCount = spreadCoverages.filter(Boolean).length;
+  const spreadIncorrectCount = spreadCoverages.length - spreadCorrectCount;
+
   return (
     <div>
       <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
@@ -9112,6 +9159,29 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
           <div className="rec-line" style={{ marginTop: 6 }}>Model-predicted wins this season: {favCount} / {totalGames}</div>
         </div>
       </div>
+
+      {finishedRows.length > 0 && (
+        <div className="accuracy-summary">
+          <div className="accuracy-stat">
+            <span className="accuracy-stat-label">Predictions</span>
+            <span className="accuracy-stat-value">
+              <span className="accuracy-count correct">{predCorrectCount} correct</span>
+              <span className="accuracy-count incorrect">{predIncorrectCount} incorrect</span>
+            </span>
+          </div>
+          <div className="accuracy-stat">
+            <span className="accuracy-stat-label">Spreads</span>
+            {spreadCoverages.length > 0 ? (
+              <span className="accuracy-stat-value">
+                <span className="accuracy-count correct">{spreadCorrectCount} correct</span>
+                <span className="accuracy-count incorrect">{spreadIncorrectCount} incorrect</span>
+              </span>
+            ) : (
+              <span className="accuracy-stat-value hw-tag" style={{ marginLeft: 0 }}>No odds data for finished games</span>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="injury-report">
         <h3 className="injury-report-title">Injury Report — This Week</h3>

@@ -795,18 +795,19 @@
      on one row. overflow-x stays as a safety net for edge cases, not the
      primary way to see the Result column. */
   .team-schedule-table-wrap { overflow-x: auto; }
-  .result-cell { max-width: 220px; }
-  .result-cell .live-tag { white-space: nowrap; }
+  .result-cell { overflow-wrap: break-word; word-break: break-word; }
+  .result-cell .live-tag { flex-wrap: wrap; }
   .live-clock-line {
     display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
     margin-top: 3px; font-size: 0.72rem; color: var(--text-dim); font-weight: 600;
   }
-  .team-schedule-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .team-schedule-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.85rem; }
   .team-schedule-table th {
     text-align: left; color: var(--text-dim); font-weight: 600; font-size: 0.7rem; text-transform: uppercase;
     letter-spacing: 0.5px; padding: 10px; border-bottom: 1px solid var(--card-border); white-space: nowrap;
   }
-  .team-schedule-table td { padding: 12px 10px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
+  .team-schedule-table td { padding: 12px 10px; border-bottom: 1px solid var(--card-border); vertical-align: middle; overflow-wrap: break-word; }
+  .team-schedule-table td:first-child, .team-schedule-table th:first-child { white-space: nowrap; }
   .team-schedule-table tbody tr:hover td { background: rgba(var(--accent-rgb),0.04); }
   .team-schedule-table tr.bye-row td { color: var(--text-dim); font-style: italic; }
   .team-schedule-table tr.bye-row:hover td { background: transparent; }
@@ -848,8 +849,10 @@
     display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.74rem;
     background: var(--surface-2); border-radius: 8px; padding: 6px 10px;
   }
-  .opp-cell { display: flex; align-items: center; gap: 8px; }
-  .opp-cell img { width: 26px; height: 26px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; }
+  .opp-cell { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+  .opp-cell img { width: 26px; height: 26px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; flex-shrink: 0; }
+  .opp-cell > span:not(.international-tag) { padding-top: 3px; overflow-wrap: break-word; min-width: 0; }
+  .opp-cell .international-tag { flex: 0 0 100%; width: fit-content; margin-left: 34px; }
   .pred-win { color: var(--win); font-weight: 700; }
   .pred-lose { color: var(--text-dim); }
   .hw-tag { font-size: 0.68rem; color: var(--text-dim); margin-left: 6px; }
@@ -6700,7 +6703,8 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children }) {
         type="button"
         className={"score-link-btn" + (className ? " " + className : "")}
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpen(true); }}
-        title="View box score"
+        title="Click for boxscores"
+        aria-label="Click for boxscores"
       >
         {children}
         <svg className="boxscore-hint-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
@@ -9235,6 +9239,14 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
           ) : (
             <div className="team-schedule-table-wrap">
             <table className="team-schedule-table">
+              <colgroup>
+                <col style={{ width: "64px" }} />
+                <col style={{ width: "20%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "12%" }} />
+                <col />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Week</th>

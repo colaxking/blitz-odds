@@ -736,6 +736,12 @@
   .boxscore-modal-title { font-size: 1.05rem; font-weight: 800; text-align: center; }
   .boxscore-loading, .boxscore-error { color: var(--text-dim); font-size: 0.85rem; padding: 12px 0; text-align: center; }
   .boxscore-error { color: var(--pill-bad-text); }
+  /* Winning team, once the game is actually final (never mid-live) - a ring
+     around their header logo, a tinted/bolded row in the linescore table,
+     and a small check next to their abbreviation wherever it shows up. */
+  .boxscore-team-logo.is-winner { border-radius: 50%; box-shadow: 0 0 0 2px var(--win); }
+  .boxscore-winner-row td { font-weight: 800; background: rgba(var(--win-rgb),0.1); }
+  .boxscore-winner-check { color: var(--win); font-weight: 800; margin-left: 4px; }
   .boxscore-linescore-table {
     width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 16px;
   }
@@ -6865,6 +6871,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
   let awayFinal = null, homeFinal = null;
   let teamStats = null;
   let playerStats = null;
+  let winnerAbbr = null;
 
   if (state.status === "ready" && state.data) {
     const comp = state.data.header && state.data.header.competitions && state.data.header.competitions[0];
@@ -6877,6 +6884,13 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
       scoreLabel = `${awayAbbr} ${awayFinal} - ${homeFinal} ${homeAbbr}`;
       if (awayC.linescores && homeC.linescores && awayC.linescores.length) {
         linescores = { home: homeC.linescores, away: awayC.linescores };
+      }
+      // Only call a winner once the game has actually finished (not mid-live,
+      // where the leader isn't necessarily the eventual winner) and the
+      // score isn't tied.
+      const isCompleted = !!(comp.status && comp.status.type && comp.status.type.completed);
+      if (isCompleted && awayFinal != null && homeFinal != null && Number(awayFinal) !== Number(homeFinal)) {
+        winnerAbbr = Number(awayFinal) > Number(homeFinal) ? awayAbbr : homeAbbr;
       }
     }
 
@@ -6917,9 +6931,13 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
       <div className="boxscore-modal" role="dialog" aria-modal="true" aria-label={`${awayAbbr} at ${homeAbbr} box score`}>
         <button type="button" className="boxscore-modal-close" onClick={onClose} aria-label="Close">×</button>
         <div className="boxscore-modal-header">
-          <TeamLogo teamId={awayAbbr} size={32} />
+          <span className={"boxscore-team-logo" + (winnerAbbr === awayAbbr ? " is-winner" : "")}>
+            <TeamLogo teamId={awayAbbr} size={32} />
+          </span>
           <span className="boxscore-modal-title">{scoreLabel}</span>
-          <TeamLogo teamId={homeAbbr} size={32} />
+          <span className={"boxscore-team-logo" + (winnerAbbr === homeAbbr ? " is-winner" : "")}>
+            <TeamLogo teamId={homeAbbr} size={32} />
+          </span>
         </div>
 
         {state.status === "loading" && <div className="boxscore-loading">Loading box score…</div>}
@@ -6935,13 +6953,19 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>{awayAbbr}</td>
+              <tr className={winnerAbbr === awayAbbr ? "boxscore-winner-row" : undefined}>
+                <td>
+                  {awayAbbr}
+                  {winnerAbbr === awayAbbr && <span className="boxscore-winner-check" title="Won">✓</span>}
+                </td>
                 {linescores.away.map((q, i) => <td key={i}>{q.displayValue}</td>)}
                 <td className="boxscore-final-col">{awayFinal}</td>
               </tr>
-              <tr>
-                <td>{homeAbbr}</td>
+              <tr className={winnerAbbr === homeAbbr ? "boxscore-winner-row" : undefined}>
+                <td>
+                  {homeAbbr}
+                  {winnerAbbr === homeAbbr && <span className="boxscore-winner-check" title="Won">✓</span>}
+                </td>
                 {linescores.home.map((q, i) => <td key={i}>{q.displayValue}</td>)}
                 <td className="boxscore-final-col">{homeFinal}</td>
               </tr>
@@ -6993,6 +7017,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
                     >
                       <TeamLogo teamId={team.abbr} size={18} />
                       <span>{team.abbr}</span>
+                      {winnerAbbr === team.abbr && <span className="boxscore-winner-check" title="Won">✓</span>}
                     </button>
                   ))}
                 </div>

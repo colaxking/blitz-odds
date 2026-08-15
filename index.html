@@ -697,6 +697,17 @@
   .score-link-btn:hover, .score-link-btn:focus-visible {
     opacity: 0.82; outline: 2px solid rgba(var(--accent-rgb),0.45); outline-offset: 2px;
   }
+  /* Small always-visible glyph after every clickable score - the button's
+     own hover/focus affordance only shows once someone's already pointing
+     at it, which doesn't help on a touch screen. This sits there at rest
+     so a person scanning the card knows the score itself is tappable,
+     without needing a label wide enough to fit "Box score" next to a
+     compact live-score pill. */
+  .boxscore-hint-icon {
+    display: inline-flex; align-items: center; margin-left: 5px; font-size: 0.72em;
+    opacity: 0.55; line-height: 1; transform: translateY(-0.5px);
+  }
+  .score-link-btn:hover .boxscore-hint-icon, .score-link-btn:focus-visible .boxscore-hint-icon { opacity: 0.95; }
 
   .boxscore-modal-overlay {
     position: fixed; inset: 0; background: rgba(4,8,16,0.6); backdrop-filter: blur(2px);
@@ -6688,6 +6699,7 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children }) {
         title="View box score"
       >
         {children}
+        <span className="boxscore-hint-icon" aria-hidden="true">▤</span>
       </button>
       {open && <BoxScoreModal week={week} awayAbbr={awayAbbr} homeAbbr={homeAbbr} onClose={() => setOpen(false)} />}
     </React.Fragment>
@@ -9806,7 +9818,8 @@ function App() {
             "Sportsbook" picker in Settings (gear icon, top right) to set which book's line you want to see (saved
             on this device, not a real account login) — if that book doesn't have its own line for a game yet, the
             default line is shown instead and labeled accordingly. Click any team logo to see their full-season
-            schedule, and click the star to favorite a team.
+            schedule, and click the star to favorite a team. Click any live or final score to pull up that game's
+            box score — quarter-by-quarter scoring, team stats, and top performers.
           </p>
         </div>
       )}

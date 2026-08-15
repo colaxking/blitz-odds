@@ -739,7 +739,16 @@
   /* Winning team, once the game is actually final (never mid-live) - a ring
      around their header logo, a tinted/bolded row in the linescore table,
      and a small check next to their abbreviation wherever it shows up. */
-  .boxscore-team-logo.is-winner { border-radius: 50%; box-shadow: 0 0 0 2px var(--win); }
+  /* inline-flex + line-height:0 so the ring hugs the logo's actual circular
+     bounds instead of an inline box's taller, baseline-shifted line box
+     (which made the ring sit uneven/off-center around the image). A gap
+     matching the modal background sits between the logo and the ring so it
+     reads as a halo rather than a line touching the artwork's edge. */
+  .boxscore-team-logo {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%; line-height: 0;
+  }
+  .boxscore-team-logo.is-winner { box-shadow: 0 0 0 3px var(--card-bg), 0 0 0 5px var(--win); }
   .boxscore-winner-row td { font-weight: 800; background: rgba(var(--win-rgb),0.1); }
   .boxscore-winner-check { color: var(--win); font-weight: 800; margin-left: 4px; }
   .boxscore-linescore-table {

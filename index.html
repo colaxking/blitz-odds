@@ -745,7 +745,7 @@
   .boxscore-linescore-table th { color: var(--text-dim); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.3px; }
   .boxscore-linescore-table td:first-child, .boxscore-linescore-table th:first-child { text-align: left; font-weight: 700; }
   .boxscore-linescore-table .boxscore-final-col { font-weight: 800; }
-  .boxscore-stats-section, .boxscore-leaders-section { margin-bottom: 6px; }
+  .boxscore-stats-section, .boxscore-players-section { margin-bottom: 6px; }
   .boxscore-stats-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
   .boxscore-stats-table th { color: var(--text-dim); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.3px; padding: 4px 0 8px; }
   .boxscore-stats-table th:first-child, .boxscore-stats-table th:last-child { text-align: center; }
@@ -753,13 +753,27 @@
   .boxscore-stats-table tr:last-child td { border-bottom: none; }
   .boxscore-stats-table td:first-child, .boxscore-stats-table td:last-child { text-align: center; font-weight: 700; width: 30%; }
   .boxscore-stat-label { text-align: center; color: var(--text-dim); font-size: 0.76rem; }
-  .boxscore-leader-team { margin-bottom: 10px; }
-  .boxscore-leader-team:last-child { margin-bottom: 0; }
-  .boxscore-leader-team-abbr { font-weight: 800; font-size: 0.8rem; margin-bottom: 4px; }
-  .boxscore-leader-row { display: flex; align-items: baseline; gap: 6px; font-size: 0.8rem; padding: 2px 0; }
-  .boxscore-leader-cat { flex: 0 0 78px; color: var(--text-dim); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.3px; }
-  .boxscore-leader-name { font-weight: 600; }
-  .boxscore-leader-val { color: var(--text-dim); font-size: 0.76rem; margin-left: auto; text-align: right; }
+  /* Full per-player stat lines (all athletes, not just the top performer),
+     grouped by team then by category (Passing/Rushing/Receiving/Fumbles).
+     Fumbles' LOST column is what actually surfaces turnovers per player,
+     alongside the INT column already in the Passing table. */
+  .boxscore-player-team { margin-bottom: 14px; }
+  .boxscore-player-team:last-child { margin-bottom: 0; }
+  .boxscore-player-team-abbr { font-weight: 800; font-size: 0.8rem; margin-bottom: 6px; }
+  .boxscore-player-category { margin-bottom: 10px; }
+  .boxscore-player-category:last-child { margin-bottom: 0; }
+  .boxscore-player-category-title {
+    font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-dim);
+    font-weight: 700; margin: 0 0 3px;
+  }
+  .boxscore-player-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; table-layout: fixed; }
+  .boxscore-player-table th, .boxscore-player-table td { padding: 3px 4px; text-align: right; }
+  .boxscore-player-table th:first-child, .boxscore-player-table td:first-child { text-align: left; }
+  .boxscore-player-table th {
+    color: var(--text-dim); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.2px; font-weight: 700;
+  }
+  .boxscore-player-table td:first-child { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .boxscore-player-table tr:not(:last-child) td { border-bottom: 1px solid var(--card-border); }
   @media (max-width: 640px) {
     .boxscore-modal-overlay { align-items: flex-end; padding: 0; }
     .boxscore-modal {
@@ -6737,11 +6751,39 @@ const BOXSCORE_KEY_STATS = [
   { key: "possessionTime", label: "Possession" },
 ];
 
-const BOXSCORE_LEADER_CATEGORIES = [
-  { key: "passingYards", label: "Passing" },
-  { key: "rushingYards", label: "Rushing" },
-  { key: "receivingYards", label: "Receiving" },
+/** Full per-player stat lines, not just a single top performer. Column
+ *  labels are matched against ESPN's own `stat.labels` (which line up
+ *  positionally with each athlete's `stats` array) rather than the
+ *  differently-shaped `stat.keys` field, and only the columns worth
+ *  surfacing in a compact modal are kept - Fumbles' LOST column plus
+ *  Passing's INT column are what actually show turnovers per player. */
+const BOXSCORE_PLAYER_CATEGORIES = [
+  { key: "passing", label: "Passing", columns: ["C/ATT", "YDS", "TD", "INT"] },
+  { key: "rushing", label: "Rushing", columns: ["CAR", "YDS", "TD", "LONG"] },
+  { key: "receiving", label: "Receiving", columns: ["REC", "YDS", "TD", "LONG"] },
+  { key: "fumbles", label: "Fumbles", columns: ["FUM", "LOST"] },
 ];
+
+function buildTeamPlayerStats(teamBox) {
+  if (!teamBox) return null;
+  const categories = BOXSCORE_PLAYER_CATEGORIES.map(catDef => {
+    const stat = teamBox.statistics.find(s => s.name === catDef.key);
+    if (!stat || !stat.athletes || !stat.athletes.length) return null;
+    const cols = catDef.columns
+      .map(label => ({ label, idx: stat.labels.indexOf(label) }))
+      .filter(c => c.idx !== -1);
+    if (!cols.length) return null;
+    return {
+      label: catDef.label,
+      columns: cols.map(c => c.label),
+      rows: stat.athletes.map(a => ({
+        name: a.athlete.displayName,
+        values: cols.map(c => (a.stats[c.idx] != null ? a.stats[c.idx] : "—")),
+      })),
+    };
+  }).filter(Boolean);
+  return categories.length ? categories : null;
+}
 
 /** Score, wrapped so clicking it opens the box score modal for that game.
  *  Used for both the live and final states, on GameCard and on the team
@@ -6797,7 +6839,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
   let linescores = null;
   let awayFinal = null, homeFinal = null;
   let teamStats = null;
-  let leaders = null;
+  let playerStats = null;
 
   if (state.status === "ready" && state.data) {
     const comp = state.data.header && state.data.header.competitions && state.data.header.competitions[0];
@@ -6829,17 +6871,15 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
       }));
     }
 
-    const rawLeaders = state.data.leaders || [];
-    if (rawLeaders.length) {
-      leaders = rawLeaders.map(teamLeaders => {
-        const abbr = (teamLeaders.team && (ESPN_ABBR_FIX[teamLeaders.team.abbreviation] || teamLeaders.team.abbreviation)) || "";
-        const cats = BOXSCORE_LEADER_CATEGORIES.map(cat => {
-          const found = (teamLeaders.leaders || []).find(l => l.name === cat.key);
-          const top = found && found.leaders && found.leaders[0];
-          return top ? { label: cat.label, name: top.athlete.displayName, value: top.displayValue } : null;
-        }).filter(Boolean);
-        return { abbr, cats };
-      }).filter(t => t.cats.length);
+    const boxPlayers = (state.data.boxscore && state.data.boxscore.players) || [];
+    const findPlayerTeam = abbr => boxPlayers.find(t => (ESPN_ABBR_FIX[t.team.abbreviation] || t.team.abbreviation) === abbr);
+    const awayPlayerCats = buildTeamPlayerStats(findPlayerTeam(awayAbbr));
+    const homePlayerCats = buildTeamPlayerStats(findPlayerTeam(homeAbbr));
+    if (awayPlayerCats || homePlayerCats) {
+      playerStats = [
+        { abbr: awayAbbr, categories: awayPlayerCats },
+        { abbr: homeAbbr, categories: homePlayerCats },
+      ].filter(t => t.categories);
     }
   }
 
@@ -6904,17 +6944,31 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
           </div>
         )}
 
-        {leaders && leaders.length > 0 && (
-          <div className="boxscore-leaders-section">
-            <div className="player-modal-section-title">Top Performers</div>
-            {leaders.map(team => (
-              <div key={team.abbr} className="boxscore-leader-team">
-                <div className="boxscore-leader-team-abbr">{team.abbr}</div>
-                {team.cats.map(cat => (
-                  <div key={cat.label} className="boxscore-leader-row">
-                    <span className="boxscore-leader-cat">{cat.label}</span>
-                    <span className="boxscore-leader-name">{cat.name}</span>
-                    <span className="boxscore-leader-val">{cat.value}</span>
+        {playerStats && playerStats.length > 0 && (
+          <div className="boxscore-players-section">
+            <div className="player-modal-section-title">Player Stats</div>
+            {playerStats.map(team => (
+              <div key={team.abbr} className="boxscore-player-team">
+                <div className="boxscore-player-team-abbr">{team.abbr}</div>
+                {team.categories.map(cat => (
+                  <div key={cat.label} className="boxscore-player-category">
+                    <div className="boxscore-player-category-title">{cat.label}</div>
+                    <table className="boxscore-player-table">
+                      <thead>
+                        <tr>
+                          <th></th>
+                          {cat.columns.map(col => <th key={col}>{col}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cat.rows.map((row, i) => (
+                          <tr key={i}>
+                            <td>{row.name}</td>
+                            {row.values.map((v, j) => <td key={j}>{v}</td>)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 ))}
               </div>
@@ -9894,10 +9948,15 @@ function App() {
   function selectTeam(teamId) {
     setSelectedTeamId(teamId);
     setView("team");
+    // Switching views doesn't remount the page - without this, clicking a
+    // team while scrolled partway down a long week/schedule list lands on
+    // the new view still scrolled to that same position instead of its top.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
   function backToWeek() {
     setView("week");
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
   const periods = getSelectablePeriods();
@@ -9914,7 +9973,7 @@ function App() {
         >
           <GearIcon size={19} />
         </button>
-        <div className="brand-row" onClick={() => setView("week")}>
+        <div className="brand-row" onClick={backToWeek}>
           <BrandLogo size={64} />
           <h1>Blitz <span className="brand-odds">Odds</span></h1>
         </div>

@@ -6755,6 +6755,7 @@ async function fetchBoxScore(week, awayAbbr, homeAbbr) {
     if (!scoreboardRes.ok) throw new Error("ESPN scoreboard request failed: " + scoreboardRes.status);
     const scoreboardData = await scoreboardRes.json();
     let eventId = null;
+    let scoreboardComp = null;
     for (const event of scoreboardData.events || []) {
       const comp = event.competitions && event.competitions[0];
       if (!comp) continue;
@@ -6763,13 +6764,21 @@ async function fetchBoxScore(week, awayAbbr, homeAbbr) {
       if (!home || !away) continue;
       const hAbbr = ESPN_ABBR_FIX[home.team.abbreviation] || home.team.abbreviation;
       const aAbbr = ESPN_ABBR_FIX[away.team.abbreviation] || away.team.abbreviation;
-      if (hAbbr === homeAbbr && aAbbr === awayAbbr) { eventId = event.id; break; }
+      if (hAbbr === homeAbbr && aAbbr === awayAbbr) { eventId = event.id; scoreboardComp = comp; break; }
     }
     if (!eventId) throw new Error("Couldn't find this game on ESPN's scoreboard.");
     const summaryUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${eventId}`;
     const summaryRes = await fetch(summaryUrl);
     if (!summaryRes.ok) throw new Error("ESPN box score request failed: " + summaryRes.status);
-    return summaryRes.json();
+    const summaryData = await summaryRes.json();
+    // The summary endpoint's header never includes `situation` (possession,
+    // down/distance, last play) - that data only exists on the scoreboard
+    // endpoint's competition object, which we already fetched above to
+    // resolve the event id. Stash it separately rather than assuming it'll
+    // show up in the summary payload.
+    summaryData._liveSituation = scoreboardComp ? scoreboardComp.situation : null;
+    summaryData._liveStatus = scoreboardComp ? scoreboardComp.status : null;
+    return summaryData;
   })();
 
   boxScoreCache.set(cacheKey, promise);
@@ -6917,20 +6926,23 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
         winnerAbbr = Number(awayFinal) > Number(homeFinal) ? awayAbbr : homeAbbr;
       }
 
-      // Same shape as fetchLiveScores' possession/down-distance handling -
-      // only populated while comp.status.type.state is 'in', since ESPN
-      // drops `situation` once a game goes final or hasn't kicked off yet.
-      const status = comp.status;
-      if (status && status.type && status.type.state === "in") {
-        const situation = comp.situation;
+      // Down/distance/possession/last-play only live on the scoreboard
+      // endpoint's competition object (captured as _liveStatus/_liveSituation
+      // in fetchBoxScore) - the summary endpoint's own comp.status here has
+      // no `situation` field at all, live game or not. Team ids are
+      // consistent across both ESPN endpoints, so homeC.id/awayC.id from
+      // the summary header still correctly resolve situation.possession.
+      const liveStatus = state.data._liveStatus;
+      if (liveStatus && liveStatus.type && liveStatus.type.state === "in") {
+        const situation = state.data._liveSituation;
         let possession = null;
         if (situation && situation.possession) {
           if (situation.possession === homeC.id) possession = "home";
           else if (situation.possession === awayC.id) possession = "away";
         }
         liveInfo = {
-          period: status.period,
-          clock: status.displayClock,
+          period: liveStatus.period,
+          clock: liveStatus.displayClock,
           possession,
           downDistanceText: situation ? (situation.shortDownDistanceText || situation.downDistanceText || null) : null,
           isRedZone: !!(situation && situation.isRedZone),

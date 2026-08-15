@@ -687,6 +687,71 @@
     }
   }
 
+  /* Clickable wrapper around a live/final score - opens the box score
+     modal. Uses "all: unset" so it inherits whatever styling the score
+     content already carries (pill background, bold weight, etc.) rather
+     than fighting it with default button chrome; only cursor/focus affordances are added back. */
+  .score-link-btn {
+    all: unset; display: inline-flex; align-items: center; cursor: pointer; border-radius: 6px;
+  }
+  .score-link-btn:hover, .score-link-btn:focus-visible {
+    opacity: 0.82; outline: 2px solid rgba(var(--accent-rgb),0.45); outline-offset: 2px;
+  }
+
+  .boxscore-modal-overlay {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.6); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
+  }
+  .boxscore-modal {
+    position: relative; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+  }
+  .boxscore-modal-close {
+    position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--card-border); background: var(--surface-2); color: var(--text);
+    font-size: 1.1rem; line-height: 1; cursor: pointer;
+  }
+  .boxscore-modal-header {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding-right: 30px; margin-bottom: 16px;
+  }
+  .boxscore-modal-header img, .boxscore-modal-header .badge-fallback { flex-shrink: 0; }
+  .boxscore-modal-title { font-size: 1.05rem; font-weight: 800; text-align: center; }
+  .boxscore-loading, .boxscore-error { color: var(--text-dim); font-size: 0.85rem; padding: 12px 0; text-align: center; }
+  .boxscore-error { color: var(--pill-bad-text); }
+  .boxscore-linescore-table {
+    width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 16px;
+  }
+  .boxscore-linescore-table th, .boxscore-linescore-table td {
+    text-align: center; padding: 5px 6px; border-bottom: 1px solid var(--card-border);
+  }
+  .boxscore-linescore-table th { color: var(--text-dim); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.3px; }
+  .boxscore-linescore-table td:first-child, .boxscore-linescore-table th:first-child { text-align: left; font-weight: 700; }
+  .boxscore-linescore-table .boxscore-final-col { font-weight: 800; }
+  .boxscore-stats-section, .boxscore-leaders-section { margin-bottom: 6px; }
+  .boxscore-stats-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  .boxscore-stats-table th { color: var(--text-dim); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.3px; padding: 4px 0 8px; }
+  .boxscore-stats-table th:first-child, .boxscore-stats-table th:last-child { text-align: center; }
+  .boxscore-stats-table td { padding: 6px 4px; border-bottom: 1px solid var(--card-border); }
+  .boxscore-stats-table tr:last-child td { border-bottom: none; }
+  .boxscore-stats-table td:first-child, .boxscore-stats-table td:last-child { text-align: center; font-weight: 700; width: 30%; }
+  .boxscore-stat-label { text-align: center; color: var(--text-dim); font-size: 0.76rem; }
+  .boxscore-leader-team { margin-bottom: 10px; }
+  .boxscore-leader-team:last-child { margin-bottom: 0; }
+  .boxscore-leader-team-abbr { font-weight: 800; font-size: 0.8rem; margin-bottom: 4px; }
+  .boxscore-leader-row { display: flex; align-items: baseline; gap: 6px; font-size: 0.8rem; padding: 2px 0; }
+  .boxscore-leader-cat { flex: 0 0 78px; color: var(--text-dim); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.3px; }
+  .boxscore-leader-name { font-weight: 600; }
+  .boxscore-leader-val { color: var(--text-dim); font-size: 0.76rem; margin-left: auto; text-align: right; }
+  @media (max-width: 640px) {
+    .boxscore-modal-overlay { align-items: flex-end; padding: 0; }
+    .boxscore-modal {
+      max-width: 100%; max-height: 85vh; border-radius: 16px 16px 0 0;
+      padding: 20px 16px 24px; animation: injury-sheet-up 0.18s ease-out;
+    }
+  }
+
   .result-row {
     display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;
     padding: 6px 10px; border-radius: 8px; background: rgba(var(--demo-rgb),0.1); border: 1px solid rgba(var(--demo-rgb),0.3);
@@ -6545,6 +6610,248 @@ async function fetchLiveScores(week) {
   return map;
 }
 
+// ---- Box score (ESPN summary endpoint) --------------------------------
+// Fetched on demand only, the moment someone clicks a live/final score -
+// there's no polling here. Two ESPN calls are needed because our own data
+// never stores ESPN's internal numeric event id: first the week's
+// scoreboard (same endpoint fetchLiveScores uses) to resolve that id by
+// matching the away/home abbreviations, then the summary endpoint keyed
+// by that id, which is where the linescore/team-stats/leaders data live.
+// Cached by week+matchup in memory so reopening the same game's box score
+// within a session doesn't refetch; failures are evicted from the cache
+// so a transient network blip doesn't permanently poison a retry.
+const boxScoreCache = new Map();
+
+async function fetchBoxScore(week, awayAbbr, homeAbbr) {
+  const cacheKey = `${week}-${awayAbbr}-${homeAbbr}`;
+  if (boxScoreCache.has(cacheKey)) return boxScoreCache.get(cacheKey);
+
+  const promise = (async () => {
+    const params = getEspnParams(week);
+    if (!params) throw new Error("No ESPN schedule data for this week yet.");
+    const scoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?year=2026&seasontype=${params.seasontype}&week=${params.week}`;
+    const scoreboardRes = await fetch(scoreboardUrl);
+    if (!scoreboardRes.ok) throw new Error("ESPN scoreboard request failed: " + scoreboardRes.status);
+    const scoreboardData = await scoreboardRes.json();
+    let eventId = null;
+    for (const event of scoreboardData.events || []) {
+      const comp = event.competitions && event.competitions[0];
+      if (!comp) continue;
+      const home = comp.competitors.find(c => c.homeAway === "home");
+      const away = comp.competitors.find(c => c.homeAway === "away");
+      if (!home || !away) continue;
+      const hAbbr = ESPN_ABBR_FIX[home.team.abbreviation] || home.team.abbreviation;
+      const aAbbr = ESPN_ABBR_FIX[away.team.abbreviation] || away.team.abbreviation;
+      if (hAbbr === homeAbbr && aAbbr === awayAbbr) { eventId = event.id; break; }
+    }
+    if (!eventId) throw new Error("Couldn't find this game on ESPN's scoreboard.");
+    const summaryUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${eventId}`;
+    const summaryRes = await fetch(summaryUrl);
+    if (!summaryRes.ok) throw new Error("ESPN box score request failed: " + summaryRes.status);
+    return summaryRes.json();
+  })();
+
+  boxScoreCache.set(cacheKey, promise);
+  promise.catch(() => boxScoreCache.delete(cacheKey));
+  return promise;
+}
+
+/** Curated subset of ESPN's ~24 team-stat fields - enough for a useful
+ *  comparison without turning the modal into a wall of numbers. */
+const BOXSCORE_KEY_STATS = [
+  { key: "totalYards", label: "Total Yards" },
+  { key: "netPassingYards", label: "Passing Yards" },
+  { key: "rushingYards", label: "Rushing Yards" },
+  { key: "thirdDownEff", label: "3rd Down Eff." },
+  { key: "turnovers", label: "Turnovers" },
+  { key: "totalPenaltiesYards", label: "Penalties" },
+  { key: "possessionTime", label: "Possession" },
+];
+
+const BOXSCORE_LEADER_CATEGORIES = [
+  { key: "passingYards", label: "Passing" },
+  { key: "rushingYards", label: "Rushing" },
+  { key: "receivingYards", label: "Receiving" },
+];
+
+/** Score, wrapped so clicking it opens the box score modal for that game.
+ *  Used for both the live and final states, on GameCard and on the team
+ *  schedule view - anywhere a score is shown. */
+function GameScoreLink({ week, awayAbbr, homeAbbr, className, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <React.Fragment>
+      <button
+        type="button"
+        className={"score-link-btn" + (className ? " " + className : "")}
+        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpen(true); }}
+        title="View box score"
+      >
+        {children}
+      </button>
+      {open && <BoxScoreModal week={week} awayAbbr={awayAbbr} homeAbbr={homeAbbr} onClose={() => setOpen(false)} />}
+    </React.Fragment>
+  );
+}
+
+function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
+  const overlayRef = useRef(null);
+  const [state, setState] = useState({ status: "loading", data: null, error: null });
+
+  useEffect(() => {
+    function onKeyDown(e) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ status: "loading", data: null, error: null });
+    fetchBoxScore(week, awayAbbr, homeAbbr)
+      .then(data => { if (!cancelled) setState({ status: "ready", data, error: null }); })
+      .catch(err => { if (!cancelled) setState({ status: "error", data: null, error: (err && err.message) || "Couldn't load the box score." }); });
+    return () => { cancelled = true; };
+  }, [week, awayAbbr, homeAbbr]);
+
+  let scoreLabel = `${awayAbbr} @ ${homeAbbr}`;
+  let linescores = null;
+  let awayFinal = null, homeFinal = null;
+  let teamStats = null;
+  let leaders = null;
+
+  if (state.status === "ready" && state.data) {
+    const comp = state.data.header && state.data.header.competitions && state.data.header.competitions[0];
+    const competitors = comp ? comp.competitors : [];
+    const homeC = competitors.find(c => c.homeAway === "home");
+    const awayC = competitors.find(c => c.homeAway === "away");
+    if (homeC && awayC) {
+      awayFinal = awayC.score;
+      homeFinal = homeC.score;
+      scoreLabel = `${awayAbbr} ${awayFinal} - ${homeFinal} ${homeAbbr}`;
+      if (awayC.linescores && homeC.linescores && awayC.linescores.length) {
+        linescores = { home: homeC.linescores, away: awayC.linescores };
+      }
+    }
+
+    const boxTeams = (state.data.boxscore && state.data.boxscore.teams) || [];
+    const findTeam = abbr => boxTeams.find(t => (ESPN_ABBR_FIX[t.team.abbreviation] || t.team.abbreviation) === abbr);
+    const homeBox = findTeam(homeAbbr);
+    const awayBox = findTeam(awayAbbr);
+    if (homeBox && awayBox) {
+      const statVal = (teamBox, key) => {
+        const s = teamBox.statistics.find(s => s.name === key);
+        return s ? s.displayValue : "—";
+      };
+      teamStats = BOXSCORE_KEY_STATS.map(stat => ({
+        label: stat.label,
+        away: statVal(awayBox, stat.key),
+        home: statVal(homeBox, stat.key),
+      }));
+    }
+
+    const rawLeaders = state.data.leaders || [];
+    if (rawLeaders.length) {
+      leaders = rawLeaders.map(teamLeaders => {
+        const abbr = (teamLeaders.team && (ESPN_ABBR_FIX[teamLeaders.team.abbreviation] || teamLeaders.team.abbreviation)) || "";
+        const cats = BOXSCORE_LEADER_CATEGORIES.map(cat => {
+          const found = (teamLeaders.leaders || []).find(l => l.name === cat.key);
+          const top = found && found.leaders && found.leaders[0];
+          return top ? { label: cat.label, name: top.athlete.displayName, value: top.displayValue } : null;
+        }).filter(Boolean);
+        return { abbr, cats };
+      }).filter(t => t.cats.length);
+    }
+  }
+
+  return ReactDOM.createPortal(
+    <div
+      className="boxscore-modal-overlay"
+      ref={overlayRef}
+      onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="boxscore-modal" role="dialog" aria-modal="true" aria-label={`${awayAbbr} at ${homeAbbr} box score`}>
+        <button type="button" className="boxscore-modal-close" onClick={onClose} aria-label="Close">×</button>
+        <div className="boxscore-modal-header">
+          <TeamLogo teamId={awayAbbr} size={32} />
+          <span className="boxscore-modal-title">{scoreLabel}</span>
+          <TeamLogo teamId={homeAbbr} size={32} />
+        </div>
+
+        {state.status === "loading" && <div className="boxscore-loading">Loading box score…</div>}
+        {state.status === "error" && <div className="boxscore-error">{state.error}</div>}
+
+        {linescores && (
+          <table className="boxscore-linescore-table">
+            <thead>
+              <tr>
+                <th></th>
+                {linescores.away.map((_, i) => <th key={i}>{i + 1}</th>)}
+                <th>F</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{awayAbbr}</td>
+                {linescores.away.map((q, i) => <td key={i}>{q.displayValue}</td>)}
+                <td className="boxscore-final-col">{awayFinal}</td>
+              </tr>
+              <tr>
+                <td>{homeAbbr}</td>
+                {linescores.home.map((q, i) => <td key={i}>{q.displayValue}</td>)}
+                <td className="boxscore-final-col">{homeFinal}</td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+
+        {teamStats && (
+          <div className="boxscore-stats-section">
+            <div className="player-modal-section-title">Team Stats</div>
+            <table className="boxscore-stats-table">
+              <thead>
+                <tr><th>{awayAbbr}</th><th></th><th>{homeAbbr}</th></tr>
+              </thead>
+              <tbody>
+                {teamStats.map(row => (
+                  <tr key={row.label}>
+                    <td>{row.away}</td>
+                    <td className="boxscore-stat-label">{row.label}</td>
+                    <td>{row.home}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {leaders && leaders.length > 0 && (
+          <div className="boxscore-leaders-section">
+            <div className="player-modal-section-title">Top Performers</div>
+            {leaders.map(team => (
+              <div key={team.abbr} className="boxscore-leader-team">
+                <div className="boxscore-leader-team-abbr">{team.abbr}</div>
+                {team.cats.map(cat => (
+                  <div key={cat.label} className="boxscore-leader-row">
+                    <span className="boxscore-leader-cat">{cat.label}</span>
+                    <span className="boxscore-leader-name">{cat.name}</span>
+                    <span className="boxscore-leader-val">{cat.value}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ---- Adaptive polling for live scores --------------------------------
 // ESPN's scoreboard endpoint is unofficial and publishes no documented rate
 // limit. Community consensus (see ESPN hidden-API docs/discussions) is to
@@ -7150,11 +7457,13 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
       <div className="game-meta">
         <span className="game-meta-left">
           {scoreInfo && scoreInfo.isLive ? (
-            <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline">
-              {scoreInfo.possession === "away" && <span className="poss-ball">🏈</span>}
-              {away.id} {scoreInfo.awayScore} – {scoreInfo.homeScore} {home.id}
-              {scoreInfo.possession === "home" && <span className="poss-ball">🏈</span>}
-            </LiveScoreFlash>
+            <GameScoreLink week={week} awayAbbr={game.away} homeAbbr={game.home}>
+              <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline">
+                {scoreInfo.possession === "away" && <span className="poss-ball">🏈</span>}
+                {away.id} {scoreInfo.awayScore} – {scoreInfo.homeScore} {home.id}
+                {scoreInfo.possession === "home" && <span className="poss-ball">🏈</span>}
+              </LiveScoreFlash>
+            </GameScoreLink>
           ) : (
             <>{shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}</>
           )}
@@ -7183,7 +7492,9 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
       {scoreInfo && scoreInfo.isFinal && (
         <div className="result-row">
           <span>
-            Final: <span className="score">{away.id} {scoreInfo.awayScore} - {scoreInfo.homeScore} {home.id}</span>
+            Final: <GameScoreLink week={week} awayAbbr={game.away} homeAbbr={game.home}>
+              <span className="score">{away.id} {scoreInfo.awayScore} - {scoreInfo.homeScore} {home.id}</span>
+            </GameScoreLink>
           </span>
           <span className={"verdict " + (predictionCorrect ? "correct" : "incorrect")}>
             {predictionCorrect ? "Prediction correct ✓" : "Prediction missed ✗"}
@@ -8686,6 +8997,8 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
         teamWon: actualWinnerId === teamId,
         correct: (actualWinnerId === teamId) === teamWins,
         scoreLine: `${game.away} ${scoreInfo.awayScore} - ${scoreInfo.homeScore} ${game.home}`,
+        awayAbbr: game.away,
+        homeAbbr: game.home,
       };
     } else if (scoreInfo && scoreInfo.isLive) {
       actual = {
@@ -8858,14 +9171,16 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                         {r.actual ? (
                           r.actual.isLive ? (
                             <>
-                              <span className="live-tag" style={{ fontSize: "0.76rem" }}>
-                                <span className="live-dot"></span>
-                                <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
-                                  {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
-                                  {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
-                                  {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
-                                </LiveScoreFlash>
-                              </span>
+                              <GameScoreLink week={r.week} awayAbbr={r.actual.awayAbbr} homeAbbr={r.actual.homeAbbr}>
+                                <span className="live-tag" style={{ fontSize: "0.76rem" }}>
+                                  <span className="live-dot"></span>
+                                  <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
+                                    {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
+                                    {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
+                                    {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
+                                  </LiveScoreFlash>
+                                </span>
+                              </GameScoreLink>
                               <div className="live-clock-line">
                                 <span>{r.actual.clockLabel}</span>
                                 {r.actual.downDistanceText && (
@@ -8876,12 +9191,14 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                               </div>
                             </>
                           ) : (
-                            <span>
-                              {r.actual.scoreLine}
-                              <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
-                                {r.actual.correct ? "✓" : "✗"}
+                            <GameScoreLink week={r.week} awayAbbr={r.actual.awayAbbr} homeAbbr={r.actual.homeAbbr}>
+                              <span>
+                                {r.actual.scoreLine}
+                                <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
+                                  {r.actual.correct ? "✓" : "✗"}
+                                </span>
                               </span>
-                            </span>
+                            </GameScoreLink>
                           )
                         ) : (
                           <span className="hw-tag">Not played yet</span>
@@ -8949,14 +9266,16 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                           {r.actual ? (
                             r.actual.isLive ? (
                               <>
-                                <span className="live-tag" style={{ fontSize: "0.76rem" }}>
-                                  <span className="live-dot"></span>
-                                  <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
-                                    {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
-                                    {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
-                                    {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
-                                  </LiveScoreFlash>
-                                </span>
+                                <GameScoreLink week={r.week} awayAbbr={r.actual.awayAbbr} homeAbbr={r.actual.homeAbbr}>
+                                  <span className="live-tag" style={{ fontSize: "0.76rem" }}>
+                                    <span className="live-dot"></span>
+                                    <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
+                                      {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
+                                      {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
+                                      {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
+                                    </LiveScoreFlash>
+                                  </span>
+                                </GameScoreLink>
                                 <div className="live-clock-line">
                                   <span>{r.actual.clockLabel}</span>
                                   {r.actual.downDistanceText && (
@@ -8967,12 +9286,14 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                                 </div>
                               </>
                             ) : (
-                              <span>
-                                {r.actual.scoreLine}
-                                <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
-                                  {r.actual.correct ? "✓" : "✗"}
+                              <GameScoreLink week={r.week} awayAbbr={r.actual.awayAbbr} homeAbbr={r.actual.homeAbbr}>
+                                <span>
+                                  {r.actual.scoreLine}
+                                  <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
+                                    {r.actual.correct ? "✓" : "✗"}
+                                  </span>
                                 </span>
-                              </span>
+                              </GameScoreLink>
                             )
                           ) : (
                             <span className="hw-tag">Not played yet</span>

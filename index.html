@@ -751,6 +751,20 @@
   .boxscore-team-logo.is-winner { box-shadow: 0 0 0 3px var(--card-bg), 0 0 0 5px var(--win); }
   .boxscore-winner-row td { font-weight: 800; background: rgba(var(--win-rgb),0.1); }
   .boxscore-winner-check { color: var(--win); font-weight: 800; margin-left: 4px; }
+  /* Live game strip - possession, down/distance, clock - sits between the
+     team-logo header and the linescore table so it's the first thing
+     visible when a live game's box score is opened. */
+  .boxscore-live-status {
+    margin: 2px 0 14px; padding: 8px 10px;
+    background: rgba(var(--live-rgb),0.08); border: 1px solid rgba(var(--live-rgb),0.25);
+    border-radius: 8px;
+  }
+  .boxscore-live-top { display: flex; align-items: center; flex-wrap: wrap; gap: 0; }
+  .boxscore-possession {
+    display: inline-flex; align-items: center; margin-left: 8px;
+    font-size: 0.78rem; font-weight: 700; color: var(--text);
+  }
+  .boxscore-live-status .last-play { margin-top: 6px; }
   .boxscore-linescore-table {
     width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 16px;
   }
@@ -6881,6 +6895,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
   let teamStats = null;
   let playerStats = null;
   let winnerAbbr = null;
+  let liveInfo = null;
 
   if (state.status === "ready" && state.data) {
     const comp = state.data.header && state.data.header.competitions && state.data.header.competitions[0];
@@ -6900,6 +6915,27 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
       const isCompleted = !!(comp.status && comp.status.type && comp.status.type.completed);
       if (isCompleted && awayFinal != null && homeFinal != null && Number(awayFinal) !== Number(homeFinal)) {
         winnerAbbr = Number(awayFinal) > Number(homeFinal) ? awayAbbr : homeAbbr;
+      }
+
+      // Same shape as fetchLiveScores' possession/down-distance handling -
+      // only populated while comp.status.type.state is 'in', since ESPN
+      // drops `situation` once a game goes final or hasn't kicked off yet.
+      const status = comp.status;
+      if (status && status.type && status.type.state === "in") {
+        const situation = comp.situation;
+        let possession = null;
+        if (situation && situation.possession) {
+          if (situation.possession === homeC.id) possession = "home";
+          else if (situation.possession === awayC.id) possession = "away";
+        }
+        liveInfo = {
+          period: status.period,
+          clock: status.displayClock,
+          possession,
+          downDistanceText: situation ? (situation.shortDownDistanceText || situation.downDistanceText || null) : null,
+          isRedZone: !!(situation && situation.isRedZone),
+          lastPlay: situation && situation.lastPlay ? situation.lastPlay.text || null : null,
+        };
       }
     }
 
@@ -6951,6 +6987,28 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
 
         {state.status === "loading" && <div className="boxscore-loading">Loading box score…</div>}
         {state.status === "error" && <div className="boxscore-error">{state.error}</div>}
+
+        {liveInfo && (
+          <div className="boxscore-live-status">
+            <div className="boxscore-live-top">
+              <span className="live-tag">
+                <span className="live-dot"></span>
+                LIVE {liveInfo.clock ? `Q${liveInfo.period} ${liveInfo.clock}` : ""}
+              </span>
+              <span className="boxscore-possession">
+                {liveInfo.possession === "away" && <span className="poss-ball" title={`${awayAbbr} has the ball`}>🏈</span>}
+                {liveInfo.possession === "home" && <span className="poss-ball" title={`${homeAbbr} has the ball`}>🏈</span>}
+                {liveInfo.possession === "away" ? awayAbbr : liveInfo.possession === "home" ? homeAbbr : null}
+              </span>
+              {liveInfo.downDistanceText && (
+                <span className={"down-distance" + (liveInfo.isRedZone ? " is-redzone" : "")}>
+                  {liveInfo.downDistanceText}
+                </span>
+              )}
+            </div>
+            {liveInfo.lastPlay && <div className="last-play">{liveInfo.lastPlay}</div>}
+          </div>
+        )}
 
         {linescores && (
           <table className="boxscore-linescore-table">

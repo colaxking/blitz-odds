@@ -7726,6 +7726,47 @@ function GradationLegend() {
   );
 }
 
+/**
+ * Prediction/spread accuracy for one week's worth of games, independent of
+ * any single team - mirrors the same two facts the team page tracks
+ * (straight-up winner call, and whether the spread favorite covered) but
+ * scoped to just the games on this week's cards, not a season running tally.
+ * Only finished (non-live) games count; in-progress or upcoming games are
+ * skipped rather than guessed at.
+ */
+function summarizeWeekAccuracy(games, week, context, liveMap, sportsbookId) {
+  let finished = 0, predCorrect = 0, predIncorrect = 0, spreadCorrect = 0, spreadIncorrect = 0;
+  games.forEach(g => {
+    const home = context.getTeam(g.home);
+    const away = context.getTeam(g.away);
+    if (!home || !away) return;
+    const historicalResult = context.getResult(g.away, g.home);
+    const scoreInfo = resolveScore(liveMap[`${g.away}-${g.home}`], historicalResult);
+    if (!scoreInfo || !scoreInfo.isFinal) return;
+    finished++;
+
+    const prediction = PredictionEngine.predictMatchup({
+      homeTeam: home, awayTeam: away,
+      homeImpactPlayers: context.getPlayers(g.home), awayImpactPlayers: context.getPlayers(g.away)
+    });
+    const actualWinnerId = scoreInfo.homeScore > scoreInfo.awayScore ? home.id : away.id;
+    if (actualWinnerId === prediction.predictedWinner) predCorrect++; else predIncorrect++;
+
+    const odds = getOdds(week, g.away, g.home, sportsbookId);
+    if (odds) {
+      const favIsHome = odds.favorite === home.id;
+      const favScore = favIsHome ? scoreInfo.homeScore : scoreInfo.awayScore;
+      const dogScore = favIsHome ? scoreInfo.awayScore : scoreInfo.homeScore;
+      const margin = favScore - dogScore;
+      const spreadMag = Math.abs(odds.spread);
+      if (margin > spreadMag) spreadCorrect++;
+      else if (margin < spreadMag) spreadIncorrect++;
+      // margin === spreadMag is a push - excluded from both counts
+    }
+  });
+  return { finished, predCorrect, predIncorrect, spreadCorrect, spreadIncorrect };
+}
+
 function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookId, tz }) {
   const scheduledGames = getGamesForWeek(week);
   const liveMap = useLiveScores(week);
@@ -7734,6 +7775,10 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
   const byeTeams = useMemo(() => getByeTeams(week), [week]);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   useSportsEventJsonLd(games, seasonYear);
+  const weekAccuracy = useMemo(
+    () => summarizeWeekAccuracy(games, week, context, liveMap, sportsbookId),
+    [games, week, context, liveMap, sportsbookId]
+  );
   if (!games.length) return <p>No schedule data for this week yet.</p>;
   return (
     <div>
@@ -7759,6 +7804,28 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
           team stats and predictions as captured for {getPeriodLabel(week)}, plus the final result (live scores,
           when a game is in progress, will override this automatically).{" "}
           {context.note}
+        </div>
+      )}
+      {weekAccuracy.finished > 0 && (
+        <div className="accuracy-summary">
+          <div className="accuracy-stat">
+            <span className="accuracy-stat-label">{getPeriodLabel(week)} Predictions</span>
+            <span className="accuracy-stat-value">
+              <span className="accuracy-count correct">{weekAccuracy.predCorrect} correct</span>
+              <span className="accuracy-count incorrect">{weekAccuracy.predIncorrect} incorrect</span>
+            </span>
+          </div>
+          <div className="accuracy-stat">
+            <span className="accuracy-stat-label">{getPeriodLabel(week)} Spreads</span>
+            {(weekAccuracy.spreadCorrect + weekAccuracy.spreadIncorrect) > 0 ? (
+              <span className="accuracy-stat-value">
+                <span className="accuracy-count correct">{weekAccuracy.spreadCorrect} correct</span>
+                <span className="accuracy-count incorrect">{weekAccuracy.spreadIncorrect} incorrect</span>
+              </span>
+            ) : (
+              <span className="accuracy-stat-value hw-tag" style={{ marginLeft: 0 }}>No odds data for finished games</span>
+            )}
+          </div>
         </div>
       )}
       <GradationLegend />

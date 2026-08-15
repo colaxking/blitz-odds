@@ -354,10 +354,11 @@
     font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
   }
   .international-tag {
-    display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 2px 8px;
-    border-radius: 999px; background: #2dd4bf; color: #06322e;
+    display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; padding: 2px 8px;
+    border-radius: 999px; background: #2dd4bf; color: #06322e; white-space: nowrap;
     font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
   }
+  .international-tag .intl-icon { flex-shrink: 0; }
   .live-tag {
     display: inline-flex; align-items: center; gap: 4px; color: var(--live); font-weight: 700;
     font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
@@ -816,20 +817,24 @@
   .team-schedule-table tr.live-row td { background: rgba(var(--live-rgb),0.08); }
   .team-schedule-table tr.live-row:hover td { background: rgba(var(--live-rgb),0.12); }
 
-  /* Date/time and prediction cells break into two deliberate lines instead of
-     the browser wrapping the raw string at an arbitrary, ugly point. */
-  .date-cell, .pred-cell { white-space: nowrap; }
-  .date-cell .date-line, .pred-cell .pred-line { display: block; }
+  /* Date/time cells break into deliberate lines instead of the browser
+     wrapping the raw string at an arbitrary, ugly point. */
+  .date-cell { white-space: nowrap; }
+  .date-cell .date-line { display: block; }
   .date-cell .time-line {
     display: block; color: var(--text-dim); font-size: 0.76rem; margin-top: 2px;
-  }
-  .pred-cell .pred-line { font-weight: 700; }
-  .pred-cell .pred-conf {
-    display: block; font-size: 0.72rem; color: var(--text-dim); font-weight: 500; margin-top: 2px;
   }
   .table-odds { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; white-space: nowrap; }
   .table-odds .odds-line { font-weight: 600; }
   .table-odds .odds-fallback-note-sm { font-size: 0.66rem; color: var(--text-dim); font-style: italic; }
+  /* Prediction now lives inside the Odds column, set off with a thin
+     divider so it still reads as its own fact rather than part of the
+     odds line above it. */
+  .pred-inline {
+    display: block; margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--card-border);
+    font-weight: 700; font-size: 0.78rem;
+  }
+  .pred-inline .pred-conf-inline { font-weight: 500; color: var(--text-dim); font-size: 0.72rem; }
 
   /* Mobile card layout for the team schedule (replaces the table under ~860px so
      columns like Date & Time don't get crushed into multi-line wraps). */
@@ -849,10 +854,10 @@
     display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.74rem;
     background: var(--surface-2); border-radius: 8px; padding: 6px 10px;
   }
-  .opp-cell { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+  .opp-cell { display: flex; align-items: center; flex-wrap: wrap; row-gap: 4px; column-gap: 8px; }
   .opp-cell img { width: 26px; height: 26px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; flex-shrink: 0; }
-  .opp-cell > span:not(.international-tag) { padding-top: 3px; overflow-wrap: break-word; min-width: 0; }
-  .opp-cell .international-tag { flex: 0 0 100%; width: fit-content; margin-left: 34px; }
+  .opp-cell > span:not(.international-tag) { overflow-wrap: break-word; min-width: 0; }
+  .opp-cell .international-tag { margin-left: 0; }
   .pred-win { color: var(--win); font-weight: 700; }
   .pred-lose { color: var(--text-dim); }
   .hw-tag { font-size: 0.68rem; color: var(--text-dim); margin-left: 6px; }
@@ -7492,7 +7497,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
             <>{shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}</>
           )}
           {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
-          {internationalGame && <span className="international-tag" title={game.note || "International Game"}>🌍 International</span>}
+          {internationalGame && <span className="international-tag" title={game.note || "International Game"}><GlobeIcon /> International</span>}
         </span>
         {scoreInfo && scoreInfo.isLive ? (
           <span className="live-tag">
@@ -9170,7 +9175,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                       <div className="opp-cell">
                         <TeamLogo teamId={r.opp.id} size={26} />
                         <span>{r.isHome ? "vs" : "@"} {r.opp.name}</span>
-                        {r.international && <span className="international-tag" title={r.note || "International Game"}>🌍 International</span>}
+                        {r.international && <span className="international-tag" title={r.note || "International Game"}><GlobeIcon /> International</span>}
                       </div>
                       <div className="schedule-mobile-row">
                         <span className={r.teamWins ? "pred-win" : "pred-lose"}>
@@ -9241,10 +9246,9 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
             <table className="team-schedule-table">
               <colgroup>
                 <col style={{ width: "64px" }} />
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "18%" }} />
-                <col style={{ width: "12%" }} />
+                <col style={{ width: "24%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "24%" }} />
                 <col />
               </colgroup>
               <thead>
@@ -9252,8 +9256,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                   <th>Week</th>
                   <th>Opponent</th>
                   <th>Date &amp; Time</th>
-                  <th>Odds</th>
-                  <th>Prediction</th>
+                  <th>Odds &amp; Prediction</th>
                   <th>Result</th>
                 </tr>
               </thead>
@@ -9262,14 +9265,14 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                   <tr key={r.week} className={(r.bye ? "bye-row " : "") + (r.isPlayoff ? "playoff-row" : "") + (r.actual && r.actual.isLive ? " live-row" : "")}>
                     <td>{shortPeriodLabel(r.week, r.label)}</td>
                     {r.bye ? (
-                      <td colSpan="5">BYE week</td>
+                      <td colSpan="4">BYE week</td>
                     ) : (
                       <>
                         <td>
                           <div className="opp-cell">
                             <TeamLogo teamId={r.opp.id} size={26} />
                             <span>{r.isHome ? "vs" : "@"} {r.opp.name}</span>
-                            {r.international && <span className="international-tag" title={r.note || "International Game"}>🌍 International</span>}
+                            {r.international && <span className="international-tag" title={r.note || "International Game"}><GlobeIcon /> International</span>}
                           </div>
                         </td>
                         <td className="date-cell">
@@ -9278,21 +9281,22 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                           {r.network && <span className="time-line">{r.network}</span>}
                         </td>
                         <td>
-                          {r.odds ? (
-                            <span className="table-odds">
-                              <span className="odds-line">{r.odds.favorite} {formatSpread(r.odds.spread)} · O/U {r.odds.overUnder}</span>
-                              <span className="odds-source">{r.odds.sportsbook}</span>
-                              {r.odds.isFallback && (
-                                <span className="odds-fallback-note-sm">No {getSportsbookShortLabel(sportsbookId)} line</span>
-                              )}
+                          <span className="table-odds">
+                            {r.odds ? (
+                              <>
+                                <span className="odds-line">{r.odds.favorite} {formatSpread(r.odds.spread)} · O/U {r.odds.overUnder}</span>
+                                <span className="odds-source">{r.odds.sportsbook}</span>
+                                {r.odds.isFallback && (
+                                  <span className="odds-fallback-note-sm">No {getSportsbookShortLabel(sportsbookId)} line</span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="hw-tag" style={{ marginLeft: 0 }}>Odds not posted yet</span>
+                            )}
+                            <span className={"pred-inline " + (r.teamWins ? "pred-win" : "pred-lose")}>
+                              {r.teamWins ? "Predicted W" : "Predicted L"} <span className="pred-conf-inline">({(r.confidence * 100).toFixed(0)}%)</span>
                             </span>
-                          ) : (
-                            <span className="hw-tag">Not posted yet</span>
-                          )}
-                        </td>
-                        <td className={"pred-cell " + (r.teamWins ? "pred-win" : "pred-lose")}>
-                          <span className="pred-line">{r.teamWins ? "Predicted W" : "Predicted L"}</span>
-                          <span className="pred-conf">{(r.confidence * 100).toFixed(0)}%</span>
+                          </span>
                         </td>
                         <td className="result-cell">
                           {r.actual ? (
@@ -9354,6 +9358,15 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
         )}
       </div>
     </div>
+  );
+}
+
+function GlobeIcon({ size = 11 }) {
+  return (
+    <svg className="intl-icon" width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M1.75 8h12.5M8 1.75c1.9 1.7 1.9 10.8 0 12.5M8 1.75c-1.9 1.7-1.9 10.8 0 12.5" stroke="currentColor" strokeWidth="1.1" fill="none" />
+    </svg>
   );
 }
 

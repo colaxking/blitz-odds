@@ -27,6 +27,7 @@ const VALID_TYPES = new Set([
   "player_view",
   "news_click",
   "boxscore_click",
+  "view_change",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -218,7 +219,13 @@ export default async (req: Request, context: Context) => {
       if (typeof theme === "string" && theme) record.theme = theme.slice(0, 32);
       if (typeof sportsbook === "string" && sportsbook) record.sportsbook = sportsbook.slice(0, 64);
       if (typeof timezone === "string" && timezone) record.tzPref = timezone.slice(0, 64);
-      if (typeof page === "string" && page) record.page = page.slice(0, 160);
+    }
+
+    // `page` applies to both a hard pageview and a soft view_change (SPA
+    // navigation with no URL change - see js/analytics.js) - same free-form
+    // display label either way, just no preference snapshot on the latter.
+    if ((type === "pageview" || type === "view_change") && typeof page === "string" && page) {
+      record.page = page.slice(0, 160);
     }
 
     const location = extractLocation(context);

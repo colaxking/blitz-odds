@@ -402,9 +402,83 @@
     }
 
     function init() {
-      trackPageview();
+      // The app is a client-rendered SPA (React root mounted after a
+      // runtime Babel transpile), so by the time this script runs there's
+      // no guarantee the week nav / team header markup getCurrentPageLabel
+      // and getCurrentWeekLabel read from has actually painted yet. Poll
+      // briefly for recognizable app markup before sending the initial
+      // pageview, rather than risk it going out with a null page/week.
+      // Bounded so a page that genuinely never renders that markup (error
+      // state, etc.) doesn't block the pageview from ever being sent.
+      whenAppReady(function () {
+        lastSentPage = getCurrentPageLabel();
+        trackPageview();
+        initViewChangeTracking();
+      });
       // true = capture phase, see comment at top of file for why.
       document.addEventListener("click", handleDocumentClick, true);
+    }
+
+    function whenAppReady(cb, attemptsLeft) {
+      attemptsLeft = typeof attemptsLeft === "number" ? attemptsLeft : 40; // ~40 x 50ms = 2s max wait
+      try {
+        if (attemptsLeft <= 0 || document.querySelector(".week-nav-trigger") || document.querySelector(".team-view-header")) {
+          cb();
+          return;
+        }
+      } catch (e) {
+        cb();
+        return;
+      }
+      setTimeout(function () { whenAppReady(cb, attemptsLeft - 1); }, 50);
+    }
+
+    // There's no URL/route change to hook for SPA navigation (this app
+    // never changes window.location), so a hard pageview only ever fires
+    // once per full page load - meaning without this, `page` could only
+    // ever say "Week X" (everyone lands on the week view) and would never
+    // reflect a visitor navigating into a team page or switching tabs.
+    // Instead of hooking every individual click handler that might change
+    // the visible screen (team click, favorites-bar chip, team switcher,
+    // back button, week nav arrows, week picker...), watch the DOM
+    // generically: whenever it changes, recompute getCurrentPageLabel()
+    // and record a lightweight view_change event if it's different from
+    // the last one sent. This is NOT counted as a pageview (doesn't affect
+    // the Total Pageviews / Unique Visitors KPIs) - it exists purely so a
+    // visitor's timeline reads as a real path through the site.
+    var lastSentPage = null;
+    var viewChangeDebounceTimer = null;
+
+    function maybeTrackViewChange() {
+      try {
+        var page = getCurrentPageLabel();
+        if (!page || page === lastSentPage) return;
+        lastSentPage = page;
+        sendEvent({
+          type: "view_change",
+          visitorId: visitorId,
+          ts: Date.now(),
+          page: page,
+        });
+      } catch (e) {
+        /* ignore */
+      }
+    }
+
+    function initViewChangeTracking() {
+      try {
+        if (!window.MutationObserver) return;
+        var observer = new MutationObserver(function () {
+          if (viewChangeDebounceTimer) return;
+          viewChangeDebounceTimer = setTimeout(function () {
+            viewChangeDebounceTimer = null;
+            maybeTrackViewChange();
+          }, 200);
+        });
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+      } catch (e) {
+        /* ignore */
+      }
     }
 
     if (document.readyState === "complete" || document.readyState === "interactive") {

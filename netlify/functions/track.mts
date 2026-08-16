@@ -105,7 +105,13 @@ function invertedTimestamp(ts: number): string {
 }
 
 function indexKey(dimension: string, value: string, ts: number, visitorId: string): string {
-  return `idx:${dimension}:${encodeURIComponent(value)}:${invertedTimestamp(ts)}:${visitorId}`;
+  // No percent-encoding here: Netlify Blobs persists keys in their literal
+  // (decoded) form regardless of what you pass in, so encoding a value like
+  // "Ashburn, Virginia" before writing just gets silently undone on write -
+  // the stored key ends up with real commas/spaces either way. What matters
+  // is that this stays byte-for-byte identical to the prefix analytics-
+  // sessions.mts builds for the same dimension/value on read.
+  return `idx:${dimension}:${value}:${invertedTimestamp(ts)}:${visitorId}`;
 }
 
 // Mirrors hourBucketLabel/dayBucketLabel/monthBucketLabel in

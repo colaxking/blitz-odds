@@ -164,7 +164,11 @@ export default async (req: Request, _context: Context) => {
   }
 
   try {
-    const prefix = dimension === "all" ? "session:" : `idx:${dimension}:${encodeURIComponent(value)}:`;
+    // Mirrors indexKey() in track.mts exactly - no percent-encoding, since
+    // Netlify Blobs stores/matches keys in their literal decoded form (see
+    // the comment on indexKey for why encoding here would silently break
+    // prefix matching for any value with commas/spaces/accents, e.g. city).
+    const prefix = dimension === "all" ? "session:" : `idx:${dimension}:${value}:`;
 
     const uniqueIds: string[] = [];
     const seen = new Set<string>();

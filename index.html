@@ -6849,7 +6849,7 @@ function buildTeamPlayerStats(teamBox) {
 /** Score, wrapped so clicking it opens the box score modal for that game.
  *  Used for both the live and final states, on GameCard and on the team
  *  schedule view - anywhere a score is shown. */
-function GameScoreLink({ week, awayAbbr, homeAbbr, className, children }) {
+function GameScoreLink({ week, awayAbbr, homeAbbr, className, children, fallbackPossession }) {
   const [open, setOpen] = useState(false);
   return (
     <React.Fragment>
@@ -6867,12 +6867,12 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children }) {
           <rect x="11.8" y="1" width="3.2" height="14" rx="0.6" fill="currentColor"></rect>
         </svg>
       </button>
-      {open && <BoxScoreModal week={week} awayAbbr={awayAbbr} homeAbbr={homeAbbr} onClose={() => setOpen(false)} />}
+      {open && <BoxScoreModal week={week} awayAbbr={awayAbbr} homeAbbr={homeAbbr} onClose={() => setOpen(false)} fallbackPossession={fallbackPossession} />}
     </React.Fragment>
   );
 }
 
-function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
+function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }) {
   const overlayRef = useRef(null);
   const [state, setState] = useState({ status: "loading", data: null, error: null });
   // Which team's Player Stats are showing - null until data loads, at which
@@ -6940,6 +6940,17 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose }) {
         if (situation && situation.possession) {
           if (situation.possession === homeC.id) possession = "home";
           else if (situation.possession === awayC.id) possession = "away";
+        }
+        // ESPN drops `situation.possession` around dead-ball moments -
+        // timeouts, the gap right after a score, two-minute warning, etc.
+        // (see applyStickyPossession, which papers over the same gap for
+        // the live game-card polling). This modal only fetches once
+        // on open rather than polling, so it has no poll history of its
+        // own to fall back on - instead it takes whatever possession the
+        // game card already had (itself sticky-corrected) at the moment
+        // the modal was opened, passed down as fallbackPossession.
+        if (!possession && fallbackPossession) {
+          possession = fallbackPossession;
         }
         liveInfo = {
           period: liveStatus.period,
@@ -7742,7 +7753,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
       <div className="game-meta">
         <span className="game-meta-left">
           {scoreInfo && scoreInfo.isLive ? (
-            <GameScoreLink week={week} awayAbbr={game.away} homeAbbr={game.home}>
+            <GameScoreLink week={week} awayAbbr={game.away} homeAbbr={game.home} fallbackPossession={scoreInfo.possession}>
               <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline">
                 {scoreInfo.possession === "away" && <span className="poss-ball">🏈</span>}
                 {away.id} {scoreInfo.awayScore} – {scoreInfo.homeScore} {home.id}

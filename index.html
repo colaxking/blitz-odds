@@ -6733,20 +6733,24 @@ async function fetchLiveScores(week) {
 }
 
 // ---- Box score (ESPN summary endpoint) --------------------------------
-// Fetched on demand only, the moment someone clicks a live/final score -
-// there's no polling here. Two ESPN calls are needed because our own data
-// never stores ESPN's internal numeric event id: first the week's
-// scoreboard (same endpoint fetchLiveScores uses) to resolve that id by
-// matching the away/home abbreviations, then the summary endpoint keyed
-// by that id, which is where the linescore/team-stats/leaders data live.
-// Cached by week+matchup in memory so reopening the same game's box score
-// within a session doesn't refetch; failures are evicted from the cache
-// so a transient network blip doesn't permanently poison a retry.
+// Fetched the moment someone opens a live/final score's box score modal,
+// then polled every 30s by BoxScoreModal itself while the game is still
+// in progress (see the polling effect there) so the modal stays current
+// without the person needing to close and reopen it. Two ESPN calls are
+// needed because our own data never stores ESPN's internal numeric event
+// id: first the week's scoreboard (same endpoint fetchLiveScores uses) to
+// resolve that id by matching the away/home abbreviations, then the
+// summary endpoint keyed by that id, which is where the linescore/team-
+// stats/leaders data live. Cached by week+matchup in memory so reopening
+// the same game's box score within a session doesn't refetch - pass
+// forceRefresh to bypass that cache for a live poll. Failures are evicted
+// from the cache so a transient network blip doesn't permanently poison
+// a retry.
 const boxScoreCache = new Map();
 
-async function fetchBoxScore(week, awayAbbr, homeAbbr) {
+async function fetchBoxScore(week, awayAbbr, homeAbbr, forceRefresh) {
   const cacheKey = `${week}-${awayAbbr}-${homeAbbr}`;
-  if (boxScoreCache.has(cacheKey)) return boxScoreCache.get(cacheKey);
+  if (!forceRefresh && boxScoreCache.has(cacheKey)) return boxScoreCache.get(cacheKey);
 
   const promise = (async () => {
     const params = getEspnParams(week);
@@ -6785,6 +6789,23 @@ async function fetchBoxScore(week, awayAbbr, homeAbbr) {
   boxScoreCache.set(cacheKey, promise);
   promise.catch(() => boxScoreCache.delete(cacheKey));
   return promise;
+}
+
+/** Resolves ESPN's situation.possession (a team id string) to "home"/
+ *  "away" using the summary payload's own competitor ids - null if the
+ *  game has no live situation or ESPN dropped possession for this poll
+ *  (a dead-ball moment; BoxScoreModal papers over that with its own
+ *  sticky-possession ref, same idea as applyStickyPossession). */
+function resolveBoxScorePossession(data) {
+  const comp = data.header && data.header.competitions && data.header.competitions[0];
+  const competitors = comp ? comp.competitors : [];
+  const homeC = competitors.find(c => c.homeAway === "home");
+  const awayC = competitors.find(c => c.homeAway === "away");
+  const situation = data._liveSituation;
+  if (!homeC || !awayC || !situation || !situation.possession) return null;
+  if (situation.possession === homeC.id) return "home";
+  if (situation.possession === awayC.id) return "away";
+  return null;
 }
 
 /** Curated subset of ESPN's ~24 team-stat fields - enough for a useful
@@ -6890,13 +6911,75 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
     };
   }, [onClose]);
 
+  const lastPossessionRef = useRef(fallbackPossession || null);
+
   useEffect(() => {
     let cancelled = false;
-    setState({ status: "loading", data: null, error: null });
-    fetchBoxScore(week, awayAbbr, homeAbbr)
-      .then(data => { if (!cancelled) setState({ status: "ready", data, error: null }); })
-      .catch(err => { if (!cancelled) setState({ status: "error", data: null, error: (err && err.message) || "Couldn't load the box score." }); });
-    return () => { cancelled = true; };
+    let timer = null;
+    let backoff = BACKOFF_BASE_MS;
+    lastPossessionRef.current = fallbackPossession || null; // fresh game, fresh memory
+
+    function schedule(ms) {
+      if (cancelled) return;
+      timer = setTimeout(pollTick, ms);
+    }
+
+    function pollTick() {
+      // Don't spend requests on a backgrounded tab - matches
+      // useLiveScores' handling for the same reason.
+      if (document.hidden) {
+        schedule(LIVE_POLL_MS);
+        return;
+      }
+      load(true);
+    }
+
+    function load(isRefresh) {
+      if (!isRefresh) setState({ status: "loading", data: null, error: null });
+      fetchBoxScore(week, awayAbbr, homeAbbr, isRefresh)
+        .then(data => {
+          if (cancelled) return;
+          const resolved = resolveBoxScorePossession(data);
+          if (resolved) lastPossessionRef.current = resolved;
+          data._resolvedPossession = resolved || lastPossessionRef.current || null;
+          setState({ status: "ready", data, error: null });
+          backoff = BACKOFF_BASE_MS;
+          // Only keep polling while the game is actually in progress -
+          // once it goes final (or if it somehow hasn't kicked off yet)
+          // there's nothing left to refresh.
+          const stillLive = !!(data._liveStatus && data._liveStatus.type && data._liveStatus.type.state === "in");
+          if (stillLive) schedule(LIVE_POLL_MS);
+        })
+        .catch(err => {
+          if (cancelled) return;
+          if (!isRefresh) {
+            setState({ status: "error", data: null, error: (err && err.message) || "Couldn't load the box score." });
+          } else {
+            // A background refresh failed - keep showing whatever box
+            // score is already on screen rather than replacing it with
+            // an error, and back off before trying again.
+            schedule(backoff);
+            backoff = Math.min(backoff * 2, BACKOFF_MAX_MS);
+          }
+        });
+    }
+
+    function onVisibilityChange() {
+      // Coming back into view - refresh right away instead of waiting
+      // out whatever interval was scheduled while the tab was hidden.
+      if (!document.hidden && timer) {
+        clearTimeout(timer);
+        load(true);
+      }
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    load(false);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [week, awayAbbr, homeAbbr]);
 
   let scoreLabel = `${awayAbbr} @ ${homeAbbr}`;
@@ -6930,32 +7013,17 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
       // Down/distance/possession/last-play only live on the scoreboard
       // endpoint's competition object (captured as _liveStatus/_liveSituation
       // in fetchBoxScore) - the summary endpoint's own comp.status here has
-      // no `situation` field at all, live game or not. Team ids are
-      // consistent across both ESPN endpoints, so homeC.id/awayC.id from
-      // the summary header still correctly resolve situation.possession.
+      // no `situation` field at all, live game or not. Possession itself
+      // is pre-resolved (and sticky-corrected across dead-ball moments via
+      // lastPossessionRef) in the polling effect above as
+      // _resolvedPossession, rather than recomputed on every render.
       const liveStatus = state.data._liveStatus;
       if (liveStatus && liveStatus.type && liveStatus.type.state === "in") {
         const situation = state.data._liveSituation;
-        let possession = null;
-        if (situation && situation.possession) {
-          if (situation.possession === homeC.id) possession = "home";
-          else if (situation.possession === awayC.id) possession = "away";
-        }
-        // ESPN drops `situation.possession` around dead-ball moments -
-        // timeouts, the gap right after a score, two-minute warning, etc.
-        // (see applyStickyPossession, which papers over the same gap for
-        // the live game-card polling). This modal only fetches once
-        // on open rather than polling, so it has no poll history of its
-        // own to fall back on - instead it takes whatever possession the
-        // game card already had (itself sticky-corrected) at the moment
-        // the modal was opened, passed down as fallbackPossession.
-        if (!possession && fallbackPossession) {
-          possession = fallbackPossession;
-        }
         liveInfo = {
           period: liveStatus.period,
           clock: liveStatus.displayClock,
-          possession,
+          possession: state.data._resolvedPossession || null,
           downDistanceText: situation ? (situation.shortDownDistanceText || situation.downDistanceText || null) : null,
           isRedZone: !!(situation && situation.isRedZone),
           lastPlay: situation && situation.lastPlay ? situation.lastPlay.text || null : null,

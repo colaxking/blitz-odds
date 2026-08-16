@@ -6788,6 +6788,16 @@ async function fetchBoxScore(week, awayAbbr, homeAbbr, forceRefresh) {
 
   boxScoreCache.set(cacheKey, promise);
   promise.catch(() => boxScoreCache.delete(cacheKey));
+  // Only let a cached snapshot be reused for games that are actually done -
+  // for a live (or not-yet-started) game, evict right after resolving so
+  // the *next* open (e.g. reopening the modal later in the same live game)
+  // always hits ESPN fresh instead of instantly showing however stale the
+  // last-cached snapshot is. Without this, reopening a live game's box
+  // score can flash an old quarter/clock until the 30s poll catches up.
+  promise.then(data => {
+    const liveState = data._liveStatus && data._liveStatus.type && data._liveStatus.type.state;
+    if (liveState !== "post") boxScoreCache.delete(cacheKey);
+  });
   return promise;
 }
 

@@ -70,6 +70,21 @@
   .range-pill:hover { color: var(--text); }
   .range-pill.active { background: var(--accent-dim); color: #fff; }
 
+  .global-range-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px 12px; margin-bottom: 18px;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 10px 14px;
+  }
+  .global-range-label {
+    font-size: 0.78rem; font-weight: 600; color: var(--text);
+  }
+  .global-range-sub {
+    display: block; font-size: 0.68rem; font-weight: 400; color: var(--text-faint); margin-top: 1px;
+  }
+  .chart-hint { font-size: 0.72rem; color: var(--text-faint); }
+  #pvChart { cursor: pointer; }
+
   .kpi-row {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 12px; margin-bottom: 18px;
@@ -124,6 +139,66 @@
   table.loc-table td.num { text-align: right; color: var(--text-dim); }
 
   .empty { color: var(--text-faint); font-size: 0.78rem; padding: 4px 0; text-align: left; }
+
+  /* Clickable drill-down affordances */
+  .bar-row.clickable, table.loc-table tr.clickable, .kpi.clickable {
+    cursor: pointer;
+  }
+  .bar-row.clickable:hover .bname,
+  table.loc-table tr.clickable:hover td,
+  .kpi.clickable:hover {
+    color: var(--accent);
+  }
+  .kpi.clickable:hover { border-color: var(--accent-dim); }
+  .bar-row.clickable:hover .bar-fill { filter: brightness(1.15); }
+
+  /* Drill-down panel */
+  #drillBackdrop {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.6);
+    display: none; z-index: 40;
+  }
+  #drillBackdrop.open { display: block; }
+  #drillPanel {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 100%; max-width: 420px;
+    background: var(--card-bg); border-left: 1px solid var(--card-border);
+    z-index: 41; transform: translateX(100%); transition: transform 0.18s ease-out;
+    display: flex; flex-direction: column;
+  }
+  #drillPanel.open { transform: translateX(0); }
+  .drill-head {
+    padding: 16px; border-bottom: 1px solid var(--card-border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  }
+  .drill-title { font-size: 0.95rem; font-weight: 650; }
+  .drill-sub { font-size: 0.75rem; color: var(--text-dim); margin-top: 3px; }
+  .drill-close {
+    background: none; border: 1px solid var(--card-border); color: var(--text-dim);
+    width: 28px; height: 28px; border-radius: 7px; cursor: pointer; font-size: 0.9rem; flex-shrink: 0;
+  }
+  .drill-back {
+    background: none; border: none; color: var(--accent); font-family: inherit;
+    font-size: 0.78rem; cursor: pointer; padding: 0; margin-bottom: 10px;
+  }
+  .drill-body { padding: 14px 16px; overflow-y: auto; flex: 1; }
+  .session-row {
+    padding: 10px 0; border-bottom: 1px solid #182238; cursor: pointer;
+  }
+  .session-row:hover .session-id { color: var(--accent); }
+  .session-row:last-child { border-bottom: none; }
+  .session-id { font-size: 0.82rem; font-weight: 600; font-family: ui-monospace, monospace; }
+  .session-meta { font-size: 0.72rem; color: var(--text-dim); margin-top: 3px; }
+  .session-badge {
+    display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 1px 6px;
+    border-radius: 10px; margin-left: 6px; background: rgba(107,227,161,0.15); color: var(--good);
+  }
+  .session-badge.off { background: rgba(85,96,119,0.2); color: var(--text-faint); }
+  .timeline-item { padding: 8px 0; border-bottom: 1px solid #182238; font-size: 0.78rem; }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-time { color: var(--text-faint); font-size: 0.68rem; margin-top: 2px; }
+  .drill-loadmore {
+    width: 100%; margin-top: 8px; background: none; border: 1px dashed var(--card-border);
+    color: var(--text-dim); font-family: inherit; font-size: 0.76rem; padding: 8px; border-radius: 8px; cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -137,20 +212,33 @@
     </div>
   </header>
 
+  <div class="global-range-row">
+    <div class="global-range-label">Time range <span class="global-range-sub">applies to every tile below</span></div>
+    <div class="range-pills" id="rangePills">
+      <button class="range-pill" data-range="24h">24H</button>
+      <button class="range-pill" data-range="7d">7D</button>
+      <button class="range-pill active" data-range="30d">30D</button>
+      <button class="range-pill" data-range="3m">3M</button>
+      <button class="range-pill" data-range="6m">6M</button>
+      <button class="range-pill" data-range="1y">1Y</button>
+      <button class="range-pill" data-range="all">ALL</button>
+    </div>
+  </div>
+
   <div class="kpi-row">
-    <div class="kpi">
+    <div class="kpi clickable" id="kpiPageviewsCard" data-dimension="all" data-value="" data-label="All visitors">
       <div class="label">Total pageviews</div>
       <div class="value" id="kpiPageviews">—</div>
     </div>
-    <div class="kpi">
+    <div class="kpi clickable" id="kpiVisitorsCard" data-dimension="all" data-value="" data-label="All visitors">
       <div class="label">Unique visitors</div>
       <div class="value" id="kpiVisitors">—</div>
     </div>
-    <div class="kpi">
+    <div class="kpi" id="kpiFavTeamCard">
       <div class="label">Top favorite</div>
       <div class="value" id="kpiFavTeam">—</div>
     </div>
-    <div class="kpi">
+    <div class="kpi" id="kpiTopLocCard">
       <div class="label">Top location</div>
       <div class="value" id="kpiTopLoc" style="font-size:1.05rem;">—</div>
     </div>
@@ -159,15 +247,7 @@
   <div class="card">
     <div class="card-head-row">
       <h2 style="margin:0;">Pageviews</h2>
-      <div class="range-pills" id="rangePills">
-        <button class="range-pill" data-range="24h">24H</button>
-        <button class="range-pill" data-range="7d">7D</button>
-        <button class="range-pill active" data-range="30d">30D</button>
-        <button class="range-pill" data-range="3m">3M</button>
-        <button class="range-pill" data-range="6m">6M</button>
-        <button class="range-pill" data-range="1y">1Y</button>
-        <button class="range-pill" data-range="all">ALL</button>
-      </div>
+      <div class="chart-hint">Tap a bar to see who visited then</div>
     </div>
     <div class="chart-wrap"><canvas id="pvChart"></canvas></div>
   </div>
@@ -194,6 +274,22 @@
       <div class="bar-list" id="topPlayersList"></div>
     </div>
     <div class="card">
+      <h2>News sources clicked</h2>
+      <div class="bar-list" id="newsSourceList"></div>
+    </div>
+    <div class="card">
+      <h2>Theme</h2>
+      <div class="bar-list" id="themeList"></div>
+    </div>
+    <div class="card">
+      <h2>Sportsbook</h2>
+      <div class="bar-list" id="sportsbookList"></div>
+    </div>
+    <div class="card">
+      <h2>Time zone</h2>
+      <div class="bar-list" id="tzPrefList"></div>
+    </div>
+    <div class="card">
       <h2>Top cities</h2>
       <table class="loc-table" id="cityTable">
         <thead><tr><th>City</th><th class="num">Visitors</th><th class="num">Views</th></tr></thead>
@@ -205,6 +301,18 @@
       <div class="bar-list" id="deviceList"></div>
     </div>
   </div>
+</div>
+
+<div id="drillBackdrop"></div>
+<div id="drillPanel">
+  <div class="drill-head">
+    <div>
+      <div class="drill-title" id="drillTitle">—</div>
+      <div class="drill-sub" id="drillSub"></div>
+    </div>
+    <button class="drill-close" id="drillClose" aria-label="Close">✕</button>
+  </div>
+  <div class="drill-body" id="drillBody"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
@@ -259,7 +367,11 @@
     return out;
   }
 
-  function renderBarList(containerId, dataObj, emptyMsg) {
+  // `dimension` matches a VALID_DIMENSIONS entry in analytics-sessions.mts.
+  // When omitted, the tile isn't clickable (nothing to filter sessions by).
+  // `valueFn` maps a displayed label back to the raw filter value, for cases
+  // where display label != stored value (e.g. "Mobile" shown, "mobile" filtered).
+  function renderBarList(containerId, dataObj, emptyMsg, dimension, valueFn) {
     var el = document.getElementById(containerId);
     var entries = Object.entries(dataObj || {}).slice(0, 8);
     if (entries.length === 0) {
@@ -270,8 +382,12 @@
     el.innerHTML = entries
       .map(function (e) {
         var pct = max > 0 ? Math.max(4, Math.round((e[1] / max) * 100)) : 0;
+        var rawValue = dimension ? (valueFn ? valueFn(e[0]) : e[0]) : null;
+        var attrs = dimension
+          ? ' class="bar-row clickable" data-dimension="' + dimension + '" data-value="' + escapeHtml(rawValue) + '" data-label="' + escapeHtml(e[0]) + '"'
+          : ' class="bar-row"';
         return (
-          '<div class="bar-row"><div class="bname">' +
+          "<div" + attrs + "><div class=\"bname\">" +
           escapeHtml(e[0]) +
           '</div><div class="bar-track"><div class="bar-fill" style="width:' +
           pct +
@@ -292,9 +408,14 @@
     }
     tbody.innerHTML = top
       .map(function (c) {
+        var label = c.label || "Unknown";
         return (
-          "<tr><td>" +
-          escapeHtml(c.label || "Unknown") +
+          '<tr class="clickable" data-dimension="city" data-value="' +
+          escapeHtml(label) +
+          '" data-label="' +
+          escapeHtml(label) +
+          '"><td>' +
+          escapeHtml(label) +
           '</td><td class="num">' +
           fmtNum(c.uniqueVisitors) +
           '</td><td class="num">' +
@@ -309,6 +430,9 @@
   // [{label:"mobile", uniqueVisitors, pageviews}, ...]. renderBarList wants
   // a plain {label: count} object, insertion-ordered - so this reshapes
   // without re-sorting, then drops "unknown" and title-cases for display.
+  // Keeps a label->rawValue map since the index stores the lowercase value
+  // ("mobile") but the tile displays the title-cased one ("Mobile").
+  var deviceLabelToRaw = {};
   function deviceBarData(list) {
     var raw = {};
     (list || []).forEach(function (d) {
@@ -316,11 +440,224 @@
     });
     var filtered = omitUnknown(raw);
     var out = {};
+    deviceLabelToRaw = {};
     Object.keys(filtered).forEach(function (k) {
-      out[k.charAt(0).toUpperCase() + k.slice(1)] = filtered[k];
+      var display = k.charAt(0).toUpperCase() + k.slice(1);
+      out[display] = filtered[k];
+      deviceLabelToRaw[display] = k;
     });
     return out;
   }
+
+  // themeDistribution/sportsbookDistribution/tzPrefDistribution arrive as
+  // {rawValue: uniqueVisitorCount} already sorted desc. Same label/raw-value
+  // split as deviceBarData, since the dashboard displays a friendlier label
+  // than the raw stored preference value.
+  var themeLabelToRaw = {};
+  function themeBarData(dist) {
+    var out = {};
+    themeLabelToRaw = {};
+    Object.keys(dist || {}).forEach(function (k) {
+      var display = k.charAt(0).toUpperCase() + k.slice(1);
+      out[display] = dist[k];
+      themeLabelToRaw[display] = k;
+    });
+    return out;
+  }
+
+  var sportsbookLabelToRaw = {};
+  function sportsbookBarData(dist) {
+    var out = {};
+    sportsbookLabelToRaw = {};
+    Object.keys(dist || {}).forEach(function (k) {
+      var display = k.charAt(0).toUpperCase() + k.slice(1);
+      out[display] = dist[k];
+      sportsbookLabelToRaw[display] = k;
+    });
+    return out;
+  }
+
+  var tzPrefLabelToRaw = {};
+  function tzPrefBarData(dist) {
+    var out = {};
+    tzPrefLabelToRaw = {};
+    Object.keys(dist || {}).forEach(function (k) {
+      var display = k === "auto" ? "Auto (device)" : k;
+      out[display] = dist[k];
+      tzPrefLabelToRaw[display] = k;
+    });
+    return out;
+  }
+
+  // ---------------------------------------------------------------------
+  // Drill-down panel: click any tile row (or a KPI) to see which visitors
+  // (anonymous per-browser ids, never a real identity) matched it, then
+  // click a visitor to see their full event timeline.
+  // ---------------------------------------------------------------------
+  var SESSIONS_ENDPOINT = "/.netlify/functions/analytics-sessions";
+  var backdrop = document.getElementById("drillBackdrop");
+  var panel = document.getElementById("drillPanel");
+  var drillTitle = document.getElementById("drillTitle");
+  var drillSub = document.getElementById("drillSub");
+  var drillBody = document.getElementById("drillBody");
+  var drillState = null; // { dimension, value, label }
+
+  function openDrill(dimension, value, label) {
+    drillState = { dimension: dimension, value: value, label: label };
+    drillTitle.textContent = label;
+    drillSub.textContent = "Loading visitors…";
+    drillBody.innerHTML = "";
+    backdrop.classList.add("open");
+    panel.classList.add("open");
+    fetchSessionList(dimension, value);
+  }
+
+  function closeDrill() {
+    backdrop.classList.remove("open");
+    panel.classList.remove("open");
+    drillState = null;
+  }
+  backdrop.addEventListener("click", closeDrill);
+  document.getElementById("drillClose").addEventListener("click", closeDrill);
+
+  function relTime(ts) {
+    if (!ts) return "";
+    var diff = Date.now() - ts;
+    var mins = Math.round(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + "m ago";
+    var hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + "h ago";
+    var days = Math.round(hrs / 24);
+    return days + "d ago";
+  }
+
+  function rangeLabel(range) {
+    var labels = { "24h": "last 24 hours", "7d": "last 7 days", "30d": "last 30 days", "3m": "last 3 months", "6m": "last 6 months", "1y": "last year", "all": "all time" };
+    return labels[range] || range;
+  }
+
+  function sessionRowHtml(s, dimension) {
+    var loc = s.city || s.country || "Unknown location";
+    var device = s.device ? s.device.charAt(0).toUpperCase() + s.device.slice(1) : "Unknown device";
+    var badge = "";
+    if (dimension === "favTeam" && typeof s.activeForFilter === "boolean") {
+      badge = s.activeForFilter
+        ? '<span class="session-badge">currently favorited</span>'
+        : '<span class="session-badge off">unfavorited since</span>';
+    }
+    return (
+      '<div class="session-row" data-id="' + escapeHtml(s.id) + '">' +
+      '<div class="session-id">Visitor ' + escapeHtml(s.visitorId) + badge + "</div>" +
+      '<div class="session-meta">' +
+      escapeHtml(loc) + " · " + escapeHtml(device) + " · " +
+      fmtNum(s.pageviews) + " pageviews · last seen " + relTime(s.lastSeen) +
+      "</div></div>"
+    );
+  }
+
+  function fetchSessionList(dimension, value) {
+    var url = SESSIONS_ENDPOINT + "?dimension=" + encodeURIComponent(dimension) +
+      (dimension === "all" ? "" : "&value=" + encodeURIComponent(value)) +
+      "&limit=50&range=" + encodeURIComponent(currentRange);
+    fetch(url, { cache: "no-store" })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!drillState || drillState.dimension !== dimension || drillState.value !== value) return;
+        var sessions = (data && data.sessions) || [];
+        if (sessions.length === 0) {
+          drillSub.textContent = "0 visitors";
+          drillBody.innerHTML = '<div class="empty">No matching visitors in the current data.</div>';
+          return;
+        }
+        drillSub.textContent = fmtNum(sessions.length) + " most recent visitor" + (sessions.length === 1 ? "" : "s") +
+          " · " + rangeLabel(currentRange) +
+          (data.truncated ? " (showing a capped subset — there may be more)" : "");
+        drillBody.innerHTML = sessions.map(function (s) { return sessionRowHtml(s, dimension); }).join("");
+      })
+      .catch(function () {
+        if (!drillState || drillState.dimension !== dimension || drillState.value !== value) return;
+        drillSub.textContent = "Couldn't load visitors";
+        drillBody.innerHTML = '<div class="empty">Something went wrong fetching this list.</div>';
+      });
+  }
+
+  function eventLineHtml(ev) {
+    var label;
+    switch (ev.type) {
+      case "pageview": label = "Viewed a page" + (ev.week ? " (" + ev.week + ")" : ""); break;
+      case "team_click": label = "Clicked team " + (ev.teamName || ev.team); break;
+      case "favorite": label = (ev.adding ? "Favorited " : "Unfavorited ") + (ev.teamName || ev.team); break;
+      case "team_tab": label = "Opened \"" + ev.tab + "\" tab" + (ev.team ? " (" + ev.team + ")" : ""); break;
+      case "roster_side": label = "Viewed " + ev.side + " depth chart" + (ev.team ? " (" + ev.team + ")" : ""); break;
+      case "player_view": label = "Viewed player " + ev.player + (ev.source ? " (" + ev.source.replace("_", " ") + ")" : ""); break;
+      default: label = ev.type || "Event";
+    }
+    var d = new Date(ev.ts);
+    return (
+      '<div class="timeline-item">' + escapeHtml(label) +
+      '<div class="timeline-time">' + d.toLocaleString() + "</div></div>"
+    );
+  }
+
+  function openSessionDetail(id) {
+    var backDimension = drillState ? drillState.dimension : "all";
+    var backValue = drillState ? drillState.value : null;
+    var backLabel = drillState ? drillState.label : "All visitors";
+
+    drillTitle.textContent = "Loading…";
+    drillSub.textContent = "";
+    drillBody.innerHTML = "";
+
+    fetch(SESSIONS_ENDPOINT + "?visitorId=" + encodeURIComponent(id), { cache: "no-store" })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || !data.ok || !data.session) {
+          drillTitle.textContent = "Visitor";
+          drillBody.innerHTML = '<div class="empty">Couldn\'t load this visitor.</div>';
+          return;
+        }
+        var s = data.session;
+        drillTitle.textContent = "Visitor " + s.visitorId;
+        var prefBits = [];
+        if (s.theme) prefBits.push(s.theme.charAt(0).toUpperCase() + s.theme.slice(1) + " theme");
+        if (s.sportsbook) prefBits.push(s.sportsbook.charAt(0).toUpperCase() + s.sportsbook.slice(1));
+        if (s.tzPref) prefBits.push(s.tzPref === "auto" ? "Auto timezone" : s.tzPref);
+        drillSub.textContent = (s.city || "Unknown location") + " · " +
+          (s.device ? s.device.charAt(0).toUpperCase() + s.device.slice(1) : "Unknown device") +
+          " · first seen " + relTime(s.firstSeen) +
+          (prefBits.length ? " · " + prefBits.join(" · ") : "");
+
+        var backBtn = '<button class="drill-back" id="drillBackBtn">← Back to ' + escapeHtml(backLabel) + "</button>";
+        var timeline = (s.events || []).map(eventLineHtml).join("");
+        drillBody.innerHTML = backBtn + (timeline || '<div class="empty">No recorded events.</div>');
+
+        document.getElementById("drillBackBtn").addEventListener("click", function () {
+          openDrill(backDimension, backValue, backLabel);
+        });
+      })
+      .catch(function () {
+        drillBody.innerHTML = '<div class="empty">Something went wrong loading this visitor.</div>';
+      });
+  }
+
+  // Delegated click handling for every clickable tile row.
+  document.addEventListener("click", function (e) {
+    var kpi = e.target.closest(".kpi.clickable");
+    if (kpi) {
+      openDrill(kpi.getAttribute("data-dimension"), kpi.getAttribute("data-value") || "", kpi.getAttribute("data-label"));
+      return;
+    }
+    var row = e.target.closest(".bar-row.clickable, table.loc-table tr.clickable");
+    if (row) {
+      openDrill(row.getAttribute("data-dimension"), row.getAttribute("data-value"), row.getAttribute("data-label"));
+      return;
+    }
+    var sessionRow = e.target.closest(".session-row");
+    if (sessionRow) {
+      openSessionDetail(sessionRow.getAttribute("data-id"));
+    }
+  });
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -346,6 +683,30 @@
       labels: points.map(labelFn),
       values: points.map(function (p) { return p.count; }),
     };
+  }
+
+  // Maps chart granularity -> the matching pvHour/pvDay/pvMonth index
+  // dimension written in track.mts, and formats a bucket string into a
+  // human title for the drill-down panel.
+  function pvDimensionForGranularity(granularity) {
+    return granularity === "hour" ? "pvHour" : granularity === "month" ? "pvMonth" : "pvDay";
+  }
+  function pvBucketTitle(bucket, granularity) {
+    if (granularity === "hour") {
+      return new Date(bucket).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
+    }
+    if (granularity === "month") return fmtMonthLabel(bucket);
+    return new Date(bucket + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  function handlePvChartClick(evt, elements) {
+    if (!elements || !elements.length || !latestData) return;
+    var idx = elements[0].index;
+    var points = (latestData.series && latestData.series.points) || [];
+    var point = points[idx];
+    if (!point || !point.count) return; // nothing to drill into on an empty bucket
+    var granularity = latestData.series.granularity;
+    openDrill(pvDimensionForGranularity(granularity), point.bucket, "Visitors — " + pvBucketTitle(point.bucket, granularity));
   }
 
   function renderPvChart(data) {
@@ -386,6 +747,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: handlePvChartClick,
         plugins: {
           legend: { display: false },
           tooltip: { enabled: series.values.length > 0 },
@@ -398,11 +760,28 @@
     });
   }
 
+  // Toggles a KPI card's clickability/data-* attrs based on whether it
+  // currently has a value to filter by (e.g. no top favorite team yet).
+  function setKpiClickable(cardId, dimension, value, label) {
+    var card = document.getElementById(cardId);
+    if (value) {
+      card.classList.add("clickable");
+      card.setAttribute("data-dimension", dimension);
+      card.setAttribute("data-value", value);
+      card.setAttribute("data-label", label);
+    } else {
+      card.classList.remove("clickable");
+      card.removeAttribute("data-dimension");
+    }
+  }
+
   function render(data) {
     document.getElementById("kpiPageviews").textContent = fmtNum(data.totalPageviews);
     document.getElementById("kpiVisitors").textContent = fmtNum(data.uniqueVisitors);
     document.getElementById("kpiFavTeam").textContent = data.topFavoriteTeam || "—";
     document.getElementById("kpiTopLoc").textContent = data.topLocation || "—";
+    setKpiClickable("kpiFavTeamCard", "favTeam", data.topFavoriteTeam, "Favorited " + data.topFavoriteTeam);
+    setKpiClickable("kpiTopLocCard", "city", data.topLocation, data.topLocation);
 
     try {
       if (window.Chart) {
@@ -411,13 +790,25 @@
     } catch (e) {
       /* chart rendering is best-effort; other sections should still work */
     }
-    renderBarList("teamClicksList", data.teamClicksByTeam, "No team clicks yet");
-    renderBarList("favTeamsList", omitUnknown(data.favoritesByTeam), "No favorites yet");
-    renderBarList("rosterViewsList", omitUnknown(data.rosterViewsByTeam), "No roster/depth chart views yet");
-    renderBarList("depthSideList", data.depthChartSideViews, "No depth chart activity yet");
-    renderBarList("topPlayersList", data.topViewedPlayers, "No player lookups yet");
+    renderBarList("teamClicksList", data.teamClicksByTeam, "No team clicks yet", "teamClick");
+    renderBarList("favTeamsList", omitUnknown(data.favoritesByTeam), "No favorites yet", "favTeam");
+    renderBarList("rosterViewsList", omitUnknown(data.rosterViewsByTeam), "No roster/depth chart views yet", "rosterTeam");
+    renderBarList("depthSideList", data.depthChartSideViews, "No depth chart activity yet", "rosterSide");
+    renderBarList("topPlayersList", data.topViewedPlayers, "No player lookups yet", "player");
+    renderBarList("newsSourceList", data.newsSourceClicks, "No news clicks yet", "newsSource");
+    renderBarList("themeList", themeBarData(data.themeDistribution), "No preference data yet", "theme", function (label) {
+      return themeLabelToRaw[label] || label.toLowerCase();
+    });
+    renderBarList("sportsbookList", sportsbookBarData(data.sportsbookDistribution), "No preference data yet", "sportsbook", function (label) {
+      return sportsbookLabelToRaw[label] || label.toLowerCase();
+    });
+    renderBarList("tzPrefList", tzPrefBarData(data.tzPrefDistribution), "No preference data yet", "tzPref", function (label) {
+      return tzPrefLabelToRaw[label] || label;
+    });
     renderCityTable(data.viewsByCity);
-    renderBarList("deviceList", deviceBarData(data.viewsByDevice), "No device data yet");
+    renderBarList("deviceList", deviceBarData(data.viewsByDevice), "No device data yet", "device", function (label) {
+      return deviceLabelToRaw[label] || label.toLowerCase();
+    });
   }
 
   // Every widget on the page is scoped to `currentRange` server-side, so
@@ -463,6 +854,7 @@
     document.querySelectorAll(".range-pill").forEach(function (p) { p.classList.remove("active"); });
     btn.classList.add("active");
     currentRange = btn.getAttribute("data-range");
+    closeDrill(); // avoid showing a drill-down list scoped to the old range
     fetchAndRender(false);
   });
 

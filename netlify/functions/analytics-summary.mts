@@ -68,8 +68,18 @@ type EventRecord = {
   side?: string;
   player?: string;
   source?: string;
+  newsSource?: string;
+  headline?: string;
   location?: LocationInfo;
   device?: string;
+};
+
+type SessionRecord = {
+  visitorId?: string;
+  theme?: string;
+  sportsbookPref?: string;
+  tzPref?: string;
+  events?: EventRecord[];
 };
 
 function jsonResponse(status: number, body: unknown) {
@@ -175,6 +185,10 @@ function emptySummary(now: number, range: Range) {
     rosterViewsByTeam: {} as Record<string, number>,
     depthChartSideViews: {} as Record<string, number>,
     topViewedPlayers: {} as Record<string, number>,
+    newsSourceClicks: {} as Record<string, number>,
+    themeDistribution: {} as Record<string, number>,
+    sportsbookDistribution: {} as Record<string, number>,
+    tzPrefDistribution: {} as Record<string, number>,
     viewsByCountry: [] as LocationBucket[],
     viewsByCity: [] as LocationBucket[],
     topLocation: null as string | null,
@@ -200,26 +214,54 @@ export default async (req: Request, _context: Context) => {
 
   try {
     const store = getStore("blitz-analytics");
-    const { blobs } = await store.list();
 
-    if (!blobs || blobs.length === 0) {
+    // Sessions are now the source of truth (see track.mts): one blob per
+    // visitor instead of one per event, so this scan reads roughly
+    // events-per-visitor times fewer blobs than the old model, and that
+    // ratio only improves as traffic grows. Paginated with a hard cap so a
+    // very large visitor base can't run this past the function's time
+    // budget - see the note above emptySummary if you hit MAX_SESSION_PAGES
+    // in practice; at that point these dashboard-wide aggregates should move
+    // to precomputed rolling counters instead of a full scan.
+    const MAX_SESSION_PAGES = 40; // ~40 x up-to-1000 = up to ~40k sessions
+    const sessionRecords: SessionRecord[] = [];
+    let pages = 0;
+    for await (const page of store.list({ prefix: "session:", paginate: true })) {
+      const pageSessions = await Promise.all(
+        page.blobs.map(async (b) => {
+          try {
+            return await store.get(b.key, { type: "json" });
+          } catch {
+            return null;
+          }
+        })
+      );
+      sessionRecords.push(...pageSessions);
+      pages += 1;
+      if (pages >= MAX_SESSION_PAGES) break;
+    }
+
+    if (sessionRecords.length === 0) {
       return jsonResponse(200, emptySummary(now, range));
     }
 
-    const records = await Promise.all(
-      blobs.map(async (b) => {
-        try {
-          const data = await store.get(b.key, { type: "json" });
-          return data as EventRecord | null;
-        } catch {
-          return null;
+    // Flatten each session's capped event log back into a flat event stream,
+    // decorated with the session's visitorId - everything below this point
+    // is unchanged from the old per-event-blob model, since it only ever
+    // operated on a flat EventRecord[] anyway.
+    const allValidRecords: EventRecord[] = [];
+    for (const s of sessionRecords) {
+      if (!s || typeof s !== "object" || !Array.isArray(s.events)) continue;
+      for (const ev of s.events) {
+        if (ev && typeof ev === "object" && typeof ev.ts === "number") {
+          allValidRecords.push({ ...ev, visitorId: s.visitorId });
         }
-      })
-    );
+      }
+    }
 
-    const allValidRecords = records.filter(
-      (r): r is EventRecord => !!r && typeof r === "object" && typeof r.ts === "number"
-    );
+    if (allValidRecords.length === 0) {
+      return jsonResponse(200, emptySummary(now, range));
+    }
 
     // How many distinct months of data exist at all - used so "all" zero-fills
     // exactly as many months as there's history for, no more, no less.
@@ -307,6 +349,39 @@ export default async (req: Request, _context: Context) => {
     // or the full roster table, aggregated by player across all teams ---
     const playerViews = validRecords.filter((r) => r.type === "player_view");
     const topViewedPlayers = sortedCounts(playerViews, (r) => r.player);
+
+    // --- newsSourceClicks: which outlet's headlines get clicked, from the
+    // scrolling news ticker - an action count, same shape as team clicks ---
+    const newsClicks = validRecords.filter((r) => r.type === "news_click");
+    const newsSourceClicks = sortedCounts(newsClicks, (r) => r.newsSource);
+
+    // --- themeDistribution / sportsbookDistribution / tzPrefDistribution:
+    // unlike the click-count tiles above, these answer "what are people
+    // currently set to", not "how many times did they change it" - so
+    // they're built from each session's latest known preference (sent as a
+    // snapshot on every pageview, see js/analytics.js's readPreference, so a
+    // visitor who never opens Settings still reports their effective
+    // default instead of being absent). Only sessions that have visited
+    // since this tracking shipped will have a value here; older sessions
+    // are skipped rather than assumed to be on any particular default.
+    const sessionsInRange = sessionRecords.filter((s) => {
+      if (!Array.isArray(s.events)) return false;
+      return s.events.some((ev) => typeof ev.ts === "number" && (cutoff === null || ev.ts >= cutoff));
+    });
+    function sessionPrefCounts(pick: (s: SessionRecord) => string | undefined): Record<string, number> {
+      const map = new Map<string, number>();
+      for (const s of sessionsInRange) {
+        const key = pick(s);
+        if (!key) continue;
+        map.set(key, (map.get(key) || 0) + 1);
+      }
+      const out: Record<string, number> = {};
+      for (const [k, v] of Array.from(map.entries()).sort((a, b) => b[1] - a[1])) out[k] = v;
+      return out;
+    }
+    const themeDistribution = sessionPrefCounts((s) => s.theme);
+    const sportsbookDistribution = sessionPrefCounts((s) => s.sportsbookPref);
+    const tzPrefDistribution = sessionPrefCounts((s) => s.tzPref);
 
     // --- viewsByCountry / viewsByCity: where unique views are coming from ---
     // Grouped from pageview events that carried a `location` (Netlify's
@@ -407,6 +482,10 @@ export default async (req: Request, _context: Context) => {
       rosterViewsByTeam,
       depthChartSideViews,
       topViewedPlayers,
+      newsSourceClicks,
+      themeDistribution,
+      sportsbookDistribution,
+      tzPrefDistribution,
       viewsByCountry,
       viewsByCity,
       topLocation,

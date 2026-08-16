@@ -9028,6 +9028,7 @@ function NewsTicker() {
         href={item.url}
         target="_blank"
         rel="noopener noreferrer"
+        data-news-source={item.source || "Unknown"}
         tabIndex={hidden ? -1 : undefined}
         aria-hidden={hidden || undefined}
       >

@@ -87,6 +87,27 @@
 
     var deviceType = detectDeviceType();
 
+    // Same storage keys and fallback defaults the app itself uses (see
+    // useThemeManager / useSportsbookManager / useTimezoneManager in
+    // index.html) - read directly rather than hooking React state, so a
+    // visitor who never opens Settings still reports their effective
+    // (default) preference instead of being silently absent from the data.
+    var THEME_KEY = "blitz-odds-theme";
+    var SPORTSBOOK_KEY = "blitz-odds-sportsbook";
+    var TIMEZONE_KEY = "blitz-odds-timezone";
+    var THEME_DEFAULT = "system";
+    var SPORTSBOOK_DEFAULT = "draftkings";
+    var TIMEZONE_DEFAULT = "auto";
+
+    function readPreference(key, fallback) {
+      try {
+        var v = window.localStorage.getItem(key);
+        return v || fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
     function getCurrentWeekLabel() {
       try {
         // The custom week dropdown ("WeekNav") renders its current selection
@@ -129,6 +150,9 @@
           visitorId: visitorId,
           ts: Date.now(),
           week: getCurrentWeekLabel(),
+          theme: readPreference(THEME_KEY, THEME_DEFAULT),
+          sportsbook: readPreference(SPORTSBOOK_KEY, SPORTSBOOK_DEFAULT),
+          timezone: readPreference(TIMEZONE_KEY, TIMEZONE_DEFAULT),
         });
       } catch (e) {
         /* ignore */
@@ -277,6 +301,19 @@
             teamName: pvCtx.teamName || undefined,
             player: playerEl.textContent ? playerEl.textContent.trim() : undefined,
             source: depthPlayerEl ? "depth_chart" : "full_roster",
+          });
+          return;
+        }
+
+        var newsEl = target.closest(".news-ticker-item");
+        if (newsEl) {
+          var headlineEl = newsEl.querySelector(".news-ticker-headline");
+          sendEvent({
+            type: "news_click",
+            visitorId: visitorId,
+            ts: Date.now(),
+            source: newsEl.getAttribute("data-news-source") || "Unknown",
+            headline: headlineEl && headlineEl.textContent ? headlineEl.textContent.trim().slice(0, 160) : undefined,
           });
         }
       } catch (e) {

@@ -140,7 +140,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -218,6 +218,7 @@ export default async (req: Request, context: Context) => {
       if (typeof theme === "string" && theme) record.theme = theme.slice(0, 32);
       if (typeof sportsbook === "string" && sportsbook) record.sportsbook = sportsbook.slice(0, 64);
       if (typeof timezone === "string" && timezone) record.tzPref = timezone.slice(0, 64);
+      if (typeof page === "string" && page) record.page = page.slice(0, 160);
     }
 
     const location = extractLocation(context);

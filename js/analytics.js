@@ -124,6 +124,39 @@
       return null;
     }
 
+    // A human-readable label for whatever's currently on screen, since this
+    // is a single-page app with no URL/route changes to read instead - every
+    // pageview otherwise looks identical in a visitor's timeline. Read-only
+    // DOM inspection, same pattern as getCurrentWeekLabel/findActiveTeamContext:
+    // presence of ".team-view-header" means a team page is open (and which
+    // tab - Schedule/Roster & Depth Chart/News - is read from the active
+    // ".team-tab-btn"); otherwise it's the week view, labeled by the
+    // selected week.
+    function getCurrentPageLabel() {
+      try {
+        var header = document.querySelector(".team-view-header");
+        if (header) {
+          var img = header.querySelector("img.badge-img");
+          var team = img && img.getAttribute("alt") ? img.getAttribute("alt") : null;
+          if (!team) {
+            var fallback = header.querySelector(".badge-fallback");
+            if (fallback && fallback.textContent) team = fallback.textContent.trim();
+          }
+          var nameEl = header.querySelector("h2");
+          var teamName = nameEl && nameEl.textContent ? nameEl.textContent.trim() : null;
+          var teamLabel = teamName || team || "a team";
+
+          var tabEl = document.querySelector(".team-tab-btn.active");
+          var tab = tabEl && tabEl.textContent ? tabEl.textContent.trim() : null;
+          return tab ? teamLabel + " \u2014 " + tab : teamLabel + " team page";
+        }
+        var week = getCurrentWeekLabel();
+        return week || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
     function sendEvent(payload) {
       try {
         payload.device = deviceType;
@@ -150,6 +183,7 @@
           visitorId: visitorId,
           ts: Date.now(),
           week: getCurrentWeekLabel(),
+          page: getCurrentPageLabel(),
           theme: readPreference(THEME_KEY, THEME_DEFAULT),
           sportsbook: readPreference(SPORTSBOOK_KEY, SPORTSBOOK_DEFAULT),
           timezone: readPreference(TIMEZONE_KEY, TIMEZONE_DEFAULT),

@@ -623,7 +623,7 @@
   function eventLineHtml(ev) {
     var label;
     switch (ev.type) {
-      case "pageview": label = "Viewed a page" + (ev.week ? " (" + ev.week + ")" : ""); break;
+      case "pageview": label = ev.page ? "Viewed " + ev.page : "Viewed a page" + (ev.week ? " (" + ev.week + ")" : ""); break;
       case "team_click": label = "Clicked team " + (ev.teamName || ev.team); break;
       case "favorite": label = (ev.adding ? "Favorited " : "Unfavorited ") + (ev.teamName || ev.team); break;
       case "team_tab": label = "Opened \"" + ev.tab + "\" tab" + (ev.team ? " (" + ev.team + ")" : ""); break;

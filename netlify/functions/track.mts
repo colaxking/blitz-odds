@@ -26,6 +26,7 @@ const VALID_TYPES = new Set([
   "roster_side",
   "player_view",
   "news_click",
+  "boxscore_click",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -139,7 +140,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -168,6 +169,10 @@ export default async (req: Request, context: Context) => {
       if (teamName) record.teamName = String(teamName).slice(0, 128);
     }
 
+    if (type === "team_click" && (origin === "game_card" || origin === "favorites_bar")) {
+      record.origin = origin;
+    }
+
     if (type === "favorite") {
       record.adding = adding === true;
     }
@@ -188,6 +193,12 @@ export default async (req: Request, context: Context) => {
     if (type === "news_click") {
       record.newsSource = source ? String(source).slice(0, 128) : "unknown";
       if (headline) record.headline = String(headline).slice(0, 200);
+      if (placement === "ticker" || placement === "team_news") record.placement = placement;
+    }
+
+    if (type === "boxscore_click") {
+      if (away) record.away = String(away).slice(0, 64);
+      if (home) record.home = String(home).slice(0, 64);
     }
 
     if (week !== undefined && week !== null && week !== "") {
@@ -284,14 +295,26 @@ export default async (req: Request, context: Context) => {
       addIndex("sportsbook", record.sportsbook as string | undefined);
       addIndex("tzPref", record.tzPref as string | undefined);
     }
-    if (type === "team_click") addIndex("teamClick", record.team as string | undefined);
+    if (type === "team_click") {
+      addIndex("teamClick", record.team as string | undefined);
+      addIndex("teamClickOrigin", record.origin as string | undefined);
+    }
     if (type === "favorite" && record.adding) addIndex("favTeam", record.team as string | undefined);
     if (type === "team_tab" && record.tab === "Roster & Depth Chart") {
       addIndex("rosterTeam", record.team as string | undefined);
     }
     if (type === "roster_side") addIndex("rosterSide", record.side as string | undefined);
     if (type === "player_view") addIndex("player", record.player as string | undefined);
-    if (type === "news_click") addIndex("newsSource", record.newsSource as string | undefined);
+    if (type === "news_click") {
+      addIndex("newsSource", record.newsSource as string | undefined);
+      addIndex("newsPlacement", record.placement as string | undefined);
+    }
+    if (type === "boxscore_click") {
+      // Indexed under both teams in the matchup, so "who's clicking into
+      // DEN box scores" works regardless of whether DEN was home or away.
+      addIndex("boxscoreTeam", record.away as string | undefined);
+      addIndex("boxscoreTeam", record.home as string | undefined);
+    }
 
     await Promise.all(writes);
 

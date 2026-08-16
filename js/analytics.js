@@ -256,6 +256,34 @@
             team: teamVal,
             teamName: ci.teamName || undefined,
             week: getCurrentWeekLabel(),
+            origin: "game_card",
+          });
+          return;
+        }
+
+        var favChipEl = target.closest(".fav-chip");
+        if (favChipEl) {
+          sendEvent({
+            type: "team_click",
+            visitorId: visitorId,
+            ts: Date.now(),
+            team: favChipEl.getAttribute("data-team") || "unknown",
+            teamName: favChipEl.getAttribute("data-team-name") || undefined,
+            week: getCurrentWeekLabel(),
+            origin: "favorites_bar",
+          });
+          return;
+        }
+
+        var boxScoreEl = target.closest(".score-link-btn");
+        if (boxScoreEl) {
+          sendEvent({
+            type: "boxscore_click",
+            visitorId: visitorId,
+            ts: Date.now(),
+            away: boxScoreEl.getAttribute("data-away") || undefined,
+            home: boxScoreEl.getAttribute("data-home") || undefined,
+            week: boxScoreEl.getAttribute("data-week") || getCurrentWeekLabel(),
           });
           return;
         }
@@ -314,6 +342,24 @@
             ts: Date.now(),
             source: newsEl.getAttribute("data-news-source") || "Unknown",
             headline: headlineEl && headlineEl.textContent ? headlineEl.textContent.trim().slice(0, 160) : undefined,
+            placement: "ticker",
+          });
+          return;
+        }
+
+        // Team News panel - a second, separate news surface (per-team page)
+        // from the scrolling ticker above. Same event type, tagged with
+        // `placement` so the two can be told apart or looked at together.
+        var teamNewsEl = target.closest(".news-item");
+        if (teamNewsEl) {
+          var headlineTextEl = teamNewsEl.querySelector(".news-item-headline");
+          sendEvent({
+            type: "news_click",
+            visitorId: visitorId,
+            ts: Date.now(),
+            source: teamNewsEl.getAttribute("data-news-source") || "Unknown",
+            headline: headlineTextEl && headlineTextEl.textContent ? headlineTextEl.textContent.trim().slice(0, 160) : undefined,
+            placement: "team_news",
           });
         }
       } catch (e) {

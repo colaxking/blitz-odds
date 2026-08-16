@@ -278,6 +278,18 @@
       <div class="bar-list" id="newsSourceList"></div>
     </div>
     <div class="card">
+      <h2>News clicks by placement</h2>
+      <div class="bar-list" id="newsPlacementList"></div>
+    </div>
+    <div class="card">
+      <h2>Team clicks by origin</h2>
+      <div class="bar-list" id="teamOriginList"></div>
+    </div>
+    <div class="card">
+      <h2>Box scores opened by team</h2>
+      <div class="bar-list" id="boxscoreTeamList"></div>
+    </div>
+    <div class="card">
       <h2>Theme</h2>
       <div class="bar-list" id="themeList"></div>
     </div>
@@ -485,6 +497,32 @@
       var display = k === "auto" ? "Auto (device)" : k;
       out[display] = dist[k];
       tzPrefLabelToRaw[display] = k;
+    });
+    return out;
+  }
+
+  var newsPlacementLabelToRaw = {};
+  function newsPlacementBarData(dist) {
+    var labels = { ticker: "Ticker", team_news: "Team News" };
+    var out = {};
+    newsPlacementLabelToRaw = {};
+    Object.keys(dist || {}).forEach(function (k) {
+      var display = labels[k] || k;
+      out[display] = dist[k];
+      newsPlacementLabelToRaw[display] = k;
+    });
+    return out;
+  }
+
+  var teamOriginLabelToRaw = {};
+  function teamOriginBarData(dist) {
+    var labels = { game_card: "Game card", favorites_bar: "Favorites bar" };
+    var out = {};
+    teamOriginLabelToRaw = {};
+    Object.keys(dist || {}).forEach(function (k) {
+      var display = labels[k] || k;
+      out[display] = dist[k];
+      teamOriginLabelToRaw[display] = k;
     });
     return out;
   }
@@ -796,6 +834,13 @@
     renderBarList("depthSideList", data.depthChartSideViews, "No depth chart activity yet", "rosterSide");
     renderBarList("topPlayersList", data.topViewedPlayers, "No player lookups yet", "player");
     renderBarList("newsSourceList", data.newsSourceClicks, "No news clicks yet", "newsSource");
+    renderBarList("newsPlacementList", newsPlacementBarData(data.newsClicksByPlacement), "No news clicks yet", "newsPlacement", function (label) {
+      return newsPlacementLabelToRaw[label] || label;
+    });
+    renderBarList("teamOriginList", teamOriginBarData(data.teamClicksByOrigin), "No team clicks yet", "teamClickOrigin", function (label) {
+      return teamOriginLabelToRaw[label] || label;
+    });
+    renderBarList("boxscoreTeamList", data.boxscoreClicksByTeam, "No box score clicks yet", "boxscoreTeam");
     renderBarList("themeList", themeBarData(data.themeDistribution), "No preference data yet", "theme", function (label) {
       return themeLabelToRaw[label] || label.toLowerCase();
     });

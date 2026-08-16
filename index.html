@@ -6912,6 +6912,9 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children, fallback
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpen(true); }}
         title="Click for boxscores"
         aria-label="Click for boxscores"
+        data-away={awayAbbr}
+        data-home={homeAbbr}
+        data-week={week}
       >
         {children}
         <svg className="boxscore-hint-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
@@ -8129,7 +8132,7 @@ function FavoritesBar({ favorites, onSelect }) {
         const t = baseTeam(teamId);
         if (!t) return null;
         return (
-          <div key={teamId} className="fav-chip" onClick={() => onSelect(teamId)}>
+          <div key={teamId} className="fav-chip" onClick={() => onSelect(teamId)} data-team={teamId} data-team-name={t.name}>
             <img src={logoUrl(teamId)} alt={teamId} onError={(e) => { e.target.style.display = "none"; }} />
             {t.name}
           </div>
@@ -9295,7 +9298,7 @@ function TeamNewsPanel({ teamId }) {
         <React.Fragment>
           <div className="news-list">
             {pageItems.map(a => (
-              <a key={a.id} className="news-item" href={a.url} target="_blank" rel="noopener noreferrer">
+              <a key={a.id} className="news-item" href={a.url} target="_blank" rel="noopener noreferrer" data-news-source={a.source || "Unknown"}>
                 {a.image && <img className="news-item-img" src={a.image} alt="" loading="lazy" />}
                 <div className="news-item-body">
                   <div className="news-item-headline">{a.headline}</div>

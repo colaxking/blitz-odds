@@ -32,6 +32,9 @@ const VALID_DIMENSIONS = new Set([
   "sportsbook",
   "tzPref",
   "newsSource",
+  "newsPlacement",
+  "boxscoreTeam",
+  "teamClickOrigin",
 ]);
 
 const HOUR_MS = 60 * 60 * 1000;

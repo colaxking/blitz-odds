@@ -70,6 +70,10 @@ type EventRecord = {
   source?: string;
   newsSource?: string;
   headline?: string;
+  placement?: string;
+  origin?: string;
+  away?: string;
+  home?: string;
   location?: LocationInfo;
   device?: string;
 };
@@ -186,6 +190,9 @@ function emptySummary(now: number, range: Range) {
     depthChartSideViews: {} as Record<string, number>,
     topViewedPlayers: {} as Record<string, number>,
     newsSourceClicks: {} as Record<string, number>,
+    newsClicksByPlacement: {} as Record<string, number>,
+    teamClicksByOrigin: {} as Record<string, number>,
+    boxscoreClicksByTeam: {} as Record<string, number>,
     themeDistribution: {} as Record<string, number>,
     sportsbookDistribution: {} as Record<string, number>,
     tzPrefDistribution: {} as Record<string, number>,
@@ -355,6 +362,29 @@ export default async (req: Request, _context: Context) => {
     const newsClicks = validRecords.filter((r) => r.type === "news_click");
     const newsSourceClicks = sortedCounts(newsClicks, (r) => r.newsSource);
 
+    // --- newsClicksByPlacement: ticker (week view) vs. Team News panel
+    // (per-team page) - two separate surfaces, same event type ---
+    const newsClicksByPlacement = sortedCounts(newsClicks, (r) => r.placement);
+
+    // --- teamClicksByOrigin: game-card click vs. the favorites-bar
+    // quick-nav chip - how much the favorites shortcut actually gets used ---
+    const teamClicksByOrigin = sortedCounts(teamClicks, (r) => r.origin);
+
+    // --- boxscoreClicksByTeam: which teams' box scores get opened most -
+    // each click carries both teams in the matchup, so both get credited ---
+    const boxscoreClicks = validRecords.filter((r) => r.type === "boxscore_click");
+    const boxTeamMap = new Map<string, number>();
+    for (const r of boxscoreClicks) {
+      for (const t of [r.away, r.home]) {
+        if (!t) continue;
+        boxTeamMap.set(t, (boxTeamMap.get(t) || 0) + 1);
+      }
+    }
+    const boxscoreClicksByTeam: Record<string, number> = {};
+    for (const [team, count] of Array.from(boxTeamMap.entries()).sort((a, b) => b[1] - a[1])) {
+      boxscoreClicksByTeam[team] = count;
+    }
+
     // --- themeDistribution / sportsbookDistribution / tzPrefDistribution:
     // unlike the click-count tiles above, these answer "what are people
     // currently set to", not "how many times did they change it" - so
@@ -483,6 +513,9 @@ export default async (req: Request, _context: Context) => {
       depthChartSideViews,
       topViewedPlayers,
       newsSourceClicks,
+      newsClicksByPlacement,
+      teamClicksByOrigin,
+      boxscoreClicksByTeam,
       themeDistribution,
       sportsbookDistribution,
       tzPrefDistribution,

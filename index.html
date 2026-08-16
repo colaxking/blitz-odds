@@ -6688,6 +6688,32 @@ function getWeekContext(week) {
 
 const ESPN_ABBR_FIX = { WSH: "WAS" };
 
+/** Resolves which side has the ball from an ESPN `situation` object.
+ *  `situation.possession` (a team id) is the primary signal, but ESPN
+ *  drops that specific field around dead-ball moments - timeouts, the
+ *  gap right after a score/kickoff, etc. - for a few seconds at a time.
+ *  `situation.possessionText` (e.g. "SEA 26") stays populated through
+ *  those same gaps, so when the id is missing, fall back to matching its
+ *  leading team-abbreviation token against home/away instead. This is a
+ *  same-poll fix that works even on a game's very first poll, unlike the
+ *  sticky-last-known-possession fallback (applyStickyPossession /
+ *  lastPossessionRef) which needs an earlier poll to have already
+ *  captured a valid possession to fall back to. */
+function resolvePossessionFromSituation(situation, homeId, awayId, homeAbbr, awayAbbr) {
+  if (!situation) return null;
+  if (situation.possession) {
+    if (situation.possession === homeId) return "home";
+    if (situation.possession === awayId) return "away";
+  }
+  if (situation.possessionText) {
+    const textAbbr = situation.possessionText.trim().split(/\s+/)[0];
+    const fixed = ESPN_ABBR_FIX[textAbbr] || textAbbr;
+    if (fixed === homeAbbr) return "home";
+    if (fixed === awayAbbr) return "away";
+  }
+  return null;
+}
+
 async function fetchLiveScores(week) {
   const params = getEspnParams(week);
   if (!params) return {};
@@ -6706,16 +6732,12 @@ async function fetchLiveScores(week) {
     const homeAbbr = ESPN_ABBR_FIX[home.team.abbreviation] || home.team.abbreviation;
     const awayAbbr = ESPN_ABBR_FIX[away.team.abbreviation] || away.team.abbreviation;
     // Possession/down-distance only exist on ESPN's payload while a game is
-    // actually in progress. situation.possession is a team id string - match
-    // it against the home/away competitor ids (not our local abbreviations)
-    // to resolve which side has the ball, so GameCard can just consume
-    // 'home' | 'away' | null without knowing anything about ESPN's ids.
+    // actually in progress. See resolvePossessionFromSituation for how the
+    // team id is matched (and its possessionText fallback for the moments
+    // ESPN drops the id) so GameCard can just consume 'home' | 'away' | null
+    // without knowing anything about ESPN's ids.
     const situation = comp.situation;
-    let possession = null;
-    if (situation && situation.possession) {
-      if (situation.possession === home.id) possession = "home";
-      else if (situation.possession === away.id) possession = "away";
-    }
+    const possession = resolvePossessionFromSituation(situation, home.id, away.id, homeAbbr, awayAbbr);
     map[`${awayAbbr}-${homeAbbr}`] = {
       awayScore: away.score != null ? Number(away.score) : null,
       homeScore: home.score != null ? Number(home.score) : null,
@@ -6801,21 +6823,21 @@ async function fetchBoxScore(week, awayAbbr, homeAbbr, forceRefresh) {
   return promise;
 }
 
-/** Resolves ESPN's situation.possession (a team id string) to "home"/
- *  "away" using the summary payload's own competitor ids - null if the
- *  game has no live situation or ESPN dropped possession for this poll
- *  (a dead-ball moment; BoxScoreModal papers over that with its own
- *  sticky-possession ref, same idea as applyStickyPossession). */
+/** Resolves which side has the ball from the summary payload's stashed
+ *  live situation, using the same id-then-possessionText fallback as
+ *  resolvePossessionFromSituation - null only if neither signal is
+ *  available this poll (BoxScoreModal papers over that remaining gap
+ *  with its own sticky-possession ref, same idea as
+ *  applyStickyPossession). */
 function resolveBoxScorePossession(data) {
   const comp = data.header && data.header.competitions && data.header.competitions[0];
   const competitors = comp ? comp.competitors : [];
   const homeC = competitors.find(c => c.homeAway === "home");
   const awayC = competitors.find(c => c.homeAway === "away");
-  const situation = data._liveSituation;
-  if (!homeC || !awayC || !situation || !situation.possession) return null;
-  if (situation.possession === homeC.id) return "home";
-  if (situation.possession === awayC.id) return "away";
-  return null;
+  if (!homeC || !awayC) return null;
+  const homeAbbr = ESPN_ABBR_FIX[homeC.team && homeC.team.abbreviation] || (homeC.team && homeC.team.abbreviation);
+  const awayAbbr = ESPN_ABBR_FIX[awayC.team && awayC.team.abbreviation] || (awayC.team && awayC.team.abbreviation);
+  return resolvePossessionFromSituation(data._liveSituation, homeC.id, awayC.id, homeAbbr, awayAbbr);
 }
 
 /** Curated subset of ESPN's ~24 team-stat fields - enough for a useful

@@ -47,8 +47,8 @@ import path from "node:path";
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const YEAR = Number(process.argv[2]);
 const PHASE_ARG = (process.argv[3] || "all").toLowerCase();
-if (!YEAR || YEAR < 2000 || YEAR > 2100 || !["preseason", "postseason", "all"].includes(PHASE_ARG)) {
-  console.error("Usage: node scripts/backfill-historical-season.mjs <year> [preseason|postseason|all]");
+if (!YEAR || YEAR < 2000 || YEAR > 2100 || !["preseason", "postseason", "regular", "all"].includes(PHASE_ARG)) {
+  console.error("Usage: node scripts/backfill-historical-season.mjs <year> [preseason|postseason|regular|all]");
   process.exit(1);
 }
 
@@ -110,6 +110,16 @@ const PHASES = {
       5: { slug: "super-bowl", label: "Super Bowl" },
     },
   },
+  regular: {
+    seasonType: 2,
+    pathSegment: "regular-season",
+    label: "Regular Season",
+    // Regular season for year Y runs Sep of Y through early Jan of Y+1.
+    dateRange: (year) => `${year}0901-${year + 1}0110`,
+    rounds: Object.fromEntries(
+      Array.from({ length: 18 }, (_, i) => [i + 1, { slug: `week-${i + 1}`, label: `Week ${i + 1}` }])
+    ),
+  },
 };
 
 const TEAM_FULL_NAMES = {
@@ -170,12 +180,19 @@ async function loadRankingsData() {
 // time) - same convention data/history.json already uses for real 2026
 // preseason snapshots. Playoff games happen right after their own season's
 // regular season ends, so that season's own final numbers are exactly right.
+// Regular season games use that season's own final numbers too - the only
+// rankings data available is season-end totals (footballdb.com doesn't
+// expose in-season snapshots), so a Week 3 game shows where each team
+// ENDED UP that season, not where they stood at the time. Disclosed in the
+// rankings-note text on the page itself rather than silently presented as
+// point-in-time.
 function rankingsSeasonFor(year, phaseKey) {
   return phaseKey === "preseason" ? year - 1 : year;
 }
 
-async function fetchPhaseEvents(year, phaseDef) {  const data = await fetchJson(
-    `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${phaseDef.dateRange(year)}`
+async function fetchPhaseEvents(year, phaseDef) {
+  const data = await fetchJson(
+    `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${phaseDef.dateRange(year)}&limit=1000`
   );
   return (data.events || []).filter((e) => e.season && e.season.type === phaseDef.seasonType);
 }
@@ -238,6 +255,9 @@ const PAGE_CSS = `
   --bg: #0b1220; --card-bg: #131c2e; --card-border: #223049; --surface-2: #1a2438;
   --text: #eef2f8; --text-dim: #9fb0c9; --accent: #4fd1c5; --accent-rgb: 79,209,197;
   --win: #2ecc71; --win-rgb: 46,204,113; --lose: #55617a; --demo: #a855f7; --demo-rgb: 168,85,247;
+  --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
+  --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
+  --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
 }
 * { box-sizing: border-box; }
 body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
@@ -293,10 +313,20 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
 .rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
 .rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
-.rank-good { color: var(--win); font-weight: 700; }
-.rank-mid { color: var(--text); }
-.rank-bad { color: var(--out, #ef4444); font-weight: 700; }
-.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+.stat-compare { display: grid; grid-template-columns: 1fr 1fr auto; column-gap: 10px; row-gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+.stat-compare .col { display: flex; flex-direction: column; gap: 3px; }
+.stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; white-space: nowrap; }
+.rank-pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px; border: 1px solid transparent; }
+.rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
+.rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
+.rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
+.rank-good-slight { background: rgba(var(--win-rgb),0.10); color: var(--pill-good-text); }
+.rank-good-moderate { background: rgba(var(--win-rgb),0.24); color: var(--pill-good-text); border-color: rgba(var(--win-rgb),0.65); font-weight: 700; }
+.rank-good-significant { background: var(--win); color: var(--pill-good-fill-text); border-color: var(--win); font-weight: 800; }
+.rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
+.rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
+.rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 `;
 
@@ -365,33 +395,93 @@ function linescoreRow(label, scores, total) {
   return `<tr><td>${escapeHtml(label)}</td>${scores.map((s) => `<td>${escapeHtml(s)}</td>`).join("")}<td><strong>${escapeHtml(total)}</strong></td></tr>`;
 }
 
+// Mirrors rankClass() in index.html exactly (RankPill's tier boundaries).
 function rankClass(rank) {
   if (rank <= 10) return "rank-good";
-  if (rank >= 23) return "rank-bad";
-  return "rank-mid";
+  if (rank <= 21) return "rank-mid";
+  return "rank-bad";
 }
 
-function rankingsTable(awayAbbr, homeAbbr, awayRankings, homeRankings, rankingsSeason) {
+function rankPill(rank) {
+  return `<span class="rank-pill ${rankClass(rank)}">#${rank}</span>`;
+}
+
+// Mirrors gradationTier()/DiffPill() in index.html exactly - same gap
+// thresholds (17/9), same tier-class naming, same "Even"/"+N TEAM" text.
+function diffGradationTier(diff) {
+  const gap = Math.abs(diff);
+  if (gap === 0) return null;
+  if (gap >= 17) return "significant";
+  if (gap >= 9) return "moderate";
+  return "slight";
+}
+
+function diffPill(offRank, defRank, offTeamId) {
+  const diff = defRank - offRank;
+  const tier = diffGradationTier(diff);
+  const cls = tier === null ? "rank-mid" : diff > 0 ? `rank-good-${tier}` : `rank-bad-${tier}`;
+  const text = diff === 0 ? "Even" : `${diff > 0 ? "+" : ""}${diff} ${offTeamId}`;
+  return `<span class="rank-pill ${cls}">${text}</span>`;
+}
+
+// Same "stat-compare" grid the live app's GameCard uses: each team's
+// offense ranked against the OPPONENT's defense (not offense-vs-offense -
+// the matchup-relevant comparison), with a "Total Difference" column of
+// DiffPills showing the numeric edge. Structurally and visually identical
+// to index.html's markup (same class names: stat-compare/col/label/
+// rank-pill/rank-good-*/rank-bad-*) so this reads as the same feature, not
+// a different one.
+function rankingsTable(awayAbbr, homeAbbr, awayRankings, homeRankings, rankingsSeason, phaseKey) {
   if (!awayRankings || !homeRankings) {
     return `<p style="color:var(--text-dim); font-size:0.85rem;">Team rankings not available for this game.</p>`;
   }
-  const row = (label, awayVal, awayRank, homeVal, homeRank) => `<tr>
-    <td>${label}</td>
-    <td>${awayVal} <span class="${rankClass(awayRank)}">#${awayRank}</span></td>
-    <td>${homeVal} <span class="${rankClass(homeRank)}">#${homeRank}</span></td>
-  </tr>`;
-  return `<table class="rankings-table">
-    <thead><tr><th></th><th>${escapeHtml(awayAbbr)}</th><th>${escapeHtml(homeAbbr)}</th></tr></thead>
-    <tbody>
-      ${row("Total Offense", awayRankings.offense.totalYdsPerGame, awayRankings.offense.rankTotal, homeRankings.offense.totalYdsPerGame, homeRankings.offense.rankTotal)}
-      ${row("Rush Offense", awayRankings.offense.rushYdsPerGame, awayRankings.offense.rankRush, homeRankings.offense.rushYdsPerGame, homeRankings.offense.rankRush)}
-      ${row("Pass Offense", awayRankings.offense.passYdsPerGame, awayRankings.offense.rankPass, homeRankings.offense.passYdsPerGame, homeRankings.offense.rankPass)}
-      ${row("Total Defense", awayRankings.defense.totalYdsPerGame, awayRankings.defense.rankTotal, homeRankings.defense.totalYdsPerGame, homeRankings.defense.rankTotal)}
-      ${row("Rush Defense", awayRankings.defense.rushYdsPerGame, awayRankings.defense.rankRush, homeRankings.defense.rushYdsPerGame, homeRankings.defense.rankRush)}
-      ${row("Pass Defense", awayRankings.defense.passYdsPerGame, awayRankings.defense.rankPass, homeRankings.defense.passYdsPerGame, homeRankings.defense.rankPass)}
-    </tbody>
-  </table>
-  <div class="rankings-note">Rankings out of 32, 1 = best. Reflects final ${rankingsSeason} regular-season totals (source: The Football Database).</div>`;
+  const html = `<div class="stat-compare">
+    <div class="col">
+      <div class="label">${escapeHtml(awayAbbr)} offense</div>
+      <div>Total ${rankPill(awayRankings.offense.rankTotal)}</div>
+      <div>Rush ${rankPill(awayRankings.offense.rankRush)}</div>
+      <div>Pass ${rankPill(awayRankings.offense.rankPass)}</div>
+    </div>
+    <div class="col">
+      <div class="label">${escapeHtml(homeAbbr)} defense</div>
+      <div>Total ${rankPill(homeRankings.defense.rankTotal)}</div>
+      <div>Rush ${rankPill(homeRankings.defense.rankRush)}</div>
+      <div>Pass ${rankPill(homeRankings.defense.rankPass)}</div>
+    </div>
+    <div class="col">
+      <div class="label">Total Difference</div>
+      <div>Total ${diffPill(awayRankings.offense.rankTotal, homeRankings.defense.rankTotal, awayAbbr)}</div>
+      <div>Rush ${diffPill(awayRankings.offense.rankRush, homeRankings.defense.rankRush, awayAbbr)}</div>
+      <div>Pass ${diffPill(awayRankings.offense.rankPass, homeRankings.defense.rankPass, awayAbbr)}</div>
+    </div>
+
+    <div class="col">
+      <div class="label">${escapeHtml(homeAbbr)} offense</div>
+      <div>Total ${rankPill(homeRankings.offense.rankTotal)}</div>
+      <div>Rush ${rankPill(homeRankings.offense.rankRush)}</div>
+      <div>Pass ${rankPill(homeRankings.offense.rankPass)}</div>
+    </div>
+    <div class="col">
+      <div class="label">${escapeHtml(awayAbbr)} defense</div>
+      <div>Total ${rankPill(awayRankings.defense.rankTotal)}</div>
+      <div>Rush ${rankPill(awayRankings.defense.rankRush)}</div>
+      <div>Pass ${rankPill(awayRankings.defense.rankPass)}</div>
+    </div>
+    <div class="col">
+      <div class="label">&nbsp;</div>
+      <div>Total ${diffPill(homeRankings.offense.rankTotal, awayRankings.defense.rankTotal, homeAbbr)}</div>
+      <div>Rush ${diffPill(homeRankings.offense.rankRush, awayRankings.defense.rankRush, homeAbbr)}</div>
+      <div>Pass ${diffPill(homeRankings.offense.rankPass, awayRankings.defense.rankPass, homeAbbr)}</div>
+    </div>
+  </div>`;
+
+  const noteSuffix =
+    phaseKey === "regular"
+      ? `Note: this is where each team ENDED UP that season - footballdb.com only publishes season-end totals, not week-by-week snapshots, so a mid-season game here shows final-season rank rather than the team's actual standing at kickoff.`
+      : "";
+  const note = `<div class="rankings-note">Rankings out of 32, 1 = best. Offense ranked against opponent's defense, same as the live app. Reflects final ${rankingsSeason} regular-season totals (source: The Football Database). ${noteSuffix}</div>`;
+
+  return html + note;
 }
 
 async function buildGamePage(year, phaseKey, round, game) {
@@ -451,7 +541,7 @@ async function buildGamePage(year, phaseKey, round, game) {
       ${teamStatsTable(awayAbbr, homeAbbr, box.awayTeamStats, box.homeTeamStats)}
 
       <div class="section-title">Team Rankings (Offense &amp; Defense)</div>
-      ${rankingsTable(awayAbbr, homeAbbr, awayRankings, homeRankings, rankingsSeason)}
+      ${rankingsTable(awayAbbr, homeAbbr, awayRankings, homeRankings, rankingsSeason, phaseKey)}
 
       <div class="section-title">Player Stats</div>
       ${playerStatsBlock(awayAbbr, box.awayPlayerStats)}

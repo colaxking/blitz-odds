@@ -16,6 +16,9 @@
   --bg: #0b1220; --card-bg: #131c2e; --card-border: #223049; --surface-2: #1a2438;
   --text: #eef2f8; --text-dim: #9fb0c9; --accent: #4fd1c5; --accent-rgb: 79,209,197;
   --win: #2ecc71; --win-rgb: 46,204,113; --lose: #55617a; --demo: #a855f7; --demo-rgb: 168,85,247;
+  --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
+  --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
+  --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
 }
 * { box-sizing: border-box; }
 body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
@@ -71,10 +74,20 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
 .rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
 .rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
-.rank-good { color: var(--win); font-weight: 700; }
-.rank-mid { color: var(--text); }
-.rank-bad { color: var(--out, #ef4444); font-weight: 700; }
-.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+.stat-compare { display: grid; grid-template-columns: 1fr 1fr auto; column-gap: 10px; row-gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+.stat-compare .col { display: flex; flex-direction: column; gap: 3px; }
+.stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; white-space: nowrap; }
+.rank-pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px; border: 1px solid transparent; }
+.rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
+.rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
+.rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
+.rank-good-slight { background: rgba(var(--win-rgb),0.10); color: var(--pill-good-text); }
+.rank-good-moderate { background: rgba(var(--win-rgb),0.24); color: var(--pill-good-text); border-color: rgba(var(--win-rgb),0.65); font-weight: 700; }
+.rank-good-significant { background: var(--win); color: var(--pill-good-fill-text); border-color: var(--win); font-weight: 800; }
+.rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
+.rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
+.rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Washington Commanders at Tampa Bay Buccaneers","startDate":"2025-01-13T01:00Z","sport":"American Football","homeTeam":{"@type":"SportsTeam","name":"Tampa Bay Buccaneers"},"awayTeam":{"@type":"SportsTeam","name":"Washington Commanders"},"location":{"@type":"Place","name":"Raymond James Stadium"}}</script>
@@ -125,42 +138,45 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
   </table>
 
       <div class="section-title">Team Rankings (Offense &amp; Defense)</div>
-      <table class="rankings-table">
-    <thead><tr><th></th><th>WAS</th><th>TB</th></tr></thead>
-    <tbody>
-      <tr>
-    <td>Total Offense</td>
-    <td>369.6 <span class="rank-good">#7</span></td>
-    <td>399.6 <span class="rank-good">#3</span></td>
-  </tr>
-      <tr>
-    <td>Rush Offense</td>
-    <td>154.1 <span class="rank-good">#3</span></td>
-    <td>149.2 <span class="rank-good">#4</span></td>
-  </tr>
-      <tr>
-    <td>Pass Offense</td>
-    <td>215.6 <span class="rank-mid">#17</span></td>
-    <td>250.4 <span class="rank-good">#3</span></td>
-  </tr>
-      <tr>
-    <td>Total Defense</td>
-    <td>326.9 <span class="rank-mid">#13</span></td>
-    <td>341.8 <span class="rank-mid">#18</span></td>
-  </tr>
-      <tr>
-    <td>Rush Defense</td>
-    <td>137.5 <span class="rank-good">#3</span></td>
-    <td>97.8 <span class="rank-bad">#29</span></td>
-  </tr>
-      <tr>
-    <td>Pass Defense</td>
-    <td>189.5 <span class="rank-bad">#30</span></td>
-    <td>243.9 <span class="rank-good">#4</span></td>
-  </tr>
-    </tbody>
-  </table>
-  <div class="rankings-note">Rankings out of 32, 1 = best. Reflects final 2024 regular-season totals (source: The Football Database).</div>
+      <div class="stat-compare">
+    <div class="col">
+      <div class="label">WAS offense</div>
+      <div>Total <span class="rank-pill rank-good">#7</span></div>
+      <div>Rush <span class="rank-pill rank-good">#3</span></div>
+      <div>Pass <span class="rank-pill rank-mid">#17</span></div>
+    </div>
+    <div class="col">
+      <div class="label">TB defense</div>
+      <div>Total <span class="rank-pill rank-mid">#18</span></div>
+      <div>Rush <span class="rank-pill rank-bad">#29</span></div>
+      <div>Pass <span class="rank-pill rank-good">#4</span></div>
+    </div>
+    <div class="col">
+      <div class="label">Total Difference</div>
+      <div>Total <span class="rank-pill rank-good-moderate">+11 WAS</span></div>
+      <div>Rush <span class="rank-pill rank-good-significant">+26 WAS</span></div>
+      <div>Pass <span class="rank-pill rank-bad-moderate">-13 WAS</span></div>
+    </div>
+
+    <div class="col">
+      <div class="label">TB offense</div>
+      <div>Total <span class="rank-pill rank-good">#3</span></div>
+      <div>Rush <span class="rank-pill rank-good">#4</span></div>
+      <div>Pass <span class="rank-pill rank-good">#3</span></div>
+    </div>
+    <div class="col">
+      <div class="label">WAS defense</div>
+      <div>Total <span class="rank-pill rank-mid">#13</span></div>
+      <div>Rush <span class="rank-pill rank-good">#3</span></div>
+      <div>Pass <span class="rank-pill rank-bad">#30</span></div>
+    </div>
+    <div class="col">
+      <div class="label">&nbsp;</div>
+      <div>Total <span class="rank-pill rank-good-moderate">+10 TB</span></div>
+      <div>Rush <span class="rank-pill rank-bad-slight">-1 TB</span></div>
+      <div>Pass <span class="rank-pill rank-good-significant">+27 TB</span></div>
+    </div>
+  </div><div class="rankings-note">Rankings out of 32, 1 = best. Offense ranked against opponent's defense, same as the live app. Reflects final 2024 regular-season totals (source: The Football Database). </div>
 
       <div class="section-title">Player Stats</div>
       <div class="playerstats-team"><h3>WAS</h3><div class="playerstats-cat">

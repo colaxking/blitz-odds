@@ -16,6 +16,9 @@
   --bg: #0b1220; --card-bg: #131c2e; --card-border: #223049; --surface-2: #1a2438;
   --text: #eef2f8; --text-dim: #9fb0c9; --accent: #4fd1c5; --accent-rgb: 79,209,197;
   --win: #2ecc71; --win-rgb: 46,204,113; --lose: #55617a; --demo: #a855f7; --demo-rgb: 168,85,247;
+  --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
+  --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
+  --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
 }
 * { box-sizing: border-box; }
 body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
@@ -71,10 +74,20 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
 .rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
 .rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
-.rank-good { color: var(--win); font-weight: 700; }
-.rank-mid { color: var(--text); }
-.rank-bad { color: var(--out, #ef4444); font-weight: 700; }
-.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+.stat-compare { display: grid; grid-template-columns: 1fr 1fr auto; column-gap: 10px; row-gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+.stat-compare .col { display: flex; flex-direction: column; gap: 3px; }
+.stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; white-space: nowrap; }
+.rank-pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px; border: 1px solid transparent; }
+.rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
+.rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
+.rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
+.rank-good-slight { background: rgba(var(--win-rgb),0.10); color: var(--pill-good-text); }
+.rank-good-moderate { background: rgba(var(--win-rgb),0.24); color: var(--pill-good-text); border-color: rgba(var(--win-rgb),0.65); font-weight: 700; }
+.rank-good-significant { background: var(--win); color: var(--pill-good-fill-text); border-color: var(--win); font-weight: 800; }
+.rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
+.rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
+.rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Green Bay Packers at Cleveland Browns","startDate":"2024-08-10T20:25Z","sport":"American Football","homeTeam":{"@type":"SportsTeam","name":"Cleveland Browns"},"awayTeam":{"@type":"SportsTeam","name":"Green Bay Packers"},"location":{"@type":"Place","name":"Huntington Bank Field"}}</script>
@@ -125,42 +138,45 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
   </table>
 
       <div class="section-title">Team Rankings (Offense &amp; Defense)</div>
-      <table class="rankings-table">
-    <thead><tr><th></th><th>GB</th><th>CLE</th></tr></thead>
-    <tbody>
-      <tr>
-    <td>Total Offense</td>
-    <td>345.5 <span class="rank-mid">#11</span></td>
-    <td>335.9 <span class="rank-mid">#16</span></td>
-  </tr>
-      <tr>
-    <td>Rush Offense</td>
-    <td>112.1 <span class="rank-mid">#15</span></td>
-    <td>118.6 <span class="rank-mid">#12</span></td>
-  </tr>
-      <tr>
-    <td>Pass Offense</td>
-    <td>233.4 <span class="rank-mid">#12</span></td>
-    <td>217.2 <span class="rank-mid">#19</span></td>
-  </tr>
-      <tr>
-    <td>Total Defense</td>
-    <td>335.1 <span class="rank-mid">#17</span></td>
-    <td>270.2 <span class="rank-good">#1</span></td>
-  </tr>
-      <tr>
-    <td>Rush Defense</td>
-    <td>128.3 <span class="rank-good">#5</span></td>
-    <td>105.5 <span class="rank-mid">#22</span></td>
-  </tr>
-      <tr>
-    <td>Pass Defense</td>
-    <td>206.8 <span class="rank-bad">#24</span></td>
-    <td>164.7 <span class="rank-bad">#32</span></td>
-  </tr>
-    </tbody>
-  </table>
-  <div class="rankings-note">Rankings out of 32, 1 = best. Reflects final 2023 regular-season totals (source: The Football Database).</div>
+      <div class="stat-compare">
+    <div class="col">
+      <div class="label">GB offense</div>
+      <div>Total <span class="rank-pill rank-mid">#11</span></div>
+      <div>Rush <span class="rank-pill rank-mid">#15</span></div>
+      <div>Pass <span class="rank-pill rank-mid">#12</span></div>
+    </div>
+    <div class="col">
+      <div class="label">CLE defense</div>
+      <div>Total <span class="rank-pill rank-good">#1</span></div>
+      <div>Rush <span class="rank-pill rank-bad">#22</span></div>
+      <div>Pass <span class="rank-pill rank-bad">#32</span></div>
+    </div>
+    <div class="col">
+      <div class="label">Total Difference</div>
+      <div>Total <span class="rank-pill rank-bad-moderate">-10 GB</span></div>
+      <div>Rush <span class="rank-pill rank-good-slight">+7 GB</span></div>
+      <div>Pass <span class="rank-pill rank-good-significant">+20 GB</span></div>
+    </div>
+
+    <div class="col">
+      <div class="label">CLE offense</div>
+      <div>Total <span class="rank-pill rank-mid">#16</span></div>
+      <div>Rush <span class="rank-pill rank-mid">#12</span></div>
+      <div>Pass <span class="rank-pill rank-mid">#19</span></div>
+    </div>
+    <div class="col">
+      <div class="label">GB defense</div>
+      <div>Total <span class="rank-pill rank-mid">#17</span></div>
+      <div>Rush <span class="rank-pill rank-good">#5</span></div>
+      <div>Pass <span class="rank-pill rank-bad">#24</span></div>
+    </div>
+    <div class="col">
+      <div class="label">&nbsp;</div>
+      <div>Total <span class="rank-pill rank-good-slight">+1 CLE</span></div>
+      <div>Rush <span class="rank-pill rank-bad-slight">-7 CLE</span></div>
+      <div>Pass <span class="rank-pill rank-good-slight">+5 CLE</span></div>
+    </div>
+  </div><div class="rankings-note">Rankings out of 32, 1 = best. Offense ranked against opponent's defense, same as the live app. Reflects final 2023 regular-season totals (source: The Football Database). </div>
 
       <div class="section-title">Player Stats</div>
       <div class="playerstats-team"><h3>GB</h3><div class="playerstats-cat">

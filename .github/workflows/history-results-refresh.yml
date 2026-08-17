@@ -1,0 +1,58 @@
+name: Blitz Odds - history results refresh
+
+# Automates the ONE genuinely mechanical piece of the weekly history
+# snapshot: filling in final scores as games go final, for weeks that
+# already have a snapshot (teamStats/impactPlayers). It does not create new
+# weekly snapshots and does not touch stats or injury data - see the header
+# comment in scripts/history-results-refresh.mjs for why that stays a
+# separate, judgment-based task.
+#
+# Triggered externally, same pattern as odds-refresh.yml: GitHub Actions'
+# own `schedule:` cron is unreliable (delayed/skipped on low-traffic repos),
+# so this repo relies on cron-job.org calling GitHub's REST API to fire
+# workflow_dispatch on a schedule instead of using `schedule:` here. See
+# README "Keeping it current" section. To wire this job up, add a cron-job.org
+# job (mirroring the existing "biltz-odds refresher" job) pointing at:
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/history-results-refresh.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+# Suggested cadence: hourly through Thu-Mon game windows (roughly noon Thu
+# UTC through 10am Tue UTC covers Thursday/Sunday/Monday night games).
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blitz-odds-history-results-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run history results refresh
+        env:
+          SITE_DATA_UPDATE_SECRET: ${{ secrets.SITE_DATA_UPDATE_SECRET }}
+        run: node scripts/history-results-refresh.mjs
+
+      - name: Commit on-disk mirror if changed
+        run: |
+          if git diff --quiet -- data/history.json; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "blitz-odds-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/history.json
+          git commit -m "History results refresh: automated final-score update via GitHub Actions"
+          git push

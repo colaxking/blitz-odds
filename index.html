@@ -9553,7 +9553,11 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
   // so the summary reflects results as soon as a week wraps, not just once
   // the regular season starts.
   const allRows = [...preseasonRows, ...rows];
-  const finishedRows = allRows.filter(r => !r.bye && r.actual && !r.actual.isLive);
+  // Exclude rows whose result came from a labeled "isDemo" historical
+  // snapshot (illustrative/made-up scores used before a week is actually
+  // played) - those aren't real outcomes and shouldn't count toward the
+  // prediction/spread accuracy tally.
+  const finishedRows = allRows.filter(r => !r.bye && r.actual && !r.actual.isLive && !getWeekContext(r.week).isDemo);
   const predCorrectCount = finishedRows.filter(r => r.actual.correct).length;
   const predIncorrectCount = finishedRows.length - predCorrectCount;
   const spreadCoverages = finishedRows.map(r => getSpreadCoverage(r, teamId)).filter(v => v !== null);

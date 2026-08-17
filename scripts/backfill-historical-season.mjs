@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Blitz Odds - historical preseason backfill (static page generator).
+ * Blitz Odds - historical season backfill (static page generator).
  *
- * Pulls a PRIOR season's preseason results from ESPN and generates static
- * HTML game pages, served directly by Netlify (this repo has no [build]
- * command in netlify.toml, so any HTML file committed here is served as-is
- * at its path - no build step, no Netlify Function needed).
+ * Pulls a PRIOR season's preseason and/or postseason results from ESPN and
+ * generates static HTML game pages, served directly by Netlify (this repo
+ * has no [build] command in netlify.toml, so any HTML file committed here
+ * is served as-is at its path - no build step, no Netlify Function needed).
  *
  * Deliberately built as standalone static pages rather than folded into the
  * live app's history.json/HISTORY_DATA: that data model is single-season
@@ -24,13 +24,21 @@
  * The per-game summary endpoint (keyed by event id) is unaffected by this -
  * once you have a real event id, box score data works fine.
  *
- * Usage: node scripts/backfill-historical-preseason.mjs <year>
- *   e.g. node scripts/backfill-historical-preseason.mjs 2025
+ * "Season year" convention: a season's preseason falls in Jul/Aug of that
+ * calendar year; its postseason falls in Jan/Feb of the FOLLOWING calendar
+ * year (e.g. the "2025 season" postseason is Jan/Feb 2026). Pass the season
+ * year either way - the date ranges below account for the shift.
+ *
+ * Usage: node scripts/backfill-historical-season.mjs <year> [phase]
+ *   phase: "preseason" | "postseason" | "all" (default: "all")
+ *   e.g. node scripts/backfill-historical-season.mjs 2025
+ *        node scripts/backfill-historical-season.mjs 2024 postseason
  *
  * Writes:
- *   historical/{year}/preseason/{round-slug}/{away}-at-{home}.html  (one per finished game)
- *   historical/{year}/preseason/index.html                          (season index)
- *   sitemap.xml                                                      (appends new <url> entries)
+ *   historical/{year}/{preseason|playoffs}/{round-slug}/{away}-at-{home}.html
+ *   historical/{year}/{preseason|playoffs}/index.html   (per-phase season index)
+ *   historical/index.html                                (root index, all years/phases)
+ *   sitemap.xml                                           (appends new <url> entries)
  */
 
 import { writeFile, mkdir, readFile } from "node:fs/promises";
@@ -38,8 +46,9 @@ import path from "node:path";
 
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const YEAR = Number(process.argv[2]);
-if (!YEAR || YEAR < 2000 || YEAR > 2100) {
-  console.error("Usage: node scripts/backfill-historical-preseason.mjs <year>");
+const PHASE_ARG = (process.argv[3] || "all").toLowerCase();
+if (!YEAR || YEAR < 2000 || YEAR > 2100 || !["preseason", "postseason", "all"].includes(PHASE_ARG)) {
+  console.error("Usage: node scripts/backfill-historical-season.mjs <year> [preseason|postseason|all]");
   process.exit(1);
 }
 
@@ -67,11 +76,40 @@ const BOXSCORE_PLAYER_CATEGORIES = [
   { key: "fumbles", label: "Fumbles", columns: ["FUM", "LOST"] },
 ];
 
-const ROUND_INFO = {
-  1: { slug: "hall-of-fame-game", label: "Hall of Fame Game" },
-  2: { slug: "preseason-week-1", label: "Preseason Week 1" },
-  3: { slug: "preseason-week-2", label: "Preseason Week 2" },
-  4: { slug: "preseason-week-3", label: "Preseason Week 3" },
+// Two phases, each with its own ESPN seasontype, round-number-to-label
+// mapping, URL path segment, and date window relative to the season year.
+// "playoffs" (not "postseason") as the path segment/copy term matches the
+// existing convention already used elsewhere in this repo (schedule-
+// playoffs-2026.json, PLAYOFFS_DATA) - keeping one vocabulary rather than
+// introducing a second term for the same thing.
+const PHASES = {
+  preseason: {
+    seasonType: 1,
+    pathSegment: "preseason",
+    label: "Preseason",
+    dateRange: (year) => `${year}0701-${year}0905`,
+    rounds: {
+      1: { slug: "hall-of-fame-game", label: "Hall of Fame Game" },
+      2: { slug: "preseason-week-1", label: "Preseason Week 1" },
+      3: { slug: "preseason-week-2", label: "Preseason Week 2" },
+      4: { slug: "preseason-week-3", label: "Preseason Week 3" },
+    },
+  },
+  postseason: {
+    seasonType: 3,
+    pathSegment: "playoffs",
+    label: "Playoffs",
+    // Postseason for season year Y falls in Jan/Feb of Y+1.
+    dateRange: (year) => `${year + 1}0101-${year + 1}0301`,
+    rounds: {
+      1: { slug: "wild-card-round", label: "Wild Card Round" },
+      2: { slug: "divisional-round", label: "Divisional Round" },
+      3: { slug: "conference-championships", label: "Conference Championships" },
+      // week 4 = Pro Bowl, deliberately omitted - not a real playoff game,
+      // gets skipped automatically same as any other unrecognized round.
+      5: { slug: "super-bowl", label: "Super Bowl" },
+    },
+  },
 };
 
 const TEAM_FULL_NAMES = {
@@ -107,14 +145,11 @@ async function fetchJson(url) {
   return res.json();
 }
 
-async function fetchSeasonEvents(year) {
-  // Wide net (Jul 1 - Sep 5) to reliably catch the Hall of Fame Game (late
-  // July/early Aug) through Preseason Week 3 (late Aug) regardless of the
-  // exact year-to-year calendar shift.
+async function fetchPhaseEvents(year, phaseDef) {
   const data = await fetchJson(
-    `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${year}0701-${year}0905`
+    `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${phaseDef.dateRange(year)}`
   );
-  return (data.events || []).filter((e) => e.season && e.season.type === 1);
+  return (data.events || []).filter((e) => e.season && e.season.type === phaseDef.seasonType);
 }
 
 async function fetchBoxScoreEssentials(eventId) {
@@ -293,7 +328,9 @@ function linescoreRow(label, scores, total) {
   return `<tr><td>${escapeHtml(label)}</td>${scores.map((s) => `<td>${escapeHtml(s)}</td>`).join("")}<td><strong>${escapeHtml(total)}</strong></td></tr>`;
 }
 
-async function buildGamePage(year, round, game) {
+async function buildGamePage(year, phaseKey, round, game) {
+  const phaseDef = PHASES[phaseKey];
+  const roundInfo = phaseDef.rounds[round];
   const { awayAbbr, homeAbbr, awayScore, homeScore, date, awayName, homeName } = game;
   const winner = awayScore > homeScore ? "away" : "home";
   let box;
@@ -304,15 +341,15 @@ async function buildGamePage(year, round, game) {
     box = { homeLinescores: [], awayLinescores: [], homeTeamStats: [], awayTeamStats: [], homePlayerStats: [], awayPlayerStats: [] };
   }
 
-  const title = `${awayName} vs. ${homeName} Final Score & Box Score — ${ROUND_INFO[round].label}, ${year} Preseason | Blitz Odds`;
-  const description = `${awayName} ${awayScore}, ${homeName} ${homeScore} — final score, quarter-by-quarter box score, and top performers from the ${year} ${ROUND_INFO[round].label}.`;
-  const canonicalPath = `/historical/${year}/preseason/${ROUND_INFO[round].slug}/${teamSlug(awayAbbr)}-at-${teamSlug(homeAbbr)}.html`;
+  const title = `${awayName} vs. ${homeName} Final Score & Box Score — ${roundInfo.label}, ${year} ${phaseDef.label} | Blitz Odds`;
+  const description = `${awayName} ${awayScore}, ${homeName} ${homeScore} — final score, quarter-by-quarter box score, and top performers from the ${year} ${roundInfo.label}.`;
+  const canonicalPath = `/historical/${year}/${phaseDef.pathSegment}/${roundInfo.slug}/${teamSlug(awayAbbr)}-at-${teamSlug(homeAbbr)}.html`;
 
   const numQuarters = Math.max(box.awayLinescores.length, box.homeLinescores.length, 4);
   const qHeaders = Array.from({ length: numQuarters }, (_, i) => `Q${i + 1}`);
 
   const bodyHtml = `
-    <span class="archive-badge">Historical Archive — ${year} Preseason</span>
+    <span class="archive-badge">Historical Archive — ${year} ${phaseDef.label}</span>
     <div class="detail">
       <div class="detail-header">
         <div class="detail-team">
@@ -358,23 +395,24 @@ async function buildGamePage(year, round, game) {
     location: { "@type": "Place", name: game.venue || undefined },
   };
 
-  const breadcrumb = `<a href="/">Home</a> &raquo; <a href="/historical/${year}/preseason/index.html">${year} Preseason</a> &raquo; ${escapeHtml(ROUND_INFO[round].label)} &raquo; ${escapeHtml(awayAbbr)} @ ${escapeHtml(homeAbbr)}`;
+  const breadcrumb = `<a href="/">Home</a> &raquo; <a href="/historical/${year}/${phaseDef.pathSegment}/index.html">${year} ${phaseDef.label}</a> &raquo; ${escapeHtml(roundInfo.label)} &raquo; ${escapeHtml(awayAbbr)} @ ${escapeHtml(homeAbbr)}`;
 
   return { html: pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd }), canonicalPath };
 }
 
-function buildSeasonIndexPage(year, gamesByRound) {
-  const title = `${year} NFL Preseason Results — Every Score & Box Score | Blitz Odds`;
-  const description = `Final scores and box scores for every ${year} NFL preseason game — Hall of Fame Game through Preseason Week 3.`;
-  const canonicalPath = `/historical/${year}/preseason/index.html`;
-  const breadcrumb = `<a href="/">Home</a> &raquo; ${year} Preseason`;
+function buildSeasonIndexPage(year, phaseKey, gamesByRound) {
+  const phaseDef = PHASES[phaseKey];
+  const title = `${year} NFL ${phaseDef.label} Results — Every Score & Box Score | Blitz Odds`;
+  const description = `Final scores and box scores for every ${year} NFL ${phaseDef.label.toLowerCase()} game.`;
+  const canonicalPath = `/historical/${year}/${phaseDef.pathSegment}/index.html`;
+  const breadcrumb = `<a href="/">Home</a> &raquo; ${year} ${phaseDef.label}`;
 
   const rounds = Object.entries(gamesByRound);
-  const options = rounds.map(([round]) => `<option value="round-${round}">${escapeHtml(ROUND_INFO[round].label)}</option>`).join("\n");
+  const options = rounds.map(([round]) => `<option value="round-${round}">${escapeHtml(phaseDef.rounds[round].label)}</option>`).join("\n");
 
   const bodyHtml = `
-    <span class="archive-badge">Historical Archive — ${year} Preseason</span>
-    <h2 style="margin-top:0;">${year} NFL Preseason Results</h2>
+    <span class="archive-badge">Historical Archive — ${year} ${phaseDef.label}</span>
+    <h2 style="margin-top:0;">${year} NFL ${phaseDef.label} Results</h2>
     <div class="week-picker">
       <label for="week-select" style="color:var(--text-dim); font-size:0.82rem;">Jump to:</label>
       <select id="week-select" class="week-select">
@@ -387,7 +425,7 @@ function buildSeasonIndexPage(year, gamesByRound) {
         .map(
           ([round, games]) => `
         <div class="season-index-round" id="round-${round}">
-          <h3>${escapeHtml(ROUND_INFO[round].label)}</h3>
+          <h3>${escapeHtml(phaseDef.rounds[round].label)}</h3>
           ${games
             .map(
               (g) => `<a class="season-index-game" href="${g.canonicalPath}">
@@ -445,14 +483,22 @@ async function updateSitemap(newPaths) {
 async function rebuildRootIndex() {
   const { readdir } = await import("node:fs/promises");
   const historicalDir = path.join(REPO_ROOT, "historical");
-  let years = [];
+  let entries = []; // { year, phaseKey }
   try {
-    years = (await readdir(historicalDir, { withFileTypes: true }))
+    const yearDirs = (await readdir(historicalDir, { withFileTypes: true }))
       .filter((d) => d.isDirectory() && /^\d{4}$/.test(d.name))
       .map((d) => d.name)
       .sort((a, b) => Number(b) - Number(a)); // newest first
+    for (const year of yearDirs) {
+      const phaseDirs = await readdir(path.join(historicalDir, year), { withFileTypes: true });
+      for (const phaseKey of Object.keys(PHASES)) {
+        if (phaseDirs.some((d) => d.isDirectory() && d.name === PHASES[phaseKey].pathSegment)) {
+          entries.push({ year, phaseKey });
+        }
+      }
+    }
   } catch {
-    years = [];
+    entries = [];
   }
 
   const title = "Historical NFL Results Archive | Blitz Odds";
@@ -463,10 +509,10 @@ async function rebuildRootIndex() {
     <span class="archive-badge">Historical Archive</span>
     <h2 style="margin-top:0;">Historical Results Archive</h2>
     <div class="season-index-list">
-      ${years
+      ${entries
         .map(
-          (year) => `<a class="season-index-game" href="/historical/${year}/preseason/index.html">
-            <span>${year} Preseason</span><span>&rsaquo;</span>
+          ({ year, phaseKey }) => `<a class="season-index-game" href="/historical/${year}/${PHASES[phaseKey].pathSegment}/index.html">
+            <span>${year} ${PHASES[phaseKey].label}</span><span>&rsaquo;</span>
           </a>`
         )
         .join("\n")}
@@ -477,27 +523,28 @@ async function rebuildRootIndex() {
   return canonicalPath;
 }
 
-async function main() {
-  log(`fetching ${YEAR} preseason events from ESPN...`);
-  const events = await fetchSeasonEvents(YEAR);
+async function runPhase(year, phaseKey) {
+  const phaseDef = PHASES[phaseKey];
+  log(`fetching ${year} ${phaseDef.label} events from ESPN...`);
+  const events = await fetchPhaseEvents(year, phaseDef);
   const finished = events.filter((e) => {
     const comp = e.competitions && e.competitions[0];
     return comp && comp.status && comp.status.type && comp.status.type.state === "post";
   });
-  log(`found ${events.length} preseason events, ${finished.length} finished.`);
+  log(`found ${events.length} ${phaseDef.label.toLowerCase()} events, ${finished.length} finished.`);
 
   if (finished.length === 0) {
-    log("nothing finished yet for this year/season - nothing to backfill.");
-    return;
+    log(`nothing finished yet for ${year} ${phaseDef.label} - skipping.`);
+    return [];
   }
 
   const gamesByRound = {};
-  const allNewPaths = [];
+  const newPaths = [];
 
   for (const event of finished) {
     const round = event.week ? event.week.number : null;
-    if (!round || !ROUND_INFO[round]) {
-      log(`WARN: skipping event ${event.id} - unrecognized preseason round (week.number=${round})`);
+    if (!round || !phaseDef.rounds[round]) {
+      log(`WARN: skipping event ${event.id} - unrecognized ${phaseKey} round (week.number=${round}, e.g. Pro Bowl in postseason - expected)`);
       continue;
     }
     const comp = event.competitions[0];
@@ -519,30 +566,47 @@ async function main() {
       homeScore: Number(home.score),
     };
 
-    log(`building page: ${game.awayAbbr} @ ${game.homeAbbr} (${ROUND_INFO[round].label})...`);
-    const { html, canonicalPath } = await buildGamePage(YEAR, round, game);
+    log(`building page: ${game.awayAbbr} @ ${game.homeAbbr} (${phaseDef.rounds[round].label})...`);
+    const { html, canonicalPath } = await buildGamePage(year, phaseKey, round, game);
     await writeFileEnsureDir(`.${canonicalPath}`, html);
-    allNewPaths.push(canonicalPath);
+    newPaths.push(canonicalPath);
 
     if (!gamesByRound[round]) gamesByRound[round] = [];
     gamesByRound[round].push({ ...game, canonicalPath });
   }
 
-  // Sort rounds numerically (1=HOF, 2/3/4=preseason weeks) for the index page.
+  // Sort rounds numerically (round 1 = earliest) for the index page.
   const sortedGamesByRound = Object.fromEntries(Object.entries(gamesByRound).sort(([a], [b]) => Number(a) - Number(b)));
 
-  const seasonIndex = buildSeasonIndexPage(YEAR, sortedGamesByRound);
+  const seasonIndex = buildSeasonIndexPage(year, phaseKey, sortedGamesByRound);
   await writeFileEnsureDir(`.${seasonIndex.canonicalPath}`, seasonIndex.html);
-  allNewPaths.push(seasonIndex.canonicalPath);
+  newPaths.push(seasonIndex.canonicalPath);
+
+  return newPaths;
+}
+
+async function main() {
+  const phaseKeys = PHASE_ARG === "all" ? Object.keys(PHASES) : [PHASE_ARG];
+  let allNewPaths = [];
+
+  for (const phaseKey of phaseKeys) {
+    const paths = await runPhase(YEAR, phaseKey);
+    allNewPaths = allNewPaths.concat(paths);
+  }
+
+  if (allNewPaths.length === 0) {
+    log("nothing was backfilled - nothing to index or sitemap.");
+    return;
+  }
 
   const rootIndexPath = await rebuildRootIndex();
   allNewPaths.push(rootIndexPath);
 
   const added = await updateSitemap(allNewPaths);
-  log(`wrote ${allNewPaths.length} pages, added ${added} sitemap entries.`);
+  log(`wrote ${allNewPaths.length} pages total, added ${added} sitemap entries.`);
 }
 
 main().catch((err) => {
-  console.error("backfill-historical-preseason failed:", err);
+  console.error("backfill-historical-season failed:", err);
   process.exit(1);
 });

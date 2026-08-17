@@ -66,6 +66,15 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
 .week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
   border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
+.rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
+.rank-good { color: var(--win); font-weight: 700; }
+.rank-mid { color: var(--text); }
+.rank-bad { color: var(--out, #ef4444); font-weight: 700; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Kansas City Chiefs at Philadelphia Eagles","startDate":"2025-02-09T23:30Z","sport":"American Football","homeTeam":{"@type":"SportsTeam","name":"Philadelphia Eagles"},"awayTeam":{"@type":"SportsTeam","name":"Kansas City Chiefs"},"location":{"@type":"Place","name":"Caesars Superdome"}}</script>
@@ -114,6 +123,44 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 <tr><td>Penalties</td><td>7-75</td><td>8-59</td></tr>
 <tr><td>Possession</td><td>23:02</td><td>36:58</td></tr></tbody>
   </table>
+
+      <div class="section-title">Team Rankings (Offense &amp; Defense)</div>
+      <table class="rankings-table">
+    <thead><tr><th></th><th>KC</th><th>PHI</th></tr></thead>
+    <tbody>
+      <tr>
+    <td>Total Offense</td>
+    <td>327.6 <span class="rank-mid">#16</span></td>
+    <td>367.2 <span class="rank-good">#8</span></td>
+  </tr>
+      <tr>
+    <td>Rush Offense</td>
+    <td>105.3 <span class="rank-mid">#22</span></td>
+    <td>179.3 <span class="rank-good">#2</span></td>
+  </tr>
+      <tr>
+    <td>Pass Offense</td>
+    <td>222.4 <span class="rank-mid">#14</span></td>
+    <td>187.9 <span class="rank-bad">#29</span></td>
+  </tr>
+      <tr>
+    <td>Total Defense</td>
+    <td>320.6 <span class="rank-good">#9</span></td>
+    <td>278.4 <span class="rank-good">#1</span></td>
+  </tr>
+      <tr>
+    <td>Rush Defense</td>
+    <td>101.8 <span class="rank-bad">#25</span></td>
+    <td>104.2 <span class="rank-bad">#23</span></td>
+  </tr>
+      <tr>
+    <td>Pass Defense</td>
+    <td>218.8 <span class="rank-mid">#15</span></td>
+    <td>174.2 <span class="rank-bad">#32</span></td>
+  </tr>
+    </tbody>
+  </table>
+  <div class="rankings-note">Rankings out of 32, 1 = best. Reflects final 2024 regular-season totals (source: The Football Database).</div>
 
       <div class="section-title">Player Stats</div>
       <div class="playerstats-team"><h3>KC</h3><div class="playerstats-cat">

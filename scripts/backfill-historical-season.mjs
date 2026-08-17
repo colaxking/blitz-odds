@@ -145,8 +145,36 @@ async function fetchJson(url) {
   return res.json();
 }
 
-async function fetchPhaseEvents(year, phaseDef) {
-  const data = await fetchJson(
+// Team offense/defense rankings (rush/pass/total, both sides of the ball)
+// for a given calendar season, sourced from data/historical-team-rankings.json
+// - itself built once from footballdb.com (same source the live app uses for
+// current rankings), NOT fetched live by this script. footballdb.com sits
+// behind Cloudflare bot protection that blocks plain server-side fetches
+// (confirmed by testing - curl-style UA works for ESPN but not this site),
+// so this had to be a one-time gather rather than a live scrape step here.
+// To add more seasons later, gather the same way and extend that file.
+let RANKINGS_DATA = null;
+async function loadRankingsData() {
+  if (RANKINGS_DATA) return RANKINGS_DATA;
+  try {
+    RANKINGS_DATA = JSON.parse(await readFile(path.join(REPO_ROOT, "data/historical-team-rankings.json"), "utf8"));
+  } catch {
+    RANKINGS_DATA = {};
+  }
+  return RANKINGS_DATA;
+}
+
+// Which calendar season's final rankings apply to a game in `year`/`phaseKey`.
+// Preseason games predate that season's own stats entirely, so they use the
+// PRIOR season's final numbers (the only "current" data available at the
+// time) - same convention data/history.json already uses for real 2026
+// preseason snapshots. Playoff games happen right after their own season's
+// regular season ends, so that season's own final numbers are exactly right.
+function rankingsSeasonFor(year, phaseKey) {
+  return phaseKey === "preseason" ? year - 1 : year;
+}
+
+async function fetchPhaseEvents(year, phaseDef) {  const data = await fetchJson(
     `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${phaseDef.dateRange(year)}`
   );
   return (data.events || []).filter((e) => e.season && e.season.type === phaseDef.seasonType);
@@ -260,6 +288,15 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
 .week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
   border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
+.rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
+.rank-good { color: var(--win); font-weight: 700; }
+.rank-mid { color: var(--text); }
+.rank-bad { color: var(--out, #ef4444); font-weight: 700; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 `;
 
@@ -328,6 +365,35 @@ function linescoreRow(label, scores, total) {
   return `<tr><td>${escapeHtml(label)}</td>${scores.map((s) => `<td>${escapeHtml(s)}</td>`).join("")}<td><strong>${escapeHtml(total)}</strong></td></tr>`;
 }
 
+function rankClass(rank) {
+  if (rank <= 10) return "rank-good";
+  if (rank >= 23) return "rank-bad";
+  return "rank-mid";
+}
+
+function rankingsTable(awayAbbr, homeAbbr, awayRankings, homeRankings, rankingsSeason) {
+  if (!awayRankings || !homeRankings) {
+    return `<p style="color:var(--text-dim); font-size:0.85rem;">Team rankings not available for this game.</p>`;
+  }
+  const row = (label, awayVal, awayRank, homeVal, homeRank) => `<tr>
+    <td>${label}</td>
+    <td>${awayVal} <span class="${rankClass(awayRank)}">#${awayRank}</span></td>
+    <td>${homeVal} <span class="${rankClass(homeRank)}">#${homeRank}</span></td>
+  </tr>`;
+  return `<table class="rankings-table">
+    <thead><tr><th></th><th>${escapeHtml(awayAbbr)}</th><th>${escapeHtml(homeAbbr)}</th></tr></thead>
+    <tbody>
+      ${row("Total Offense", awayRankings.offense.totalYdsPerGame, awayRankings.offense.rankTotal, homeRankings.offense.totalYdsPerGame, homeRankings.offense.rankTotal)}
+      ${row("Rush Offense", awayRankings.offense.rushYdsPerGame, awayRankings.offense.rankRush, homeRankings.offense.rushYdsPerGame, homeRankings.offense.rankRush)}
+      ${row("Pass Offense", awayRankings.offense.passYdsPerGame, awayRankings.offense.rankPass, homeRankings.offense.passYdsPerGame, homeRankings.offense.rankPass)}
+      ${row("Total Defense", awayRankings.defense.totalYdsPerGame, awayRankings.defense.rankTotal, homeRankings.defense.totalYdsPerGame, homeRankings.defense.rankTotal)}
+      ${row("Rush Defense", awayRankings.defense.rushYdsPerGame, awayRankings.defense.rankRush, homeRankings.defense.rushYdsPerGame, homeRankings.defense.rankRush)}
+      ${row("Pass Defense", awayRankings.defense.passYdsPerGame, awayRankings.defense.rankPass, homeRankings.defense.passYdsPerGame, homeRankings.defense.rankPass)}
+    </tbody>
+  </table>
+  <div class="rankings-note">Rankings out of 32, 1 = best. Reflects final ${rankingsSeason} regular-season totals (source: The Football Database).</div>`;
+}
+
 async function buildGamePage(year, phaseKey, round, game) {
   const phaseDef = PHASES[phaseKey];
   const roundInfo = phaseDef.rounds[round];
@@ -344,6 +410,12 @@ async function buildGamePage(year, phaseKey, round, game) {
   const title = `${awayName} vs. ${homeName} Final Score & Box Score — ${roundInfo.label}, ${year} ${phaseDef.label} | Blitz Odds`;
   const description = `${awayName} ${awayScore}, ${homeName} ${homeScore} — final score, quarter-by-quarter box score, and top performers from the ${year} ${roundInfo.label}.`;
   const canonicalPath = `/historical/${year}/${phaseDef.pathSegment}/${roundInfo.slug}/${teamSlug(awayAbbr)}-at-${teamSlug(homeAbbr)}.html`;
+
+  const rankingsSeason = rankingsSeasonFor(year, phaseKey);
+  const rankingsData = await loadRankingsData();
+  const seasonRankings = rankingsData[String(rankingsSeason)];
+  const awayRankings = seasonRankings && seasonRankings[awayAbbr];
+  const homeRankings = seasonRankings && seasonRankings[homeAbbr];
 
   const numQuarters = Math.max(box.awayLinescores.length, box.homeLinescores.length, 4);
   const qHeaders = Array.from({ length: numQuarters }, (_, i) => `Q${i + 1}`);
@@ -377,6 +449,9 @@ async function buildGamePage(year, phaseKey, round, game) {
 
       <div class="section-title">Team Stats</div>
       ${teamStatsTable(awayAbbr, homeAbbr, box.awayTeamStats, box.homeTeamStats)}
+
+      <div class="section-title">Team Rankings (Offense &amp; Defense)</div>
+      ${rankingsTable(awayAbbr, homeAbbr, awayRankings, homeRankings, rankingsSeason)}
 
       <div class="section-title">Player Stats</div>
       ${playerStatsBlock(awayAbbr, box.awayPlayerStats)}

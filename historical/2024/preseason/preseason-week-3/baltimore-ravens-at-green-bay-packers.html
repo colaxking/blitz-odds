@@ -66,6 +66,15 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
 .week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
   border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
+.rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
+.rank-good { color: var(--win); font-weight: 700; }
+.rank-mid { color: var(--text); }
+.rank-bad { color: var(--out, #ef4444); font-weight: 700; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Baltimore Ravens at Green Bay Packers","startDate":"2024-08-24T17:00Z","sport":"American Football","homeTeam":{"@type":"SportsTeam","name":"Green Bay Packers"},"awayTeam":{"@type":"SportsTeam","name":"Baltimore Ravens"},"location":{"@type":"Place","name":"Lambeau Field"}}</script>
@@ -114,6 +123,44 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 <tr><td>Penalties</td><td>6-45</td><td>5-45</td></tr>
 <tr><td>Possession</td><td>25:58</td><td>34:02</td></tr></tbody>
   </table>
+
+      <div class="section-title">Team Rankings (Offense &amp; Defense)</div>
+      <table class="rankings-table">
+    <thead><tr><th></th><th>BAL</th><th>GB</th></tr></thead>
+    <tbody>
+      <tr>
+    <td>Total Offense</td>
+    <td>370.4 <span class="rank-good">#6</span></td>
+    <td>345.5 <span class="rank-mid">#11</span></td>
+  </tr>
+      <tr>
+    <td>Rush Offense</td>
+    <td>156.5 <span class="rank-good">#1</span></td>
+    <td>112.1 <span class="rank-mid">#15</span></td>
+  </tr>
+      <tr>
+    <td>Pass Offense</td>
+    <td>213.8 <span class="rank-mid">#21</span></td>
+    <td>233.4 <span class="rank-mid">#12</span></td>
+  </tr>
+      <tr>
+    <td>Total Defense</td>
+    <td>301.4 <span class="rank-good">#6</span></td>
+    <td>335.1 <span class="rank-mid">#17</span></td>
+  </tr>
+      <tr>
+    <td>Rush Defense</td>
+    <td>109.4 <span class="rank-mid">#19</span></td>
+    <td>128.3 <span class="rank-good">#5</span></td>
+  </tr>
+      <tr>
+    <td>Pass Defense</td>
+    <td>191.9 <span class="rank-bad">#27</span></td>
+    <td>206.8 <span class="rank-bad">#24</span></td>
+  </tr>
+    </tbody>
+  </table>
+  <div class="rankings-note">Rankings out of 32, 1 = best. Reflects final 2023 regular-season totals (source: The Football Database).</div>
 
       <div class="section-title">Player Stats</div>
       <div class="playerstats-team"><h3>BAL</h3><div class="playerstats-cat">

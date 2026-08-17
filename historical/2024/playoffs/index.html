@@ -66,6 +66,15 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
 .week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
   border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
+.rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
+.rank-good { color: var(--win); font-weight: 700; }
+.rank-mid { color: var(--text); }
+.rank-bad { color: var(--out, #ef4444); font-weight: 700; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 </style>
 

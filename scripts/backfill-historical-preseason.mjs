@@ -47,6 +47,26 @@ const SITE_BASE = "https://blitz-odds.netlify.app";
 const ESPN_FETCH_HEADERS = { "User-Agent": "curl/8.4.0" }; // see header note - browser-style UAs get 403'd from server IPs
 const ESPN_ABBR_FIX = { WSH: "WAS", LA: "LAR" };
 
+// Mirrors BOXSCORE_KEY_STATS / BOXSCORE_PLAYER_CATEGORIES in index.html's
+// BoxScoreModal - keep these two in sync if the live modal's stat picks
+// ever change, so the archive pages show the same "full box score" as the
+// live app rather than a reduced version.
+const BOXSCORE_KEY_STATS = [
+  { key: "totalYards", label: "Total Yards" },
+  { key: "netPassingYards", label: "Passing Yards" },
+  { key: "rushingYards", label: "Rushing Yards" },
+  { key: "thirdDownEff", label: "3rd Down Eff." },
+  { key: "turnovers", label: "Turnovers" },
+  { key: "totalPenaltiesYards", label: "Penalties" },
+  { key: "possessionTime", label: "Possession" },
+];
+const BOXSCORE_PLAYER_CATEGORIES = [
+  { key: "passing", label: "Passing", columns: ["C/ATT", "YDS", "TD", "INT"] },
+  { key: "rushing", label: "Rushing", columns: ["CAR", "YDS", "TD", "LONG"] },
+  { key: "receiving", label: "Receiving", columns: ["REC", "YDS", "TD", "LONG"] },
+  { key: "fumbles", label: "Fumbles", columns: ["FUM", "LOST"] },
+];
+
 const ROUND_INFO = {
   1: { slug: "hall-of-fame-game", label: "Hall of Fame Game" },
   2: { slug: "preseason-week-1", label: "Preseason Week 1" },
@@ -105,26 +125,48 @@ async function fetchBoxScoreEssentials(eventId) {
   const away = competitors.find((c) => c.homeAway === "away");
   const linescores = (side) => (side && side.linescores ? side.linescores.map((q) => q.displayValue) : []);
 
-  function topLeaders(teamAbbr) {
-    const teamLeaders = (data.leaders || []).find((l) => l.team && fixAbbr(l.team.abbreviation) === teamAbbr);
-    if (!teamLeaders) return [];
-    const wanted = ["passingYards", "rushingYards", "receivingYards"];
-    return wanted
-      .map((cat) => teamLeaders.leaders.find((l) => l.name === cat))
-      .filter(Boolean)
-      .map((l) => ({
-        category: l.displayName,
-        athlete: l.leaders[0] && l.leaders[0].athlete ? l.leaders[0].athlete.displayName : null,
-        stat: l.leaders[0] ? l.leaders[0].displayValue : null,
-      }))
-      .filter((l) => l.athlete);
+  const boxTeams = (data.boxscore && data.boxscore.teams) || [];
+  const findTeamBox = (abbr) => boxTeams.find((t) => fixAbbr(t.team.abbreviation) === abbr);
+
+  function teamStatsFor(abbr) {
+    const teamBox = findTeamBox(abbr);
+    if (!teamBox) return [];
+    const statVal = (key) => {
+      const s = teamBox.statistics.find((s) => s.name === key);
+      return s ? s.displayValue : "—";
+    };
+    return BOXSCORE_KEY_STATS.map((stat) => ({ label: stat.label, value: statVal(stat.key) }));
+  }
+
+  const boxPlayers = (data.boxscore && data.boxscore.players) || [];
+  const findPlayerTeam = (abbr) => boxPlayers.find((t) => fixAbbr(t.team.abbreviation) === abbr);
+
+  function playerStatsFor(abbr) {
+    const teamBox = findPlayerTeam(abbr);
+    if (!teamBox) return [];
+    return BOXSCORE_PLAYER_CATEGORIES.map((catDef) => {
+      const stat = teamBox.statistics.find((s) => s.name === catDef.key);
+      if (!stat || !stat.athletes || !stat.athletes.length) return null;
+      const cols = catDef.columns.map((label) => ({ label, idx: stat.labels.indexOf(label) })).filter((c) => c.idx !== -1);
+      if (!cols.length) return null;
+      return {
+        label: catDef.label,
+        columns: cols.map((c) => c.label),
+        rows: stat.athletes.map((a) => ({
+          name: a.athlete.displayName,
+          values: cols.map((c) => (a.stats[c.idx] != null ? a.stats[c.idx] : "—")),
+        })),
+      };
+    }).filter(Boolean);
   }
 
   return {
     homeLinescores: linescores(home),
     awayLinescores: linescores(away),
-    homeLeaders: home ? topLeaders(fixAbbr(home.team.abbreviation)) : [],
-    awayLeaders: away ? topLeaders(fixAbbr(away.team.abbreviation)) : [],
+    homeTeamStats: home ? teamStatsFor(fixAbbr(home.team.abbreviation)) : [],
+    awayTeamStats: away ? teamStatsFor(fixAbbr(away.team.abbreviation)) : [],
+    homePlayerStats: home ? playerStatsFor(fixAbbr(home.team.abbreviation)) : [],
+    awayPlayerStats: away ? playerStatsFor(fixAbbr(away.team.abbreviation)) : [],
   };
 }
 
@@ -161,16 +203,32 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .leaders-cols { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .leader-row { font-size:0.85rem; margin-bottom: 6px; }
 .leader-cat { color: var(--text-dim); font-size: 0.72rem; text-transform:uppercase; }
+.teamstats-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.teamstats-table th, .teamstats-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.teamstats-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.teamstats-table td:first-child, .teamstats-table th:first-child { text-align:left; color: var(--text-dim); }
+.teamstats-table td:not(:first-child), .teamstats-table th:not(:first-child) { text-align:center; }
+.playerstats-team { margin-bottom: 18px; }
+.playerstats-team h3 { font-size: 0.95rem; margin: 0 0 8px; }
+.playerstats-cat { margin-bottom: 12px; }
+.playerstats-cat h4 { font-size: 0.75rem; text-transform:uppercase; letter-spacing:.4px; color: var(--text-dim); margin: 0 0 6px; font-weight:700; }
+.playerstats-table { width:100%; border-collapse: collapse; font-size: 0.82rem; }
+.playerstats-table th, .playerstats-table td { padding: 5px 8px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.playerstats-table th { color: var(--text-dim); font-weight:600; font-size:0.68rem; text-transform:uppercase; }
+.playerstats-table td:first-child, .playerstats-table th:first-child { text-align:left; }
 .season-index-list { list-style:none; padding:0; margin:0; }
 .season-index-round { margin-bottom: 22px; }
 .season-index-round h3 { font-size: 0.95rem; margin-bottom: 8px; }
 .season-index-game { display:flex; justify-content:space-between; padding: 8px 10px; background: var(--card-bg);
   border: 1px solid var(--card-border); border-radius: 10px; margin-bottom: 6px; font-size: 0.85rem; text-decoration:none; color: var(--text); }
 .season-index-game:hover { border-color: var(--accent); }
+.week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
+.week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
+  border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 `;
 
-function pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd }) {
+function pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd, pageScript }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -196,6 +254,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script
   ${bodyHtml}
   <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
 </div>
+${pageScript ? `<script>${pageScript}</script>` : ""}
 </body>
 </html>
 `;
@@ -205,11 +264,28 @@ function escapeHtml(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-function leadersBlock(leaders) {
-  if (!leaders.length) return `<p style="color:var(--text-dim); font-size:0.85rem;">No leader data available.</p>`;
-  return leaders
-    .map((l) => `<div class="leader-row"><span class="leader-cat">${escapeHtml(l.category)}:</span> ${escapeHtml(l.athlete)} — ${escapeHtml(l.stat)}</div>`)
+function teamStatsTable(awayAbbr, homeAbbr, awayStats, homeStats) {
+  const rows = awayStats.map((s, i) => `<tr><td>${escapeHtml(s.label)}</td><td>${escapeHtml(s.value)}</td><td>${escapeHtml((homeStats[i] || {}).value)}</td></tr>`);
+  return `<table class="teamstats-table">
+    <thead><tr><th></th><th>${escapeHtml(awayAbbr)}</th><th>${escapeHtml(homeAbbr)}</th></tr></thead>
+    <tbody>${rows.join("\n")}</tbody>
+  </table>`;
+}
+
+function playerStatsBlock(abbr, categories) {
+  if (!categories.length) return `<div class="playerstats-team"><h3>${escapeHtml(abbr)}</h3><p style="color:var(--text-dim); font-size:0.85rem;">No player stats available.</p></div>`;
+  const catsHtml = categories
+    .map(
+      (cat) => `<div class="playerstats-cat">
+        <h4>${escapeHtml(cat.label)}</h4>
+        <table class="playerstats-table">
+          <thead><tr><th>Player</th>${cat.columns.map((c) => `<th>${escapeHtml(c)}</th>`).join("")}</tr></thead>
+          <tbody>${cat.rows.map((r) => `<tr><td>${escapeHtml(r.name)}</td>${r.values.map((v) => `<td>${escapeHtml(v)}</td>`).join("")}</tr>`).join("\n")}</tbody>
+        </table>
+      </div>`
+    )
     .join("\n");
+  return `<div class="playerstats-team"><h3>${escapeHtml(abbr)}</h3>${catsHtml}</div>`;
 }
 
 function linescoreRow(label, scores, total) {
@@ -224,7 +300,7 @@ async function buildGamePage(year, round, game) {
     box = await fetchBoxScoreEssentials(game.eventId);
   } catch (err) {
     log(`WARN: box score fetch failed for ${awayAbbr}@${homeAbbr} (${game.eventId}) - ${err.message}`);
-    box = { homeLinescores: [], awayLinescores: [], homeLeaders: [], awayLeaders: [] };
+    box = { homeLinescores: [], awayLinescores: [], homeTeamStats: [], awayTeamStats: [], homePlayerStats: [], awayPlayerStats: [] };
   }
 
   const title = `${awayName} vs. ${homeName} Final Score & Box Score — ${ROUND_INFO[round].label}, ${year} Preseason | Blitz Odds`;
@@ -261,11 +337,12 @@ async function buildGamePage(year, round, game) {
         </tbody>
       </table>
 
-      <div class="section-title">Top Performers</div>
-      <div class="leaders-cols">
-        <div><strong>${escapeHtml(awayAbbr)}</strong>${leadersBlock(box.awayLeaders)}</div>
-        <div><strong>${escapeHtml(homeAbbr)}</strong>${leadersBlock(box.homeLeaders)}</div>
-      </div>
+      <div class="section-title">Team Stats</div>
+      ${teamStatsTable(awayAbbr, homeAbbr, box.awayTeamStats, box.homeTeamStats)}
+
+      <div class="section-title">Player Stats</div>
+      ${playerStatsBlock(awayAbbr, box.awayPlayerStats)}
+      ${playerStatsBlock(homeAbbr, box.homePlayerStats)}
     </div>
   `;
 
@@ -291,14 +368,24 @@ function buildSeasonIndexPage(year, gamesByRound) {
   const canonicalPath = `/historical/${year}/preseason/index.html`;
   const breadcrumb = `<a href="/">Home</a> &raquo; ${year} Preseason`;
 
+  const rounds = Object.entries(gamesByRound);
+  const options = rounds.map(([round]) => `<option value="round-${round}">${escapeHtml(ROUND_INFO[round].label)}</option>`).join("\n");
+
   const bodyHtml = `
     <span class="archive-badge">Historical Archive — ${year} Preseason</span>
     <h2 style="margin-top:0;">${year} NFL Preseason Results</h2>
+    <div class="week-picker">
+      <label for="week-select" style="color:var(--text-dim); font-size:0.82rem;">Jump to:</label>
+      <select id="week-select" class="week-select">
+        <option value="all">All Weeks</option>
+        ${options}
+      </select>
+    </div>
     <div class="season-index-list">
-      ${Object.entries(gamesByRound)
+      ${rounds
         .map(
           ([round, games]) => `
-        <div class="season-index-round">
+        <div class="season-index-round" id="round-${round}">
           <h3>${escapeHtml(ROUND_INFO[round].label)}</h3>
           ${games
             .map(
@@ -314,7 +401,19 @@ function buildSeasonIndexPage(year, gamesByRound) {
     </div>
   `;
 
-  return { html: pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml }), canonicalPath };
+  // Plain client-side filter - no framework needed for a static page. Shows
+  // only the selected round's section, or all of them for "All Weeks".
+  const pageScript = `
+    document.getElementById('week-select').addEventListener('change', function (e) {
+      var sections = document.querySelectorAll('.season-index-round');
+      var target = e.target.value;
+      sections.forEach(function (s) {
+        s.style.display = (target === 'all' || s.id === target) ? '' : 'none';
+      });
+    });
+  `;
+
+  return { html: pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, pageScript }), canonicalPath };
 }
 
 async function writeFileEnsureDir(relPath, content) {

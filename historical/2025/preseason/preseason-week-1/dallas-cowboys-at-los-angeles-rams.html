@@ -44,12 +44,28 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .leaders-cols { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .leader-row { font-size:0.85rem; margin-bottom: 6px; }
 .leader-cat { color: var(--text-dim); font-size: 0.72rem; text-transform:uppercase; }
+.teamstats-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.teamstats-table th, .teamstats-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.teamstats-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.teamstats-table td:first-child, .teamstats-table th:first-child { text-align:left; color: var(--text-dim); }
+.teamstats-table td:not(:first-child), .teamstats-table th:not(:first-child) { text-align:center; }
+.playerstats-team { margin-bottom: 18px; }
+.playerstats-team h3 { font-size: 0.95rem; margin: 0 0 8px; }
+.playerstats-cat { margin-bottom: 12px; }
+.playerstats-cat h4 { font-size: 0.75rem; text-transform:uppercase; letter-spacing:.4px; color: var(--text-dim); margin: 0 0 6px; font-weight:700; }
+.playerstats-table { width:100%; border-collapse: collapse; font-size: 0.82rem; }
+.playerstats-table th, .playerstats-table td { padding: 5px 8px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.playerstats-table th { color: var(--text-dim); font-weight:600; font-size:0.68rem; text-transform:uppercase; }
+.playerstats-table td:first-child, .playerstats-table th:first-child { text-align:left; }
 .season-index-list { list-style:none; padding:0; margin:0; }
 .season-index-round { margin-bottom: 22px; }
 .season-index-round h3 { font-size: 0.95rem; margin-bottom: 8px; }
 .season-index-game { display:flex; justify-content:space-between; padding: 8px 10px; background: var(--card-bg);
   border: 1px solid var(--card-border); border-radius: 10px; margin-bottom: 6px; font-size: 0.85rem; text-decoration:none; color: var(--text); }
 .season-index-game:hover { border-color: var(--accent); }
+.week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
+.week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
+  border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Dallas Cowboys at Los Angeles Rams","startDate":"2025-08-09T23:00Z","sport":"American Football","homeTeam":{"@type":"SportsTeam","name":"Los Angeles Rams"},"awayTeam":{"@type":"SportsTeam","name":"Dallas Cowboys"},"location":{"@type":"Place","name":"SoFi Stadium"}}</script>
@@ -87,18 +103,107 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
         </tbody>
       </table>
 
-      <div class="section-title">Top Performers</div>
-      <div class="leaders-cols">
-        <div><strong>DAL</strong><div class="leader-row"><span class="leader-cat">Passing Yards:</span> Joe Milton III — 17/29, 143 YDS, 1 TD, 1 INT</div>
-<div class="leader-row"><span class="leader-cat">Rushing Yards:</span> Malik Davis — 7 CAR, 63 YDS</div>
-<div class="leader-row"><span class="leader-cat">Receiving Yards:</span> Traeshon Holden — 2 REC, 42 YDS</div></div>
-        <div><strong>LAR</strong><div class="leader-row"><span class="leader-cat">Passing Yards:</span> Stetson Bennett IV — 16/24, 188 YDS, 2 TD, 1 INT</div>
-<div class="leader-row"><span class="leader-cat">Rushing Yards:</span> Cody Schrader — 5 CAR, 59 YDS</div>
-<div class="leader-row"><span class="leader-cat">Receiving Yards:</span> Xavier Smith — 3 REC, 55 YDS</div></div>
+      <div class="section-title">Team Stats</div>
+      <table class="teamstats-table">
+    <thead><tr><th></th><th>DAL</th><th>LAR</th></tr></thead>
+    <tbody><tr><td>Total Yards</td><td>297</td><td>364</td></tr>
+<tr><td>Passing Yards</td><td>149</td><td>183</td></tr>
+<tr><td>Rushing Yards</td><td>148</td><td>181</td></tr>
+<tr><td>3rd Down Eff.</td><td>4-11</td><td>5-11</td></tr>
+<tr><td>Turnovers</td><td>1</td><td>1</td></tr>
+<tr><td>Penalties</td><td>11-83</td><td>8-104</td></tr>
+<tr><td>Possession</td><td>26:40</td><td>33:20</td></tr></tbody>
+  </table>
+
+      <div class="section-title">Player Stats</div>
+      <div class="playerstats-team"><h3>DAL</h3><div class="playerstats-cat">
+        <h4>Passing</h4>
+        <table class="playerstats-table">
+          <thead><tr><th>Player</th><th>C/ATT</th><th>YDS</th><th>TD</th><th>INT</th></tr></thead>
+          <tbody><tr><td>Joe Milton III</td><td>17/29</td><td>143</td><td>1</td><td>1</td></tr>
+<tr><td>Will Grier</td><td>2/3</td><td>14</td><td>0</td><td>0</td></tr></tbody>
+        </table>
       </div>
+<div class="playerstats-cat">
+        <h4>Rushing</h4>
+        <table class="playerstats-table">
+          <thead><tr><th>Player</th><th>CAR</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
+          <tbody><tr><td>Malik Davis</td><td>7</td><td>63</td><td>0</td><td>16</td></tr>
+<tr><td>Phil Mafah</td><td>10</td><td>36</td><td>0</td><td>8</td></tr>
+<tr><td>Joe Milton III</td><td>5</td><td>22</td><td>0</td><td>8</td></tr>
+<tr><td>Will Grier</td><td>2</td><td>12</td><td>1</td><td>8</td></tr>
+<tr><td>Deuce Vaughn</td><td>2</td><td>11</td><td>0</td><td>8</td></tr>
+<tr><td>Jalen Moreno-Cropper</td><td>1</td><td>4</td><td>0</td><td>4</td></tr></tbody>
+        </table>
+      </div>
+<div class="playerstats-cat">
+        <h4>Receiving</h4>
+        <table class="playerstats-table">
+          <thead><tr><th>Player</th><th>REC</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
+          <tbody><tr><td>Traeshon Holden</td><td>2</td><td>42</td><td>0</td><td>35</td></tr>
+<tr><td>Jalen Brooks</td><td>2</td><td>26</td><td>0</td><td>16</td></tr>
+<tr><td>Ryan Flournoy</td><td>1</td><td>20</td><td>0</td><td>20</td></tr>
+<tr><td>Josh Kelly</td><td>1</td><td>19</td><td>0</td><td>19</td></tr>
+<tr><td>Rivaldo Fairweather</td><td>3</td><td>18</td><td>1</td><td>7</td></tr>
+<tr><td>Phil Mafah</td><td>2</td><td>15</td><td>0</td><td>11</td></tr>
+<tr><td>Jalen Moreno-Cropper</td><td>2</td><td>6</td><td>0</td><td>4</td></tr>
+<tr><td>Tyler Neville</td><td>2</td><td>6</td><td>0</td><td>3</td></tr>
+<tr><td>Malik Davis</td><td>1</td><td>3</td><td>0</td><td>3</td></tr>
+<tr><td>Deuce Vaughn</td><td>1</td><td>2</td><td>0</td><td>2</td></tr>
+<tr><td>Luke Schoonmaker</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+<tr><td>Jonathan Mingo</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>Jalen Tolbert</td><td>1</td><td>-1</td><td>0</td><td>-1</td></tr></tbody>
+        </table>
+      </div></div>
+      <div class="playerstats-team"><h3>LAR</h3><div class="playerstats-cat">
+        <h4>Passing</h4>
+        <table class="playerstats-table">
+          <thead><tr><th>Player</th><th>C/ATT</th><th>YDS</th><th>TD</th><th>INT</th></tr></thead>
+          <tbody><tr><td>Stetson Bennett IV</td><td>16/24</td><td>188</td><td>2</td><td>1</td></tr></tbody>
+        </table>
+      </div>
+<div class="playerstats-cat">
+        <h4>Rushing</h4>
+        <table class="playerstats-table">
+          <thead><tr><th>Player</th><th>CAR</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
+          <tbody><tr><td>Cody Schrader</td><td>5</td><td>59</td><td>0</td><td>25</td></tr>
+<tr><td>Jarquez Hunter</td><td>11</td><td>41</td><td>0</td><td>11</td></tr>
+<tr><td>Blake Corum</td><td>9</td><td>32</td><td>2</td><td>9</td></tr>
+<tr><td>Jordan Waters</td><td>4</td><td>21</td><td>0</td><td>6</td></tr>
+<tr><td>Brennan Presley</td><td>1</td><td>15</td><td>0</td><td>15</td></tr>
+<tr><td>Stetson Bennett IV</td><td>3</td><td>11</td><td>0</td><td>8</td></tr>
+<tr><td>Ronnie Rivers</td><td>2</td><td>9</td><td>0</td><td>5</td></tr>
+<tr><td>Dresser Winn</td><td>2</td><td>-3</td><td>0</td><td>-1</td></tr>
+<tr><td>Drake Stoops</td><td>1</td><td>-4</td><td>0</td><td>-4</td></tr></tbody>
+        </table>
+      </div>
+<div class="playerstats-cat">
+        <h4>Receiving</h4>
+        <table class="playerstats-table">
+          <thead><tr><th>Player</th><th>REC</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
+          <tbody><tr><td>Xavier Smith</td><td>3</td><td>55</td><td>0</td><td>39</td></tr>
+<tr><td>Britain Covey</td><td>2</td><td>31</td><td>0</td><td>26</td></tr>
+<tr><td>Drake Stoops</td><td>2</td><td>28</td><td>0</td><td>15</td></tr>
+<tr><td>Konata Mumpfield</td><td>2</td><td>24</td><td>0</td><td>18</td></tr>
+<tr><td>Davis Allen</td><td>2</td><td>17</td><td>0</td><td>13</td></tr>
+<tr><td>Brennan Presley</td><td>2</td><td>11</td><td>1</td><td>6</td></tr>
+<tr><td>Cody Schrader</td><td>1</td><td>9</td><td>1</td><td>9</td></tr>
+<tr><td>Mark Redman</td><td>1</td><td>9</td><td>0</td><td>9</td></tr>
+<tr><td>Blake Corum</td><td>1</td><td>4</td><td>0</td><td>4</td></tr>
+<tr><td>Mario Williams</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody>
+        </table>
+      </div>
+<div class="playerstats-cat">
+        <h4>Fumbles</h4>
+        <table class="playerstats-table">
+          <thead><tr><th>Player</th><th>FUM</th><th>LOST</th></tr></thead>
+          <tbody><tr><td>Brennan Presley</td><td>1</td><td>0</td></tr></tbody>
+        </table>
+      </div></div>
     </div>
   
   <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
 </div>
+
 </body>
 </html>

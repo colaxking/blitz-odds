@@ -69,6 +69,12 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
 .week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
   border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 22px; }
+.filter-row .week-picker { margin-bottom: 0; }
+.menu-block { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+.team-result-w { color: var(--win); font-weight: 700; }
+.team-result-l { color: var(--text-dim); font-weight: 700; }
+.team-result-t { color: var(--warn); font-weight: 700; }
 .rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
 .rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
 .rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
@@ -88,6 +94,36 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
 .rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
 .rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
+
+/* Mobile: the desktop layout (3-col stat-compare, wide data tables) was
+   built and only ever tested at desktop width - cramped/overflowing on a
+   phone. Below ~600px: stack stat-compare to 2 columns with Total
+   Difference spanning full width below, shrink table padding/font so wide
+   tables (linescores, player stats) fit without clipping, and wrap tables
+   in a horizontally-scrollable container as a fallback for anything still
+   too wide (long player names, etc.) rather than letting them clip. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 600px) {
+  .app { padding: 14px 10px 40px; }
+  header.top h1 { font-size: 1.5rem; }
+  .detail { padding: 14px; }
+  .detail-header { gap: 14px; }
+  .detail-team { width: auto; }
+  .detail-score { font-size: 1.7rem; }
+  .stat-compare { grid-template-columns: 1fr 1fr; font-size: 0.7rem; }
+  .stat-compare > .col:nth-child(3), .stat-compare > .col:nth-child(6) {
+    grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: baseline;
+  }
+  .stat-compare > .col:nth-child(3) .label, .stat-compare > .col:nth-child(6) .label { width: 100%; }
+  .linescore-table, .playerstats-table, .teamstats-table { font-size: 0.76rem; }
+  .linescore-table th, .linescore-table td,
+  .playerstats-table th, .playerstats-table td,
+  .teamstats-table th, .teamstats-table td { padding: 5px 6px; }
+  .leaders-cols, .playerstats-team { display: block; }
+  .filter-row { flex-direction: column; gap: 12px; }
+  .week-picker { flex-wrap: wrap; }
+  .week-select { flex: 1; min-width: 0; }
+}
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Las Vegas Raiders at Los Angeles Chargers","startDate":"2024-09-08T20:05Z","sport":"American Football","homeTeam":{"@type":"SportsTeam","name":"Los Angeles Chargers"},"awayTeam":{"@type":"SportsTeam","name":"Las Vegas Raiders"},"location":{"@type":"Place","name":"SoFi Stadium"}}</script>
@@ -117,16 +153,16 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
       </div>
 
       <div class="section-title">Box Score</div>
-      <table class="linescore-table">
+      <div class="table-scroll"><table class="linescore-table">
         <thead><tr><th>Team</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>Final</th></tr></thead>
         <tbody>
           <tr><td>LV</td><td>7</td><td>0</td><td>0</td><td>3</td><td><strong>10</strong></td></tr>
           <tr><td>LAC</td><td>3</td><td>3</td><td>3</td><td>13</td><td><strong>22</strong></td></tr>
         </tbody>
-      </table>
+      </table></div>
 
       <div class="section-title">Team Stats</div>
-      <table class="teamstats-table">
+      <div class="table-scroll"><table class="teamstats-table">
     <thead><tr><th></th><th>LV</th><th>LAC</th></tr></thead>
     <tbody><tr><td>Total Yards</td><td>296</td><td>316</td></tr>
 <tr><td>Passing Yards</td><td>225</td><td>140</td></tr>
@@ -135,7 +171,7 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 <tr><td>Turnovers</td><td>3</td><td>0</td></tr>
 <tr><td>Penalties</td><td>2-15</td><td>7-50</td></tr>
 <tr><td>Possession</td><td>31:44</td><td>28:16</td></tr></tbody>
-  </table>
+  </table></div>
 
       <div class="section-title">Team Rankings (Offense &amp; Defense)</div>
       <div class="stat-compare">
@@ -181,24 +217,24 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
       <div class="section-title">Player Stats</div>
       <div class="playerstats-team"><h3>LV</h3><div class="playerstats-cat">
         <h4>Passing</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>C/ATT</th><th>YDS</th><th>TD</th><th>INT</th></tr></thead>
           <tbody><tr><td>Gardner Minshew II</td><td>25/33</td><td>257</td><td>1</td><td>1</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Rushing</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>CAR</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
           <tbody><tr><td>Zamir White</td><td>13</td><td>44</td><td>0</td><td>12</td></tr>
 <tr><td>Alexander Mattison</td><td>5</td><td>19</td><td>0</td><td>7</td></tr>
 <tr><td>Gardner Minshew II</td><td>3</td><td>5</td><td>0</td><td>3</td></tr>
 <tr><td>Jakobi Meyers</td><td>1</td><td>3</td><td>0</td><td>3</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Receiving</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>REC</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
           <tbody><tr><td>Jakobi Meyers</td><td>3</td><td>61</td><td>0</td><td>33</td></tr>
 <tr><td>Davante Adams</td><td>5</td><td>59</td><td>0</td><td>23</td></tr>
@@ -208,36 +244,36 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 <tr><td>DJ Turner</td><td>1</td><td>9</td><td>0</td><td>9</td></tr>
 <tr><td>Michael Mayer</td><td>2</td><td>3</td><td>0</td><td>3</td></tr>
 <tr><td>Zamir White</td><td>2</td><td>2</td><td>0</td><td>1</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Fumbles</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>FUM</th><th>LOST</th></tr></thead>
           <tbody><tr><td>Gardner Minshew II</td><td>1</td><td>1</td></tr>
 <tr><td>Zamir White</td><td>1</td><td>1</td></tr></tbody>
-        </table>
+        </table></div>
       </div></div>
       <div class="playerstats-team"><h3>LAC</h3><div class="playerstats-cat">
         <h4>Passing</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>C/ATT</th><th>YDS</th><th>TD</th><th>INT</th></tr></thead>
           <tbody><tr><td>Justin Herbert</td><td>17/26</td><td>144</td><td>1</td><td>0</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Rushing</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>CAR</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
           <tbody><tr><td>J.K. Dobbins</td><td>10</td><td>135</td><td>1</td><td>61</td></tr>
 <tr><td>Gus Edwards</td><td>11</td><td>26</td><td>0</td><td>10</td></tr>
 <tr><td>Derius Davis</td><td>2</td><td>9</td><td>0</td><td>6</td></tr>
 <tr><td>Justin Herbert</td><td>4</td><td>6</td><td>0</td><td>8</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Receiving</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>REC</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
           <tbody><tr><td>Ladd McConkey</td><td>5</td><td>39</td><td>1</td><td>11</td></tr>
 <tr><td>Quentin Johnston</td><td>3</td><td>38</td><td>0</td><td>16</td></tr>
@@ -247,15 +283,15 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 <tr><td>J.K. Dobbins</td><td>3</td><td>4</td><td>0</td><td>3</td></tr>
 <tr><td>Gus Edwards</td><td>1</td><td>2</td><td>0</td><td>2</td></tr>
 <tr><td>Scott Matlock</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Fumbles</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>FUM</th><th>LOST</th></tr></thead>
           <tbody><tr><td>Khalil Mack</td><td>0</td><td>0</td></tr>
 <tr><td>Ja&#39;Sir Taylor</td><td>0</td><td>0</td></tr></tbody>
-        </table>
+        </table></div>
       </div></div>
     </div>
   

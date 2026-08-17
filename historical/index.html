@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Historical NFL Results Archive | Blitz Odds</title>
-<meta name="description" content="Browse final scores and box scores from past NFL seasons, archived by Blitz Odds." />
+<meta name="description" content="Browse final scores and box scores from past NFL seasons, by year or by team, archived by Blitz Odds." />
 <link rel="canonical" href="https://blitz-odds.netlify.app/historical/index.html" />
 <meta property="og:title" content="Historical NFL Results Archive | Blitz Odds" />
-<meta property="og:description" content="Browse final scores and box scores from past NFL seasons, archived by Blitz Odds." />
+<meta property="og:description" content="Browse final scores and box scores from past NFL seasons, by year or by team, archived by Blitz Odds." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://blitz-odds.netlify.app/historical/index.html" />
 <meta name="twitter:card" content="summary" />
@@ -69,6 +69,12 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
 .week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
   border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 22px; }
+.filter-row .week-picker { margin-bottom: 0; }
+.menu-block { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+.team-result-w { color: var(--win); font-weight: 700; }
+.team-result-l { color: var(--text-dim); font-weight: 700; }
+.team-result-t { color: var(--warn); font-weight: 700; }
 .rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
 .rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
 .rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
@@ -88,6 +94,36 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
 .rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
 .rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
+
+/* Mobile: the desktop layout (3-col stat-compare, wide data tables) was
+   built and only ever tested at desktop width - cramped/overflowing on a
+   phone. Below ~600px: stack stat-compare to 2 columns with Total
+   Difference spanning full width below, shrink table padding/font so wide
+   tables (linescores, player stats) fit without clipping, and wrap tables
+   in a horizontally-scrollable container as a fallback for anything still
+   too wide (long player names, etc.) rather than letting them clip. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 600px) {
+  .app { padding: 14px 10px 40px; }
+  header.top h1 { font-size: 1.5rem; }
+  .detail { padding: 14px; }
+  .detail-header { gap: 14px; }
+  .detail-team { width: auto; }
+  .detail-score { font-size: 1.7rem; }
+  .stat-compare { grid-template-columns: 1fr 1fr; font-size: 0.7rem; }
+  .stat-compare > .col:nth-child(3), .stat-compare > .col:nth-child(6) {
+    grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: baseline;
+  }
+  .stat-compare > .col:nth-child(3) .label, .stat-compare > .col:nth-child(6) .label { width: 100%; }
+  .linescore-table, .playerstats-table, .teamstats-table { font-size: 0.76rem; }
+  .linescore-table th, .linescore-table td,
+  .playerstats-table th, .playerstats-table td,
+  .teamstats-table th, .teamstats-table td { padding: 5px 6px; }
+  .leaders-cols, .playerstats-team { display: block; }
+  .filter-row { flex-direction: column; gap: 12px; }
+  .week-picker { flex-wrap: wrap; }
+  .week-select { flex: 1; min-width: 0; }
+}
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 </style>
 
@@ -101,30 +137,63 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
   
     <span class="archive-badge">Historical Archive</span>
     <h2 style="margin-top:0;">Historical Results Archive</h2>
-    <div class="season-index-list">
-      <a class="season-index-game" href="/historical/2025/preseason/index.html">
-            <span>2025 Preseason</span><span>&rsaquo;</span>
-          </a>
-<a class="season-index-game" href="/historical/2025/playoffs/index.html">
-            <span>2025 Playoffs</span><span>&rsaquo;</span>
-          </a>
-<a class="season-index-game" href="/historical/2025/regular-season/index.html">
-            <span>2025 Regular Season</span><span>&rsaquo;</span>
-          </a>
-<a class="season-index-game" href="/historical/2024/preseason/index.html">
-            <span>2024 Preseason</span><span>&rsaquo;</span>
-          </a>
-<a class="season-index-game" href="/historical/2024/playoffs/index.html">
-            <span>2024 Playoffs</span><span>&rsaquo;</span>
-          </a>
-<a class="season-index-game" href="/historical/2024/regular-season/index.html">
-            <span>2024 Regular Season</span><span>&rsaquo;</span>
-          </a>
+    <div class="menu-block">
+      <label for="year-nav" style="color:var(--text-dim); font-size:0.82rem;">Browse by season:</label>
+      <select id="year-nav" class="week-select" style="width:100%; margin-top:6px;">
+        <option value="">Select a season&hellip;</option>
+        <option value="/historical/2025/index.html">2025 Season</option>
+<option value="/historical/2024/index.html">2024 Season</option>
+      </select>
+    </div>
+    <div class="menu-block" style="margin-top:18px;">
+      <label for="team-nav" style="color:var(--text-dim); font-size:0.82rem;">Browse by team:</label>
+      <select id="team-nav" class="week-select" style="width:100%; margin-top:6px;">
+        <option value="">Select a team&hellip;</option>
+        <option value="/historical/teams/arizona-cardinals/index.html">Arizona Cardinals</option>
+<option value="/historical/teams/atlanta-falcons/index.html">Atlanta Falcons</option>
+<option value="/historical/teams/baltimore-ravens/index.html">Baltimore Ravens</option>
+<option value="/historical/teams/buffalo-bills/index.html">Buffalo Bills</option>
+<option value="/historical/teams/carolina-panthers/index.html">Carolina Panthers</option>
+<option value="/historical/teams/chicago-bears/index.html">Chicago Bears</option>
+<option value="/historical/teams/cincinnati-bengals/index.html">Cincinnati Bengals</option>
+<option value="/historical/teams/cleveland-browns/index.html">Cleveland Browns</option>
+<option value="/historical/teams/dallas-cowboys/index.html">Dallas Cowboys</option>
+<option value="/historical/teams/denver-broncos/index.html">Denver Broncos</option>
+<option value="/historical/teams/detroit-lions/index.html">Detroit Lions</option>
+<option value="/historical/teams/green-bay-packers/index.html">Green Bay Packers</option>
+<option value="/historical/teams/houston-texans/index.html">Houston Texans</option>
+<option value="/historical/teams/indianapolis-colts/index.html">Indianapolis Colts</option>
+<option value="/historical/teams/jacksonville-jaguars/index.html">Jacksonville Jaguars</option>
+<option value="/historical/teams/kansas-city-chiefs/index.html">Kansas City Chiefs</option>
+<option value="/historical/teams/los-angeles-chargers/index.html">Los Angeles Chargers</option>
+<option value="/historical/teams/los-angeles-rams/index.html">Los Angeles Rams</option>
+<option value="/historical/teams/las-vegas-raiders/index.html">Las Vegas Raiders</option>
+<option value="/historical/teams/miami-dolphins/index.html">Miami Dolphins</option>
+<option value="/historical/teams/minnesota-vikings/index.html">Minnesota Vikings</option>
+<option value="/historical/teams/new-england-patriots/index.html">New England Patriots</option>
+<option value="/historical/teams/new-orleans-saints/index.html">New Orleans Saints</option>
+<option value="/historical/teams/new-york-giants/index.html">New York Giants</option>
+<option value="/historical/teams/new-york-jets/index.html">New York Jets</option>
+<option value="/historical/teams/philadelphia-eagles/index.html">Philadelphia Eagles</option>
+<option value="/historical/teams/pittsburgh-steelers/index.html">Pittsburgh Steelers</option>
+<option value="/historical/teams/seattle-seahawks/index.html">Seattle Seahawks</option>
+<option value="/historical/teams/san-francisco-49ers/index.html">San Francisco 49ers</option>
+<option value="/historical/teams/tampa-bay-buccaneers/index.html">Tampa Bay Buccaneers</option>
+<option value="/historical/teams/tennessee-titans/index.html">Tennessee Titans</option>
+<option value="/historical/teams/washington-commanders/index.html">Washington Commanders</option>
+      </select>
     </div>
   
   <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
 </div>
 <script src="/js/analytics.js"></script>
-
+<script>
+    function goTo(id) {
+      var el = document.getElementById(id);
+      el.addEventListener('change', function (e) { if (e.target.value) window.location.href = e.target.value; });
+    }
+    goTo('year-nav');
+    goTo('team-nav');
+  </script>
 </body>
 </html>

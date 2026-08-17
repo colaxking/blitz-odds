@@ -69,6 +69,12 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
 .week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
   border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 22px; }
+.filter-row .week-picker { margin-bottom: 0; }
+.menu-block { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+.team-result-w { color: var(--win); font-weight: 700; }
+.team-result-l { color: var(--text-dim); font-weight: 700; }
+.team-result-t { color: var(--warn); font-weight: 700; }
 .rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
 .rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
 .rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
@@ -88,6 +94,36 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
 .rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
 .rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
+
+/* Mobile: the desktop layout (3-col stat-compare, wide data tables) was
+   built and only ever tested at desktop width - cramped/overflowing on a
+   phone. Below ~600px: stack stat-compare to 2 columns with Total
+   Difference spanning full width below, shrink table padding/font so wide
+   tables (linescores, player stats) fit without clipping, and wrap tables
+   in a horizontally-scrollable container as a fallback for anything still
+   too wide (long player names, etc.) rather than letting them clip. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 600px) {
+  .app { padding: 14px 10px 40px; }
+  header.top h1 { font-size: 1.5rem; }
+  .detail { padding: 14px; }
+  .detail-header { gap: 14px; }
+  .detail-team { width: auto; }
+  .detail-score { font-size: 1.7rem; }
+  .stat-compare { grid-template-columns: 1fr 1fr; font-size: 0.7rem; }
+  .stat-compare > .col:nth-child(3), .stat-compare > .col:nth-child(6) {
+    grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: baseline;
+  }
+  .stat-compare > .col:nth-child(3) .label, .stat-compare > .col:nth-child(6) .label { width: 100%; }
+  .linescore-table, .playerstats-table, .teamstats-table { font-size: 0.76rem; }
+  .linescore-table th, .linescore-table td,
+  .playerstats-table th, .playerstats-table td,
+  .teamstats-table th, .teamstats-table td { padding: 5px 6px; }
+  .leaders-cols, .playerstats-team { display: block; }
+  .filter-row { flex-direction: column; gap: 12px; }
+  .week-picker { flex-wrap: wrap; }
+  .week-select { flex: 1; min-width: 0; }
+}
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Philadelphia Eagles at Dallas Cowboys","startDate":"2024-11-10T21:25Z","sport":"American Football","homeTeam":{"@type":"SportsTeam","name":"Dallas Cowboys"},"awayTeam":{"@type":"SportsTeam","name":"Philadelphia Eagles"},"location":{"@type":"Place","name":"AT&T Stadium"}}</script>
@@ -117,16 +153,16 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
       </div>
 
       <div class="section-title">Box Score</div>
-      <table class="linescore-table">
+      <div class="table-scroll"><table class="linescore-table">
         <thead><tr><th>Team</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>Final</th></tr></thead>
         <tbody>
           <tr><td>PHI</td><td>7</td><td>7</td><td>14</td><td>6</td><td><strong>34</strong></td></tr>
           <tr><td>DAL</td><td>3</td><td>3</td><td>0</td><td>0</td><td><strong>6</strong></td></tr>
         </tbody>
-      </table>
+      </table></div>
 
       <div class="section-title">Team Stats</div>
-      <table class="teamstats-table">
+      <div class="table-scroll"><table class="teamstats-table">
     <thead><tr><th></th><th>PHI</th><th>DAL</th></tr></thead>
     <tbody><tr><td>Total Yards</td><td>348</td><td>146</td></tr>
 <tr><td>Passing Yards</td><td>161</td><td>49</td></tr>
@@ -135,7 +171,7 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 <tr><td>Turnovers</td><td>2</td><td>5</td></tr>
 <tr><td>Penalties</td><td>7-49</td><td>5-40</td></tr>
 <tr><td>Possession</td><td>34:01</td><td>25:59</td></tr></tbody>
-  </table>
+  </table></div>
 
       <div class="section-title">Team Rankings (Offense &amp; Defense)</div>
       <div class="stat-compare">
@@ -181,26 +217,26 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
       <div class="section-title">Player Stats</div>
       <div class="playerstats-team"><h3>PHI</h3><div class="playerstats-cat">
         <h4>Passing</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>C/ATT</th><th>YDS</th><th>TD</th><th>INT</th></tr></thead>
           <tbody><tr><td>Jalen Hurts</td><td>14/20</td><td>202</td><td>2</td><td>1</td></tr>
 <tr><td>Kenny Pickett</td><td>1/2</td><td>5</td><td>0</td><td>0</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Rushing</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>CAR</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
           <tbody><tr><td>Saquon Barkley</td><td>14</td><td>66</td><td>0</td><td>11</td></tr>
 <tr><td>Jalen Hurts</td><td>7</td><td>56</td><td>2</td><td>24</td></tr>
 <tr><td>Will Shipley</td><td>9</td><td>34</td><td>0</td><td>9</td></tr>
 <tr><td>Kenny Gainwell</td><td>7</td><td>30</td><td>0</td><td>13</td></tr>
 <tr><td>Kenny Pickett</td><td>1</td><td>1</td><td>0</td><td>1</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Receiving</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>REC</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
           <tbody><tr><td>A.J. Brown</td><td>5</td><td>109</td><td>0</td><td>44</td></tr>
 <tr><td>Jahan Dotson</td><td>1</td><td>27</td><td>0</td><td>27</td></tr>
@@ -211,41 +247,41 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 <tr><td>Ainias Smith</td><td>2</td><td>6</td><td>0</td><td>5</td></tr>
 <tr><td>Johnny Wilson</td><td>1</td><td>5</td><td>1</td><td>5</td></tr>
 <tr><td>Grant Calcaterra</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Fumbles</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>FUM</th><th>LOST</th></tr></thead>
           <tbody><tr><td>Jalen Hurts</td><td>1</td><td>1</td></tr>
 <tr><td>Zack Baun</td><td>0</td><td>0</td></tr>
 <tr><td>Milton Williams</td><td>0</td><td>0</td></tr>
 <tr><td>Reed Blankenship</td><td>0</td><td>0</td></tr>
 <tr><td>Cooper DeJean</td><td>0</td><td>0</td></tr></tbody>
-        </table>
+        </table></div>
       </div></div>
       <div class="playerstats-team"><h3>DAL</h3><div class="playerstats-cat">
         <h4>Passing</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>C/ATT</th><th>YDS</th><th>TD</th><th>INT</th></tr></thead>
           <tbody><tr><td>Cooper Rush</td><td>13/23</td><td>45</td><td>0</td><td>0</td></tr>
 <tr><td>Trey Lance</td><td>4/6</td><td>21</td><td>0</td><td>1</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Rushing</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>CAR</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
           <tbody><tr><td>Rico Dowdle</td><td>12</td><td>53</td><td>0</td><td>19</td></tr>
 <tr><td>Ezekiel Elliott</td><td>6</td><td>22</td><td>0</td><td>8</td></tr>
 <tr><td>Trey Lance</td><td>3</td><td>17</td><td>0</td><td>11</td></tr>
 <tr><td>CeeDee Lamb</td><td>1</td><td>3</td><td>0</td><td>3</td></tr>
 <tr><td>Cooper Rush</td><td>2</td><td>2</td><td>0</td><td>2</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Receiving</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>REC</th><th>YDS</th><th>TD</th><th>LONG</th></tr></thead>
           <tbody><tr><td>Jake Ferguson</td><td>4</td><td>24</td><td>0</td><td>10</td></tr>
 <tr><td>CeeDee Lamb</td><td>6</td><td>21</td><td>0</td><td>6</td></tr>
@@ -254,17 +290,17 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 <tr><td>Rico Dowdle</td><td>3</td><td>3</td><td>0</td><td>2</td></tr>
 <tr><td>Luke Schoonmaker</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
 <tr><td>Hunter Luepke</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
 <div class="playerstats-cat">
         <h4>Fumbles</h4>
-        <table class="playerstats-table">
+        <div class="table-scroll"><table class="playerstats-table">
           <thead><tr><th>Player</th><th>FUM</th><th>LOST</th></tr></thead>
           <tbody><tr><td>Cooper Rush</td><td>2</td><td>2</td></tr>
 <tr><td>Ezekiel Elliott</td><td>1</td><td>1</td></tr>
 <tr><td>Jake Ferguson</td><td>1</td><td>1</td></tr>
 <tr><td>Marist Liufau</td><td>0</td><td>0</td></tr></tbody>
-        </table>
+        </table></div>
       </div></div>
     </div>
   

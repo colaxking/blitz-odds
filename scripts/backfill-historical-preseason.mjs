@@ -254,6 +254,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script
   ${bodyHtml}
   <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
 </div>
+<script src="/js/analytics.js"></script>
 ${pageScript ? `<script>${pageScript}</script>` : ""}
 </body>
 </html>
@@ -459,6 +460,7 @@ async function rebuildRootIndex() {
   const canonicalPath = "/historical/index.html";
   const breadcrumb = `<a href="/">Home</a> &raquo; Historical Archive`;
   const bodyHtml = `
+    <span class="archive-badge">Historical Archive</span>
     <h2 style="margin-top:0;">Historical Results Archive</h2>
     <div class="season-index-list">
       ${years

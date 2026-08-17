@@ -190,7 +190,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script
 <body>
 <div class="app">
   <header class="top">
-    <h1><a href="${SITE_BASE}/">Blitz<span class="brand-odds">Odds</span></a></h1>
+    <h1><a href="/">Blitz<span class="brand-odds">Odds</span></a></h1>
   </header>
   <div class="breadcrumb">${breadcrumb}</div>
   ${bodyHtml}
@@ -280,7 +280,7 @@ async function buildGamePage(year, round, game) {
     location: { "@type": "Place", name: game.venue || undefined },
   };
 
-  const breadcrumb = `<a href="${SITE_BASE}/">Home</a> &raquo; <a href="${SITE_BASE}/historical/${year}/preseason/index.html">${year} Preseason</a> &raquo; ${escapeHtml(ROUND_INFO[round].label)} &raquo; ${escapeHtml(awayAbbr)} @ ${escapeHtml(homeAbbr)}`;
+  const breadcrumb = `<a href="/">Home</a> &raquo; <a href="/historical/${year}/preseason/index.html">${year} Preseason</a> &raquo; ${escapeHtml(ROUND_INFO[round].label)} &raquo; ${escapeHtml(awayAbbr)} @ ${escapeHtml(homeAbbr)}`;
 
   return { html: pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd }), canonicalPath };
 }
@@ -289,7 +289,7 @@ function buildSeasonIndexPage(year, gamesByRound) {
   const title = `${year} NFL Preseason Results — Every Score & Box Score | Blitz Odds`;
   const description = `Final scores and box scores for every ${year} NFL preseason game — Hall of Fame Game through Preseason Week 3.`;
   const canonicalPath = `/historical/${year}/preseason/index.html`;
-  const breadcrumb = `<a href="${SITE_BASE}/">Home</a> &raquo; ${year} Preseason`;
+  const breadcrumb = `<a href="/">Home</a> &raquo; ${year} Preseason`;
 
   const bodyHtml = `
     <span class="archive-badge">Historical Archive — ${year} Preseason</span>
@@ -358,13 +358,13 @@ async function rebuildRootIndex() {
   const title = "Historical NFL Results Archive | Blitz Odds";
   const description = "Browse final scores and box scores from past NFL seasons, archived by Blitz Odds.";
   const canonicalPath = "/historical/index.html";
-  const breadcrumb = `<a href="${SITE_BASE}/">Home</a> &raquo; Historical Archive`;
+  const breadcrumb = `<a href="/">Home</a> &raquo; Historical Archive`;
   const bodyHtml = `
     <h2 style="margin-top:0;">Historical Results Archive</h2>
     <div class="season-index-list">
       ${years
         .map(
-          (year) => `<a class="season-index-game" href="${SITE_BASE}/historical/${year}/preseason/index.html">
+          (year) => `<a class="season-index-game" href="/historical/${year}/preseason/index.html">
             <span>${year} Preseason</span><span>&rsaquo;</span>
           </a>`
         )

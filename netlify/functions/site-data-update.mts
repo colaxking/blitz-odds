@@ -16,6 +16,44 @@ import { getStore } from "@netlify/blobs";
 const STORE_NAME = "blitz-site-data";
 const VALID_KEYS = new Set(["teams", "players", "schedule", "history", "preseason", "playoffs"]);
 
+// Defensive safety net for the "players" key. The weekly-update task is
+// supposed to fetch-before-merge itself (see site-data-current.mts), but
+// when it doesn't - or when it's regenerating the injury list fresh each
+// run - any field it doesn't know about (e.g. activatedDate, added after
+// the task was last touched) gets silently dropped on the next overwrite.
+// This merges each incoming player record over the previously-stored one
+// (matched by team + name), so fields present in the old record but absent
+// from the new one survive instead of disappearing. Fields the new record
+// *does* specify always win.
+async function mergePlayersPayload(store: ReturnType<typeof getStore>, incoming: any): Promise<any> {
+  if (!incoming || typeof incoming !== "object" || !incoming.players || typeof incoming.players !== "object") {
+    return incoming;
+  }
+  let existing: any = null;
+  try {
+    existing = await store.get("players", { type: "json" });
+  } catch {
+    existing = null;
+  }
+  const oldTeams = existing && typeof existing === "object" ? existing.players : null;
+  if (!oldTeams || typeof oldTeams !== "object") {
+    return incoming;
+  }
+
+  const mergedTeams: Record<string, any> = {};
+  for (const team of Object.keys(incoming.players)) {
+    const newList = Array.isArray(incoming.players[team]) ? incoming.players[team] : [];
+    const oldList = Array.isArray(oldTeams[team]) ? oldTeams[team] : [];
+    const oldByName = new Map(oldList.map((p: any) => [p && p.name, p]));
+    mergedTeams[team] = newList.map((p: any) => {
+      const old = p && oldByName.get(p.name);
+      return old && typeof old === "object" ? { ...old, ...p } : p;
+    });
+  }
+
+  return { ...incoming, players: mergedTeams };
+}
+
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -78,9 +116,12 @@ export default async (req: Request, _context: Context) => {
   const updated: string[] = [];
 
   for (const key of relevantKeys) {
-    const value = body[key];
+    let value = body[key];
     if (!value || typeof value !== "object") {
       return jsonResponse(400, { ok: false, error: `body.${key} must be an object` });
+    }
+    if (key === "players") {
+      value = await mergePlayersPayload(store, value);
     }
     await store.setJSON(key, value);
     updated.push(key);

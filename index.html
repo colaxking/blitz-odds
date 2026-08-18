@@ -8118,11 +8118,32 @@ function buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgree
     sentences.push(`Home field adds a small extra boost on top of that.`);
   }
 
+  // Weather adjustments are tagged with `.factor` (cold/wind/precipitation/
+  // dome-team-acclimation) rather than `.player`, which is how injury
+  // adjustments are tagged - that's how the two get told apart here. Cold/
+  // wind/precip apply symmetrically to both teams (it's the same game), so
+  // just describe the conditions once using either side's list; the
+  // dome-acclimation penalty is team-specific and called out separately.
+  const weatherFactors = (prediction.homeAdjustments || []).filter(a => a.factor && a.factor !== "dome-team-acclimation");
+  if (weatherFactors.length) {
+    const descriptions = weatherFactors.map(describeWeatherFactor);
+    sentences.push(`Weather is a factor: ${descriptions.join(", ")}, which drags down offense for both sides.`);
+  }
+  const domeAdj = [...(prediction.homeAdjustments || []), ...(prediction.awayAdjustments || [])]
+    .find(a => a.factor === "dome-team-acclimation");
+  if (domeAdj) {
+    const domeTeam = (prediction.homeAdjustments || []).includes(domeAdj) ? home : away;
+    sentences.push(`${domeTeam.id} plays its home games in a dome, which adds a small extra penalty on the road in these conditions.`);
+  }
+
   if (loserAdjustments && loserAdjustments.length) {
-    const biggest = [...loserAdjustments].sort((a, b) => Math.abs(b.ratingDelta) - Math.abs(a.ratingDelta))[0];
-    sentences.push(
-      `${loser.id} is also dealing with ${biggest.player} (${biggest.position}) listed as ${biggest.status}, which tips things further ${winner.id}'s way.`
-    );
+    const injuryAdjustments = loserAdjustments.filter(a => a.player);
+    if (injuryAdjustments.length) {
+      const biggest = [...injuryAdjustments].sort((a, b) => Math.abs(b.ratingDelta) - Math.abs(a.ratingDelta))[0];
+      sentences.push(
+        `${loser.id} is also dealing with ${biggest.player} (${biggest.position}) listed as ${biggest.status}, which tips things further ${winner.id}'s way.`
+      );
+    }
   }
 
   if (odds && modelAgreesWithMarket === false) {
@@ -8130,6 +8151,18 @@ function buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgree
   }
 
   return sentences.join(" ");
+}
+
+/** Human-readable description of one weather rating adjustment, for buildRationale(). */
+function describeWeatherFactor(a) {
+  switch (a.factor) {
+    case "cold": return `cold temps (${a.tempF}°F)`;
+    case "extreme-cold": return `extreme cold (${a.tempF}°F)`;
+    case "wind": return `wind (${a.windMph}mph)`;
+    case "severe-wind": return `heavy wind (${a.windMph}mph)`;
+    case "precipitation": return `a ${a.precipChance}% chance of precipitation`;
+    default: return a.factor;
+  }
 }
 
 /**
@@ -9802,8 +9835,10 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
     const awayTeam = context.getTeam(game.away);
     const homePlayers = context.getPlayers(game.home);
     const awayPlayers = context.getPlayers(game.away);
+    const weather = getWeather(week, game.away, game.home);
     const prediction = PredictionEngine.predictMatchup({
-      homeTeam, awayTeam, homeImpactPlayers: homePlayers, awayImpactPlayers: awayPlayers
+      homeTeam, awayTeam, homeImpactPlayers: homePlayers, awayImpactPlayers: awayPlayers,
+      weather, homeIsDomeTeam: isDomeTeam(game.home), awayIsDomeTeam: isDomeTeam(game.away)
     });
     const teamWins = prediction.predictedWinner === teamId;
     const teamWinProb = isHome ? prediction.homeWinProbability : prediction.awayWinProbability;
@@ -9844,7 +9879,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
     }
     const odds = getOdds(week, game.away, game.home, sportsbookId);
     const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
-    return { week, bye: false, opp, isHome, date: shownTime.date, time: shownTime.time, network: game.network, international: !!game.international, note: game.note, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds };
+    return { week, bye: false, opp, isHome, date: shownTime.date, time: shownTime.time, network: game.network, international: !!game.international, note: game.note, teamWins, confidence: teamWinProb, actual, isPlayoff: week > 18, label: getPeriodLabel(week), odds, weather };
   }
 
   const regularRows = SCHEDULE_DATA.weeks.map(w => {
@@ -10005,7 +10040,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                 <div key={r.week} className={"schedule-mobile-card" + (r.bye ? " bye-row" : "") + (r.isPlayoff ? " playoff-row" : "") + (r.actual && r.actual.isLive ? " live-row" : "")}>
                   <div className="schedule-mobile-top">
                     <span className="schedule-mobile-week">{r.label}</span>
-                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}{r.network ? ` • ${r.network}` : ""}</span>}
+                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}{r.network ? ` • ${r.network}` : ""}<WeatherPill weather={r.weather} /></span>}
                   </div>
                   {r.bye ? (
                     <div className="hw-tag">BYE week</div>
@@ -10118,6 +10153,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
                           <span className="date-line">{r.date}</span>
                           {r.time && <span className="time-line">{r.time}</span>}
                           {r.network && <span className="time-line">{r.network}</span>}
+                          <WeatherPill weather={r.weather} />
                         </td>
                         <td>
                           <span className="table-odds">

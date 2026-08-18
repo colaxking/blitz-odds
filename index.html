@@ -8285,7 +8285,14 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   const allAdjustments = [
     ...prediction.homeAdjustments.map(a => ({ ...a, teamId: home.id, teamName: home.name })),
     ...prediction.awayAdjustments.map(a => ({ ...a, teamId: away.id, teamName: away.name }))
-  ];
+  ]
+    // homeAdjustments/awayAdjustments mix two kinds of entries: per-player
+    // injury adjustments (player/position/status) and game-wide weather
+    // adjustments (factor/tempF/windMph/precipChance - see
+    // applyWeatherAdjustments in predictionEngine.js). This card only
+    // renders player injury notes, so drop the weather entries here rather
+    // than rendering "(TEAM · ) is" with blank fields for them.
+    .filter(a => a.player);
   // Group by status - questionable players first, then out - rather than
   // interleaving by team. Array.sort is stable, so within each status group
   // the home-then-away order above is preserved.

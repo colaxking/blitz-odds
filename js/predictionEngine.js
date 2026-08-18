@@ -106,6 +106,79 @@
     return { offRating: offRating, defRating: defRating, adjustments: adjustments };
   }
 
+  // Weather adjustment thresholds, in the same 0-32 rating-point scale used
+  // everywhere else in this file. These apply to BOTH teams' offense equally
+  // (weather doesn't pick sides) except the dome-acclimation penalty, which
+  // only hits whichever team's home stadium is a dome (they're less used to
+  // playing in the elements).
+  var COLD_TEMP_F = 32;
+  var EXTREME_COLD_TEMP_F = 20;
+  var COLD_OFFENSE_PENALTY = 0.4;
+  var EXTREME_COLD_OFFENSE_PENALTY = 0.8;
+
+  var WIND_MPH_THRESHOLD = 15;
+  var WIND_MPH_SEVERE = 25;
+  var WIND_OFFENSE_PENALTY = 0.6;
+  var WIND_OFFENSE_PENALTY_SEVERE = 1.2;
+
+  var PRECIP_CHANCE_THRESHOLD = 50; // percent
+  var PRECIP_OFFENSE_PENALTY = 0.5;
+  var PRECIP_DEFENSE_BONUS = 0.2; // league-wide: turnovers rise in bad weather
+
+  var DOME_ACCLIMATION_PENALTY = 0.3;
+
+  /**
+   * Apply weather adjustments for an outdoor game. No-op if weather is
+   * missing or the game is at a dome (isDome true means no weather effect
+   * at all, since the roof is closed).
+   * @param {{offRating:number, defRating:number}} ratings
+   * @param {Object} [weather] - { tempF, windMph, precipChance }
+   * @param {boolean} [isTeamDomeTeam] - true if this team's own home stadium is a dome
+   * @returns {{offRating:number, defRating:number, adjustments:Array}}
+   */
+  function applyWeatherAdjustments(ratings, weather, isTeamDomeTeam) {
+    var offRating = ratings.offRating;
+    var defRating = ratings.defRating;
+    var adjustments = [];
+
+    if (!weather || weather.isDome) {
+      return { offRating: offRating, defRating: defRating, adjustments: adjustments };
+    }
+
+    if (typeof weather.tempF === "number") {
+      if (weather.tempF < EXTREME_COLD_TEMP_F) {
+        offRating -= EXTREME_COLD_OFFENSE_PENALTY;
+        adjustments.push({ factor: "extreme-cold", tempF: weather.tempF, ratingDelta: -EXTREME_COLD_OFFENSE_PENALTY });
+      } else if (weather.tempF < COLD_TEMP_F) {
+        offRating -= COLD_OFFENSE_PENALTY;
+        adjustments.push({ factor: "cold", tempF: weather.tempF, ratingDelta: -COLD_OFFENSE_PENALTY });
+      }
+    }
+
+    if (typeof weather.windMph === "number") {
+      if (weather.windMph >= WIND_MPH_SEVERE) {
+        offRating -= WIND_OFFENSE_PENALTY_SEVERE;
+        adjustments.push({ factor: "severe-wind", windMph: weather.windMph, ratingDelta: -WIND_OFFENSE_PENALTY_SEVERE });
+      } else if (weather.windMph >= WIND_MPH_THRESHOLD) {
+        offRating -= WIND_OFFENSE_PENALTY;
+        adjustments.push({ factor: "wind", windMph: weather.windMph, ratingDelta: -WIND_OFFENSE_PENALTY });
+      }
+    }
+
+    if (typeof weather.precipChance === "number" && weather.precipChance >= PRECIP_CHANCE_THRESHOLD) {
+      offRating -= PRECIP_OFFENSE_PENALTY;
+      defRating += PRECIP_DEFENSE_BONUS;
+      adjustments.push({ factor: "precipitation", precipChance: weather.precipChance, ratingDelta: -PRECIP_OFFENSE_PENALTY });
+    }
+
+    if (isTeamDomeTeam) {
+      offRating -= DOME_ACCLIMATION_PENALTY;
+      adjustments.push({ factor: "dome-team-acclimation", ratingDelta: -DOME_ACCLIMATION_PENALTY });
+    }
+
+    return { offRating: offRating, defRating: defRating, adjustments: adjustments };
+  }
+
   /** Logistic curve turning a rating-point edge into a win probability. */
   function edgeToWinProbability(edge, scale) {
     scale = scale || 12;
@@ -127,8 +200,16 @@
     var homeBase = computeBaseRatings(homeTeam);
     var awayBase = computeBaseRatings(awayTeam);
 
-    var homeAdj = applyInjuryAdjustments(homeBase, params.homeImpactPlayers);
-    var awayAdj = applyInjuryAdjustments(awayBase, params.awayImpactPlayers);
+    var homeInjuryAdj = applyInjuryAdjustments(homeBase, params.homeImpactPlayers);
+    var awayInjuryAdj = applyInjuryAdjustments(awayBase, params.awayImpactPlayers);
+
+    // Weather affects both teams (it's the same game/stadium) but the
+    // dome-acclimation penalty is team-specific, so pass each team's own
+    // isDomeTeam flag separately.
+    var homeAdj = applyWeatherAdjustments(homeInjuryAdj, params.weather, params.homeIsDomeTeam);
+    var awayAdj = applyWeatherAdjustments(awayInjuryAdj, params.weather, params.awayIsDomeTeam);
+    homeAdj.adjustments = homeInjuryAdj.adjustments.concat(homeAdj.adjustments);
+    awayAdj.adjustments = awayInjuryAdj.adjustments.concat(awayAdj.adjustments);
 
     // Team overall = its offense rating + its defense rating, plus home field.
     var homeOverall = homeAdj.offRating + homeAdj.defRating + HOME_FIELD_BONUS;
@@ -159,6 +240,7 @@
     rankToScore: rankToScore,
     computeBaseRatings: computeBaseRatings,
     applyInjuryAdjustments: applyInjuryAdjustments,
+    applyWeatherAdjustments: applyWeatherAdjustments,
     edgeToWinProbability: edgeToWinProbability,
     predictMatchup: predictMatchup,
     constants: {
@@ -166,7 +248,13 @@
       WEIGHTS: WEIGHTS,
       HOME_FIELD_BONUS: HOME_FIELD_BONUS,
       OUT_MULTIPLIER: OUT_MULTIPLIER,
-      QUESTIONABLE_MULTIPLIER: QUESTIONABLE_MULTIPLIER
+      QUESTIONABLE_MULTIPLIER: QUESTIONABLE_MULTIPLIER,
+      COLD_TEMP_F: COLD_TEMP_F,
+      EXTREME_COLD_TEMP_F: EXTREME_COLD_TEMP_F,
+      WIND_MPH_THRESHOLD: WIND_MPH_THRESHOLD,
+      WIND_MPH_SEVERE: WIND_MPH_SEVERE,
+      PRECIP_CHANCE_THRESHOLD: PRECIP_CHANCE_THRESHOLD,
+      DOME_ACCLIMATION_PENALTY: DOME_ACCLIMATION_PENALTY
     }
   };
 });

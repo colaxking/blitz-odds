@@ -383,6 +383,14 @@
     font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
   }
   .international-tag .intl-icon { flex-shrink: 0; }
+  .weather-pill {
+    display: inline-flex; align-items: center; margin-left: 6px; padding: 2px 8px;
+    border-radius: 999px; background: rgba(var(--text-dim-rgb, 148,163,184),0.14); color: var(--text-dim);
+    font-size: 0.68rem; font-weight: 600; white-space: nowrap;
+  }
+  .weather-pill-dome { opacity: 0.85; }
+  .weather-pill-windy { background: rgba(56,189,248,0.14); color: #38bdf8; }
+  .weather-wind { font-weight: 700; }
   .live-tag {
     display: inline-flex; align-items: center; gap: 4px; color: var(--live); font-weight: 700;
     font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
@@ -5959,6 +5967,269 @@
     }
   }
 }</script>
+<script type="application/json" id="stadiums-data">{
+  "sourceNote": "Static reference data: home stadium coordinates for weather lookups (Open-Meteo). isDome=true stadiums are skipped for weather fetch/display. International venues keyed by matching substrings found in schedule game.note fields.",
+  "teamStadiums": {
+    "ARI": {
+      "name": "State Farm Stadium",
+      "lat": 33.5276,
+      "lon": -112.2626,
+      "isDome": true
+    },
+    "ATL": {
+      "name": "Mercedes-Benz Stadium",
+      "lat": 33.7554,
+      "lon": -84.4008,
+      "isDome": true
+    },
+    "BAL": {
+      "name": "M&T Bank Stadium",
+      "lat": 39.278,
+      "lon": -76.6227,
+      "isDome": false
+    },
+    "BUF": {
+      "name": "Highmark Stadium",
+      "lat": 42.7738,
+      "lon": -78.787,
+      "isDome": false
+    },
+    "CAR": {
+      "name": "Bank of America Stadium",
+      "lat": 35.2258,
+      "lon": -80.8528,
+      "isDome": false
+    },
+    "CHI": {
+      "name": "Soldier Field",
+      "lat": 41.8623,
+      "lon": -87.6167,
+      "isDome": false
+    },
+    "CIN": {
+      "name": "Paycor Stadium",
+      "lat": 39.0955,
+      "lon": -84.516,
+      "isDome": false
+    },
+    "CLE": {
+      "name": "Huntington Bank Field",
+      "lat": 41.5061,
+      "lon": -81.6995,
+      "isDome": false
+    },
+    "DAL": {
+      "name": "AT&T Stadium",
+      "lat": 32.7473,
+      "lon": -97.0945,
+      "isDome": true
+    },
+    "DEN": {
+      "name": "Empower Field at Mile High",
+      "lat": 39.7439,
+      "lon": -105.0201,
+      "isDome": false
+    },
+    "DET": {
+      "name": "Ford Field",
+      "lat": 42.34,
+      "lon": -83.0456,
+      "isDome": true
+    },
+    "GB": {
+      "name": "Lambeau Field",
+      "lat": 44.5013,
+      "lon": -88.0622,
+      "isDome": false
+    },
+    "HOU": {
+      "name": "NRG Stadium",
+      "lat": 29.6847,
+      "lon": -95.4107,
+      "isDome": true
+    },
+    "IND": {
+      "name": "Lucas Oil Stadium",
+      "lat": 39.7601,
+      "lon": -86.1639,
+      "isDome": true
+    },
+    "JAX": {
+      "name": "EverBank Stadium",
+      "lat": 30.3239,
+      "lon": -81.6373,
+      "isDome": false
+    },
+    "KC": {
+      "name": "GEHA Field at Arrowhead Stadium",
+      "lat": 39.0489,
+      "lon": -94.4839,
+      "isDome": false
+    },
+    "LAC": {
+      "name": "SoFi Stadium",
+      "lat": 33.9535,
+      "lon": -118.3392,
+      "isDome": true
+    },
+    "LAR": {
+      "name": "SoFi Stadium",
+      "lat": 33.9535,
+      "lon": -118.3392,
+      "isDome": true
+    },
+    "LV": {
+      "name": "Allegiant Stadium",
+      "lat": 36.0909,
+      "lon": -115.1833,
+      "isDome": true
+    },
+    "MIA": {
+      "name": "Hard Rock Stadium",
+      "lat": 25.958,
+      "lon": -80.2389,
+      "isDome": false
+    },
+    "MIN": {
+      "name": "U.S. Bank Stadium",
+      "lat": 44.9737,
+      "lon": -93.2577,
+      "isDome": true
+    },
+    "NE": {
+      "name": "Gillette Stadium",
+      "lat": 42.0909,
+      "lon": -71.2643,
+      "isDome": false
+    },
+    "NO": {
+      "name": "Caesars Superdome",
+      "lat": 29.9511,
+      "lon": -90.0812,
+      "isDome": true
+    },
+    "NYG": {
+      "name": "MetLife Stadium",
+      "lat": 40.8135,
+      "lon": -74.0745,
+      "isDome": false
+    },
+    "NYJ": {
+      "name": "MetLife Stadium",
+      "lat": 40.8135,
+      "lon": -74.0745,
+      "isDome": false
+    },
+    "PHI": {
+      "name": "Lincoln Financial Field",
+      "lat": 39.9008,
+      "lon": -75.1675,
+      "isDome": false
+    },
+    "PIT": {
+      "name": "Acrisure Stadium",
+      "lat": 40.4468,
+      "lon": -80.0158,
+      "isDome": false
+    },
+    "SEA": {
+      "name": "Lumen Field",
+      "lat": 47.5952,
+      "lon": -122.3316,
+      "isDome": false
+    },
+    "SF": {
+      "name": "Levi's Stadium",
+      "lat": 37.403,
+      "lon": -121.97,
+      "isDome": false
+    },
+    "TB": {
+      "name": "Raymond James Stadium",
+      "lat": 27.9759,
+      "lon": -82.5033,
+      "isDome": false
+    },
+    "TEN": {
+      "name": "Nissan Stadium",
+      "lat": 36.1665,
+      "lon": -86.7713,
+      "isDome": false
+    },
+    "WAS": {
+      "name": "Northwest Stadium",
+      "lat": 38.9077,
+      "lon": -76.8645,
+      "isDome": false
+    }
+  },
+  "internationalVenues": [
+    {
+      "match": "Melbourne",
+      "name": "Melbourne Cricket Ground",
+      "lat": -37.8199,
+      "lon": 144.9834,
+      "isDome": false
+    },
+    {
+      "match": "London",
+      "name": "Tottenham Hotspur Stadium",
+      "lat": 51.6043,
+      "lon": -0.0664,
+      "isDome": false
+    },
+    {
+      "match": "Munich",
+      "name": "Allianz Arena",
+      "lat": 48.2188,
+      "lon": 11.6247,
+      "isDome": false
+    },
+    {
+      "match": "Frankfurt",
+      "name": "Deutsche Bank Park",
+      "lat": 50.0686,
+      "lon": 8.6455,
+      "isDome": false
+    },
+    {
+      "match": "Sao Paulo",
+      "name": "Neo Quimica Arena",
+      "lat": -23.5453,
+      "lon": -46.4742,
+      "isDome": false
+    },
+    {
+      "match": "S\u00e3o Paulo",
+      "name": "Neo Quimica Arena",
+      "lat": -23.5453,
+      "lon": -46.4742,
+      "isDome": false
+    },
+    {
+      "match": "Mexico City",
+      "name": "Estadio Azteca",
+      "lat": 19.3029,
+      "lon": -99.1505,
+      "isDome": false
+    },
+    {
+      "match": "Madrid",
+      "name": "Santiago Bernabeu",
+      "lat": 40.4531,
+      "lon": -3.6883,
+      "isDome": false
+    },
+    {
+      "match": "Dublin",
+      "name": "Croke Park",
+      "lat": 53.3607,
+      "lon": -6.2512,
+      "isDome": false
+    }
+  ]
+}</script>
+<script type="application/json" id="weather-data">{"weeks": {}}</script>
 
 <script type="text/babel" data-presets="react">
 const { useMemo, useState, useEffect, useRef } = React;
@@ -5983,6 +6254,14 @@ let PLAYOFFS_DATA = JSON.parse(document.getElementById('playoffs-data').textCont
 // without triggering a redeploy. getOdds() always reads through this binding,
 // so it picks up whichever version is current at call time.
 let ODDS_DATA = JSON.parse(document.getElementById('odds-data').textContent);
+// STADIUMS_DATA is static reference data (lat/lon + isDome per team, plus
+// international venues) - it doesn't change at runtime, so unlike the others
+// there's no live-refresh hook for it, just a one-time parse.
+const STADIUMS_DATA = JSON.parse(document.getElementById('stadiums-data').textContent);
+// WEATHER_DATA follows the same live-without-a-deploy pattern as ODDS_DATA -
+// starts out empty/embedded, useLiveWeatherData() swaps it for fresher data
+// from weather-current, written by the weather-refresh scheduled script.
+let WEATHER_DATA = JSON.parse(document.getElementById('weather-data').textContent);
 
 // Sportsbook preference: no sportsbook offers a public login/API for a
 // third-party site to pull an individual bettor's personal odds, so this is
@@ -6219,6 +6498,38 @@ function useLiveOddsData() {
 
     refresh();
     const timer = setInterval(refresh, ODDS_REFRESH_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, []);
+}
+
+// Weather changes far less often than odds - the weather-refresh scheduled
+// script only writes every few hours - so this polls much less aggressively
+// than useLiveOddsData. Same fetch-swap-rerender shape.
+const WEATHER_REFRESH_MS = 30 * 60 * 1000;
+
+function useLiveWeatherData() {
+  const [, forceRerender] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refresh() {
+      try {
+        const res = await fetch("/.netlify/functions/weather-current", { cache: "no-store" });
+        if (!res.ok) return;
+        const fresh = await res.json();
+        if (!cancelled && fresh && typeof fresh.weeks === "object") {
+          WEATHER_DATA = fresh;
+          forceRerender(n => n + 1);
+        }
+      } catch (e) {
+        // Same offline/file:// fallback behavior as useLiveOddsData - keep
+        // whatever was last embedded or fetched.
+      }
+    }
+
+    refresh();
+    const timer = setInterval(refresh, WEATHER_REFRESH_MS);
     return () => { cancelled = true; clearInterval(timer); };
   }, []);
 }
@@ -6704,6 +7015,24 @@ function getOdds(week, away, home, preferredBookId) {
     sportsbook: getSportsbookLabel(DEFAULT_SPORTSBOOK_ID),
     isFallback: requestedId !== DEFAULT_SPORTSBOOK_ID,
   };
+}
+
+// Mirrors getOdds()'s lookup shape exactly: WEATHER_DATA.weeks[week].games["away-home"].
+// Returns null for games with no forecast yet (too far out) or that were
+// never resolved to a venue - the UI simply omits the weather pill in that case.
+function getWeather(week, away, home) {
+  const weekWeather = WEATHER_DATA.weeks && WEATHER_DATA.weeks[String(week)];
+  if (!weekWeather || !weekWeather.games) return null;
+  return weekWeather.games[`${away}-${home}`] || null;
+}
+
+// True if this team's own home stadium is a dome - used for the prediction
+// engine's road-team-in-a-dome acclimation penalty, not for whether to show
+// weather (that's purely about the game's actual venue this week, via
+// getWeather()/isDome on the weather entry itself).
+function isDomeTeam(teamId) {
+  const entry = STADIUMS_DATA.teamStadiums && STADIUMS_DATA.teamStadiums[teamId];
+  return !!(entry && entry.isDome);
 }
 
 function formatMoneyline(ml) {
@@ -7898,6 +8227,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
   const historicalResult = context.getResult(game.away, game.home);
   const scoreInfo = resolveScore(live, historicalResult);
   const odds = getOdds(week, game.away, game.home, sportsbookId);
+  const weather = getWeather(week, game.away, game.home);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
 
@@ -7910,8 +8240,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
     homeTeam: home,
     awayTeam: away,
     homeImpactPlayers: homePlayers,
-    awayImpactPlayers: awayPlayers
-  }), [game.home, game.away, context.isHistorical, home, away, homePlayers, awayPlayers]);
+    awayImpactPlayers: awayPlayers,
+    weather: weather,
+    homeIsDomeTeam: isDomeTeam(home.id),
+    awayIsDomeTeam: isDomeTeam(away.id)
+  }), [game.home, game.away, context.isHistorical, home, away, homePlayers, awayPlayers, weather]);
 
   const homeIsWinner = prediction.predictedWinner === home.id;
   const homePct = (prediction.homeWinProbability * 100).toFixed(0);
@@ -7956,6 +8289,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
           )}
           {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
           {internationalGame && <span className="international-tag" title={game.note || "International Game"}><GlobeIcon /> International</span>}
+          <WeatherPill weather={weather} />
         </span>
         {scoreInfo && scoreInfo.isLive ? (
           <span className="live-tag">
@@ -9875,6 +10209,49 @@ function GlobeIcon({ size = 11 }) {
   );
 }
 
+// Emoji keeps this lightweight (no extra SVG per condition) and reads fine
+// at the small size the pill renders at. Keys match WEATHER_CODE_MAP in
+// scripts/weather-refresh.mjs - keep the two in sync if conditions are added.
+const WEATHER_CONDITION_ICONS = {
+  "clear": "☀️", "mostly-clear": "🌤️", "partly-cloudy": "⛅", "overcast": "☁️",
+  "fog": "🌫️", "light-rain": "🌦️", "rain": "🌧️", "heavy-rain": "🌧️",
+  "light-snow": "🌨️", "snow": "🌨️", "heavy-snow": "❄️",
+  "showers": "🌦️", "heavy-showers": "🌧️", "thunderstorm": "⛈️", "unknown": "🌡️"
+};
+
+const NOTABLE_WIND_MPH = 15;
+
+/**
+ * Weather pill for GameCard/schedule. Renders nothing if there's no
+ * forecast yet (game too far out) - the card just looks like it does today.
+ * Dome games show a simple roof tag instead of conditions, since there's
+ * nothing to forecast. Wind gets its own explicit callout above
+ * NOTABLE_WIND_MPH since it matters most for pick'em (kicking/passing).
+ */
+function WeatherPill({ weather }) {
+  if (!weather) return null;
+
+  if (weather.isDome) {
+    return <span className="weather-pill weather-pill-dome" title="Indoor stadium - no weather impact">🏟️ Dome</span>;
+  }
+
+  if (typeof weather.tempF !== "number") return null;
+
+  const icon = WEATHER_CONDITION_ICONS[weather.condition] || WEATHER_CONDITION_ICONS.unknown;
+  const windNotable = typeof weather.windMph === "number" && weather.windMph >= NOTABLE_WIND_MPH;
+  const conditionLabel = (weather.condition || "").replace(/-/g, " ");
+  const titleParts = [conditionLabel, `${weather.tempF}°F`];
+  if (typeof weather.windMph === "number") titleParts.push(`wind ${weather.windMph}mph`);
+  if (typeof weather.precipChance === "number" && weather.precipChance > 0) titleParts.push(`${weather.precipChance}% precip`);
+
+  return (
+    <span className={"weather-pill" + (windNotable ? " weather-pill-windy" : "")} title={titleParts.join(", ")}>
+      {icon} {weather.tempF}°F
+      {windNotable && <span className="weather-wind"> · 💨 {weather.windMph}mph</span>}
+    </span>
+  );
+}
+
 function ChevronIcon({ direction = "down", size = 14 }) {
   const rotations = { down: 0, up: 180, left: 90, right: -90 };
   return (
@@ -10304,6 +10681,7 @@ function App() {
 
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
+  useLiveWeatherData(); // background-refreshes weather from the live blob store; re-renders the app when they change
   useDocumentMeta(view, selectedTeamId, selectedWeek); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);

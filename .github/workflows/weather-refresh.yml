@@ -1,0 +1,48 @@
+name: Blitz Odds - weather refresh
+
+# Runs the weather refresh without Claude: pulls Open-Meteo forecasts for
+# outdoor-stadium games in the next 7 days, publishes them to the live site,
+# and commits the on-disk mirror (data/weather.json) back to this repo.
+# Dispatched externally via cron-job.org, same as odds-refresh.yml and
+# history-results-refresh.yml - do not uncomment the native `schedule:`
+# trigger below, it's unreliable for this repo.
+
+on:
+  #schedule:
+    #- cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blitz-odds-weather-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run weather refresh
+        env:
+          WEATHER_UPDATE_SECRET: ${{ secrets.WEATHER_UPDATE_SECRET }}
+        run: node scripts/weather-refresh.mjs
+
+      - name: Commit on-disk mirror if changed
+        run: |
+          if git diff --quiet -- data/weather.json; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "blitz-odds-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/weather.json
+          git commit -m "Weather refresh: automated update via GitHub Actions"
+          git push

@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Historical NFL Results Archive | Blitz Odds</title>
-<meta name="description" content="Browse final scores and box scores from past NFL seasons, by year or by team, archived by Blitz Odds." />
-<link rel="canonical" href="https://blitz-odds.netlify.app/historical/index.html" />
-<meta property="og:title" content="Historical NFL Results Archive | Blitz Odds" />
-<meta property="og:description" content="Browse final scores and box scores from past NFL seasons, by year or by team, archived by Blitz Odds." />
+<title>2026 NFL Season Results — Preseason, Regular Season &amp; Playoffs | Blitz Odds</title>
+<meta name="description" content="Every 2026 NFL game in order - preseason, regular season, and playoffs - with final scores and box scores." />
+<link rel="canonical" href="https://blitz-odds.netlify.app/historical/2026/index.html" />
+<meta property="og:title" content="2026 NFL Season Results — Preseason, Regular Season &amp; Playoffs | Blitz Odds" />
+<meta property="og:description" content="Every 2026 NFL game in order - preseason, regular season, and playoffs - with final scores and box scores." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://blitz-odds.netlify.app/historical/index.html" />
+<meta property="og:url" content="https://blitz-odds.netlify.app/historical/2026/index.html" />
 <meta name="twitter:card" content="summary" />
 <style>
 :root {
@@ -154,68 +154,161 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
   <header class="top">
     <h1><a href="/">Blitz<span class="brand-odds">Odds</span></a></h1>
   </header>
-  <div class="breadcrumb"><a href="/">Home</a> &raquo; Historical Archive</div>
+  <div class="breadcrumb"><a href="/">Home</a> &raquo; 2026 Season</div>
   
-    <span class="archive-badge">Historical Archive</span>
-    <h2 style="margin-top:0;">Historical Results Archive</h2>
-    <div class="menu-block">
-      <label for="year-nav" style="color:var(--text-dim); font-size:0.82rem;">Browse by season:</label>
-      <select id="year-nav" class="week-select" style="width:100%; margin-top:6px;">
-        <option value="">Select a season&hellip;</option>
-        <option value="/historical/2026/index.html">2026 Season</option>
-<option value="/historical/2025/index.html">2025 Season</option>
-<option value="/historical/2024/index.html">2024 Season</option>
-      </select>
+    <span class="archive-badge">Historical Archive — 2026 Season</span>
+    <h2 style="margin-top:0;">2026 NFL Season - All Games</h2>
+    <div class="filter-row">
+      <div class="week-picker">
+        <label for="week-select" style="color:var(--text-dim); font-size:0.82rem;">Jump to:</label>
+        <select id="week-select" class="week-select">
+          <option value="all">All Games</option>
+          <option value="group-preseason-1">Preseason - Hall of Fame Game</option>
+<option value="group-preseason-2">Preseason - Preseason Week 1</option>
+        </select>
+      </div>
+      <div class="week-picker">
+        <label for="team-select" style="color:var(--text-dim); font-size:0.82rem;">Team:</label>
+        <select id="team-select" class="week-select">
+          <option value="all">All Teams</option>
+          <option value="ARI">Arizona Cardinals</option>
+<option value="ATL">Atlanta Falcons</option>
+<option value="BAL">Baltimore Ravens</option>
+<option value="BUF">Buffalo Bills</option>
+<option value="CAR">Carolina Panthers</option>
+<option value="CHI">Chicago Bears</option>
+<option value="CIN">Cincinnati Bengals</option>
+<option value="CLE">Cleveland Browns</option>
+<option value="DAL">Dallas Cowboys</option>
+<option value="DEN">Denver Broncos</option>
+<option value="DET">Detroit Lions</option>
+<option value="GB">Green Bay Packers</option>
+<option value="HOU">Houston Texans</option>
+<option value="IND">Indianapolis Colts</option>
+<option value="JAX">Jacksonville Jaguars</option>
+<option value="KC">Kansas City Chiefs</option>
+<option value="LV">Las Vegas Raiders</option>
+<option value="LAC">Los Angeles Chargers</option>
+<option value="LAR">Los Angeles Rams</option>
+<option value="MIA">Miami Dolphins</option>
+<option value="MIN">Minnesota Vikings</option>
+<option value="NE">New England Patriots</option>
+<option value="NO">New Orleans Saints</option>
+<option value="NYG">New York Giants</option>
+<option value="NYJ">New York Jets</option>
+<option value="PHI">Philadelphia Eagles</option>
+<option value="PIT">Pittsburgh Steelers</option>
+<option value="SF">San Francisco 49ers</option>
+<option value="SEA">Seattle Seahawks</option>
+<option value="TB">Tampa Bay Buccaneers</option>
+<option value="TEN">Tennessee Titans</option>
+<option value="WAS">Washington Commanders</option>
+        </select>
+      </div>
     </div>
-    <div class="menu-block" style="margin-top:18px;">
-      <label for="team-nav" style="color:var(--text-dim); font-size:0.82rem;">Browse by team:</label>
-      <select id="team-nav" class="week-select" style="width:100%; margin-top:6px;">
-        <option value="">Select a team&hellip;</option>
-        <option value="/historical/teams/arizona-cardinals/index.html">Arizona Cardinals</option>
-<option value="/historical/teams/atlanta-falcons/index.html">Atlanta Falcons</option>
-<option value="/historical/teams/baltimore-ravens/index.html">Baltimore Ravens</option>
-<option value="/historical/teams/buffalo-bills/index.html">Buffalo Bills</option>
-<option value="/historical/teams/carolina-panthers/index.html">Carolina Panthers</option>
-<option value="/historical/teams/chicago-bears/index.html">Chicago Bears</option>
-<option value="/historical/teams/cincinnati-bengals/index.html">Cincinnati Bengals</option>
-<option value="/historical/teams/cleveland-browns/index.html">Cleveland Browns</option>
-<option value="/historical/teams/dallas-cowboys/index.html">Dallas Cowboys</option>
-<option value="/historical/teams/denver-broncos/index.html">Denver Broncos</option>
-<option value="/historical/teams/detroit-lions/index.html">Detroit Lions</option>
-<option value="/historical/teams/green-bay-packers/index.html">Green Bay Packers</option>
-<option value="/historical/teams/houston-texans/index.html">Houston Texans</option>
-<option value="/historical/teams/indianapolis-colts/index.html">Indianapolis Colts</option>
-<option value="/historical/teams/jacksonville-jaguars/index.html">Jacksonville Jaguars</option>
-<option value="/historical/teams/kansas-city-chiefs/index.html">Kansas City Chiefs</option>
-<option value="/historical/teams/los-angeles-chargers/index.html">Los Angeles Chargers</option>
-<option value="/historical/teams/los-angeles-rams/index.html">Los Angeles Rams</option>
-<option value="/historical/teams/las-vegas-raiders/index.html">Las Vegas Raiders</option>
-<option value="/historical/teams/miami-dolphins/index.html">Miami Dolphins</option>
-<option value="/historical/teams/minnesota-vikings/index.html">Minnesota Vikings</option>
-<option value="/historical/teams/new-england-patriots/index.html">New England Patriots</option>
-<option value="/historical/teams/new-orleans-saints/index.html">New Orleans Saints</option>
-<option value="/historical/teams/new-york-giants/index.html">New York Giants</option>
-<option value="/historical/teams/new-york-jets/index.html">New York Jets</option>
-<option value="/historical/teams/philadelphia-eagles/index.html">Philadelphia Eagles</option>
-<option value="/historical/teams/pittsburgh-steelers/index.html">Pittsburgh Steelers</option>
-<option value="/historical/teams/seattle-seahawks/index.html">Seattle Seahawks</option>
-<option value="/historical/teams/san-francisco-49ers/index.html">San Francisco 49ers</option>
-<option value="/historical/teams/tampa-bay-buccaneers/index.html">Tampa Bay Buccaneers</option>
-<option value="/historical/teams/tennessee-titans/index.html">Tennessee Titans</option>
-<option value="/historical/teams/washington-commanders/index.html">Washington Commanders</option>
-      </select>
+    <div class="season-index-list">
+      
+        <div class="season-index-round" id="group-preseason-1">
+          <h3>Preseason - Hall of Fame Game</h3>
+          <a class="season-index-game" data-away="CAR" data-home="ARI" href="/historical/2026/preseason/hall-of-fame-game/carolina-panthers-at-arizona-cardinals.html">
+                <span>Carolina Panthers @ Arizona Cardinals</span>
+                <span>33-30</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-preseason-2">
+          <h3>Preseason - Preseason Week 1</h3>
+          <a class="season-index-game" data-away="DET" data-home="CIN" href="/historical/2026/preseason/preseason-week-1/detroit-lions-at-cincinnati-bengals.html">
+                <span>Detroit Lions @ Cincinnati Bengals</span>
+                <span>14-16</span>
+              </a>
+<a class="season-index-game" data-away="GB" data-home="PIT" href="/historical/2026/preseason/preseason-week-1/green-bay-packers-at-pittsburgh-steelers.html">
+                <span>Green Bay Packers @ Pittsburgh Steelers</span>
+                <span>9-28</span>
+              </a>
+<a class="season-index-game" data-away="IND" data-home="NE" href="/historical/2026/preseason/preseason-week-1/indianapolis-colts-at-new-england-patriots.html">
+                <span>Indianapolis Colts @ New England Patriots</span>
+                <span>13-13</span>
+              </a>
+<a class="season-index-game" data-away="ARI" data-home="LV" href="/historical/2026/preseason/preseason-week-1/arizona-cardinals-at-las-vegas-raiders.html">
+                <span>Arizona Cardinals @ Las Vegas Raiders</span>
+                <span>27-14</span>
+              </a>
+<a class="season-index-game" data-away="LAC" data-home="HOU" href="/historical/2026/preseason/preseason-week-1/los-angeles-chargers-at-houston-texans.html">
+                <span>Los Angeles Chargers @ Houston Texans</span>
+                <span>27-7</span>
+              </a>
+<a class="season-index-game" data-away="TEN" data-home="SF" href="/historical/2026/preseason/preseason-week-1/tennessee-titans-at-san-francisco-49ers.html">
+                <span>Tennessee Titans @ San Francisco 49ers</span>
+                <span>19-13</span>
+              </a>
+<a class="season-index-game" data-away="DEN" data-home="ATL" href="/historical/2026/preseason/preseason-week-1/denver-broncos-at-atlanta-falcons.html">
+                <span>Denver Broncos @ Atlanta Falcons</span>
+                <span>27-7</span>
+              </a>
+<a class="season-index-game" data-away="TB" data-home="NYJ" href="/historical/2026/preseason/preseason-week-1/tampa-bay-buccaneers-at-new-york-jets.html">
+                <span>Tampa Bay Buccaneers @ New York Jets</span>
+                <span>24-16</span>
+              </a>
+<a class="season-index-game" data-away="MIA" data-home="WAS" href="/historical/2026/preseason/preseason-week-1/miami-dolphins-at-washington-commanders.html">
+                <span>Miami Dolphins @ Washington Commanders</span>
+                <span>7-20</span>
+              </a>
+<a class="season-index-game" data-away="CAR" data-home="BUF" href="/historical/2026/preseason/preseason-week-1/carolina-panthers-at-buffalo-bills.html">
+                <span>Carolina Panthers @ Buffalo Bills</span>
+                <span>14-29</span>
+              </a>
+<a class="season-index-game" data-away="CLE" data-home="CHI" href="/historical/2026/preseason/preseason-week-1/cleveland-browns-at-chicago-bears.html">
+                <span>Cleveland Browns @ Chicago Bears</span>
+                <span>10-34</span>
+              </a>
+<a class="season-index-game" data-away="MIN" data-home="NYG" href="/historical/2026/preseason/preseason-week-1/minnesota-vikings-at-new-york-giants.html">
+                <span>Minnesota Vikings @ New York Giants</span>
+                <span>13-10</span>
+              </a>
+<a class="season-index-game" data-away="LAR" data-home="KC" href="/historical/2026/preseason/preseason-week-1/los-angeles-rams-at-kansas-city-chiefs.html">
+                <span>Los Angeles Rams @ Kansas City Chiefs</span>
+                <span>20-12</span>
+              </a>
+<a class="season-index-game" data-away="JAX" data-home="NO" href="/historical/2026/preseason/preseason-week-1/jacksonville-jaguars-at-new-orleans-saints.html">
+                <span>Jacksonville Jaguars @ New Orleans Saints</span>
+                <span>24-20</span>
+              </a>
+<a class="season-index-game" data-away="PHI" data-home="BAL" href="/historical/2026/preseason/preseason-week-1/philadelphia-eagles-at-baltimore-ravens.html">
+                <span>Philadelphia Eagles @ Baltimore Ravens</span>
+                <span>7-24</span>
+              </a>
+<a class="season-index-game" data-away="DAL" data-home="SEA" href="/historical/2026/preseason/preseason-week-1/dallas-cowboys-at-seattle-seahawks.html">
+                <span>Dallas Cowboys @ Seattle Seahawks</span>
+                <span>17-7</span>
+              </a>
+        </div>
     </div>
   
   <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
 </div>
 <script src="/js/analytics.js"></script>
 <script>
-    function goTo(id) {
-      var el = document.getElementById(id);
-      el.addEventListener('change', function (e) { if (e.target.value) window.location.href = e.target.value; });
-    }
-    goTo('year-nav');
-    goTo('team-nav');
+    document.getElementById('week-select').addEventListener('change', function (e) {
+      var sections = document.querySelectorAll('.season-index-round');
+      var target = e.target.value;
+      sections.forEach(function (s) { s.style.display = (target === 'all' || s.id === target) ? '' : 'none'; });
+    });
+    document.getElementById('team-select').addEventListener('change', function (e) {
+      var team = e.target.value;
+      document.querySelectorAll('.season-index-round').forEach(function (group) {
+        var anyVisible = false;
+        group.querySelectorAll('.season-index-game').forEach(function (row) {
+          var match = team === 'all' || row.dataset.away === team || row.dataset.home === team;
+          row.style.display = match ? '' : 'none';
+          if (match) anyVisible = true;
+        });
+        group.style.display = anyVisible ? '' : 'none';
+      });
+      // Filtering by team overrides the week/round jump - reset it to avoid
+      // a confusing combination where both filters fight each other.
+      document.getElementById('week-select').value = 'all';
+    });
   </script>
 </body>
 </html>

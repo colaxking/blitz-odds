@@ -53,6 +53,10 @@ if (!YEAR || YEAR < 2000 || YEAR > 2100 || !["preseason", "postseason", "regular
 }
 
 const SITE_BASE = "https://blitz-odds.netlify.app";
+// The one season data/history.json's own live pipeline actually tracks -
+// only games from THIS year get a real point-in-time injury snapshot
+// available to overlay onto their archive page. Bump this each season.
+const CURRENT_SEASON_YEAR = 2026;
 const ESPN_FETCH_HEADERS = { "User-Agent": "curl/8.4.0" }; // see header note - browser-style UAs get 403'd from server IPs
 const ESPN_ABBR_FIX = { WSH: "WAS", LA: "LAR" };
 
@@ -190,6 +194,92 @@ function rankingsSeasonFor(year, phaseKey) {
   return phaseKey === "preseason" ? year - 1 : year;
 }
 
+// Real point-in-time injury data for games archived from the CURRENT
+// season's own live pipeline. Unlike rankings/team-stats (season-end
+// numbers, fine to reuse), injuries are meaningless after the fact - ESPN's
+// summary?event= endpoint only returns TODAY's injury status, not what a
+// roster looked like on a past game date. The one place we actually have a
+// real point-in-time injury snapshot is data/history.json's `impactPlayers`
+// field, captured weekly by the live app's own pipeline BEFORE kickoff.
+// So: prior seasons backfilled straight from ESPN get no injury section
+// (no honest data exists for them) - only weeks that were live-tracked by
+// this repo's own history snapshot get one, and only if that snapshot is
+// real (isDemo: false).
+let CURRENT_SEASON_INJURIES = null;
+async function loadCurrentSeasonInjuries() {
+  if (CURRENT_SEASON_INJURIES) return CURRENT_SEASON_INJURIES;
+  const result = { weekInjuries: new Map(), roundToWeek: {} };
+  try {
+    const historyDoc = JSON.parse(await readFile(path.join(REPO_ROOT, "data/history.json"), "utf8"));
+    for (const w of historyDoc.weeks || []) {
+      if (w.isDemo || !w.impactPlayers) continue;
+      result.weekInjuries.set(w.week, w.impactPlayers);
+    }
+  } catch {
+    // No history.json / unreadable - fine, just means no current-season
+    // injury overlay is available; game pages render without that section.
+  }
+  // PHASES.{preseason,postseason}.rounds keys are espnWeek values; map those
+  // to history.json's own week numbering (which uses negative/19+ numbers)
+  // via the same schedule files history-results-refresh.mjs treats as the
+  // authoritative round<->week mapping. Regular season needs no mapping -
+  // PHASES.regular.rounds keys already equal history.json week numbers.
+  for (const [phaseKey, file] of [["preseason", "schedule-preseason"], ["postseason", "schedule-playoffs"]]) {
+    try {
+      const schedule = JSON.parse(await readFile(path.join(REPO_ROOT, `data/${file}-${CURRENT_SEASON_YEAR}.json`), "utf8"));
+      const map = {};
+      for (const r of schedule.rounds || []) map[r.espnWeek] = r.week;
+      result.roundToWeek[phaseKey] = map;
+    } catch {
+      result.roundToWeek[phaseKey] = {};
+    }
+  }
+  CURRENT_SEASON_INJURIES = result;
+  return result;
+}
+
+function historyWeekForRound(mapping, phaseKey, round) {
+  if (phaseKey === "regular") return round;
+  return (mapping.roundToWeek[phaseKey] || {})[round] ?? null;
+}
+
+function injuryTeamList(abbr, players) {
+  if (!players.length) {
+    return `<div class="injury-team-col"><h4>${escapeHtml(abbr)}</h4><p class="injury-none">No tracked impact players.</p></div>`;
+  }
+  const statusIcon = { out: "\u26D4", questionable: "\u26A0\uFE0F", active: "\u2705" };
+  const items = players
+    .map((p) => {
+      const note = p.injury && p.injury.note ? `<div class="impact-note-detail">${escapeHtml(p.injury.note)}</div>` : "";
+      const type = p.injury && p.injury.type ? ` — ${escapeHtml(p.injury.type)}` : "";
+      return `<div class="impact-note impact-${escapeHtml(p.status)}">
+        <span>${statusIcon[p.status] || ""}</span>
+        <span><strong>${escapeHtml(p.name)}</strong> (${escapeHtml(p.position)}) — <strong>${escapeHtml(p.status)}</strong>${type}${note}</span>
+      </div>`;
+    })
+    .join("\n");
+  return `<div class="injury-team-col"><h4>${escapeHtml(abbr)}</h4><div class="injury-list">${items}</div></div>`;
+}
+
+async function buildInjurySectionHtml(year, phaseKey, round, awayAbbr, homeAbbr) {
+  if (year !== CURRENT_SEASON_YEAR) return ""; // no honest data for prior seasons
+  const mapping = await loadCurrentSeasonInjuries();
+  const historyWeek = historyWeekForRound(mapping, phaseKey, round);
+  if (historyWeek == null) return "";
+  const weekInjuries = mapping.weekInjuries.get(historyWeek);
+  if (!weekInjuries) return "";
+  const awayPlayers = (weekInjuries[awayAbbr] || []).filter((p) => p.injury || p.status !== "active");
+  const homePlayers = (weekInjuries[homeAbbr] || []).filter((p) => p.injury || p.status !== "active");
+  if (!awayPlayers.length && !homePlayers.length) return "";
+  return `
+    <div class="section-title">Injury Report (at kickoff)</div>
+    <div class="injury-report-archive">
+      ${injuryTeamList(awayAbbr, awayPlayers)}
+      ${injuryTeamList(homeAbbr, homePlayers)}
+    </div>
+  `;
+}
+
 async function fetchPhaseEvents(year, phaseDef) {
   const data = await fetchJson(
     `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${phaseDef.dateRange(year)}&limit=1000`
@@ -258,6 +348,7 @@ const PAGE_CSS = `
   --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
   --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
   --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
+  --pill-out-text: #ff8080; --pill-questionable-text: #f5c168;
 }
 * { box-sizing: border-box; }
 body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
@@ -368,6 +459,22 @@ header.top h1 a { text-decoration: none; color: inherit; }
   .week-select { flex: 1; min-width: 0; }
 }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+
+/* Injury Report - mirrors live app's .injury-report/.impact-note markup
+   and colors exactly, so this reads as the same feature as the live
+   team-page injury report, just archived at kickoff-time. */
+.injury-report-archive { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.injury-team-col h4 { font-size: 0.8rem; margin: 0 0 8px; }
+.injury-list { display: flex; flex-direction: column; gap: 6px; }
+.injury-none { color: var(--text-dim); font-size: 0.78rem; margin: 0; }
+.impact-note { font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start; }
+.impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
+.impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
+.impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+.impact-note-detail { color: var(--text-dim); font-size: 0.68rem; margin-top: 3px; line-height: 1.35; }
+@media (max-width: 600px) {
+  .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
+}
 `;
 
 function pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd, pageScript }) {
@@ -550,6 +657,8 @@ async function buildGamePage(year, phaseKey, round, game) {
   const numQuarters = Math.max(box.awayLinescores.length, box.homeLinescores.length, 4);
   const qHeaders = Array.from({ length: numQuarters }, (_, i) => `Q${i + 1}`);
 
+  const injurySectionHtml = await buildInjurySectionHtml(year, phaseKey, round, awayAbbr, homeAbbr);
+
   const bodyHtml = `
     <span class="archive-badge">Historical Archive — ${year} ${phaseDef.label}</span>
     <div class="detail">
@@ -586,6 +695,7 @@ async function buildGamePage(year, phaseKey, round, game) {
       <div class="section-title">Player Stats</div>
       ${playerStatsBlock(awayAbbr, box.awayPlayerStats)}
       ${playerStatsBlock(homeAbbr, box.homePlayerStats)}
+      ${injurySectionHtml}
     </div>
   `;
 

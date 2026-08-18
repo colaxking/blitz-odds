@@ -19,6 +19,7 @@
   --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
   --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
   --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
+  --pill-out-text: #ff8080; --pill-questionable-text: #f5c168;
 }
 * { box-sizing: border-box; }
 body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
@@ -129,6 +130,22 @@ header.top h1 a { text-decoration: none; color: inherit; }
   .week-select { flex: 1; min-width: 0; }
 }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+
+/* Injury Report - mirrors live app's .injury-report/.impact-note markup
+   and colors exactly, so this reads as the same feature as the live
+   team-page injury report, just archived at kickoff-time. */
+.injury-report-archive { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.injury-team-col h4 { font-size: 0.8rem; margin: 0 0 8px; }
+.injury-list { display: flex; flex-direction: column; gap: 6px; }
+.injury-none { color: var(--text-dim); font-size: 0.78rem; margin: 0; }
+.impact-note { font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start; }
+.impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
+.impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
+.impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+.impact-note-detail { color: var(--text-dim); font-size: 0.68rem; margin-top: 3px; line-height: 1.35; }
+@media (max-width: 600px) {
+  .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
+}
 </style>
 
 </head>
@@ -143,6 +160,18 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
     <h2 style="margin-top:0;">Arizona Cardinals - All Archived Games</h2>
     <div class="season-index-list">
       
+        <div class="season-index-round">
+          <h3>2026</h3>
+          <a class="season-index-game" href="/historical/2026/preseason/preseason-week-1/arizona-cardinals-at-las-vegas-raiders.html">
+                <span>Preseason Preseason Week 1 - @ Las Vegas Raiders</span>
+                <span class="team-result-w">W 27-14</span>
+              </a>
+<a class="season-index-game" href="/historical/2026/preseason/hall-of-fame-game/carolina-panthers-at-arizona-cardinals.html">
+                <span>Preseason Hall of Fame Game - vs Carolina Panthers</span>
+                <span class="team-result-l">L 30-33</span>
+              </a>
+        </div>
+
         <div class="season-index-round">
           <h3>2025</h3>
           <a class="season-index-game" href="/historical/2025/regular-season/week-18/arizona-cardinals-at-los-angeles-rams.html">

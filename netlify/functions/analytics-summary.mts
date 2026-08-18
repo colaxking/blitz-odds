@@ -74,6 +74,10 @@ type EventRecord = {
   origin?: string;
   away?: string;
   home?: string;
+  page?: string;
+  nav?: string;
+  filter?: string;
+  value?: string;
   location?: LocationInfo;
   device?: string;
 };
@@ -193,6 +197,9 @@ function emptySummary(now: number, range: Range) {
     newsClicksByPlacement: {} as Record<string, number>,
     teamClicksByOrigin: {} as Record<string, number>,
     boxscoreClicksByTeam: {} as Record<string, number>,
+    historyPageviews: 0,
+    historyGameClicksByTeam: {} as Record<string, number>,
+    historyClicksByType: {} as Record<string, number>,
     themeDistribution: {} as Record<string, number>,
     sportsbookDistribution: {} as Record<string, number>,
     tzPrefDistribution: {} as Record<string, number>,
@@ -385,6 +392,41 @@ export default async (req: Request, _context: Context) => {
       boxscoreClicksByTeam[team] = count;
     }
 
+    // --- historical archive: pageviews on /historical/ pages, click
+    // breakdown by which archive interaction fired, and which teams'
+    // historical games actually get clicked into. `page` for these pages
+    // is set by getCurrentPageLabel()'s `.archive-badge` branch (see
+    // js/analytics.js), always prefixed "Historical archive: ", so that
+    // prefix alone is enough to separate archive pageviews from live-app
+    // ones without a separate flag on every pageview event. ---
+    const historyPageviews = pageviews.filter(
+      (r) => typeof r.page === "string" && r.page.indexOf("Historical archive:") === 0
+    ).length;
+    const historyGameClicks = validRecords.filter(
+      (r) => r.type === "history_game_click" || r.type === "history_team_game_click"
+    );
+    const historyTeamMap = new Map<string, number>();
+    for (const r of historyGameClicks) {
+      for (const t of [r.away, r.home]) {
+        if (!t) continue;
+        historyTeamMap.set(t, (historyTeamMap.get(t) || 0) + 1);
+      }
+    }
+    const historyGameClicksByTeam: Record<string, number> = {};
+    for (const [team, count] of Array.from(historyTeamMap.entries()).sort((a, b) => b[1] - a[1])) {
+      historyGameClicksByTeam[team] = count;
+    }
+    const historyClicksByType = sortedCounts(
+      validRecords.filter(
+        (r) =>
+          r.type === "history_nav_click" ||
+          r.type === "history_week_select" ||
+          r.type === "history_game_click" ||
+          r.type === "history_team_game_click"
+      ),
+      (r) => r.type
+    );
+
     // --- themeDistribution / sportsbookDistribution / tzPrefDistribution:
     // unlike the click-count tiles above, these answer "what are people
     // currently set to", not "how many times did they change it" - so
@@ -516,6 +558,9 @@ export default async (req: Request, _context: Context) => {
       newsClicksByPlacement,
       teamClicksByOrigin,
       boxscoreClicksByTeam,
+      historyPageviews,
+      historyGameClicksByTeam,
+      historyClicksByType,
       themeDistribution,
       sportsbookDistribution,
       tzPrefDistribution,

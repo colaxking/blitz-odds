@@ -743,7 +743,7 @@ function buildSeasonIndexPage(year, phaseKey, gamesByRound) {
           <h3>${escapeHtml(phaseDef.rounds[round].label)}</h3>
           ${games
             .map(
-              (g) => `<a class="season-index-game" href="${g.canonicalPath}">
+              (g) => `<a class="season-index-game" data-origin="index" data-away="${g.awayAbbr}" data-home="${g.homeAbbr}" href="${g.canonicalPath}">
                 <span>${escapeHtml(g.awayName)} @ ${escapeHtml(g.homeName)}</span>
                 <span>${g.awayScore}-${g.homeScore}</span>
               </a>`
@@ -873,7 +873,7 @@ function buildYearIndexPage(year, gamesForYear) {
           <h3>${escapeHtml(grp.label)}</h3>
           ${grp.games
             .map(
-              (g) => `<a class="season-index-game" data-away="${g.awayAbbr}" data-home="${g.homeAbbr}" href="${g.canonicalPath}">
+              (g) => `<a class="season-index-game" data-origin="index" data-away="${g.awayAbbr}" data-home="${g.homeAbbr}" href="${g.canonicalPath}">
                 <span>${escapeHtml(g.awayName)} @ ${escapeHtml(g.homeName)}</span>
                 <span>${g.awayScore}-${g.homeScore}</span>
               </a>`
@@ -949,7 +949,7 @@ function buildTeamPage(teamAbbr, gamesForTeam) {
               const teamScore = g.awayAbbr === teamAbbr ? g.awayScore : g.homeScore;
               const oppScore = g.awayAbbr === teamAbbr ? g.homeScore : g.awayScore;
               const result = teamScore > oppScore ? "W" : teamScore < oppScore ? "L" : "T";
-              return `<a class="season-index-game" href="${g.canonicalPath}">
+              return `<a class="season-index-game" data-origin="team" data-away="${g.awayAbbr}" data-home="${g.homeAbbr}" data-team="${teamAbbr}" href="${g.canonicalPath}">
                 <span>${escapeHtml(PHASES[g.phaseKey].label)} ${escapeHtml(g.roundLabel)} - ${atOrVs} ${escapeHtml(opponentName)}</span>
                 <span class="team-result-${result.toLowerCase()}">${result} ${teamScore}-${oppScore}</span>
               </a>`;

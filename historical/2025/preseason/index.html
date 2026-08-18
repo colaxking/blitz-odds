@@ -19,6 +19,7 @@
   --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
   --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
   --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
+  --pill-out-text: #ff8080; --pill-questionable-text: #f5c168;
 }
 * { box-sizing: border-box; }
 body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
@@ -129,6 +130,22 @@ header.top h1 a { text-decoration: none; color: inherit; }
   .week-select { flex: 1; min-width: 0; }
 }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+
+/* Injury Report - mirrors live app's .injury-report/.impact-note markup
+   and colors exactly, so this reads as the same feature as the live
+   team-page injury report, just archived at kickoff-time. */
+.injury-report-archive { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.injury-team-col h4 { font-size: 0.8rem; margin: 0 0 8px; }
+.injury-list { display: flex; flex-direction: column; gap: 6px; }
+.injury-none { color: var(--text-dim); font-size: 0.78rem; margin: 0; }
+.impact-note { font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start; }
+.impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
+.impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
+.impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+.impact-note-detail { color: var(--text-dim); font-size: 0.68rem; margin-top: 3px; line-height: 1.35; }
+@media (max-width: 600px) {
+  .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
+}
 </style>
 
 </head>
@@ -155,7 +172,7 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
       
         <div class="season-index-round" id="round-1">
           <h3>Hall of Fame Game</h3>
-          <a class="season-index-game" href="/historical/2025/preseason/hall-of-fame-game/los-angeles-chargers-at-detroit-lions.html">
+          <a class="season-index-game" data-origin="index" data-away="LAC" data-home="DET" href="/historical/2025/preseason/hall-of-fame-game/los-angeles-chargers-at-detroit-lions.html">
                 <span>Los Angeles Chargers @ Detroit Lions</span>
                 <span>34-7</span>
               </a>
@@ -163,67 +180,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-2">
           <h3>Preseason Week 1</h3>
-          <a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/indianapolis-colts-at-baltimore-ravens.html">
+          <a class="season-index-game" data-origin="index" data-away="IND" data-home="BAL" href="/historical/2025/preseason/preseason-week-1/indianapolis-colts-at-baltimore-ravens.html">
                 <span>Indianapolis Colts @ Baltimore Ravens</span>
                 <span>16-24</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/cincinnati-bengals-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="PHI" href="/historical/2025/preseason/preseason-week-1/cincinnati-bengals-at-philadelphia-eagles.html">
                 <span>Cincinnati Bengals @ Philadelphia Eagles</span>
                 <span>27-34</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/las-vegas-raiders-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="SEA" href="/historical/2025/preseason/preseason-week-1/las-vegas-raiders-at-seattle-seahawks.html">
                 <span>Las Vegas Raiders @ Seattle Seahawks</span>
                 <span>23-23</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/detroit-lions-at-atlanta-falcons.html">
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="ATL" href="/historical/2025/preseason/preseason-week-1/detroit-lions-at-atlanta-falcons.html">
                 <span>Detroit Lions @ Atlanta Falcons</span>
                 <span>17-10</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/cleveland-browns-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="CAR" href="/historical/2025/preseason/preseason-week-1/cleveland-browns-at-carolina-panthers.html">
                 <span>Cleveland Browns @ Carolina Panthers</span>
                 <span>30-10</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/washington-commanders-at-new-england-patriots.html">
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="NE" href="/historical/2025/preseason/preseason-week-1/washington-commanders-at-new-england-patriots.html">
                 <span>Washington Commanders @ New England Patriots</span>
                 <span>18-48</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/new-york-giants-at-buffalo-bills.html">
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="BUF" href="/historical/2025/preseason/preseason-week-1/new-york-giants-at-buffalo-bills.html">
                 <span>New York Giants @ Buffalo Bills</span>
                 <span>34-25</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/houston-texans-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="MIN" href="/historical/2025/preseason/preseason-week-1/houston-texans-at-minnesota-vikings.html">
                 <span>Houston Texans @ Minnesota Vikings</span>
                 <span>10-20</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/dallas-cowboys-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="LAR" href="/historical/2025/preseason/preseason-week-1/dallas-cowboys-at-los-angeles-rams.html">
                 <span>Dallas Cowboys @ Los Angeles Rams</span>
                 <span>21-31</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/pittsburgh-steelers-at-jacksonville-jaguars.html">
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="JAX" href="/historical/2025/preseason/preseason-week-1/pittsburgh-steelers-at-jacksonville-jaguars.html">
                 <span>Pittsburgh Steelers @ Jacksonville Jaguars</span>
                 <span>31-25</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/tennessee-titans-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="TB" href="/historical/2025/preseason/preseason-week-1/tennessee-titans-at-tampa-bay-buccaneers.html">
                 <span>Tennessee Titans @ Tampa Bay Buccaneers</span>
                 <span>7-29</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/new-york-jets-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="GB" href="/historical/2025/preseason/preseason-week-1/new-york-jets-at-green-bay-packers.html">
                 <span>New York Jets @ Green Bay Packers</span>
                 <span>30-10</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/kansas-city-chiefs-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="ARI" href="/historical/2025/preseason/preseason-week-1/kansas-city-chiefs-at-arizona-cardinals.html">
                 <span>Kansas City Chiefs @ Arizona Cardinals</span>
                 <span>17-20</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/denver-broncos-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="SF" href="/historical/2025/preseason/preseason-week-1/denver-broncos-at-san-francisco-49ers.html">
                 <span>Denver Broncos @ San Francisco 49ers</span>
                 <span>30-9</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/miami-dolphins-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="CHI" href="/historical/2025/preseason/preseason-week-1/miami-dolphins-at-chicago-bears.html">
                 <span>Miami Dolphins @ Chicago Bears</span>
                 <span>24-24</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-1/new-orleans-saints-at-los-angeles-chargers.html">
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="LAC" href="/historical/2025/preseason/preseason-week-1/new-orleans-saints-at-los-angeles-chargers.html">
                 <span>New Orleans Saints @ Los Angeles Chargers</span>
                 <span>13-27</span>
               </a>
@@ -231,67 +248,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-3">
           <h3>Preseason Week 2</h3>
-          <a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/tennessee-titans-at-atlanta-falcons.html">
+          <a class="season-index-game" data-origin="index" data-away="TEN" data-home="ATL" href="/historical/2025/preseason/preseason-week-2/tennessee-titans-at-atlanta-falcons.html">
                 <span>Tennessee Titans @ Atlanta Falcons</span>
                 <span>23-20</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/kansas-city-chiefs-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="SEA" href="/historical/2025/preseason/preseason-week-2/kansas-city-chiefs-at-seattle-seahawks.html">
                 <span>Kansas City Chiefs @ Seattle Seahawks</span>
                 <span>16-33</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/miami-dolphins-at-detroit-lions.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="DET" href="/historical/2025/preseason/preseason-week-2/miami-dolphins-at-detroit-lions.html">
                 <span>Miami Dolphins @ Detroit Lions</span>
                 <span>24-17</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/green-bay-packers-at-indianapolis-colts.html">
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="IND" href="/historical/2025/preseason/preseason-week-2/green-bay-packers-at-indianapolis-colts.html">
                 <span>Green Bay Packers @ Indianapolis Colts</span>
                 <span>23-19</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/new-england-patriots-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="MIN" href="/historical/2025/preseason/preseason-week-2/new-england-patriots-at-minnesota-vikings.html">
                 <span>New England Patriots @ Minnesota Vikings</span>
                 <span>20-12</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/cleveland-browns-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="PHI" href="/historical/2025/preseason/preseason-week-2/cleveland-browns-at-philadelphia-eagles.html">
                 <span>Cleveland Browns @ Philadelphia Eagles</span>
                 <span>22-13</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/carolina-panthers-at-houston-texans.html">
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="HOU" href="/historical/2025/preseason/preseason-week-2/carolina-panthers-at-houston-texans.html">
                 <span>Carolina Panthers @ Houston Texans</span>
                 <span>3-20</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/san-francisco-49ers-at-las-vegas-raiders.html">
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="LV" href="/historical/2025/preseason/preseason-week-2/san-francisco-49ers-at-las-vegas-raiders.html">
                 <span>San Francisco 49ers @ Las Vegas Raiders</span>
                 <span>22-19</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/baltimore-ravens-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="DAL" href="/historical/2025/preseason/preseason-week-2/baltimore-ravens-at-dallas-cowboys.html">
                 <span>Baltimore Ravens @ Dallas Cowboys</span>
                 <span>31-13</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/los-angeles-chargers-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="LAR" href="/historical/2025/preseason/preseason-week-2/los-angeles-chargers-at-los-angeles-rams.html">
                 <span>Los Angeles Chargers @ Los Angeles Rams</span>
                 <span>22-23</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/new-york-jets-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="NYG" href="/historical/2025/preseason/preseason-week-2/new-york-jets-at-new-york-giants.html">
                 <span>New York Jets @ New York Giants</span>
                 <span>12-31</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/tampa-bay-buccaneers-at-pittsburgh-steelers.html">
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="PIT" href="/historical/2025/preseason/preseason-week-2/tampa-bay-buccaneers-at-pittsburgh-steelers.html">
                 <span>Tampa Bay Buccaneers @ Pittsburgh Steelers</span>
                 <span>17-14</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/arizona-cardinals-at-denver-broncos.html">
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="DEN" href="/historical/2025/preseason/preseason-week-2/arizona-cardinals-at-denver-broncos.html">
                 <span>Arizona Cardinals @ Denver Broncos</span>
                 <span>7-27</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/jacksonville-jaguars-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="NO" href="/historical/2025/preseason/preseason-week-2/jacksonville-jaguars-at-new-orleans-saints.html">
                 <span>Jacksonville Jaguars @ New Orleans Saints</span>
                 <span>17-17</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/buffalo-bills-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="CHI" href="/historical/2025/preseason/preseason-week-2/buffalo-bills-at-chicago-bears.html">
                 <span>Buffalo Bills @ Chicago Bears</span>
                 <span>0-38</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-2/cincinnati-bengals-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="WAS" href="/historical/2025/preseason/preseason-week-2/cincinnati-bengals-at-washington-commanders.html">
                 <span>Cincinnati Bengals @ Washington Commanders</span>
                 <span>31-17</span>
               </a>
@@ -299,67 +316,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-4">
           <h3>Preseason Week 3</h3>
-          <a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/pittsburgh-steelers-at-carolina-panthers.html">
+          <a class="season-index-game" data-origin="index" data-away="PIT" data-home="CAR" href="/historical/2025/preseason/preseason-week-3/pittsburgh-steelers-at-carolina-panthers.html">
                 <span>Pittsburgh Steelers @ Carolina Panthers</span>
                 <span>19-10</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/new-england-patriots-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="NYG" href="/historical/2025/preseason/preseason-week-3/new-england-patriots-at-new-york-giants.html">
                 <span>New England Patriots @ New York Giants</span>
                 <span>10-42</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/philadelphia-eagles-at-new-york-jets.html">
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="NYJ" href="/historical/2025/preseason/preseason-week-3/philadelphia-eagles-at-new-york-jets.html">
                 <span>Philadelphia Eagles @ New York Jets</span>
                 <span>19-17</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/atlanta-falcons-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="DAL" href="/historical/2025/preseason/preseason-week-3/atlanta-falcons-at-dallas-cowboys.html">
                 <span>Atlanta Falcons @ Dallas Cowboys</span>
                 <span>13-31</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/minnesota-vikings-at-tennessee-titans.html">
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="TEN" href="/historical/2025/preseason/preseason-week-3/minnesota-vikings-at-tennessee-titans.html">
                 <span>Minnesota Vikings @ Tennessee Titans</span>
                 <span>13-23</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/chicago-bears-at-kansas-city-chiefs.html">
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="KC" href="/historical/2025/preseason/preseason-week-3/chicago-bears-at-kansas-city-chiefs.html">
                 <span>Chicago Bears @ Kansas City Chiefs</span>
                 <span>29-27</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/baltimore-ravens-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="WAS" href="/historical/2025/preseason/preseason-week-3/baltimore-ravens-at-washington-commanders.html">
                 <span>Baltimore Ravens @ Washington Commanders</span>
                 <span>30-3</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/indianapolis-colts-at-cincinnati-bengals.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="CIN" href="/historical/2025/preseason/preseason-week-3/indianapolis-colts-at-cincinnati-bengals.html">
                 <span>Indianapolis Colts @ Cincinnati Bengals</span>
                 <span>41-14</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/los-angeles-rams-at-cleveland-browns.html">
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="CLE" href="/historical/2025/preseason/preseason-week-3/los-angeles-rams-at-cleveland-browns.html">
                 <span>Los Angeles Rams @ Cleveland Browns</span>
                 <span>17-19</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/houston-texans-at-detroit-lions.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="DET" href="/historical/2025/preseason/preseason-week-3/houston-texans-at-detroit-lions.html">
                 <span>Houston Texans @ Detroit Lions</span>
                 <span>26-7</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/denver-broncos-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="NO" href="/historical/2025/preseason/preseason-week-3/denver-broncos-at-new-orleans-saints.html">
                 <span>Denver Broncos @ New Orleans Saints</span>
                 <span>28-19</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/seattle-seahawks-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="GB" href="/historical/2025/preseason/preseason-week-3/seattle-seahawks-at-green-bay-packers.html">
                 <span>Seattle Seahawks @ Green Bay Packers</span>
                 <span>7-20</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/jacksonville-jaguars-at-miami-dolphins.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="MIA" href="/historical/2025/preseason/preseason-week-3/jacksonville-jaguars-at-miami-dolphins.html">
                 <span>Jacksonville Jaguars @ Miami Dolphins</span>
                 <span>6-14</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/buffalo-bills-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="TB" href="/historical/2025/preseason/preseason-week-3/buffalo-bills-at-tampa-bay-buccaneers.html">
                 <span>Buffalo Bills @ Tampa Bay Buccaneers</span>
                 <span>23-19</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/los-angeles-chargers-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="SF" href="/historical/2025/preseason/preseason-week-3/los-angeles-chargers-at-san-francisco-49ers.html">
                 <span>Los Angeles Chargers @ San Francisco 49ers</span>
                 <span>23-30</span>
               </a>
-<a class="season-index-game" href="/historical/2025/preseason/preseason-week-3/las-vegas-raiders-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="ARI" href="/historical/2025/preseason/preseason-week-3/las-vegas-raiders-at-arizona-cardinals.html">
                 <span>Las Vegas Raiders @ Arizona Cardinals</span>
                 <span>10-20</span>
               </a>

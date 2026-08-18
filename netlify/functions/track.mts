@@ -28,6 +28,10 @@ const VALID_TYPES = new Set([
   "news_click",
   "boxscore_click",
   "view_change",
+  "history_nav_click",
+  "history_week_select",
+  "history_game_click",
+  "history_team_game_click",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -147,7 +151,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, nav, filter, value } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -206,6 +210,34 @@ export default async (req: Request, context: Context) => {
     if (type === "boxscore_click") {
       if (away) record.away = String(away).slice(0, 64);
       if (home) record.home = String(home).slice(0, 64);
+    }
+
+    // Historical archive events (see js/analytics.js header comment for
+    // exactly what fires each one). `away`/`home`/`page` are shared with
+    // boxscore_click's shape above rather than reinvented, since a game
+    // link click and a box-score-modal click are structurally the same
+    // "which matchup" fact.
+    if (type === "history_game_click" || type === "history_team_game_click") {
+      if (away) record.away = String(away).slice(0, 64);
+      if (home) record.home = String(home).slice(0, 64);
+      if (team) record.team = String(team).slice(0, 64);
+    }
+    if (type === "history_nav_click" && (nav === "season" || nav === "team")) {
+      record.nav = nav;
+    }
+    if (type === "history_week_select") {
+      if (filter === "week" || filter === "team") record.filter = filter;
+      if (value) record.value = String(value).slice(0, 64);
+    }
+    if (
+      (type === "history_game_click" ||
+        type === "history_team_game_click" ||
+        type === "history_nav_click" ||
+        type === "history_week_select") &&
+      typeof page === "string" &&
+      page
+    ) {
+      record.page = page.slice(0, 160);
     }
 
     if (week !== undefined && week !== null && week !== "") {
@@ -329,6 +361,12 @@ export default async (req: Request, context: Context) => {
       addIndex("boxscoreTeam", record.away as string | undefined);
       addIndex("boxscoreTeam", record.home as string | undefined);
     }
+    if (type === "history_game_click" || type === "history_team_game_click") {
+      addIndex("historyGameTeam", record.away as string | undefined);
+      addIndex("historyGameTeam", record.home as string | undefined);
+    }
+    if (type === "history_nav_click") addIndex("historyNav", record.nav as string | undefined);
+    if (type === "history_week_select") addIndex("historyFilter", record.filter as string | undefined);
 
     await Promise.all(writes);
 

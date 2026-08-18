@@ -19,6 +19,7 @@
   --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
   --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
   --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
+  --pill-out-text: #ff8080; --pill-questionable-text: #f5c168;
 }
 * { box-sizing: border-box; }
 body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
@@ -129,6 +130,22 @@ header.top h1 a { text-decoration: none; color: inherit; }
   .week-select { flex: 1; min-width: 0; }
 }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+
+/* Injury Report - mirrors live app's .injury-report/.impact-note markup
+   and colors exactly, so this reads as the same feature as the live
+   team-page injury report, just archived at kickoff-time. */
+.injury-report-archive { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.injury-team-col h4 { font-size: 0.8rem; margin: 0 0 8px; }
+.injury-list { display: flex; flex-direction: column; gap: 6px; }
+.injury-none { color: var(--text-dim); font-size: 0.78rem; margin: 0; }
+.impact-note { font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start; }
+.impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
+.impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
+.impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+.impact-note-detail { color: var(--text-dim); font-size: 0.68rem; margin-top: 3px; line-height: 1.35; }
+@media (max-width: 600px) {
+  .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
+}
 </style>
 
 </head>
@@ -169,67 +186,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
       
         <div class="season-index-round" id="round-1">
           <h3>Week 1</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-1/baltimore-ravens-at-kansas-city-chiefs.html">
+          <a class="season-index-game" data-origin="index" data-away="BAL" data-home="KC" href="/historical/2024/regular-season/week-1/baltimore-ravens-at-kansas-city-chiefs.html">
                 <span>Baltimore Ravens @ Kansas City Chiefs</span>
                 <span>20-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/green-bay-packers-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="PHI" href="/historical/2024/regular-season/week-1/green-bay-packers-at-philadelphia-eagles.html">
                 <span>Green Bay Packers @ Philadelphia Eagles</span>
                 <span>29-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/pittsburgh-steelers-at-atlanta-falcons.html">
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="ATL" href="/historical/2024/regular-season/week-1/pittsburgh-steelers-at-atlanta-falcons.html">
                 <span>Pittsburgh Steelers @ Atlanta Falcons</span>
                 <span>18-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/arizona-cardinals-at-buffalo-bills.html">
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="BUF" href="/historical/2024/regular-season/week-1/arizona-cardinals-at-buffalo-bills.html">
                 <span>Arizona Cardinals @ Buffalo Bills</span>
                 <span>28-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/tennessee-titans-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="CHI" href="/historical/2024/regular-season/week-1/tennessee-titans-at-chicago-bears.html">
                 <span>Tennessee Titans @ Chicago Bears</span>
                 <span>17-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/new-england-patriots-at-cincinnati-bengals.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="CIN" href="/historical/2024/regular-season/week-1/new-england-patriots-at-cincinnati-bengals.html">
                 <span>New England Patriots @ Cincinnati Bengals</span>
                 <span>16-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/houston-texans-at-indianapolis-colts.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="IND" href="/historical/2024/regular-season/week-1/houston-texans-at-indianapolis-colts.html">
                 <span>Houston Texans @ Indianapolis Colts</span>
                 <span>29-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/jacksonville-jaguars-at-miami-dolphins.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="MIA" href="/historical/2024/regular-season/week-1/jacksonville-jaguars-at-miami-dolphins.html">
                 <span>Jacksonville Jaguars @ Miami Dolphins</span>
                 <span>17-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/carolina-panthers-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="NO" href="/historical/2024/regular-season/week-1/carolina-panthers-at-new-orleans-saints.html">
                 <span>Carolina Panthers @ New Orleans Saints</span>
                 <span>10-47</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/minnesota-vikings-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="NYG" href="/historical/2024/regular-season/week-1/minnesota-vikings-at-new-york-giants.html">
                 <span>Minnesota Vikings @ New York Giants</span>
                 <span>28-6</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/las-vegas-raiders-at-los-angeles-chargers.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="LAC" href="/historical/2024/regular-season/week-1/las-vegas-raiders-at-los-angeles-chargers.html">
                 <span>Las Vegas Raiders @ Los Angeles Chargers</span>
                 <span>10-22</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/denver-broncos-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="SEA" href="/historical/2024/regular-season/week-1/denver-broncos-at-seattle-seahawks.html">
                 <span>Denver Broncos @ Seattle Seahawks</span>
                 <span>20-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/dallas-cowboys-at-cleveland-browns.html">
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="CLE" href="/historical/2024/regular-season/week-1/dallas-cowboys-at-cleveland-browns.html">
                 <span>Dallas Cowboys @ Cleveland Browns</span>
                 <span>33-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/washington-commanders-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="TB" href="/historical/2024/regular-season/week-1/washington-commanders-at-tampa-bay-buccaneers.html">
                 <span>Washington Commanders @ Tampa Bay Buccaneers</span>
                 <span>20-37</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/los-angeles-rams-at-detroit-lions.html">
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="DET" href="/historical/2024/regular-season/week-1/los-angeles-rams-at-detroit-lions.html">
                 <span>Los Angeles Rams @ Detroit Lions</span>
                 <span>20-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-1/new-york-jets-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="SF" href="/historical/2024/regular-season/week-1/new-york-jets-at-san-francisco-49ers.html">
                 <span>New York Jets @ San Francisco 49ers</span>
                 <span>19-32</span>
               </a>
@@ -237,67 +254,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-2">
           <h3>Week 2</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-2/buffalo-bills-at-miami-dolphins.html">
+          <a class="season-index-game" data-origin="index" data-away="BUF" data-home="MIA" href="/historical/2024/regular-season/week-2/buffalo-bills-at-miami-dolphins.html">
                 <span>Buffalo Bills @ Miami Dolphins</span>
                 <span>31-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/new-orleans-saints-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="DAL" href="/historical/2024/regular-season/week-2/new-orleans-saints-at-dallas-cowboys.html">
                 <span>New Orleans Saints @ Dallas Cowboys</span>
                 <span>44-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/tampa-bay-buccaneers-at-detroit-lions.html">
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="DET" href="/historical/2024/regular-season/week-2/tampa-bay-buccaneers-at-detroit-lions.html">
                 <span>Tampa Bay Buccaneers @ Detroit Lions</span>
                 <span>20-16</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/indianapolis-colts-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="GB" href="/historical/2024/regular-season/week-2/indianapolis-colts-at-green-bay-packers.html">
                 <span>Indianapolis Colts @ Green Bay Packers</span>
                 <span>10-16</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/new-york-jets-at-tennessee-titans.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="TEN" href="/historical/2024/regular-season/week-2/new-york-jets-at-tennessee-titans.html">
                 <span>New York Jets @ Tennessee Titans</span>
                 <span>24-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/san-francisco-49ers-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="MIN" href="/historical/2024/regular-season/week-2/san-francisco-49ers-at-minnesota-vikings.html">
                 <span>San Francisco 49ers @ Minnesota Vikings</span>
                 <span>17-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/seattle-seahawks-at-new-england-patriots.html">
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="NE" href="/historical/2024/regular-season/week-2/seattle-seahawks-at-new-england-patriots.html">
                 <span>Seattle Seahawks @ New England Patriots</span>
                 <span>23-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/new-york-giants-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="WAS" href="/historical/2024/regular-season/week-2/new-york-giants-at-washington-commanders.html">
                 <span>New York Giants @ Washington Commanders</span>
                 <span>18-21</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/los-angeles-chargers-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="CAR" href="/historical/2024/regular-season/week-2/los-angeles-chargers-at-carolina-panthers.html">
                 <span>Los Angeles Chargers @ Carolina Panthers</span>
                 <span>26-3</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/cleveland-browns-at-jacksonville-jaguars.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="JAX" href="/historical/2024/regular-season/week-2/cleveland-browns-at-jacksonville-jaguars.html">
                 <span>Cleveland Browns @ Jacksonville Jaguars</span>
                 <span>18-13</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/las-vegas-raiders-at-baltimore-ravens.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="BAL" href="/historical/2024/regular-season/week-2/las-vegas-raiders-at-baltimore-ravens.html">
                 <span>Las Vegas Raiders @ Baltimore Ravens</span>
                 <span>26-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/los-angeles-rams-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="ARI" href="/historical/2024/regular-season/week-2/los-angeles-rams-at-arizona-cardinals.html">
                 <span>Los Angeles Rams @ Arizona Cardinals</span>
                 <span>10-41</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/pittsburgh-steelers-at-denver-broncos.html">
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="DEN" href="/historical/2024/regular-season/week-2/pittsburgh-steelers-at-denver-broncos.html">
                 <span>Pittsburgh Steelers @ Denver Broncos</span>
                 <span>13-6</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/cincinnati-bengals-at-kansas-city-chiefs.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="KC" href="/historical/2024/regular-season/week-2/cincinnati-bengals-at-kansas-city-chiefs.html">
                 <span>Cincinnati Bengals @ Kansas City Chiefs</span>
                 <span>25-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/chicago-bears-at-houston-texans.html">
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="HOU" href="/historical/2024/regular-season/week-2/chicago-bears-at-houston-texans.html">
                 <span>Chicago Bears @ Houston Texans</span>
                 <span>13-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-2/atlanta-falcons-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="PHI" href="/historical/2024/regular-season/week-2/atlanta-falcons-at-philadelphia-eagles.html">
                 <span>Atlanta Falcons @ Philadelphia Eagles</span>
                 <span>22-21</span>
               </a>
@@ -305,67 +322,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-3">
           <h3>Week 3</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-3/new-england-patriots-at-new-york-jets.html">
+          <a class="season-index-game" data-origin="index" data-away="NE" data-home="NYJ" href="/historical/2024/regular-season/week-3/new-england-patriots-at-new-york-jets.html">
                 <span>New England Patriots @ New York Jets</span>
                 <span>3-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/new-york-giants-at-cleveland-browns.html">
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="CLE" href="/historical/2024/regular-season/week-3/new-york-giants-at-cleveland-browns.html">
                 <span>New York Giants @ Cleveland Browns</span>
                 <span>21-15</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/green-bay-packers-at-tennessee-titans.html">
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="TEN" href="/historical/2024/regular-season/week-3/green-bay-packers-at-tennessee-titans.html">
                 <span>Green Bay Packers @ Tennessee Titans</span>
                 <span>30-14</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/chicago-bears-at-indianapolis-colts.html">
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="IND" href="/historical/2024/regular-season/week-3/chicago-bears-at-indianapolis-colts.html">
                 <span>Chicago Bears @ Indianapolis Colts</span>
                 <span>16-21</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/houston-texans-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="MIN" href="/historical/2024/regular-season/week-3/houston-texans-at-minnesota-vikings.html">
                 <span>Houston Texans @ Minnesota Vikings</span>
                 <span>7-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/philadelphia-eagles-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="NO" href="/historical/2024/regular-season/week-3/philadelphia-eagles-at-new-orleans-saints.html">
                 <span>Philadelphia Eagles @ New Orleans Saints</span>
                 <span>15-12</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/los-angeles-chargers-at-pittsburgh-steelers.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="PIT" href="/historical/2024/regular-season/week-3/los-angeles-chargers-at-pittsburgh-steelers.html">
                 <span>Los Angeles Chargers @ Pittsburgh Steelers</span>
                 <span>10-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/denver-broncos-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="TB" href="/historical/2024/regular-season/week-3/denver-broncos-at-tampa-bay-buccaneers.html">
                 <span>Denver Broncos @ Tampa Bay Buccaneers</span>
                 <span>26-7</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/carolina-panthers-at-las-vegas-raiders.html">
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="LV" href="/historical/2024/regular-season/week-3/carolina-panthers-at-las-vegas-raiders.html">
                 <span>Carolina Panthers @ Las Vegas Raiders</span>
                 <span>36-22</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/miami-dolphins-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="SEA" href="/historical/2024/regular-season/week-3/miami-dolphins-at-seattle-seahawks.html">
                 <span>Miami Dolphins @ Seattle Seahawks</span>
                 <span>3-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/baltimore-ravens-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="DAL" href="/historical/2024/regular-season/week-3/baltimore-ravens-at-dallas-cowboys.html">
                 <span>Baltimore Ravens @ Dallas Cowboys</span>
                 <span>28-25</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/san-francisco-49ers-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="LAR" href="/historical/2024/regular-season/week-3/san-francisco-49ers-at-los-angeles-rams.html">
                 <span>San Francisco 49ers @ Los Angeles Rams</span>
                 <span>24-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/detroit-lions-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="ARI" href="/historical/2024/regular-season/week-3/detroit-lions-at-arizona-cardinals.html">
                 <span>Detroit Lions @ Arizona Cardinals</span>
                 <span>20-13</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/kansas-city-chiefs-at-atlanta-falcons.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="ATL" href="/historical/2024/regular-season/week-3/kansas-city-chiefs-at-atlanta-falcons.html">
                 <span>Kansas City Chiefs @ Atlanta Falcons</span>
                 <span>22-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/jacksonville-jaguars-at-buffalo-bills.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="BUF" href="/historical/2024/regular-season/week-3/jacksonville-jaguars-at-buffalo-bills.html">
                 <span>Jacksonville Jaguars @ Buffalo Bills</span>
                 <span>10-47</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-3/washington-commanders-at-cincinnati-bengals.html">
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="CIN" href="/historical/2024/regular-season/week-3/washington-commanders-at-cincinnati-bengals.html">
                 <span>Washington Commanders @ Cincinnati Bengals</span>
                 <span>38-33</span>
               </a>
@@ -373,67 +390,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-4">
           <h3>Week 4</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-4/dallas-cowboys-at-new-york-giants.html">
+          <a class="season-index-game" data-origin="index" data-away="DAL" data-home="NYG" href="/historical/2024/regular-season/week-4/dallas-cowboys-at-new-york-giants.html">
                 <span>Dallas Cowboys @ New York Giants</span>
                 <span>20-15</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/new-orleans-saints-at-atlanta-falcons.html">
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="ATL" href="/historical/2024/regular-season/week-4/new-orleans-saints-at-atlanta-falcons.html">
                 <span>New Orleans Saints @ Atlanta Falcons</span>
                 <span>24-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/los-angeles-rams-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="CHI" href="/historical/2024/regular-season/week-4/los-angeles-rams-at-chicago-bears.html">
                 <span>Los Angeles Rams @ Chicago Bears</span>
                 <span>18-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/minnesota-vikings-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="GB" href="/historical/2024/regular-season/week-4/minnesota-vikings-at-green-bay-packers.html">
                 <span>Minnesota Vikings @ Green Bay Packers</span>
                 <span>31-29</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/pittsburgh-steelers-at-indianapolis-colts.html">
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="IND" href="/historical/2024/regular-season/week-4/pittsburgh-steelers-at-indianapolis-colts.html">
                 <span>Pittsburgh Steelers @ Indianapolis Colts</span>
                 <span>24-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/denver-broncos-at-new-york-jets.html">
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="NYJ" href="/historical/2024/regular-season/week-4/denver-broncos-at-new-york-jets.html">
                 <span>Denver Broncos @ New York Jets</span>
                 <span>10-9</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/philadelphia-eagles-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="TB" href="/historical/2024/regular-season/week-4/philadelphia-eagles-at-tampa-bay-buccaneers.html">
                 <span>Philadelphia Eagles @ Tampa Bay Buccaneers</span>
                 <span>16-33</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/cincinnati-bengals-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="CAR" href="/historical/2024/regular-season/week-4/cincinnati-bengals-at-carolina-panthers.html">
                 <span>Cincinnati Bengals @ Carolina Panthers</span>
                 <span>34-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/jacksonville-jaguars-at-houston-texans.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="HOU" href="/historical/2024/regular-season/week-4/jacksonville-jaguars-at-houston-texans.html">
                 <span>Jacksonville Jaguars @ Houston Texans</span>
                 <span>20-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/washington-commanders-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="ARI" href="/historical/2024/regular-season/week-4/washington-commanders-at-arizona-cardinals.html">
                 <span>Washington Commanders @ Arizona Cardinals</span>
                 <span>42-14</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/new-england-patriots-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="SF" href="/historical/2024/regular-season/week-4/new-england-patriots-at-san-francisco-49ers.html">
                 <span>New England Patriots @ San Francisco 49ers</span>
                 <span>13-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/cleveland-browns-at-las-vegas-raiders.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="LV" href="/historical/2024/regular-season/week-4/cleveland-browns-at-las-vegas-raiders.html">
                 <span>Cleveland Browns @ Las Vegas Raiders</span>
                 <span>16-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/kansas-city-chiefs-at-los-angeles-chargers.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="LAC" href="/historical/2024/regular-season/week-4/kansas-city-chiefs-at-los-angeles-chargers.html">
                 <span>Kansas City Chiefs @ Los Angeles Chargers</span>
                 <span>17-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/buffalo-bills-at-baltimore-ravens.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="BAL" href="/historical/2024/regular-season/week-4/buffalo-bills-at-baltimore-ravens.html">
                 <span>Buffalo Bills @ Baltimore Ravens</span>
                 <span>10-35</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/tennessee-titans-at-miami-dolphins.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="MIA" href="/historical/2024/regular-season/week-4/tennessee-titans-at-miami-dolphins.html">
                 <span>Tennessee Titans @ Miami Dolphins</span>
                 <span>31-12</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-4/seattle-seahawks-at-detroit-lions.html">
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="DET" href="/historical/2024/regular-season/week-4/seattle-seahawks-at-detroit-lions.html">
                 <span>Seattle Seahawks @ Detroit Lions</span>
                 <span>29-42</span>
               </a>
@@ -441,59 +458,59 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-5">
           <h3>Week 5</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-5/tampa-bay-buccaneers-at-atlanta-falcons.html">
+          <a class="season-index-game" data-origin="index" data-away="TB" data-home="ATL" href="/historical/2024/regular-season/week-5/tampa-bay-buccaneers-at-atlanta-falcons.html">
                 <span>Tampa Bay Buccaneers @ Atlanta Falcons</span>
                 <span>30-36</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/new-york-jets-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="MIN" href="/historical/2024/regular-season/week-5/new-york-jets-at-minnesota-vikings.html">
                 <span>New York Jets @ Minnesota Vikings</span>
                 <span>17-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/carolina-panthers-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="CHI" href="/historical/2024/regular-season/week-5/carolina-panthers-at-chicago-bears.html">
                 <span>Carolina Panthers @ Chicago Bears</span>
                 <span>10-36</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/baltimore-ravens-at-cincinnati-bengals.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CIN" href="/historical/2024/regular-season/week-5/baltimore-ravens-at-cincinnati-bengals.html">
                 <span>Baltimore Ravens @ Cincinnati Bengals</span>
                 <span>41-38</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/miami-dolphins-at-new-england-patriots.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="NE" href="/historical/2024/regular-season/week-5/miami-dolphins-at-new-england-patriots.html">
                 <span>Miami Dolphins @ New England Patriots</span>
                 <span>15-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/cleveland-browns-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="WAS" href="/historical/2024/regular-season/week-5/cleveland-browns-at-washington-commanders.html">
                 <span>Cleveland Browns @ Washington Commanders</span>
                 <span>13-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/indianapolis-colts-at-jacksonville-jaguars.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="JAX" href="/historical/2024/regular-season/week-5/indianapolis-colts-at-jacksonville-jaguars.html">
                 <span>Indianapolis Colts @ Jacksonville Jaguars</span>
                 <span>34-37</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/buffalo-bills-at-houston-texans.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="HOU" href="/historical/2024/regular-season/week-5/buffalo-bills-at-houston-texans.html">
                 <span>Buffalo Bills @ Houston Texans</span>
                 <span>20-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/las-vegas-raiders-at-denver-broncos.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="DEN" href="/historical/2024/regular-season/week-5/las-vegas-raiders-at-denver-broncos.html">
                 <span>Las Vegas Raiders @ Denver Broncos</span>
                 <span>18-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/arizona-cardinals-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="SF" href="/historical/2024/regular-season/week-5/arizona-cardinals-at-san-francisco-49ers.html">
                 <span>Arizona Cardinals @ San Francisco 49ers</span>
                 <span>24-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/green-bay-packers-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="LAR" href="/historical/2024/regular-season/week-5/green-bay-packers-at-los-angeles-rams.html">
                 <span>Green Bay Packers @ Los Angeles Rams</span>
                 <span>24-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/new-york-giants-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="SEA" href="/historical/2024/regular-season/week-5/new-york-giants-at-seattle-seahawks.html">
                 <span>New York Giants @ Seattle Seahawks</span>
                 <span>29-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/dallas-cowboys-at-pittsburgh-steelers.html">
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="PIT" href="/historical/2024/regular-season/week-5/dallas-cowboys-at-pittsburgh-steelers.html">
                 <span>Dallas Cowboys @ Pittsburgh Steelers</span>
                 <span>20-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-5/new-orleans-saints-at-kansas-city-chiefs.html">
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="KC" href="/historical/2024/regular-season/week-5/new-orleans-saints-at-kansas-city-chiefs.html">
                 <span>New Orleans Saints @ Kansas City Chiefs</span>
                 <span>13-26</span>
               </a>
@@ -501,59 +518,59 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-6">
           <h3>Week 6</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-6/san-francisco-49ers-at-seattle-seahawks.html">
+          <a class="season-index-game" data-origin="index" data-away="SF" data-home="SEA" href="/historical/2024/regular-season/week-6/san-francisco-49ers-at-seattle-seahawks.html">
                 <span>San Francisco 49ers @ Seattle Seahawks</span>
                 <span>36-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/jacksonville-jaguars-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="CHI" href="/historical/2024/regular-season/week-6/jacksonville-jaguars-at-chicago-bears.html">
                 <span>Jacksonville Jaguars @ Chicago Bears</span>
                 <span>16-35</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/arizona-cardinals-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="GB" href="/historical/2024/regular-season/week-6/arizona-cardinals-at-green-bay-packers.html">
                 <span>Arizona Cardinals @ Green Bay Packers</span>
                 <span>13-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/indianapolis-colts-at-tennessee-titans.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="TEN" href="/historical/2024/regular-season/week-6/indianapolis-colts-at-tennessee-titans.html">
                 <span>Indianapolis Colts @ Tennessee Titans</span>
                 <span>20-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/houston-texans-at-new-england-patriots.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="NE" href="/historical/2024/regular-season/week-6/houston-texans-at-new-england-patriots.html">
                 <span>Houston Texans @ New England Patriots</span>
                 <span>41-21</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/tampa-bay-buccaneers-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="NO" href="/historical/2024/regular-season/week-6/tampa-bay-buccaneers-at-new-orleans-saints.html">
                 <span>Tampa Bay Buccaneers @ New Orleans Saints</span>
                 <span>51-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/cleveland-browns-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="PHI" href="/historical/2024/regular-season/week-6/cleveland-browns-at-philadelphia-eagles.html">
                 <span>Cleveland Browns @ Philadelphia Eagles</span>
                 <span>16-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/washington-commanders-at-baltimore-ravens.html">
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="BAL" href="/historical/2024/regular-season/week-6/washington-commanders-at-baltimore-ravens.html">
                 <span>Washington Commanders @ Baltimore Ravens</span>
                 <span>23-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/los-angeles-chargers-at-denver-broncos.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="DEN" href="/historical/2024/regular-season/week-6/los-angeles-chargers-at-denver-broncos.html">
                 <span>Los Angeles Chargers @ Denver Broncos</span>
                 <span>23-16</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/pittsburgh-steelers-at-las-vegas-raiders.html">
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="LV" href="/historical/2024/regular-season/week-6/pittsburgh-steelers-at-las-vegas-raiders.html">
                 <span>Pittsburgh Steelers @ Las Vegas Raiders</span>
                 <span>32-13</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/detroit-lions-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="DAL" href="/historical/2024/regular-season/week-6/detroit-lions-at-dallas-cowboys.html">
                 <span>Detroit Lions @ Dallas Cowboys</span>
                 <span>47-9</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/atlanta-falcons-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="CAR" href="/historical/2024/regular-season/week-6/atlanta-falcons-at-carolina-panthers.html">
                 <span>Atlanta Falcons @ Carolina Panthers</span>
                 <span>38-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/cincinnati-bengals-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="NYG" href="/historical/2024/regular-season/week-6/cincinnati-bengals-at-new-york-giants.html">
                 <span>Cincinnati Bengals @ New York Giants</span>
                 <span>17-7</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-6/buffalo-bills-at-new-york-jets.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="NYJ" href="/historical/2024/regular-season/week-6/buffalo-bills-at-new-york-jets.html">
                 <span>Buffalo Bills @ New York Jets</span>
                 <span>23-20</span>
               </a>
@@ -561,63 +578,63 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-7">
           <h3>Week 7</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-7/denver-broncos-at-new-orleans-saints.html">
+          <a class="season-index-game" data-origin="index" data-away="DEN" data-home="NO" href="/historical/2024/regular-season/week-7/denver-broncos-at-new-orleans-saints.html">
                 <span>Denver Broncos @ New Orleans Saints</span>
                 <span>33-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/new-england-patriots-at-jacksonville-jaguars.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="JAX" href="/historical/2024/regular-season/week-7/new-england-patriots-at-jacksonville-jaguars.html">
                 <span>New England Patriots @ Jacksonville Jaguars</span>
                 <span>16-32</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/seattle-seahawks-at-atlanta-falcons.html">
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="ATL" href="/historical/2024/regular-season/week-7/seattle-seahawks-at-atlanta-falcons.html">
                 <span>Seattle Seahawks @ Atlanta Falcons</span>
                 <span>34-14</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/tennessee-titans-at-buffalo-bills.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="BUF" href="/historical/2024/regular-season/week-7/tennessee-titans-at-buffalo-bills.html">
                 <span>Tennessee Titans @ Buffalo Bills</span>
                 <span>10-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/cincinnati-bengals-at-cleveland-browns.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="CLE" href="/historical/2024/regular-season/week-7/cincinnati-bengals-at-cleveland-browns.html">
                 <span>Cincinnati Bengals @ Cleveland Browns</span>
                 <span>21-14</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/houston-texans-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="GB" href="/historical/2024/regular-season/week-7/houston-texans-at-green-bay-packers.html">
                 <span>Houston Texans @ Green Bay Packers</span>
                 <span>22-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/miami-dolphins-at-indianapolis-colts.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="IND" href="/historical/2024/regular-season/week-7/miami-dolphins-at-indianapolis-colts.html">
                 <span>Miami Dolphins @ Indianapolis Colts</span>
                 <span>10-16</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/detroit-lions-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="MIN" href="/historical/2024/regular-season/week-7/detroit-lions-at-minnesota-vikings.html">
                 <span>Detroit Lions @ Minnesota Vikings</span>
                 <span>31-29</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/philadelphia-eagles-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="NYG" href="/historical/2024/regular-season/week-7/philadelphia-eagles-at-new-york-giants.html">
                 <span>Philadelphia Eagles @ New York Giants</span>
                 <span>28-3</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/las-vegas-raiders-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="LAR" href="/historical/2024/regular-season/week-7/las-vegas-raiders-at-los-angeles-rams.html">
                 <span>Las Vegas Raiders @ Los Angeles Rams</span>
                 <span>15-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/carolina-panthers-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="WAS" href="/historical/2024/regular-season/week-7/carolina-panthers-at-washington-commanders.html">
                 <span>Carolina Panthers @ Washington Commanders</span>
                 <span>7-40</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/kansas-city-chiefs-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="SF" href="/historical/2024/regular-season/week-7/kansas-city-chiefs-at-san-francisco-49ers.html">
                 <span>Kansas City Chiefs @ San Francisco 49ers</span>
                 <span>28-18</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/new-york-jets-at-pittsburgh-steelers.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="PIT" href="/historical/2024/regular-season/week-7/new-york-jets-at-pittsburgh-steelers.html">
                 <span>New York Jets @ Pittsburgh Steelers</span>
                 <span>15-37</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/baltimore-ravens-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="TB" href="/historical/2024/regular-season/week-7/baltimore-ravens-at-tampa-bay-buccaneers.html">
                 <span>Baltimore Ravens @ Tampa Bay Buccaneers</span>
                 <span>41-31</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-7/los-angeles-chargers-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="ARI" href="/historical/2024/regular-season/week-7/los-angeles-chargers-at-arizona-cardinals.html">
                 <span>Los Angeles Chargers @ Arizona Cardinals</span>
                 <span>15-17</span>
               </a>
@@ -625,67 +642,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-8">
           <h3>Week 8</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-8/minnesota-vikings-at-los-angeles-rams.html">
+          <a class="season-index-game" data-origin="index" data-away="MIN" data-home="LAR" href="/historical/2024/regular-season/week-8/minnesota-vikings-at-los-angeles-rams.html">
                 <span>Minnesota Vikings @ Los Angeles Rams</span>
                 <span>20-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/philadelphia-eagles-at-cincinnati-bengals.html">
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="CIN" href="/historical/2024/regular-season/week-8/philadelphia-eagles-at-cincinnati-bengals.html">
                 <span>Philadelphia Eagles @ Cincinnati Bengals</span>
                 <span>37-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/baltimore-ravens-at-cleveland-browns.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CLE" href="/historical/2024/regular-season/week-8/baltimore-ravens-at-cleveland-browns.html">
                 <span>Baltimore Ravens @ Cleveland Browns</span>
                 <span>24-29</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/tennessee-titans-at-detroit-lions.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="DET" href="/historical/2024/regular-season/week-8/tennessee-titans-at-detroit-lions.html">
                 <span>Tennessee Titans @ Detroit Lions</span>
                 <span>14-52</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/arizona-cardinals-at-miami-dolphins.html">
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="MIA" href="/historical/2024/regular-season/week-8/arizona-cardinals-at-miami-dolphins.html">
                 <span>Arizona Cardinals @ Miami Dolphins</span>
                 <span>28-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/new-york-jets-at-new-england-patriots.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="NE" href="/historical/2024/regular-season/week-8/new-york-jets-at-new-england-patriots.html">
                 <span>New York Jets @ New England Patriots</span>
                 <span>22-25</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/atlanta-falcons-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="TB" href="/historical/2024/regular-season/week-8/atlanta-falcons-at-tampa-bay-buccaneers.html">
                 <span>Atlanta Falcons @ Tampa Bay Buccaneers</span>
                 <span>31-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/green-bay-packers-at-jacksonville-jaguars.html">
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="JAX" href="/historical/2024/regular-season/week-8/green-bay-packers-at-jacksonville-jaguars.html">
                 <span>Green Bay Packers @ Jacksonville Jaguars</span>
                 <span>30-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/indianapolis-colts-at-houston-texans.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="HOU" href="/historical/2024/regular-season/week-8/indianapolis-colts-at-houston-texans.html">
                 <span>Indianapolis Colts @ Houston Texans</span>
                 <span>20-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/new-orleans-saints-at-los-angeles-chargers.html">
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="LAC" href="/historical/2024/regular-season/week-8/new-orleans-saints-at-los-angeles-chargers.html">
                 <span>New Orleans Saints @ Los Angeles Chargers</span>
                 <span>8-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/buffalo-bills-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="SEA" href="/historical/2024/regular-season/week-8/buffalo-bills-at-seattle-seahawks.html">
                 <span>Buffalo Bills @ Seattle Seahawks</span>
                 <span>31-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/carolina-panthers-at-denver-broncos.html">
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="DEN" href="/historical/2024/regular-season/week-8/carolina-panthers-at-denver-broncos.html">
                 <span>Carolina Panthers @ Denver Broncos</span>
                 <span>14-28</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/kansas-city-chiefs-at-las-vegas-raiders.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="LV" href="/historical/2024/regular-season/week-8/kansas-city-chiefs-at-las-vegas-raiders.html">
                 <span>Kansas City Chiefs @ Las Vegas Raiders</span>
                 <span>27-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/chicago-bears-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="WAS" href="/historical/2024/regular-season/week-8/chicago-bears-at-washington-commanders.html">
                 <span>Chicago Bears @ Washington Commanders</span>
                 <span>15-18</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/dallas-cowboys-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="SF" href="/historical/2024/regular-season/week-8/dallas-cowboys-at-san-francisco-49ers.html">
                 <span>Dallas Cowboys @ San Francisco 49ers</span>
                 <span>24-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-8/new-york-giants-at-pittsburgh-steelers.html">
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="PIT" href="/historical/2024/regular-season/week-8/new-york-giants-at-pittsburgh-steelers.html">
                 <span>New York Giants @ Pittsburgh Steelers</span>
                 <span>18-26</span>
               </a>
@@ -693,63 +710,63 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-9">
           <h3>Week 9</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-9/houston-texans-at-new-york-jets.html">
+          <a class="season-index-game" data-origin="index" data-away="HOU" data-home="NYJ" href="/historical/2024/regular-season/week-9/houston-texans-at-new-york-jets.html">
                 <span>Houston Texans @ New York Jets</span>
                 <span>13-21</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/dallas-cowboys-at-atlanta-falcons.html">
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="ATL" href="/historical/2024/regular-season/week-9/dallas-cowboys-at-atlanta-falcons.html">
                 <span>Dallas Cowboys @ Atlanta Falcons</span>
                 <span>21-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/miami-dolphins-at-buffalo-bills.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="BUF" href="/historical/2024/regular-season/week-9/miami-dolphins-at-buffalo-bills.html">
                 <span>Miami Dolphins @ Buffalo Bills</span>
                 <span>27-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/las-vegas-raiders-at-cincinnati-bengals.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="CIN" href="/historical/2024/regular-season/week-9/las-vegas-raiders-at-cincinnati-bengals.html">
                 <span>Las Vegas Raiders @ Cincinnati Bengals</span>
                 <span>24-41</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/los-angeles-chargers-at-cleveland-browns.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="CLE" href="/historical/2024/regular-season/week-9/los-angeles-chargers-at-cleveland-browns.html">
                 <span>Los Angeles Chargers @ Cleveland Browns</span>
                 <span>27-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/new-england-patriots-at-tennessee-titans.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="TEN" href="/historical/2024/regular-season/week-9/new-england-patriots-at-tennessee-titans.html">
                 <span>New England Patriots @ Tennessee Titans</span>
                 <span>17-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/washington-commanders-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="NYG" href="/historical/2024/regular-season/week-9/washington-commanders-at-new-york-giants.html">
                 <span>Washington Commanders @ New York Giants</span>
                 <span>27-22</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/new-orleans-saints-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="CAR" href="/historical/2024/regular-season/week-9/new-orleans-saints-at-carolina-panthers.html">
                 <span>New Orleans Saints @ Carolina Panthers</span>
                 <span>22-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/denver-broncos-at-baltimore-ravens.html">
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="BAL" href="/historical/2024/regular-season/week-9/denver-broncos-at-baltimore-ravens.html">
                 <span>Denver Broncos @ Baltimore Ravens</span>
                 <span>10-41</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/jacksonville-jaguars-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="PHI" href="/historical/2024/regular-season/week-9/jacksonville-jaguars-at-philadelphia-eagles.html">
                 <span>Jacksonville Jaguars @ Philadelphia Eagles</span>
                 <span>23-28</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/chicago-bears-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="ARI" href="/historical/2024/regular-season/week-9/chicago-bears-at-arizona-cardinals.html">
                 <span>Chicago Bears @ Arizona Cardinals</span>
                 <span>9-29</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/detroit-lions-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="GB" href="/historical/2024/regular-season/week-9/detroit-lions-at-green-bay-packers.html">
                 <span>Detroit Lions @ Green Bay Packers</span>
                 <span>24-14</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/los-angeles-rams-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="SEA" href="/historical/2024/regular-season/week-9/los-angeles-rams-at-seattle-seahawks.html">
                 <span>Los Angeles Rams @ Seattle Seahawks</span>
                 <span>26-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/indianapolis-colts-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="MIN" href="/historical/2024/regular-season/week-9/indianapolis-colts-at-minnesota-vikings.html">
                 <span>Indianapolis Colts @ Minnesota Vikings</span>
                 <span>13-21</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-9/tampa-bay-buccaneers-at-kansas-city-chiefs.html">
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="KC" href="/historical/2024/regular-season/week-9/tampa-bay-buccaneers-at-kansas-city-chiefs.html">
                 <span>Tampa Bay Buccaneers @ Kansas City Chiefs</span>
                 <span>24-30</span>
               </a>
@@ -757,59 +774,59 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-10">
           <h3>Week 10</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-10/cincinnati-bengals-at-baltimore-ravens.html">
+          <a class="season-index-game" data-origin="index" data-away="CIN" data-home="BAL" href="/historical/2024/regular-season/week-10/cincinnati-bengals-at-baltimore-ravens.html">
                 <span>Cincinnati Bengals @ Baltimore Ravens</span>
                 <span>34-35</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/new-york-giants-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="CAR" href="/historical/2024/regular-season/week-10/new-york-giants-at-carolina-panthers.html">
                 <span>New York Giants @ Carolina Panthers</span>
                 <span>17-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/new-england-patriots-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="CHI" href="/historical/2024/regular-season/week-10/new-england-patriots-at-chicago-bears.html">
                 <span>New England Patriots @ Chicago Bears</span>
                 <span>19-3</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/buffalo-bills-at-indianapolis-colts.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="IND" href="/historical/2024/regular-season/week-10/buffalo-bills-at-indianapolis-colts.html">
                 <span>Buffalo Bills @ Indianapolis Colts</span>
                 <span>30-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/denver-broncos-at-kansas-city-chiefs.html">
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="KC" href="/historical/2024/regular-season/week-10/denver-broncos-at-kansas-city-chiefs.html">
                 <span>Denver Broncos @ Kansas City Chiefs</span>
                 <span>14-16</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/atlanta-falcons-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="NO" href="/historical/2024/regular-season/week-10/atlanta-falcons-at-new-orleans-saints.html">
                 <span>Atlanta Falcons @ New Orleans Saints</span>
                 <span>17-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/san-francisco-49ers-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="TB" href="/historical/2024/regular-season/week-10/san-francisco-49ers-at-tampa-bay-buccaneers.html">
                 <span>San Francisco 49ers @ Tampa Bay Buccaneers</span>
                 <span>23-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/pittsburgh-steelers-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="WAS" href="/historical/2024/regular-season/week-10/pittsburgh-steelers-at-washington-commanders.html">
                 <span>Pittsburgh Steelers @ Washington Commanders</span>
                 <span>28-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/minnesota-vikings-at-jacksonville-jaguars.html">
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="JAX" href="/historical/2024/regular-season/week-10/minnesota-vikings-at-jacksonville-jaguars.html">
                 <span>Minnesota Vikings @ Jacksonville Jaguars</span>
                 <span>12-7</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/tennessee-titans-at-los-angeles-chargers.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="LAC" href="/historical/2024/regular-season/week-10/tennessee-titans-at-los-angeles-chargers.html">
                 <span>Tennessee Titans @ Los Angeles Chargers</span>
                 <span>17-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/philadelphia-eagles-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="DAL" href="/historical/2024/regular-season/week-10/philadelphia-eagles-at-dallas-cowboys.html">
                 <span>Philadelphia Eagles @ Dallas Cowboys</span>
                 <span>34-6</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/new-york-jets-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="ARI" href="/historical/2024/regular-season/week-10/new-york-jets-at-arizona-cardinals.html">
                 <span>New York Jets @ Arizona Cardinals</span>
                 <span>6-31</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/detroit-lions-at-houston-texans.html">
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="HOU" href="/historical/2024/regular-season/week-10/detroit-lions-at-houston-texans.html">
                 <span>Detroit Lions @ Houston Texans</span>
                 <span>26-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-10/miami-dolphins-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="LAR" href="/historical/2024/regular-season/week-10/miami-dolphins-at-los-angeles-rams.html">
                 <span>Miami Dolphins @ Los Angeles Rams</span>
                 <span>23-15</span>
               </a>
@@ -817,59 +834,59 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-11">
           <h3>Week 11</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-11/washington-commanders-at-philadelphia-eagles.html">
+          <a class="season-index-game" data-origin="index" data-away="WAS" data-home="PHI" href="/historical/2024/regular-season/week-11/washington-commanders-at-philadelphia-eagles.html">
                 <span>Washington Commanders @ Philadelphia Eagles</span>
                 <span>18-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/green-bay-packers-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="CHI" href="/historical/2024/regular-season/week-11/green-bay-packers-at-chicago-bears.html">
                 <span>Green Bay Packers @ Chicago Bears</span>
                 <span>20-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/jacksonville-jaguars-at-detroit-lions.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="DET" href="/historical/2024/regular-season/week-11/jacksonville-jaguars-at-detroit-lions.html">
                 <span>Jacksonville Jaguars @ Detroit Lions</span>
                 <span>6-52</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/minnesota-vikings-at-tennessee-titans.html">
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="TEN" href="/historical/2024/regular-season/week-11/minnesota-vikings-at-tennessee-titans.html">
                 <span>Minnesota Vikings @ Tennessee Titans</span>
                 <span>23-13</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/las-vegas-raiders-at-miami-dolphins.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="MIA" href="/historical/2024/regular-season/week-11/las-vegas-raiders-at-miami-dolphins.html">
                 <span>Las Vegas Raiders @ Miami Dolphins</span>
                 <span>19-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/los-angeles-rams-at-new-england-patriots.html">
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="NE" href="/historical/2024/regular-season/week-11/los-angeles-rams-at-new-england-patriots.html">
                 <span>Los Angeles Rams @ New England Patriots</span>
                 <span>28-22</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/cleveland-browns-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="NO" href="/historical/2024/regular-season/week-11/cleveland-browns-at-new-orleans-saints.html">
                 <span>Cleveland Browns @ New Orleans Saints</span>
                 <span>14-35</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/indianapolis-colts-at-new-york-jets.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="NYJ" href="/historical/2024/regular-season/week-11/indianapolis-colts-at-new-york-jets.html">
                 <span>Indianapolis Colts @ New York Jets</span>
                 <span>28-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/baltimore-ravens-at-pittsburgh-steelers.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="PIT" href="/historical/2024/regular-season/week-11/baltimore-ravens-at-pittsburgh-steelers.html">
                 <span>Baltimore Ravens @ Pittsburgh Steelers</span>
                 <span>16-18</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/atlanta-falcons-at-denver-broncos.html">
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="DEN" href="/historical/2024/regular-season/week-11/atlanta-falcons-at-denver-broncos.html">
                 <span>Atlanta Falcons @ Denver Broncos</span>
                 <span>6-38</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/seattle-seahawks-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="SF" href="/historical/2024/regular-season/week-11/seattle-seahawks-at-san-francisco-49ers.html">
                 <span>Seattle Seahawks @ San Francisco 49ers</span>
                 <span>20-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/kansas-city-chiefs-at-buffalo-bills.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="BUF" href="/historical/2024/regular-season/week-11/kansas-city-chiefs-at-buffalo-bills.html">
                 <span>Kansas City Chiefs @ Buffalo Bills</span>
                 <span>21-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/cincinnati-bengals-at-los-angeles-chargers.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="LAC" href="/historical/2024/regular-season/week-11/cincinnati-bengals-at-los-angeles-chargers.html">
                 <span>Cincinnati Bengals @ Los Angeles Chargers</span>
                 <span>27-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-11/houston-texans-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="DAL" href="/historical/2024/regular-season/week-11/houston-texans-at-dallas-cowboys.html">
                 <span>Houston Texans @ Dallas Cowboys</span>
                 <span>34-10</span>
               </a>
@@ -877,55 +894,55 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-12">
           <h3>Week 12</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-12/pittsburgh-steelers-at-cleveland-browns.html">
+          <a class="season-index-game" data-origin="index" data-away="PIT" data-home="CLE" href="/historical/2024/regular-season/week-12/pittsburgh-steelers-at-cleveland-browns.html">
                 <span>Pittsburgh Steelers @ Cleveland Browns</span>
                 <span>19-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/minnesota-vikings-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="CHI" href="/historical/2024/regular-season/week-12/minnesota-vikings-at-chicago-bears.html">
                 <span>Minnesota Vikings @ Chicago Bears</span>
                 <span>30-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/detroit-lions-at-indianapolis-colts.html">
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="IND" href="/historical/2024/regular-season/week-12/detroit-lions-at-indianapolis-colts.html">
                 <span>Detroit Lions @ Indianapolis Colts</span>
                 <span>24-6</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/new-england-patriots-at-miami-dolphins.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="MIA" href="/historical/2024/regular-season/week-12/new-england-patriots-at-miami-dolphins.html">
                 <span>New England Patriots @ Miami Dolphins</span>
                 <span>15-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/tampa-bay-buccaneers-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="NYG" href="/historical/2024/regular-season/week-12/tampa-bay-buccaneers-at-new-york-giants.html">
                 <span>Tampa Bay Buccaneers @ New York Giants</span>
                 <span>30-7</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/dallas-cowboys-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="WAS" href="/historical/2024/regular-season/week-12/dallas-cowboys-at-washington-commanders.html">
                 <span>Dallas Cowboys @ Washington Commanders</span>
                 <span>34-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/kansas-city-chiefs-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="CAR" href="/historical/2024/regular-season/week-12/kansas-city-chiefs-at-carolina-panthers.html">
                 <span>Kansas City Chiefs @ Carolina Panthers</span>
                 <span>30-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/tennessee-titans-at-houston-texans.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="HOU" href="/historical/2024/regular-season/week-12/tennessee-titans-at-houston-texans.html">
                 <span>Tennessee Titans @ Houston Texans</span>
                 <span>32-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/denver-broncos-at-las-vegas-raiders.html">
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="LV" href="/historical/2024/regular-season/week-12/denver-broncos-at-las-vegas-raiders.html">
                 <span>Denver Broncos @ Las Vegas Raiders</span>
                 <span>29-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/san-francisco-49ers-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="GB" href="/historical/2024/regular-season/week-12/san-francisco-49ers-at-green-bay-packers.html">
                 <span>San Francisco 49ers @ Green Bay Packers</span>
                 <span>10-38</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/arizona-cardinals-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="SEA" href="/historical/2024/regular-season/week-12/arizona-cardinals-at-seattle-seahawks.html">
                 <span>Arizona Cardinals @ Seattle Seahawks</span>
                 <span>6-16</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/philadelphia-eagles-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="LAR" href="/historical/2024/regular-season/week-12/philadelphia-eagles-at-los-angeles-rams.html">
                 <span>Philadelphia Eagles @ Los Angeles Rams</span>
                 <span>37-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-12/baltimore-ravens-at-los-angeles-chargers.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="LAC" href="/historical/2024/regular-season/week-12/baltimore-ravens-at-los-angeles-chargers.html">
                 <span>Baltimore Ravens @ Los Angeles Chargers</span>
                 <span>30-23</span>
               </a>
@@ -933,67 +950,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-13">
           <h3>Week 13</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-13/chicago-bears-at-detroit-lions.html">
+          <a class="season-index-game" data-origin="index" data-away="CHI" data-home="DET" href="/historical/2024/regular-season/week-13/chicago-bears-at-detroit-lions.html">
                 <span>Chicago Bears @ Detroit Lions</span>
                 <span>20-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/new-york-giants-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="DAL" href="/historical/2024/regular-season/week-13/new-york-giants-at-dallas-cowboys.html">
                 <span>New York Giants @ Dallas Cowboys</span>
                 <span>20-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/miami-dolphins-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="GB" href="/historical/2024/regular-season/week-13/miami-dolphins-at-green-bay-packers.html">
                 <span>Miami Dolphins @ Green Bay Packers</span>
                 <span>17-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/las-vegas-raiders-at-kansas-city-chiefs.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="KC" href="/historical/2024/regular-season/week-13/las-vegas-raiders-at-kansas-city-chiefs.html">
                 <span>Las Vegas Raiders @ Kansas City Chiefs</span>
                 <span>17-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/los-angeles-chargers-at-atlanta-falcons.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="ATL" href="/historical/2024/regular-season/week-13/los-angeles-chargers-at-atlanta-falcons.html">
                 <span>Los Angeles Chargers @ Atlanta Falcons</span>
                 <span>17-13</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/pittsburgh-steelers-at-cincinnati-bengals.html">
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="CIN" href="/historical/2024/regular-season/week-13/pittsburgh-steelers-at-cincinnati-bengals.html">
                 <span>Pittsburgh Steelers @ Cincinnati Bengals</span>
                 <span>44-38</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/arizona-cardinals-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="MIN" href="/historical/2024/regular-season/week-13/arizona-cardinals-at-minnesota-vikings.html">
                 <span>Arizona Cardinals @ Minnesota Vikings</span>
                 <span>22-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/indianapolis-colts-at-new-england-patriots.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="NE" href="/historical/2024/regular-season/week-13/indianapolis-colts-at-new-england-patriots.html">
                 <span>Indianapolis Colts @ New England Patriots</span>
                 <span>25-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/seattle-seahawks-at-new-york-jets.html">
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="NYJ" href="/historical/2024/regular-season/week-13/seattle-seahawks-at-new-york-jets.html">
                 <span>Seattle Seahawks @ New York Jets</span>
                 <span>26-21</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/tennessee-titans-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="WAS" href="/historical/2024/regular-season/week-13/tennessee-titans-at-washington-commanders.html">
                 <span>Tennessee Titans @ Washington Commanders</span>
                 <span>19-42</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/houston-texans-at-jacksonville-jaguars.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="JAX" href="/historical/2024/regular-season/week-13/houston-texans-at-jacksonville-jaguars.html">
                 <span>Houston Texans @ Jacksonville Jaguars</span>
                 <span>23-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/los-angeles-rams-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="NO" href="/historical/2024/regular-season/week-13/los-angeles-rams-at-new-orleans-saints.html">
                 <span>Los Angeles Rams @ New Orleans Saints</span>
                 <span>21-14</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/tampa-bay-buccaneers-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="CAR" href="/historical/2024/regular-season/week-13/tampa-bay-buccaneers-at-carolina-panthers.html">
                 <span>Tampa Bay Buccaneers @ Carolina Panthers</span>
                 <span>26-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/philadelphia-eagles-at-baltimore-ravens.html">
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="BAL" href="/historical/2024/regular-season/week-13/philadelphia-eagles-at-baltimore-ravens.html">
                 <span>Philadelphia Eagles @ Baltimore Ravens</span>
                 <span>24-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/san-francisco-49ers-at-buffalo-bills.html">
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="BUF" href="/historical/2024/regular-season/week-13/san-francisco-49ers-at-buffalo-bills.html">
                 <span>San Francisco 49ers @ Buffalo Bills</span>
                 <span>10-35</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-13/cleveland-browns-at-denver-broncos.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="DEN" href="/historical/2024/regular-season/week-13/cleveland-browns-at-denver-broncos.html">
                 <span>Cleveland Browns @ Denver Broncos</span>
                 <span>32-41</span>
               </a>
@@ -1001,55 +1018,55 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-14">
           <h3>Week 14</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-14/green-bay-packers-at-detroit-lions.html">
+          <a class="season-index-game" data-origin="index" data-away="GB" data-home="DET" href="/historical/2024/regular-season/week-14/green-bay-packers-at-detroit-lions.html">
                 <span>Green Bay Packers @ Detroit Lions</span>
                 <span>31-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/jacksonville-jaguars-at-tennessee-titans.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="TEN" href="/historical/2024/regular-season/week-14/jacksonville-jaguars-at-tennessee-titans.html">
                 <span>Jacksonville Jaguars @ Tennessee Titans</span>
                 <span>10-6</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/new-york-jets-at-miami-dolphins.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="MIA" href="/historical/2024/regular-season/week-14/new-york-jets-at-miami-dolphins.html">
                 <span>New York Jets @ Miami Dolphins</span>
                 <span>26-32</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/atlanta-falcons-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="MIN" href="/historical/2024/regular-season/week-14/atlanta-falcons-at-minnesota-vikings.html">
                 <span>Atlanta Falcons @ Minnesota Vikings</span>
                 <span>21-42</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/new-orleans-saints-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="NYG" href="/historical/2024/regular-season/week-14/new-orleans-saints-at-new-york-giants.html">
                 <span>New Orleans Saints @ New York Giants</span>
                 <span>14-11</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/carolina-panthers-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="PHI" href="/historical/2024/regular-season/week-14/carolina-panthers-at-philadelphia-eagles.html">
                 <span>Carolina Panthers @ Philadelphia Eagles</span>
                 <span>16-22</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/cleveland-browns-at-pittsburgh-steelers.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="PIT" href="/historical/2024/regular-season/week-14/cleveland-browns-at-pittsburgh-steelers.html">
                 <span>Cleveland Browns @ Pittsburgh Steelers</span>
                 <span>14-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/las-vegas-raiders-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="TB" href="/historical/2024/regular-season/week-14/las-vegas-raiders-at-tampa-bay-buccaneers.html">
                 <span>Las Vegas Raiders @ Tampa Bay Buccaneers</span>
                 <span>13-28</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/seattle-seahawks-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="ARI" href="/historical/2024/regular-season/week-14/seattle-seahawks-at-arizona-cardinals.html">
                 <span>Seattle Seahawks @ Arizona Cardinals</span>
                 <span>30-18</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/buffalo-bills-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="LAR" href="/historical/2024/regular-season/week-14/buffalo-bills-at-los-angeles-rams.html">
                 <span>Buffalo Bills @ Los Angeles Rams</span>
                 <span>42-44</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/chicago-bears-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="SF" href="/historical/2024/regular-season/week-14/chicago-bears-at-san-francisco-49ers.html">
                 <span>Chicago Bears @ San Francisco 49ers</span>
                 <span>13-38</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/los-angeles-chargers-at-kansas-city-chiefs.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="KC" href="/historical/2024/regular-season/week-14/los-angeles-chargers-at-kansas-city-chiefs.html">
                 <span>Los Angeles Chargers @ Kansas City Chiefs</span>
                 <span>17-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-14/cincinnati-bengals-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="DAL" href="/historical/2024/regular-season/week-14/cincinnati-bengals-at-dallas-cowboys.html">
                 <span>Cincinnati Bengals @ Dallas Cowboys</span>
                 <span>27-20</span>
               </a>
@@ -1057,67 +1074,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-15">
           <h3>Week 15</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-15/los-angeles-rams-at-san-francisco-49ers.html">
+          <a class="season-index-game" data-origin="index" data-away="LAR" data-home="SF" href="/historical/2024/regular-season/week-15/los-angeles-rams-at-san-francisco-49ers.html">
                 <span>Los Angeles Rams @ San Francisco 49ers</span>
                 <span>12-6</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/kansas-city-chiefs-at-cleveland-browns.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="CLE" href="/historical/2024/regular-season/week-15/kansas-city-chiefs-at-cleveland-browns.html">
                 <span>Kansas City Chiefs @ Cleveland Browns</span>
                 <span>21-7</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/cincinnati-bengals-at-tennessee-titans.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="TEN" href="/historical/2024/regular-season/week-15/cincinnati-bengals-at-tennessee-titans.html">
                 <span>Cincinnati Bengals @ Tennessee Titans</span>
                 <span>37-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/washington-commanders-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="NO" href="/historical/2024/regular-season/week-15/washington-commanders-at-new-orleans-saints.html">
                 <span>Washington Commanders @ New Orleans Saints</span>
                 <span>20-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/baltimore-ravens-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="NYG" href="/historical/2024/regular-season/week-15/baltimore-ravens-at-new-york-giants.html">
                 <span>Baltimore Ravens @ New York Giants</span>
                 <span>35-14</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/dallas-cowboys-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="CAR" href="/historical/2024/regular-season/week-15/dallas-cowboys-at-carolina-panthers.html">
                 <span>Dallas Cowboys @ Carolina Panthers</span>
                 <span>30-14</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/new-york-jets-at-jacksonville-jaguars.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="JAX" href="/historical/2024/regular-season/week-15/new-york-jets-at-jacksonville-jaguars.html">
                 <span>New York Jets @ Jacksonville Jaguars</span>
                 <span>32-25</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/miami-dolphins-at-houston-texans.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="HOU" href="/historical/2024/regular-season/week-15/miami-dolphins-at-houston-texans.html">
                 <span>Miami Dolphins @ Houston Texans</span>
                 <span>12-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/indianapolis-colts-at-denver-broncos.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="DEN" href="/historical/2024/regular-season/week-15/indianapolis-colts-at-denver-broncos.html">
                 <span>Indianapolis Colts @ Denver Broncos</span>
                 <span>13-31</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/buffalo-bills-at-detroit-lions.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="DET" href="/historical/2024/regular-season/week-15/buffalo-bills-at-detroit-lions.html">
                 <span>Buffalo Bills @ Detroit Lions</span>
                 <span>48-42</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/pittsburgh-steelers-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="PHI" href="/historical/2024/regular-season/week-15/pittsburgh-steelers-at-philadelphia-eagles.html">
                 <span>Pittsburgh Steelers @ Philadelphia Eagles</span>
                 <span>13-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/new-england-patriots-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="ARI" href="/historical/2024/regular-season/week-15/new-england-patriots-at-arizona-cardinals.html">
                 <span>New England Patriots @ Arizona Cardinals</span>
                 <span>17-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/tampa-bay-buccaneers-at-los-angeles-chargers.html">
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="LAC" href="/historical/2024/regular-season/week-15/tampa-bay-buccaneers-at-los-angeles-chargers.html">
                 <span>Tampa Bay Buccaneers @ Los Angeles Chargers</span>
                 <span>40-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/green-bay-packers-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="SEA" href="/historical/2024/regular-season/week-15/green-bay-packers-at-seattle-seahawks.html">
                 <span>Green Bay Packers @ Seattle Seahawks</span>
                 <span>30-13</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/chicago-bears-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="MIN" href="/historical/2024/regular-season/week-15/chicago-bears-at-minnesota-vikings.html">
                 <span>Chicago Bears @ Minnesota Vikings</span>
                 <span>12-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-15/atlanta-falcons-at-las-vegas-raiders.html">
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="LV" href="/historical/2024/regular-season/week-15/atlanta-falcons-at-las-vegas-raiders.html">
                 <span>Atlanta Falcons @ Las Vegas Raiders</span>
                 <span>15-9</span>
               </a>
@@ -1125,67 +1142,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-16">
           <h3>Week 16</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-16/denver-broncos-at-los-angeles-chargers.html">
+          <a class="season-index-game" data-origin="index" data-away="DEN" data-home="LAC" href="/historical/2024/regular-season/week-16/denver-broncos-at-los-angeles-chargers.html">
                 <span>Denver Broncos @ Los Angeles Chargers</span>
                 <span>27-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/houston-texans-at-kansas-city-chiefs.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="KC" href="/historical/2024/regular-season/week-16/houston-texans-at-kansas-city-chiefs.html">
                 <span>Houston Texans @ Kansas City Chiefs</span>
                 <span>19-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/pittsburgh-steelers-at-baltimore-ravens.html">
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="BAL" href="/historical/2024/regular-season/week-16/pittsburgh-steelers-at-baltimore-ravens.html">
                 <span>Pittsburgh Steelers @ Baltimore Ravens</span>
                 <span>17-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/new-york-giants-at-atlanta-falcons.html">
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="ATL" href="/historical/2024/regular-season/week-16/new-york-giants-at-atlanta-falcons.html">
                 <span>New York Giants @ Atlanta Falcons</span>
                 <span>7-34</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/detroit-lions-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="CHI" href="/historical/2024/regular-season/week-16/detroit-lions-at-chicago-bears.html">
                 <span>Detroit Lions @ Chicago Bears</span>
                 <span>34-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/cleveland-browns-at-cincinnati-bengals.html">
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="CIN" href="/historical/2024/regular-season/week-16/cleveland-browns-at-cincinnati-bengals.html">
                 <span>Cleveland Browns @ Cincinnati Bengals</span>
                 <span>6-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/tennessee-titans-at-indianapolis-colts.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="IND" href="/historical/2024/regular-season/week-16/tennessee-titans-at-indianapolis-colts.html">
                 <span>Tennessee Titans @ Indianapolis Colts</span>
                 <span>30-38</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/los-angeles-rams-at-new-york-jets.html">
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="NYJ" href="/historical/2024/regular-season/week-16/los-angeles-rams-at-new-york-jets.html">
                 <span>Los Angeles Rams @ New York Jets</span>
                 <span>19-9</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/philadelphia-eagles-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="WAS" href="/historical/2024/regular-season/week-16/philadelphia-eagles-at-washington-commanders.html">
                 <span>Philadelphia Eagles @ Washington Commanders</span>
                 <span>33-36</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/arizona-cardinals-at-carolina-panthers.html">
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="CAR" href="/historical/2024/regular-season/week-16/arizona-cardinals-at-carolina-panthers.html">
                 <span>Arizona Cardinals @ Carolina Panthers</span>
                 <span>30-36</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/minnesota-vikings-at-seattle-seahawks.html">
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="SEA" href="/historical/2024/regular-season/week-16/minnesota-vikings-at-seattle-seahawks.html">
                 <span>Minnesota Vikings @ Seattle Seahawks</span>
                 <span>27-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/new-england-patriots-at-buffalo-bills.html">
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="BUF" href="/historical/2024/regular-season/week-16/new-england-patriots-at-buffalo-bills.html">
                 <span>New England Patriots @ Buffalo Bills</span>
                 <span>21-24</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/jacksonville-jaguars-at-las-vegas-raiders.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="LV" href="/historical/2024/regular-season/week-16/jacksonville-jaguars-at-las-vegas-raiders.html">
                 <span>Jacksonville Jaguars @ Las Vegas Raiders</span>
                 <span>14-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/san-francisco-49ers-at-miami-dolphins.html">
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="MIA" href="/historical/2024/regular-season/week-16/san-francisco-49ers-at-miami-dolphins.html">
                 <span>San Francisco 49ers @ Miami Dolphins</span>
                 <span>17-29</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/tampa-bay-buccaneers-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="DAL" href="/historical/2024/regular-season/week-16/tampa-bay-buccaneers-at-dallas-cowboys.html">
                 <span>Tampa Bay Buccaneers @ Dallas Cowboys</span>
                 <span>24-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-16/new-orleans-saints-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="GB" href="/historical/2024/regular-season/week-16/new-orleans-saints-at-green-bay-packers.html">
                 <span>New Orleans Saints @ Green Bay Packers</span>
                 <span>0-34</span>
               </a>
@@ -1193,67 +1210,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-17">
           <h3>Week 17</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-17/kansas-city-chiefs-at-pittsburgh-steelers.html">
+          <a class="season-index-game" data-origin="index" data-away="KC" data-home="PIT" href="/historical/2024/regular-season/week-17/kansas-city-chiefs-at-pittsburgh-steelers.html">
                 <span>Kansas City Chiefs @ Pittsburgh Steelers</span>
                 <span>29-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/baltimore-ravens-at-houston-texans.html">
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="HOU" href="/historical/2024/regular-season/week-17/baltimore-ravens-at-houston-texans.html">
                 <span>Baltimore Ravens @ Houston Texans</span>
                 <span>31-2</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/seattle-seahawks-at-chicago-bears.html">
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="CHI" href="/historical/2024/regular-season/week-17/seattle-seahawks-at-chicago-bears.html">
                 <span>Seattle Seahawks @ Chicago Bears</span>
                 <span>6-3</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/los-angeles-chargers-at-new-england-patriots.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="NE" href="/historical/2024/regular-season/week-17/los-angeles-chargers-at-new-england-patriots.html">
                 <span>Los Angeles Chargers @ New England Patriots</span>
                 <span>40-7</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/denver-broncos-at-cincinnati-bengals.html">
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="CIN" href="/historical/2024/regular-season/week-17/denver-broncos-at-cincinnati-bengals.html">
                 <span>Denver Broncos @ Cincinnati Bengals</span>
                 <span>24-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/arizona-cardinals-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="LAR" href="/historical/2024/regular-season/week-17/arizona-cardinals-at-los-angeles-rams.html">
                 <span>Arizona Cardinals @ Los Angeles Rams</span>
                 <span>9-13</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/new-york-jets-at-buffalo-bills.html">
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="BUF" href="/historical/2024/regular-season/week-17/new-york-jets-at-buffalo-bills.html">
                 <span>New York Jets @ Buffalo Bills</span>
                 <span>14-40</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/las-vegas-raiders-at-new-orleans-saints.html">
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="NO" href="/historical/2024/regular-season/week-17/las-vegas-raiders-at-new-orleans-saints.html">
                 <span>Las Vegas Raiders @ New Orleans Saints</span>
                 <span>25-10</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/indianapolis-colts-at-new-york-giants.html">
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="NYG" href="/historical/2024/regular-season/week-17/indianapolis-colts-at-new-york-giants.html">
                 <span>Indianapolis Colts @ New York Giants</span>
                 <span>33-45</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/dallas-cowboys-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="PHI" href="/historical/2024/regular-season/week-17/dallas-cowboys-at-philadelphia-eagles.html">
                 <span>Dallas Cowboys @ Philadelphia Eagles</span>
                 <span>7-41</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/carolina-panthers-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="TB" href="/historical/2024/regular-season/week-17/carolina-panthers-at-tampa-bay-buccaneers.html">
                 <span>Carolina Panthers @ Tampa Bay Buccaneers</span>
                 <span>14-48</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/tennessee-titans-at-jacksonville-jaguars.html">
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="JAX" href="/historical/2024/regular-season/week-17/tennessee-titans-at-jacksonville-jaguars.html">
                 <span>Tennessee Titans @ Jacksonville Jaguars</span>
                 <span>13-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/miami-dolphins-at-cleveland-browns.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="CLE" href="/historical/2024/regular-season/week-17/miami-dolphins-at-cleveland-browns.html">
                 <span>Miami Dolphins @ Cleveland Browns</span>
                 <span>20-3</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/green-bay-packers-at-minnesota-vikings.html">
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="MIN" href="/historical/2024/regular-season/week-17/green-bay-packers-at-minnesota-vikings.html">
                 <span>Green Bay Packers @ Minnesota Vikings</span>
                 <span>25-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/atlanta-falcons-at-washington-commanders.html">
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="WAS" href="/historical/2024/regular-season/week-17/atlanta-falcons-at-washington-commanders.html">
                 <span>Atlanta Falcons @ Washington Commanders</span>
                 <span>24-30</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-17/detroit-lions-at-san-francisco-49ers.html">
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="SF" href="/historical/2024/regular-season/week-17/detroit-lions-at-san-francisco-49ers.html">
                 <span>Detroit Lions @ San Francisco 49ers</span>
                 <span>40-34</span>
               </a>
@@ -1261,67 +1278,67 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 
         <div class="season-index-round" id="round-18">
           <h3>Week 18</h3>
-          <a class="season-index-game" href="/historical/2024/regular-season/week-18/cleveland-browns-at-baltimore-ravens.html">
+          <a class="season-index-game" data-origin="index" data-away="CLE" data-home="BAL" href="/historical/2024/regular-season/week-18/cleveland-browns-at-baltimore-ravens.html">
                 <span>Cleveland Browns @ Baltimore Ravens</span>
                 <span>10-35</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/cincinnati-bengals-at-pittsburgh-steelers.html">
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="PIT" href="/historical/2024/regular-season/week-18/cincinnati-bengals-at-pittsburgh-steelers.html">
                 <span>Cincinnati Bengals @ Pittsburgh Steelers</span>
                 <span>19-17</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/carolina-panthers-at-atlanta-falcons.html">
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="ATL" href="/historical/2024/regular-season/week-18/carolina-panthers-at-atlanta-falcons.html">
                 <span>Carolina Panthers @ Atlanta Falcons</span>
                 <span>44-38</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/washington-commanders-at-dallas-cowboys.html">
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="DAL" href="/historical/2024/regular-season/week-18/washington-commanders-at-dallas-cowboys.html">
                 <span>Washington Commanders @ Dallas Cowboys</span>
                 <span>23-19</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/chicago-bears-at-green-bay-packers.html">
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="GB" href="/historical/2024/regular-season/week-18/chicago-bears-at-green-bay-packers.html">
                 <span>Chicago Bears @ Green Bay Packers</span>
                 <span>24-22</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/houston-texans-at-tennessee-titans.html">
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="TEN" href="/historical/2024/regular-season/week-18/houston-texans-at-tennessee-titans.html">
                 <span>Houston Texans @ Tennessee Titans</span>
                 <span>23-14</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/jacksonville-jaguars-at-indianapolis-colts.html">
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="IND" href="/historical/2024/regular-season/week-18/jacksonville-jaguars-at-indianapolis-colts.html">
                 <span>Jacksonville Jaguars @ Indianapolis Colts</span>
                 <span>23-26</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/buffalo-bills-at-new-england-patriots.html">
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="NE" href="/historical/2024/regular-season/week-18/buffalo-bills-at-new-england-patriots.html">
                 <span>Buffalo Bills @ New England Patriots</span>
                 <span>16-23</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/new-york-giants-at-philadelphia-eagles.html">
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="PHI" href="/historical/2024/regular-season/week-18/new-york-giants-at-philadelphia-eagles.html">
                 <span>New York Giants @ Philadelphia Eagles</span>
                 <span>13-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/new-orleans-saints-at-tampa-bay-buccaneers.html">
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="TB" href="/historical/2024/regular-season/week-18/new-orleans-saints-at-tampa-bay-buccaneers.html">
                 <span>New Orleans Saints @ Tampa Bay Buccaneers</span>
                 <span>19-27</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/kansas-city-chiefs-at-denver-broncos.html">
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="DEN" href="/historical/2024/regular-season/week-18/kansas-city-chiefs-at-denver-broncos.html">
                 <span>Kansas City Chiefs @ Denver Broncos</span>
                 <span>0-38</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/los-angeles-chargers-at-las-vegas-raiders.html">
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="LV" href="/historical/2024/regular-season/week-18/los-angeles-chargers-at-las-vegas-raiders.html">
                 <span>Los Angeles Chargers @ Las Vegas Raiders</span>
                 <span>34-20</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/seattle-seahawks-at-los-angeles-rams.html">
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="LAR" href="/historical/2024/regular-season/week-18/seattle-seahawks-at-los-angeles-rams.html">
                 <span>Seattle Seahawks @ Los Angeles Rams</span>
                 <span>30-25</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/miami-dolphins-at-new-york-jets.html">
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="NYJ" href="/historical/2024/regular-season/week-18/miami-dolphins-at-new-york-jets.html">
                 <span>Miami Dolphins @ New York Jets</span>
                 <span>20-32</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/san-francisco-49ers-at-arizona-cardinals.html">
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="ARI" href="/historical/2024/regular-season/week-18/san-francisco-49ers-at-arizona-cardinals.html">
                 <span>San Francisco 49ers @ Arizona Cardinals</span>
                 <span>24-47</span>
               </a>
-<a class="season-index-game" href="/historical/2024/regular-season/week-18/minnesota-vikings-at-detroit-lions.html">
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="DET" href="/historical/2024/regular-season/week-18/minnesota-vikings-at-detroit-lions.html">
                 <span>Minnesota Vikings @ Detroit Lions</span>
                 <span>9-31</span>
               </a>

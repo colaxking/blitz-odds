@@ -20,6 +20,15 @@
  *  - "player_view" whenever a player's name is clicked to open their detail
  *    modal, from either the depth chart (`.depth-player-name-btn`) or the
  *    full roster table (`.roster-player-name-btn`)
+ *  - "history_game_click" / "history_team_game_click" whenever a game link
+ *    (`.season-index-game`) is clicked on a historical archive page - the
+ *    "_team_" variant fires when that link lives on a team archive page
+ *    (`/historical/teams/{team}/`) rather than a season/week listing, per
+ *    its `data-origin` attribute (see backfill-historical-season.mjs)
+ *  - "history_nav_click" whenever the root archive index's "Browse by
+ *    season" / "Browse by team" select navigates (`#year-nav`/`#team-nav`)
+ *  - "history_week_select" whenever a season/year index page's "Jump to:"
+ *    week/round or team filter select changes (`#week-select`/`#team-select`)
  *
  * The click listener is registered in the CAPTURE phase, not bubble. The
  * favorite star's own onClick calls `event.stopPropagation()` (to keep the
@@ -411,9 +420,76 @@
             headline: headlineTextEl && headlineTextEl.textContent ? headlineTextEl.textContent.trim().slice(0, 160) : undefined,
             placement: "team_news",
           });
+          return;
+        }
+
+        // Historical archive game link - present on season/year/phase index
+        // pages AND team archive pages (`/historical/teams/{team}/`), same
+        // `.season-index-game` class both places. `data-origin` (set at
+        // generation time, see backfill-historical-season.mjs) tells them
+        // apart: "team" pages get their own event type since that's a
+        // materially different browsing path (drilling into one team's
+        // history) than jumping into a game from a season/week listing.
+        var historyGameEl = target.closest(".season-index-game");
+        if (historyGameEl) {
+          var historyOrigin = historyGameEl.getAttribute("data-origin");
+          sendEvent({
+            type: historyOrigin === "team" ? "history_team_game_click" : "history_game_click",
+            visitorId: visitorId,
+            ts: Date.now(),
+            away: historyGameEl.getAttribute("data-away") || undefined,
+            home: historyGameEl.getAttribute("data-home") || undefined,
+            team: historyGameEl.getAttribute("data-team") || undefined,
+            page: getCurrentPageLabel(),
+          });
         }
       } catch (e) {
         /* ignore, never break the click handling for the real app */
+      }
+    }
+
+    // Separate from handleDocumentClick because <select> elements fire
+    // "change", not "click", for the interaction that actually matters here
+    // (choosing an option) - a click on a <select> alone doesn't tell you
+    // what got picked. Same capture-phase-listener convention as clicks.
+    function handleDocumentChange(evt) {
+      try {
+        var target = evt.target;
+        if (!target || !target.id) return;
+
+        // Root archive index (`/historical/index.html`) "Browse by season" /
+        // "Browse by team" selects - these navigate on change (see
+        // rebuildRootIndex's pageScript), so this is a real navigation
+        // action, not a filter - distinct event type from history_week_select.
+        if (target.id === "year-nav" || target.id === "team-nav") {
+          if (!target.value) return; // the placeholder "Select a..." option
+          sendEvent({
+            type: "history_nav_click",
+            visitorId: visitorId,
+            ts: Date.now(),
+            nav: target.id === "year-nav" ? "season" : "team",
+            page: getCurrentPageLabel(),
+          });
+          return;
+        }
+
+        // Season/year index page filter dropdowns ("Jump to:" week/round
+        // select, "Team:" select) - these filter the current page in place,
+        // no navigation, so they're their own event distinct from the nav
+        // selects above.
+        if (target.id === "week-select" || target.id === "team-select") {
+          var selectedLabel = target.options && target.selectedIndex >= 0 ? target.options[target.selectedIndex].textContent : undefined;
+          sendEvent({
+            type: "history_week_select",
+            visitorId: visitorId,
+            ts: Date.now(),
+            filter: target.id === "week-select" ? "week" : "team",
+            value: selectedLabel ? String(selectedLabel).trim().slice(0, 64) : undefined,
+            page: getCurrentPageLabel(),
+          });
+        }
+      } catch (e) {
+        /* ignore, never break change handling for the real app */
       }
     }
 
@@ -433,6 +509,7 @@
       });
       // true = capture phase, see comment at top of file for why.
       document.addEventListener("click", handleDocumentClick, true);
+      document.addEventListener("change", handleDocumentChange, true);
     }
 
     function whenAppReady(cb, attemptsLeft) {

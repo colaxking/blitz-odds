@@ -96,12 +96,14 @@ header.top h1 a { text-decoration: none; color: inherit; }
 .rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
 
 /* Mobile: the desktop layout (3-col stat-compare, wide data tables) was
-   built and only ever tested at desktop width - cramped/overflowing on a
-   phone. Below ~600px: stack stat-compare to 2 columns with Total
-   Difference spanning full width below, shrink table padding/font so wide
-   tables (linescores, player stats) fit without clipping, and wrap tables
-   in a horizontally-scrollable container as a fallback for anything still
-   too wide (long player names, etc.) rather than letting them clip. */
+   built and only ever tested at desktop width. Below ~600px: keep the
+   same 3-column layout (offense / defense / Total Difference as a right-
+   hand column, matching the live app) but shrink font/pill size and
+   column gap so it fits without squeezing the first two columns; shrink
+   table padding/font so wide tables (linescores, player stats) fit
+   without clipping; wrap tables in a horizontally-scrollable container as
+   a fallback for anything still too wide (long player names, etc.)
+   rather than letting them clip. */
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 @media (max-width: 600px) {
   .app { padding: 14px 10px 40px; }
@@ -110,11 +112,9 @@ header.top h1 a { text-decoration: none; color: inherit; }
   .detail-header { gap: 14px; }
   .detail-team { width: auto; }
   .detail-score { font-size: 1.7rem; }
-  .stat-compare { grid-template-columns: 1fr 1fr; font-size: 0.7rem; }
-  .stat-compare > .col:nth-child(3), .stat-compare > .col:nth-child(6) {
-    grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: baseline;
-  }
-  .stat-compare > .col:nth-child(3) .label, .stat-compare > .col:nth-child(6) .label { width: 100%; }
+  .stat-compare { grid-template-columns: 1fr 1fr auto; column-gap: 6px; font-size: 0.62rem; }
+  .stat-compare .label { font-size: 0.64rem; }
+  .rank-pill { padding: 1px 4px; font-size: 0.6rem; margin-left: 2px; }
   .linescore-table, .playerstats-table, .teamstats-table { font-size: 0.76rem; }
   .linescore-table th, .linescore-table td,
   .playerstats-table th, .playerstats-table td,
@@ -207,7 +207,7 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
       <div>Pass <span class="rank-pill rank-good">#5</span></div>
     </div>
     <div class="col">
-      <div class="label">Total Difference</div>
+      <div class="label">&nbsp;</div>
       <div>Total <span class="rank-pill rank-good-slight">+2 SEA</span></div>
       <div>Rush <span class="rank-pill rank-good-slight">+3 SEA</span></div>
       <div>Pass <span class="rank-pill rank-bad-slight">-3 SEA</span></div>

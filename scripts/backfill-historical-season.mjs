@@ -348,7 +348,7 @@ header.top h1 a { text-decoration: none; color: inherit; }
   .app { padding: 14px 10px 40px; }
   header.top h1 { font-size: 1.5rem; }
   .detail { padding: 14px; }
-  .detail-header { gap: 14px; }
+  .detail-header { flex-direction: column; gap: 10px; }
   .detail-team { width: auto; }
   .detail-score { font-size: 1.7rem; }
   .stat-compare { grid-template-columns: 1fr 1fr auto; column-gap: 6px; font-size: 0.62rem; }

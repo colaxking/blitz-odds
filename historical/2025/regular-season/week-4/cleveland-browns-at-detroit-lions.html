@@ -108,10 +108,14 @@ header.top h1 a { text-decoration: none; color: inherit; }
 @media (max-width: 600px) {
   .app { padding: 14px 10px 40px; }
   header.top h1 { font-size: 1.5rem; }
-  .detail { padding: 14px; }
-  .detail-header { flex-direction: column; gap: 10px; }
-  .detail-team { width: auto; }
-  .detail-score { font-size: 1.7rem; }
+  .detail { padding: 14px 10px; }
+  .detail-header { flex-wrap: nowrap; gap: 6px; align-items: center; }
+  .detail-team { width: auto; flex: 1 1 0; min-width: 0; gap: 2px; }
+  .detail-team-name { font-size: 0.72rem; line-height: 1.15; }
+  .detail-score { font-size: 1.3rem; }
+  .detail-vs { flex-shrink: 0; }
+  .detail-vs .final-label { font-size: 0.66rem; }
+  .detail-vs .kickoff-label { font-size: 0.58rem; }
   .stat-compare { grid-template-columns: 1fr 1fr auto; column-gap: 6px; font-size: 0.62rem; }
   .stat-compare .label { font-size: 0.64rem; }
   .rank-pill { padding: 1px 4px; font-size: 0.6rem; margin-left: 2px; }
@@ -139,7 +143,7 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
     <div class="detail">
       <div class="detail-header">
         <div class="detail-team">
-          <div style="font-weight:700;">Cleveland Browns</div>
+          <div class="detail-team-name" style="font-weight:700;">Cleveland Browns</div>
           <div class="detail-score" style="">10</div>
         </div>
         <div class="detail-vs">
@@ -147,7 +151,7 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
           <span class="kickoff-label">Sun, Sep 28, 2025</span>
         </div>
         <div class="detail-team">
-          <div style="font-weight:700;">Detroit Lions</div>
+          <div class="detail-team-name" style="font-weight:700;">Detroit Lions</div>
           <div class="detail-score" style="color:var(--win)">34</div>
         </div>
       </div>

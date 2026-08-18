@@ -504,7 +504,7 @@ function rankingsTable(awayAbbr, homeAbbr, awayRankings, homeRankings, rankingsS
       <div>Pass ${rankPill(awayRankings.defense.rankPass)}</div>
     </div>
     <div class="col">
-      <div class="label">&nbsp;</div>
+      <div class="label">Total Difference</div>
       <div>Total ${diffPill(homeRankings.offense.rankTotal, awayRankings.defense.rankTotal, homeAbbr)}</div>
       <div>Rush ${diffPill(homeRankings.offense.rankRush, awayRankings.defense.rankRush, homeAbbr)}</div>
       <div>Pass ${diffPill(homeRankings.offense.rankPass, awayRankings.defense.rankPass, homeAbbr)}</div>

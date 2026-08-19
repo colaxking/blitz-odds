@@ -1118,7 +1118,10 @@ async function main() {
   const existingIndex = await loadGamesIndex();
   const mergedIndex = mergeGamesIndex(existingIndex, allGameRecords);
   await saveGamesIndex(mergedIndex);
-  allNewPaths.push(GAMES_INDEX_PATH);
+  // NOTE: deliberately NOT pushing GAMES_INDEX_PATH into allNewPaths - it's
+  // an internal JSON data file, not a page, and shouldn't be in the sitemap.
+  // (It previously was, and lacked a leading slash besides, producing a
+  // malformed "https://blitz-odds.netlify.appdata/..." sitemap entry.)
 
   const gamesForThisYear = mergedIndex.filter((g) => g.year === YEAR);
   const yearIndex = buildYearIndexPage(YEAR, gamesForThisYear);

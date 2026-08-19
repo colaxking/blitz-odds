@@ -312,7 +312,6 @@
     transition: border-color 0.15s;
   }
   .fav-chip:hover { border-color: var(--star); }
-  .fav-chip img { width: 20px; height: 20px; object-fit: contain; }
 
   /* "How this works" toggle - just a quiet text link (no box) sitting inline
      with the week nav in .header-toolbar. Its own height never changes, so
@@ -353,7 +352,6 @@
     display: flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 999px; padding: 4px 12px 4px 4px; font-size: 0.78rem;
   }
-  .bye-team-chip img { width: 20px; height: 20px; object-fit: contain; }
   .schedule-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 400px)); gap: 16px;
   }
@@ -452,10 +450,21 @@
   .team-click { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; padding: 0; color: inherit; font: inherit; }
   .team-click:hover .team-name { text-decoration: underline; }
   .badge-wrap { position: relative; width: 46px; height: 46px; }
-  .badge-img { width: 46px; height: 46px; object-fit: contain; border-radius: 50%; background: #fff; padding: 3px; }
-  .badge-fallback {
-    width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 0.85rem; color: #fff;
+  /* Team crest - circle with a diagonal two-tone fill (team primary/secondary
+     colors) and the abbreviation centered on top. Replaces the old hotlinked
+     NFL-CDN <img> badge; width/height/font-size are set inline per instance
+     via the size prop on TeamLogo, so only the shared visual rules live here. */
+  .team-crest {
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; letter-spacing: -0.02em; color: #fff;
+    font-family: -apple-system, 'Inter', system-ui, sans-serif;
+    user-select: none; flex-shrink: 0;
+    -webkit-text-stroke: 0.6px rgba(0,0,0,0.55);
+    text-shadow:
+      -1px -1px 0 rgba(0,0,0,0.65), 1px -1px 0 rgba(0,0,0,0.65),
+      -1px 1px 0 rgba(0,0,0,0.65), 1px 1px 0 rgba(0,0,0,0.65),
+      0 1px 3px rgba(0,0,0,0.4);
   }
   .star-btn {
     position: absolute; top: -6px; right: -6px; background: var(--card-bg); border: 1px solid var(--card-border);
@@ -581,16 +590,69 @@
   .impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
   .impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
   .full-matchup-link {
-    display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; padding-top: 12px;
+    display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 12px;
     border-top: 1px dashed var(--card-border); color: var(--accent); font-size: 0.72rem; font-weight: 700;
     text-decoration: none; width: 100%;
   }
   .full-matchup-link:hover { text-decoration: underline; }
-  .full-matchup-link .fm-arrow { transition: transform 0.15s ease; }
+  .full-matchup-link .fm-brand-mark { flex-shrink: 0; }
+  .full-matchup-link .fm-arrow { transition: transform 0.15s ease; margin-left: auto; }
   .full-matchup-link:hover .fm-arrow { transform: translateX(2px); }
   .game-page { max-width: 720px; margin: 0 auto; }
   .game-page-back { display: inline-flex; align-items: center; gap: 5px; color: var(--text-dim); font-size: 0.8rem; font-weight: 600; text-decoration: none; margin-bottom: 14px; }
   .game-page-back:hover { color: var(--text); }
+
+  /* Shared section chrome for the sportsbook-compare and head-to-head blocks
+     on the per-game page. Reuses .section-title/.table-scroll/.linescore-table/
+     .teamstats-table class names so HTML lifted straight out of the static
+     historical archive pages (H2HRow's box-score fetch) picks up matching
+     styling with zero extra mapping. */
+  .game-page-section {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 16px; margin-top: 16px;
+  }
+  .section-title {
+    display: flex; align-items: center; gap: 6px; font-size: 0.78rem; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-dim); font-weight: 700; margin: 0 0 12px;
+  }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .linescore-table, .teamstats-table, .odds-compare-table {
+    width: 100%; border-collapse: collapse; font-size: 0.82rem;
+  }
+  .linescore-table th, .linescore-table td,
+  .teamstats-table th, .teamstats-table td,
+  .odds-compare-table th, .odds-compare-table td {
+    padding: 7px 10px; text-align: center; border-bottom: 1px solid var(--card-border);
+  }
+  .linescore-table th, .teamstats-table th, .odds-compare-table th {
+    color: var(--text-dim); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .linescore-table td:first-child, .linescore-table th:first-child,
+  .teamstats-table td:first-child, .teamstats-table th:first-child,
+  .odds-compare-table td:first-child, .odds-compare-table th:first-child {
+    text-align: left;
+  }
+  .odds-compare-table td.odds-best { color: var(--win); font-weight: 800; }
+  .odds-est-tag { color: var(--text-dim); font-weight: 500; font-size: 0.68rem; font-style: italic; }
+  .odds-asof-note { font-size: 0.68rem; color: var(--text-dim); margin-top: 8px; }
+
+  .h2h-summary { font-size: 0.82rem; color: var(--text-dim); margin: -4px 0 12px; }
+  .h2h-list { display: flex; flex-direction: column; gap: 8px; }
+  .h2h-row { border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; }
+  .h2h-row-header {
+    width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: none; border: none; color: var(--text); font-size: 0.8rem; cursor: pointer; text-align: left;
+  }
+  .h2h-date { color: var(--text-dim); font-size: 0.7rem; white-space: nowrap; }
+  .h2h-matchup { flex: 1; font-weight: 600; }
+  .h2h-winner { color: var(--win); font-weight: 800; }
+  .h2h-toggle { color: var(--accent); font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+  .h2h-boxscore { padding: 4px 12px 14px; border-top: 1px dashed var(--card-border); }
+  .h2h-teamstats { margin-top: 14px; }
+  .h2h-fullpage-link {
+    display: inline-block; margin-top: 10px; color: var(--accent); font-size: 0.72rem; font-weight: 700; text-decoration: none;
+  }
+  .h2h-fullpage-link:hover { text-decoration: underline; }
   .injury-report { margin-bottom: 18px; }
   .injury-report-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
   .injury-list { display: flex; flex-direction: column; gap: 6px; }
@@ -775,7 +837,6 @@
     display: flex; align-items: center; justify-content: center; gap: 12px;
     padding-right: 30px; margin-bottom: 16px;
   }
-  .boxscore-modal-header img, .boxscore-modal-header .badge-fallback { flex-shrink: 0; }
   .boxscore-modal-title { font-size: 1.05rem; font-weight: 800; text-align: center; }
   .boxscore-loading, .boxscore-error { color: var(--text-dim); font-size: 0.85rem; padding: 12px 0; text-align: center; }
   .boxscore-error { color: var(--pill-bad-text); }
@@ -7640,18 +7701,25 @@ function getSportsbookShortLabel(id) {
 
 const TEAM_COLORS = {
   ARI:"#97233F", ATL:"#A71930", BAL:"#241773", BUF:"#00338D", CAR:"#0085CA", CHI:"#0B162A",
-  CIN:"#FB4F14", CLE:"#311D00", DAL:"#041E42", DEN:"#FB4F14", DET:"#0076B6", GB:"#203731",
+  CIN:"#FB4F14", CLE:"#311D00", DAL:"#041E42", DEN:"#0A2343", DET:"#0076B6", GB:"#203731",
   HOU:"#03202F", IND:"#002C5F", JAX:"#101820", KC:"#E31837", LAC:"#0080C6", LAR:"#003594",
   LV:"#000000", MIA:"#008E97", MIN:"#4F2683", NE:"#002244", NO:"#D3BC8D", NYG:"#0B2265",
   NYJ:"#125740", PHI:"#004C54", PIT:"#FFB612", SEA:"#002244", SF:"#AA0000", TB:"#D50A0A",
   TEN:"#4B92DB", WAS:"#5A1414"
 };
 
-const TEAM_LOGO_CODE = { ARI: "AZ", LAR: "LA" };
-function logoUrl(teamId) {
-  const code = TEAM_LOGO_CODE[teamId] || teamId;
-  return `https://static.www.nfl.com/f_auto,h_100,dpr_2.0,q_auto,w_100/league/api/clubs/logos/${code}`;
-}
+/** Secondary/accent color per team, paired against TEAM_COLORS above, used
+ *  as the second tone in the diagonal-split team crest (see TeamLogo). Real
+ *  team color pairs sourced from ESPN's public team API - no logo assets
+ *  or NFL/team trademarked imagery involved, just color + abbreviation. */
+const TEAM_COLORS_ALT = {
+  ARI:"#FFFFFF", ATL:"#000000", BAL:"#000000", BUF:"#D50A0A", CAR:"#000000", CHI:"#E64100",
+  CIN:"#000000", CLE:"#FF3C00", DAL:"#B0B7BC", DEN:"#FC4C02", DET:"#BBBBBB", GB:"#FFB612",
+  HOU:"#EB0028", IND:"#FFFFFF", JAX:"#D7A22A", KC:"#FFB612", LAC:"#FFC20E", LAR:"#FFD100",
+  LV:"#A5ACAF", MIA:"#FC4C02", MIN:"#FFC62F", NE:"#C60C30", NO:"#000000", NYG:"#C9243F",
+  NYJ:"#FFFFFF", PHI:"#000000", PIT:"#000000", SEA:"#69BE28", SF:"#B3995D", TB:"#3E3A35",
+  TEN:"#001532", WAS:"#FFB612"
+};
 
 const FAVORITES_KEY = "nfl-matchup-analyzer-favorites";
 function loadFavorites() {
@@ -8398,6 +8466,32 @@ function getOdds(week, away, home, preferredBookId) {
     sportsbook: getSportsbookLabel(DEFAULT_SPORTSBOOK_ID),
     isFallback: requestedId !== DEFAULT_SPORTSBOOK_ID,
   };
+}
+
+/** Every sportsbook's line for one game, for the "Compare Sportsbooks" section
+ *  on the per-game page (getOdds() above only ever returns the single line
+ *  for the user's chosen book). Books that haven't posted their own number
+ *  yet fall back to the game's aggregate default line, flagged isReal:false
+ *  so the UI can note it's an estimate rather than that book's actual price.
+ *  Returns null when the game has no odds entry at all yet. */
+function getAllBookLines(week, away, home) {
+  const weekOdds = ODDS_DATA.weeks && ODDS_DATA.weeks[String(week)];
+  const game = weekOdds && weekOdds.games && weekOdds.games[`${away}-${home}`];
+  if (!game) return null;
+  return SPORTSBOOKS.map(b => {
+    const line = game.books && game.books[b.id];
+    return {
+      id: b.id,
+      label: b.short,
+      spread: line ? line.spread : game.spread,
+      favorite: line ? line.favorite : game.favorite,
+      moneylineHome: line ? line.moneylineHome : game.moneylineHome,
+      moneylineAway: line ? line.moneylineAway : game.moneylineAway,
+      overUnder: line ? line.overUnder : game.overUnder,
+      asOf: line ? line.asOf : game.asOf,
+      isReal: !!line,
+    };
+  });
 }
 
 // Mirrors getOdds()'s lookup shape exactly: WEATHER_DATA.weeks[week].games["away-home"].
@@ -9205,10 +9299,10 @@ function RankPill({ rank }) {
   return <span className={"rank-pill " + rankClass(rank)}>#{rank}</span>;
 }
 
-function BrandLogo({ size }) {
+function BrandLogo({ size, className }) {
   const dim = size || 52;
   return (
-    <svg width={dim} height={dim} viewBox="0 0 320 320" style={{ flexShrink: 0 }}>
+    <svg width={dim} height={dim} viewBox="0 0 320 320" className={className} style={{ flexShrink: 0 }}>
       {/* A second stroke used to sit at this exact same radius (black, 3px)
           on top of the teal one below - at small render sizes the two
           overlapping strokes anti-aliased into a fuzzy, muddy-looking edge
@@ -9241,25 +9335,27 @@ function BrandLogo({ size }) {
   );
 }
 
+/** Team crest — a colored circle in the team's own primary/secondary
+ *  colors (diagonal split) with the team abbreviation centered on top,
+ *  rather than a hotlinked NFL/team logo image. No trademarked artwork,
+ *  no network request, no broken-image fallback needed - colors and city
+ *  abbreviations aren't protected the way logo marks are. */
 function TeamLogo({ teamId, size }) {
-  const [failed, setFailed] = useState(false);
   const dim = size || 46;
-  if (failed) {
-    const color = TEAM_COLORS[teamId] || "#666";
-    return (
-      <div className="badge-fallback" style={{ background: color, width: dim, height: dim, fontSize: dim * 0.3 }}>
-        {teamId}
-      </div>
-    );
-  }
+  const primary = TEAM_COLORS[teamId] || "#666";
+  const secondary = TEAM_COLORS_ALT[teamId] || "#ffffff";
   return (
-    <img
-      className="badge-img"
-      src={logoUrl(teamId)}
-      alt={teamId}
-      style={{ width: dim, height: dim }}
-      onError={() => setFailed(true)}
-    />
+    <div
+      className="team-crest"
+      style={{
+        width: dim,
+        height: dim,
+        fontSize: dim * 0.32,
+        background: `linear-gradient(135deg, ${primary} 0%, ${primary} 55%, ${secondary} 55%, ${secondary} 100%)`
+      }}
+    >
+      {teamId}
+    </div>
   );
 }
 
@@ -9854,7 +9950,9 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           className="full-matchup-link"
           onClick={(e) => { e.preventDefault(); onSelectGame(week, game.away, game.home); }}
         >
-          Full matchup &amp; odds history <span className="fm-arrow">→</span>
+          <BrandLogo size={14} className="fm-brand-mark" />
+          <span>Full matchup &amp; odds history</span>
+          <span className="fm-arrow">→</span>
         </a>
       )}
     </div>
@@ -9940,7 +10038,7 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
               const team = baseTeam(id);
               return (
                 <span key={id} className="bye-team-chip">
-                  <img src={logoUrl(id)} alt={id} onError={(e) => { e.target.style.display = "none"; }} />
+                  <TeamLogo teamId={id} size={20} />
                   {team ? team.name : id}
                 </span>
               );
@@ -9979,6 +10077,217 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   );
 }
 
+/** Compares every sportsbook's current line for one game, side by side, on
+ *  the per-game page. Reuses getAllBookLines() rather than getOdds() so it
+ *  isn't limited to the user's single chosen sportsbook. Bolds the best
+ *  (highest-payout) moneyline per side in var(--win) - spread/O-U don't get
+ *  a "best" highlight since which side is favorable depends on which way
+ *  someone would bet it. */
+function SportsbookCompareSection({ week, awayAbbr, homeAbbr }) {
+  const rows = useMemo(() => getAllBookLines(week, awayAbbr, homeAbbr), [week, awayAbbr, homeAbbr]);
+
+  if (!rows) {
+    return (
+      <div className="game-page-section">
+        <div className="section-title"><BrandLogo size={14} /> Compare Sportsbooks</div>
+        <span className="hw-tag">Odds not yet posted for this game</span>
+      </div>
+    );
+  }
+
+  const awayMls = rows.map(r => r.moneylineAway).filter(v => v != null);
+  const homeMls = rows.map(r => r.moneylineHome).filter(v => v != null);
+  const bestAwayMl = awayMls.length ? Math.max(...awayMls) : null;
+  const bestHomeMl = homeMls.length ? Math.max(...homeMls) : null;
+  const anyEstimated = rows.some(r => !r.isReal);
+
+  return (
+    <div className="game-page-section">
+      <div className="section-title"><BrandLogo size={14} /> Compare Sportsbooks</div>
+      <div className="table-scroll">
+        <table className="odds-compare-table">
+          <thead>
+            <tr>
+              <th>Sportsbook</th>
+              <th>Spread</th>
+              <th>ML {awayAbbr}</th>
+              <th>ML {homeAbbr}</th>
+              <th>O/U</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.id}>
+                <td>{r.label}{!r.isReal && <span className="odds-est-tag" title="No line posted yet for this book — showing the game's default line"> (est.)</span>}</td>
+                <td>{r.favorite} {formatSpread(r.spread)}</td>
+                <td className={r.moneylineAway != null && r.moneylineAway === bestAwayMl ? "odds-best" : undefined}>{formatMoneyline(r.moneylineAway)}</td>
+                <td className={r.moneylineHome != null && r.moneylineHome === bestHomeMl ? "odds-best" : undefined}>{formatMoneyline(r.moneylineHome)}</td>
+                <td>{r.overUnder}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {anyEstimated && (
+        <div className="odds-asof-note">(est.) = that book hasn't posted its own line yet; showing the game's default line instead.</div>
+      )}
+    </div>
+  );
+}
+
+// Module-level cache for the historical games index (1.5MB across 3,500+
+// archived games) so switching between several matchup pages in one visit
+// only fetches it once. Deliberately not loaded until a game page actually
+// needs it (HeadToHeadHistory below), since most sessions never touch it.
+let HISTORICAL_GAMES_INDEX_CACHE = null;
+let historicalGamesIndexPromise = null;
+function loadHistoricalGamesIndex() {
+  if (HISTORICAL_GAMES_INDEX_CACHE) return Promise.resolve(HISTORICAL_GAMES_INDEX_CACHE);
+  if (!historicalGamesIndexPromise) {
+    historicalGamesIndexPromise = fetch("/data/historical-games-index.json")
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to load historical games index");
+        return res.json();
+      })
+      .then(data => { HISTORICAL_GAMES_INDEX_CACHE = data; return data; });
+  }
+  return historicalGamesIndexPromise;
+}
+
+/** One past meeting between the two teams, collapsed by default. Expanding
+ *  it fetches that game's static archive page (already generated by
+ *  scripts/backfill-historical-season.mjs with a full box score baked in)
+ *  and lifts just the linescore + team-stats tables out of it via
+ *  DOMParser, rather than re-deriving box scores at runtime - that data
+ *  only exists in the archive pages themselves. Fetched box scores are
+ *  cached on the row's own state, so re-collapsing/expanding doesn't
+ *  re-fetch. */
+function H2HRow({ game }) {
+  const [expanded, setExpanded] = useState(false);
+  const [boxStatus, setBoxStatus] = useState("idle");
+  const [boxHtml, setBoxHtml] = useState(null);
+
+  function handleToggle() {
+    setExpanded(e => !e);
+    if (boxStatus === "idle") {
+      setBoxStatus("loading");
+      fetch(game.canonicalPath)
+        .then(res => {
+          if (!res.ok) throw new Error("not found");
+          return res.text();
+        })
+        .then(text => {
+          const doc = new DOMParser().parseFromString(text, "text/html");
+          const line = doc.querySelector(".linescore-table");
+          if (!line) throw new Error("no box score in archive page");
+          const stats = doc.querySelector(".teamstats-table");
+          setBoxHtml({
+            linescore: (line.closest(".table-scroll") || line).outerHTML,
+            teamStats: stats ? (stats.closest(".table-scroll") || stats).outerHTML : null,
+          });
+          setBoxStatus("ready");
+        })
+        .catch(() => setBoxStatus("error"));
+    }
+  }
+
+  const winner = game.awayScore > game.homeScore ? game.awayAbbr : (game.homeScore > game.awayScore ? game.homeAbbr : null);
+
+  return (
+    <div className="h2h-row">
+      <button type="button" className="h2h-row-header" onClick={handleToggle} aria-expanded={expanded}>
+        <span className="h2h-date">{game.date}</span>
+        <span className="h2h-matchup">
+          <span className={winner === game.awayAbbr ? "h2h-winner" : undefined}>{game.awayAbbr} {game.awayScore}</span>
+          {" @ "}
+          <span className={winner === game.homeAbbr ? "h2h-winner" : undefined}>{game.homeAbbr} {game.homeScore}</span>
+          {game.roundLabel && <span className="h2h-round"> · {game.roundLabel} {game.year}</span>}
+        </span>
+        <span className="h2h-toggle">{expanded ? "Hide box score ▲" : "Box score ▼"}</span>
+      </button>
+      {expanded && (
+        <div className="h2h-boxscore">
+          {boxStatus === "loading" && <span className="hw-tag">Loading box score…</span>}
+          {boxStatus === "error" && (
+            <span className="hw-tag">
+              Couldn't load that box score. <a href={game.canonicalPath} target="_blank" rel="noopener noreferrer">View the full archive page →</a>
+            </span>
+          )}
+          {boxStatus === "ready" && boxHtml && (
+            <>
+              <div dangerouslySetInnerHTML={{ __html: boxHtml.linescore }} />
+              {boxHtml.teamStats && <div className="h2h-teamstats" dangerouslySetInnerHTML={{ __html: boxHtml.teamStats }} />}
+              <a className="h2h-fullpage-link" href={game.canonicalPath} target="_blank" rel="noopener noreferrer">
+                View full archive page (player stats &amp; rankings) →
+              </a>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** All-time meetings between the two teams on this matchup page, pulled from
+ *  the historical archive (2015-present, whatever backfill-historical-season.mjs
+ *  has covered) rather than any single season's data. Shows nothing (not an
+ *  empty-state box) on load error, so a slow/broken fetch doesn't leave a
+ *  jarring error block on an otherwise-normal matchup page. */
+function HeadToHeadHistory({ awayAbbr, homeAbbr }) {
+  const [status, setStatus] = useState("loading");
+  const [games, setGames] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setStatus("loading");
+    loadHistoricalGamesIndex()
+      .then(all => {
+        if (cancelled) return;
+        const matches = all
+          .filter(g => (g.awayAbbr === awayAbbr && g.homeAbbr === homeAbbr) || (g.awayAbbr === homeAbbr && g.homeAbbr === awayAbbr))
+          .sort((a, b) => new Date(b.isoDate) - new Date(a.isoDate));
+        setGames(matches);
+        setStatus("ready");
+      })
+      .catch(() => { if (!cancelled) setStatus("error"); });
+    return () => { cancelled = true; };
+  }, [awayAbbr, homeAbbr]);
+
+  if (status === "error") return null;
+
+  // Tallied explicitly (rather than a single derived expression) so ties -
+  // rare, but real (e.g. Week 7, 2018 CLE-PIT) - land in their own bucket
+  // instead of silently getting counted as a win for one side.
+  let awayWins = 0, homeWins = 0, ties = 0;
+  games.forEach(g => {
+    if (g.awayScore === g.homeScore) { ties++; return; }
+    const winnerAbbr = g.awayScore > g.homeScore ? g.awayAbbr : g.homeAbbr;
+    if (winnerAbbr === awayAbbr) awayWins++;
+    else homeWins++;
+  });
+
+  return (
+    <div className="game-page-section">
+      <div className="section-title"><BrandLogo size={14} /> Past Matchups</div>
+      {status === "loading" && <span className="hw-tag">Loading past meetings…</span>}
+      {status === "ready" && games.length === 0 && (
+        <span className="hw-tag">No prior meetings found in the archive (2015–present).</span>
+      )}
+      {status === "ready" && games.length > 0 && (
+        <>
+          <p className="h2h-summary">
+            All-time series (2015–present): {awayAbbr} {awayWins} – {homeWins} {homeAbbr}{ties ? ` (${ties} tie${ties === 1 ? "" : "s"})` : ""}
+            {" "}({games.length} meeting{games.length === 1 ? "" : "s"})
+          </p>
+          <div className="h2h-list">
+            {games.map(g => <H2HRow key={g.canonicalPath} game={g} />)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /** Dedicated page for a single matchup (/games/{year}/{week-slug}/{away}-at-{home}/).
  *  Deliberately thin - it just locates the one game and context this week's
  *  data actually has, then reuses GameCard itself for all the real content
@@ -10006,18 +10315,22 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
         &larr; Back to {getPeriodLabel(week)}
       </a>
       {game ? (
-        <GameCard
-          game={game}
-          favorites={favorites}
-          onToggleFavorite={onToggleFavorite}
-          onSelectTeam={onSelectTeam}
-          context={context}
-          live={liveMap[`${game.away}-${game.home}`]}
-          week={week}
-          sportsbookId={sportsbookId}
-          tz={tz}
-          hideFullMatchupLink
-        />
+        <>
+          <GameCard
+            game={game}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
+            onSelectTeam={onSelectTeam}
+            context={context}
+            live={liveMap[`${game.away}-${game.home}`]}
+            week={week}
+            sportsbookId={sportsbookId}
+            tz={tz}
+            hideFullMatchupLink
+          />
+          <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} />
+          <HeadToHeadHistory awayAbbr={game.away} homeAbbr={game.home} />
+        </>
       ) : (
         <p>This matchup isn't on the schedule.</p>
       )}
@@ -10038,7 +10351,7 @@ function FavoritesBar({ favorites, onSelect }) {
         if (!t) return null;
         return (
           <div key={teamId} className="fav-chip" onClick={() => onSelect(teamId)} data-team={teamId} data-team-name={t.name}>
-            <img src={logoUrl(teamId)} alt={teamId} onError={(e) => { e.target.style.display = "none"; }} />
+            <TeamLogo teamId={teamId} size={20} />
             {t.name}
           </div>
         );

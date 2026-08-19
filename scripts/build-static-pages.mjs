@@ -2,15 +2,12 @@
 /**
  * build-static-pages.mjs
  *
- * Phase 3 Stage 2a: generates a real, crawlable static HTML file per team
- * (/teams/{team-slug}/index.html) so search engines have an actual indexable
- * page for "kansas city chiefs schedule odds" style queries, instead of only
- * the single homepage URL.
- *
- * Scope note: team pages only for this pass (32 files) - per-game pages
- * (~272/season) are a deliberately separate follow-up once these are live
- * and indexing, per the "teams first, ship, measure, then decide on games"
- * decision from the Phase 3 scoping conversation.
+ * Phase 3 Stage 2: generates real, crawlable static HTML files for both
+ * per-team pages (/teams/{team-slug}/index.html, 32 files - Stage 2a) and
+ * per-game pages (/games/{year}/{week-slug}/{away}-at-{home}/index.html,
+ * ~320 files across preseason + regular season - Stage 2b), so search
+ * engines have actual indexable pages for team- and matchup-specific
+ * queries instead of only the single homepage URL.
  *
  * Approach - no real SSR/build framework, hand-rolled to fit the site's
  * existing "no build step, deploy index.html as-is" architecture (same
@@ -63,7 +60,7 @@ function escapeHtml(s) {
 // ---- Load data (same files index.html embeds at deploy time) --------------
 
 async function loadData() {
-  const [teamsFile, scheduleFile, preseasonFile, playoffsFile, playersFile, historyFile, stadiumsFile] = await Promise.all([
+  const [teamsFile, scheduleFile, preseasonFile, playoffsFile, playersFile, historyFile, stadiumsFile, oddsFile] = await Promise.all([
     readJson("data/teams.json"),
     readJson("data/schedule-full-2026.json"),
     readJson("data/schedule-preseason-2026.json"),
@@ -71,6 +68,7 @@ async function loadData() {
     readJson("data/impact-players.json"),
     readJson("data/history.json"),
     readJson("data/stadiums.json"),
+    readJson("data/odds-2026.json"),
   ]);
   return {
     teams: teamsFile.teams,
@@ -80,6 +78,8 @@ async function loadData() {
     players: playersFile.players,
     history: historyFile,
     stadiums: stadiumsFile,
+    odds: oddsFile,
+    seasonYear: scheduleFile.season || new Date().getFullYear(),
   };
 }
 
@@ -146,6 +146,209 @@ function resultForWeek(data, week, awayAbbr, homeAbbr) {
   const snap = getHistorySnapshot(data, week);
   if (!snap || !snap.results) return null;
   return snap.results[`${awayAbbr}-${homeAbbr}`] || null;
+}
+
+const DEFAULT_SPORTSBOOK_ID = "draftkings";
+function getOdds(data, week, away, home) {
+  const weekOdds = data.odds.weeks && data.odds.weeks[String(week)];
+  if (!weekOdds || !weekOdds.games) return null;
+  const game = weekOdds.games[`${away}-${home}`];
+  if (!game) return null;
+  const bookLine = game.books && game.books[DEFAULT_SPORTSBOOK_ID];
+  return bookLine || game;
+}
+
+function formatSpread(spreadForFavorite) {
+  if (spreadForFavorite === 0) return "PK";
+  return spreadForFavorite > 0 ? `+${spreadForFavorite}` : `${spreadForFavorite}`;
+}
+
+function formatMoneyline(ml) {
+  if (ml == null) return "";
+  return ml > 0 ? `+${ml}` : `${ml}`;
+}
+
+const MONTH_INDEX_BY_ABBR = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+/** Mirrors index.html's iso8601GameStart exactly (fixed -05:00 ET offset,
+ *  month<=5 rolls to seasonYear+1) - returns null for "TBD" kickoff times
+ *  (unflexed weeks 16-18) rather than guessing, same as the client. */
+function iso8601GameStart(game, seasonYear) {
+  if (!game || !game.date || !game.time) return null;
+  const dm = /([A-Za-z]+)\s+(\d+)\s*$/.exec(game.date);
+  if (!dm) return null;
+  const month = MONTH_INDEX_BY_ABBR[dm[1]];
+  if (month == null) return null;
+  const day = parseInt(dm[2], 10);
+  const year = month <= 5 ? seasonYear + 1 : seasonYear;
+  const tm = /(\d{1,2}):(\d{2})\s*(AM|PM)/i.exec(game.time);
+  if (!tm) return null;
+  let hour = parseInt(tm[1], 10) % 12;
+  if (/pm/i.test(tm[3])) hour += 12;
+  const minute = parseInt(tm[2], 10);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${year}-${pad(month + 1)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00-05:00`;
+}
+
+/** SportsEvent JSON-LD for one game - same shape as index.html's client-side
+ *  gameToSportsEvent, except url points at this game's own canonical path
+ *  instead of the homepage (the fix flagged when Phase 3 was first scoped:
+ *  "per-game SportsEvent schema currently points url at the homepage"). */
+function buildGameJsonLd(data, game, seasonYear, canonicalPath) {
+  const startDate = iso8601GameStart(game, seasonYear);
+  if (!startDate) return "";
+  const home = findTeam(data.teams, game.home);
+  const away = findTeam(data.teams, game.away);
+  const homeName = home ? home.name : game.home;
+  const awayName = away ? away.name : game.away;
+  const event = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: `${awayName} at ${homeName}`,
+    sport: "American Football",
+    startDate,
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    homeTeam: { "@type": "SportsTeam", name: homeName },
+    awayTeam: { "@type": "SportsTeam", name: awayName },
+    url: `${SITE_BASE}${canonicalPath}`,
+  };
+  if (game.international && game.note) {
+    event.location = { "@type": "Place", name: game.note.replace(/^International Game\s*—\s*/, "") };
+  } else {
+    const stadium = data.stadiums.teamStadiums && data.stadiums.teamStadiums[game.home];
+    if (stadium) event.location = { "@type": "Place", name: stadium.name };
+  }
+  return `<script type="application/ld+json">${JSON.stringify(event)}</script>`;
+}
+
+function rankRow(label, awayRank, homeRank) {
+  const diff = homeRank - awayRank; // positive = away offense has the edge (lower rank number is better)
+  return `<tr><td>${escapeHtml(label)}</td><td>#${escapeHtml(awayRank)}</td><td>#${escapeHtml(homeRank)}</td><td>${diff > 0 ? "away" : diff < 0 ? "home" : "even"} edge (${Math.abs(diff)})</td></tr>`;
+}
+
+function buildGameSnapshotHtml(data, period, game) {
+  const away = teamForWeek(data, period.week, game.away);
+  const home = teamForWeek(data, period.week, game.home);
+  const awayPlayers = data.players[game.away] || [];
+  const homePlayers = data.players[game.home] || [];
+  const prediction = PredictionEngine.predictMatchup({
+    homeTeam: home,
+    awayTeam: away,
+    homeImpactPlayers: homePlayers,
+    awayImpactPlayers: awayPlayers,
+    weather: null,
+    homeIsDomeTeam: isDomeTeam(data.stadiums, game.home),
+    awayIsDomeTeam: isDomeTeam(data.stadiums, game.away),
+  });
+  const homePct = Math.round(prediction.homeWinProbability * 100);
+  const awayPct = Math.round(prediction.awayWinProbability * 100);
+  const predictedWinnerName = prediction.predictedWinner === home.id ? home.name : away.name;
+
+  const result = resultForWeek(data, period.week, game.away, game.home);
+  let resultBlock = "";
+  if (result && result.final) {
+    const actualWinnerId = result.homeScore > result.awayScore ? game.home : game.away;
+    const actualWinnerName = actualWinnerId === home.id ? home.name : away.name;
+    const correct = actualWinnerId === prediction.predictedWinner;
+    resultBlock = `<p><strong>Final:</strong> ${escapeHtml(away.name)} ${result.awayScore} - ${result.homeScore} ${escapeHtml(home.name)}. ${escapeHtml(actualWinnerName)} won. Model prediction was ${correct ? "correct" : "incorrect"}.</p>`;
+  }
+
+  const odds = getOdds(data, period.week, game.away, game.home);
+  const oddsBlock = odds
+    ? `<p><strong>Odds (DraftKings):</strong> ${escapeHtml(odds.favorite)} ${escapeHtml(formatSpread(odds.spread))} · ML ${escapeHtml(game.away)} ${escapeHtml(formatMoneyline(odds.moneylineAway))} / ${escapeHtml(game.home)} ${escapeHtml(formatMoneyline(odds.moneylineHome))} · O/U ${escapeHtml(odds.overUnder)}</p>`
+    : `<p>Odds not yet posted for this game.</p>`;
+
+  const injuries = [...awayPlayers.map((p) => ({ ...p, teamAbbr: game.away })), ...homePlayers.map((p) => ({ ...p, teamAbbr: game.home }))]
+    .filter(isVisibleInInjuryReport)
+    .sort((a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3))
+    .map(
+      (p) =>
+        `<li><strong>${escapeHtml(p.name)}</strong> (${escapeHtml(p.teamAbbr)} · ${escapeHtml(p.position)}) - ${escapeHtml(p.status)}${p.injury && p.injury.type ? " - " + escapeHtml(p.injury.type) : ""}</li>`
+    )
+    .join("\n");
+
+  return `
+<div id="prerendered-content">
+  <h1>${escapeHtml(away.name)} at ${escapeHtml(home.name)} — ${escapeHtml(period.label)} Odds, Injuries &amp; Prediction</h1>
+  <p>${escapeHtml(away.name)} @ ${escapeHtml(home.name)}: live odds, injury report, team rankings comparison, and win probability for this matchup.</p>
+  <p>${escapeHtml(game.date)}${game.time ? " · " + escapeHtml(game.time) : ""}${game.network ? " · " + escapeHtml(game.network) : ""}</p>
+
+  ${resultBlock}
+  ${oddsBlock}
+
+  <h2>Model prediction</h2>
+  <p>Predicted winner: <strong>${escapeHtml(predictedWinnerName)}</strong> - ${escapeHtml(game.away)} ${awayPct}% / ${escapeHtml(game.home)} ${homePct}%</p>
+
+  <h2>Team stats comparison (rank out of 32)</h2>
+  <table>
+    <thead><tr><th></th><th>${escapeHtml(game.away)} offense</th><th>${escapeHtml(game.home)} offense</th><th>Edge</th></tr></thead>
+    <tbody>
+      ${rankRow("Total yards", away.stats.offense.rankTotal, home.stats.offense.rankTotal)}
+      ${rankRow("Rush yards", away.stats.offense.rankRush, home.stats.offense.rankRush)}
+      ${rankRow("Pass yards", away.stats.offense.rankPass, home.stats.offense.rankPass)}
+    </tbody>
+  </table>
+  <table>
+    <thead><tr><th></th><th>${escapeHtml(game.away)} defense</th><th>${escapeHtml(game.home)} defense</th><th>Edge</th></tr></thead>
+    <tbody>
+      ${rankRow("Total yards allowed", away.stats.defense.rankTotal, home.stats.defense.rankTotal)}
+      ${rankRow("Rush yards allowed", away.stats.defense.rankRush, home.stats.defense.rankRush)}
+      ${rankRow("Pass yards allowed", away.stats.defense.rankPass, home.stats.defense.rankPass)}
+    </tbody>
+  </table>
+
+  ${injuries ? `<h2>Injury report</h2>\n  <ul>\n${injuries}\n  </ul>` : ""}
+
+  <p>
+    <a href="/teams/${slugify(away.name)}/">${escapeHtml(away.name)} full schedule</a> ·
+    <a href="/teams/${slugify(home.name)}/">${escapeHtml(home.name)} full schedule</a> ·
+    <a href="/">See this week's full NFL odds and predictions on Blitz Odds</a>
+  </p>
+</div>`;
+}
+
+function buildGameHead(template, away, home, canonicalPath) {
+  const title = `${away.name} at ${home.name} — Odds, Injuries & Prediction | Blitz Odds`;
+  const description = `${away.name} @ ${home.name}: live odds, injury report, team rankings comparison, and win probability for this matchup.`;
+  const canonicalUrl = `${SITE_BASE}${canonicalPath}`;
+
+  let html = template;
+  html = html.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
+  html = html.replace(/<meta name="description" content=".*?" \/>/s, `<meta name="description" content="${escapeHtml(description)}" />`);
+  html = html.replace(/<link rel="canonical" href=".*?" \/>/s, `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`);
+  html = html.replace(/<meta property="og:title" content=".*?" \/>/s, `<meta property="og:title" content="${escapeHtml(title)}" />`);
+  html = html.replace(/<meta property="og:description" content=".*?" \/>/s, `<meta property="og:description" content="${escapeHtml(description)}" />`);
+  html = html.replace(/<meta property="og:url" content=".*?" \/>/s, `<meta property="og:url" content="${escapeHtml(canonicalUrl)}" />`);
+  html = html.replace(/<meta name="twitter:title" content=".*?" \/>/s, `<meta name="twitter:title" content="${escapeHtml(title)}" />`);
+  html = html.replace(/<meta name="twitter:description" content=".*?" \/>/s, `<meta name="twitter:description" content="${escapeHtml(description)}" />`);
+  return html;
+}
+
+async function buildGamePage(template, data, period, game) {
+  const away = findTeam(data.teams, game.away);
+  const home = findTeam(data.teams, game.home);
+  if (!away || !home) return null;
+
+  const weekSlug = slugify(period.label);
+  const canonicalPath = `/games/${data.seasonYear}/${weekSlug}/${slugify(away.name)}-at-${slugify(home.name)}/`;
+
+  let html = buildGameHead(template, away, home, canonicalPath);
+
+  const jsonLd = buildGameJsonLd(data, game, data.seasonYear, canonicalPath);
+  if (jsonLd) html = html.replace("</head>", `${jsonLd}\n</head>`);
+
+  const snapshot = buildGameSnapshotHtml(data, period, game);
+  html = html.replace("<body>", `<body>\n${snapshot}`);
+
+  html = html.replace(
+    "</body>",
+    `<script>(function(){var el=document.getElementById('prerendered-content');if(el)el.style.display='none';})();</script>\n</body>`
+  );
+
+  const outPath = path.join(REPO_ROOT, "games", String(data.seasonYear), weekSlug, `${slugify(away.name)}-at-${slugify(home.name)}`, "index.html");
+  await mkdir(path.dirname(outPath), { recursive: true });
+  await writeFile(outPath, html, "utf8");
+  return canonicalPath;
 }
 
 /** One schedule row for a given team/week/game - opponent, date, real result
@@ -346,15 +549,17 @@ async function buildTeamPage(template, data, team) {
   return canonicalPath;
 }
 
-async function updateSitemap(newPaths) {
+async function updateSitemap(teamPaths, gamePaths) {
   const sitemapPath = path.join(REPO_ROOT, "sitemap.xml");
   let xml = await readFile(sitemapPath, "utf8");
   const today = new Date().toISOString().slice(0, 10);
-  // Team pages get rebuilt every run (schedule/injuries/predictions change
-  // week to week) - strip any previous /teams/ entries before re-adding so
-  // reruns update lastmod instead of duplicating or going stale.
+  // Team and game pages get rebuilt every run (schedule/injuries/odds/
+  // predictions change week to week) - strip any previous /teams/ or
+  // /games/ entries before re-adding so reruns update lastmod instead of
+  // duplicating or going stale.
   xml = xml.replace(/ {2}<url><loc>https:\/\/blitz-odds\.netlify\.app\/teams\/[^<]*<\/loc><lastmod>[^<]*<\/lastmod><\/url>\n/g, "");
-  const newEntries = newPaths.map((p) => `  <url><loc>${SITE_BASE}${p}</loc><lastmod>${today}</lastmod></url>`).join("\n");
+  xml = xml.replace(/ {2}<url><loc>https:\/\/blitz-odds\.netlify\.app\/games\/[^<]*<\/loc><lastmod>[^<]*<\/lastmod><\/url>\n/g, "");
+  const newEntries = [...teamPaths, ...gamePaths].map((p) => `  <url><loc>${SITE_BASE}${p}</loc><lastmod>${today}</lastmod></url>`).join("\n");
   xml = xml.replace("</urlset>", `${newEntries}\n</urlset>`);
   await writeFile(sitemapPath, xml, "utf8");
 }
@@ -365,16 +570,26 @@ async function main() {
   const template = await readFile(path.join(REPO_ROOT, "index.html"), "utf8");
 
   log(`Building ${data.teams.length} team pages...`);
-  const paths = [];
+  const teamPaths = [];
   for (const team of data.teams) {
     const p = await buildTeamPage(template, data, team);
-    paths.push(p);
+    teamPaths.push(p);
+  }
+
+  log("Building game pages...");
+  const periods = getPeriods(data);
+  const gamePaths = [];
+  for (const period of periods) {
+    for (const game of period.games) {
+      const p = await buildGamePage(template, data, period, game);
+      if (p) gamePaths.push(p);
+    }
   }
 
   log("Updating sitemap...");
-  await updateSitemap(paths);
+  await updateSitemap(teamPaths, gamePaths);
 
-  log(`Done. Wrote ${paths.length} team pages.`);
+  log(`Done. Wrote ${teamPaths.length} team pages and ${gamePaths.length} game pages.`);
 }
 
 main().catch((err) => {

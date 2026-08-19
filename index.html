@@ -460,7 +460,11 @@
     font-weight: 800; letter-spacing: -0.02em; color: #fff;
     font-family: -apple-system, 'Inter', system-ui, sans-serif;
     user-select: none; flex-shrink: 0;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+    -webkit-text-stroke: 0.6px rgba(0,0,0,0.55);
+    text-shadow:
+      -1px -1px 0 rgba(0,0,0,0.65), 1px -1px 0 rgba(0,0,0,0.65),
+      -1px 1px 0 rgba(0,0,0,0.65), 1px 1px 0 rgba(0,0,0,0.65),
+      0 1px 3px rgba(0,0,0,0.4);
   }
   .star-btn {
     position: absolute; top: -6px; right: -6px; background: var(--card-bg); border: 1px solid var(--card-border);
@@ -7652,7 +7656,7 @@ function getSportsbookShortLabel(id) {
 
 const TEAM_COLORS = {
   ARI:"#97233F", ATL:"#A71930", BAL:"#241773", BUF:"#00338D", CAR:"#0085CA", CHI:"#0B162A",
-  CIN:"#FB4F14", CLE:"#311D00", DAL:"#041E42", DEN:"#FB4F14", DET:"#0076B6", GB:"#203731",
+  CIN:"#FB4F14", CLE:"#311D00", DAL:"#041E42", DEN:"#0A2343", DET:"#0076B6", GB:"#203731",
   HOU:"#03202F", IND:"#002C5F", JAX:"#101820", KC:"#E31837", LAC:"#0080C6", LAR:"#003594",
   LV:"#000000", MIA:"#008E97", MIN:"#4F2683", NE:"#002244", NO:"#D3BC8D", NYG:"#0B2265",
   NYJ:"#125740", PHI:"#004C54", PIT:"#FFB612", SEA:"#002244", SF:"#AA0000", TB:"#D50A0A",

@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2022 NFL Season Results — Preseason, Regular Season &amp; Playoffs | Blitz Odds</title>
+<meta name="description" content="Every 2022 NFL game in order - preseason, regular season, and playoffs - with final scores and box scores." />
+<link rel="canonical" href="https://blitz-odds.netlify.app/historical/2022/index.html" />
+<meta property="og:title" content="2022 NFL Season Results — Preseason, Regular Season &amp; Playoffs | Blitz Odds" />
+<meta property="og:description" content="Every 2022 NFL game in order - preseason, regular season, and playoffs - with final scores and box scores." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blitz-odds.netlify.app/historical/2022/index.html" />
+<meta name="twitter:card" content="summary" />
+<style>
+:root {
+  --bg: #0b1220; --card-bg: #131c2e; --card-border: #223049; --surface-2: #1a2438;
+  --text: #eef2f8; --text-dim: #9fb0c9; --accent: #4fd1c5; --accent-rgb: 79,209,197;
+  --win: #2ecc71; --win-rgb: 46,204,113; --lose: #55617a; --demo: #a855f7; --demo-rgb: 168,85,247;
+  --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
+  --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
+  --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
+  --pill-out-text: #ff8080; --pill-questionable-text: #f5c168;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
+.app { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+a { color: var(--accent); }
+header.top { text-align: center; margin-bottom: 18px; }
+header.top h1 { font-size: 1.85rem; margin: 0 0 4px; font-weight: 800; }
+header.top h1 a { text-decoration: none; color: inherit; }
+.brand-odds { color: var(--accent); }
+.breadcrumb { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 18px; }
+.breadcrumb a { color: var(--text-dim); }
+.archive-badge { display:inline-block; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
+  padding: 3px 9px; border-radius: 999px; background: rgba(var(--demo-rgb),0.16); color: var(--demo); margin-bottom: 14px; }
+.detail { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; margin-bottom: 24px; }
+.detail-header { display:flex; align-items:center; justify-content:center; gap: 26px; margin-bottom: 8px; flex-wrap:wrap; }
+.detail-team { display:flex; flex-direction:column; align-items:center; gap:6px; width: 180px; }
+.detail-score { font-size:2.2rem; font-weight:800; }
+.detail-vs { text-align:center; }
+.detail-vs .final-label { display:block; color: var(--demo); font-weight:800; font-size:0.78rem; letter-spacing:.5px; margin-bottom:2px; }
+.detail-vs .kickoff-label { color: var(--text-dim); font-size: 0.75rem; }
+.section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 20px 0 10px; font-weight:700; }
+.linescore-table { width:100%; border-collapse: collapse; font-size: 0.85rem; }
+.linescore-table th, .linescore-table td { padding: 7px 10px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.linescore-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.linescore-table td:first-child, .linescore-table th:first-child { text-align:left; }
+.leaders-cols { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.leader-row { font-size:0.85rem; margin-bottom: 6px; }
+.leader-cat { color: var(--text-dim); font-size: 0.72rem; text-transform:uppercase; }
+.teamstats-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.teamstats-table th, .teamstats-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.teamstats-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.teamstats-table td:first-child, .teamstats-table th:first-child { text-align:left; color: var(--text-dim); }
+.teamstats-table td:not(:first-child), .teamstats-table th:not(:first-child) { text-align:center; }
+.playerstats-team { margin-bottom: 18px; }
+.playerstats-team h3 { font-size: 0.95rem; margin: 0 0 8px; }
+.playerstats-cat { margin-bottom: 12px; }
+.playerstats-cat h4 { font-size: 0.75rem; text-transform:uppercase; letter-spacing:.4px; color: var(--text-dim); margin: 0 0 6px; font-weight:700; }
+.playerstats-table { width:100%; border-collapse: collapse; font-size: 0.82rem; }
+.playerstats-table th, .playerstats-table td { padding: 5px 8px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.playerstats-table th { color: var(--text-dim); font-weight:600; font-size:0.68rem; text-transform:uppercase; }
+.playerstats-table td:first-child, .playerstats-table th:first-child { text-align:left; }
+.season-index-list { list-style:none; padding:0; margin:0; }
+.season-index-round { margin-bottom: 22px; }
+.season-index-round h3 { font-size: 0.95rem; margin-bottom: 8px; }
+.season-index-game { display:flex; justify-content:space-between; padding: 8px 10px; background: var(--card-bg);
+  border: 1px solid var(--card-border); border-radius: 10px; margin-bottom: 6px; font-size: 0.85rem; text-decoration:none; color: var(--text); }
+.season-index-game:hover { border-color: var(--accent); }
+.week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
+.week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
+  border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 22px; }
+.filter-row .week-picker { margin-bottom: 0; }
+.menu-block { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+.team-result-w { color: var(--win); font-weight: 700; }
+.team-result-l { color: var(--text-dim); font-weight: 700; }
+.team-result-t { color: var(--warn); font-weight: 700; }
+.rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
+.rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+.stat-compare { display: grid; grid-template-columns: 1fr 1fr auto; column-gap: 10px; row-gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+.stat-compare .col { display: flex; flex-direction: column; gap: 3px; }
+.stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; white-space: nowrap; }
+.rank-pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px; border: 1px solid transparent; }
+.rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
+.rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
+.rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
+.rank-good-slight { background: rgba(var(--win-rgb),0.10); color: var(--pill-good-text); }
+.rank-good-moderate { background: rgba(var(--win-rgb),0.24); color: var(--pill-good-text); border-color: rgba(var(--win-rgb),0.65); font-weight: 700; }
+.rank-good-significant { background: var(--win); color: var(--pill-good-fill-text); border-color: var(--win); font-weight: 800; }
+.rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
+.rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
+.rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
+
+/* Mobile: the desktop layout (3-col stat-compare, wide data tables) was
+   built and only ever tested at desktop width. Below ~600px: keep the
+   same 3-column layout (offense / defense / Total Difference as a right-
+   hand column, matching the live app) but shrink font/pill size and
+   column gap so it fits without squeezing the first two columns; shrink
+   table padding/font so wide tables (linescores, player stats) fit
+   without clipping; wrap tables in a horizontally-scrollable container as
+   a fallback for anything still too wide (long player names, etc.)
+   rather than letting them clip. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 600px) {
+  .app { padding: 14px 10px 40px; }
+  header.top h1 { font-size: 1.5rem; }
+  .detail { padding: 14px 10px; }
+  .detail-header { flex-wrap: nowrap; gap: 6px; align-items: center; }
+  .detail-team { width: auto; flex: 1 1 0; min-width: 0; gap: 2px; }
+  .detail-team-name { font-size: 0.72rem; line-height: 1.15; }
+  .detail-score { font-size: 1.3rem; }
+  .detail-vs { flex-shrink: 0; }
+  .detail-vs .final-label { font-size: 0.66rem; }
+  .detail-vs .kickoff-label { font-size: 0.58rem; }
+  .stat-compare { grid-template-columns: 1fr 1fr auto; column-gap: 6px; font-size: 0.62rem; }
+  .stat-compare .label { font-size: 0.64rem; }
+  .rank-pill { padding: 1px 4px; font-size: 0.6rem; margin-left: 2px; }
+  .linescore-table, .playerstats-table, .teamstats-table { font-size: 0.76rem; }
+  .linescore-table th, .linescore-table td,
+  .playerstats-table th, .playerstats-table td,
+  .teamstats-table th, .teamstats-table td { padding: 5px 6px; }
+  .leaders-cols, .playerstats-team { display: block; }
+  .filter-row { flex-direction: column; gap: 12px; }
+  .week-picker { flex-wrap: wrap; }
+  .week-select { flex: 1; min-width: 0; }
+}
+footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+
+/* Injury Report - mirrors live app's .injury-report/.impact-note markup
+   and colors exactly, so this reads as the same feature as the live
+   team-page injury report, just archived at kickoff-time. */
+.injury-report-archive { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.injury-team-col h4 { font-size: 0.8rem; margin: 0 0 8px; }
+.injury-list { display: flex; flex-direction: column; gap: 6px; }
+.injury-none { color: var(--text-dim); font-size: 0.78rem; margin: 0; }
+.impact-note { font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start; }
+.impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
+.impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
+.impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+.impact-note-detail { color: var(--text-dim); font-size: 0.68rem; margin-top: 3px; line-height: 1.35; }
+@media (max-width: 600px) {
+  .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1><a href="/">Blitz<span class="brand-odds">Odds</span></a></h1>
+  </header>
+  <div class="breadcrumb"><a href="/">Home</a> &raquo; 2022 Season</div>
+  
+    <span class="archive-badge">Historical Archive — 2022 Season</span>
+    <h2 style="margin-top:0;">2022 NFL Season - All Games</h2>
+    <div class="filter-row">
+      <div class="week-picker">
+        <label for="week-select" style="color:var(--text-dim); font-size:0.82rem;">Jump to:</label>
+        <select id="week-select" class="week-select">
+          <option value="all">All Games</option>
+          <option value="group-preseason-1">Preseason - Hall of Fame Game</option>
+<option value="group-preseason-2">Preseason - Preseason Week 1</option>
+<option value="group-preseason-3">Preseason - Preseason Week 2</option>
+<option value="group-preseason-4">Preseason - Preseason Week 3</option>
+<option value="group-regular-1">Regular Season - Week 1</option>
+<option value="group-regular-2">Regular Season - Week 2</option>
+<option value="group-regular-3">Regular Season - Week 3</option>
+<option value="group-regular-4">Regular Season - Week 4</option>
+<option value="group-regular-5">Regular Season - Week 5</option>
+<option value="group-regular-6">Regular Season - Week 6</option>
+<option value="group-regular-7">Regular Season - Week 7</option>
+<option value="group-regular-8">Regular Season - Week 8</option>
+<option value="group-regular-9">Regular Season - Week 9</option>
+<option value="group-regular-10">Regular Season - Week 10</option>
+<option value="group-regular-11">Regular Season - Week 11</option>
+<option value="group-regular-12">Regular Season - Week 12</option>
+<option value="group-regular-13">Regular Season - Week 13</option>
+<option value="group-regular-14">Regular Season - Week 14</option>
+<option value="group-regular-15">Regular Season - Week 15</option>
+<option value="group-regular-16">Regular Season - Week 16</option>
+<option value="group-regular-17">Regular Season - Week 17</option>
+<option value="group-regular-18">Regular Season - Week 18</option>
+<option value="group-postseason-1">Playoffs - Wild Card Round</option>
+<option value="group-postseason-2">Playoffs - Divisional Round</option>
+<option value="group-postseason-3">Playoffs - Conference Championships</option>
+<option value="group-postseason-5">Playoffs - Super Bowl</option>
+        </select>
+      </div>
+      <div class="week-picker">
+        <label for="team-select" style="color:var(--text-dim); font-size:0.82rem;">Team:</label>
+        <select id="team-select" class="week-select">
+          <option value="all">All Teams</option>
+          <option value="ARI">Arizona Cardinals</option>
+<option value="ATL">Atlanta Falcons</option>
+<option value="BAL">Baltimore Ravens</option>
+<option value="BUF">Buffalo Bills</option>
+<option value="CAR">Carolina Panthers</option>
+<option value="CHI">Chicago Bears</option>
+<option value="CIN">Cincinnati Bengals</option>
+<option value="CLE">Cleveland Browns</option>
+<option value="DAL">Dallas Cowboys</option>
+<option value="DEN">Denver Broncos</option>
+<option value="DET">Detroit Lions</option>
+<option value="GB">Green Bay Packers</option>
+<option value="HOU">Houston Texans</option>
+<option value="IND">Indianapolis Colts</option>
+<option value="JAX">Jacksonville Jaguars</option>
+<option value="KC">Kansas City Chiefs</option>
+<option value="LV">Las Vegas Raiders</option>
+<option value="LAC">Los Angeles Chargers</option>
+<option value="LAR">Los Angeles Rams</option>
+<option value="MIA">Miami Dolphins</option>
+<option value="MIN">Minnesota Vikings</option>
+<option value="NE">New England Patriots</option>
+<option value="NO">New Orleans Saints</option>
+<option value="NYG">New York Giants</option>
+<option value="NYJ">New York Jets</option>
+<option value="PHI">Philadelphia Eagles</option>
+<option value="PIT">Pittsburgh Steelers</option>
+<option value="SF">San Francisco 49ers</option>
+<option value="SEA">Seattle Seahawks</option>
+<option value="TB">Tampa Bay Buccaneers</option>
+<option value="TEN">Tennessee Titans</option>
+<option value="WAS">Washington Commanders</option>
+        </select>
+      </div>
+    </div>
+    <div class="season-index-list">
+      
+        <div class="season-index-round" id="group-preseason-1">
+          <h3>Preseason - Hall of Fame Game</h3>
+          <a class="season-index-game" data-origin="index" data-away="JAX" data-home="LV" href="/historical/2022/preseason/hall-of-fame-game/jacksonville-jaguars-at-las-vegas-raiders.html">
+                <span>Jacksonville Jaguars @ Las Vegas Raiders</span>
+                <span>11-27</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-preseason-2">
+          <h3>Preseason - Preseason Week 1</h3>
+          <a class="season-index-game" data-origin="index" data-away="NYG" data-home="NE" href="/historical/2022/preseason/preseason-week-1/new-york-giants-at-new-england-patriots.html">
+                <span>New York Giants @ New England Patriots</span>
+                <span>23-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="BAL" href="/historical/2022/preseason/preseason-week-1/tennessee-titans-at-baltimore-ravens.html">
+                <span>Tennessee Titans @ Baltimore Ravens</span>
+                <span>10-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="DET" href="/historical/2022/preseason/preseason-week-1/atlanta-falcons-at-detroit-lions.html">
+                <span>Atlanta Falcons @ Detroit Lions</span>
+                <span>27-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="JAX" href="/historical/2022/preseason/preseason-week-1/cleveland-browns-at-jacksonville-jaguars.html">
+                <span>Cleveland Browns @ Jacksonville Jaguars</span>
+                <span>24-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="CIN" href="/historical/2022/preseason/preseason-week-1/arizona-cardinals-at-cincinnati-bengals.html">
+                <span>Arizona Cardinals @ Cincinnati Bengals</span>
+                <span>36-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="PHI" href="/historical/2022/preseason/preseason-week-1/new-york-jets-at-philadelphia-eagles.html">
+                <span>New York Jets @ Philadelphia Eagles</span>
+                <span>24-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="SF" href="/historical/2022/preseason/preseason-week-1/green-bay-packers-at-san-francisco-49ers.html">
+                <span>Green Bay Packers @ San Francisco 49ers</span>
+                <span>21-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="CHI" href="/historical/2022/preseason/preseason-week-1/kansas-city-chiefs-at-chicago-bears.html">
+                <span>Kansas City Chiefs @ Chicago Bears</span>
+                <span>14-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="WAS" href="/historical/2022/preseason/preseason-week-1/carolina-panthers-at-washington-commanders.html">
+                <span>Carolina Panthers @ Washington Commanders</span>
+                <span>23-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="BUF" href="/historical/2022/preseason/preseason-week-1/indianapolis-colts-at-buffalo-bills.html">
+                <span>Indianapolis Colts @ Buffalo Bills</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="PIT" href="/historical/2022/preseason/preseason-week-1/seattle-seahawks-at-pittsburgh-steelers.html">
+                <span>Seattle Seahawks @ Pittsburgh Steelers</span>
+                <span>25-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="TB" href="/historical/2022/preseason/preseason-week-1/miami-dolphins-at-tampa-bay-buccaneers.html">
+                <span>Miami Dolphins @ Tampa Bay Buccaneers</span>
+                <span>26-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="HOU" href="/historical/2022/preseason/preseason-week-1/new-orleans-saints-at-houston-texans.html">
+                <span>New Orleans Saints @ Houston Texans</span>
+                <span>13-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="DEN" href="/historical/2022/preseason/preseason-week-1/dallas-cowboys-at-denver-broncos.html">
+                <span>Dallas Cowboys @ Denver Broncos</span>
+                <span>7-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="LAC" href="/historical/2022/preseason/preseason-week-1/los-angeles-rams-at-los-angeles-chargers.html">
+                <span>Los Angeles Rams @ Los Angeles Chargers</span>
+                <span>29-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="LV" href="/historical/2022/preseason/preseason-week-1/minnesota-vikings-at-las-vegas-raiders.html">
+                <span>Minnesota Vikings @ Las Vegas Raiders</span>
+                <span>20-26</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-preseason-3">
+          <h3>Preseason - Preseason Week 2</h3>
+          <a class="season-index-game" data-origin="index" data-away="CHI" data-home="SEA" href="/historical/2022/preseason/preseason-week-2/chicago-bears-at-seattle-seahawks.html">
+                <span>Chicago Bears @ Seattle Seahawks</span>
+                <span>27-11</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="NE" href="/historical/2022/preseason/preseason-week-2/carolina-panthers-at-new-england-patriots.html">
+                <span>Carolina Panthers @ New England Patriots</span>
+                <span>10-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="GB" href="/historical/2022/preseason/preseason-week-2/new-orleans-saints-at-green-bay-packers.html">
+                <span>New Orleans Saints @ Green Bay Packers</span>
+                <span>10-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="LAR" href="/historical/2022/preseason/preseason-week-2/houston-texans-at-los-angeles-rams.html">
+                <span>Houston Texans @ Los Angeles Rams</span>
+                <span>24-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="BUF" href="/historical/2022/preseason/preseason-week-2/denver-broncos-at-buffalo-bills.html">
+                <span>Denver Broncos @ Buffalo Bills</span>
+                <span>15-42</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="IND" href="/historical/2022/preseason/preseason-week-2/detroit-lions-at-indianapolis-colts.html">
+                <span>Detroit Lions @ Indianapolis Colts</span>
+                <span>27-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="KC" href="/historical/2022/preseason/preseason-week-2/washington-commanders-at-kansas-city-chiefs.html">
+                <span>Washington Commanders @ Kansas City Chiefs</span>
+                <span>14-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="TEN" href="/historical/2022/preseason/preseason-week-2/tampa-bay-buccaneers-at-tennessee-titans.html">
+                <span>Tampa Bay Buccaneers @ Tennessee Titans</span>
+                <span>3-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="MIA" href="/historical/2022/preseason/preseason-week-2/las-vegas-raiders-at-miami-dolphins.html">
+                <span>Las Vegas Raiders @ Miami Dolphins</span>
+                <span>15-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="MIN" href="/historical/2022/preseason/preseason-week-2/san-francisco-49ers-at-minnesota-vikings.html">
+                <span>San Francisco 49ers @ Minnesota Vikings</span>
+                <span>17-7</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="JAX" href="/historical/2022/preseason/preseason-week-2/pittsburgh-steelers-at-jacksonville-jaguars.html">
+                <span>Pittsburgh Steelers @ Jacksonville Jaguars</span>
+                <span>16-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="LAC" href="/historical/2022/preseason/preseason-week-2/dallas-cowboys-at-los-angeles-chargers.html">
+                <span>Dallas Cowboys @ Los Angeles Chargers</span>
+                <span>32-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="CLE" href="/historical/2022/preseason/preseason-week-2/philadelphia-eagles-at-cleveland-browns.html">
+                <span>Philadelphia Eagles @ Cleveland Browns</span>
+                <span>21-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="NYG" href="/historical/2022/preseason/preseason-week-2/cincinnati-bengals-at-new-york-giants.html">
+                <span>Cincinnati Bengals @ New York Giants</span>
+                <span>22-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="ARI" href="/historical/2022/preseason/preseason-week-2/baltimore-ravens-at-arizona-cardinals.html">
+                <span>Baltimore Ravens @ Arizona Cardinals</span>
+                <span>24-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="NYJ" href="/historical/2022/preseason/preseason-week-2/atlanta-falcons-at-new-york-jets.html">
+                <span>Atlanta Falcons @ New York Jets</span>
+                <span>16-24</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-preseason-4">
+          <h3>Preseason - Preseason Week 3</h3>
+          <a class="season-index-game" data-origin="index" data-away="GB" data-home="KC" href="/historical/2022/preseason/preseason-week-3/green-bay-packers-at-kansas-city-chiefs.html">
+                <span>Green Bay Packers @ Kansas City Chiefs</span>
+                <span>10-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="HOU" href="/historical/2022/preseason/preseason-week-3/san-francisco-49ers-at-houston-texans.html">
+                <span>San Francisco 49ers @ Houston Texans</span>
+                <span>0-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="CAR" href="/historical/2022/preseason/preseason-week-3/buffalo-bills-at-carolina-panthers.html">
+                <span>Buffalo Bills @ Carolina Panthers</span>
+                <span>0-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="DAL" href="/historical/2022/preseason/preseason-week-3/seattle-seahawks-at-dallas-cowboys.html">
+                <span>Seattle Seahawks @ Dallas Cowboys</span>
+                <span>26-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="NO" href="/historical/2022/preseason/preseason-week-3/los-angeles-chargers-at-new-orleans-saints.html">
+                <span>Los Angeles Chargers @ New Orleans Saints</span>
+                <span>10-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="LV" href="/historical/2022/preseason/preseason-week-3/new-england-patriots-at-las-vegas-raiders.html">
+                <span>New England Patriots @ Las Vegas Raiders</span>
+                <span>6-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="ATL" href="/historical/2022/preseason/preseason-week-3/jacksonville-jaguars-at-atlanta-falcons.html">
+                <span>Jacksonville Jaguars @ Atlanta Falcons</span>
+                <span>12-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="CIN" href="/historical/2022/preseason/preseason-week-3/los-angeles-rams-at-cincinnati-bengals.html">
+                <span>Los Angeles Rams @ Cincinnati Bengals</span>
+                <span>7-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="CLE" href="/historical/2022/preseason/preseason-week-3/chicago-bears-at-cleveland-browns.html">
+                <span>Chicago Bears @ Cleveland Browns</span>
+                <span>21-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="TEN" href="/historical/2022/preseason/preseason-week-3/arizona-cardinals-at-tennessee-titans.html">
+                <span>Arizona Cardinals @ Tennessee Titans</span>
+                <span>23-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="MIA" href="/historical/2022/preseason/preseason-week-3/philadelphia-eagles-at-miami-dolphins.html">
+                <span>Philadelphia Eagles @ Miami Dolphins</span>
+                <span>10-48</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="BAL" href="/historical/2022/preseason/preseason-week-3/washington-commanders-at-baltimore-ravens.html">
+                <span>Washington Commanders @ Baltimore Ravens</span>
+                <span>15-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="IND" href="/historical/2022/preseason/preseason-week-3/tampa-bay-buccaneers-at-indianapolis-colts.html">
+                <span>Tampa Bay Buccaneers @ Indianapolis Colts</span>
+                <span>10-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="DEN" href="/historical/2022/preseason/preseason-week-3/minnesota-vikings-at-denver-broncos.html">
+                <span>Minnesota Vikings @ Denver Broncos</span>
+                <span>13-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="NYJ" href="/historical/2022/preseason/preseason-week-3/new-york-giants-at-new-york-jets.html">
+                <span>New York Giants @ New York Jets</span>
+                <span>27-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="PIT" href="/historical/2022/preseason/preseason-week-3/detroit-lions-at-pittsburgh-steelers.html">
+                <span>Detroit Lions @ Pittsburgh Steelers</span>
+                <span>9-19</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-1">
+          <h3>Regular Season - Week 1</h3>
+          <a class="season-index-game" data-origin="index" data-away="BUF" data-home="LAR" href="/historical/2022/regular-season/week-1/buffalo-bills-at-los-angeles-rams.html">
+                <span>Buffalo Bills @ Los Angeles Rams</span>
+                <span>31-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="ATL" href="/historical/2022/regular-season/week-1/new-orleans-saints-at-atlanta-falcons.html">
+                <span>New Orleans Saints @ Atlanta Falcons</span>
+                <span>27-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="CHI" href="/historical/2022/regular-season/week-1/san-francisco-49ers-at-chicago-bears.html">
+                <span>San Francisco 49ers @ Chicago Bears</span>
+                <span>10-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="CIN" href="/historical/2022/regular-season/week-1/pittsburgh-steelers-at-cincinnati-bengals.html">
+                <span>Pittsburgh Steelers @ Cincinnati Bengals</span>
+                <span>23-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="DET" href="/historical/2022/regular-season/week-1/philadelphia-eagles-at-detroit-lions.html">
+                <span>Philadelphia Eagles @ Detroit Lions</span>
+                <span>38-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="MIA" href="/historical/2022/regular-season/week-1/new-england-patriots-at-miami-dolphins.html">
+                <span>New England Patriots @ Miami Dolphins</span>
+                <span>7-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="NYJ" href="/historical/2022/regular-season/week-1/baltimore-ravens-at-new-york-jets.html">
+                <span>Baltimore Ravens @ New York Jets</span>
+                <span>24-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="WAS" href="/historical/2022/regular-season/week-1/jacksonville-jaguars-at-washington-commanders.html">
+                <span>Jacksonville Jaguars @ Washington Commanders</span>
+                <span>22-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="CAR" href="/historical/2022/regular-season/week-1/cleveland-browns-at-carolina-panthers.html">
+                <span>Cleveland Browns @ Carolina Panthers</span>
+                <span>26-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="HOU" href="/historical/2022/regular-season/week-1/indianapolis-colts-at-houston-texans.html">
+                <span>Indianapolis Colts @ Houston Texans</span>
+                <span>20-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="TEN" href="/historical/2022/regular-season/week-1/new-york-giants-at-tennessee-titans.html">
+                <span>New York Giants @ Tennessee Titans</span>
+                <span>21-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="MIN" href="/historical/2022/regular-season/week-1/green-bay-packers-at-minnesota-vikings.html">
+                <span>Green Bay Packers @ Minnesota Vikings</span>
+                <span>7-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="ARI" href="/historical/2022/regular-season/week-1/kansas-city-chiefs-at-arizona-cardinals.html">
+                <span>Kansas City Chiefs @ Arizona Cardinals</span>
+                <span>44-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="LAC" href="/historical/2022/regular-season/week-1/las-vegas-raiders-at-los-angeles-chargers.html">
+                <span>Las Vegas Raiders @ Los Angeles Chargers</span>
+                <span>19-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="DAL" href="/historical/2022/regular-season/week-1/tampa-bay-buccaneers-at-dallas-cowboys.html">
+                <span>Tampa Bay Buccaneers @ Dallas Cowboys</span>
+                <span>19-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="SEA" href="/historical/2022/regular-season/week-1/denver-broncos-at-seattle-seahawks.html">
+                <span>Denver Broncos @ Seattle Seahawks</span>
+                <span>16-17</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-2">
+          <h3>Regular Season - Week 2</h3>
+          <a class="season-index-game" data-origin="index" data-away="LAC" data-home="KC" href="/historical/2022/regular-season/week-2/los-angeles-chargers-at-kansas-city-chiefs.html">
+                <span>Los Angeles Chargers @ Kansas City Chiefs</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="CLE" href="/historical/2022/regular-season/week-2/new-york-jets-at-cleveland-browns.html">
+                <span>New York Jets @ Cleveland Browns</span>
+                <span>31-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="DET" href="/historical/2022/regular-season/week-2/washington-commanders-at-detroit-lions.html">
+                <span>Washington Commanders @ Detroit Lions</span>
+                <span>27-36</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="NO" href="/historical/2022/regular-season/week-2/tampa-bay-buccaneers-at-new-orleans-saints.html">
+                <span>Tampa Bay Buccaneers @ New Orleans Saints</span>
+                <span>20-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="NYG" href="/historical/2022/regular-season/week-2/carolina-panthers-at-new-york-giants.html">
+                <span>Carolina Panthers @ New York Giants</span>
+                <span>16-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="PIT" href="/historical/2022/regular-season/week-2/new-england-patriots-at-pittsburgh-steelers.html">
+                <span>New England Patriots @ Pittsburgh Steelers</span>
+                <span>17-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="JAX" href="/historical/2022/regular-season/week-2/indianapolis-colts-at-jacksonville-jaguars.html">
+                <span>Indianapolis Colts @ Jacksonville Jaguars</span>
+                <span>0-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="BAL" href="/historical/2022/regular-season/week-2/miami-dolphins-at-baltimore-ravens.html">
+                <span>Miami Dolphins @ Baltimore Ravens</span>
+                <span>42-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="LAR" href="/historical/2022/regular-season/week-2/atlanta-falcons-at-los-angeles-rams.html">
+                <span>Atlanta Falcons @ Los Angeles Rams</span>
+                <span>27-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="SF" href="/historical/2022/regular-season/week-2/seattle-seahawks-at-san-francisco-49ers.html">
+                <span>Seattle Seahawks @ San Francisco 49ers</span>
+                <span>7-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="DAL" href="/historical/2022/regular-season/week-2/cincinnati-bengals-at-dallas-cowboys.html">
+                <span>Cincinnati Bengals @ Dallas Cowboys</span>
+                <span>17-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="DEN" href="/historical/2022/regular-season/week-2/houston-texans-at-denver-broncos.html">
+                <span>Houston Texans @ Denver Broncos</span>
+                <span>9-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="LV" href="/historical/2022/regular-season/week-2/arizona-cardinals-at-las-vegas-raiders.html">
+                <span>Arizona Cardinals @ Las Vegas Raiders</span>
+                <span>29-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="GB" href="/historical/2022/regular-season/week-2/chicago-bears-at-green-bay-packers.html">
+                <span>Chicago Bears @ Green Bay Packers</span>
+                <span>10-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="BUF" href="/historical/2022/regular-season/week-2/tennessee-titans-at-buffalo-bills.html">
+                <span>Tennessee Titans @ Buffalo Bills</span>
+                <span>7-41</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="PHI" href="/historical/2022/regular-season/week-2/minnesota-vikings-at-philadelphia-eagles.html">
+                <span>Minnesota Vikings @ Philadelphia Eagles</span>
+                <span>7-24</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-3">
+          <h3>Regular Season - Week 3</h3>
+          <a class="season-index-game" data-origin="index" data-away="PIT" data-home="CLE" href="/historical/2022/regular-season/week-3/pittsburgh-steelers-at-cleveland-browns.html">
+                <span>Pittsburgh Steelers @ Cleveland Browns</span>
+                <span>17-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="CHI" href="/historical/2022/regular-season/week-3/houston-texans-at-chicago-bears.html">
+                <span>Houston Texans @ Chicago Bears</span>
+                <span>20-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="TEN" href="/historical/2022/regular-season/week-3/las-vegas-raiders-at-tennessee-titans.html">
+                <span>Las Vegas Raiders @ Tennessee Titans</span>
+                <span>22-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="IND" href="/historical/2022/regular-season/week-3/kansas-city-chiefs-at-indianapolis-colts.html">
+                <span>Kansas City Chiefs @ Indianapolis Colts</span>
+                <span>17-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="MIA" href="/historical/2022/regular-season/week-3/buffalo-bills-at-miami-dolphins.html">
+                <span>Buffalo Bills @ Miami Dolphins</span>
+                <span>19-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="MIN" href="/historical/2022/regular-season/week-3/detroit-lions-at-minnesota-vikings.html">
+                <span>Detroit Lions @ Minnesota Vikings</span>
+                <span>24-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="NE" href="/historical/2022/regular-season/week-3/baltimore-ravens-at-new-england-patriots.html">
+                <span>Baltimore Ravens @ New England Patriots</span>
+                <span>37-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="NYJ" href="/historical/2022/regular-season/week-3/cincinnati-bengals-at-new-york-jets.html">
+                <span>Cincinnati Bengals @ New York Jets</span>
+                <span>27-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="WAS" href="/historical/2022/regular-season/week-3/philadelphia-eagles-at-washington-commanders.html">
+                <span>Philadelphia Eagles @ Washington Commanders</span>
+                <span>24-8</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="CAR" href="/historical/2022/regular-season/week-3/new-orleans-saints-at-carolina-panthers.html">
+                <span>New Orleans Saints @ Carolina Panthers</span>
+                <span>14-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="LAC" href="/historical/2022/regular-season/week-3/jacksonville-jaguars-at-los-angeles-chargers.html">
+                <span>Jacksonville Jaguars @ Los Angeles Chargers</span>
+                <span>38-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="ARI" href="/historical/2022/regular-season/week-3/los-angeles-rams-at-arizona-cardinals.html">
+                <span>Los Angeles Rams @ Arizona Cardinals</span>
+                <span>20-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="SEA" href="/historical/2022/regular-season/week-3/atlanta-falcons-at-seattle-seahawks.html">
+                <span>Atlanta Falcons @ Seattle Seahawks</span>
+                <span>27-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="TB" href="/historical/2022/regular-season/week-3/green-bay-packers-at-tampa-bay-buccaneers.html">
+                <span>Green Bay Packers @ Tampa Bay Buccaneers</span>
+                <span>14-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="DEN" href="/historical/2022/regular-season/week-3/san-francisco-49ers-at-denver-broncos.html">
+                <span>San Francisco 49ers @ Denver Broncos</span>
+                <span>10-11</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="NYG" href="/historical/2022/regular-season/week-3/dallas-cowboys-at-new-york-giants.html">
+                <span>Dallas Cowboys @ New York Giants</span>
+                <span>23-16</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-4">
+          <h3>Regular Season - Week 4</h3>
+          <a class="season-index-game" data-origin="index" data-away="MIA" data-home="CIN" href="/historical/2022/regular-season/week-4/miami-dolphins-at-cincinnati-bengals.html">
+                <span>Miami Dolphins @ Cincinnati Bengals</span>
+                <span>15-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="NO" href="/historical/2022/regular-season/week-4/minnesota-vikings-at-new-orleans-saints.html">
+                <span>Minnesota Vikings @ New Orleans Saints</span>
+                <span>28-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="ATL" href="/historical/2022/regular-season/week-4/cleveland-browns-at-atlanta-falcons.html">
+                <span>Cleveland Browns @ Atlanta Falcons</span>
+                <span>20-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="DAL" href="/historical/2022/regular-season/week-4/washington-commanders-at-dallas-cowboys.html">
+                <span>Washington Commanders @ Dallas Cowboys</span>
+                <span>10-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="DET" href="/historical/2022/regular-season/week-4/seattle-seahawks-at-detroit-lions.html">
+                <span>Seattle Seahawks @ Detroit Lions</span>
+                <span>48-45</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="IND" href="/historical/2022/regular-season/week-4/tennessee-titans-at-indianapolis-colts.html">
+                <span>Tennessee Titans @ Indianapolis Colts</span>
+                <span>24-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="NYG" href="/historical/2022/regular-season/week-4/chicago-bears-at-new-york-giants.html">
+                <span>Chicago Bears @ New York Giants</span>
+                <span>12-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="PHI" href="/historical/2022/regular-season/week-4/jacksonville-jaguars-at-philadelphia-eagles.html">
+                <span>Jacksonville Jaguars @ Philadelphia Eagles</span>
+                <span>21-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="PIT" href="/historical/2022/regular-season/week-4/new-york-jets-at-pittsburgh-steelers.html">
+                <span>New York Jets @ Pittsburgh Steelers</span>
+                <span>24-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="BAL" href="/historical/2022/regular-season/week-4/buffalo-bills-at-baltimore-ravens.html">
+                <span>Buffalo Bills @ Baltimore Ravens</span>
+                <span>23-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="HOU" href="/historical/2022/regular-season/week-4/los-angeles-chargers-at-houston-texans.html">
+                <span>Los Angeles Chargers @ Houston Texans</span>
+                <span>34-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="CAR" href="/historical/2022/regular-season/week-4/arizona-cardinals-at-carolina-panthers.html">
+                <span>Arizona Cardinals @ Carolina Panthers</span>
+                <span>26-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="GB" href="/historical/2022/regular-season/week-4/new-england-patriots-at-green-bay-packers.html">
+                <span>New England Patriots @ Green Bay Packers</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="LV" href="/historical/2022/regular-season/week-4/denver-broncos-at-las-vegas-raiders.html">
+                <span>Denver Broncos @ Las Vegas Raiders</span>
+                <span>23-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="TB" href="/historical/2022/regular-season/week-4/kansas-city-chiefs-at-tampa-bay-buccaneers.html">
+                <span>Kansas City Chiefs @ Tampa Bay Buccaneers</span>
+                <span>41-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="SF" href="/historical/2022/regular-season/week-4/los-angeles-rams-at-san-francisco-49ers.html">
+                <span>Los Angeles Rams @ San Francisco 49ers</span>
+                <span>9-24</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-5">
+          <h3>Regular Season - Week 5</h3>
+          <a class="season-index-game" data-origin="index" data-away="IND" data-home="DEN" href="/historical/2022/regular-season/week-5/indianapolis-colts-at-denver-broncos.html">
+                <span>Indianapolis Colts @ Denver Broncos</span>
+                <span>12-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="GB" href="/historical/2022/regular-season/week-5/new-york-giants-at-green-bay-packers.html">
+                <span>New York Giants @ Green Bay Packers</span>
+                <span>27-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="BUF" href="/historical/2022/regular-season/week-5/pittsburgh-steelers-at-buffalo-bills.html">
+                <span>Pittsburgh Steelers @ Buffalo Bills</span>
+                <span>3-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="CLE" href="/historical/2022/regular-season/week-5/los-angeles-chargers-at-cleveland-browns.html">
+                <span>Los Angeles Chargers @ Cleveland Browns</span>
+                <span>30-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="MIN" href="/historical/2022/regular-season/week-5/chicago-bears-at-minnesota-vikings.html">
+                <span>Chicago Bears @ Minnesota Vikings</span>
+                <span>22-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="NE" href="/historical/2022/regular-season/week-5/detroit-lions-at-new-england-patriots.html">
+                <span>Detroit Lions @ New England Patriots</span>
+                <span>0-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="NO" href="/historical/2022/regular-season/week-5/seattle-seahawks-at-new-orleans-saints.html">
+                <span>Seattle Seahawks @ New Orleans Saints</span>
+                <span>32-39</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="NYJ" href="/historical/2022/regular-season/week-5/miami-dolphins-at-new-york-jets.html">
+                <span>Miami Dolphins @ New York Jets</span>
+                <span>17-40</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="TB" href="/historical/2022/regular-season/week-5/atlanta-falcons-at-tampa-bay-buccaneers.html">
+                <span>Atlanta Falcons @ Tampa Bay Buccaneers</span>
+                <span>15-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="WAS" href="/historical/2022/regular-season/week-5/tennessee-titans-at-washington-commanders.html">
+                <span>Tennessee Titans @ Washington Commanders</span>
+                <span>21-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="JAX" href="/historical/2022/regular-season/week-5/houston-texans-at-jacksonville-jaguars.html">
+                <span>Houston Texans @ Jacksonville Jaguars</span>
+                <span>13-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="CAR" href="/historical/2022/regular-season/week-5/san-francisco-49ers-at-carolina-panthers.html">
+                <span>San Francisco 49ers @ Carolina Panthers</span>
+                <span>37-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="LAR" href="/historical/2022/regular-season/week-5/dallas-cowboys-at-los-angeles-rams.html">
+                <span>Dallas Cowboys @ Los Angeles Rams</span>
+                <span>22-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="ARI" href="/historical/2022/regular-season/week-5/philadelphia-eagles-at-arizona-cardinals.html">
+                <span>Philadelphia Eagles @ Arizona Cardinals</span>
+                <span>20-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="BAL" href="/historical/2022/regular-season/week-5/cincinnati-bengals-at-baltimore-ravens.html">
+                <span>Cincinnati Bengals @ Baltimore Ravens</span>
+                <span>17-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="KC" href="/historical/2022/regular-season/week-5/las-vegas-raiders-at-kansas-city-chiefs.html">
+                <span>Las Vegas Raiders @ Kansas City Chiefs</span>
+                <span>29-30</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-6">
+          <h3>Regular Season - Week 6</h3>
+          <a class="season-index-game" data-origin="index" data-away="WAS" data-home="CHI" href="/historical/2022/regular-season/week-6/washington-commanders-at-chicago-bears.html">
+                <span>Washington Commanders @ Chicago Bears</span>
+                <span>12-7</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="ATL" href="/historical/2022/regular-season/week-6/san-francisco-49ers-at-atlanta-falcons.html">
+                <span>San Francisco 49ers @ Atlanta Falcons</span>
+                <span>14-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="CLE" href="/historical/2022/regular-season/week-6/new-england-patriots-at-cleveland-browns.html">
+                <span>New England Patriots @ Cleveland Browns</span>
+                <span>38-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="GB" href="/historical/2022/regular-season/week-6/new-york-jets-at-green-bay-packers.html">
+                <span>New York Jets @ Green Bay Packers</span>
+                <span>27-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="IND" href="/historical/2022/regular-season/week-6/jacksonville-jaguars-at-indianapolis-colts.html">
+                <span>Jacksonville Jaguars @ Indianapolis Colts</span>
+                <span>27-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="MIA" href="/historical/2022/regular-season/week-6/minnesota-vikings-at-miami-dolphins.html">
+                <span>Minnesota Vikings @ Miami Dolphins</span>
+                <span>24-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="NO" href="/historical/2022/regular-season/week-6/cincinnati-bengals-at-new-orleans-saints.html">
+                <span>Cincinnati Bengals @ New Orleans Saints</span>
+                <span>30-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="NYG" href="/historical/2022/regular-season/week-6/baltimore-ravens-at-new-york-giants.html">
+                <span>Baltimore Ravens @ New York Giants</span>
+                <span>20-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="PIT" href="/historical/2022/regular-season/week-6/tampa-bay-buccaneers-at-pittsburgh-steelers.html">
+                <span>Tampa Bay Buccaneers @ Pittsburgh Steelers</span>
+                <span>18-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="LAR" href="/historical/2022/regular-season/week-6/carolina-panthers-at-los-angeles-rams.html">
+                <span>Carolina Panthers @ Los Angeles Rams</span>
+                <span>10-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="SEA" href="/historical/2022/regular-season/week-6/arizona-cardinals-at-seattle-seahawks.html">
+                <span>Arizona Cardinals @ Seattle Seahawks</span>
+                <span>9-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="KC" href="/historical/2022/regular-season/week-6/buffalo-bills-at-kansas-city-chiefs.html">
+                <span>Buffalo Bills @ Kansas City Chiefs</span>
+                <span>24-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="PHI" href="/historical/2022/regular-season/week-6/dallas-cowboys-at-philadelphia-eagles.html">
+                <span>Dallas Cowboys @ Philadelphia Eagles</span>
+                <span>17-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="LAC" href="/historical/2022/regular-season/week-6/denver-broncos-at-los-angeles-chargers.html">
+                <span>Denver Broncos @ Los Angeles Chargers</span>
+                <span>16-19</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-7">
+          <h3>Regular Season - Week 7</h3>
+          <a class="season-index-game" data-origin="index" data-away="NO" data-home="ARI" href="/historical/2022/regular-season/week-7/new-orleans-saints-at-arizona-cardinals.html">
+                <span>New Orleans Saints @ Arizona Cardinals</span>
+                <span>34-42</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="CIN" href="/historical/2022/regular-season/week-7/atlanta-falcons-at-cincinnati-bengals.html">
+                <span>Atlanta Falcons @ Cincinnati Bengals</span>
+                <span>17-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="DAL" href="/historical/2022/regular-season/week-7/detroit-lions-at-dallas-cowboys.html">
+                <span>Detroit Lions @ Dallas Cowboys</span>
+                <span>6-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="TEN" href="/historical/2022/regular-season/week-7/indianapolis-colts-at-tennessee-titans.html">
+                <span>Indianapolis Colts @ Tennessee Titans</span>
+                <span>10-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="WAS" href="/historical/2022/regular-season/week-7/green-bay-packers-at-washington-commanders.html">
+                <span>Green Bay Packers @ Washington Commanders</span>
+                <span>21-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="CAR" href="/historical/2022/regular-season/week-7/tampa-bay-buccaneers-at-carolina-panthers.html">
+                <span>Tampa Bay Buccaneers @ Carolina Panthers</span>
+                <span>3-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="JAX" href="/historical/2022/regular-season/week-7/new-york-giants-at-jacksonville-jaguars.html">
+                <span>New York Giants @ Jacksonville Jaguars</span>
+                <span>23-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="BAL" href="/historical/2022/regular-season/week-7/cleveland-browns-at-baltimore-ravens.html">
+                <span>Cleveland Browns @ Baltimore Ravens</span>
+                <span>20-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="DEN" href="/historical/2022/regular-season/week-7/new-york-jets-at-denver-broncos.html">
+                <span>New York Jets @ Denver Broncos</span>
+                <span>16-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="LV" href="/historical/2022/regular-season/week-7/houston-texans-at-las-vegas-raiders.html">
+                <span>Houston Texans @ Las Vegas Raiders</span>
+                <span>20-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="LAC" href="/historical/2022/regular-season/week-7/seattle-seahawks-at-los-angeles-chargers.html">
+                <span>Seattle Seahawks @ Los Angeles Chargers</span>
+                <span>37-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="SF" href="/historical/2022/regular-season/week-7/kansas-city-chiefs-at-san-francisco-49ers.html">
+                <span>Kansas City Chiefs @ San Francisco 49ers</span>
+                <span>44-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="MIA" href="/historical/2022/regular-season/week-7/pittsburgh-steelers-at-miami-dolphins.html">
+                <span>Pittsburgh Steelers @ Miami Dolphins</span>
+                <span>10-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="NE" href="/historical/2022/regular-season/week-7/chicago-bears-at-new-england-patriots.html">
+                <span>Chicago Bears @ New England Patriots</span>
+                <span>33-14</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-8">
+          <h3>Regular Season - Week 8</h3>
+          <a class="season-index-game" data-origin="index" data-away="BAL" data-home="TB" href="/historical/2022/regular-season/week-8/baltimore-ravens-at-tampa-bay-buccaneers.html">
+                <span>Baltimore Ravens @ Tampa Bay Buccaneers</span>
+                <span>27-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="JAX" href="/historical/2022/regular-season/week-8/denver-broncos-at-jacksonville-jaguars.html">
+                <span>Denver Broncos @ Jacksonville Jaguars</span>
+                <span>21-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="ATL" href="/historical/2022/regular-season/week-8/carolina-panthers-at-atlanta-falcons.html">
+                <span>Carolina Panthers @ Atlanta Falcons</span>
+                <span>34-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="DAL" href="/historical/2022/regular-season/week-8/chicago-bears-at-dallas-cowboys.html">
+                <span>Chicago Bears @ Dallas Cowboys</span>
+                <span>29-49</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="DET" href="/historical/2022/regular-season/week-8/miami-dolphins-at-detroit-lions.html">
+                <span>Miami Dolphins @ Detroit Lions</span>
+                <span>31-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="MIN" href="/historical/2022/regular-season/week-8/arizona-cardinals-at-minnesota-vikings.html">
+                <span>Arizona Cardinals @ Minnesota Vikings</span>
+                <span>26-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="NO" href="/historical/2022/regular-season/week-8/las-vegas-raiders-at-new-orleans-saints.html">
+                <span>Las Vegas Raiders @ New Orleans Saints</span>
+                <span>0-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="NYJ" href="/historical/2022/regular-season/week-8/new-england-patriots-at-new-york-jets.html">
+                <span>New England Patriots @ New York Jets</span>
+                <span>22-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="PHI" href="/historical/2022/regular-season/week-8/pittsburgh-steelers-at-philadelphia-eagles.html">
+                <span>Pittsburgh Steelers @ Philadelphia Eagles</span>
+                <span>13-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="HOU" href="/historical/2022/regular-season/week-8/tennessee-titans-at-houston-texans.html">
+                <span>Tennessee Titans @ Houston Texans</span>
+                <span>17-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="IND" href="/historical/2022/regular-season/week-8/washington-commanders-at-indianapolis-colts.html">
+                <span>Washington Commanders @ Indianapolis Colts</span>
+                <span>17-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="LAR" href="/historical/2022/regular-season/week-8/san-francisco-49ers-at-los-angeles-rams.html">
+                <span>San Francisco 49ers @ Los Angeles Rams</span>
+                <span>31-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="SEA" href="/historical/2022/regular-season/week-8/new-york-giants-at-seattle-seahawks.html">
+                <span>New York Giants @ Seattle Seahawks</span>
+                <span>13-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="BUF" href="/historical/2022/regular-season/week-8/green-bay-packers-at-buffalo-bills.html">
+                <span>Green Bay Packers @ Buffalo Bills</span>
+                <span>17-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="CLE" href="/historical/2022/regular-season/week-8/cincinnati-bengals-at-cleveland-browns.html">
+                <span>Cincinnati Bengals @ Cleveland Browns</span>
+                <span>13-32</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-9">
+          <h3>Regular Season - Week 9</h3>
+          <a class="season-index-game" data-origin="index" data-away="PHI" data-home="HOU" href="/historical/2022/regular-season/week-9/philadelphia-eagles-at-houston-texans.html">
+                <span>Philadelphia Eagles @ Houston Texans</span>
+                <span>29-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="ATL" href="/historical/2022/regular-season/week-9/los-angeles-chargers-at-atlanta-falcons.html">
+                <span>Los Angeles Chargers @ Atlanta Falcons</span>
+                <span>20-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="CHI" href="/historical/2022/regular-season/week-9/miami-dolphins-at-chicago-bears.html">
+                <span>Miami Dolphins @ Chicago Bears</span>
+                <span>35-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="CIN" href="/historical/2022/regular-season/week-9/carolina-panthers-at-cincinnati-bengals.html">
+                <span>Carolina Panthers @ Cincinnati Bengals</span>
+                <span>21-42</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="DET" href="/historical/2022/regular-season/week-9/green-bay-packers-at-detroit-lions.html">
+                <span>Green Bay Packers @ Detroit Lions</span>
+                <span>9-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="NE" href="/historical/2022/regular-season/week-9/indianapolis-colts-at-new-england-patriots.html">
+                <span>Indianapolis Colts @ New England Patriots</span>
+                <span>3-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="NYJ" href="/historical/2022/regular-season/week-9/buffalo-bills-at-new-york-jets.html">
+                <span>Buffalo Bills @ New York Jets</span>
+                <span>17-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="WAS" href="/historical/2022/regular-season/week-9/minnesota-vikings-at-washington-commanders.html">
+                <span>Minnesota Vikings @ Washington Commanders</span>
+                <span>20-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="JAX" href="/historical/2022/regular-season/week-9/las-vegas-raiders-at-jacksonville-jaguars.html">
+                <span>Las Vegas Raiders @ Jacksonville Jaguars</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="ARI" href="/historical/2022/regular-season/week-9/seattle-seahawks-at-arizona-cardinals.html">
+                <span>Seattle Seahawks @ Arizona Cardinals</span>
+                <span>31-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="TB" href="/historical/2022/regular-season/week-9/los-angeles-rams-at-tampa-bay-buccaneers.html">
+                <span>Los Angeles Rams @ Tampa Bay Buccaneers</span>
+                <span>13-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="KC" href="/historical/2022/regular-season/week-9/tennessee-titans-at-kansas-city-chiefs.html">
+                <span>Tennessee Titans @ Kansas City Chiefs</span>
+                <span>17-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="NO" href="/historical/2022/regular-season/week-9/baltimore-ravens-at-new-orleans-saints.html">
+                <span>Baltimore Ravens @ New Orleans Saints</span>
+                <span>27-13</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-10">
+          <h3>Regular Season - Week 10</h3>
+          <a class="season-index-game" data-origin="index" data-away="ATL" data-home="CAR" href="/historical/2022/regular-season/week-10/atlanta-falcons-at-carolina-panthers.html">
+                <span>Atlanta Falcons @ Carolina Panthers</span>
+                <span>15-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="TB" href="/historical/2022/regular-season/week-10/seattle-seahawks-at-tampa-bay-buccaneers.html">
+                <span>Seattle Seahawks @ Tampa Bay Buccaneers</span>
+                <span>16-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="BUF" href="/historical/2022/regular-season/week-10/minnesota-vikings-at-buffalo-bills.html">
+                <span>Minnesota Vikings @ Buffalo Bills</span>
+                <span>33-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="CHI" href="/historical/2022/regular-season/week-10/detroit-lions-at-chicago-bears.html">
+                <span>Detroit Lions @ Chicago Bears</span>
+                <span>31-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="TEN" href="/historical/2022/regular-season/week-10/denver-broncos-at-tennessee-titans.html">
+                <span>Denver Broncos @ Tennessee Titans</span>
+                <span>10-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="KC" href="/historical/2022/regular-season/week-10/jacksonville-jaguars-at-kansas-city-chiefs.html">
+                <span>Jacksonville Jaguars @ Kansas City Chiefs</span>
+                <span>17-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="MIA" href="/historical/2022/regular-season/week-10/cleveland-browns-at-miami-dolphins.html">
+                <span>Cleveland Browns @ Miami Dolphins</span>
+                <span>17-39</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="NYG" href="/historical/2022/regular-season/week-10/houston-texans-at-new-york-giants.html">
+                <span>Houston Texans @ New York Giants</span>
+                <span>16-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="PIT" href="/historical/2022/regular-season/week-10/new-orleans-saints-at-pittsburgh-steelers.html">
+                <span>New Orleans Saints @ Pittsburgh Steelers</span>
+                <span>10-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="LV" href="/historical/2022/regular-season/week-10/indianapolis-colts-at-las-vegas-raiders.html">
+                <span>Indianapolis Colts @ Las Vegas Raiders</span>
+                <span>25-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="GB" href="/historical/2022/regular-season/week-10/dallas-cowboys-at-green-bay-packers.html">
+                <span>Dallas Cowboys @ Green Bay Packers</span>
+                <span>28-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="LAR" href="/historical/2022/regular-season/week-10/arizona-cardinals-at-los-angeles-rams.html">
+                <span>Arizona Cardinals @ Los Angeles Rams</span>
+                <span>27-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="SF" href="/historical/2022/regular-season/week-10/los-angeles-chargers-at-san-francisco-49ers.html">
+                <span>Los Angeles Chargers @ San Francisco 49ers</span>
+                <span>16-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="PHI" href="/historical/2022/regular-season/week-10/washington-commanders-at-philadelphia-eagles.html">
+                <span>Washington Commanders @ Philadelphia Eagles</span>
+                <span>32-21</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-11">
+          <h3>Regular Season - Week 11</h3>
+          <a class="season-index-game" data-origin="index" data-away="TEN" data-home="GB" href="/historical/2022/regular-season/week-11/tennessee-titans-at-green-bay-packers.html">
+                <span>Tennessee Titans @ Green Bay Packers</span>
+                <span>27-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="ATL" href="/historical/2022/regular-season/week-11/chicago-bears-at-atlanta-falcons.html">
+                <span>Chicago Bears @ Atlanta Falcons</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="BUF" href="/historical/2022/regular-season/week-11/cleveland-browns-at-buffalo-bills.html">
+                <span>Cleveland Browns @ Buffalo Bills</span>
+                <span>23-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="IND" href="/historical/2022/regular-season/week-11/philadelphia-eagles-at-indianapolis-colts.html">
+                <span>Philadelphia Eagles @ Indianapolis Colts</span>
+                <span>17-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="NE" href="/historical/2022/regular-season/week-11/new-york-jets-at-new-england-patriots.html">
+                <span>New York Jets @ New England Patriots</span>
+                <span>3-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="NO" href="/historical/2022/regular-season/week-11/los-angeles-rams-at-new-orleans-saints.html">
+                <span>Los Angeles Rams @ New Orleans Saints</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="NYG" href="/historical/2022/regular-season/week-11/detroit-lions-at-new-york-giants.html">
+                <span>Detroit Lions @ New York Giants</span>
+                <span>31-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="BAL" href="/historical/2022/regular-season/week-11/carolina-panthers-at-baltimore-ravens.html">
+                <span>Carolina Panthers @ Baltimore Ravens</span>
+                <span>3-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="HOU" href="/historical/2022/regular-season/week-11/washington-commanders-at-houston-texans.html">
+                <span>Washington Commanders @ Houston Texans</span>
+                <span>23-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="DEN" href="/historical/2022/regular-season/week-11/las-vegas-raiders-at-denver-broncos.html">
+                <span>Las Vegas Raiders @ Denver Broncos</span>
+                <span>22-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="MIN" href="/historical/2022/regular-season/week-11/dallas-cowboys-at-minnesota-vikings.html">
+                <span>Dallas Cowboys @ Minnesota Vikings</span>
+                <span>40-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="PIT" href="/historical/2022/regular-season/week-11/cincinnati-bengals-at-pittsburgh-steelers.html">
+                <span>Cincinnati Bengals @ Pittsburgh Steelers</span>
+                <span>37-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="LAC" href="/historical/2022/regular-season/week-11/kansas-city-chiefs-at-los-angeles-chargers.html">
+                <span>Kansas City Chiefs @ Los Angeles Chargers</span>
+                <span>30-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="ARI" href="/historical/2022/regular-season/week-11/san-francisco-49ers-at-arizona-cardinals.html">
+                <span>San Francisco 49ers @ Arizona Cardinals</span>
+                <span>38-10</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-12">
+          <h3>Regular Season - Week 12</h3>
+          <a class="season-index-game" data-origin="index" data-away="BUF" data-home="DET" href="/historical/2022/regular-season/week-12/buffalo-bills-at-detroit-lions.html">
+                <span>Buffalo Bills @ Detroit Lions</span>
+                <span>28-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="DAL" href="/historical/2022/regular-season/week-12/new-york-giants-at-dallas-cowboys.html">
+                <span>New York Giants @ Dallas Cowboys</span>
+                <span>20-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="MIN" href="/historical/2022/regular-season/week-12/new-england-patriots-at-minnesota-vikings.html">
+                <span>New England Patriots @ Minnesota Vikings</span>
+                <span>26-33</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="CLE" href="/historical/2022/regular-season/week-12/tampa-bay-buccaneers-at-cleveland-browns.html">
+                <span>Tampa Bay Buccaneers @ Cleveland Browns</span>
+                <span>17-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="TEN" href="/historical/2022/regular-season/week-12/cincinnati-bengals-at-tennessee-titans.html">
+                <span>Cincinnati Bengals @ Tennessee Titans</span>
+                <span>20-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="MIA" href="/historical/2022/regular-season/week-12/houston-texans-at-miami-dolphins.html">
+                <span>Houston Texans @ Miami Dolphins</span>
+                <span>15-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="NYJ" href="/historical/2022/regular-season/week-12/chicago-bears-at-new-york-jets.html">
+                <span>Chicago Bears @ New York Jets</span>
+                <span>10-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="WAS" href="/historical/2022/regular-season/week-12/atlanta-falcons-at-washington-commanders.html">
+                <span>Atlanta Falcons @ Washington Commanders</span>
+                <span>13-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="CAR" href="/historical/2022/regular-season/week-12/denver-broncos-at-carolina-panthers.html">
+                <span>Denver Broncos @ Carolina Panthers</span>
+                <span>10-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="JAX" href="/historical/2022/regular-season/week-12/baltimore-ravens-at-jacksonville-jaguars.html">
+                <span>Baltimore Ravens @ Jacksonville Jaguars</span>
+                <span>27-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="ARI" href="/historical/2022/regular-season/week-12/los-angeles-chargers-at-arizona-cardinals.html">
+                <span>Los Angeles Chargers @ Arizona Cardinals</span>
+                <span>25-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="SEA" href="/historical/2022/regular-season/week-12/las-vegas-raiders-at-seattle-seahawks.html">
+                <span>Las Vegas Raiders @ Seattle Seahawks</span>
+                <span>40-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="KC" href="/historical/2022/regular-season/week-12/los-angeles-rams-at-kansas-city-chiefs.html">
+                <span>Los Angeles Rams @ Kansas City Chiefs</span>
+                <span>10-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="SF" href="/historical/2022/regular-season/week-12/new-orleans-saints-at-san-francisco-49ers.html">
+                <span>New Orleans Saints @ San Francisco 49ers</span>
+                <span>0-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="PHI" href="/historical/2022/regular-season/week-12/green-bay-packers-at-philadelphia-eagles.html">
+                <span>Green Bay Packers @ Philadelphia Eagles</span>
+                <span>33-40</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="IND" href="/historical/2022/regular-season/week-12/pittsburgh-steelers-at-indianapolis-colts.html">
+                <span>Pittsburgh Steelers @ Indianapolis Colts</span>
+                <span>24-17</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-13">
+          <h3>Regular Season - Week 13</h3>
+          <a class="season-index-game" data-origin="index" data-away="BUF" data-home="NE" href="/historical/2022/regular-season/week-13/buffalo-bills-at-new-england-patriots.html">
+                <span>Buffalo Bills @ New England Patriots</span>
+                <span>24-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="ATL" href="/historical/2022/regular-season/week-13/pittsburgh-steelers-at-atlanta-falcons.html">
+                <span>Pittsburgh Steelers @ Atlanta Falcons</span>
+                <span>19-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="CHI" href="/historical/2022/regular-season/week-13/green-bay-packers-at-chicago-bears.html">
+                <span>Green Bay Packers @ Chicago Bears</span>
+                <span>28-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="DET" href="/historical/2022/regular-season/week-13/jacksonville-jaguars-at-detroit-lions.html">
+                <span>Jacksonville Jaguars @ Detroit Lions</span>
+                <span>14-40</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="MIN" href="/historical/2022/regular-season/week-13/new-york-jets-at-minnesota-vikings.html">
+                <span>New York Jets @ Minnesota Vikings</span>
+                <span>22-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="NYG" href="/historical/2022/regular-season/week-13/washington-commanders-at-new-york-giants.html">
+                <span>Washington Commanders @ New York Giants</span>
+                <span>20-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="PHI" href="/historical/2022/regular-season/week-13/tennessee-titans-at-philadelphia-eagles.html">
+                <span>Tennessee Titans @ Philadelphia Eagles</span>
+                <span>10-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="BAL" href="/historical/2022/regular-season/week-13/denver-broncos-at-baltimore-ravens.html">
+                <span>Denver Broncos @ Baltimore Ravens</span>
+                <span>9-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="HOU" href="/historical/2022/regular-season/week-13/cleveland-browns-at-houston-texans.html">
+                <span>Cleveland Browns @ Houston Texans</span>
+                <span>27-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="LAR" href="/historical/2022/regular-season/week-13/seattle-seahawks-at-los-angeles-rams.html">
+                <span>Seattle Seahawks @ Los Angeles Rams</span>
+                <span>27-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="SF" href="/historical/2022/regular-season/week-13/miami-dolphins-at-san-francisco-49ers.html">
+                <span>Miami Dolphins @ San Francisco 49ers</span>
+                <span>17-33</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="CIN" href="/historical/2022/regular-season/week-13/kansas-city-chiefs-at-cincinnati-bengals.html">
+                <span>Kansas City Chiefs @ Cincinnati Bengals</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="LV" href="/historical/2022/regular-season/week-13/los-angeles-chargers-at-las-vegas-raiders.html">
+                <span>Los Angeles Chargers @ Las Vegas Raiders</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="DAL" href="/historical/2022/regular-season/week-13/indianapolis-colts-at-dallas-cowboys.html">
+                <span>Indianapolis Colts @ Dallas Cowboys</span>
+                <span>19-54</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="TB" href="/historical/2022/regular-season/week-13/new-orleans-saints-at-tampa-bay-buccaneers.html">
+                <span>New Orleans Saints @ Tampa Bay Buccaneers</span>
+                <span>16-17</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-14">
+          <h3>Regular Season - Week 14</h3>
+          <a class="season-index-game" data-origin="index" data-away="LV" data-home="LAR" href="/historical/2022/regular-season/week-14/las-vegas-raiders-at-los-angeles-rams.html">
+                <span>Las Vegas Raiders @ Los Angeles Rams</span>
+                <span>16-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="BUF" href="/historical/2022/regular-season/week-14/new-york-jets-at-buffalo-bills.html">
+                <span>New York Jets @ Buffalo Bills</span>
+                <span>12-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="CIN" href="/historical/2022/regular-season/week-14/cleveland-browns-at-cincinnati-bengals.html">
+                <span>Cleveland Browns @ Cincinnati Bengals</span>
+                <span>10-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="DAL" href="/historical/2022/regular-season/week-14/houston-texans-at-dallas-cowboys.html">
+                <span>Houston Texans @ Dallas Cowboys</span>
+                <span>23-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="DET" href="/historical/2022/regular-season/week-14/minnesota-vikings-at-detroit-lions.html">
+                <span>Minnesota Vikings @ Detroit Lions</span>
+                <span>23-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="TEN" href="/historical/2022/regular-season/week-14/jacksonville-jaguars-at-tennessee-titans.html">
+                <span>Jacksonville Jaguars @ Tennessee Titans</span>
+                <span>36-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="NYG" href="/historical/2022/regular-season/week-14/philadelphia-eagles-at-new-york-giants.html">
+                <span>Philadelphia Eagles @ New York Giants</span>
+                <span>48-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="PIT" href="/historical/2022/regular-season/week-14/baltimore-ravens-at-pittsburgh-steelers.html">
+                <span>Baltimore Ravens @ Pittsburgh Steelers</span>
+                <span>16-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="DEN" href="/historical/2022/regular-season/week-14/kansas-city-chiefs-at-denver-broncos.html">
+                <span>Kansas City Chiefs @ Denver Broncos</span>
+                <span>34-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="SF" href="/historical/2022/regular-season/week-14/tampa-bay-buccaneers-at-san-francisco-49ers.html">
+                <span>Tampa Bay Buccaneers @ San Francisco 49ers</span>
+                <span>7-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="SEA" href="/historical/2022/regular-season/week-14/carolina-panthers-at-seattle-seahawks.html">
+                <span>Carolina Panthers @ Seattle Seahawks</span>
+                <span>30-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="LAC" href="/historical/2022/regular-season/week-14/miami-dolphins-at-los-angeles-chargers.html">
+                <span>Miami Dolphins @ Los Angeles Chargers</span>
+                <span>17-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="ARI" href="/historical/2022/regular-season/week-14/new-england-patriots-at-arizona-cardinals.html">
+                <span>New England Patriots @ Arizona Cardinals</span>
+                <span>27-13</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-15">
+          <h3>Regular Season - Week 15</h3>
+          <a class="season-index-game" data-origin="index" data-away="SF" data-home="SEA" href="/historical/2022/regular-season/week-15/san-francisco-49ers-at-seattle-seahawks.html">
+                <span>San Francisco 49ers @ Seattle Seahawks</span>
+                <span>21-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="MIN" href="/historical/2022/regular-season/week-15/indianapolis-colts-at-minnesota-vikings.html">
+                <span>Indianapolis Colts @ Minnesota Vikings</span>
+                <span>36-39</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CLE" href="/historical/2022/regular-season/week-15/baltimore-ravens-at-cleveland-browns.html">
+                <span>Baltimore Ravens @ Cleveland Browns</span>
+                <span>3-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="BUF" href="/historical/2022/regular-season/week-15/miami-dolphins-at-buffalo-bills.html">
+                <span>Miami Dolphins @ Buffalo Bills</span>
+                <span>29-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="CHI" href="/historical/2022/regular-season/week-15/philadelphia-eagles-at-chicago-bears.html">
+                <span>Philadelphia Eagles @ Chicago Bears</span>
+                <span>25-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="NO" href="/historical/2022/regular-season/week-15/atlanta-falcons-at-new-orleans-saints.html">
+                <span>Atlanta Falcons @ New Orleans Saints</span>
+                <span>18-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="NYJ" href="/historical/2022/regular-season/week-15/detroit-lions-at-new-york-jets.html">
+                <span>Detroit Lions @ New York Jets</span>
+                <span>20-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="CAR" href="/historical/2022/regular-season/week-15/pittsburgh-steelers-at-carolina-panthers.html">
+                <span>Pittsburgh Steelers @ Carolina Panthers</span>
+                <span>24-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="JAX" href="/historical/2022/regular-season/week-15/dallas-cowboys-at-jacksonville-jaguars.html">
+                <span>Dallas Cowboys @ Jacksonville Jaguars</span>
+                <span>34-40</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="HOU" href="/historical/2022/regular-season/week-15/kansas-city-chiefs-at-houston-texans.html">
+                <span>Kansas City Chiefs @ Houston Texans</span>
+                <span>30-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="DEN" href="/historical/2022/regular-season/week-15/arizona-cardinals-at-denver-broncos.html">
+                <span>Arizona Cardinals @ Denver Broncos</span>
+                <span>15-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="LV" href="/historical/2022/regular-season/week-15/new-england-patriots-at-las-vegas-raiders.html">
+                <span>New England Patriots @ Las Vegas Raiders</span>
+                <span>24-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="LAC" href="/historical/2022/regular-season/week-15/tennessee-titans-at-los-angeles-chargers.html">
+                <span>Tennessee Titans @ Los Angeles Chargers</span>
+                <span>14-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="TB" href="/historical/2022/regular-season/week-15/cincinnati-bengals-at-tampa-bay-buccaneers.html">
+                <span>Cincinnati Bengals @ Tampa Bay Buccaneers</span>
+                <span>34-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="WAS" href="/historical/2022/regular-season/week-15/new-york-giants-at-washington-commanders.html">
+                <span>New York Giants @ Washington Commanders</span>
+                <span>20-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="GB" href="/historical/2022/regular-season/week-15/los-angeles-rams-at-green-bay-packers.html">
+                <span>Los Angeles Rams @ Green Bay Packers</span>
+                <span>12-24</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-16">
+          <h3>Regular Season - Week 16</h3>
+          <a class="season-index-game" data-origin="index" data-away="JAX" data-home="NYJ" href="/historical/2022/regular-season/week-16/jacksonville-jaguars-at-new-york-jets.html">
+                <span>Jacksonville Jaguars @ New York Jets</span>
+                <span>19-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="CHI" href="/historical/2022/regular-season/week-16/buffalo-bills-at-chicago-bears.html">
+                <span>Buffalo Bills @ Chicago Bears</span>
+                <span>35-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="CLE" href="/historical/2022/regular-season/week-16/new-orleans-saints-at-cleveland-browns.html">
+                <span>New Orleans Saints @ Cleveland Browns</span>
+                <span>17-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="KC" href="/historical/2022/regular-season/week-16/seattle-seahawks-at-kansas-city-chiefs.html">
+                <span>Seattle Seahawks @ Kansas City Chiefs</span>
+                <span>10-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="MIN" href="/historical/2022/regular-season/week-16/new-york-giants-at-minnesota-vikings.html">
+                <span>New York Giants @ Minnesota Vikings</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="NE" href="/historical/2022/regular-season/week-16/cincinnati-bengals-at-new-england-patriots.html">
+                <span>Cincinnati Bengals @ New England Patriots</span>
+                <span>22-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="CAR" href="/historical/2022/regular-season/week-16/detroit-lions-at-carolina-panthers.html">
+                <span>Detroit Lions @ Carolina Panthers</span>
+                <span>23-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="BAL" href="/historical/2022/regular-season/week-16/atlanta-falcons-at-baltimore-ravens.html">
+                <span>Atlanta Falcons @ Baltimore Ravens</span>
+                <span>9-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="TEN" href="/historical/2022/regular-season/week-16/houston-texans-at-tennessee-titans.html">
+                <span>Houston Texans @ Tennessee Titans</span>
+                <span>19-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="SF" href="/historical/2022/regular-season/week-16/washington-commanders-at-san-francisco-49ers.html">
+                <span>Washington Commanders @ San Francisco 49ers</span>
+                <span>20-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="DAL" href="/historical/2022/regular-season/week-16/philadelphia-eagles-at-dallas-cowboys.html">
+                <span>Philadelphia Eagles @ Dallas Cowboys</span>
+                <span>34-40</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="PIT" href="/historical/2022/regular-season/week-16/las-vegas-raiders-at-pittsburgh-steelers.html">
+                <span>Las Vegas Raiders @ Pittsburgh Steelers</span>
+                <span>10-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="MIA" href="/historical/2022/regular-season/week-16/green-bay-packers-at-miami-dolphins.html">
+                <span>Green Bay Packers @ Miami Dolphins</span>
+                <span>26-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="LAR" href="/historical/2022/regular-season/week-16/denver-broncos-at-los-angeles-rams.html">
+                <span>Denver Broncos @ Los Angeles Rams</span>
+                <span>14-51</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="ARI" href="/historical/2022/regular-season/week-16/tampa-bay-buccaneers-at-arizona-cardinals.html">
+                <span>Tampa Bay Buccaneers @ Arizona Cardinals</span>
+                <span>19-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="IND" href="/historical/2022/regular-season/week-16/los-angeles-chargers-at-indianapolis-colts.html">
+                <span>Los Angeles Chargers @ Indianapolis Colts</span>
+                <span>20-3</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-17">
+          <h3>Regular Season - Week 17</h3>
+          <a class="season-index-game" data-origin="index" data-away="DAL" data-home="TEN" href="/historical/2022/regular-season/week-17/dallas-cowboys-at-tennessee-titans.html">
+                <span>Dallas Cowboys @ Tennessee Titans</span>
+                <span>27-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="ATL" href="/historical/2022/regular-season/week-17/arizona-cardinals-at-atlanta-falcons.html">
+                <span>Arizona Cardinals @ Atlanta Falcons</span>
+                <span>19-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="DET" href="/historical/2022/regular-season/week-17/chicago-bears-at-detroit-lions.html">
+                <span>Chicago Bears @ Detroit Lions</span>
+                <span>10-41</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="KC" href="/historical/2022/regular-season/week-17/denver-broncos-at-kansas-city-chiefs.html">
+                <span>Denver Broncos @ Kansas City Chiefs</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="NE" href="/historical/2022/regular-season/week-17/miami-dolphins-at-new-england-patriots.html">
+                <span>Miami Dolphins @ New England Patriots</span>
+                <span>21-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="NYG" href="/historical/2022/regular-season/week-17/indianapolis-colts-at-new-york-giants.html">
+                <span>Indianapolis Colts @ New York Giants</span>
+                <span>10-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="PHI" href="/historical/2022/regular-season/week-17/new-orleans-saints-at-philadelphia-eagles.html">
+                <span>New Orleans Saints @ Philadelphia Eagles</span>
+                <span>20-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="TB" href="/historical/2022/regular-season/week-17/carolina-panthers-at-tampa-bay-buccaneers.html">
+                <span>Carolina Panthers @ Tampa Bay Buccaneers</span>
+                <span>24-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="WAS" href="/historical/2022/regular-season/week-17/cleveland-browns-at-washington-commanders.html">
+                <span>Cleveland Browns @ Washington Commanders</span>
+                <span>24-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="HOU" href="/historical/2022/regular-season/week-17/jacksonville-jaguars-at-houston-texans.html">
+                <span>Jacksonville Jaguars @ Houston Texans</span>
+                <span>31-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="LV" href="/historical/2022/regular-season/week-17/san-francisco-49ers-at-las-vegas-raiders.html">
+                <span>San Francisco 49ers @ Las Vegas Raiders</span>
+                <span>37-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="SEA" href="/historical/2022/regular-season/week-17/new-york-jets-at-seattle-seahawks.html">
+                <span>New York Jets @ Seattle Seahawks</span>
+                <span>6-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="GB" href="/historical/2022/regular-season/week-17/minnesota-vikings-at-green-bay-packers.html">
+                <span>Minnesota Vikings @ Green Bay Packers</span>
+                <span>17-41</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="LAC" href="/historical/2022/regular-season/week-17/los-angeles-rams-at-los-angeles-chargers.html">
+                <span>Los Angeles Rams @ Los Angeles Chargers</span>
+                <span>10-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="BAL" href="/historical/2022/regular-season/week-17/pittsburgh-steelers-at-baltimore-ravens.html">
+                <span>Pittsburgh Steelers @ Baltimore Ravens</span>
+                <span>16-13</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-regular-18">
+          <h3>Regular Season - Week 18</h3>
+          <a class="season-index-game" data-origin="index" data-away="KC" data-home="LV" href="/historical/2022/regular-season/week-18/kansas-city-chiefs-at-las-vegas-raiders.html">
+                <span>Kansas City Chiefs @ Las Vegas Raiders</span>
+                <span>31-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="JAX" href="/historical/2022/regular-season/week-18/tennessee-titans-at-jacksonville-jaguars.html">
+                <span>Tennessee Titans @ Jacksonville Jaguars</span>
+                <span>16-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="ATL" href="/historical/2022/regular-season/week-18/tampa-bay-buccaneers-at-atlanta-falcons.html">
+                <span>Tampa Bay Buccaneers @ Atlanta Falcons</span>
+                <span>17-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="BUF" href="/historical/2022/regular-season/week-18/new-england-patriots-at-buffalo-bills.html">
+                <span>New England Patriots @ Buffalo Bills</span>
+                <span>23-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="CHI" href="/historical/2022/regular-season/week-18/minnesota-vikings-at-chicago-bears.html">
+                <span>Minnesota Vikings @ Chicago Bears</span>
+                <span>29-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CIN" href="/historical/2022/regular-season/week-18/baltimore-ravens-at-cincinnati-bengals.html">
+                <span>Baltimore Ravens @ Cincinnati Bengals</span>
+                <span>16-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="IND" href="/historical/2022/regular-season/week-18/houston-texans-at-indianapolis-colts.html">
+                <span>Houston Texans @ Indianapolis Colts</span>
+                <span>32-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="MIA" href="/historical/2022/regular-season/week-18/new-york-jets-at-miami-dolphins.html">
+                <span>New York Jets @ Miami Dolphins</span>
+                <span>6-11</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="NO" href="/historical/2022/regular-season/week-18/carolina-panthers-at-new-orleans-saints.html">
+                <span>Carolina Panthers @ New Orleans Saints</span>
+                <span>10-7</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="PIT" href="/historical/2022/regular-season/week-18/cleveland-browns-at-pittsburgh-steelers.html">
+                <span>Cleveland Browns @ Pittsburgh Steelers</span>
+                <span>14-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="DEN" href="/historical/2022/regular-season/week-18/los-angeles-chargers-at-denver-broncos.html">
+                <span>Los Angeles Chargers @ Denver Broncos</span>
+                <span>28-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="PHI" href="/historical/2022/regular-season/week-18/new-york-giants-at-philadelphia-eagles.html">
+                <span>New York Giants @ Philadelphia Eagles</span>
+                <span>16-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="SF" href="/historical/2022/regular-season/week-18/arizona-cardinals-at-san-francisco-49ers.html">
+                <span>Arizona Cardinals @ San Francisco 49ers</span>
+                <span>13-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="SEA" href="/historical/2022/regular-season/week-18/los-angeles-rams-at-seattle-seahawks.html">
+                <span>Los Angeles Rams @ Seattle Seahawks</span>
+                <span>16-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="WAS" href="/historical/2022/regular-season/week-18/dallas-cowboys-at-washington-commanders.html">
+                <span>Dallas Cowboys @ Washington Commanders</span>
+                <span>6-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="GB" href="/historical/2022/regular-season/week-18/detroit-lions-at-green-bay-packers.html">
+                <span>Detroit Lions @ Green Bay Packers</span>
+                <span>20-16</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-postseason-1">
+          <h3>Playoffs - Wild Card Round</h3>
+          <a class="season-index-game" data-origin="index" data-away="SEA" data-home="SF" href="/historical/2022/playoffs/wild-card-round/seattle-seahawks-at-san-francisco-49ers.html">
+                <span>Seattle Seahawks @ San Francisco 49ers</span>
+                <span>23-41</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="JAX" href="/historical/2022/playoffs/wild-card-round/los-angeles-chargers-at-jacksonville-jaguars.html">
+                <span>Los Angeles Chargers @ Jacksonville Jaguars</span>
+                <span>30-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="BUF" href="/historical/2022/playoffs/wild-card-round/miami-dolphins-at-buffalo-bills.html">
+                <span>Miami Dolphins @ Buffalo Bills</span>
+                <span>31-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="MIN" href="/historical/2022/playoffs/wild-card-round/new-york-giants-at-minnesota-vikings.html">
+                <span>New York Giants @ Minnesota Vikings</span>
+                <span>31-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CIN" href="/historical/2022/playoffs/wild-card-round/baltimore-ravens-at-cincinnati-bengals.html">
+                <span>Baltimore Ravens @ Cincinnati Bengals</span>
+                <span>17-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="TB" href="/historical/2022/playoffs/wild-card-round/dallas-cowboys-at-tampa-bay-buccaneers.html">
+                <span>Dallas Cowboys @ Tampa Bay Buccaneers</span>
+                <span>31-14</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-postseason-2">
+          <h3>Playoffs - Divisional Round</h3>
+          <a class="season-index-game" data-origin="index" data-away="JAX" data-home="KC" href="/historical/2022/playoffs/divisional-round/jacksonville-jaguars-at-kansas-city-chiefs.html">
+                <span>Jacksonville Jaguars @ Kansas City Chiefs</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="PHI" href="/historical/2022/playoffs/divisional-round/new-york-giants-at-philadelphia-eagles.html">
+                <span>New York Giants @ Philadelphia Eagles</span>
+                <span>7-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="BUF" href="/historical/2022/playoffs/divisional-round/cincinnati-bengals-at-buffalo-bills.html">
+                <span>Cincinnati Bengals @ Buffalo Bills</span>
+                <span>27-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="SF" href="/historical/2022/playoffs/divisional-round/dallas-cowboys-at-san-francisco-49ers.html">
+                <span>Dallas Cowboys @ San Francisco 49ers</span>
+                <span>12-19</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-postseason-3">
+          <h3>Playoffs - Conference Championships</h3>
+          <a class="season-index-game" data-origin="index" data-away="SF" data-home="PHI" href="/historical/2022/playoffs/conference-championships/san-francisco-49ers-at-philadelphia-eagles.html">
+                <span>San Francisco 49ers @ Philadelphia Eagles</span>
+                <span>7-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="KC" href="/historical/2022/playoffs/conference-championships/cincinnati-bengals-at-kansas-city-chiefs.html">
+                <span>Cincinnati Bengals @ Kansas City Chiefs</span>
+                <span>20-23</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="group-postseason-5">
+          <h3>Playoffs - Super Bowl</h3>
+          <a class="season-index-game" data-origin="index" data-away="KC" data-home="PHI" href="/historical/2022/playoffs/super-bowl/kansas-city-chiefs-at-philadelphia-eagles.html">
+                <span>Kansas City Chiefs @ Philadelphia Eagles</span>
+                <span>38-35</span>
+              </a>
+        </div>
+    </div>
+  
+  <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
+</div>
+<script src="/js/analytics.js"></script>
+<script>
+    document.getElementById('week-select').addEventListener('change', function (e) {
+      var sections = document.querySelectorAll('.season-index-round');
+      var target = e.target.value;
+      sections.forEach(function (s) { s.style.display = (target === 'all' || s.id === target) ? '' : 'none'; });
+    });
+    document.getElementById('team-select').addEventListener('change', function (e) {
+      var team = e.target.value;
+      document.querySelectorAll('.season-index-round').forEach(function (group) {
+        var anyVisible = false;
+        group.querySelectorAll('.season-index-game').forEach(function (row) {
+          var match = team === 'all' || row.dataset.away === team || row.dataset.home === team;
+          row.style.display = match ? '' : 'none';
+          if (match) anyVisible = true;
+        });
+        group.style.display = anyVisible ? '' : 'none';
+      });
+      // Filtering by team overrides the week/round jump - reset it to avoid
+      // a confusing combination where both filters fight each other.
+      document.getElementById('week-select').value = 'all';
+    });
+  </script>
+</body>
+</html>

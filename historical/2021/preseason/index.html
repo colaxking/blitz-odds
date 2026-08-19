@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2021 NFL Preseason Results — Every Score &amp; Box Score | Blitz Odds</title>
+<meta name="description" content="Final scores and box scores for every 2021 NFL preseason game." />
+<link rel="canonical" href="https://blitz-odds.netlify.app/historical/2021/preseason/index.html" />
+<meta property="og:title" content="2021 NFL Preseason Results — Every Score &amp; Box Score | Blitz Odds" />
+<meta property="og:description" content="Final scores and box scores for every 2021 NFL preseason game." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blitz-odds.netlify.app/historical/2021/preseason/index.html" />
+<meta name="twitter:card" content="summary" />
+<style>
+:root {
+  --bg: #0b1220; --card-bg: #131c2e; --card-border: #223049; --surface-2: #1a2438;
+  --text: #eef2f8; --text-dim: #9fb0c9; --accent: #4fd1c5; --accent-rgb: 79,209,197;
+  --win: #2ecc71; --win-rgb: 46,204,113; --lose: #55617a; --demo: #a855f7; --demo-rgb: 168,85,247;
+  --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
+  --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
+  --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
+  --pill-out-text: #ff8080; --pill-questionable-text: #f5c168;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
+.app { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+a { color: var(--accent); }
+header.top { text-align: center; margin-bottom: 18px; }
+header.top h1 { font-size: 1.85rem; margin: 0 0 4px; font-weight: 800; }
+header.top h1 a { text-decoration: none; color: inherit; }
+.brand-odds { color: var(--accent); }
+.breadcrumb { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 18px; }
+.breadcrumb a { color: var(--text-dim); }
+.archive-badge { display:inline-block; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
+  padding: 3px 9px; border-radius: 999px; background: rgba(var(--demo-rgb),0.16); color: var(--demo); margin-bottom: 14px; }
+.detail { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; margin-bottom: 24px; }
+.detail-header { display:flex; align-items:center; justify-content:center; gap: 26px; margin-bottom: 8px; flex-wrap:wrap; }
+.detail-team { display:flex; flex-direction:column; align-items:center; gap:6px; width: 180px; }
+.detail-score { font-size:2.2rem; font-weight:800; }
+.detail-vs { text-align:center; }
+.detail-vs .final-label { display:block; color: var(--demo); font-weight:800; font-size:0.78rem; letter-spacing:.5px; margin-bottom:2px; }
+.detail-vs .kickoff-label { color: var(--text-dim); font-size: 0.75rem; }
+.section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 20px 0 10px; font-weight:700; }
+.linescore-table { width:100%; border-collapse: collapse; font-size: 0.85rem; }
+.linescore-table th, .linescore-table td { padding: 7px 10px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.linescore-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.linescore-table td:first-child, .linescore-table th:first-child { text-align:left; }
+.leaders-cols { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.leader-row { font-size:0.85rem; margin-bottom: 6px; }
+.leader-cat { color: var(--text-dim); font-size: 0.72rem; text-transform:uppercase; }
+.teamstats-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.teamstats-table th, .teamstats-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.teamstats-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.teamstats-table td:first-child, .teamstats-table th:first-child { text-align:left; color: var(--text-dim); }
+.teamstats-table td:not(:first-child), .teamstats-table th:not(:first-child) { text-align:center; }
+.playerstats-team { margin-bottom: 18px; }
+.playerstats-team h3 { font-size: 0.95rem; margin: 0 0 8px; }
+.playerstats-cat { margin-bottom: 12px; }
+.playerstats-cat h4 { font-size: 0.75rem; text-transform:uppercase; letter-spacing:.4px; color: var(--text-dim); margin: 0 0 6px; font-weight:700; }
+.playerstats-table { width:100%; border-collapse: collapse; font-size: 0.82rem; }
+.playerstats-table th, .playerstats-table td { padding: 5px 8px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.playerstats-table th { color: var(--text-dim); font-weight:600; font-size:0.68rem; text-transform:uppercase; }
+.playerstats-table td:first-child, .playerstats-table th:first-child { text-align:left; }
+.season-index-list { list-style:none; padding:0; margin:0; }
+.season-index-round { margin-bottom: 22px; }
+.season-index-round h3 { font-size: 0.95rem; margin-bottom: 8px; }
+.season-index-game { display:flex; justify-content:space-between; padding: 8px 10px; background: var(--card-bg);
+  border: 1px solid var(--card-border); border-radius: 10px; margin-bottom: 6px; font-size: 0.85rem; text-decoration:none; color: var(--text); }
+.season-index-game:hover { border-color: var(--accent); }
+.week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
+.week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
+  border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 22px; }
+.filter-row .week-picker { margin-bottom: 0; }
+.menu-block { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+.team-result-w { color: var(--win); font-weight: 700; }
+.team-result-l { color: var(--text-dim); font-weight: 700; }
+.team-result-t { color: var(--warn); font-weight: 700; }
+.rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
+.rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+.stat-compare { display: grid; grid-template-columns: 1fr 1fr auto; column-gap: 10px; row-gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+.stat-compare .col { display: flex; flex-direction: column; gap: 3px; }
+.stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; white-space: nowrap; }
+.rank-pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px; border: 1px solid transparent; }
+.rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
+.rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
+.rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
+.rank-good-slight { background: rgba(var(--win-rgb),0.10); color: var(--pill-good-text); }
+.rank-good-moderate { background: rgba(var(--win-rgb),0.24); color: var(--pill-good-text); border-color: rgba(var(--win-rgb),0.65); font-weight: 700; }
+.rank-good-significant { background: var(--win); color: var(--pill-good-fill-text); border-color: var(--win); font-weight: 800; }
+.rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
+.rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
+.rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
+
+/* Mobile: the desktop layout (3-col stat-compare, wide data tables) was
+   built and only ever tested at desktop width. Below ~600px: keep the
+   same 3-column layout (offense / defense / Total Difference as a right-
+   hand column, matching the live app) but shrink font/pill size and
+   column gap so it fits without squeezing the first two columns; shrink
+   table padding/font so wide tables (linescores, player stats) fit
+   without clipping; wrap tables in a horizontally-scrollable container as
+   a fallback for anything still too wide (long player names, etc.)
+   rather than letting them clip. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 600px) {
+  .app { padding: 14px 10px 40px; }
+  header.top h1 { font-size: 1.5rem; }
+  .detail { padding: 14px 10px; }
+  .detail-header { flex-wrap: nowrap; gap: 6px; align-items: center; }
+  .detail-team { width: auto; flex: 1 1 0; min-width: 0; gap: 2px; }
+  .detail-team-name { font-size: 0.72rem; line-height: 1.15; }
+  .detail-score { font-size: 1.3rem; }
+  .detail-vs { flex-shrink: 0; }
+  .detail-vs .final-label { font-size: 0.66rem; }
+  .detail-vs .kickoff-label { font-size: 0.58rem; }
+  .stat-compare { grid-template-columns: 1fr 1fr auto; column-gap: 6px; font-size: 0.62rem; }
+  .stat-compare .label { font-size: 0.64rem; }
+  .rank-pill { padding: 1px 4px; font-size: 0.6rem; margin-left: 2px; }
+  .linescore-table, .playerstats-table, .teamstats-table { font-size: 0.76rem; }
+  .linescore-table th, .linescore-table td,
+  .playerstats-table th, .playerstats-table td,
+  .teamstats-table th, .teamstats-table td { padding: 5px 6px; }
+  .leaders-cols, .playerstats-team { display: block; }
+  .filter-row { flex-direction: column; gap: 12px; }
+  .week-picker { flex-wrap: wrap; }
+  .week-select { flex: 1; min-width: 0; }
+}
+footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+
+/* Injury Report - mirrors live app's .injury-report/.impact-note markup
+   and colors exactly, so this reads as the same feature as the live
+   team-page injury report, just archived at kickoff-time. */
+.injury-report-archive { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.injury-team-col h4 { font-size: 0.8rem; margin: 0 0 8px; }
+.injury-list { display: flex; flex-direction: column; gap: 6px; }
+.injury-none { color: var(--text-dim); font-size: 0.78rem; margin: 0; }
+.impact-note { font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start; }
+.impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
+.impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
+.impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+.impact-note-detail { color: var(--text-dim); font-size: 0.68rem; margin-top: 3px; line-height: 1.35; }
+@media (max-width: 600px) {
+  .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1><a href="/">Blitz<span class="brand-odds">Odds</span></a></h1>
+  </header>
+  <div class="breadcrumb"><a href="/">Home</a> &raquo; 2021 Preseason</div>
+  
+    <span class="archive-badge">Historical Archive — 2021 Preseason</span>
+    <h2 style="margin-top:0;">2021 NFL Preseason Results</h2>
+    <div class="week-picker">
+      <label for="week-select" style="color:var(--text-dim); font-size:0.82rem;">Jump to:</label>
+      <select id="week-select" class="week-select">
+        <option value="all">All Weeks</option>
+        <option value="round-1">Hall of Fame Game</option>
+<option value="round-2">Preseason Week 1</option>
+<option value="round-3">Preseason Week 2</option>
+<option value="round-4">Preseason Week 3</option>
+      </select>
+    </div>
+    <div class="season-index-list">
+      
+        <div class="season-index-round" id="round-1">
+          <h3>Hall of Fame Game</h3>
+          <a class="season-index-game" data-origin="index" data-away="DAL" data-home="PIT" href="/historical/2021/preseason/hall-of-fame-game/dallas-cowboys-at-pittsburgh-steelers.html">
+                <span>Dallas Cowboys @ Pittsburgh Steelers</span>
+                <span>3-16</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-2">
+          <h3>Preseason Week 1</h3>
+          <a class="season-index-game" data-origin="index" data-away="WAS" data-home="NE" href="/historical/2021/preseason/preseason-week-1/washington-commanders-at-new-england-patriots.html">
+                <span>Washington Commanders @ New England Patriots</span>
+                <span>13-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="PHI" href="/historical/2021/preseason/preseason-week-1/pittsburgh-steelers-at-philadelphia-eagles.html">
+                <span>Pittsburgh Steelers @ Philadelphia Eagles</span>
+                <span>24-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="ATL" href="/historical/2021/preseason/preseason-week-1/tennessee-titans-at-atlanta-falcons.html">
+                <span>Tennessee Titans @ Atlanta Falcons</span>
+                <span>23-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="DET" href="/historical/2021/preseason/preseason-week-1/buffalo-bills-at-detroit-lions.html">
+                <span>Buffalo Bills @ Detroit Lions</span>
+                <span>16-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="ARI" href="/historical/2021/preseason/preseason-week-1/dallas-cowboys-at-arizona-cardinals.html">
+                <span>Dallas Cowboys @ Arizona Cardinals</span>
+                <span>16-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="CHI" href="/historical/2021/preseason/preseason-week-1/miami-dolphins-at-chicago-bears.html">
+                <span>Miami Dolphins @ Chicago Bears</span>
+                <span>13-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="MIN" href="/historical/2021/preseason/preseason-week-1/denver-broncos-at-minnesota-vikings.html">
+                <span>Denver Broncos @ Minnesota Vikings</span>
+                <span>33-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="JAX" href="/historical/2021/preseason/preseason-week-1/cleveland-browns-at-jacksonville-jaguars.html">
+                <span>Cleveland Browns @ Jacksonville Jaguars</span>
+                <span>23-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="BAL" href="/historical/2021/preseason/preseason-week-1/new-orleans-saints-at-baltimore-ravens.html">
+                <span>New Orleans Saints @ Baltimore Ravens</span>
+                <span>14-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="NYG" href="/historical/2021/preseason/preseason-week-1/new-york-jets-at-new-york-giants.html">
+                <span>New York Jets @ New York Giants</span>
+                <span>12-7</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="TB" href="/historical/2021/preseason/preseason-week-1/cincinnati-bengals-at-tampa-bay-buccaneers.html">
+                <span>Cincinnati Bengals @ Tampa Bay Buccaneers</span>
+                <span>19-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="GB" href="/historical/2021/preseason/preseason-week-1/houston-texans-at-green-bay-packers.html">
+                <span>Houston Texans @ Green Bay Packers</span>
+                <span>26-7</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="SF" href="/historical/2021/preseason/preseason-week-1/kansas-city-chiefs-at-san-francisco-49ers.html">
+                <span>Kansas City Chiefs @ San Francisco 49ers</span>
+                <span>19-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="LV" href="/historical/2021/preseason/preseason-week-1/seattle-seahawks-at-las-vegas-raiders.html">
+                <span>Seattle Seahawks @ Las Vegas Raiders</span>
+                <span>7-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="LAR" href="/historical/2021/preseason/preseason-week-1/los-angeles-chargers-at-los-angeles-rams.html">
+                <span>Los Angeles Chargers @ Los Angeles Rams</span>
+                <span>13-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="IND" href="/historical/2021/preseason/preseason-week-1/carolina-panthers-at-indianapolis-colts.html">
+                <span>Carolina Panthers @ Indianapolis Colts</span>
+                <span>18-21</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-3">
+          <h3>Preseason Week 2</h3>
+          <a class="season-index-game" data-origin="index" data-away="NE" data-home="PHI" href="/historical/2021/preseason/preseason-week-2/new-england-patriots-at-philadelphia-eagles.html">
+                <span>New England Patriots @ Philadelphia Eagles</span>
+                <span>35-0</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="ARI" href="/historical/2021/preseason/preseason-week-2/kansas-city-chiefs-at-arizona-cardinals.html">
+                <span>Kansas City Chiefs @ Arizona Cardinals</span>
+                <span>17-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="WAS" href="/historical/2021/preseason/preseason-week-2/cincinnati-bengals-at-washington-commanders.html">
+                <span>Cincinnati Bengals @ Washington Commanders</span>
+                <span>13-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="CHI" href="/historical/2021/preseason/preseason-week-2/buffalo-bills-at-chicago-bears.html">
+                <span>Buffalo Bills @ Chicago Bears</span>
+                <span>41-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="GB" href="/historical/2021/preseason/preseason-week-2/new-york-jets-at-green-bay-packers.html">
+                <span>New York Jets @ Green Bay Packers</span>
+                <span>23-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="MIA" href="/historical/2021/preseason/preseason-week-2/atlanta-falcons-at-miami-dolphins.html">
+                <span>Atlanta Falcons @ Miami Dolphins</span>
+                <span>17-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CAR" href="/historical/2021/preseason/preseason-week-2/baltimore-ravens-at-carolina-panthers.html">
+                <span>Baltimore Ravens @ Carolina Panthers</span>
+                <span>20-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="PIT" href="/historical/2021/preseason/preseason-week-2/detroit-lions-at-pittsburgh-steelers.html">
+                <span>Detroit Lions @ Pittsburgh Steelers</span>
+                <span>20-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="TB" href="/historical/2021/preseason/preseason-week-2/tennessee-titans-at-tampa-bay-buccaneers.html">
+                <span>Tennessee Titans @ Tampa Bay Buccaneers</span>
+                <span>34-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="DAL" href="/historical/2021/preseason/preseason-week-2/houston-texans-at-dallas-cowboys.html">
+                <span>Houston Texans @ Dallas Cowboys</span>
+                <span>20-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="MIN" href="/historical/2021/preseason/preseason-week-2/indianapolis-colts-at-minnesota-vikings.html">
+                <span>Indianapolis Colts @ Minnesota Vikings</span>
+                <span>12-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="LAR" href="/historical/2021/preseason/preseason-week-2/las-vegas-raiders-at-los-angeles-rams.html">
+                <span>Las Vegas Raiders @ Los Angeles Rams</span>
+                <span>17-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="SEA" href="/historical/2021/preseason/preseason-week-2/denver-broncos-at-seattle-seahawks.html">
+                <span>Denver Broncos @ Seattle Seahawks</span>
+                <span>30-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="CLE" href="/historical/2021/preseason/preseason-week-2/new-york-giants-at-cleveland-browns.html">
+                <span>New York Giants @ Cleveland Browns</span>
+                <span>13-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="LAC" href="/historical/2021/preseason/preseason-week-2/san-francisco-49ers-at-los-angeles-chargers.html">
+                <span>San Francisco 49ers @ Los Angeles Chargers</span>
+                <span>15-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="NO" href="/historical/2021/preseason/preseason-week-2/jacksonville-jaguars-at-new-orleans-saints.html">
+                <span>Jacksonville Jaguars @ New Orleans Saints</span>
+                <span>21-23</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-4">
+          <h3>Preseason Week 3</h3>
+          <a class="season-index-game" data-origin="index" data-away="IND" data-home="DET" href="/historical/2021/preseason/preseason-week-3/indianapolis-colts-at-detroit-lions.html">
+                <span>Indianapolis Colts @ Detroit Lions</span>
+                <span>27-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="NYJ" href="/historical/2021/preseason/preseason-week-3/philadelphia-eagles-at-new-york-jets.html">
+                <span>Philadelphia Eagles @ New York Jets</span>
+                <span>31-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="CAR" href="/historical/2021/preseason/preseason-week-3/pittsburgh-steelers-at-carolina-panthers.html">
+                <span>Pittsburgh Steelers @ Carolina Panthers</span>
+                <span>9-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="KC" href="/historical/2021/preseason/preseason-week-3/minnesota-vikings-at-kansas-city-chiefs.html">
+                <span>Minnesota Vikings @ Kansas City Chiefs</span>
+                <span>25-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="BUF" href="/historical/2021/preseason/preseason-week-3/green-bay-packers-at-buffalo-bills.html">
+                <span>Green Bay Packers @ Buffalo Bills</span>
+                <span>0-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="WAS" href="/historical/2021/preseason/preseason-week-3/baltimore-ravens-at-washington-commanders.html">
+                <span>Baltimore Ravens @ Washington Commanders</span>
+                <span>37-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="TEN" href="/historical/2021/preseason/preseason-week-3/chicago-bears-at-tennessee-titans.html">
+                <span>Chicago Bears @ Tennessee Titans</span>
+                <span>27-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="HOU" href="/historical/2021/preseason/preseason-week-3/tampa-bay-buccaneers-at-houston-texans.html">
+                <span>Tampa Bay Buccaneers @ Houston Texans</span>
+                <span>23-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="DEN" href="/historical/2021/preseason/preseason-week-3/los-angeles-rams-at-denver-broncos.html">
+                <span>Los Angeles Rams @ Denver Broncos</span>
+                <span>12-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="SEA" href="/historical/2021/preseason/preseason-week-3/los-angeles-chargers-at-seattle-seahawks.html">
+                <span>Los Angeles Chargers @ Seattle Seahawks</span>
+                <span>0-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="DAL" href="/historical/2021/preseason/preseason-week-3/jacksonville-jaguars-at-dallas-cowboys.html">
+                <span>Jacksonville Jaguars @ Dallas Cowboys</span>
+                <span>34-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="CIN" href="/historical/2021/preseason/preseason-week-3/miami-dolphins-at-cincinnati-bengals.html">
+                <span>Miami Dolphins @ Cincinnati Bengals</span>
+                <span>29-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LV" data-home="SF" href="/historical/2021/preseason/preseason-week-3/las-vegas-raiders-at-san-francisco-49ers.html">
+                <span>Las Vegas Raiders @ San Francisco 49ers</span>
+                <span>10-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="NYG" href="/historical/2021/preseason/preseason-week-3/new-england-patriots-at-new-york-giants.html">
+                <span>New England Patriots @ New York Giants</span>
+                <span>22-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="ATL" href="/historical/2021/preseason/preseason-week-3/cleveland-browns-at-atlanta-falcons.html">
+                <span>Cleveland Browns @ Atlanta Falcons</span>
+                <span>19-10</span>
+              </a>
+        </div>
+    </div>
+  
+  <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
+</div>
+<script src="/js/analytics.js"></script>
+<script>
+    document.getElementById('week-select').addEventListener('change', function (e) {
+      var sections = document.querySelectorAll('.season-index-round');
+      var target = e.target.value;
+      sections.forEach(function (s) {
+        s.style.display = (target === 'all' || s.id === target) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2015 NFL Regular Season Results — Every Score &amp; Box Score | Blitz Odds</title>
+<meta name="description" content="Final scores and box scores for every 2015 NFL regular season game." />
+<link rel="canonical" href="https://blitz-odds.netlify.app/historical/2015/regular-season/index.html" />
+<meta property="og:title" content="2015 NFL Regular Season Results — Every Score &amp; Box Score | Blitz Odds" />
+<meta property="og:description" content="Final scores and box scores for every 2015 NFL regular season game." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blitz-odds.netlify.app/historical/2015/regular-season/index.html" />
+<meta name="twitter:card" content="summary" />
+<style>
+:root {
+  --bg: #0b1220; --card-bg: #131c2e; --card-border: #223049; --surface-2: #1a2438;
+  --text: #eef2f8; --text-dim: #9fb0c9; --accent: #4fd1c5; --accent-rgb: 79,209,197;
+  --win: #2ecc71; --win-rgb: 46,204,113; --lose: #55617a; --demo: #a855f7; --demo-rgb: 168,85,247;
+  --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
+  --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
+  --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
+  --pill-out-text: #ff8080; --pill-questionable-text: #f5c168;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
+.app { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+a { color: var(--accent); }
+header.top { text-align: center; margin-bottom: 18px; }
+header.top h1 { font-size: 1.85rem; margin: 0 0 4px; font-weight: 800; }
+header.top h1 a { text-decoration: none; color: inherit; }
+.brand-odds { color: var(--accent); }
+.breadcrumb { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 18px; }
+.breadcrumb a { color: var(--text-dim); }
+.archive-badge { display:inline-block; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
+  padding: 3px 9px; border-radius: 999px; background: rgba(var(--demo-rgb),0.16); color: var(--demo); margin-bottom: 14px; }
+.detail { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; margin-bottom: 24px; }
+.detail-header { display:flex; align-items:center; justify-content:center; gap: 26px; margin-bottom: 8px; flex-wrap:wrap; }
+.detail-team { display:flex; flex-direction:column; align-items:center; gap:6px; width: 180px; }
+.detail-score { font-size:2.2rem; font-weight:800; }
+.detail-vs { text-align:center; }
+.detail-vs .final-label { display:block; color: var(--demo); font-weight:800; font-size:0.78rem; letter-spacing:.5px; margin-bottom:2px; }
+.detail-vs .kickoff-label { color: var(--text-dim); font-size: 0.75rem; }
+.section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 20px 0 10px; font-weight:700; }
+.linescore-table { width:100%; border-collapse: collapse; font-size: 0.85rem; }
+.linescore-table th, .linescore-table td { padding: 7px 10px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.linescore-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.linescore-table td:first-child, .linescore-table th:first-child { text-align:left; }
+.leaders-cols { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.leader-row { font-size:0.85rem; margin-bottom: 6px; }
+.leader-cat { color: var(--text-dim); font-size: 0.72rem; text-transform:uppercase; }
+.teamstats-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.teamstats-table th, .teamstats-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.teamstats-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.teamstats-table td:first-child, .teamstats-table th:first-child { text-align:left; color: var(--text-dim); }
+.teamstats-table td:not(:first-child), .teamstats-table th:not(:first-child) { text-align:center; }
+.playerstats-team { margin-bottom: 18px; }
+.playerstats-team h3 { font-size: 0.95rem; margin: 0 0 8px; }
+.playerstats-cat { margin-bottom: 12px; }
+.playerstats-cat h4 { font-size: 0.75rem; text-transform:uppercase; letter-spacing:.4px; color: var(--text-dim); margin: 0 0 6px; font-weight:700; }
+.playerstats-table { width:100%; border-collapse: collapse; font-size: 0.82rem; }
+.playerstats-table th, .playerstats-table td { padding: 5px 8px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.playerstats-table th { color: var(--text-dim); font-weight:600; font-size:0.68rem; text-transform:uppercase; }
+.playerstats-table td:first-child, .playerstats-table th:first-child { text-align:left; }
+.season-index-list { list-style:none; padding:0; margin:0; }
+.season-index-round { margin-bottom: 22px; }
+.season-index-round h3 { font-size: 0.95rem; margin-bottom: 8px; }
+.season-index-game { display:flex; justify-content:space-between; padding: 8px 10px; background: var(--card-bg);
+  border: 1px solid var(--card-border); border-radius: 10px; margin-bottom: 6px; font-size: 0.85rem; text-decoration:none; color: var(--text); }
+.season-index-game:hover { border-color: var(--accent); }
+.week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
+.week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
+  border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 22px; }
+.filter-row .week-picker { margin-bottom: 0; }
+.menu-block { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+.team-result-w { color: var(--win); font-weight: 700; }
+.team-result-l { color: var(--text-dim); font-weight: 700; }
+.team-result-t { color: var(--warn); font-weight: 700; }
+.rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
+.rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+.stat-compare { display: grid; grid-template-columns: 1fr 1fr auto; column-gap: 10px; row-gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+.stat-compare .col { display: flex; flex-direction: column; gap: 3px; }
+.stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; white-space: nowrap; }
+.rank-pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px; border: 1px solid transparent; }
+.rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
+.rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
+.rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
+.rank-good-slight { background: rgba(var(--win-rgb),0.10); color: var(--pill-good-text); }
+.rank-good-moderate { background: rgba(var(--win-rgb),0.24); color: var(--pill-good-text); border-color: rgba(var(--win-rgb),0.65); font-weight: 700; }
+.rank-good-significant { background: var(--win); color: var(--pill-good-fill-text); border-color: var(--win); font-weight: 800; }
+.rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
+.rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
+.rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
+
+/* Mobile: the desktop layout (3-col stat-compare, wide data tables) was
+   built and only ever tested at desktop width. Below ~600px: keep the
+   same 3-column layout (offense / defense / Total Difference as a right-
+   hand column, matching the live app) but shrink font/pill size and
+   column gap so it fits without squeezing the first two columns; shrink
+   table padding/font so wide tables (linescores, player stats) fit
+   without clipping; wrap tables in a horizontally-scrollable container as
+   a fallback for anything still too wide (long player names, etc.)
+   rather than letting them clip. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 600px) {
+  .app { padding: 14px 10px 40px; }
+  header.top h1 { font-size: 1.5rem; }
+  .detail { padding: 14px 10px; }
+  .detail-header { flex-wrap: nowrap; gap: 6px; align-items: center; }
+  .detail-team { width: auto; flex: 1 1 0; min-width: 0; gap: 2px; }
+  .detail-team-name { font-size: 0.72rem; line-height: 1.15; }
+  .detail-score { font-size: 1.3rem; }
+  .detail-vs { flex-shrink: 0; }
+  .detail-vs .final-label { font-size: 0.66rem; }
+  .detail-vs .kickoff-label { font-size: 0.58rem; }
+  .stat-compare { grid-template-columns: 1fr 1fr auto; column-gap: 6px; font-size: 0.62rem; }
+  .stat-compare .label { font-size: 0.64rem; }
+  .rank-pill { padding: 1px 4px; font-size: 0.6rem; margin-left: 2px; }
+  .linescore-table, .playerstats-table, .teamstats-table { font-size: 0.76rem; }
+  .linescore-table th, .linescore-table td,
+  .playerstats-table th, .playerstats-table td,
+  .teamstats-table th, .teamstats-table td { padding: 5px 6px; }
+  .leaders-cols, .playerstats-team { display: block; }
+  .filter-row { flex-direction: column; gap: 12px; }
+  .week-picker { flex-wrap: wrap; }
+  .week-select { flex: 1; min-width: 0; }
+}
+footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+
+/* Injury Report - mirrors live app's .injury-report/.impact-note markup
+   and colors exactly, so this reads as the same feature as the live
+   team-page injury report, just archived at kickoff-time. */
+.injury-report-archive { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.injury-team-col h4 { font-size: 0.8rem; margin: 0 0 8px; }
+.injury-list { display: flex; flex-direction: column; gap: 6px; }
+.injury-none { color: var(--text-dim); font-size: 0.78rem; margin: 0; }
+.impact-note { font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start; }
+.impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
+.impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
+.impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+.impact-note-detail { color: var(--text-dim); font-size: 0.68rem; margin-top: 3px; line-height: 1.35; }
+@media (max-width: 600px) {
+  .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1><a href="/">Blitz<span class="brand-odds">Odds</span></a></h1>
+  </header>
+  <div class="breadcrumb"><a href="/">Home</a> &raquo; 2015 Regular Season</div>
+  
+    <span class="archive-badge">Historical Archive — 2015 Regular Season</span>
+    <h2 style="margin-top:0;">2015 NFL Regular Season Results</h2>
+    <div class="week-picker">
+      <label for="week-select" style="color:var(--text-dim); font-size:0.82rem;">Jump to:</label>
+      <select id="week-select" class="week-select">
+        <option value="all">All Weeks</option>
+        <option value="round-1">Week 1</option>
+<option value="round-2">Week 2</option>
+<option value="round-3">Week 3</option>
+<option value="round-4">Week 4</option>
+<option value="round-5">Week 5</option>
+<option value="round-6">Week 6</option>
+<option value="round-7">Week 7</option>
+<option value="round-8">Week 8</option>
+<option value="round-9">Week 9</option>
+<option value="round-10">Week 10</option>
+<option value="round-11">Week 11</option>
+<option value="round-12">Week 12</option>
+<option value="round-13">Week 13</option>
+<option value="round-14">Week 14</option>
+<option value="round-15">Week 15</option>
+<option value="round-16">Week 16</option>
+<option value="round-17">Week 17</option>
+      </select>
+    </div>
+    <div class="season-index-list">
+      
+        <div class="season-index-round" id="round-1">
+          <h3>Week 1</h3>
+          <a class="season-index-game" data-origin="index" data-away="PIT" data-home="NE" href="/historical/2015/regular-season/week-1/pittsburgh-steelers-at-new-england-patriots.html">
+                <span>Pittsburgh Steelers @ New England Patriots</span>
+                <span>21-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="BUF" href="/historical/2015/regular-season/week-1/indianapolis-colts-at-buffalo-bills.html">
+                <span>Indianapolis Colts @ Buffalo Bills</span>
+                <span>14-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="CHI" href="/historical/2015/regular-season/week-1/green-bay-packers-at-chicago-bears.html">
+                <span>Green Bay Packers @ Chicago Bears</span>
+                <span>31-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="STL" href="/historical/2015/regular-season/week-1/seattle-seahawks-at-stl.html">
+                <span>Seattle Seahawks @ St. Louis Rams</span>
+                <span>31-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="NYJ" href="/historical/2015/regular-season/week-1/cleveland-browns-at-new-york-jets.html">
+                <span>Cleveland Browns @ New York Jets</span>
+                <span>10-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="WAS" href="/historical/2015/regular-season/week-1/miami-dolphins-at-washington-commanders.html">
+                <span>Miami Dolphins @ Washington Commanders</span>
+                <span>17-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="JAX" href="/historical/2015/regular-season/week-1/carolina-panthers-at-jacksonville-jaguars.html">
+                <span>Carolina Panthers @ Jacksonville Jaguars</span>
+                <span>20-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="HOU" href="/historical/2015/regular-season/week-1/kansas-city-chiefs-at-houston-texans.html">
+                <span>Kansas City Chiefs @ Houston Texans</span>
+                <span>27-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="ARI" href="/historical/2015/regular-season/week-1/new-orleans-saints-at-arizona-cardinals.html">
+                <span>New Orleans Saints @ Arizona Cardinals</span>
+                <span>19-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="SD" href="/historical/2015/regular-season/week-1/detroit-lions-at-sd.html">
+                <span>Detroit Lions @ San Diego Chargers</span>
+                <span>28-33</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="DEN" href="/historical/2015/regular-season/week-1/baltimore-ravens-at-denver-broncos.html">
+                <span>Baltimore Ravens @ Denver Broncos</span>
+                <span>13-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="OAK" href="/historical/2015/regular-season/week-1/cincinnati-bengals-at-oak.html">
+                <span>Cincinnati Bengals @ Oakland Raiders</span>
+                <span>33-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="TB" href="/historical/2015/regular-season/week-1/tennessee-titans-at-tampa-bay-buccaneers.html">
+                <span>Tennessee Titans @ Tampa Bay Buccaneers</span>
+                <span>42-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="DAL" href="/historical/2015/regular-season/week-1/new-york-giants-at-dallas-cowboys.html">
+                <span>New York Giants @ Dallas Cowboys</span>
+                <span>26-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="ATL" href="/historical/2015/regular-season/week-1/philadelphia-eagles-at-atlanta-falcons.html">
+                <span>Philadelphia Eagles @ Atlanta Falcons</span>
+                <span>24-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="SF" href="/historical/2015/regular-season/week-1/minnesota-vikings-at-san-francisco-49ers.html">
+                <span>Minnesota Vikings @ San Francisco 49ers</span>
+                <span>3-20</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-2">
+          <h3>Week 2</h3>
+          <a class="season-index-game" data-origin="index" data-away="DEN" data-home="KC" href="/historical/2015/regular-season/week-2/denver-broncos-at-kansas-city-chiefs.html">
+                <span>Denver Broncos @ Kansas City Chiefs</span>
+                <span>31-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="BUF" href="/historical/2015/regular-season/week-2/new-england-patriots-at-buffalo-bills.html">
+                <span>New England Patriots @ Buffalo Bills</span>
+                <span>40-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="CHI" href="/historical/2015/regular-season/week-2/arizona-cardinals-at-chicago-bears.html">
+                <span>Arizona Cardinals @ Chicago Bears</span>
+                <span>48-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SD" data-home="CIN" href="/historical/2015/regular-season/week-2/sd-at-cincinnati-bengals.html">
+                <span>San Diego Chargers @ Cincinnati Bengals</span>
+                <span>19-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="CLE" href="/historical/2015/regular-season/week-2/tennessee-titans-at-cleveland-browns.html">
+                <span>Tennessee Titans @ Cleveland Browns</span>
+                <span>14-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="MIN" href="/historical/2015/regular-season/week-2/detroit-lions-at-minnesota-vikings.html">
+                <span>Detroit Lions @ Minnesota Vikings</span>
+                <span>16-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="NO" href="/historical/2015/regular-season/week-2/tampa-bay-buccaneers-at-new-orleans-saints.html">
+                <span>Tampa Bay Buccaneers @ New Orleans Saints</span>
+                <span>26-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="NYG" href="/historical/2015/regular-season/week-2/atlanta-falcons-at-new-york-giants.html">
+                <span>Atlanta Falcons @ New York Giants</span>
+                <span>24-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="PIT" href="/historical/2015/regular-season/week-2/san-francisco-49ers-at-pittsburgh-steelers.html">
+                <span>San Francisco 49ers @ Pittsburgh Steelers</span>
+                <span>18-43</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="STL" data-home="WAS" href="/historical/2015/regular-season/week-2/stl-at-washington-commanders.html">
+                <span>St. Louis Rams @ Washington Commanders</span>
+                <span>10-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="CAR" href="/historical/2015/regular-season/week-2/houston-texans-at-carolina-panthers.html">
+                <span>Houston Texans @ Carolina Panthers</span>
+                <span>17-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="OAK" href="/historical/2015/regular-season/week-2/baltimore-ravens-at-oak.html">
+                <span>Baltimore Ravens @ Oakland Raiders</span>
+                <span>33-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="JAX" href="/historical/2015/regular-season/week-2/miami-dolphins-at-jacksonville-jaguars.html">
+                <span>Miami Dolphins @ Jacksonville Jaguars</span>
+                <span>20-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="PHI" href="/historical/2015/regular-season/week-2/dallas-cowboys-at-philadelphia-eagles.html">
+                <span>Dallas Cowboys @ Philadelphia Eagles</span>
+                <span>20-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="GB" href="/historical/2015/regular-season/week-2/seattle-seahawks-at-green-bay-packers.html">
+                <span>Seattle Seahawks @ Green Bay Packers</span>
+                <span>17-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="IND" href="/historical/2015/regular-season/week-2/new-york-jets-at-indianapolis-colts.html">
+                <span>New York Jets @ Indianapolis Colts</span>
+                <span>20-7</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-3">
+          <h3>Week 3</h3>
+          <a class="season-index-game" data-origin="index" data-away="WAS" data-home="NYG" href="/historical/2015/regular-season/week-3/washington-commanders-at-new-york-giants.html">
+                <span>Washington Commanders @ New York Giants</span>
+                <span>21-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="CLE" href="/historical/2015/regular-season/week-3/oak-at-cleveland-browns.html">
+                <span>Oakland Raiders @ Cleveland Browns</span>
+                <span>27-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="DAL" href="/historical/2015/regular-season/week-3/atlanta-falcons-at-dallas-cowboys.html">
+                <span>Atlanta Falcons @ Dallas Cowboys</span>
+                <span>39-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="TEN" href="/historical/2015/regular-season/week-3/indianapolis-colts-at-tennessee-titans.html">
+                <span>Indianapolis Colts @ Tennessee Titans</span>
+                <span>35-33</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="STL" href="/historical/2015/regular-season/week-3/pittsburgh-steelers-at-stl.html">
+                <span>Pittsburgh Steelers @ St. Louis Rams</span>
+                <span>12-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SD" data-home="MIN" href="/historical/2015/regular-season/week-3/sd-at-minnesota-vikings.html">
+                <span>San Diego Chargers @ Minnesota Vikings</span>
+                <span>14-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="NE" href="/historical/2015/regular-season/week-3/jacksonville-jaguars-at-new-england-patriots.html">
+                <span>Jacksonville Jaguars @ New England Patriots</span>
+                <span>17-51</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="NYJ" href="/historical/2015/regular-season/week-3/philadelphia-eagles-at-new-york-jets.html">
+                <span>Philadelphia Eagles @ New York Jets</span>
+                <span>24-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="CAR" href="/historical/2015/regular-season/week-3/new-orleans-saints-at-carolina-panthers.html">
+                <span>New Orleans Saints @ Carolina Panthers</span>
+                <span>22-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="BAL" href="/historical/2015/regular-season/week-3/cincinnati-bengals-at-baltimore-ravens.html">
+                <span>Cincinnati Bengals @ Baltimore Ravens</span>
+                <span>28-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="HOU" href="/historical/2015/regular-season/week-3/tampa-bay-buccaneers-at-houston-texans.html">
+                <span>Tampa Bay Buccaneers @ Houston Texans</span>
+                <span>9-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="ARI" href="/historical/2015/regular-season/week-3/san-francisco-49ers-at-arizona-cardinals.html">
+                <span>San Francisco 49ers @ Arizona Cardinals</span>
+                <span>7-47</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="MIA" href="/historical/2015/regular-season/week-3/buffalo-bills-at-miami-dolphins.html">
+                <span>Buffalo Bills @ Miami Dolphins</span>
+                <span>41-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="SEA" href="/historical/2015/regular-season/week-3/chicago-bears-at-seattle-seahawks.html">
+                <span>Chicago Bears @ Seattle Seahawks</span>
+                <span>0-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="DET" href="/historical/2015/regular-season/week-3/denver-broncos-at-detroit-lions.html">
+                <span>Denver Broncos @ Detroit Lions</span>
+                <span>24-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="GB" href="/historical/2015/regular-season/week-3/kansas-city-chiefs-at-green-bay-packers.html">
+                <span>Kansas City Chiefs @ Green Bay Packers</span>
+                <span>28-38</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-4">
+          <h3>Week 4</h3>
+          <a class="season-index-game" data-origin="index" data-away="BAL" data-home="PIT" href="/historical/2015/regular-season/week-4/baltimore-ravens-at-pittsburgh-steelers.html">
+                <span>Baltimore Ravens @ Pittsburgh Steelers</span>
+                <span>23-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="MIA" href="/historical/2015/regular-season/week-4/new-york-jets-at-miami-dolphins.html">
+                <span>New York Jets @ Miami Dolphins</span>
+                <span>27-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="ATL" href="/historical/2015/regular-season/week-4/houston-texans-at-atlanta-falcons.html">
+                <span>Houston Texans @ Atlanta Falcons</span>
+                <span>21-48</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="BUF" href="/historical/2015/regular-season/week-4/new-york-giants-at-buffalo-bills.html">
+                <span>New York Giants @ Buffalo Bills</span>
+                <span>24-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="CHI" href="/historical/2015/regular-season/week-4/oak-at-chicago-bears.html">
+                <span>Oakland Raiders @ Chicago Bears</span>
+                <span>20-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="CIN" href="/historical/2015/regular-season/week-4/kansas-city-chiefs-at-cincinnati-bengals.html">
+                <span>Kansas City Chiefs @ Cincinnati Bengals</span>
+                <span>21-36</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="IND" href="/historical/2015/regular-season/week-4/jacksonville-jaguars-at-indianapolis-colts.html">
+                <span>Jacksonville Jaguars @ Indianapolis Colts</span>
+                <span>13-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="TB" href="/historical/2015/regular-season/week-4/carolina-panthers-at-tampa-bay-buccaneers.html">
+                <span>Carolina Panthers @ Tampa Bay Buccaneers</span>
+                <span>37-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="WAS" href="/historical/2015/regular-season/week-4/philadelphia-eagles-at-washington-commanders.html">
+                <span>Philadelphia Eagles @ Washington Commanders</span>
+                <span>20-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="SD" href="/historical/2015/regular-season/week-4/cleveland-browns-at-sd.html">
+                <span>Cleveland Browns @ San Diego Chargers</span>
+                <span>27-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="DEN" href="/historical/2015/regular-season/week-4/minnesota-vikings-at-denver-broncos.html">
+                <span>Minnesota Vikings @ Denver Broncos</span>
+                <span>20-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="STL" data-home="ARI" href="/historical/2015/regular-season/week-4/stl-at-arizona-cardinals.html">
+                <span>St. Louis Rams @ Arizona Cardinals</span>
+                <span>24-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="SF" href="/historical/2015/regular-season/week-4/green-bay-packers-at-san-francisco-49ers.html">
+                <span>Green Bay Packers @ San Francisco 49ers</span>
+                <span>17-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="NO" href="/historical/2015/regular-season/week-4/dallas-cowboys-at-new-orleans-saints.html">
+                <span>Dallas Cowboys @ New Orleans Saints</span>
+                <span>20-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="SEA" href="/historical/2015/regular-season/week-4/detroit-lions-at-seattle-seahawks.html">
+                <span>Detroit Lions @ Seattle Seahawks</span>
+                <span>10-13</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-5">
+          <h3>Week 5</h3>
+          <a class="season-index-game" data-origin="index" data-away="IND" data-home="HOU" href="/historical/2015/regular-season/week-5/indianapolis-colts-at-houston-texans.html">
+                <span>Indianapolis Colts @ Houston Texans</span>
+                <span>27-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="ATL" href="/historical/2015/regular-season/week-5/washington-commanders-at-atlanta-falcons.html">
+                <span>Washington Commanders @ Atlanta Falcons</span>
+                <span>19-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="CIN" href="/historical/2015/regular-season/week-5/seattle-seahawks-at-cincinnati-bengals.html">
+                <span>Seattle Seahawks @ Cincinnati Bengals</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="STL" data-home="GB" href="/historical/2015/regular-season/week-5/stl-at-green-bay-packers.html">
+                <span>St. Louis Rams @ Green Bay Packers</span>
+                <span>10-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="TEN" href="/historical/2015/regular-season/week-5/buffalo-bills-at-tennessee-titans.html">
+                <span>Buffalo Bills @ Tennessee Titans</span>
+                <span>14-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="KC" href="/historical/2015/regular-season/week-5/chicago-bears-at-kansas-city-chiefs.html">
+                <span>Chicago Bears @ Kansas City Chiefs</span>
+                <span>18-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="PHI" href="/historical/2015/regular-season/week-5/new-orleans-saints-at-philadelphia-eagles.html">
+                <span>New Orleans Saints @ Philadelphia Eagles</span>
+                <span>17-39</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="TB" href="/historical/2015/regular-season/week-5/jacksonville-jaguars-at-tampa-bay-buccaneers.html">
+                <span>Jacksonville Jaguars @ Tampa Bay Buccaneers</span>
+                <span>31-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="BAL" href="/historical/2015/regular-season/week-5/cleveland-browns-at-baltimore-ravens.html">
+                <span>Cleveland Browns @ Baltimore Ravens</span>
+                <span>33-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="DET" href="/historical/2015/regular-season/week-5/arizona-cardinals-at-detroit-lions.html">
+                <span>Arizona Cardinals @ Detroit Lions</span>
+                <span>42-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="DAL" href="/historical/2015/regular-season/week-5/new-england-patriots-at-dallas-cowboys.html">
+                <span>New England Patriots @ Dallas Cowboys</span>
+                <span>30-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="OAK" href="/historical/2015/regular-season/week-5/denver-broncos-at-oak.html">
+                <span>Denver Broncos @ Oakland Raiders</span>
+                <span>16-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="NYG" href="/historical/2015/regular-season/week-5/san-francisco-49ers-at-new-york-giants.html">
+                <span>San Francisco 49ers @ New York Giants</span>
+                <span>27-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="SD" href="/historical/2015/regular-season/week-5/pittsburgh-steelers-at-sd.html">
+                <span>Pittsburgh Steelers @ San Diego Chargers</span>
+                <span>24-20</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-6">
+          <h3>Week 6</h3>
+          <a class="season-index-game" data-origin="index" data-away="ATL" data-home="NO" href="/historical/2015/regular-season/week-6/atlanta-falcons-at-new-orleans-saints.html">
+                <span>Atlanta Falcons @ New Orleans Saints</span>
+                <span>21-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="BUF" href="/historical/2015/regular-season/week-6/cincinnati-bengals-at-buffalo-bills.html">
+                <span>Cincinnati Bengals @ Buffalo Bills</span>
+                <span>34-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="CLE" href="/historical/2015/regular-season/week-6/denver-broncos-at-cleveland-browns.html">
+                <span>Denver Broncos @ Cleveland Browns</span>
+                <span>26-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="DET" href="/historical/2015/regular-season/week-6/chicago-bears-at-detroit-lions.html">
+                <span>Chicago Bears @ Detroit Lions</span>
+                <span>34-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="TEN" href="/historical/2015/regular-season/week-6/miami-dolphins-at-tennessee-titans.html">
+                <span>Miami Dolphins @ Tennessee Titans</span>
+                <span>38-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="MIN" href="/historical/2015/regular-season/week-6/kansas-city-chiefs-at-minnesota-vikings.html">
+                <span>Kansas City Chiefs @ Minnesota Vikings</span>
+                <span>10-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="NYJ" href="/historical/2015/regular-season/week-6/washington-commanders-at-new-york-jets.html">
+                <span>Washington Commanders @ New York Jets</span>
+                <span>20-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="PIT" href="/historical/2015/regular-season/week-6/arizona-cardinals-at-pittsburgh-steelers.html">
+                <span>Arizona Cardinals @ Pittsburgh Steelers</span>
+                <span>13-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="JAX" href="/historical/2015/regular-season/week-6/houston-texans-at-jacksonville-jaguars.html">
+                <span>Houston Texans @ Jacksonville Jaguars</span>
+                <span>31-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="SEA" href="/historical/2015/regular-season/week-6/carolina-panthers-at-seattle-seahawks.html">
+                <span>Carolina Panthers @ Seattle Seahawks</span>
+                <span>27-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SD" data-home="GB" href="/historical/2015/regular-season/week-6/sd-at-green-bay-packers.html">
+                <span>San Diego Chargers @ Green Bay Packers</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="SF" href="/historical/2015/regular-season/week-6/baltimore-ravens-at-san-francisco-49ers.html">
+                <span>Baltimore Ravens @ San Francisco 49ers</span>
+                <span>20-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="IND" href="/historical/2015/regular-season/week-6/new-england-patriots-at-indianapolis-colts.html">
+                <span>New England Patriots @ Indianapolis Colts</span>
+                <span>34-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="PHI" href="/historical/2015/regular-season/week-6/new-york-giants-at-philadelphia-eagles.html">
+                <span>New York Giants @ Philadelphia Eagles</span>
+                <span>7-27</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-7">
+          <h3>Week 7</h3>
+          <a class="season-index-game" data-origin="index" data-away="SEA" data-home="SF" href="/historical/2015/regular-season/week-7/seattle-seahawks-at-san-francisco-49ers.html">
+                <span>Seattle Seahawks @ San Francisco 49ers</span>
+                <span>20-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="JAX" href="/historical/2015/regular-season/week-7/buffalo-bills-at-jacksonville-jaguars.html">
+                <span>Buffalo Bills @ Jacksonville Jaguars</span>
+                <span>31-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="DET" href="/historical/2015/regular-season/week-7/minnesota-vikings-at-detroit-lions.html">
+                <span>Minnesota Vikings @ Detroit Lions</span>
+                <span>28-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="TEN" href="/historical/2015/regular-season/week-7/atlanta-falcons-at-tennessee-titans.html">
+                <span>Atlanta Falcons @ Tennessee Titans</span>
+                <span>10-7</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="IND" href="/historical/2015/regular-season/week-7/new-orleans-saints-at-indianapolis-colts.html">
+                <span>New Orleans Saints @ Indianapolis Colts</span>
+                <span>27-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="KC" href="/historical/2015/regular-season/week-7/pittsburgh-steelers-at-kansas-city-chiefs.html">
+                <span>Pittsburgh Steelers @ Kansas City Chiefs</span>
+                <span>13-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="STL" href="/historical/2015/regular-season/week-7/cleveland-browns-at-stl.html">
+                <span>Cleveland Browns @ St. Louis Rams</span>
+                <span>6-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="MIA" href="/historical/2015/regular-season/week-7/houston-texans-at-miami-dolphins.html">
+                <span>Houston Texans @ Miami Dolphins</span>
+                <span>26-44</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="NE" href="/historical/2015/regular-season/week-7/new-york-jets-at-new-england-patriots.html">
+                <span>New York Jets @ New England Patriots</span>
+                <span>23-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="WAS" href="/historical/2015/regular-season/week-7/tampa-bay-buccaneers-at-washington-commanders.html">
+                <span>Tampa Bay Buccaneers @ Washington Commanders</span>
+                <span>30-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="SD" href="/historical/2015/regular-season/week-7/oak-at-sd.html">
+                <span>Oakland Raiders @ San Diego Chargers</span>
+                <span>37-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="NYG" href="/historical/2015/regular-season/week-7/dallas-cowboys-at-new-york-giants.html">
+                <span>Dallas Cowboys @ New York Giants</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="CAR" href="/historical/2015/regular-season/week-7/philadelphia-eagles-at-carolina-panthers.html">
+                <span>Philadelphia Eagles @ Carolina Panthers</span>
+                <span>16-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="ARI" href="/historical/2015/regular-season/week-7/baltimore-ravens-at-arizona-cardinals.html">
+                <span>Baltimore Ravens @ Arizona Cardinals</span>
+                <span>18-26</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-8">
+          <h3>Week 8</h3>
+          <a class="season-index-game" data-origin="index" data-away="MIA" data-home="NE" href="/historical/2015/regular-season/week-8/miami-dolphins-at-new-england-patriots.html">
+                <span>Miami Dolphins @ New England Patriots</span>
+                <span>7-36</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="KC" href="/historical/2015/regular-season/week-8/detroit-lions-at-kansas-city-chiefs.html">
+                <span>Detroit Lions @ Kansas City Chiefs</span>
+                <span>10-45</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="ATL" href="/historical/2015/regular-season/week-8/tampa-bay-buccaneers-at-atlanta-falcons.html">
+                <span>Tampa Bay Buccaneers @ Atlanta Falcons</span>
+                <span>23-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="CHI" href="/historical/2015/regular-season/week-8/minnesota-vikings-at-chicago-bears.html">
+                <span>Minnesota Vikings @ Chicago Bears</span>
+                <span>23-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="CLE" href="/historical/2015/regular-season/week-8/arizona-cardinals-at-cleveland-browns.html">
+                <span>Arizona Cardinals @ Cleveland Browns</span>
+                <span>34-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="STL" href="/historical/2015/regular-season/week-8/san-francisco-49ers-at-stl.html">
+                <span>San Francisco 49ers @ St. Louis Rams</span>
+                <span>6-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="NO" href="/historical/2015/regular-season/week-8/new-york-giants-at-new-orleans-saints.html">
+                <span>New York Giants @ New Orleans Saints</span>
+                <span>49-52</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="PIT" href="/historical/2015/regular-season/week-8/cincinnati-bengals-at-pittsburgh-steelers.html">
+                <span>Cincinnati Bengals @ Pittsburgh Steelers</span>
+                <span>16-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SD" data-home="BAL" href="/historical/2015/regular-season/week-8/sd-at-baltimore-ravens.html">
+                <span>San Diego Chargers @ Baltimore Ravens</span>
+                <span>26-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="HOU" href="/historical/2015/regular-season/week-8/tennessee-titans-at-houston-texans.html">
+                <span>Tennessee Titans @ Houston Texans</span>
+                <span>6-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="OAK" href="/historical/2015/regular-season/week-8/new-york-jets-at-oak.html">
+                <span>New York Jets @ Oakland Raiders</span>
+                <span>20-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="DAL" href="/historical/2015/regular-season/week-8/seattle-seahawks-at-dallas-cowboys.html">
+                <span>Seattle Seahawks @ Dallas Cowboys</span>
+                <span>13-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="DEN" href="/historical/2015/regular-season/week-8/green-bay-packers-at-denver-broncos.html">
+                <span>Green Bay Packers @ Denver Broncos</span>
+                <span>10-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="CAR" href="/historical/2015/regular-season/week-8/indianapolis-colts-at-carolina-panthers.html">
+                <span>Indianapolis Colts @ Carolina Panthers</span>
+                <span>26-29</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-9">
+          <h3>Week 9</h3>
+          <a class="season-index-game" data-origin="index" data-away="CLE" data-home="CIN" href="/historical/2015/regular-season/week-9/cleveland-browns-at-cincinnati-bengals.html">
+                <span>Cleveland Browns @ Cincinnati Bengals</span>
+                <span>10-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="BUF" href="/historical/2015/regular-season/week-9/miami-dolphins-at-buffalo-bills.html">
+                <span>Miami Dolphins @ Buffalo Bills</span>
+                <span>17-33</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="STL" data-home="MIN" href="/historical/2015/regular-season/week-9/stl-at-minnesota-vikings.html">
+                <span>St. Louis Rams @ Minnesota Vikings</span>
+                <span>18-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="NE" href="/historical/2015/regular-season/week-9/washington-commanders-at-new-england-patriots.html">
+                <span>Washington Commanders @ New England Patriots</span>
+                <span>10-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="NO" href="/historical/2015/regular-season/week-9/tennessee-titans-at-new-orleans-saints.html">
+                <span>Tennessee Titans @ New Orleans Saints</span>
+                <span>34-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="NYJ" href="/historical/2015/regular-season/week-9/jacksonville-jaguars-at-new-york-jets.html">
+                <span>Jacksonville Jaguars @ New York Jets</span>
+                <span>23-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="PIT" href="/historical/2015/regular-season/week-9/oak-at-pittsburgh-steelers.html">
+                <span>Oakland Raiders @ Pittsburgh Steelers</span>
+                <span>35-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="CAR" href="/historical/2015/regular-season/week-9/green-bay-packers-at-carolina-panthers.html">
+                <span>Green Bay Packers @ Carolina Panthers</span>
+                <span>29-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="SF" href="/historical/2015/regular-season/week-9/atlanta-falcons-at-san-francisco-49ers.html">
+                <span>Atlanta Falcons @ San Francisco 49ers</span>
+                <span>16-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="TB" href="/historical/2015/regular-season/week-9/new-york-giants-at-tampa-bay-buccaneers.html">
+                <span>New York Giants @ Tampa Bay Buccaneers</span>
+                <span>32-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="IND" href="/historical/2015/regular-season/week-9/denver-broncos-at-indianapolis-colts.html">
+                <span>Denver Broncos @ Indianapolis Colts</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="DAL" href="/historical/2015/regular-season/week-9/philadelphia-eagles-at-dallas-cowboys.html">
+                <span>Philadelphia Eagles @ Dallas Cowboys</span>
+                <span>33-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="SD" href="/historical/2015/regular-season/week-9/chicago-bears-at-sd.html">
+                <span>Chicago Bears @ San Diego Chargers</span>
+                <span>22-19</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-10">
+          <h3>Week 10</h3>
+          <a class="season-index-game" data-origin="index" data-away="BUF" data-home="NYJ" href="/historical/2015/regular-season/week-10/buffalo-bills-at-new-york-jets.html">
+                <span>Buffalo Bills @ New York Jets</span>
+                <span>22-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="GB" href="/historical/2015/regular-season/week-10/detroit-lions-at-green-bay-packers.html">
+                <span>Detroit Lions @ Green Bay Packers</span>
+                <span>18-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="TEN" href="/historical/2015/regular-season/week-10/carolina-panthers-at-tennessee-titans.html">
+                <span>Carolina Panthers @ Tennessee Titans</span>
+                <span>27-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="STL" href="/historical/2015/regular-season/week-10/chicago-bears-at-stl.html">
+                <span>Chicago Bears @ St. Louis Rams</span>
+                <span>37-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="PHI" href="/historical/2015/regular-season/week-10/miami-dolphins-at-philadelphia-eagles.html">
+                <span>Miami Dolphins @ Philadelphia Eagles</span>
+                <span>20-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="PIT" href="/historical/2015/regular-season/week-10/cleveland-browns-at-pittsburgh-steelers.html">
+                <span>Cleveland Browns @ Pittsburgh Steelers</span>
+                <span>9-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="TB" href="/historical/2015/regular-season/week-10/dallas-cowboys-at-tampa-bay-buccaneers.html">
+                <span>Dallas Cowboys @ Tampa Bay Buccaneers</span>
+                <span>6-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="WAS" href="/historical/2015/regular-season/week-10/new-orleans-saints-at-washington-commanders.html">
+                <span>New Orleans Saints @ Washington Commanders</span>
+                <span>14-47</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="BAL" href="/historical/2015/regular-season/week-10/jacksonville-jaguars-at-baltimore-ravens.html">
+                <span>Jacksonville Jaguars @ Baltimore Ravens</span>
+                <span>22-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="OAK" href="/historical/2015/regular-season/week-10/minnesota-vikings-at-oak.html">
+                <span>Minnesota Vikings @ Oakland Raiders</span>
+                <span>30-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="DEN" href="/historical/2015/regular-season/week-10/kansas-city-chiefs-at-denver-broncos.html">
+                <span>Kansas City Chiefs @ Denver Broncos</span>
+                <span>29-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="NYG" href="/historical/2015/regular-season/week-10/new-england-patriots-at-new-york-giants.html">
+                <span>New England Patriots @ New York Giants</span>
+                <span>27-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="SEA" href="/historical/2015/regular-season/week-10/arizona-cardinals-at-seattle-seahawks.html">
+                <span>Arizona Cardinals @ Seattle Seahawks</span>
+                <span>39-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="CIN" href="/historical/2015/regular-season/week-10/houston-texans-at-cincinnati-bengals.html">
+                <span>Houston Texans @ Cincinnati Bengals</span>
+                <span>10-6</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-11">
+          <h3>Week 11</h3>
+          <a class="season-index-game" data-origin="index" data-away="TEN" data-home="JAX" href="/historical/2015/regular-season/week-11/tennessee-titans-at-jacksonville-jaguars.html">
+                <span>Tennessee Titans @ Jacksonville Jaguars</span>
+                <span>13-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="ATL" href="/historical/2015/regular-season/week-11/indianapolis-colts-at-atlanta-falcons.html">
+                <span>Indianapolis Colts @ Atlanta Falcons</span>
+                <span>24-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="CHI" href="/historical/2015/regular-season/week-11/denver-broncos-at-chicago-bears.html">
+                <span>Denver Broncos @ Chicago Bears</span>
+                <span>17-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="DET" href="/historical/2015/regular-season/week-11/oak-at-detroit-lions.html">
+                <span>Oakland Raiders @ Detroit Lions</span>
+                <span>13-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="MIA" href="/historical/2015/regular-season/week-11/dallas-cowboys-at-miami-dolphins.html">
+                <span>Dallas Cowboys @ Miami Dolphins</span>
+                <span>24-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="PHI" href="/historical/2015/regular-season/week-11/tampa-bay-buccaneers-at-philadelphia-eagles.html">
+                <span>Tampa Bay Buccaneers @ Philadelphia Eagles</span>
+                <span>45-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="CAR" href="/historical/2015/regular-season/week-11/washington-commanders-at-carolina-panthers.html">
+                <span>Washington Commanders @ Carolina Panthers</span>
+                <span>16-44</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="STL" data-home="BAL" href="/historical/2015/regular-season/week-11/stl-at-baltimore-ravens.html">
+                <span>St. Louis Rams @ Baltimore Ravens</span>
+                <span>13-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="HOU" href="/historical/2015/regular-season/week-11/new-york-jets-at-houston-texans.html">
+                <span>New York Jets @ Houston Texans</span>
+                <span>17-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="SD" href="/historical/2015/regular-season/week-11/kansas-city-chiefs-at-sd.html">
+                <span>Kansas City Chiefs @ San Diego Chargers</span>
+                <span>33-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="MIN" href="/historical/2015/regular-season/week-11/green-bay-packers-at-minnesota-vikings.html">
+                <span>Green Bay Packers @ Minnesota Vikings</span>
+                <span>30-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="SEA" href="/historical/2015/regular-season/week-11/san-francisco-49ers-at-seattle-seahawks.html">
+                <span>San Francisco 49ers @ Seattle Seahawks</span>
+                <span>13-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="ARI" href="/historical/2015/regular-season/week-11/cincinnati-bengals-at-arizona-cardinals.html">
+                <span>Cincinnati Bengals @ Arizona Cardinals</span>
+                <span>31-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="NE" href="/historical/2015/regular-season/week-11/buffalo-bills-at-new-england-patriots.html">
+                <span>Buffalo Bills @ New England Patriots</span>
+                <span>13-20</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-12">
+          <h3>Week 12</h3>
+          <a class="season-index-game" data-origin="index" data-away="PHI" data-home="DET" href="/historical/2015/regular-season/week-12/philadelphia-eagles-at-detroit-lions.html">
+                <span>Philadelphia Eagles @ Detroit Lions</span>
+                <span>14-45</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="DAL" href="/historical/2015/regular-season/week-12/carolina-panthers-at-dallas-cowboys.html">
+                <span>Carolina Panthers @ Dallas Cowboys</span>
+                <span>33-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="GB" href="/historical/2015/regular-season/week-12/chicago-bears-at-green-bay-packers.html">
+                <span>Chicago Bears @ Green Bay Packers</span>
+                <span>17-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="ATL" href="/historical/2015/regular-season/week-12/minnesota-vikings-at-atlanta-falcons.html">
+                <span>Minnesota Vikings @ Atlanta Falcons</span>
+                <span>20-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="STL" data-home="CIN" href="/historical/2015/regular-season/week-12/stl-at-cincinnati-bengals.html">
+                <span>St. Louis Rams @ Cincinnati Bengals</span>
+                <span>7-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="TEN" href="/historical/2015/regular-season/week-12/oak-at-tennessee-titans.html">
+                <span>Oakland Raiders @ Tennessee Titans</span>
+                <span>24-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="IND" href="/historical/2015/regular-season/week-12/tampa-bay-buccaneers-at-indianapolis-colts.html">
+                <span>Tampa Bay Buccaneers @ Indianapolis Colts</span>
+                <span>12-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="KC" href="/historical/2015/regular-season/week-12/buffalo-bills-at-kansas-city-chiefs.html">
+                <span>Buffalo Bills @ Kansas City Chiefs</span>
+                <span>22-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="NYJ" href="/historical/2015/regular-season/week-12/miami-dolphins-at-new-york-jets.html">
+                <span>Miami Dolphins @ New York Jets</span>
+                <span>20-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="WAS" href="/historical/2015/regular-season/week-12/new-york-giants-at-washington-commanders.html">
+                <span>New York Giants @ Washington Commanders</span>
+                <span>14-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SD" data-home="JAX" href="/historical/2015/regular-season/week-12/sd-at-jacksonville-jaguars.html">
+                <span>San Diego Chargers @ Jacksonville Jaguars</span>
+                <span>31-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="HOU" href="/historical/2015/regular-season/week-12/new-orleans-saints-at-houston-texans.html">
+                <span>New Orleans Saints @ Houston Texans</span>
+                <span>6-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="SF" href="/historical/2015/regular-season/week-12/arizona-cardinals-at-san-francisco-49ers.html">
+                <span>Arizona Cardinals @ San Francisco 49ers</span>
+                <span>19-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="SEA" href="/historical/2015/regular-season/week-12/pittsburgh-steelers-at-seattle-seahawks.html">
+                <span>Pittsburgh Steelers @ Seattle Seahawks</span>
+                <span>30-39</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="DEN" href="/historical/2015/regular-season/week-12/new-england-patriots-at-denver-broncos.html">
+                <span>New England Patriots @ Denver Broncos</span>
+                <span>24-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CLE" href="/historical/2015/regular-season/week-12/baltimore-ravens-at-cleveland-browns.html">
+                <span>Baltimore Ravens @ Cleveland Browns</span>
+                <span>33-27</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-13">
+          <h3>Week 13</h3>
+          <a class="season-index-game" data-origin="index" data-away="GB" data-home="DET" href="/historical/2015/regular-season/week-13/green-bay-packers-at-detroit-lions.html">
+                <span>Green Bay Packers @ Detroit Lions</span>
+                <span>27-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="BUF" href="/historical/2015/regular-season/week-13/houston-texans-at-buffalo-bills.html">
+                <span>Houston Texans @ Buffalo Bills</span>
+                <span>21-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="CHI" href="/historical/2015/regular-season/week-13/san-francisco-49ers-at-chicago-bears.html">
+                <span>San Francisco 49ers @ Chicago Bears</span>
+                <span>26-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="CLE" href="/historical/2015/regular-season/week-13/cincinnati-bengals-at-cleveland-browns.html">
+                <span>Cincinnati Bengals @ Cleveland Browns</span>
+                <span>37-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="TEN" href="/historical/2015/regular-season/week-13/jacksonville-jaguars-at-tennessee-titans.html">
+                <span>Jacksonville Jaguars @ Tennessee Titans</span>
+                <span>39-42</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="STL" href="/historical/2015/regular-season/week-13/arizona-cardinals-at-stl.html">
+                <span>Arizona Cardinals @ St. Louis Rams</span>
+                <span>27-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="MIA" href="/historical/2015/regular-season/week-13/baltimore-ravens-at-miami-dolphins.html">
+                <span>Baltimore Ravens @ Miami Dolphins</span>
+                <span>13-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="MIN" href="/historical/2015/regular-season/week-13/seattle-seahawks-at-minnesota-vikings.html">
+                <span>Seattle Seahawks @ Minnesota Vikings</span>
+                <span>38-7</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="NYG" href="/historical/2015/regular-season/week-13/new-york-jets-at-new-york-giants.html">
+                <span>New York Jets @ New York Giants</span>
+                <span>23-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="TB" href="/historical/2015/regular-season/week-13/atlanta-falcons-at-tampa-bay-buccaneers.html">
+                <span>Atlanta Falcons @ Tampa Bay Buccaneers</span>
+                <span>19-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="OAK" href="/historical/2015/regular-season/week-13/kansas-city-chiefs-at-oak.html">
+                <span>Kansas City Chiefs @ Oakland Raiders</span>
+                <span>34-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="SD" href="/historical/2015/regular-season/week-13/denver-broncos-at-sd.html">
+                <span>Denver Broncos @ San Diego Chargers</span>
+                <span>17-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="NE" href="/historical/2015/regular-season/week-13/philadelphia-eagles-at-new-england-patriots.html">
+                <span>Philadelphia Eagles @ New England Patriots</span>
+                <span>35-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="NO" href="/historical/2015/regular-season/week-13/carolina-panthers-at-new-orleans-saints.html">
+                <span>Carolina Panthers @ New Orleans Saints</span>
+                <span>41-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="PIT" href="/historical/2015/regular-season/week-13/indianapolis-colts-at-pittsburgh-steelers.html">
+                <span>Indianapolis Colts @ Pittsburgh Steelers</span>
+                <span>10-45</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="WAS" href="/historical/2015/regular-season/week-13/dallas-cowboys-at-washington-commanders.html">
+                <span>Dallas Cowboys @ Washington Commanders</span>
+                <span>19-16</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-14">
+          <h3>Week 14</h3>
+          <a class="season-index-game" data-origin="index" data-away="MIN" data-home="ARI" href="/historical/2015/regular-season/week-14/minnesota-vikings-at-arizona-cardinals.html">
+                <span>Minnesota Vikings @ Arizona Cardinals</span>
+                <span>20-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="CHI" href="/historical/2015/regular-season/week-14/washington-commanders-at-chicago-bears.html">
+                <span>Washington Commanders @ Chicago Bears</span>
+                <span>24-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="CIN" href="/historical/2015/regular-season/week-14/pittsburgh-steelers-at-cincinnati-bengals.html">
+                <span>Pittsburgh Steelers @ Cincinnati Bengals</span>
+                <span>33-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="CLE" href="/historical/2015/regular-season/week-14/san-francisco-49ers-at-cleveland-browns.html">
+                <span>San Francisco 49ers @ Cleveland Browns</span>
+                <span>10-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SD" data-home="KC" href="/historical/2015/regular-season/week-14/sd-at-kansas-city-chiefs.html">
+                <span>San Diego Chargers @ Kansas City Chiefs</span>
+                <span>3-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="STL" href="/historical/2015/regular-season/week-14/detroit-lions-at-stl.html">
+                <span>Detroit Lions @ St. Louis Rams</span>
+                <span>14-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="NYJ" href="/historical/2015/regular-season/week-14/tennessee-titans-at-new-york-jets.html">
+                <span>Tennessee Titans @ New York Jets</span>
+                <span>8-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="PHI" href="/historical/2015/regular-season/week-14/buffalo-bills-at-philadelphia-eagles.html">
+                <span>Buffalo Bills @ Philadelphia Eagles</span>
+                <span>20-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="TB" href="/historical/2015/regular-season/week-14/new-orleans-saints-at-tampa-bay-buccaneers.html">
+                <span>New Orleans Saints @ Tampa Bay Buccaneers</span>
+                <span>24-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="CAR" href="/historical/2015/regular-season/week-14/atlanta-falcons-at-carolina-panthers.html">
+                <span>Atlanta Falcons @ Carolina Panthers</span>
+                <span>0-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="JAX" href="/historical/2015/regular-season/week-14/indianapolis-colts-at-jacksonville-jaguars.html">
+                <span>Indianapolis Colts @ Jacksonville Jaguars</span>
+                <span>16-51</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="BAL" href="/historical/2015/regular-season/week-14/seattle-seahawks-at-baltimore-ravens.html">
+                <span>Seattle Seahawks @ Baltimore Ravens</span>
+                <span>35-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="DEN" href="/historical/2015/regular-season/week-14/oak-at-denver-broncos.html">
+                <span>Oakland Raiders @ Denver Broncos</span>
+                <span>15-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="GB" href="/historical/2015/regular-season/week-14/dallas-cowboys-at-green-bay-packers.html">
+                <span>Dallas Cowboys @ Green Bay Packers</span>
+                <span>7-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="HOU" href="/historical/2015/regular-season/week-14/new-england-patriots-at-houston-texans.html">
+                <span>New England Patriots @ Houston Texans</span>
+                <span>27-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="MIA" href="/historical/2015/regular-season/week-14/new-york-giants-at-miami-dolphins.html">
+                <span>New York Giants @ Miami Dolphins</span>
+                <span>31-24</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-15">
+          <h3>Week 15</h3>
+          <a class="season-index-game" data-origin="index" data-away="TB" data-home="STL" href="/historical/2015/regular-season/week-15/tampa-bay-buccaneers-at-stl.html">
+                <span>Tampa Bay Buccaneers @ St. Louis Rams</span>
+                <span>23-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="DAL" href="/historical/2015/regular-season/week-15/new-york-jets-at-dallas-cowboys.html">
+                <span>New York Jets @ Dallas Cowboys</span>
+                <span>19-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="IND" href="/historical/2015/regular-season/week-15/houston-texans-at-indianapolis-colts.html">
+                <span>Houston Texans @ Indianapolis Colts</span>
+                <span>16-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="MIN" href="/historical/2015/regular-season/week-15/chicago-bears-at-minnesota-vikings.html">
+                <span>Chicago Bears @ Minnesota Vikings</span>
+                <span>17-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="NE" href="/historical/2015/regular-season/week-15/tennessee-titans-at-new-england-patriots.html">
+                <span>Tennessee Titans @ New England Patriots</span>
+                <span>16-33</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="NYG" href="/historical/2015/regular-season/week-15/carolina-panthers-at-new-york-giants.html">
+                <span>Carolina Panthers @ New York Giants</span>
+                <span>38-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="WAS" href="/historical/2015/regular-season/week-15/buffalo-bills-at-washington-commanders.html">
+                <span>Buffalo Bills @ Washington Commanders</span>
+                <span>25-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="JAX" href="/historical/2015/regular-season/week-15/atlanta-falcons-at-jacksonville-jaguars.html">
+                <span>Atlanta Falcons @ Jacksonville Jaguars</span>
+                <span>23-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="BAL" href="/historical/2015/regular-season/week-15/kansas-city-chiefs-at-baltimore-ravens.html">
+                <span>Kansas City Chiefs @ Baltimore Ravens</span>
+                <span>34-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="OAK" href="/historical/2015/regular-season/week-15/green-bay-packers-at-oak.html">
+                <span>Green Bay Packers @ Oakland Raiders</span>
+                <span>30-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="SEA" href="/historical/2015/regular-season/week-15/cleveland-browns-at-seattle-seahawks.html">
+                <span>Cleveland Browns @ Seattle Seahawks</span>
+                <span>13-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="PIT" href="/historical/2015/regular-season/week-15/denver-broncos-at-pittsburgh-steelers.html">
+                <span>Denver Broncos @ Pittsburgh Steelers</span>
+                <span>27-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="SD" href="/historical/2015/regular-season/week-15/miami-dolphins-at-sd.html">
+                <span>Miami Dolphins @ San Diego Chargers</span>
+                <span>14-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="SF" href="/historical/2015/regular-season/week-15/cincinnati-bengals-at-san-francisco-49ers.html">
+                <span>Cincinnati Bengals @ San Francisco 49ers</span>
+                <span>24-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="PHI" href="/historical/2015/regular-season/week-15/arizona-cardinals-at-philadelphia-eagles.html">
+                <span>Arizona Cardinals @ Philadelphia Eagles</span>
+                <span>40-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="NO" href="/historical/2015/regular-season/week-15/detroit-lions-at-new-orleans-saints.html">
+                <span>Detroit Lions @ New Orleans Saints</span>
+                <span>35-27</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-16">
+          <h3>Week 16</h3>
+          <a class="season-index-game" data-origin="index" data-away="SD" data-home="OAK" href="/historical/2015/regular-season/week-16/sd-at-oak.html">
+                <span>San Diego Chargers @ Oakland Raiders</span>
+                <span>20-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="PHI" href="/historical/2015/regular-season/week-16/washington-commanders-at-philadelphia-eagles.html">
+                <span>Washington Commanders @ Philadelphia Eagles</span>
+                <span>38-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="ATL" href="/historical/2015/regular-season/week-16/carolina-panthers-at-atlanta-falcons.html">
+                <span>Carolina Panthers @ Atlanta Falcons</span>
+                <span>13-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="BUF" href="/historical/2015/regular-season/week-16/dallas-cowboys-at-buffalo-bills.html">
+                <span>Dallas Cowboys @ Buffalo Bills</span>
+                <span>6-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="DET" href="/historical/2015/regular-season/week-16/san-francisco-49ers-at-detroit-lions.html">
+                <span>San Francisco 49ers @ Detroit Lions</span>
+                <span>17-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="TEN" href="/historical/2015/regular-season/week-16/houston-texans-at-tennessee-titans.html">
+                <span>Houston Texans @ Tennessee Titans</span>
+                <span>34-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="KC" href="/historical/2015/regular-season/week-16/cleveland-browns-at-kansas-city-chiefs.html">
+                <span>Cleveland Browns @ Kansas City Chiefs</span>
+                <span>13-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="MIA" href="/historical/2015/regular-season/week-16/indianapolis-colts-at-miami-dolphins.html">
+                <span>Indianapolis Colts @ Miami Dolphins</span>
+                <span>18-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="NYJ" href="/historical/2015/regular-season/week-16/new-england-patriots-at-new-york-jets.html">
+                <span>New England Patriots @ New York Jets</span>
+                <span>20-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="TB" href="/historical/2015/regular-season/week-16/chicago-bears-at-tampa-bay-buccaneers.html">
+                <span>Chicago Bears @ Tampa Bay Buccaneers</span>
+                <span>26-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="BAL" href="/historical/2015/regular-season/week-16/pittsburgh-steelers-at-baltimore-ravens.html">
+                <span>Pittsburgh Steelers @ Baltimore Ravens</span>
+                <span>17-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="NO" href="/historical/2015/regular-season/week-16/jacksonville-jaguars-at-new-orleans-saints.html">
+                <span>Jacksonville Jaguars @ New Orleans Saints</span>
+                <span>27-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="ARI" href="/historical/2015/regular-season/week-16/green-bay-packers-at-arizona-cardinals.html">
+                <span>Green Bay Packers @ Arizona Cardinals</span>
+                <span>8-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="STL" data-home="SEA" href="/historical/2015/regular-season/week-16/stl-at-seattle-seahawks.html">
+                <span>St. Louis Rams @ Seattle Seahawks</span>
+                <span>23-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="MIN" href="/historical/2015/regular-season/week-16/new-york-giants-at-minnesota-vikings.html">
+                <span>New York Giants @ Minnesota Vikings</span>
+                <span>17-49</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="DEN" href="/historical/2015/regular-season/week-16/cincinnati-bengals-at-denver-broncos.html">
+                <span>Cincinnati Bengals @ Denver Broncos</span>
+                <span>17-20</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-17">
+          <h3>Week 17</h3>
+          <a class="season-index-game" data-origin="index" data-away="NO" data-home="ATL" href="/historical/2015/regular-season/week-17/new-orleans-saints-at-atlanta-falcons.html">
+                <span>New Orleans Saints @ Atlanta Falcons</span>
+                <span>20-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="BUF" href="/historical/2015/regular-season/week-17/new-york-jets-at-buffalo-bills.html">
+                <span>New York Jets @ Buffalo Bills</span>
+                <span>17-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="CHI" href="/historical/2015/regular-season/week-17/detroit-lions-at-chicago-bears.html">
+                <span>Detroit Lions @ Chicago Bears</span>
+                <span>24-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CIN" href="/historical/2015/regular-season/week-17/baltimore-ravens-at-cincinnati-bengals.html">
+                <span>Baltimore Ravens @ Cincinnati Bengals</span>
+                <span>16-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="CLE" href="/historical/2015/regular-season/week-17/pittsburgh-steelers-at-cleveland-browns.html">
+                <span>Pittsburgh Steelers @ Cleveland Browns</span>
+                <span>28-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="DAL" href="/historical/2015/regular-season/week-17/washington-commanders-at-dallas-cowboys.html">
+                <span>Washington Commanders @ Dallas Cowboys</span>
+                <span>34-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="IND" href="/historical/2015/regular-season/week-17/tennessee-titans-at-indianapolis-colts.html">
+                <span>Tennessee Titans @ Indianapolis Colts</span>
+                <span>24-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="MIA" href="/historical/2015/regular-season/week-17/new-england-patriots-at-miami-dolphins.html">
+                <span>New England Patriots @ Miami Dolphins</span>
+                <span>10-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="NYG" href="/historical/2015/regular-season/week-17/philadelphia-eagles-at-new-york-giants.html">
+                <span>Philadelphia Eagles @ New York Giants</span>
+                <span>35-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="HOU" href="/historical/2015/regular-season/week-17/jacksonville-jaguars-at-houston-texans.html">
+                <span>Jacksonville Jaguars @ Houston Texans</span>
+                <span>6-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SD" data-home="DEN" href="/historical/2015/regular-season/week-17/sd-at-denver-broncos.html">
+                <span>San Diego Chargers @ Denver Broncos</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="KC" href="/historical/2015/regular-season/week-17/oak-at-kansas-city-chiefs.html">
+                <span>Oakland Raiders @ Kansas City Chiefs</span>
+                <span>17-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="ARI" href="/historical/2015/regular-season/week-17/seattle-seahawks-at-arizona-cardinals.html">
+                <span>Seattle Seahawks @ Arizona Cardinals</span>
+                <span>36-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="STL" data-home="SF" href="/historical/2015/regular-season/week-17/stl-at-san-francisco-49ers.html">
+                <span>St. Louis Rams @ San Francisco 49ers</span>
+                <span>16-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="CAR" href="/historical/2015/regular-season/week-17/tampa-bay-buccaneers-at-carolina-panthers.html">
+                <span>Tampa Bay Buccaneers @ Carolina Panthers</span>
+                <span>10-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="GB" href="/historical/2015/regular-season/week-17/minnesota-vikings-at-green-bay-packers.html">
+                <span>Minnesota Vikings @ Green Bay Packers</span>
+                <span>20-13</span>
+              </a>
+        </div>
+    </div>
+  
+  <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
+</div>
+<script src="/js/analytics.js"></script>
+<script>
+    document.getElementById('week-select').addEventListener('change', function (e) {
+      var sections = document.querySelectorAll('.season-index-round');
+      var target = e.target.value;
+      sections.forEach(function (s) {
+        s.style.display = (target === 'all' || s.id === target) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

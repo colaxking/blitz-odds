@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2018 NFL Regular Season Results — Every Score &amp; Box Score | Blitz Odds</title>
+<meta name="description" content="Final scores and box scores for every 2018 NFL regular season game." />
+<link rel="canonical" href="https://blitz-odds.netlify.app/historical/2018/regular-season/index.html" />
+<meta property="og:title" content="2018 NFL Regular Season Results — Every Score &amp; Box Score | Blitz Odds" />
+<meta property="og:description" content="Final scores and box scores for every 2018 NFL regular season game." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blitz-odds.netlify.app/historical/2018/regular-season/index.html" />
+<meta name="twitter:card" content="summary" />
+<style>
+:root {
+  --bg: #0b1220; --card-bg: #131c2e; --card-border: #223049; --surface-2: #1a2438;
+  --text: #eef2f8; --text-dim: #9fb0c9; --accent: #4fd1c5; --accent-rgb: 79,209,197;
+  --win: #2ecc71; --win-rgb: 46,204,113; --lose: #55617a; --demo: #a855f7; --demo-rgb: 168,85,247;
+  --warn: #f5a524; --warn-rgb: 245,165,36; --out: #ef4444; --out-rgb: 239,68,68;
+  --pill-good-text: #6be3a1; --pill-bad-text: #ff8080;
+  --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
+  --pill-out-text: #ff8080; --pill-questionable-text: #f5c168;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
+.app { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+a { color: var(--accent); }
+header.top { text-align: center; margin-bottom: 18px; }
+header.top h1 { font-size: 1.85rem; margin: 0 0 4px; font-weight: 800; }
+header.top h1 a { text-decoration: none; color: inherit; }
+.brand-odds { color: var(--accent); }
+.breadcrumb { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 18px; }
+.breadcrumb a { color: var(--text-dim); }
+.archive-badge { display:inline-block; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
+  padding: 3px 9px; border-radius: 999px; background: rgba(var(--demo-rgb),0.16); color: var(--demo); margin-bottom: 14px; }
+.detail { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; margin-bottom: 24px; }
+.detail-header { display:flex; align-items:center; justify-content:center; gap: 26px; margin-bottom: 8px; flex-wrap:wrap; }
+.detail-team { display:flex; flex-direction:column; align-items:center; gap:6px; width: 180px; }
+.detail-score { font-size:2.2rem; font-weight:800; }
+.detail-vs { text-align:center; }
+.detail-vs .final-label { display:block; color: var(--demo); font-weight:800; font-size:0.78rem; letter-spacing:.5px; margin-bottom:2px; }
+.detail-vs .kickoff-label { color: var(--text-dim); font-size: 0.75rem; }
+.section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 20px 0 10px; font-weight:700; }
+.linescore-table { width:100%; border-collapse: collapse; font-size: 0.85rem; }
+.linescore-table th, .linescore-table td { padding: 7px 10px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.linescore-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.linescore-table td:first-child, .linescore-table th:first-child { text-align:left; }
+.leaders-cols { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.leader-row { font-size:0.85rem; margin-bottom: 6px; }
+.leader-cat { color: var(--text-dim); font-size: 0.72rem; text-transform:uppercase; }
+.teamstats-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.teamstats-table th, .teamstats-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.teamstats-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.teamstats-table td:first-child, .teamstats-table th:first-child { text-align:left; color: var(--text-dim); }
+.teamstats-table td:not(:first-child), .teamstats-table th:not(:first-child) { text-align:center; }
+.playerstats-team { margin-bottom: 18px; }
+.playerstats-team h3 { font-size: 0.95rem; margin: 0 0 8px; }
+.playerstats-cat { margin-bottom: 12px; }
+.playerstats-cat h4 { font-size: 0.75rem; text-transform:uppercase; letter-spacing:.4px; color: var(--text-dim); margin: 0 0 6px; font-weight:700; }
+.playerstats-table { width:100%; border-collapse: collapse; font-size: 0.82rem; }
+.playerstats-table th, .playerstats-table td { padding: 5px 8px; text-align:center; border-bottom: 1px solid var(--card-border); }
+.playerstats-table th { color: var(--text-dim); font-weight:600; font-size:0.68rem; text-transform:uppercase; }
+.playerstats-table td:first-child, .playerstats-table th:first-child { text-align:left; }
+.season-index-list { list-style:none; padding:0; margin:0; }
+.season-index-round { margin-bottom: 22px; }
+.season-index-round h3 { font-size: 0.95rem; margin-bottom: 8px; }
+.season-index-game { display:flex; justify-content:space-between; padding: 8px 10px; background: var(--card-bg);
+  border: 1px solid var(--card-border); border-radius: 10px; margin-bottom: 6px; font-size: 0.85rem; text-decoration:none; color: var(--text); }
+.season-index-game:hover { border-color: var(--accent); }
+.week-picker { display:flex; align-items:center; gap: 10px; margin-bottom: 22px; }
+.week-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
+  border-radius: 10px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 22px; }
+.filter-row .week-picker { margin-bottom: 0; }
+.menu-block { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+.team-result-w { color: var(--win); font-weight: 700; }
+.team-result-l { color: var(--text-dim); font-weight: 700; }
+.team-result-t { color: var(--warn); font-weight: 700; }
+.rankings-table { width:100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 6px; }
+.rankings-table th, .rankings-table td { padding: 7px 10px; border-bottom: 1px solid var(--card-border); }
+.rankings-table th { color: var(--text-dim); font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+.rankings-table td:first-child, .rankings-table th:first-child { text-align:left; color: var(--text-dim); }
+.rankings-table td:not(:first-child), .rankings-table th:not(:first-child) { text-align:center; }
+.rankings-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+.stat-compare { display: grid; grid-template-columns: 1fr 1fr auto; column-gap: 10px; row-gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+.stat-compare .col { display: flex; flex-direction: column; gap: 3px; }
+.stat-compare .label { color: var(--text); font-weight: 600; margin-bottom: 2px; white-space: nowrap; }
+.rank-pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px; border: 1px solid transparent; }
+.rank-good { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
+.rank-mid { background: rgba(var(--warn-rgb),0.18); color: var(--warn); }
+.rank-bad { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
+.rank-good-slight { background: rgba(var(--win-rgb),0.10); color: var(--pill-good-text); }
+.rank-good-moderate { background: rgba(var(--win-rgb),0.24); color: var(--pill-good-text); border-color: rgba(var(--win-rgb),0.65); font-weight: 700; }
+.rank-good-significant { background: var(--win); color: var(--pill-good-fill-text); border-color: var(--win); font-weight: 800; }
+.rank-bad-slight { background: rgba(var(--out-rgb),0.10); color: var(--pill-bad-text); }
+.rank-bad-moderate { background: rgba(var(--out-rgb),0.24); color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.65); font-weight: 700; }
+.rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
+
+/* Mobile: the desktop layout (3-col stat-compare, wide data tables) was
+   built and only ever tested at desktop width. Below ~600px: keep the
+   same 3-column layout (offense / defense / Total Difference as a right-
+   hand column, matching the live app) but shrink font/pill size and
+   column gap so it fits without squeezing the first two columns; shrink
+   table padding/font so wide tables (linescores, player stats) fit
+   without clipping; wrap tables in a horizontally-scrollable container as
+   a fallback for anything still too wide (long player names, etc.)
+   rather than letting them clip. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 600px) {
+  .app { padding: 14px 10px 40px; }
+  header.top h1 { font-size: 1.5rem; }
+  .detail { padding: 14px 10px; }
+  .detail-header { flex-wrap: nowrap; gap: 6px; align-items: center; }
+  .detail-team { width: auto; flex: 1 1 0; min-width: 0; gap: 2px; }
+  .detail-team-name { font-size: 0.72rem; line-height: 1.15; }
+  .detail-score { font-size: 1.3rem; }
+  .detail-vs { flex-shrink: 0; }
+  .detail-vs .final-label { font-size: 0.66rem; }
+  .detail-vs .kickoff-label { font-size: 0.58rem; }
+  .stat-compare { grid-template-columns: 1fr 1fr auto; column-gap: 6px; font-size: 0.62rem; }
+  .stat-compare .label { font-size: 0.64rem; }
+  .rank-pill { padding: 1px 4px; font-size: 0.6rem; margin-left: 2px; }
+  .linescore-table, .playerstats-table, .teamstats-table { font-size: 0.76rem; }
+  .linescore-table th, .linescore-table td,
+  .playerstats-table th, .playerstats-table td,
+  .teamstats-table th, .teamstats-table td { padding: 5px 6px; }
+  .leaders-cols, .playerstats-team { display: block; }
+  .filter-row { flex-direction: column; gap: 12px; }
+  .week-picker { flex-wrap: wrap; }
+  .week-select { flex: 1; min-width: 0; }
+}
+footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+
+/* Injury Report - mirrors live app's .injury-report/.impact-note markup
+   and colors exactly, so this reads as the same feature as the live
+   team-page injury report, just archived at kickoff-time. */
+.injury-report-archive { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.injury-team-col h4 { font-size: 0.8rem; margin: 0 0 8px; }
+.injury-list { display: flex; flex-direction: column; gap: 6px; }
+.injury-none { color: var(--text-dim); font-size: 0.78rem; margin: 0; }
+.impact-note { font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start; }
+.impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
+.impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
+.impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+.impact-note-detail { color: var(--text-dim); font-size: 0.68rem; margin-top: 3px; line-height: 1.35; }
+@media (max-width: 600px) {
+  .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1><a href="/">Blitz<span class="brand-odds">Odds</span></a></h1>
+  </header>
+  <div class="breadcrumb"><a href="/">Home</a> &raquo; 2018 Regular Season</div>
+  
+    <span class="archive-badge">Historical Archive — 2018 Regular Season</span>
+    <h2 style="margin-top:0;">2018 NFL Regular Season Results</h2>
+    <div class="week-picker">
+      <label for="week-select" style="color:var(--text-dim); font-size:0.82rem;">Jump to:</label>
+      <select id="week-select" class="week-select">
+        <option value="all">All Weeks</option>
+        <option value="round-1">Week 1</option>
+<option value="round-2">Week 2</option>
+<option value="round-3">Week 3</option>
+<option value="round-4">Week 4</option>
+<option value="round-5">Week 5</option>
+<option value="round-6">Week 6</option>
+<option value="round-7">Week 7</option>
+<option value="round-8">Week 8</option>
+<option value="round-9">Week 9</option>
+<option value="round-10">Week 10</option>
+<option value="round-11">Week 11</option>
+<option value="round-12">Week 12</option>
+<option value="round-13">Week 13</option>
+<option value="round-14">Week 14</option>
+<option value="round-15">Week 15</option>
+<option value="round-16">Week 16</option>
+<option value="round-17">Week 17</option>
+      </select>
+    </div>
+    <div class="season-index-list">
+      
+        <div class="season-index-round" id="round-1">
+          <h3>Week 1</h3>
+          <a class="season-index-game" data-origin="index" data-away="ATL" data-home="PHI" href="/historical/2018/regular-season/week-1/atlanta-falcons-at-philadelphia-eagles.html">
+                <span>Atlanta Falcons @ Philadelphia Eagles</span>
+                <span>12-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="CLE" href="/historical/2018/regular-season/week-1/pittsburgh-steelers-at-cleveland-browns.html">
+                <span>Pittsburgh Steelers @ Cleveland Browns</span>
+                <span>21-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="IND" href="/historical/2018/regular-season/week-1/cincinnati-bengals-at-indianapolis-colts.html">
+                <span>Cincinnati Bengals @ Indianapolis Colts</span>
+                <span>34-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="MIA" href="/historical/2018/regular-season/week-1/tennessee-titans-at-miami-dolphins.html">
+                <span>Tennessee Titans @ Miami Dolphins</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="MIN" href="/historical/2018/regular-season/week-1/san-francisco-49ers-at-minnesota-vikings.html">
+                <span>San Francisco 49ers @ Minnesota Vikings</span>
+                <span>16-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="NE" href="/historical/2018/regular-season/week-1/houston-texans-at-new-england-patriots.html">
+                <span>Houston Texans @ New England Patriots</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="NO" href="/historical/2018/regular-season/week-1/tampa-bay-buccaneers-at-new-orleans-saints.html">
+                <span>Tampa Bay Buccaneers @ New Orleans Saints</span>
+                <span>48-40</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="NYG" href="/historical/2018/regular-season/week-1/jacksonville-jaguars-at-new-york-giants.html">
+                <span>Jacksonville Jaguars @ New York Giants</span>
+                <span>20-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="BAL" href="/historical/2018/regular-season/week-1/buffalo-bills-at-baltimore-ravens.html">
+                <span>Buffalo Bills @ Baltimore Ravens</span>
+                <span>3-47</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="LAC" href="/historical/2018/regular-season/week-1/kansas-city-chiefs-at-los-angeles-chargers.html">
+                <span>Kansas City Chiefs @ Los Angeles Chargers</span>
+                <span>38-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="DEN" href="/historical/2018/regular-season/week-1/seattle-seahawks-at-denver-broncos.html">
+                <span>Seattle Seahawks @ Denver Broncos</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="ARI" href="/historical/2018/regular-season/week-1/washington-commanders-at-arizona-cardinals.html">
+                <span>Washington Commanders @ Arizona Cardinals</span>
+                <span>24-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="CAR" href="/historical/2018/regular-season/week-1/dallas-cowboys-at-carolina-panthers.html">
+                <span>Dallas Cowboys @ Carolina Panthers</span>
+                <span>8-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="GB" href="/historical/2018/regular-season/week-1/chicago-bears-at-green-bay-packers.html">
+                <span>Chicago Bears @ Green Bay Packers</span>
+                <span>23-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="DET" href="/historical/2018/regular-season/week-1/new-york-jets-at-detroit-lions.html">
+                <span>New York Jets @ Detroit Lions</span>
+                <span>48-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="OAK" href="/historical/2018/regular-season/week-1/los-angeles-rams-at-oak.html">
+                <span>Los Angeles Rams @ Oakland Raiders</span>
+                <span>33-13</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-2">
+          <h3>Week 2</h3>
+          <a class="season-index-game" data-origin="index" data-away="BAL" data-home="CIN" href="/historical/2018/regular-season/week-2/baltimore-ravens-at-cincinnati-bengals.html">
+                <span>Baltimore Ravens @ Cincinnati Bengals</span>
+                <span>23-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="ATL" href="/historical/2018/regular-season/week-2/carolina-panthers-at-atlanta-falcons.html">
+                <span>Carolina Panthers @ Atlanta Falcons</span>
+                <span>24-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="BUF" href="/historical/2018/regular-season/week-2/los-angeles-chargers-at-buffalo-bills.html">
+                <span>Los Angeles Chargers @ Buffalo Bills</span>
+                <span>31-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="GB" href="/historical/2018/regular-season/week-2/minnesota-vikings-at-green-bay-packers.html">
+                <span>Minnesota Vikings @ Green Bay Packers</span>
+                <span>29-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="TEN" href="/historical/2018/regular-season/week-2/houston-texans-at-tennessee-titans.html">
+                <span>Houston Texans @ Tennessee Titans</span>
+                <span>17-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="NO" href="/historical/2018/regular-season/week-2/cleveland-browns-at-new-orleans-saints.html">
+                <span>Cleveland Browns @ New Orleans Saints</span>
+                <span>18-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="NYJ" href="/historical/2018/regular-season/week-2/miami-dolphins-at-new-york-jets.html">
+                <span>Miami Dolphins @ New York Jets</span>
+                <span>20-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="PIT" href="/historical/2018/regular-season/week-2/kansas-city-chiefs-at-pittsburgh-steelers.html">
+                <span>Kansas City Chiefs @ Pittsburgh Steelers</span>
+                <span>42-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="TB" href="/historical/2018/regular-season/week-2/philadelphia-eagles-at-tampa-bay-buccaneers.html">
+                <span>Philadelphia Eagles @ Tampa Bay Buccaneers</span>
+                <span>21-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="WAS" href="/historical/2018/regular-season/week-2/indianapolis-colts-at-washington-commanders.html">
+                <span>Indianapolis Colts @ Washington Commanders</span>
+                <span>21-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="LAR" href="/historical/2018/regular-season/week-2/arizona-cardinals-at-los-angeles-rams.html">
+                <span>Arizona Cardinals @ Los Angeles Rams</span>
+                <span>0-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="SF" href="/historical/2018/regular-season/week-2/detroit-lions-at-san-francisco-49ers.html">
+                <span>Detroit Lions @ San Francisco 49ers</span>
+                <span>27-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="DEN" href="/historical/2018/regular-season/week-2/oak-at-denver-broncos.html">
+                <span>Oakland Raiders @ Denver Broncos</span>
+                <span>19-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="JAX" href="/historical/2018/regular-season/week-2/new-england-patriots-at-jacksonville-jaguars.html">
+                <span>New England Patriots @ Jacksonville Jaguars</span>
+                <span>20-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="DAL" href="/historical/2018/regular-season/week-2/new-york-giants-at-dallas-cowboys.html">
+                <span>New York Giants @ Dallas Cowboys</span>
+                <span>13-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="CHI" href="/historical/2018/regular-season/week-2/seattle-seahawks-at-chicago-bears.html">
+                <span>Seattle Seahawks @ Chicago Bears</span>
+                <span>17-24</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-3">
+          <h3>Week 3</h3>
+          <a class="season-index-game" data-origin="index" data-away="NYJ" data-home="CLE" href="/historical/2018/regular-season/week-3/new-york-jets-at-cleveland-browns.html">
+                <span>New York Jets @ Cleveland Browns</span>
+                <span>17-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="ATL" href="/historical/2018/regular-season/week-3/new-orleans-saints-at-atlanta-falcons.html">
+                <span>New Orleans Saints @ Atlanta Falcons</span>
+                <span>43-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="KC" href="/historical/2018/regular-season/week-3/san-francisco-49ers-at-kansas-city-chiefs.html">
+                <span>San Francisco 49ers @ Kansas City Chiefs</span>
+                <span>27-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="MIA" href="/historical/2018/regular-season/week-3/oak-at-miami-dolphins.html">
+                <span>Oakland Raiders @ Miami Dolphins</span>
+                <span>20-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="MIN" href="/historical/2018/regular-season/week-3/buffalo-bills-at-minnesota-vikings.html">
+                <span>Buffalo Bills @ Minnesota Vikings</span>
+                <span>27-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="PHI" href="/historical/2018/regular-season/week-3/indianapolis-colts-at-philadelphia-eagles.html">
+                <span>Indianapolis Colts @ Philadelphia Eagles</span>
+                <span>16-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="WAS" href="/historical/2018/regular-season/week-3/green-bay-packers-at-washington-commanders.html">
+                <span>Green Bay Packers @ Washington Commanders</span>
+                <span>17-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="CAR" href="/historical/2018/regular-season/week-3/cincinnati-bengals-at-carolina-panthers.html">
+                <span>Cincinnati Bengals @ Carolina Panthers</span>
+                <span>21-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="JAX" href="/historical/2018/regular-season/week-3/tennessee-titans-at-jacksonville-jaguars.html">
+                <span>Tennessee Titans @ Jacksonville Jaguars</span>
+                <span>9-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="BAL" href="/historical/2018/regular-season/week-3/denver-broncos-at-baltimore-ravens.html">
+                <span>Denver Broncos @ Baltimore Ravens</span>
+                <span>14-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="HOU" href="/historical/2018/regular-season/week-3/new-york-giants-at-houston-texans.html">
+                <span>New York Giants @ Houston Texans</span>
+                <span>27-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="LAR" href="/historical/2018/regular-season/week-3/los-angeles-chargers-at-los-angeles-rams.html">
+                <span>Los Angeles Chargers @ Los Angeles Rams</span>
+                <span>23-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="ARI" href="/historical/2018/regular-season/week-3/chicago-bears-at-arizona-cardinals.html">
+                <span>Chicago Bears @ Arizona Cardinals</span>
+                <span>16-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="SEA" href="/historical/2018/regular-season/week-3/dallas-cowboys-at-seattle-seahawks.html">
+                <span>Dallas Cowboys @ Seattle Seahawks</span>
+                <span>13-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="DET" href="/historical/2018/regular-season/week-3/new-england-patriots-at-detroit-lions.html">
+                <span>New England Patriots @ Detroit Lions</span>
+                <span>10-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="TB" href="/historical/2018/regular-season/week-3/pittsburgh-steelers-at-tampa-bay-buccaneers.html">
+                <span>Pittsburgh Steelers @ Tampa Bay Buccaneers</span>
+                <span>30-27</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-4">
+          <h3>Week 4</h3>
+          <a class="season-index-game" data-origin="index" data-away="MIN" data-home="LAR" href="/historical/2018/regular-season/week-4/minnesota-vikings-at-los-angeles-rams.html">
+                <span>Minnesota Vikings @ Los Angeles Rams</span>
+                <span>31-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="ATL" href="/historical/2018/regular-season/week-4/cincinnati-bengals-at-atlanta-falcons.html">
+                <span>Cincinnati Bengals @ Atlanta Falcons</span>
+                <span>37-36</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="CHI" href="/historical/2018/regular-season/week-4/tampa-bay-buccaneers-at-chicago-bears.html">
+                <span>Tampa Bay Buccaneers @ Chicago Bears</span>
+                <span>10-48</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="DAL" href="/historical/2018/regular-season/week-4/detroit-lions-at-dallas-cowboys.html">
+                <span>Detroit Lions @ Dallas Cowboys</span>
+                <span>24-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="GB" href="/historical/2018/regular-season/week-4/buffalo-bills-at-green-bay-packers.html">
+                <span>Buffalo Bills @ Green Bay Packers</span>
+                <span>0-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="TEN" href="/historical/2018/regular-season/week-4/philadelphia-eagles-at-tennessee-titans.html">
+                <span>Philadelphia Eagles @ Tennessee Titans</span>
+                <span>23-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="IND" href="/historical/2018/regular-season/week-4/houston-texans-at-indianapolis-colts.html">
+                <span>Houston Texans @ Indianapolis Colts</span>
+                <span>37-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="NE" href="/historical/2018/regular-season/week-4/miami-dolphins-at-new-england-patriots.html">
+                <span>Miami Dolphins @ New England Patriots</span>
+                <span>7-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="JAX" href="/historical/2018/regular-season/week-4/new-york-jets-at-jacksonville-jaguars.html">
+                <span>New York Jets @ Jacksonville Jaguars</span>
+                <span>12-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="OAK" href="/historical/2018/regular-season/week-4/cleveland-browns-at-oak.html">
+                <span>Cleveland Browns @ Oakland Raiders</span>
+                <span>42-45</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="ARI" href="/historical/2018/regular-season/week-4/seattle-seahawks-at-arizona-cardinals.html">
+                <span>Seattle Seahawks @ Arizona Cardinals</span>
+                <span>20-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="NYG" href="/historical/2018/regular-season/week-4/new-orleans-saints-at-new-york-giants.html">
+                <span>New Orleans Saints @ New York Giants</span>
+                <span>33-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="LAC" href="/historical/2018/regular-season/week-4/san-francisco-49ers-at-los-angeles-chargers.html">
+                <span>San Francisco 49ers @ Los Angeles Chargers</span>
+                <span>27-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="PIT" href="/historical/2018/regular-season/week-4/baltimore-ravens-at-pittsburgh-steelers.html">
+                <span>Baltimore Ravens @ Pittsburgh Steelers</span>
+                <span>26-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="DEN" href="/historical/2018/regular-season/week-4/kansas-city-chiefs-at-denver-broncos.html">
+                <span>Kansas City Chiefs @ Denver Broncos</span>
+                <span>27-23</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-5">
+          <h3>Week 5</h3>
+          <a class="season-index-game" data-origin="index" data-away="IND" data-home="NE" href="/historical/2018/regular-season/week-5/indianapolis-colts-at-new-england-patriots.html">
+                <span>Indianapolis Colts @ New England Patriots</span>
+                <span>24-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="BUF" href="/historical/2018/regular-season/week-5/tennessee-titans-at-buffalo-bills.html">
+                <span>Tennessee Titans @ Buffalo Bills</span>
+                <span>12-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="CIN" href="/historical/2018/regular-season/week-5/miami-dolphins-at-cincinnati-bengals.html">
+                <span>Miami Dolphins @ Cincinnati Bengals</span>
+                <span>17-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CLE" href="/historical/2018/regular-season/week-5/baltimore-ravens-at-cleveland-browns.html">
+                <span>Baltimore Ravens @ Cleveland Browns</span>
+                <span>9-12</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="DET" href="/historical/2018/regular-season/week-5/green-bay-packers-at-detroit-lions.html">
+                <span>Green Bay Packers @ Detroit Lions</span>
+                <span>23-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="KC" href="/historical/2018/regular-season/week-5/jacksonville-jaguars-at-kansas-city-chiefs.html">
+                <span>Jacksonville Jaguars @ Kansas City Chiefs</span>
+                <span>14-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="NYJ" href="/historical/2018/regular-season/week-5/denver-broncos-at-new-york-jets.html">
+                <span>Denver Broncos @ New York Jets</span>
+                <span>16-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="PIT" href="/historical/2018/regular-season/week-5/atlanta-falcons-at-pittsburgh-steelers.html">
+                <span>Atlanta Falcons @ Pittsburgh Steelers</span>
+                <span>17-41</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="CAR" href="/historical/2018/regular-season/week-5/new-york-giants-at-carolina-panthers.html">
+                <span>New York Giants @ Carolina Panthers</span>
+                <span>31-33</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="LAC" href="/historical/2018/regular-season/week-5/oak-at-los-angeles-chargers.html">
+                <span>Oakland Raiders @ Los Angeles Chargers</span>
+                <span>10-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="PHI" href="/historical/2018/regular-season/week-5/minnesota-vikings-at-philadelphia-eagles.html">
+                <span>Minnesota Vikings @ Philadelphia Eagles</span>
+                <span>23-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="SF" href="/historical/2018/regular-season/week-5/arizona-cardinals-at-san-francisco-49ers.html">
+                <span>Arizona Cardinals @ San Francisco 49ers</span>
+                <span>28-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="SEA" href="/historical/2018/regular-season/week-5/los-angeles-rams-at-seattle-seahawks.html">
+                <span>Los Angeles Rams @ Seattle Seahawks</span>
+                <span>33-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="HOU" href="/historical/2018/regular-season/week-5/dallas-cowboys-at-houston-texans.html">
+                <span>Dallas Cowboys @ Houston Texans</span>
+                <span>16-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="NO" href="/historical/2018/regular-season/week-5/washington-commanders-at-new-orleans-saints.html">
+                <span>Washington Commanders @ New Orleans Saints</span>
+                <span>19-43</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-6">
+          <h3>Week 6</h3>
+          <a class="season-index-game" data-origin="index" data-away="PHI" data-home="NYG" href="/historical/2018/regular-season/week-6/philadelphia-eagles-at-new-york-giants.html">
+                <span>Philadelphia Eagles @ New York Giants</span>
+                <span>34-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="ATL" href="/historical/2018/regular-season/week-6/tampa-bay-buccaneers-at-atlanta-falcons.html">
+                <span>Tampa Bay Buccaneers @ Atlanta Falcons</span>
+                <span>29-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="CIN" href="/historical/2018/regular-season/week-6/pittsburgh-steelers-at-cincinnati-bengals.html">
+                <span>Pittsburgh Steelers @ Cincinnati Bengals</span>
+                <span>28-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="CLE" href="/historical/2018/regular-season/week-6/los-angeles-chargers-at-cleveland-browns.html">
+                <span>Los Angeles Chargers @ Cleveland Browns</span>
+                <span>38-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="OAK" href="/historical/2018/regular-season/week-6/seattle-seahawks-at-oak.html">
+                <span>Seattle Seahawks @ Oakland Raiders</span>
+                <span>27-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="MIA" href="/historical/2018/regular-season/week-6/chicago-bears-at-miami-dolphins.html">
+                <span>Chicago Bears @ Miami Dolphins</span>
+                <span>28-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="MIN" href="/historical/2018/regular-season/week-6/arizona-cardinals-at-minnesota-vikings.html">
+                <span>Arizona Cardinals @ Minnesota Vikings</span>
+                <span>17-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="NYJ" href="/historical/2018/regular-season/week-6/indianapolis-colts-at-new-york-jets.html">
+                <span>Indianapolis Colts @ New York Jets</span>
+                <span>34-42</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="WAS" href="/historical/2018/regular-season/week-6/carolina-panthers-at-washington-commanders.html">
+                <span>Carolina Panthers @ Washington Commanders</span>
+                <span>17-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="HOU" href="/historical/2018/regular-season/week-6/buffalo-bills-at-houston-texans.html">
+                <span>Buffalo Bills @ Houston Texans</span>
+                <span>13-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="DEN" href="/historical/2018/regular-season/week-6/los-angeles-rams-at-denver-broncos.html">
+                <span>Los Angeles Rams @ Denver Broncos</span>
+                <span>23-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="DAL" href="/historical/2018/regular-season/week-6/jacksonville-jaguars-at-dallas-cowboys.html">
+                <span>Jacksonville Jaguars @ Dallas Cowboys</span>
+                <span>7-40</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="TEN" href="/historical/2018/regular-season/week-6/baltimore-ravens-at-tennessee-titans.html">
+                <span>Baltimore Ravens @ Tennessee Titans</span>
+                <span>21-0</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="NE" href="/historical/2018/regular-season/week-6/kansas-city-chiefs-at-new-england-patriots.html">
+                <span>Kansas City Chiefs @ New England Patriots</span>
+                <span>40-43</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="GB" href="/historical/2018/regular-season/week-6/san-francisco-49ers-at-green-bay-packers.html">
+                <span>San Francisco 49ers @ Green Bay Packers</span>
+                <span>30-33</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-7">
+          <h3>Week 7</h3>
+          <a class="season-index-game" data-origin="index" data-away="DEN" data-home="ARI" href="/historical/2018/regular-season/week-7/denver-broncos-at-arizona-cardinals.html">
+                <span>Denver Broncos @ Arizona Cardinals</span>
+                <span>45-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="LAC" href="/historical/2018/regular-season/week-7/tennessee-titans-at-los-angeles-chargers.html">
+                <span>Tennessee Titans @ Los Angeles Chargers</span>
+                <span>19-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="CHI" href="/historical/2018/regular-season/week-7/new-england-patriots-at-chicago-bears.html">
+                <span>New England Patriots @ Chicago Bears</span>
+                <span>38-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="IND" href="/historical/2018/regular-season/week-7/buffalo-bills-at-indianapolis-colts.html">
+                <span>Buffalo Bills @ Indianapolis Colts</span>
+                <span>5-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="MIA" href="/historical/2018/regular-season/week-7/detroit-lions-at-miami-dolphins.html">
+                <span>Detroit Lions @ Miami Dolphins</span>
+                <span>32-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="NYJ" href="/historical/2018/regular-season/week-7/minnesota-vikings-at-new-york-jets.html">
+                <span>Minnesota Vikings @ New York Jets</span>
+                <span>37-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="PHI" href="/historical/2018/regular-season/week-7/carolina-panthers-at-philadelphia-eagles.html">
+                <span>Carolina Panthers @ Philadelphia Eagles</span>
+                <span>21-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="TB" href="/historical/2018/regular-season/week-7/cleveland-browns-at-tampa-bay-buccaneers.html">
+                <span>Cleveland Browns @ Tampa Bay Buccaneers</span>
+                <span>23-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="JAX" href="/historical/2018/regular-season/week-7/houston-texans-at-jacksonville-jaguars.html">
+                <span>Houston Texans @ Jacksonville Jaguars</span>
+                <span>20-7</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="BAL" href="/historical/2018/regular-season/week-7/new-orleans-saints-at-baltimore-ravens.html">
+                <span>New Orleans Saints @ Baltimore Ravens</span>
+                <span>24-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="SF" href="/historical/2018/regular-season/week-7/los-angeles-rams-at-san-francisco-49ers.html">
+                <span>Los Angeles Rams @ San Francisco 49ers</span>
+                <span>39-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="WAS" href="/historical/2018/regular-season/week-7/dallas-cowboys-at-washington-commanders.html">
+                <span>Dallas Cowboys @ Washington Commanders</span>
+                <span>17-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="KC" href="/historical/2018/regular-season/week-7/cincinnati-bengals-at-kansas-city-chiefs.html">
+                <span>Cincinnati Bengals @ Kansas City Chiefs</span>
+                <span>10-45</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="ATL" href="/historical/2018/regular-season/week-7/new-york-giants-at-atlanta-falcons.html">
+                <span>New York Giants @ Atlanta Falcons</span>
+                <span>20-23</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-8">
+          <h3>Week 8</h3>
+          <a class="season-index-game" data-origin="index" data-away="MIA" data-home="HOU" href="/historical/2018/regular-season/week-8/miami-dolphins-at-houston-texans.html">
+                <span>Miami Dolphins @ Houston Texans</span>
+                <span>23-42</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="JAX" href="/historical/2018/regular-season/week-8/philadelphia-eagles-at-jacksonville-jaguars.html">
+                <span>Philadelphia Eagles @ Jacksonville Jaguars</span>
+                <span>24-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="CHI" href="/historical/2018/regular-season/week-8/new-york-jets-at-chicago-bears.html">
+                <span>New York Jets @ Chicago Bears</span>
+                <span>10-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="CIN" href="/historical/2018/regular-season/week-8/tampa-bay-buccaneers-at-cincinnati-bengals.html">
+                <span>Tampa Bay Buccaneers @ Cincinnati Bengals</span>
+                <span>34-37</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="DET" href="/historical/2018/regular-season/week-8/seattle-seahawks-at-detroit-lions.html">
+                <span>Seattle Seahawks @ Detroit Lions</span>
+                <span>28-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="KC" href="/historical/2018/regular-season/week-8/denver-broncos-at-kansas-city-chiefs.html">
+                <span>Denver Broncos @ Kansas City Chiefs</span>
+                <span>23-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="NYG" href="/historical/2018/regular-season/week-8/washington-commanders-at-new-york-giants.html">
+                <span>Washington Commanders @ New York Giants</span>
+                <span>20-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="PIT" href="/historical/2018/regular-season/week-8/cleveland-browns-at-pittsburgh-steelers.html">
+                <span>Cleveland Browns @ Pittsburgh Steelers</span>
+                <span>18-33</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="CAR" href="/historical/2018/regular-season/week-8/baltimore-ravens-at-carolina-panthers.html">
+                <span>Baltimore Ravens @ Carolina Panthers</span>
+                <span>21-36</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="OAK" href="/historical/2018/regular-season/week-8/indianapolis-colts-at-oak.html">
+                <span>Indianapolis Colts @ Oakland Raiders</span>
+                <span>42-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="LAR" href="/historical/2018/regular-season/week-8/green-bay-packers-at-los-angeles-rams.html">
+                <span>Green Bay Packers @ Los Angeles Rams</span>
+                <span>27-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="ARI" href="/historical/2018/regular-season/week-8/san-francisco-49ers-at-arizona-cardinals.html">
+                <span>San Francisco 49ers @ Arizona Cardinals</span>
+                <span>15-18</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="MIN" href="/historical/2018/regular-season/week-8/new-orleans-saints-at-minnesota-vikings.html">
+                <span>New Orleans Saints @ Minnesota Vikings</span>
+                <span>30-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="BUF" href="/historical/2018/regular-season/week-8/new-england-patriots-at-buffalo-bills.html">
+                <span>New England Patriots @ Buffalo Bills</span>
+                <span>25-6</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-9">
+          <h3>Week 9</h3>
+          <a class="season-index-game" data-origin="index" data-away="OAK" data-home="SF" href="/historical/2018/regular-season/week-9/oak-at-san-francisco-49ers.html">
+                <span>Oakland Raiders @ San Francisco 49ers</span>
+                <span>3-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="BUF" href="/historical/2018/regular-season/week-9/chicago-bears-at-buffalo-bills.html">
+                <span>Chicago Bears @ Buffalo Bills</span>
+                <span>41-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="CLE" href="/historical/2018/regular-season/week-9/kansas-city-chiefs-at-cleveland-browns.html">
+                <span>Kansas City Chiefs @ Cleveland Browns</span>
+                <span>37-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="MIA" href="/historical/2018/regular-season/week-9/new-york-jets-at-miami-dolphins.html">
+                <span>New York Jets @ Miami Dolphins</span>
+                <span>6-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="MIN" href="/historical/2018/regular-season/week-9/detroit-lions-at-minnesota-vikings.html">
+                <span>Detroit Lions @ Minnesota Vikings</span>
+                <span>9-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="WAS" href="/historical/2018/regular-season/week-9/atlanta-falcons-at-washington-commanders.html">
+                <span>Atlanta Falcons @ Washington Commanders</span>
+                <span>38-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="CAR" href="/historical/2018/regular-season/week-9/tampa-bay-buccaneers-at-carolina-panthers.html">
+                <span>Tampa Bay Buccaneers @ Carolina Panthers</span>
+                <span>28-42</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="BAL" href="/historical/2018/regular-season/week-9/pittsburgh-steelers-at-baltimore-ravens.html">
+                <span>Pittsburgh Steelers @ Baltimore Ravens</span>
+                <span>23-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="DEN" href="/historical/2018/regular-season/week-9/houston-texans-at-denver-broncos.html">
+                <span>Houston Texans @ Denver Broncos</span>
+                <span>19-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="SEA" href="/historical/2018/regular-season/week-9/los-angeles-chargers-at-seattle-seahawks.html">
+                <span>Los Angeles Chargers @ Seattle Seahawks</span>
+                <span>25-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="NO" href="/historical/2018/regular-season/week-9/los-angeles-rams-at-new-orleans-saints.html">
+                <span>Los Angeles Rams @ New Orleans Saints</span>
+                <span>35-45</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="NE" href="/historical/2018/regular-season/week-9/green-bay-packers-at-new-england-patriots.html">
+                <span>Green Bay Packers @ New England Patriots</span>
+                <span>17-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="DAL" href="/historical/2018/regular-season/week-9/tennessee-titans-at-dallas-cowboys.html">
+                <span>Tennessee Titans @ Dallas Cowboys</span>
+                <span>28-14</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-10">
+          <h3>Week 10</h3>
+          <a class="season-index-game" data-origin="index" data-away="CAR" data-home="PIT" href="/historical/2018/regular-season/week-10/carolina-panthers-at-pittsburgh-steelers.html">
+                <span>Carolina Panthers @ Pittsburgh Steelers</span>
+                <span>21-52</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="CHI" href="/historical/2018/regular-season/week-10/detroit-lions-at-chicago-bears.html">
+                <span>Detroit Lions @ Chicago Bears</span>
+                <span>22-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="CIN" href="/historical/2018/regular-season/week-10/new-orleans-saints-at-cincinnati-bengals.html">
+                <span>New Orleans Saints @ Cincinnati Bengals</span>
+                <span>51-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="CLE" href="/historical/2018/regular-season/week-10/atlanta-falcons-at-cleveland-browns.html">
+                <span>Atlanta Falcons @ Cleveland Browns</span>
+                <span>16-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="TEN" href="/historical/2018/regular-season/week-10/new-england-patriots-at-tennessee-titans.html">
+                <span>New England Patriots @ Tennessee Titans</span>
+                <span>10-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="IND" href="/historical/2018/regular-season/week-10/jacksonville-jaguars-at-indianapolis-colts.html">
+                <span>Jacksonville Jaguars @ Indianapolis Colts</span>
+                <span>26-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="KC" href="/historical/2018/regular-season/week-10/arizona-cardinals-at-kansas-city-chiefs.html">
+                <span>Arizona Cardinals @ Kansas City Chiefs</span>
+                <span>14-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="NYJ" href="/historical/2018/regular-season/week-10/buffalo-bills-at-new-york-jets.html">
+                <span>Buffalo Bills @ New York Jets</span>
+                <span>41-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="TB" href="/historical/2018/regular-season/week-10/washington-commanders-at-tampa-bay-buccaneers.html">
+                <span>Washington Commanders @ Tampa Bay Buccaneers</span>
+                <span>16-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="OAK" href="/historical/2018/regular-season/week-10/los-angeles-chargers-at-oak.html">
+                <span>Los Angeles Chargers @ Oakland Raiders</span>
+                <span>20-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="GB" href="/historical/2018/regular-season/week-10/miami-dolphins-at-green-bay-packers.html">
+                <span>Miami Dolphins @ Green Bay Packers</span>
+                <span>12-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="LAR" href="/historical/2018/regular-season/week-10/seattle-seahawks-at-los-angeles-rams.html">
+                <span>Seattle Seahawks @ Los Angeles Rams</span>
+                <span>31-36</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="PHI" href="/historical/2018/regular-season/week-10/dallas-cowboys-at-philadelphia-eagles.html">
+                <span>Dallas Cowboys @ Philadelphia Eagles</span>
+                <span>27-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="SF" href="/historical/2018/regular-season/week-10/new-york-giants-at-san-francisco-49ers.html">
+                <span>New York Giants @ San Francisco 49ers</span>
+                <span>27-23</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-11">
+          <h3>Week 11</h3>
+          <a class="season-index-game" data-origin="index" data-away="GB" data-home="SEA" href="/historical/2018/regular-season/week-11/green-bay-packers-at-seattle-seahawks.html">
+                <span>Green Bay Packers @ Seattle Seahawks</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="ATL" href="/historical/2018/regular-season/week-11/dallas-cowboys-at-atlanta-falcons.html">
+                <span>Dallas Cowboys @ Atlanta Falcons</span>
+                <span>22-19</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="DET" href="/historical/2018/regular-season/week-11/carolina-panthers-at-detroit-lions.html">
+                <span>Carolina Panthers @ Detroit Lions</span>
+                <span>19-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="IND" href="/historical/2018/regular-season/week-11/tennessee-titans-at-indianapolis-colts.html">
+                <span>Tennessee Titans @ Indianapolis Colts</span>
+                <span>10-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="NYG" href="/historical/2018/regular-season/week-11/tampa-bay-buccaneers-at-new-york-giants.html">
+                <span>Tampa Bay Buccaneers @ New York Giants</span>
+                <span>35-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="WAS" href="/historical/2018/regular-season/week-11/houston-texans-at-washington-commanders.html">
+                <span>Houston Texans @ Washington Commanders</span>
+                <span>23-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="JAX" href="/historical/2018/regular-season/week-11/pittsburgh-steelers-at-jacksonville-jaguars.html">
+                <span>Pittsburgh Steelers @ Jacksonville Jaguars</span>
+                <span>20-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="BAL" href="/historical/2018/regular-season/week-11/cincinnati-bengals-at-baltimore-ravens.html">
+                <span>Cincinnati Bengals @ Baltimore Ravens</span>
+                <span>21-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="ARI" href="/historical/2018/regular-season/week-11/oak-at-arizona-cardinals.html">
+                <span>Oakland Raiders @ Arizona Cardinals</span>
+                <span>23-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="LAC" href="/historical/2018/regular-season/week-11/denver-broncos-at-los-angeles-chargers.html">
+                <span>Denver Broncos @ Los Angeles Chargers</span>
+                <span>23-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="NO" href="/historical/2018/regular-season/week-11/philadelphia-eagles-at-new-orleans-saints.html">
+                <span>Philadelphia Eagles @ New Orleans Saints</span>
+                <span>7-48</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="CHI" href="/historical/2018/regular-season/week-11/minnesota-vikings-at-chicago-bears.html">
+                <span>Minnesota Vikings @ Chicago Bears</span>
+                <span>20-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="LAR" href="/historical/2018/regular-season/week-11/kansas-city-chiefs-at-los-angeles-rams.html">
+                <span>Kansas City Chiefs @ Los Angeles Rams</span>
+                <span>51-54</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-12">
+          <h3>Week 12</h3>
+          <a class="season-index-game" data-origin="index" data-away="CHI" data-home="DET" href="/historical/2018/regular-season/week-12/chicago-bears-at-detroit-lions.html">
+                <span>Chicago Bears @ Detroit Lions</span>
+                <span>23-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="DAL" href="/historical/2018/regular-season/week-12/washington-commanders-at-dallas-cowboys.html">
+                <span>Washington Commanders @ Dallas Cowboys</span>
+                <span>23-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="NO" href="/historical/2018/regular-season/week-12/atlanta-falcons-at-new-orleans-saints.html">
+                <span>Atlanta Falcons @ New Orleans Saints</span>
+                <span>17-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="BUF" href="/historical/2018/regular-season/week-12/jacksonville-jaguars-at-buffalo-bills.html">
+                <span>Jacksonville Jaguars @ Buffalo Bills</span>
+                <span>21-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="CIN" href="/historical/2018/regular-season/week-12/cleveland-browns-at-cincinnati-bengals.html">
+                <span>Cleveland Browns @ Cincinnati Bengals</span>
+                <span>35-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="NYJ" href="/historical/2018/regular-season/week-12/new-england-patriots-at-new-york-jets.html">
+                <span>New England Patriots @ New York Jets</span>
+                <span>27-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="PHI" href="/historical/2018/regular-season/week-12/new-york-giants-at-philadelphia-eagles.html">
+                <span>New York Giants @ Philadelphia Eagles</span>
+                <span>22-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="TB" href="/historical/2018/regular-season/week-12/san-francisco-49ers-at-tampa-bay-buccaneers.html">
+                <span>San Francisco 49ers @ Tampa Bay Buccaneers</span>
+                <span>9-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="CAR" href="/historical/2018/regular-season/week-12/seattle-seahawks-at-carolina-panthers.html">
+                <span>Seattle Seahawks @ Carolina Panthers</span>
+                <span>30-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="BAL" href="/historical/2018/regular-season/week-12/oak-at-baltimore-ravens.html">
+                <span>Oakland Raiders @ Baltimore Ravens</span>
+                <span>17-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="LAC" href="/historical/2018/regular-season/week-12/arizona-cardinals-at-los-angeles-chargers.html">
+                <span>Arizona Cardinals @ Los Angeles Chargers</span>
+                <span>10-45</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="DEN" href="/historical/2018/regular-season/week-12/pittsburgh-steelers-at-denver-broncos.html">
+                <span>Pittsburgh Steelers @ Denver Broncos</span>
+                <span>17-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="IND" href="/historical/2018/regular-season/week-12/miami-dolphins-at-indianapolis-colts.html">
+                <span>Miami Dolphins @ Indianapolis Colts</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="MIN" href="/historical/2018/regular-season/week-12/green-bay-packers-at-minnesota-vikings.html">
+                <span>Green Bay Packers @ Minnesota Vikings</span>
+                <span>17-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="HOU" href="/historical/2018/regular-season/week-12/tennessee-titans-at-houston-texans.html">
+                <span>Tennessee Titans @ Houston Texans</span>
+                <span>17-34</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-13">
+          <h3>Week 13</h3>
+          <a class="season-index-game" data-origin="index" data-away="NO" data-home="DAL" href="/historical/2018/regular-season/week-13/new-orleans-saints-at-dallas-cowboys.html">
+                <span>New Orleans Saints @ Dallas Cowboys</span>
+                <span>10-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="ATL" href="/historical/2018/regular-season/week-13/baltimore-ravens-at-atlanta-falcons.html">
+                <span>Baltimore Ravens @ Atlanta Falcons</span>
+                <span>26-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="CIN" href="/historical/2018/regular-season/week-13/denver-broncos-at-cincinnati-bengals.html">
+                <span>Denver Broncos @ Cincinnati Bengals</span>
+                <span>24-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="DET" href="/historical/2018/regular-season/week-13/los-angeles-rams-at-detroit-lions.html">
+                <span>Los Angeles Rams @ Detroit Lions</span>
+                <span>30-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="GB" href="/historical/2018/regular-season/week-13/arizona-cardinals-at-green-bay-packers.html">
+                <span>Arizona Cardinals @ Green Bay Packers</span>
+                <span>20-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="MIA" href="/historical/2018/regular-season/week-13/buffalo-bills-at-miami-dolphins.html">
+                <span>Buffalo Bills @ Miami Dolphins</span>
+                <span>17-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="NYG" href="/historical/2018/regular-season/week-13/chicago-bears-at-new-york-giants.html">
+                <span>Chicago Bears @ New York Giants</span>
+                <span>27-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="TB" href="/historical/2018/regular-season/week-13/carolina-panthers-at-tampa-bay-buccaneers.html">
+                <span>Carolina Panthers @ Tampa Bay Buccaneers</span>
+                <span>17-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="JAX" href="/historical/2018/regular-season/week-13/indianapolis-colts-at-jacksonville-jaguars.html">
+                <span>Indianapolis Colts @ Jacksonville Jaguars</span>
+                <span>0-6</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="HOU" href="/historical/2018/regular-season/week-13/cleveland-browns-at-houston-texans.html">
+                <span>Cleveland Browns @ Houston Texans</span>
+                <span>13-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="TEN" href="/historical/2018/regular-season/week-13/new-york-jets-at-tennessee-titans.html">
+                <span>New York Jets @ Tennessee Titans</span>
+                <span>22-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="OAK" href="/historical/2018/regular-season/week-13/kansas-city-chiefs-at-oak.html">
+                <span>Kansas City Chiefs @ Oakland Raiders</span>
+                <span>40-33</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="NE" href="/historical/2018/regular-season/week-13/minnesota-vikings-at-new-england-patriots.html">
+                <span>Minnesota Vikings @ New England Patriots</span>
+                <span>10-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="SEA" href="/historical/2018/regular-season/week-13/san-francisco-49ers-at-seattle-seahawks.html">
+                <span>San Francisco 49ers @ Seattle Seahawks</span>
+                <span>16-43</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="PIT" href="/historical/2018/regular-season/week-13/los-angeles-chargers-at-pittsburgh-steelers.html">
+                <span>Los Angeles Chargers @ Pittsburgh Steelers</span>
+                <span>33-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="PHI" href="/historical/2018/regular-season/week-13/washington-commanders-at-philadelphia-eagles.html">
+                <span>Washington Commanders @ Philadelphia Eagles</span>
+                <span>13-28</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-14">
+          <h3>Week 14</h3>
+          <a class="season-index-game" data-origin="index" data-away="JAX" data-home="TEN" href="/historical/2018/regular-season/week-14/jacksonville-jaguars-at-tennessee-titans.html">
+                <span>Jacksonville Jaguars @ Tennessee Titans</span>
+                <span>9-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="BUF" href="/historical/2018/regular-season/week-14/new-york-jets-at-buffalo-bills.html">
+                <span>New York Jets @ Buffalo Bills</span>
+                <span>27-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="CLE" href="/historical/2018/regular-season/week-14/carolina-panthers-at-cleveland-browns.html">
+                <span>Carolina Panthers @ Cleveland Browns</span>
+                <span>20-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="GB" href="/historical/2018/regular-season/week-14/atlanta-falcons-at-green-bay-packers.html">
+                <span>Atlanta Falcons @ Green Bay Packers</span>
+                <span>20-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="KC" href="/historical/2018/regular-season/week-14/baltimore-ravens-at-kansas-city-chiefs.html">
+                <span>Baltimore Ravens @ Kansas City Chiefs</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="MIA" href="/historical/2018/regular-season/week-14/new-england-patriots-at-miami-dolphins.html">
+                <span>New England Patriots @ Miami Dolphins</span>
+                <span>33-34</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="TB" href="/historical/2018/regular-season/week-14/new-orleans-saints-at-tampa-bay-buccaneers.html">
+                <span>New Orleans Saints @ Tampa Bay Buccaneers</span>
+                <span>28-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="WAS" href="/historical/2018/regular-season/week-14/new-york-giants-at-washington-commanders.html">
+                <span>New York Giants @ Washington Commanders</span>
+                <span>40-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="HOU" href="/historical/2018/regular-season/week-14/indianapolis-colts-at-houston-texans.html">
+                <span>Indianapolis Colts @ Houston Texans</span>
+                <span>24-21</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="LAC" href="/historical/2018/regular-season/week-14/cincinnati-bengals-at-los-angeles-chargers.html">
+                <span>Cincinnati Bengals @ Los Angeles Chargers</span>
+                <span>21-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="SF" href="/historical/2018/regular-season/week-14/denver-broncos-at-san-francisco-49ers.html">
+                <span>Denver Broncos @ San Francisco 49ers</span>
+                <span>14-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="DAL" href="/historical/2018/regular-season/week-14/philadelphia-eagles-at-dallas-cowboys.html">
+                <span>Philadelphia Eagles @ Dallas Cowboys</span>
+                <span>23-29</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="OAK" href="/historical/2018/regular-season/week-14/pittsburgh-steelers-at-oak.html">
+                <span>Pittsburgh Steelers @ Oakland Raiders</span>
+                <span>21-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="ARI" href="/historical/2018/regular-season/week-14/detroit-lions-at-arizona-cardinals.html">
+                <span>Detroit Lions @ Arizona Cardinals</span>
+                <span>17-3</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="CHI" href="/historical/2018/regular-season/week-14/los-angeles-rams-at-chicago-bears.html">
+                <span>Los Angeles Rams @ Chicago Bears</span>
+                <span>6-15</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="SEA" href="/historical/2018/regular-season/week-14/minnesota-vikings-at-seattle-seahawks.html">
+                <span>Minnesota Vikings @ Seattle Seahawks</span>
+                <span>7-21</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-15">
+          <h3>Week 15</h3>
+          <a class="season-index-game" data-origin="index" data-away="LAC" data-home="KC" href="/historical/2018/regular-season/week-15/los-angeles-chargers-at-kansas-city-chiefs.html">
+                <span>Los Angeles Chargers @ Kansas City Chiefs</span>
+                <span>29-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="NYJ" href="/historical/2018/regular-season/week-15/houston-texans-at-new-york-jets.html">
+                <span>Houston Texans @ New York Jets</span>
+                <span>29-22</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="DEN" href="/historical/2018/regular-season/week-15/cleveland-browns-at-denver-broncos.html">
+                <span>Cleveland Browns @ Denver Broncos</span>
+                <span>17-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="ATL" href="/historical/2018/regular-season/week-15/arizona-cardinals-at-atlanta-falcons.html">
+                <span>Arizona Cardinals @ Atlanta Falcons</span>
+                <span>14-40</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="BUF" href="/historical/2018/regular-season/week-15/detroit-lions-at-buffalo-bills.html">
+                <span>Detroit Lions @ Buffalo Bills</span>
+                <span>13-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="CHI" href="/historical/2018/regular-season/week-15/green-bay-packers-at-chicago-bears.html">
+                <span>Green Bay Packers @ Chicago Bears</span>
+                <span>17-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="CIN" href="/historical/2018/regular-season/week-15/oak-at-cincinnati-bengals.html">
+                <span>Oakland Raiders @ Cincinnati Bengals</span>
+                <span>16-30</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="IND" href="/historical/2018/regular-season/week-15/dallas-cowboys-at-indianapolis-colts.html">
+                <span>Dallas Cowboys @ Indianapolis Colts</span>
+                <span>0-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIA" data-home="MIN" href="/historical/2018/regular-season/week-15/miami-dolphins-at-minnesota-vikings.html">
+                <span>Miami Dolphins @ Minnesota Vikings</span>
+                <span>17-41</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TEN" data-home="NYG" href="/historical/2018/regular-season/week-15/tennessee-titans-at-new-york-giants.html">
+                <span>Tennessee Titans @ New York Giants</span>
+                <span>17-0</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="WAS" data-home="JAX" href="/historical/2018/regular-season/week-15/washington-commanders-at-jacksonville-jaguars.html">
+                <span>Washington Commanders @ Jacksonville Jaguars</span>
+                <span>16-13</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="BAL" href="/historical/2018/regular-season/week-15/tampa-bay-buccaneers-at-baltimore-ravens.html">
+                <span>Tampa Bay Buccaneers @ Baltimore Ravens</span>
+                <span>12-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SEA" data-home="SF" href="/historical/2018/regular-season/week-15/seattle-seahawks-at-san-francisco-49ers.html">
+                <span>Seattle Seahawks @ San Francisco 49ers</span>
+                <span>23-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NE" data-home="PIT" href="/historical/2018/regular-season/week-15/new-england-patriots-at-pittsburgh-steelers.html">
+                <span>New England Patriots @ Pittsburgh Steelers</span>
+                <span>10-17</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="LAR" href="/historical/2018/regular-season/week-15/philadelphia-eagles-at-los-angeles-rams.html">
+                <span>Philadelphia Eagles @ Los Angeles Rams</span>
+                <span>30-23</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NO" data-home="CAR" href="/historical/2018/regular-season/week-15/new-orleans-saints-at-carolina-panthers.html">
+                <span>New Orleans Saints @ Carolina Panthers</span>
+                <span>12-9</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-16">
+          <h3>Week 16</h3>
+          <a class="season-index-game" data-origin="index" data-away="WAS" data-home="TEN" href="/historical/2018/regular-season/week-16/washington-commanders-at-tennessee-titans.html">
+                <span>Washington Commanders @ Tennessee Titans</span>
+                <span>16-25</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BAL" data-home="LAC" href="/historical/2018/regular-season/week-16/baltimore-ravens-at-los-angeles-chargers.html">
+                <span>Baltimore Ravens @ Los Angeles Chargers</span>
+                <span>22-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="CLE" href="/historical/2018/regular-season/week-16/cincinnati-bengals-at-cleveland-browns.html">
+                <span>Cincinnati Bengals @ Cleveland Browns</span>
+                <span>18-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="TB" data-home="DAL" href="/historical/2018/regular-season/week-16/tampa-bay-buccaneers-at-dallas-cowboys.html">
+                <span>Tampa Bay Buccaneers @ Dallas Cowboys</span>
+                <span>20-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="MIN" data-home="DET" href="/historical/2018/regular-season/week-16/minnesota-vikings-at-detroit-lions.html">
+                <span>Minnesota Vikings @ Detroit Lions</span>
+                <span>27-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYG" data-home="IND" href="/historical/2018/regular-season/week-16/new-york-giants-at-indianapolis-colts.html">
+                <span>New York Giants @ Indianapolis Colts</span>
+                <span>27-28</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="MIA" href="/historical/2018/regular-season/week-16/jacksonville-jaguars-at-miami-dolphins.html">
+                <span>Jacksonville Jaguars @ Miami Dolphins</span>
+                <span>17-7</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="BUF" data-home="NE" href="/historical/2018/regular-season/week-16/buffalo-bills-at-new-england-patriots.html">
+                <span>Buffalo Bills @ New England Patriots</span>
+                <span>12-24</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="GB" data-home="NYJ" href="/historical/2018/regular-season/week-16/green-bay-packers-at-new-york-jets.html">
+                <span>Green Bay Packers @ New York Jets</span>
+                <span>44-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="HOU" data-home="PHI" href="/historical/2018/regular-season/week-16/houston-texans-at-philadelphia-eagles.html">
+                <span>Houston Texans @ Philadelphia Eagles</span>
+                <span>30-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="CAR" href="/historical/2018/regular-season/week-16/atlanta-falcons-at-carolina-panthers.html">
+                <span>Atlanta Falcons @ Carolina Panthers</span>
+                <span>24-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAR" data-home="ARI" href="/historical/2018/regular-season/week-16/los-angeles-rams-at-arizona-cardinals.html">
+                <span>Los Angeles Rams @ Arizona Cardinals</span>
+                <span>31-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="SF" href="/historical/2018/regular-season/week-16/chicago-bears-at-san-francisco-49ers.html">
+                <span>Chicago Bears @ San Francisco 49ers</span>
+                <span>14-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PIT" data-home="NO" href="/historical/2018/regular-season/week-16/pittsburgh-steelers-at-new-orleans-saints.html">
+                <span>Pittsburgh Steelers @ New Orleans Saints</span>
+                <span>28-31</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="KC" data-home="SEA" href="/historical/2018/regular-season/week-16/kansas-city-chiefs-at-seattle-seahawks.html">
+                <span>Kansas City Chiefs @ Seattle Seahawks</span>
+                <span>31-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DEN" data-home="OAK" href="/historical/2018/regular-season/week-16/denver-broncos-at-oak.html">
+                <span>Denver Broncos @ Oakland Raiders</span>
+                <span>14-27</span>
+              </a>
+        </div>
+
+        <div class="season-index-round" id="round-17">
+          <h3>Week 17</h3>
+          <a class="season-index-game" data-origin="index" data-away="MIA" data-home="BUF" href="/historical/2018/regular-season/week-17/miami-dolphins-at-buffalo-bills.html">
+                <span>Miami Dolphins @ Buffalo Bills</span>
+                <span>17-42</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DET" data-home="GB" href="/historical/2018/regular-season/week-17/detroit-lions-at-green-bay-packers.html">
+                <span>Detroit Lions @ Green Bay Packers</span>
+                <span>31-0</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="NYJ" data-home="NE" href="/historical/2018/regular-season/week-17/new-york-jets-at-new-england-patriots.html">
+                <span>New York Jets @ New England Patriots</span>
+                <span>3-38</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CAR" data-home="NO" href="/historical/2018/regular-season/week-17/carolina-panthers-at-new-orleans-saints.html">
+                <span>Carolina Panthers @ New Orleans Saints</span>
+                <span>33-14</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="DAL" data-home="NYG" href="/historical/2018/regular-season/week-17/dallas-cowboys-at-new-york-giants.html">
+                <span>Dallas Cowboys @ New York Giants</span>
+                <span>36-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ATL" data-home="TB" href="/historical/2018/regular-season/week-17/atlanta-falcons-at-tampa-bay-buccaneers.html">
+                <span>Atlanta Falcons @ Tampa Bay Buccaneers</span>
+                <span>34-32</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="JAX" data-home="HOU" href="/historical/2018/regular-season/week-17/jacksonville-jaguars-at-houston-texans.html">
+                <span>Jacksonville Jaguars @ Houston Texans</span>
+                <span>3-20</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="LAC" data-home="DEN" href="/historical/2018/regular-season/week-17/los-angeles-chargers-at-denver-broncos.html">
+                <span>Los Angeles Chargers @ Denver Broncos</span>
+                <span>23-9</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="OAK" data-home="KC" href="/historical/2018/regular-season/week-17/oak-at-kansas-city-chiefs.html">
+                <span>Oakland Raiders @ Kansas City Chiefs</span>
+                <span>3-35</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="SF" data-home="LAR" href="/historical/2018/regular-season/week-17/san-francisco-49ers-at-los-angeles-rams.html">
+                <span>San Francisco 49ers @ Los Angeles Rams</span>
+                <span>32-48</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CHI" data-home="MIN" href="/historical/2018/regular-season/week-17/chicago-bears-at-minnesota-vikings.html">
+                <span>Chicago Bears @ Minnesota Vikings</span>
+                <span>24-10</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CIN" data-home="PIT" href="/historical/2018/regular-season/week-17/cincinnati-bengals-at-pittsburgh-steelers.html">
+                <span>Cincinnati Bengals @ Pittsburgh Steelers</span>
+                <span>13-16</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="ARI" data-home="SEA" href="/historical/2018/regular-season/week-17/arizona-cardinals-at-seattle-seahawks.html">
+                <span>Arizona Cardinals @ Seattle Seahawks</span>
+                <span>24-27</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="PHI" data-home="WAS" href="/historical/2018/regular-season/week-17/philadelphia-eagles-at-washington-commanders.html">
+                <span>Philadelphia Eagles @ Washington Commanders</span>
+                <span>24-0</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="CLE" data-home="BAL" href="/historical/2018/regular-season/week-17/cleveland-browns-at-baltimore-ravens.html">
+                <span>Cleveland Browns @ Baltimore Ravens</span>
+                <span>24-26</span>
+              </a>
+<a class="season-index-game" data-origin="index" data-away="IND" data-home="TEN" href="/historical/2018/regular-season/week-17/indianapolis-colts-at-tennessee-titans.html">
+                <span>Indianapolis Colts @ Tennessee Titans</span>
+                <span>33-17</span>
+              </a>
+        </div>
+    </div>
+  
+  <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
+</div>
+<script src="/js/analytics.js"></script>
+<script>
+    document.getElementById('week-select').addEventListener('change', function (e) {
+      var sections = document.querySelectorAll('.season-index-round');
+      var target = e.target.value;
+      sections.forEach(function (s) {
+        s.style.display = (target === 'all' || s.id === target) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

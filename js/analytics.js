@@ -44,6 +44,48 @@
   "use strict";
 
   try {
+    // Bail out entirely for bots/crawlers before any listener is wired up
+    // or any event is sent, so they never appear in pageviews, unique
+    // visitors, or any other analytics KPI. Two signals are used:
+    //  1. `navigator.webdriver` - set to true by essentially every headless
+    //     automation stack (Puppeteer, Playwright, Selenium, etc.) even
+    //     when the UA string itself is spoofed to look like a real browser.
+    //  2. A UA substring match against known crawlers/bots: traditional
+    //     search engine crawlers (Googlebot, Bingbot, ...), social/link-
+    //     preview fetchers (Facebook, Twitter/X, Slack, Discord, ...), SEO
+    //     tools (Ahrefs, SEMrush, ...), AI/LLM crawlers (GPTBot, ClaudeBot,
+    //     PerplexityBot, ...), and generic HTTP clients/headless browsers
+    //     (curl, wget, python-requests, HeadlessChrome, PhantomJS, ...).
+    // This is best-effort (a bot can always spoof both signals away), but
+    // it filters out the overwhelming majority of non-human traffic that
+    // executes this script.
+    function isLikelyBot() {
+      try {
+        if (navigator && navigator.webdriver) return true;
+        var ua = ((navigator && navigator.userAgent) || "").toLowerCase();
+        if (!ua) return false;
+        var BOT_UA_PATTERN = new RegExp(
+          [
+            "bot", "crawler", "spider", "slurp", "archiver", "headless",
+            "phantomjs", "puppeteer", "playwright", "selenium",
+            "curl", "wget", "python-requests", "python-urllib", "go-http-client",
+            "okhttp", "java/", "node-fetch", "axios", "scrapy", "libwww-perl",
+            "facebookexternalhit", "whatsapp", "telegrambot", "discordbot",
+            "slackbot", "linkedinbot", "pinterest", "twitterbot",
+            "gptbot", "chatgpt-user", "oai-searchbot", "claudebot",
+            "anthropic-ai", "perplexitybot", "ccbot", "bytespider",
+            "petalbot", "applebot", "screaming frog"
+          ].join("|"),
+          "i"
+        );
+        return BOT_UA_PATTERN.test(ua);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    if (isLikelyBot()) return;
+
     var ENDPOINT = "/.netlify/functions/track";
     var VISITOR_ID_KEY = "blitz-odds-vid";
 

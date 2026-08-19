@@ -75,6 +75,8 @@ type EventRecord = {
   away?: string;
   home?: string;
   page?: string;
+  pathname?: string;
+  referrerHost?: string;
   nav?: string;
   filter?: string;
   value?: string;
@@ -200,6 +202,10 @@ function emptySummary(now: number, range: Range) {
     historyPageviews: 0,
     historyGameClicksByTeam: {} as Record<string, number>,
     historyClicksByType: {} as Record<string, number>,
+    referrerBreakdown: {} as Record<string, number>,
+    pageviewsByPath: {} as Record<string, number>,
+    teamPageViews: 0,
+    gamePageViews: 0,
     themeDistribution: {} as Record<string, number>,
     sportsbookDistribution: {} as Record<string, number>,
     tzPrefDistribution: {} as Record<string, number>,
@@ -427,6 +433,30 @@ export default async (req: Request, _context: Context) => {
       (r) => r.type
     );
 
+    // --- referrerBreakdown: where pageviews came from, by hostname only
+    // (never a raw URL/query string - see js/analytics.js's
+    // getReferrerHost()). "(direct)" covers no-referrer visits (typed URL,
+    // bookmark, most apps); "(internal)" covers in-app navigation that
+    // still fires a hard pageview (a static team/game page's <a> links to
+    // another team/game page, or back to "/"). ---
+    const referrerBreakdown = sortedCounts(pageviews, (r) => r.referrerHost);
+
+    // --- pageviewsByPath / teamPageViews / gamePageViews: now that Phase 3
+    // gives team and game pages real URLs, `pathname` on the pageview event
+    // is the reliable way to see which specific pages are getting found and
+    // visited (via search, a shared link, or in-app navigation) - not just
+    // that "a team page" was viewed, but which one. Capped like every other
+    // bar-list dimension (dashboard shows top 8), so 353+ distinct URLs
+    // doesn't mean an unusably long list, just that the most-viewed pages
+    // naturally sort to the top. ---
+    const pageviewsByPath = sortedCounts(pageviews, (r) => r.pathname);
+    const teamPageViews = pageviews.filter(
+      (r) => typeof r.pathname === "string" && r.pathname.indexOf("/teams/") === 0
+    ).length;
+    const gamePageViews = pageviews.filter(
+      (r) => typeof r.pathname === "string" && r.pathname.indexOf("/games/") === 0
+    ).length;
+
     // --- themeDistribution / sportsbookDistribution / tzPrefDistribution:
     // unlike the click-count tiles above, these answer "what are people
     // currently set to", not "how many times did they change it" - so
@@ -561,6 +591,10 @@ export default async (req: Request, _context: Context) => {
       historyPageviews,
       historyGameClicksByTeam,
       historyClicksByType,
+      referrerBreakdown,
+      pageviewsByPath,
+      teamPageViews,
+      gamePageViews,
       themeDistribution,
       sportsbookDistribution,
       tzPrefDistribution,

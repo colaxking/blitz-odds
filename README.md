@@ -223,6 +223,18 @@ copy and commits/pushes to GitHub for a durable record. It only runs weekly, wel
 Netlify's ~20 free deploys/month, and if that push is ever slow or fails, the live site
 already has the update regardless.
 
+A separate set of GitHub Actions workflows (`.github/workflows/odds-refresh.yml`,
+`weather-refresh.yml`, `history-results-refresh.yml`, `static-pages-refresh.yml`) cover
+the same ground without Claude in the loop, dispatched externally via cron-job.org
+calling each workflow's `workflow_dispatch` REST endpoint (see each `.yml` file's header
+comment for the exact cron-job.org setup and suggested cadence) — GitHub Actions' own
+`schedule:` trigger is unreliable on a low-traffic repo like this one, so none of these
+files use it. `static-pages-refresh.yml` regenerates the Phase 3 static team/game pages
+(`scripts/build-static-pages.mjs`) from whatever's currently committed under `data/` -
+it calls no external API itself, so it's only useful run *after* one of the other three
+has actually changed something; odds/injury/result updates are invisible on the static
+pages (though still live in the React app) until it re-runs.
+
 ## Working conventions for Claude
 
 Any push to `main` triggers a live Netlify deploy of this site, so for changes

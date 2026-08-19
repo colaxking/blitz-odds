@@ -151,7 +151,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, nav, filter, value } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, referrerHost, nav, filter, value } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -266,6 +266,16 @@ export default async (req: Request, context: Context) => {
       record.page = page.slice(0, 160);
     }
 
+    // `pathname`/`referrerHost` only apply to a hard pageview - a
+    // view_change never touches the URL (that's what makes it "soft"), so
+    // both would just repeat whatever the last real pageview already
+    // recorded. See js/analytics.js's getReferrerHost() for how the latter
+    // is derived (hostname only, never a raw referrer URL/query string).
+    if (type === "pageview") {
+      if (typeof pathname === "string" && pathname) record.pathname = pathname.slice(0, 200);
+      if (typeof referrerHost === "string" && referrerHost) record.referrerHost = referrerHost.slice(0, 128);
+    }
+
     const location = extractLocation(context);
     if (location) {
       record.location = location;
@@ -340,6 +350,8 @@ export default async (req: Request, context: Context) => {
       addIndex("theme", record.theme as string | undefined);
       addIndex("sportsbook", record.sportsbook as string | undefined);
       addIndex("tzPref", record.tzPref as string | undefined);
+      addIndex("pathname", record.pathname as string | undefined);
+      addIndex("referrer", record.referrerHost as string | undefined);
     }
     if (type === "team_click") {
       addIndex("teamClick", record.team as string | undefined);

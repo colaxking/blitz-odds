@@ -1,0 +1,62 @@
+name: Blitz Odds - static pages refresh
+
+# Regenerates the Phase 3 static team/game pages (scripts/build-static-pages.mjs)
+# and commits them back to this repo. Unlike odds-refresh.yml / weather-refresh.yml
+# / history-results-refresh.yml, this job calls no external API and needs no
+# secret - it only re-reads whatever's already committed under data/ (teams,
+# schedule, odds, impact players, history, stadiums) and re-renders the 32
+# team pages + ~320 game pages from that. That also means it's only useful
+# to run AFTER one of those other refresh jobs has actually changed
+# something - odds/injuries/results updates are invisible on the static
+# pages (though still live in the React app itself) until this job re-runs.
+#
+# Dispatched externally via cron-job.org, same pattern as the other refresh
+# jobs (see README "Keeping it current" section) - GitHub Actions' own
+# `schedule:` cron is unreliable on low-traffic repos, so don't uncomment it
+# below. To wire this up, add a cron-job.org job pointing at:
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/static-pages-refresh.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+# Suggested cadence: every 2-3 hours is plenty - the underlying data (odds,
+# injuries, results) doesn't change faster than that, and each run rewrites
+# every page regardless of whether it changed (see build-static-pages.mjs
+# header comment), so there's no benefit to running it more often than the
+# data it reads actually moves.
+on:
+  #schedule:
+    #- cron: "0 */3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blitz-odds-static-pages-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build static team/game pages
+        run: node scripts/build-static-pages.mjs
+
+      - name: Commit regenerated pages if changed
+        run: |
+          if git diff --quiet -- teams/ games/ sitemap.xml; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "blitz-odds-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add teams/ games/ sitemap.xml
+          git commit -m "Static pages refresh: automated regeneration via GitHub Actions"
+          git push

@@ -42,7 +42,7 @@
 }
 </script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjMyMCIgdmlld0JveD0iMCAwIDMyMCAzMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iMTYwIiBjeT0iMTYwIiByPSIxNTIiIGZpbGw9IiMwZDE0MjAiIHN0cm9rZT0iIzRmZDFjNSIgc3Ryb2tlLXdpZHRoPSIxMiIvPgogIDxjaXJjbGUgY3g9IjE2MCIgY3k9IjE2MCIgcj0iMTUyIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMyIvPgoKICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNjAsMTYwKSByb3RhdGUoLTI4KSI+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9IjAiIHJ4PSIxMTgiIHJ5PSI2NiIgZmlsbD0iIzhhNGEyOCIgc3Ryb2tlPSIjMWEwZDA1IiBzdHJva2Utd2lkdGg9IjEzIi8+CiAgICA8ZWxsaXBzZSBjeD0iLTM4IiBjeT0iLTI0IiByeD0iMzQiIHJ5PSIxMyIgZmlsbD0iI2M5OGE1NCIvPgogICAgPGxpbmUgeDE9Ii03NCIgeTE9IjAiIHgyPSI3NCIgeTI9IjAiIHN0cm9rZT0iIzFhMGQwNSIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iLTc0IiB5MT0iLTIiIHgyPSI3NCIgeTI9Ii0yIiBzdHJva2U9IiNmNGY2ZmEiIHN0cm9rZS13aWR0aD0iNyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8ZyBzdHJva2U9IiMxYTBkMDUiIHN0cm9rZS13aWR0aD0iMTEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CiAgICAgIDxsaW5lIHgxPSItMzQiIHkxPSItMTUiIHgyPSItMzQiIHkyPSIxMyIvPgogICAgICA8bGluZSB4MT0iMCIgeTE9Ii0xNSIgeDI9IjAiIHkyPSIxMyIvPgogICAgICA8bGluZSB4MT0iMzQiIHkxPSItMTUiIHgyPSIzNCIgeTI9IjEzIi8+CiAgICA8L2c+CiAgICA8ZyBzdHJva2U9IiNmNGY2ZmEiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj4KICAgICAgPGxpbmUgeDE9Ii0zNCIgeTE9Ii0xMyIgeDI9Ii0zNCIgeTI9IjExIi8+CiAgICAgIDxsaW5lIHgxPSIwIiB5MT0iLTEzIiB4Mj0iMCIgeTI9IjExIi8+CiAgICAgIDxsaW5lIHgxPSIzNCIgeTE9Ii0xMyIgeDI9IjM0IiB5Mj0iMTEiLz4KICAgIDwvZz4KICA8L2c+CgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE2MCwxNTgpIHJvdGF0ZSgxNikgc2NhbGUoMS4wNSkiPgogICAgPHBvbHlnb24gcG9pbnRzPSIxMCwtMTAwIC00NSwxMCAtNSwxMCAtMjUsMTAwIDU1LC0xMCAxMCwtMTAgMzAsLTEwMCIgZmlsbD0iI2ZmY2MwMCIgc3Ryb2tlPSIjMWEwZDA1IiBzdHJva2Utd2lkdGg9IjEzIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjEwLC0xMDAgLTQ1LDEwIC01LDEwIC0xOCw0MiAyMSwtNDYgNiwtNDYiIGZpbGw9IiNmZmYyYjAiLz4KICA8L2c+Cjwvc3ZnPgo=" />
-<script src="js/predictionEngine.js"></script>
+<script src="/js/predictionEngine.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -580,6 +580,17 @@
   .impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
   .impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
   .impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
+  .full-matchup-link {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed var(--card-border); color: var(--accent); font-size: 0.72rem; font-weight: 700;
+    text-decoration: none; width: 100%;
+  }
+  .full-matchup-link:hover { text-decoration: underline; }
+  .full-matchup-link .fm-arrow { transition: transform 0.15s ease; }
+  .full-matchup-link:hover .fm-arrow { transform: translateX(2px); }
+  .game-page { max-width: 720px; margin: 0 auto; }
+  .game-page-back { display: inline-flex; align-items: center; gap: 5px; color: var(--text-dim); font-size: 0.8rem; font-weight: 600; text-decoration: none; margin-bottom: 14px; }
+  .game-page-back:hover { color: var(--text); }
   .injury-report { margin-bottom: 18px; }
   .injury-report-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
   .injury-list { display: flex; flex-direction: column; gap: 6px; }
@@ -7620,6 +7631,64 @@ function baseTeam(id) {
   return LIVE_TEAMS_LIST.find(t => t.id === id);
 }
 
+// ---- URL routing (Phase 3: per-team/per-game static-friendly URLs) --------
+// Client-side pushState routing so team and game views get real, shareable
+// URLs (/teams/{slug}/, /games/{year}/{week-slug}/{away}-at-{home}/) instead
+// of only living in React state. Kept intentionally simple - a small parse
+// function plus a couple of path builders - since the actual static HTML
+// generation for these URLs is a separate build-time script; this layer only
+// has to (a) reflect the current view in the address bar and (b) recover the
+// same view from a direct link or a back/forward navigation.
+function slugify(str) {
+  return String(str).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+function teamSlug(id) {
+  const t = baseTeam(id);
+  return slugify(t ? t.name : id);
+}
+function teamIdFromSlug(slug) {
+  const t = LIVE_TEAMS_LIST.find(t => slugify(t.name) === slug);
+  return t ? t.id : null;
+}
+function weekSlug(week) {
+  const p = getSelectablePeriods().find(p => p.week === week);
+  return slugify(p ? p.label : `week-${week}`);
+}
+function weekFromSlug(slug) {
+  const p = getSelectablePeriods().find(p => slugify(p.label) === slug);
+  return p ? p.week : null;
+}
+function buildTeamPath(teamId) {
+  return `/teams/${teamSlug(teamId)}/`;
+}
+function buildGamePath(week, awayAbbr, homeAbbr) {
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  return `/games/${seasonYear}/${weekSlug(week)}/${teamSlug(awayAbbr)}-at-${teamSlug(homeAbbr)}/`;
+}
+/** Recovers {view, teamId} or {view, week, awayAbbr, homeAbbr} from a
+ *  pathname, or null if it doesn't match a known route (falls back to the
+ *  week view). Game URLs are matched against that week's actual scheduled
+ *  games rather than split on "-at-" in the URL itself, since a team's own
+ *  slug can itself contain dashes (e.g. "new-york-giants"), which would make
+ *  a plain string split ambiguous. */
+function parseLocationPath(pathname) {
+  const teamMatch = pathname.match(/^\/teams\/([a-z0-9-]+)\/?$/);
+  if (teamMatch) {
+    const teamId = teamIdFromSlug(teamMatch[1]);
+    if (teamId) return { view: "team", teamId };
+  }
+  const gameMatch = pathname.match(/^\/games\/(\d{4})\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
+  if (gameMatch) {
+    const week = weekFromSlug(gameMatch[2]);
+    if (week != null) {
+      const matchupSlug = gameMatch[3];
+      const game = getGamesForWeek(week).find(g => `${teamSlug(g.away)}-at-${teamSlug(g.home)}` === matchupSlug);
+      if (game) return { view: "game", week, awayAbbr: game.away, homeAbbr: game.home };
+    }
+  }
+  return null;
+}
+
 // ---- Division alignment (for highlighting division games) -----------------
 // The NFL's 8-division, 4-team alignment is essentially static reference
 // data - it only changes on the rare franchise relocation, not week to week
@@ -8054,9 +8123,18 @@ function applyDocumentMeta(title, description) {
  *  view, or a specific team on the team view - then restores the site
  *  default on unmount/view change. Team names/records come through
  *  baseTeam() so they reflect live-refreshed data. */
-function useDocumentMeta(view, teamId, week) {
+function useDocumentMeta(view, teamId, week, game) {
   useEffect(() => {
-    if (view === "team" && teamId) {
+    if (view === "game" && game) {
+      const away = baseTeam(game.awayAbbr);
+      const home = baseTeam(game.homeAbbr);
+      const awayName = away ? away.name : game.awayAbbr;
+      const homeName = home ? home.name : game.homeAbbr;
+      applyDocumentMeta(
+        `${awayName} at ${homeName} — Odds, Injuries & Prediction | Blitz Odds`,
+        `${awayName} @ ${homeName}: live odds, injury report, team rankings comparison, and win probability for this matchup.`
+      );
+    } else if (view === "team" && teamId) {
       const team = baseTeam(teamId);
       const teamName = team ? team.name : teamId;
       applyDocumentMeta(
@@ -8073,7 +8151,7 @@ function useDocumentMeta(view, teamId, week) {
       applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
     }
     return () => applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
-  }, [view, teamId, week]);
+  }, [view, teamId, week, game]);
 }
 
 /** Injects/updates/removes a single <script type="application/ld+json"> in
@@ -9511,7 +9589,7 @@ function isVisibleInInjuryReport(p) {
   return (Date.now() - activated.getTime()) <= ACTIVE_VISIBILITY_DAYS * 24 * 60 * 60 * 1000;
 }
 
-function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, live, week, sportsbookId, tz }) {
+function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGame, context, live, week, sportsbookId, tz, hideFullMatchupLink }) {
   const home = context.getTeam(game.home);
   const away = context.getTeam(game.away);
   if (!home || !away) return null;
@@ -9724,6 +9802,16 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, context, li
           </span>
         </div>
       ))}
+
+      {!hideFullMatchupLink && onSelectGame && (
+        <a
+          href={buildGamePath(week, game.away, game.home)}
+          className="full-matchup-link"
+          onClick={(e) => { e.preventDefault(); onSelectGame(week, game.away, game.home); }}
+        >
+          Full matchup &amp; odds history <span className="fm-arrow">→</span>
+        </a>
+      )}
     </div>
   );
 }
@@ -9788,7 +9876,7 @@ function GradationLegend() {
   );
 }
 
-function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookId, tz }) {
+function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGame, sportsbookId, tz }) {
   const scheduledGames = getGamesForWeek(week);
   const liveMap = useLiveScores(week);
   const context = getWeekContext(week);
@@ -9833,6 +9921,7 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
             favorites={favorites}
             onToggleFavorite={onToggleFavorite}
             onSelectTeam={onSelectTeam}
+            onSelectGame={onSelectGame}
             context={context}
             live={liveMap[`${g.away}-${g.home}`]}
             week={week}
@@ -9841,6 +9930,52 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, sportsbookI
           />
         ))}
       </div>
+    </div>
+  );
+}
+
+/** Dedicated page for a single matchup (/games/{year}/{week-slug}/{away}-at-{home}/).
+ *  Deliberately thin - it just locates the one game and context this week's
+ *  data actually has, then reuses GameCard itself for all the real content
+ *  (odds, stat-compare, Blitz Verdict, injuries) so this view can never drift
+ *  out of sync with what the week view shows for the same matchup.
+ *  hideFullMatchupLink suppresses GameCard's own "Full matchup ->" link,
+ *  since we're already on that page. */
+function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, sportsbookId, tz }) {
+  const game = useMemo(
+    () => getGamesForWeek(week).find(g => g.away === awayAbbr && g.home === homeAbbr),
+    [week, awayAbbr, homeAbbr]
+  );
+  const liveMap = useLiveScores(week);
+  const context = getWeekContext(week);
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  useSportsEventJsonLd(game ? [game] : [], seasonYear);
+
+  return (
+    <div className="game-page">
+      <a
+        href="/"
+        className="game-page-back"
+        onClick={(e) => { e.preventDefault(); onBack(); }}
+      >
+        &larr; Back to {getPeriodLabel(week)}
+      </a>
+      {game ? (
+        <GameCard
+          game={game}
+          favorites={favorites}
+          onToggleFavorite={onToggleFavorite}
+          onSelectTeam={onSelectTeam}
+          context={context}
+          live={liveMap[`${game.away}-${game.home}`]}
+          week={week}
+          sportsbookId={sportsbookId}
+          tz={tz}
+          hideFullMatchupLink
+        />
+      ) : (
+        <p>This matchup isn't on the schedule.</p>
+      )}
     </div>
   );
 }
@@ -11971,13 +12106,31 @@ function ThemeToggle({ mode, setMode }) {
   );
 }
 
+/** Reads the current URL once at App-mount time. Wrapped so every initial
+ *  useState below can call it independently (each only runs its lazy
+ *  initializer on first render, so the repeat calls cost nothing) without
+ *  threading a single computed value through multiple useState calls. */
+function getInitialRoute() {
+  try { return parseLocationPath(window.location.pathname); } catch (e) { return null; }
+}
+
 function App() {
   const [themeMode, setThemeMode] = useThemeManager();
   const [sportsbookId, setSportsbookId] = useSportsbookManager();
   const [tzId, setTzId, resolvedTz] = useTimezoneManager();
-  const [view, setView] = useState("week");
-  const [selectedWeek, setSelectedWeek] = useState(() => getDefaultWeek());
-  const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [view, setView] = useState(() => (getInitialRoute() || {}).view || "week");
+  const [selectedWeek, setSelectedWeek] = useState(() => {
+    const route = getInitialRoute();
+    return route && route.view === "game" ? route.week : getDefaultWeek();
+  });
+  const [selectedTeamId, setSelectedTeamId] = useState(() => {
+    const route = getInitialRoute();
+    return route && route.view === "team" ? route.teamId : null;
+  });
+  const [selectedGame, setSelectedGame] = useState(() => {
+    const route = getInitialRoute();
+    return route && route.view === "game" ? { week: route.week, awayAbbr: route.awayAbbr, homeAbbr: route.homeAbbr } : null;
+  });
   const [favorites, setFavorites] = useState(loadFavorites);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -11985,9 +12138,34 @@ function App() {
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
   useLiveWeatherData(); // background-refreshes weather from the live blob store; re-renders the app when they change
-  useDocumentMeta(view, selectedTeamId, selectedWeek); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
+  useDocumentMeta(view, selectedTeamId, selectedWeek, selectedGame); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
+
+  // Recovers view state on browser back/forward. pushState (below) only
+  // updates the address bar - it doesn't touch React state on its own - so
+  // without this listener the Back button would change the URL but leave
+  // whatever view was already on screen in place.
+  useEffect(() => {
+    function onPopState() {
+      const route = parseLocationPath(window.location.pathname);
+      if (route && route.view === "team") {
+        setSelectedTeamId(route.teamId);
+        setSelectedGame(null);
+        setView("team");
+      } else if (route && route.view === "game") {
+        setSelectedGame({ week: route.week, awayAbbr: route.awayAbbr, homeAbbr: route.homeAbbr });
+        setSelectedWeek(route.week);
+        setView("game");
+      } else {
+        setSelectedGame(null);
+        setView("week");
+      }
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   function toggleFavorite(teamId) {
     setFavorites(prev => prev.includes(teamId) ? prev.filter(t => t !== teamId) : [...prev, teamId]);
@@ -11995,15 +12173,28 @@ function App() {
 
   function selectTeam(teamId) {
     setSelectedTeamId(teamId);
+    setSelectedGame(null);
     setView("team");
+    const path = buildTeamPath(teamId);
+    if (window.location.pathname !== path) window.history.pushState({ view: "team", teamId }, "", path);
     // Switching views doesn't remount the page - without this, clicking a
     // team while scrolled partway down a long week/schedule list lands on
     // the new view still scrolled to that same position instead of its top.
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
+  function selectGame(week, awayAbbr, homeAbbr) {
+    setSelectedGame({ week, awayAbbr, homeAbbr });
+    setView("game");
+    const path = buildGamePath(week, awayAbbr, homeAbbr);
+    if (window.location.pathname !== path) window.history.pushState({ view: "game", week, awayAbbr, homeAbbr }, "", path);
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
   function backToWeek() {
     setView("week");
+    setSelectedGame(null);
+    if (window.location.pathname !== "/") window.history.pushState({ view: "week" }, "", "/");
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
@@ -12067,7 +12258,19 @@ function App() {
       <FavoritesBar favorites={favorites} onSelect={selectTeam} />
 
       {view === "week" ? (
-        <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} />
+        <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} onSelectGame={selectGame} sportsbookId={sportsbookId} tz={resolvedTz} />
+      ) : view === "game" && selectedGame ? (
+        <GameView
+          week={selectedGame.week}
+          awayAbbr={selectedGame.awayAbbr}
+          homeAbbr={selectedGame.homeAbbr}
+          favorites={favorites}
+          onToggleFavorite={toggleFavorite}
+          onSelectTeam={selectTeam}
+          onBack={backToWeek}
+          sportsbookId={sportsbookId}
+          tz={resolvedTz}
+        />
       ) : (
         <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} />
       )}
@@ -12101,6 +12304,6 @@ function App() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
-<script src="js/analytics.js"></script>
+<script src="/js/analytics.js"></script>
 </body>
 </html>

@@ -1,0 +1,8 @@
+# Phase 3 SPA routes: /teams/* and /games/* are client-side (pushState)
+# routes handled by index.html's React router. Until the Stage 2 static
+# pre-rendering build script generates real HTML files at these exact
+# paths, a direct hit / shared link / crawler request needs to fall back
+# to index.html so the app can parse the URL and render the right view
+# client-side instead of getting a 404.
+/teams/*  /index.html  200
+/games/*  /index.html  200

@@ -12599,6 +12599,19 @@ function useAuth() {
       return;
     }
 
+    // Known netlify-identity-widget quirk: it renders a full-page overlay
+    // <iframe id="netlify-identity-widget">. identity.close() hides the
+    // widget's own modal content, but the iframe element itself sometimes
+    // doesn't get its display reset, leaving an invisible, full-screen,
+    // click-swallowing layer over the entire page even though nothing is
+    // visibly open. Forcing it hidden after every close/login is the
+    // standard community fix. The widget's own open() call resets this
+    // inline style back to visible, so it's safe to force-hide repeatedly.
+    function hideWidgetIframe() {
+      const iframe = document.getElementById("netlify-identity-widget");
+      if (iframe) iframe.style.display = "none";
+    }
+
     function onInit(u) {
       setUser(u || null);
       setStatus(u ? "in" : "out");
@@ -12607,21 +12620,28 @@ function useAuth() {
       setUser(u);
       setStatus("in");
       identity.close();
+      setTimeout(hideWidgetIframe, 50);
     }
     function onLogout() {
       setUser(null);
       setStatus("out");
+      setTimeout(hideWidgetIframe, 50);
+    }
+    function onClose() {
+      setTimeout(hideWidgetIframe, 50);
     }
 
     identity.on("init", onInit);
     identity.on("login", onLogin);
     identity.on("logout", onLogout);
+    identity.on("close", onClose);
     identity.init();
 
     return () => {
       identity.off("init", onInit);
       identity.off("login", onLogin);
       identity.off("logout", onLogout);
+      identity.off("close", onClose);
     };
   }, []);
 

@@ -10644,7 +10644,7 @@ function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode,
 // authenticatedFetch). This modal only handles league membership - actual
 // pick submission and standings are a separate, later view.
 
-function LeaguesModal({ auth, onClose }) {
+function LeaguesModal({ auth, onClose, onRequestLogin }) {
   const overlayRef = useRef(null);
   const [leagues, setLeagues] = useState(null); // null = loading
   const [loadError, setLoadError] = useState(null);
@@ -10740,7 +10740,11 @@ function LeaguesModal({ auth, onClose }) {
   const body = auth.status !== "in" ? (
     <div className="leagues-signed-out">
       <p>Sign in to create or join a pick'em league with friends.</p>
-      <button type="button" className="league-btn league-btn-primary" onClick={auth.openLogin}>
+      <button
+        type="button"
+        className="league-btn league-btn-primary"
+        onClick={onRequestLogin}
+      >
         Sign in
       </button>
     </div>
@@ -12921,6 +12925,19 @@ function App() {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLeagues, setShowLeagues] = useState(false);
+  const [pendingLeagueReopen, setPendingLeagueReopen] = useState(false);
+
+  // The Leagues modal closes itself before opening the Identity sign-in
+  // widget (see LeaguesModal's "Sign in" button) since the two modals
+  // stack and the widget would otherwise render underneath. This brings
+  // Leagues back automatically once sign-in actually completes, instead of
+  // silently dropping the user back on the main page.
+  useEffect(() => {
+    if (auth.status === "in" && pendingLeagueReopen) {
+      setShowLeagues(true);
+      setPendingLeagueReopen(false);
+    }
+  }, [auth.status, pendingLeagueReopen]);
 
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
@@ -13097,7 +13114,11 @@ function App() {
       )}
 
       {showLeagues && (
-        <LeaguesModal auth={auth} onClose={() => setShowLeagues(false)} />
+        <LeaguesModal
+          auth={auth}
+          onClose={() => setShowLeagues(false)}
+          onRequestLogin={() => { setShowLeagues(false); setPendingLeagueReopen(true); auth.openLogin(); }}
+        />
       )}
     </div>
   );

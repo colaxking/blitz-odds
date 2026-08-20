@@ -387,32 +387,46 @@
   }
   .fav-chip:hover { border-color: var(--star); }
 
-  /* Primary tab navigation - horizontal strip under the header on desktop,
-     fixed bottom bar on mobile. Same markup (TabBar component) both ways;
-     only the container's position/layout changes via the media query
-     below, plus a bit of extra bottom padding on .app so page content
-     doesn't end up hidden behind the fixed bar on mobile. */
+  /* Primary tab navigation - horizontal underline strip on desktop, fixed
+     bottom bar on mobile. Same markup (TabBar component) both ways; the
+     icon-badge active-state language (filled circle + accent) carries
+     through to both, only the container's position/layout and row
+     direction change via the media query below. Extra bottom padding on
+     .app keeps page content clear of the fixed bar on mobile. */
   .tab-bar {
-    display: flex; gap: 4px; margin: 14px 0 0; padding-bottom: 0; border-bottom: 1px solid var(--card-border);
+    display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border);
   }
   .tab-btn {
-    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
-    background: none; border: none; color: var(--text-dim); font-family: inherit; cursor: pointer;
-    padding: 8px 4px 10px; border-bottom: 2px solid transparent;
-    font-size: 0.72rem; font-weight: 700; transition: color 0.15s, border-color 0.15s;
+    display: flex; align-items: center; gap: 9px; background: none; border: none; cursor: pointer;
+    color: var(--text-dim); font-family: inherit; font-size: 0.86rem; font-weight: 700;
+    padding: 0 0 14px; position: relative; transition: color 0.15s;
   }
   .tab-btn:hover { color: var(--text); }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab-icon { font-size: 18px; line-height: 1; }
+  .tab-btn.active { color: var(--text); }
+  .tab-btn.active::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: var(--accent); border-radius: 2px;
+  }
+  .tab-icon {
+    width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; line-height: 1; flex-shrink: 0; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--card-border); transition: background 0.15s, border-color 0.15s;
+  }
+  .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: var(--accent); }
   @media (max-width: 720px) {
-    .app { padding-bottom: 78px; }
+    .app { padding-bottom: 82px; }
     .tab-bar {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0;
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
       background: var(--card-bg); border-bottom: none; border-top: 1px solid var(--card-border);
-      padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px));
+      padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
     }
-    .tab-btn { border-bottom: none; border-radius: 8px; }
-    .tab-btn.active { background: rgba(var(--accent-rgb),0.12); border-bottom: none; }
+    .tab-btn {
+      flex: 1; flex-direction: column; gap: 3px; padding: 4px 2px 0; font-size: 0.64rem;
+    }
+    .tab-btn.active::after { content: none; }
+    .tab-icon { width: 24px; height: 24px; font-size: 12px; background: none; border-color: transparent; }
+    .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: transparent; }
+    .tab-btn.active { color: var(--accent); }
   }
 
   .tab-placeholder { text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 40px 16px; }
@@ -473,16 +487,97 @@
 
   /* News tab */
   .news-view { margin-top: 18px; }
-  .news-view-title { font-size: 1.15rem; font-weight: 800; margin: 0 0 16px; }
-  .news-view-empty { color: var(--text-dim); font-size: 0.85rem; margin-top: 18px; }
-  .news-view-list { display: flex; flex-direction: column; gap: 4px; }
-  .news-view-row {
-    display: block; padding: 12px 4px; border-bottom: 1px solid var(--card-border);
-    text-decoration: none; color: inherit;
+  .news-view-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    margin: 0 0 16px;
   }
-  .news-view-row:hover .news-view-headline { color: var(--accent); }
-  .news-view-headline { font-size: 0.9rem; font-weight: 600; line-height: 1.4; transition: color 0.15s; }
-  .news-view-meta { font-size: 0.76rem; color: var(--text-dim); margin-top: 4px; }
+  .news-view-title { font-size: 1.15rem; font-weight: 800; margin: 0; }
+  .news-view-empty { color: var(--text-dim); font-size: 0.85rem; margin-top: 18px; }
+
+  .news-team-filter { position: relative; display: inline-flex; }
+  .news-team-filter-trigger {
+    display: flex; align-items: center; gap: 7px; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 999px; color: var(--text);
+    font-size: 0.82rem; font-weight: 600; padding: 6px 12px 6px 8px; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .news-team-filter-trigger:hover { border-color: var(--accent); }
+  .news-team-filter-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .news-team-filter-chevron { color: var(--text-dim); transition: transform 0.18s; display: flex; }
+  .news-team-filter-chevron.open { transform: rotate(180deg); }
+  .news-team-filter-panel {
+    position: absolute; top: calc(100% + 10px); right: 0; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    padding: 8px; width: 260px; max-height: 380px; display: flex; flex-direction: column; z-index: 30;
+  }
+  .news-team-filter-search {
+    width: 100%; box-sizing: border-box; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 8px 10px; font-size: 0.84rem; color: var(--text); font-family: inherit;
+    margin-bottom: 6px; flex-shrink: 0;
+  }
+  .news-team-filter-search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .news-team-filter-list { overflow-y: auto; }
+  .news-team-filter-item {
+    display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none;
+    color: var(--text); font-size: 0.85rem; text-align: left; padding: 8px; border-radius: 8px;
+    cursor: pointer; font-family: inherit; transition: background 0.12s;
+  }
+  .news-team-filter-item:hover { background: rgba(var(--accent-rgb),0.08); }
+  .news-team-filter-item.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); font-weight: 700; }
+  .news-team-filter-all-icon { font-size: 16px; width: 18px; text-align: center; flex-shrink: 0; line-height: 1; }
+  .news-team-filter-empty { color: var(--text-dim); font-size: 0.8rem; padding: 12px 8px; text-align: center; }
+
+  .news-card-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;
+  }
+  .news-card {
+    display: flex; flex-direction: column; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; overflow: hidden; text-decoration: none; color: inherit;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12); transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .news-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.22); border-color: var(--accent); }
+  .news-card:hover .news-card-img { transform: scale(1.05); }
+  .news-card-img-wrap { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--surface-2); flex-shrink: 0; }
+  .news-card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; display: block; }
+  .news-card-img-fallback {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.06));
+    font-size: 30px;
+  }
+  .news-card-source-badge {
+    position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.62); color: #fff; font-size: 0.62rem;
+    font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
+  }
+  .news-card-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .news-card-headline {
+    font-size: 0.88rem; font-weight: 700; line-height: 1.35; transition: color 0.15s;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .news-card:hover .news-card-headline { color: var(--accent); }
+  .news-card-meta { font-size: 0.72rem; color: var(--text-dim); margin-top: auto; }
+
+  /* Top story gets the whole row and a wider image instead of matching
+     every other card - visual priority for the most recent headline. */
+  .news-card-featured { grid-column: 1 / -1; flex-direction: row; }
+  .news-card-featured .news-card-img-wrap { width: 42%; aspect-ratio: auto; }
+  .news-card-featured .news-card-body { justify-content: flex-start; padding: 18px 22px; gap: 10px; }
+  .news-card-featured .news-card-headline { font-size: 1.15rem; -webkit-line-clamp: 4; }
+  .news-card-featured .news-card-meta { margin-top: 0; }
+  .news-card-excerpt {
+    font-size: 0.82rem; color: var(--text-dim); line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  @media (max-width: 640px) {
+    .news-card-featured { flex-direction: column; }
+    .news-card-featured .news-card-img-wrap { width: 100%; aspect-ratio: 16 / 9; }
+  }
+
+  .news-load-more-btn {
+    display: block; margin: 20px auto 4px; background: var(--card-bg); border: 1px solid var(--card-border);
+    color: var(--text); font-size: 0.85rem; font-weight: 700; padding: 10px 20px; border-radius: 999px;
+    cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .news-load-more-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
 
   .how-it-works-copy { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
   .demo-banner {
@@ -11659,6 +11754,15 @@ const RSS2JSON_API_KEY = "0xcemmcvfabsgqs9x1jwxx5yntebmgxkkupxssko";
 // exact URL for public subscription - see foxsports.com/rss-feeds).
 const FOX_NFL_RSS_URL = "https://api.foxsports.com/v2/content/optimized-rss?partnerKey=MB0Wehpmuj2lUhuRhQaafhBjAJqaPU244mlTDK1i&size=30&tags=fs/nfl";
 
+/** Strips HTML tags/entities down to plain text - RSS <description> fields
+ *  (CBS/FOX via rss2json) commonly carry markup or an embedded thumbnail
+ *  <img>, neither of which belongs in a plain-text excerpt. */
+function stripHtmlToText(html) {
+  if (!html) return null;
+  const text = String(html).replace(/<[^>]*>/g, " ").replace(/&[a-z]+;|&#\d+;/gi, " ").replace(/\s+/g, " ").trim();
+  return text || null;
+}
+
 async function fetchRssFeedViaJson(feedUrl, sourceName) {
   try {
     const encoded = encodeURIComponent(feedUrl);
@@ -11671,8 +11775,29 @@ async function fetchRssFeedViaJson(feedUrl, sourceName) {
       published: parsePubDateToIso(item.pubDate),
       url: item.link,
       image: (item.enclosure && item.enclosure.link) || item.thumbnail || null,
+      description: stripHtmlToText(item.description),
       source: sourceName,
     }));
+  } catch (e) {
+    return [];
+  }
+}
+
+async function fetchEspnLeagueNews() {
+  try {
+    const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/news");
+    if (!res.ok) throw new Error("ESPN league news request failed: " + res.status);
+    const data = await res.json();
+    return (data.articles || [])
+      .filter(a => a.type !== "Media")
+      .map(a => ({
+        headline: a.headline,
+        published: a.published,
+        url: a.links && a.links.web && a.links.web.href,
+        image: a.images && a.images[0] && a.images[0].url,
+        description: a.description || null,
+        source: "ESPN",
+      }));
   } catch (e) {
     return [];
   }
@@ -11682,14 +11807,21 @@ let leagueNewsFeedPromise = null;
 function fetchLeagueNewsFeed() {
   if (leagueNewsFeedPromise) return leagueNewsFeedPromise;
   leagueNewsFeedPromise = (async () => {
-    const [cbsItems, foxItems] = await Promise.all([
+    // ESPN's league-wide feed goes first: its API reliably supplies a real
+    // article image per story (see fetchTeamNews below, which leans on the
+    // same source for the same reason), where CBS/FOX's RSS-via-rss2json
+    // items only sometimes carry a usable enclosure/thumbnail. Blending it
+    // in here means the News tab gets the same image coverage the
+    // per-team panel already has, not just three text-only sources.
+    const [espnItems, cbsItems, foxItems] = await Promise.all([
+      fetchEspnLeagueNews(),
       fetchRssFeedViaJson("https://www.cbssports.com/rss/headlines/nfl/", "CBS Sports"),
       fetchRssFeedViaJson(FOX_NFL_RSS_URL, "FOX Sports"),
     ]);
     // Dedupe here too (not just in fetchTeamNews/useLeagueNews below) so
     // every caller of fetchLeagueNewsFeed gets an already-clean combined
-    // list, in case CBS and FOX both cover the same story.
-    return mergeAndDedupeNews([cbsItems, foxItems]);
+    // list, in case two+ sources both cover the same story.
+    return mergeAndDedupeNews([espnItems, cbsItems, foxItems]);
   })();
   // A throttled/offline attempt shouldn't permanently poison the feed for
   // the rest of the session - let the next team-page visit try again
@@ -11826,6 +11958,14 @@ async function fetchTeamNews(teamId) {
 function useTeamNews(teamId) {
   const [state, setState] = useState({ loading: true, error: null, data: null });
   useEffect(() => {
+    // Lets a caller pass a nullable teamId to mean "no team selected"
+    // (the News tab's team filter, for one) without having to guard every
+    // call site itself - skip the fetch and resolve to an empty, non-
+    // loading state instead of hanging on "loading" forever.
+    if (!teamId) {
+      setState({ loading: false, error: null, data: null });
+      return;
+    }
     let cancelled = false;
     setState({ loading: true, error: null, data: null });
     fetchTeamNews(teamId)
@@ -11904,39 +12044,192 @@ function NewsTicker() {
   );
 }
 
-/** Full-feed "News" tab - same source as the ticker (useLeagueNews), just
- *  every item in a scrollable list instead of 15 looping across the top
- *  of the Games tab. */
-function NewsView() {
-  const { loading, error, data } = useLeagueNews();
+/** Full-feed "News" tab: same league-wide feed as the ticker (useLeagueNews)
+ *  by default, rendered as an image-card grid instead of 15 looping
+ *  headlines. Picking a team from NewsTeamFilter switches the data source
+ *  to useTeamNews(teamId) - the exact hook the per-team panel on team pages
+ *  already uses - so a filtered view gets that same ESPN-team-endpoint
+ *  image coverage and relevance, not just a keyword match against the
+ *  league feed's headlines. */
+const NEWS_VIEW_PAGE_SIZE = 12;
 
-  if (loading) return <p className="news-view-empty">Loading news…</p>;
-  if (error) return <p className="news-view-empty">Couldn't load news right now — try again shortly.</p>;
-  if (!data || data.length === 0) return <p className="news-view-empty">No news available right now.</p>;
+function NewsView() {
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(NEWS_VIEW_PAGE_SIZE);
+  const leagueNews = useLeagueNews();
+  const teamNews = useTeamNews(selectedTeamId);
+  const { loading, error, data } = selectedTeamId ? teamNews : leagueNews;
+  const team = selectedTeamId ? baseTeam(selectedTeamId) : null;
+
+  useEffect(() => { setVisibleCount(NEWS_VIEW_PAGE_SIZE); }, [selectedTeamId]);
 
   return (
     <div className="news-view">
-      <h2 className="news-view-title">Latest News</h2>
-      <div className="news-view-list">
-        {data.map((item, i) => (
-          <a
-            key={item.id || i}
-            className="news-view-row"
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div className="news-view-main">
-              <div className="news-view-headline">{item.headline}</div>
-              <div className="news-view-meta">
-                {item.source && <span>{item.source}</span>}
-                {item.source && item.published && <span> · </span>}
-                {item.published && <span>{timeAgo(item.published)}</span>}
-              </div>
-            </div>
-          </a>
-        ))}
+      <div className="news-view-header">
+        <h2 className="news-view-title">Latest News</h2>
+        <NewsTeamFilter teamId={selectedTeamId} onSelectTeam={setSelectedTeamId} />
       </div>
+
+      {loading && <p className="news-view-empty">Loading news…</p>}
+      {!loading && error && <p className="news-view-empty">Couldn't load news right now — try again shortly.</p>}
+      {!loading && !error && (!data || data.length === 0) && (
+        <p className="news-view-empty">
+          {team ? `No recent headlines for the ${team.name} right now.` : "No news available right now."}
+        </p>
+      )}
+
+      {!loading && !error && data && data.length > 0 && (
+        <React.Fragment>
+          <div className="news-card-grid">
+            {data.slice(0, visibleCount).map((item, i) => (
+              <NewsCard key={item.id || item.url || i} article={item} featured={i === 0} />
+            ))}
+          </div>
+          {visibleCount < data.length && (
+            <button
+              type="button"
+              className="news-load-more-btn"
+              onClick={() => setVisibleCount(c => c + NEWS_VIEW_PAGE_SIZE)}
+            >
+              Load more
+            </button>
+          )}
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+/** One headline as an image card. The very first card in the grid (index 0)
+ *  is passed featured=true and lays out wider with a bigger image, giving
+ *  the top story visual priority the way a real news page would rather
+ *  than every item looking identical. Stories missing an image (some RSS
+ *  items don't carry one) fall back to a branded gradient tile instead of
+ *  leaving a broken/blank image well. */
+function NewsCard({ article, featured }) {
+  return (
+    <a
+      className={"news-card" + (featured ? " news-card-featured" : "")}
+      href={article.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-news-source={article.source || "Unknown"}
+    >
+      <div className="news-card-img-wrap">
+        {article.image ? (
+          <img className="news-card-img" src={article.image} alt="" loading="lazy" />
+        ) : (
+          <div className="news-card-img-fallback" aria-hidden="true">🏈</div>
+        )}
+        {article.source && <span className="news-card-source-badge">{article.source}</span>}
+      </div>
+      <div className="news-card-body">
+        <div className="news-card-headline">{article.headline}</div>
+        {featured && article.description && (
+          <div className="news-card-excerpt">{article.description}</div>
+        )}
+        <div className="news-card-meta">{timeAgo(article.published)}</div>
+      </div>
+    </a>
+  );
+}
+
+/** Team filter for the News tab - a custom dropdown (not a native <select>)
+ *  so it can carry a live search box above the list, the same way
+ *  TeamSwitcher carries a favorite-star toggle per row. Typing narrows the
+ *  32-team list down by name or abbreviation; picking one re-points the
+ *  News tab at useTeamNews(teamId) instead of the league-wide feed. */
+function NewsTeamFilter({ teamId, onSelectTeam }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const containerRef = useRef(null);
+  const inputRef = useRef(null);
+  const current = teamId ? baseTeam(teamId) : null;
+
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    function handleKeyDown(e) { if (e.key === "Escape") setOpen(false); }
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      setQuery("");
+      // Panel mounts open; focus after paint so the search box is ready
+      // for typing immediately, matching what a search field should do.
+      const t = setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 0);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
+
+  const q = query.trim().toLowerCase();
+  const filteredTeams = LIVE_TEAMS_LIST
+    .filter(t => !q || t.name.toLowerCase().includes(q) || t.id.toLowerCase().includes(q))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  function pick(id) {
+    onSelectTeam(id);
+    setOpen(false);
+  }
+
+  return (
+    <div className="news-team-filter" ref={containerRef}>
+      <button
+        type="button"
+        className="news-team-filter-trigger"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Filter news by team"
+      >
+        {current ? <TeamLogo teamId={current.id} size={18} /> : <span className="news-team-filter-all-icon">🏈</span>}
+        <span>{current ? current.name : "All Teams"}</span>
+        <span className={"news-team-filter-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
+      </button>
+      {open && (
+        <div className="news-team-filter-panel">
+          <input
+            ref={inputRef}
+            type="text"
+            className="news-team-filter-search"
+            placeholder="Search teams…"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            aria-label="Search teams"
+          />
+          <div className="news-team-filter-list" role="listbox">
+            <button
+              type="button"
+              className={"news-team-filter-item" + (!teamId ? " active" : "")}
+              onClick={() => pick(null)}
+            >
+              <span className="news-team-filter-all-icon">🏈</span>
+              <span>All Teams</span>
+            </button>
+            {filteredTeams.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                className={"news-team-filter-item" + (t.id === teamId ? " active" : "")}
+                onClick={() => pick(t.id)}
+              >
+                <TeamLogo teamId={t.id} size={22} />
+                <span>{t.name}</span>
+              </button>
+            ))}
+            {filteredTeams.length === 0 && (
+              <div className="news-team-filter-empty">No teams match "{query}"</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -12739,30 +13032,42 @@ function GearIcon({ size = 20 }) {
 }
 
 /** Primary navigation between the app's top-level sections. Renders as a
- *  horizontal strip under the header on desktop and a fixed bar pinned to
- *  the bottom of the screen on mobile - same markup either way, CSS alone
- *  handles the placement swap (see .tab-bar's media query). */
+ *  horizontal underline strip under the header on desktop and a fixed bar
+ *  pinned to the bottom of the screen on mobile - same markup either way,
+ *  CSS alone handles the placement swap (see .tab-bar's media query).
+ *  Archive is a real link rather than an in-app tab: the historical
+ *  archive lives on its own static pages (see /historical/index.html,
+ *  generated by scripts/backfill-historical-season.mjs), not inside this
+ *  SPA, so selecting it navigates there instead of swapping activeTab. */
 function TabBar({ activeTab, onSelectTab, leaguesEnabled }) {
   const tabs = [
     { id: "games", label: "Games", icon: "\u{1F3C8}" },
     { id: "picks", label: "Hot Picks", icon: "\u{1F525}" },
     ...(leaguesEnabled ? [{ id: "league", label: "League", icon: "\u{1F3C6}" }] : []),
     { id: "news", label: "News", icon: "\u{1F4F0}" },
+    { id: "archive", label: "Archive", icon: "\u{1F5C2}\u{FE0F}", href: "/historical/index.html" },
   ];
   return (
     <nav className="tab-bar" aria-label="Primary">
-      {tabs.map((t) => (
-        <button
-          key={t.id}
-          type="button"
-          className={"tab-btn" + (activeTab === t.id ? " active" : "")}
-          onClick={() => onSelectTab(t.id)}
-          aria-current={activeTab === t.id ? "page" : undefined}
-        >
-          <span className="tab-icon" aria-hidden="true">{t.icon}</span>
-          <span className="tab-label">{t.label}</span>
-        </button>
-      ))}
+      {tabs.map((t) =>
+        t.href ? (
+          <a key={t.id} className="tab-btn" href={t.href}>
+            <span className="tab-icon" aria-hidden="true">{t.icon}</span>
+            <span className="tab-label">{t.label}</span>
+          </a>
+        ) : (
+          <button
+            key={t.id}
+            type="button"
+            className={"tab-btn" + (activeTab === t.id ? " active" : "")}
+            onClick={() => onSelectTab(t.id)}
+            aria-current={activeTab === t.id ? "page" : undefined}
+          >
+            <span className="tab-icon" aria-hidden="true">{t.icon}</span>
+            <span className="tab-label">{t.label}</span>
+          </button>
+        )
+      )}
     </nav>
   );
 }

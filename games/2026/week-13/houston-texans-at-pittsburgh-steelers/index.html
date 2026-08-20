@@ -982,7 +982,10 @@
      so nothing depends on the viewport being wide enough to fit it all
      on one row. overflow-x stays as a safety net for edge cases, not the
      primary way to see the Result column. */
-  .team-schedule-table-wrap { overflow-x: auto; }
+  .team-schedule-table-wrap {
+    overflow-x: auto; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 12px;
+  }
   .result-cell { overflow-wrap: break-word; word-break: break-word; }
   .result-cell .live-tag { flex-wrap: wrap; }
   .live-clock-line {
@@ -992,10 +995,12 @@
   .team-schedule-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.85rem; }
   .team-schedule-table th {
     text-align: left; color: var(--text-dim); font-weight: 600; font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.5px; padding: 10px; border-bottom: 1px solid var(--card-border); white-space: nowrap;
+    letter-spacing: 0.5px; padding: 10px 14px; border-bottom: 1px solid var(--card-border); white-space: nowrap;
   }
-  .team-schedule-table td { padding: 12px 10px; border-bottom: 1px solid var(--card-border); vertical-align: middle; overflow-wrap: break-word; }
+  .team-schedule-table td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); vertical-align: middle; overflow-wrap: break-word; }
   .team-schedule-table td:first-child, .team-schedule-table th:first-child { white-space: nowrap; }
+  .team-schedule-table tr:nth-child(even) td { background: var(--surface-2); }
+  .team-schedule-table tbody tr:last-child td { border-bottom: none; }
   .team-schedule-table tbody tr:hover td { background: rgba(var(--accent-rgb),0.04); }
   .team-schedule-table tr.bye-row td { color: var(--text-dim); font-style: italic; }
   .team-schedule-table tr.bye-row:hover td { background: transparent; }
@@ -1151,7 +1156,7 @@
   <p><strong>Odds (DraftKings):</strong> HOU -1.5 · ML HOU -125 / PIT +105 · O/U 41.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Houston Texans</strong> - HOU 100% / PIT 0%</p>
+  <p>Predicted winner: <strong>Houston Texans</strong> - HOU 99% / PIT 1%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -1173,6 +1178,7 @@
 
   <h2>Injury report</h2>
   <ul>
+<li><strong>Jayden Higgins</strong> (HOU · WR) - out - Torn ACL - season-ending</li>
 <li><strong>Jalen Ramsey</strong> (PIT · CB) - out - Knee injury</li>
   </ul>
 
@@ -1898,7 +1904,7 @@
 }</script>
 <script type="application/json" id="players-data">{
   "isDemoData": false,
-  "disclaimer": "Injury statuses reflect training camp/preseason reports as of Aug. 18, 2026 (evening update). Added Saints RB Alvin Kamara as questionable after he left Tuesday's joint practice vs. Dallas early with an apparent knee injury (no diagnosis disclosed yet). Refreshed 49ers WR Mike Evans' note after he also exited Tuesday's joint practice (vs. the Chargers) early with leg tightness, which HC Kyle Shanahan described as precautionary. All other tracked situations (Kittle, Pearsall, Bosa, Emmanwori, Coby Bryant, Kyler Gordon, Burden, Monangai, Ekwonu, Scourton, Moton, Hubbard, Shemar Stewart, Bresee, Owusu-Koramoah, Penix, Jalon Walker, Ramsey, Parsons, Reed, Jacobs, Jefferson, Mahomes, Kyler Murray, Tunsil, Greenard, DeVonta Smith, Nabers, Wiggins, Humphrey, Slater) confirmed unchanged after a fresh check of today's camp news, nfl.com/injuries, and insider (Schefter/Rapoport/Pelissero) searches. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
+  "disclaimer": "Injury statuses reflect training camp/preseason reports as of Aug. 19, 2026 (evening update). New: Chargers C Tyler Biadasz is out indefinitely after suffering ACL damage and additional left knee injuries in Tuesday's joint practice vs. San Francisco, per Schefter/Rapoport. Also new: Texans WR Jayden Higgins (2025 2nd-round pick) is out for the season with a torn ACL suffered in Tuesday's joint practice vs. Las Vegas. Cleaned up a stale duplicate Alvin Kamara entry - Saints RB is out (MRI-confirmed sprained MCL, no structural tear), expected out at least a month. All other tracked situations (Kittle, Pearsall, Evans, Bosa, Emmanwori, Coby Bryant, Kyler Gordon, Burden, Monangai, Ekwonu, Scourton, Moton, Hubbard, Shemar Stewart, Owusu-Koramoah, Penix, Jalon Walker, Ramsey, Parsons, Reed, Jacobs, Jefferson, Mahomes, Kyler Murray, Tunsil, Greenard, DeVonta Smith, Nabers, Jeremiyah Love, Slater, Wiggins, Humphrey) confirmed unchanged after a fresh check of today's camp news, nfl.com/injuries, and insider (Schefter/Rapoport/Pelissero) searches. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
   "players": {
     "NE": [
       {
@@ -2072,7 +2078,7 @@
         "injury": {
           "type": "Torn ACL",
           "since": "2026-07",
-          "note": "Non-contact tear suffered on the first day of training camp practice \u2014 out for the season. The injury happened during the mandatory acclimation period, which the NFLPA is investigating."
+          "note": "Non-contact tear suffered on the first day of training camp practice — out for the season. The injury happened during the mandatory acclimation period, which the NFLPA is investigating."
         }
       },
       {
@@ -2133,25 +2139,14 @@
         "status": "active"
       },
       {
-        "name": "Bryan Bresee",
-        "position": "DT",
-        "impactScore": 6,
-        "status": "out",
-        "injury": {
-          "type": "Torn ACL - confirmed, season-ending surgery",
-          "since": "2026-07-29",
-          "note": "HC Kellen Moore confirmed Aug. 2 that Bresee's non-contact knee injury from the first day of camp is a torn ACL and he will undergo season-ending surgery, missing all of 2026. Started all 15 games in 2025."
-        }
-      },
-      {
         "name": "Alvin Kamara",
         "position": "RB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Knee injury (evaluation pending)",
+          "type": "Sprained MCL (avoided major/structural damage)",
           "since": "2026-08-18",
-          "note": "Left the Saints' Tuesday joint practice vs. Dallas early with an apparent knee injury, walking off with a trainer. No diagnosis or severity had been disclosed as of Tuesday evening (Aug. 18) - status will be refreshed once more is known."
+          "note": "MRI results (Aug. 19) confirmed a sprained MCL after Kamara left Tuesday's joint practice vs. Dallas; he avoided a more serious structural tear. Expected to be sidelined at least a month, which would put his return around mid-to-late September - likely missing the Sept. 13 opener at San Francisco and possibly Week 2 as well."
         }
       }
     ],
@@ -2177,6 +2172,17 @@
         "position": "QB",
         "impactScore": 8,
         "status": "active"
+      },
+      {
+        "name": "Jayden Higgins",
+        "position": "WR",
+        "impactScore": 7,
+        "status": "out",
+        "injury": {
+          "type": "Torn ACL - season-ending",
+          "since": "2026-08-18",
+          "note": "Suffered a season-ending torn ACL during Tuesday's joint practice with the Raiders, falling awkwardly on a red-zone route in 11-on-11 drills. The 2025 second-round pick started 10 games as a rookie (525 yards, 6 TDs); Houston will lean more on Xavier Hutchinson, Tank Dell and Jaylin Noel in his absence."
+        }
       }
     ],
     "BAL": [
@@ -2285,7 +2291,7 @@
         "injury": {
           "type": "Knee injury",
           "since": "2026-06",
-          "note": "Hurt during minicamp; opened camp on PUP, no surgery required. Steelers Depot's Mark Kaboly said Aug. 7 he 'wouldn't anticipate' Ramsey practicing at all during camp, but spotted him doing field work alongside Joey Porter Jr. on Aug. 10, calling it 'good news' - a positive sign, though still no timetable for a return to full practice; next game appearance may come at the Sept. 13 season opener vs. the Jets."
+          "note": "Hurt during minicamp; opened camp on PUP, no surgery required. Steelers Depot's Mark Kaboly said Aug. 7 he 'wouldn't anticipate' Ramsey practicing at all during camp, but spotted him doing field work alongside Joey Porter Jr. on Aug. 10, calling it 'good news' - a positive sign, though still no timetable for a return to full practice. HC Mike McCarthy said Aug. 19 he 'wouldn't say concern' about the continued absence, adding both Ramsey and Porter are 'making progress'; next game appearance may come at the Sept. 13 season opener vs. the Jets."
         }
       }
     ],
@@ -2311,6 +2317,17 @@
         "position": "QB",
         "impactScore": 5,
         "status": "active"
+      },
+      {
+        "name": "Jeremiyah Love",
+        "position": "RB",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "High ankle sprain",
+          "since": "2026-08",
+          "note": "Rookie first-round pick (No. 3 overall) hurt his ankle late in Arizona's preseason game vs. the Raiders after a goal-line catch; expected to miss the rest of the preseason. Coach Mike LaFleur hasn't given a long-term prognosis, but the team is hopeful he's available for the Sept. 13 season opener vs. the Chargers."
+        }
       }
     ],
     "LAC": [
@@ -2328,7 +2345,18 @@
         "injury": {
           "type": "Knee flare-up (surgically repaired patellar tendon)",
           "since": "2026-08-04",
-          "note": "Missed a string of practices starting Aug. 4 with a flare-up/soreness in the same knee he ruptured his patellar tendon in during 2025 camp. No firm return date as of Aug. 17-18; both Slater and the team have downplayed it as 'nothing crazy,' but it's a situation worth watching given his recent injury history and importance to the offense."
+          "note": "Missed his 8th consecutive practice Tuesday (Aug. 18); HC Jim Harbaugh said Slater is working 'off to the sides' and expects him back this weekend. Will miss Thursday's preseason game vs. the 49ers. Slater has downplayed the issue ('nothing crazy'), but the absence has stretched well beyond the original veteran-rest-day framing - worth continuing to monitor given his 2025 patellar tendon tear."
+        }
+      },
+      {
+        "name": "Tyler Biadasz",
+        "position": "C",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "ACL damage + additional left knee injuries",
+          "since": "2026-08-18",
+          "note": "Hurt when a 49ers defensive lineman fell into his leg during Tuesday's joint practice; out indefinitely, per Adam Schefter and Ian Rapoport. Signed with the Chargers in March on a 3-year, $30M deal after playing for Washington last season; will see more doctors for further clarity on the injury."
         }
       }
     ],
@@ -2476,7 +2504,7 @@
         "injury": {
           "type": "ACL + meniscus recovery (right knee)",
           "since": "2025-09",
-          "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery to clear scar tissue. Wasn't in uniform for the Aug. 15 preseason opener vs. Minnesota, but took his first live team reps of camp Monday, Aug. 17 - seven reps in a red no-contact jersey, including four at 11-on-11. Neither Nabers nor HC John Harbaugh has committed to him being ready for the Sept. 13 opener vs. Dallas, though the odds appear to be increasing."
+          "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery to clear scar tissue. Practiced for a second straight day Aug. 19 - in shells, taking team reps and catching passes in 7-on-7 - after his first live reps of camp Aug. 17. HC John Harbaugh says Nabers still needs to \"get bumped around and hit\" in practice before being considered for game action; not yet committed to Week 1 (Sept. 13 vs. Dallas), though the trajectory looks positive."
         }
       }
     ],
@@ -2509,7 +2537,8 @@
       }
     ]
   }
-}</script>
+}
+</script>
 <script type="application/json" id="schedule-data">{
   "season": 2026,
   "sourceNote": "Compiled from Pro-Football-Reference (weeks 1-13) and NFL.com by-week schedule pages (weeks 14-18). Weeks 16-18 dates/times are partly flexed/TBD per NFL rules and will be finalized during the season. A handful of teams may show BYE in a given week if source data had a gap - flag it and we'll fill it in.",

@@ -379,6 +379,29 @@ header.top h1 a { text-decoration: none; color: inherit; }
 }
 .settings-btn:hover, .settings-btn:focus-visible { color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
 @media (max-width: 480px) { .settings-btn { width: 34px; height: 34px; top: 0; } }
+.tab-bar { display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border); justify-content: center; }
+.tab-btn { display: flex; align-items: center; gap: 9px; background: none; border: none; cursor: pointer;
+  color: var(--text-dim); font-family: inherit; font-size: 0.86rem; font-weight: 700; text-decoration: none;
+  padding: 0 0 14px; position: relative; transition: color 0.15s; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text); }
+.tab-btn.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: var(--accent); border-radius: 2px; }
+.tab-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; line-height: 1; flex-shrink: 0; background: rgba(255,255,255,0.05);
+  border: 1px solid var(--card-border); transition: background 0.15s, border-color 0.15s; }
+.tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: var(--accent); }
+@media (max-width: 720px) {
+  .app { padding-bottom: 82px; }
+  .tab-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
+    background: var(--card-bg); border-bottom: none; border-top: 1px solid var(--card-border);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .tab-btn { flex: 1; flex-direction: column; gap: 3px; padding: 4px 2px 0; font-size: 0.64rem; }
+  .tab-btn.active::after { content: none; }
+  .tab-icon { width: 24px; height: 24px; font-size: 12px; background: none; border-color: transparent; }
+  .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: transparent; }
+  .tab-btn.active { color: var(--accent); }
+}
 .theme-toggle { display: inline-flex; align-items: center; gap: 2px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px; padding: 3px; width: 100%; justify-content: space-between; }
 .theme-toggle-btn { display: flex; align-items: center; gap: 5px; background: transparent; border: none; color: var(--text-dim); padding: 6px 10px; border-radius: 999px; cursor: pointer; font-size: 0.72rem; font-weight: 600; transition: background 0.15s, color 0.15s; flex: 1; justify-content: center; }
 .theme-toggle-btn:hover { color: var(--text); }
@@ -691,6 +714,14 @@ const SETTINGS_WIDGET_SCRIPT = `(function () {
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
 })();`;
 
+const TAB_BAR_HTML = `<nav class="tab-bar" aria-label="Primary">
+    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#127880;</span><span class="tab-label">Games</span></a>
+    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#128293;</span><span class="tab-label">Hot Picks</span></a>
+    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#127942;</span><span class="tab-label">League</span></a>
+    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#128240;</span><span class="tab-label">News</span></a>
+    <a class="tab-btn active" href="/historical/index.html" aria-current="page"><span class="tab-icon" aria-hidden="true">&#128450;&#65039;</span><span class="tab-label">Archive</span></a>
+  </nav>`;
+
 function pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd, pageScript }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -718,6 +749,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script
       <h1 class="sr-only">Blitz Odds</h1>
     </a>
   </header>
+  ${TAB_BAR_HTML}
   <div class="breadcrumb">${breadcrumb}</div>
   ${bodyHtml}
   <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>

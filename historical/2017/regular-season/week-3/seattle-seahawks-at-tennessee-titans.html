@@ -193,6 +193,29 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 @media (max-width: 600px) {
   .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
 }
+.tab-bar { display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border); justify-content: center; }
+.tab-btn { display: flex; align-items: center; gap: 9px; background: none; border: none; cursor: pointer;
+  color: var(--text-dim); font-family: inherit; font-size: 0.86rem; font-weight: 700; text-decoration: none;
+  padding: 0 0 14px; position: relative; transition: color 0.15s; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text); }
+.tab-btn.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: var(--accent); border-radius: 2px; }
+.tab-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; line-height: 1; flex-shrink: 0; background: rgba(255,255,255,0.05);
+  border: 1px solid var(--card-border); transition: background 0.15s, border-color 0.15s; }
+.tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: var(--accent); }
+@media (max-width: 720px) {
+  .app { padding-bottom: 82px; }
+  .tab-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
+    background: var(--card-bg); border-bottom: none; border-top: 1px solid var(--card-border);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .tab-btn { flex: 1; flex-direction: column; gap: 3px; padding: 4px 2px 0; font-size: 0.64rem; }
+  .tab-btn.active::after { content: none; }
+  .tab-icon { width: 24px; height: 24px; font-size: 12px; background: none; border-color: transparent; }
+  .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: transparent; }
+  .tab-btn.active { color: var(--accent); }
+}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Seattle Seahawks at Tennessee Titans","startDate":"2017-09-24T20:05Z","sport":"American Football","homeTeam":{"@type":"SportsTeam","name":"Tennessee Titans"},"awayTeam":{"@type":"SportsTeam","name":"Seattle Seahawks"},"location":{"@type":"Place","name":"Nissan Stadium"}}</script>
 </head>
@@ -289,7 +312,14 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
     </svg>
       <h1 class="sr-only">Blitz Odds</h1>
     </a>
-  </header>
+    <nav class="tab-bar" aria-label="Primary">
+    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#127880;</span><span class="tab-label">Games</span></a>
+    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#128293;</span><span class="tab-label">Hot Picks</span></a>
+    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#127942;</span><span class="tab-label">League</span></a>
+    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#128240;</span><span class="tab-label">News</span></a>
+    <a class="tab-btn active" href="/historical/index.html" aria-current="page"><span class="tab-icon" aria-hidden="true">&#128450;&#65039;</span><span class="tab-label">Archive</span></a>
+  </nav>
+</header>
   <div class="breadcrumb"><a href="/">Home</a> &raquo; <a href="/historical/2017/regular-season/index.html">2017 Regular Season</a> &raquo; Week 3 &raquo; SEA @ TEN</div>
   
     <span class="archive-badge">Historical Archive — 2017 Regular Season</span>

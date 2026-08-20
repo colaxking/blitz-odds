@@ -7720,6 +7720,12 @@ const SPORTSBOOKS = [
   { id: "caesars", label: "Caesars Sportsbook", short: "Caesars" },
   { id: "betrivers", label: "BetRivers", short: "BetRivers" },
 ];
+// Leagues (create/join/invite-code) backend and modal are built and working,
+// but there's no standings or pick-submission UI yet - hiding the entry
+// points until the rest of the league pages exist. Flip to true to bring
+// back the "Leagues" toolbar button and "My Leagues" account menu item.
+const LEAGUES_UI_ENABLED = false;
+
 const DEFAULT_SPORTSBOOK_ID = "draftkings";
 const SPORTSBOOK_STORAGE_KEY = "blitz-odds-sportsbook";
 
@@ -12497,9 +12503,11 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenSettings(); }}>
             Settings
           </button>
-          <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenLeagues(); }}>
-            My Leagues
-          </button>
+          {LEAGUES_UI_ENABLED && (
+            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenLeagues(); }}>
+              My Leagues
+            </button>
+          )}
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); auth.logout(); }}>
             Sign out
           </button>
@@ -12681,24 +12689,24 @@ function useAuth() {
       return;
     }
 
-    // Known netlify-identity-widget quirk: it renders a full-page overlay
-    // <iframe id="netlify-identity-widget">. identity.close() hides the
-    // widget's own modal content, but the iframe element itself sometimes
-    // doesn't get its display reset, leaving an invisible, full-screen,
-    // click-swallowing layer over the entire page even though nothing is
-    // visibly open. Forcing it hidden after close/login is the standard
-    // community fix. A single delayed hide isn't reliable on its own - the
-    // widget's own close transition can asynchronously reset the iframe's
-    // display back to visible shortly after, re-freezing the page - so this
-    // re-applies the fix a few times over ~1s to win that race regardless
-    // of how long the widget's own animation takes.
-    function hideWidgetIframe() {
+    // netlify-identity-widget renders a full-page overlay
+    // <iframe id="netlify-identity-widget">, toggled via its own internal
+    // "isOpen" state: display:block when open, display:none when closed.
+    // In practice that toggle doesn't always land reliably after a login -
+    // the iframe can stay interactive (fully invisible, but still
+    // intercepting every click on the page) even though nothing is visibly
+    // open, and a one-off delayed fix loses the race unpredictably. Rather
+    // than guess at the widget's exact timing, this polls continuously: any
+    // time we don't believe the widget should be open, force its iframe
+    // hidden. Cheap (a getElementById + style check every 250ms) and
+    // self-corrects within a fraction of a second no matter when the stray
+    // reopen happens, so the page never needs a manual refresh to recover.
+    let widgetShouldBeOpen = false;
+
+    function hideWidgetIframeIfStray() {
+      if (widgetShouldBeOpen) return;
       const iframe = document.getElementById("netlify-identity-widget");
-      if (iframe) iframe.style.display = "none";
-    }
-    function hideWidgetIframeRepeatedly() {
-      hideWidgetIframe();
-      [50, 150, 300, 600, 1000].forEach((delay) => setTimeout(hideWidgetIframe, delay));
+      if (iframe && iframe.style.display !== "none") iframe.style.display = "none";
     }
 
     function onInit(u) {
@@ -12708,37 +12716,37 @@ function useAuth() {
     function onLogin(u) {
       setUser(u);
       setStatus("in");
+      widgetShouldBeOpen = false;
       identity.close();
-      hideWidgetIframeRepeatedly();
     }
     function onLogout() {
       setUser(null);
       setStatus("out");
-      hideWidgetIframeRepeatedly();
+      widgetShouldBeOpen = false;
     }
-    function onClose() {
-      hideWidgetIframeRepeatedly();
+    function onWidgetOpen() {
+      widgetShouldBeOpen = true;
     }
-    function onOpen() {
-      // Undo any forced display:none from a previous close/login cycle so
-      // the widget can actually render the next time it's opened.
-      const iframe = document.getElementById("netlify-identity-widget");
-      if (iframe) iframe.style.display = "";
+    function onWidgetClose() {
+      widgetShouldBeOpen = false;
     }
 
     identity.on("init", onInit);
     identity.on("login", onLogin);
     identity.on("logout", onLogout);
-    identity.on("close", onClose);
-    identity.on("open", onOpen);
+    identity.on("open", onWidgetOpen);
+    identity.on("close", onWidgetClose);
     identity.init();
+
+    const pollInterval = setInterval(hideWidgetIframeIfStray, 250);
 
     return () => {
       identity.off("init", onInit);
       identity.off("login", onLogin);
       identity.off("logout", onLogout);
-      identity.off("close", onClose);
-      identity.off("open", onOpen);
+      identity.off("open", onWidgetOpen);
+      identity.off("close", onWidgetClose);
+      clearInterval(pollInterval);
     };
   }, []);
 
@@ -13215,13 +13223,15 @@ function App() {
       {view === "week" && (
         <div className="header-toolbar">
           <WeekNav periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
-          <button
-            type="button"
-            className="how-it-works-toggle"
-            onClick={() => setShowLeagues(true)}
-          >
-            <span className="how-it-works-icon">&#127942;</span> Leagues
-          </button>
+          {LEAGUES_UI_ENABLED && (
+            <button
+              type="button"
+              className="how-it-works-toggle"
+              onClick={() => setShowLeagues(true)}
+            >
+              <span className="how-it-works-icon">&#127942;</span> Leagues
+            </button>
+          )}
         </div>
       )}
 

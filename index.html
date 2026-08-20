@@ -1348,14 +1348,12 @@
   .tour-mockup-live-row { margin-bottom: 6px; }
   .tour-mockup-score { font-size: 0.92rem; font-weight: 800; margin: 6px 0 4px; }
   .tour-mockup-table { margin: 6px 0 0; }
-  .tour-callout-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .tour-dots { display: flex; gap: 5px; }
-  .tour-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--card-border); }
-  .tour-dot.active { background: var(--accent); width: 16px; border-radius: 4px; }
-  .tour-callout-actions { display: flex; align-items: center; gap: 8px; }
+  .tour-callout-footer { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+  .tour-callout-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .tour-btn {
     border: none; background: none; color: var(--text-dim);
     font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 9px 6px; cursor: pointer;
+    flex-shrink: 0;
   }
   .tour-btn:hover { color: var(--text); }
   .tour-btn-primary {
@@ -1364,12 +1362,16 @@
     box-shadow: 0 2px 10px rgba(var(--accent-rgb),0.35);
   }
   .tour-btn-primary:hover { opacity: 0.92; color: var(--bg); }
+  /* Sits inside the callout, on its own line below Back/Next, left-aligned -
+     a plain text link rather than a button so it doesn't compete visually
+     with the primary Next action. */
   .tour-skip-link {
-    position: fixed; top: 14px; right: 14px; z-index: 2001; pointer-events: auto;
-    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-dim);
-    font-size: 0.76rem; font-weight: 700; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    display: block; margin-top: 10px; padding: 0;
+    background: none; border: none; color: var(--text-dim);
+    font-family: inherit; font-size: 0.76rem; font-weight: 700; text-decoration: underline;
+    text-underline-offset: 2px; cursor: pointer;
   }
-  .tour-skip-link:hover { color: var(--text); border-color: var(--accent); }
+  .tour-skip-link:hover { color: var(--text); }
   @media (max-width: 640px) {
     .tour-callout { width: calc(100vw - 32px); }
   }
@@ -11655,7 +11657,6 @@ function TutorialTour({ onClose, setActiveTab }) {
           }}
         />
       )}
-      <button type="button" className="tour-skip-link" onClick={handleSkip}>Skip tour</button>
       <div
         ref={calloutRef}
         className={"tour-callout" + (settling ? " is-settling" : "")}
@@ -11667,11 +11668,6 @@ function TutorialTour({ onClose, setActiveTab }) {
         <p className="tour-callout-body">{step.body}</p>
         {showingMockup && step.mockup && step.mockup()}
         <div className="tour-callout-footer">
-          <div className="tour-dots">
-            {TOUR_STEPS.map((s, i) => (
-              <span key={s.id} className={"tour-dot" + (i === stepIndex ? " active" : "")} />
-            ))}
-          </div>
           <div className="tour-callout-actions">
             {stepIndex > 0 && (
               <button type="button" className="tour-btn tour-btn-back" onClick={() => goTo(stepIndex - 1, -1)}>Back</button>
@@ -11681,6 +11677,7 @@ function TutorialTour({ onClose, setActiveTab }) {
             </button>
           </div>
         </div>
+        <button type="button" className="tour-skip-link" onClick={handleSkip}>Skip tour</button>
       </div>
     </div>,
     document.body

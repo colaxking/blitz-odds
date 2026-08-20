@@ -89,20 +89,19 @@
   }
 
   /**
-   * Spread angle: prefer a game where the model's predicted winner is NOT
+   * Spread angles: every game where the model's predicted winner is NOT
    * the market's spread favorite (real value on the underdog against the
-   * number). If the model agrees with the market everywhere this week,
-   * falls back to the highest-confidence game where it agrees with the
-   * favorite (a "lean this number bigger than it looks" call) instead of
-   * returning nothing.
+   * number) ranks first, sorted by confidence - these are the "the market
+   * disagrees with the model" calls. If there aren't n of those this week,
+   * the list is padded with the highest-confidence games where the model
+   * agrees with the favorite (a "lean this number bigger than it looks"
+   * call), so a light disagreement week still returns a full list instead
+   * of just one pick.
    */
-  function rankSpreadValue(games) {
+  function rankSpreadValues(games, n) {
+    n = n || 3;
     const withSpread = games.filter((g) => g.prediction && g.odds && g.odds.favorite && g.odds.spread != null);
-    if (!withSpread.length) return null;
-
-    const disagreements = withSpread
-      .filter((g) => g.prediction.predictedWinner !== g.odds.favorite)
-      .sort((a, b) => b.prediction.confidence - a.prediction.confidence);
+    if (!withSpread.length) return [];
 
     const pickFrom = (g, isUpset) => {
       const p = g.prediction;
@@ -127,22 +126,33 @@
       };
     };
 
-    if (disagreements.length) return pickFrom(disagreements[0], true);
+    const disagreements = withSpread
+      .filter((g) => g.prediction.predictedWinner !== g.odds.favorite)
+      .sort((a, b) => b.prediction.confidence - a.prediction.confidence)
+      .map((g) => pickFrom(g, true));
 
-    const bestFavorite = withSpread
-      .filter((g) => g.prediction.predictedWinner === g.odds.favorite)
-      .sort((a, b) => b.prediction.confidence - a.prediction.confidence)[0];
-    return bestFavorite ? pickFrom(bestFavorite, false) : null;
+    const usedMatchups = new Set(disagreements.map((p) => `${p.game.awayId}-${p.game.homeId}`));
+
+    const favorites = withSpread
+      .filter((g) => g.prediction.predictedWinner === g.odds.favorite && !usedMatchups.has(`${g.awayId}-${g.homeId}`))
+      .sort((a, b) => b.prediction.confidence - a.prediction.confidence)
+      .map((g) => pickFrom(g, false));
+
+    return disagreements.concat(favorites).slice(0, n);
   }
 
   /**
-   * Moneyline value: the game where the model's confidence in its
-   * predicted winner most exceeds what that side's moneyline implies -
-   * i.e. where the price looks better than the model thinks it should be,
-   * on either the favorite or the underdog. Only returns a pick with a
-   * genuine positive edge; null if nothing clears that bar this week.
+   * Moneyline value: every game where the model's confidence in its
+   * predicted winner exceeds what that side's moneyline implies - i.e.
+   * where the price looks better than the model thinks it should be, on
+   * either the favorite or the underdog - ranked by the size of that gap.
+   * Only genuine positive-edge picks are returned; if fewer than n games
+   * clear that bar this week, the list is simply shorter than n (never
+   * padded with a non-edge pick, since that would misrepresent the whole
+   * point of a "value" market pick).
    */
-  function rankMoneylineValue(games) {
+  function rankMoneylineValues(games, n) {
+    n = n || 3;
     const candidates = games
       .filter((g) => g.prediction && g.odds && (g.odds.moneylineHome != null || g.odds.moneylineAway != null))
       .map((g) => {
@@ -154,44 +164,45 @@
         const edge = p.confidence - impliedProb;
         return { g, ml, impliedProb, edge };
       })
-      .filter(Boolean)
-      .sort((a, b) => b.edge - a.edge);
+      .filter((c) => c && c.edge > 0)
+      .sort((a, b) => b.edge - a.edge)
+      .slice(0, n);
 
-    const best = candidates[0];
-    if (!best || best.edge <= 0) return null;
+    return candidates.map((best) => {
+      const g = best.g;
+      const p = g.prediction;
+      const pickHome = p.predictedWinner === g.homeId;
+      const pickTeamName = pickHome ? g.homeName : g.awayName;
+      const confidencePct = pct(p.confidence);
+      const impliedPct = pct(best.impliedProb);
+      const edgePts = pct(best.edge);
+      const mlText = best.ml > 0 ? `+${best.ml}` : `${best.ml}`;
 
-    const g = best.g;
-    const p = g.prediction;
-    const pickHome = p.predictedWinner === g.homeId;
-    const pickTeamName = pickHome ? g.homeName : g.awayName;
-    const confidencePct = pct(p.confidence);
-    const impliedPct = pct(best.impliedProb);
-    const edgePts = pct(best.edge);
-    const mlText = best.ml > 0 ? `+${best.ml}` : `${best.ml}`;
-
-    return {
-      market: "moneyline",
-      game: { awayId: g.awayId, homeId: g.homeId, awayName: g.awayName, homeName: g.homeName },
-      pickTeamId: p.predictedWinner,
-      pick: `${pickTeamName} ${mlText}`,
-      confidence: p.confidence,
-      confidencePct: confidencePct,
-      summary: `${pickTeamName} ${mlText}`,
-      advantage: `The model gives ${pickTeamName} a ${confidencePct}% win probability, but that price only implies ${impliedPct}% - a ${edgePts}-point gap between what the model sees and what the market's charging for it.`
-    };
+      return {
+        market: "moneyline",
+        game: { awayId: g.awayId, homeId: g.homeId, awayName: g.awayName, homeName: g.homeName },
+        pickTeamId: p.predictedWinner,
+        pick: `${pickTeamName} ${mlText}`,
+        confidence: p.confidence,
+        confidencePct: confidencePct,
+        summary: `${pickTeamName} ${mlText}`,
+        advantage: `The model gives ${pickTeamName} a ${confidencePct}% win probability, but that price only implies ${impliedPct}% - a ${edgePts}-point gap between what the model sees and what the market's charging for it.`
+      };
+    });
   }
 
   /**
-   * Total lean: NOT a projected score - there's no scoring model here, only
+   * Total leans: NOT projected scores - there's no scoring model here, only
    * a win-probability one. This ranks games by the combined offense-vs-
    * defense rating gap (already computed per-team inside each prediction,
-   * post injury/weather adjustment) and calls the largest gap either way a
+   * post injury/weather adjustment) and calls the largest gaps either way a
    * directional Over or Under lean, explained honestly as a grading-based
    * read rather than a number the model actually predicted.
    */
-  function rankTotalLean(games) {
+  function rankTotalLeans(games, n) {
+    n = n || 3;
     const withTotal = games.filter((g) => g.prediction && g.odds && g.odds.overUnder != null);
-    if (!withTotal.length) return null;
+    if (!withTotal.length) return [];
 
     const scored = withTotal.map((g) => {
       const p = g.prediction;
@@ -199,22 +210,21 @@
       const defenseSum = p.homeRatings.defRating + p.awayRatings.defRating;
       const envScore = offenseSum - defenseSum; // positive -> offense-heavy environment
       return { g, envScore };
-    }).sort((a, b) => Math.abs(b.envScore) - Math.abs(a.envScore));
+    }).sort((a, b) => Math.abs(b.envScore) - Math.abs(a.envScore)).slice(0, n);
 
-    const top = scored[0];
-    const g = top.g;
-    const leanOver = top.envScore > 0;
-
-    return {
-      market: "total",
-      game: { awayId: g.awayId, homeId: g.homeId, awayName: g.awayName, homeName: g.homeName },
-      pick: `${leanOver ? "Over" : "Under"} ${g.odds.overUnder}`,
-      lean: leanOver ? "over" : "under",
-      summary: `${leanOver ? "Over" : "Under"} ${g.odds.overUnder}`,
-      advantage: leanOver
-        ? `Both offenses grade out well above these two defenses once injuries and weather are factored in - a directional lean toward more scoring, not a projected total.`
-        : `Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total.`
-    };
+    return scored.map(({ g, envScore }) => {
+      const leanOver = envScore > 0;
+      return {
+        market: "total",
+        game: { awayId: g.awayId, homeId: g.homeId, awayName: g.awayName, homeName: g.homeName },
+        pick: `${leanOver ? "Over" : "Under"} ${g.odds.overUnder}`,
+        lean: leanOver ? "over" : "under",
+        summary: `${leanOver ? "Over" : "Under"} ${g.odds.overUnder}`,
+        advantage: leanOver
+          ? `Both offenses grade out well above these two defenses once injuries and weather are factored in - a directional lean toward more scoring, not a projected total.`
+          : `Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total.`
+      };
+    });
   }
 
   /**
@@ -224,14 +234,28 @@
    * and `odds` is whatever shape the caller's odds source uses (spread,
    * favorite, moneylineHome, moneylineAway, overUnder) or null/omitted for
    * games with no line posted yet.
+   *
+   * spreadPicks/moneylinePicks/totalPicks are arrays (up to `perMarket`
+   * each, default 3) ranked best-value-first within their market - not
+   * padded to a fixed length where the market doesn't support it (see
+   * rankMoneylineValues). `spreadPick`/`moneylinePick`/`totalPick`
+   * (singular) are kept as the first entry of each array, for any caller
+   * still expecting the old single-pick shape.
    */
-  function computeHotPicks(games) {
+  function computeHotPicks(games, perMarket) {
+    const n = perMarket || 3;
     const clean = (games || []).filter((g) => g && g.prediction);
+    const spreadPicks = rankSpreadValues(clean, n);
+    const moneylinePicks = rankMoneylineValues(clean, n);
+    const totalPicks = rankTotalLeans(clean, n);
     return {
       topConfidence: rankTopConfidence(clean, 3),
-      spreadPick: rankSpreadValue(clean),
-      moneylinePick: rankMoneylineValue(clean),
-      totalPick: rankTotalLean(clean)
+      spreadPicks: spreadPicks,
+      moneylinePicks: moneylinePicks,
+      totalPicks: totalPicks,
+      spreadPick: spreadPicks[0] || null,
+      moneylinePick: moneylinePicks[0] || null,
+      totalPick: totalPicks[0] || null
     };
   }
 

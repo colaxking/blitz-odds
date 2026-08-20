@@ -484,14 +484,39 @@
   .hot-pick-advantage { font-size: 0.74rem; color: var(--text-dim); line-height: 1.4; }
   .hot-pick-conf { font-weight: 800; color: var(--accent); font-size: 1rem; flex-shrink: 0; }
 
+  .hot-picks-market-groups { display: flex; flex-direction: column; gap: 18px; }
+  .hot-picks-market-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; }
   .hot-picks-bets { display: flex; flex-direction: column; gap: 10px; }
   .hot-picks-empty { font-size: 0.82rem; color: var(--text-dim); }
   .bet-card {
-    display: flex; gap: 12px; width: 100%; text-align: left; cursor: pointer; align-items: flex-start;
-    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px;
-    font-family: inherit; color: var(--text); transition: border-color 0.15s;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
+    overflow: hidden; transition: border-color 0.15s;
   }
   .bet-card:hover { border-color: var(--accent); }
+  .bet-card-main {
+    display: flex; gap: 12px; width: 100%; text-align: left; cursor: pointer; align-items: flex-start;
+    background: transparent; border: none; padding: 12px 14px; font-family: inherit; color: var(--text);
+  }
+  .bet-card-books { border-top: 1px solid var(--card-border); }
+  .bet-card-books-toggle {
+    width: 100%; text-align: left; background: transparent; border: none; cursor: pointer;
+    font-family: inherit; color: var(--accent); font-size: 0.74rem; font-weight: 700;
+    padding: 8px 14px; letter-spacing: 0.2px;
+  }
+  .bet-card-books-toggle:hover { text-decoration: underline; }
+  .bet-card-books-list { padding: 0 14px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .bet-card-book-row {
+    display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem;
+    color: var(--text-dim); padding: 3px 0;
+  }
+  .bet-card-book-row.is-best { color: var(--win); font-weight: 700; }
+  .bet-card-book-label { display: flex; align-items: center; gap: 6px; }
+  .bet-card-book-best-tag {
+    font-size: 0.6rem; font-weight: 800; letter-spacing: 0.3px; color: var(--win);
+    background: rgba(var(--win-rgb),0.15); padding: 2px 5px; border-radius: 4px;
+  }
+  .bet-card-book-value { font-weight: 700; color: var(--text); }
+  .bet-card-book-row.is-best .bet-card-book-value { color: var(--win); }
   .bet-tag {
     flex-shrink: 0; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.4px; padding: 4px 8px;
     border-radius: 6px; margin-top: 2px; white-space: nowrap;
@@ -10493,7 +10518,7 @@ function HotPicksView({ week, sportsbookId, onSelectGame }) {
   if (!hotPicksInput.length) return <p>No schedule data for this week yet.</p>;
 
   const hotPicks = HotPicksEngine.computeHotPicks(hotPicksInput);
-  const noMarketPicks = !hotPicks.spreadPick && !hotPicks.moneylinePick && !hotPicks.totalPick;
+  const noMarketPicks = !hotPicks.spreadPicks.length && !hotPicks.moneylinePicks.length && !hotPicks.totalPicks.length;
 
   function goToGame(game) {
     if (onSelectGame) onSelectGame(week, game.awayId, game.homeId);
@@ -10504,7 +10529,7 @@ function HotPicksView({ week, sportsbookId, onSelectGame }) {
       <div className="hot-picks-header">
         <h2 className="hot-picks-title">This Week's Hot Picks</h2>
         <p className="hot-picks-sub">
-          Top model picks, plus the sharpest angle on spread, moneyline, and total — powered by the Blitz Odds algorithm.
+          Top model picks, plus the sharpest angles on spread, moneyline, and total — powered by the Blitz Odds algorithm.
         </p>
       </div>
 
@@ -10534,15 +10559,36 @@ function HotPicksView({ week, sportsbookId, onSelectGame }) {
         {noMarketPicks ? (
           <p className="hot-picks-empty">No sportsbook lines posted yet this week — market picks will appear once lines go up.</p>
         ) : (
-          <div className="hot-picks-bets">
-            {hotPicks.spreadPick && (
-              <BetCard tagLabel="SPREAD" tagClass="bet-tag-accent" pick={hotPicks.spreadPick} onClick={() => goToGame(hotPicks.spreadPick.game)} />
+          <div className="hot-picks-market-groups">
+            {hotPicks.spreadPicks.length > 0 && (
+              <div className="hot-picks-market-group">
+                <div className="hot-picks-market-label">Spread</div>
+                <div className="hot-picks-bets">
+                  {hotPicks.spreadPicks.map((p, i) => (
+                    <BetCard key={i} tagLabel="SPREAD" tagClass="bet-tag-accent" pick={p} week={week} onClick={() => goToGame(p.game)} />
+                  ))}
+                </div>
+              </div>
             )}
-            {hotPicks.moneylinePick && (
-              <BetCard tagLabel="MONEYLINE" tagClass="bet-tag-win" pick={hotPicks.moneylinePick} onClick={() => goToGame(hotPicks.moneylinePick.game)} />
+            {hotPicks.moneylinePicks.length > 0 && (
+              <div className="hot-picks-market-group">
+                <div className="hot-picks-market-label">Moneyline</div>
+                <div className="hot-picks-bets">
+                  {hotPicks.moneylinePicks.map((p, i) => (
+                    <BetCard key={i} tagLabel="MONEYLINE" tagClass="bet-tag-win" pick={p} week={week} onClick={() => goToGame(p.game)} />
+                  ))}
+                </div>
+              </div>
             )}
-            {hotPicks.totalPick && (
-              <BetCard tagLabel="TOTAL" tagClass="bet-tag-warn" pick={hotPicks.totalPick} onClick={() => goToGame(hotPicks.totalPick.game)} />
+            {hotPicks.totalPicks.length > 0 && (
+              <div className="hot-picks-market-group">
+                <div className="hot-picks-market-label">Total</div>
+                <div className="hot-picks-bets">
+                  {hotPicks.totalPicks.map((p, i) => (
+                    <BetCard key={i} tagLabel="TOTAL" tagClass="bet-tag-warn" pick={p} week={week} onClick={() => goToGame(p.game)} />
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -10651,15 +10697,87 @@ function TrackRecordPanel() {
   );
 }
 
-function BetCard({ tagLabel, tagClass, pick, onClick }) {
+/** For one market pick, works out what each sportsbook is offering on the
+ *  specific side Blitz picked (not the whole game's 5-column table - just
+ *  the number that matters for this pick) and which book gives the best
+ *  value. Spread and moneyline: the highest signed number is always best
+ *  for the side being backed (more points, or a better payout) - true
+ *  whether that side is the favorite or the underdog. Total: best depends
+ *  on which way the lean points - the lowest number for an Over lean (less
+ *  scoring needed to clear it), the highest for an Under lean (more room
+ *  before it's blown). */
+function computeMarketBookRows(rows, pick) {
+  if (!rows || !rows.length) return null;
+  const items = rows.map((r) => {
+    let value;
+    if (pick.market === "spread") {
+      if (r.spread == null || !r.favorite) return null;
+      value = r.favorite === pick.pickTeamId ? r.spread : -r.spread;
+    } else if (pick.market === "moneyline") {
+      value = pick.pickTeamId === pick.game.homeId ? r.moneylineHome : r.moneylineAway;
+    } else {
+      value = r.overUnder;
+    }
+    if (value == null) return null;
+    return { id: r.id, label: r.label, isReal: r.isReal, value };
+  }).filter(Boolean);
+  if (!items.length) return null;
+
+  let bestValue;
+  if (pick.market === "total") {
+    bestValue = pick.lean === "over" ? Math.min(...items.map((i) => i.value)) : Math.max(...items.map((i) => i.value));
+  } else {
+    bestValue = Math.max(...items.map((i) => i.value));
+  }
+  return items.map((i) => ({ ...i, isBest: i.value === bestValue }));
+}
+
+function formatMarketValue(market, value) {
+  if (market === "moneyline") return formatMoneyline(value);
+  if (market === "spread") return value === 0 ? "PK" : (value > 0 ? `+${value}` : `${value}`);
+  return String(value);
+}
+
+function BetCard({ tagLabel, tagClass, pick, week, onClick }) {
+  const [expanded, setExpanded] = useState(false);
+  const allBookRows = useMemo(() => getAllBookLines(week, pick.game.awayId, pick.game.homeId), [week, pick.game.awayId, pick.game.homeId]);
+  const marketRows = useMemo(() => computeMarketBookRows(allBookRows, pick), [allBookRows, pick]);
+
   return (
-    <button type="button" className="bet-card" onClick={onClick}>
-      <div className={"bet-tag " + tagClass}>{tagLabel}</div>
-      <div className="bet-body">
-        <div className="bet-pick">{pick.pick}</div>
-        <div className="bet-reason">{pick.advantage}</div>
-      </div>
-    </button>
+    <div className="bet-card">
+      <button type="button" className="bet-card-main" onClick={onClick}>
+        <div className={"bet-tag " + tagClass}>{tagLabel}</div>
+        <div className="bet-body">
+          <div className="bet-pick">{pick.pick}</div>
+          <div className="bet-reason">{pick.advantage}</div>
+        </div>
+      </button>
+      {marketRows && marketRows.length > 1 && (
+        <div className="bet-card-books">
+          <button
+            type="button"
+            className="bet-card-books-toggle"
+            onClick={() => setExpanded((x) => !x)}
+          >
+            {expanded ? "Hide sportsbook odds" : `Compare ${marketRows.length} sportsbooks`}
+          </button>
+          {expanded && (
+            <div className="bet-card-books-list">
+              {marketRows.map((r) => (
+                <div key={r.id} className={"bet-card-book-row" + (r.isBest ? " is-best" : "")}>
+                  <span className="bet-card-book-label">
+                    {r.label}
+                    {!r.isReal && <span className="odds-est-tag" title="No line posted yet for this book — showing the game's default line"> (est.)</span>}
+                    {r.isBest && <span className="bet-card-book-best-tag">BEST</span>}
+                  </span>
+                  <span className="bet-card-book-value">{formatMarketValue(pick.market, r.value)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

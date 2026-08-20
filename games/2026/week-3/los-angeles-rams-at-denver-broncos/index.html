@@ -321,30 +321,27 @@
   .team-switcher-item .star-btn { position: static; flex-shrink: 0; margin-right: 8px; }
 
   .week-nav {
-    position: relative; display: flex; align-items: center; gap: 2px;
-    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px;
-    padding: 4px; box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset;
+    position: relative; display: flex; align-items: center; gap: 0; flex-shrink: 0;
   }
   .week-nav-arrow {
     display: flex; align-items: center; justify-content: center;
-    width: 26px; height: 26px; border-radius: 50%; border: none; background: transparent;
+    width: 22px; height: 22px; border-radius: 6px; border: none; background: transparent;
     color: var(--text-dim); cursor: pointer; transition: background 0.15s, color 0.15s;
   }
-  .week-nav-arrow:hover:not(:disabled) { background: rgba(var(--accent-rgb),0.12); color: var(--accent); }
+  .week-nav-arrow:hover:not(:disabled) { background: rgba(255,255,255,0.06); color: var(--text); }
   .week-nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
   .week-nav-trigger {
     display: flex; align-items: center; gap: 6px; background: transparent; border: none;
-    color: var(--text); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.2px;
-    padding: 5px 10px; border-radius: 999px; cursor: pointer; transition: background 0.15s;
-    min-width: 122px; justify-content: center;
+    color: var(--text); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.2px; white-space: nowrap;
+    padding: 4px 6px; border-radius: 6px; cursor: pointer; transition: background 0.15s;
   }
-  .week-nav-trigger:hover { background: rgba(var(--accent-rgb),0.06); }
+  .week-nav-trigger:hover { background: rgba(255,255,255,0.05); }
   .week-nav-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .week-nav-result-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--demo); flex-shrink: 0; }
   .week-nav-chevron { color: var(--text-dim); transition: transform 0.18s; display: flex; }
   .week-nav-chevron.open { transform: rotate(180deg); }
   .week-nav-panel {
-    position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+    position: absolute; top: calc(100% + 10px); left: 0; transform: none;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     box-shadow: 0 16px 40px rgba(0,0,0,0.35); padding: 8px; min-width: 240px; max-height: 380px;
     overflow-y: auto; z-index: 30;
@@ -367,12 +364,40 @@
     flex-shrink: 0;
   }
 
-  /* Week nav (left) + "How this works" (right) on one plain row - not a
-     boxed/centered "button", each control keeps its own small pill styling.
-     Favorites always sit on their own line below, starting at the left. */
-  .header-toolbar {
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 18px;
-    margin: 18px 0 8px;
+  /* Command bar: week picker + favorites + an on-demand legend toggle, all
+     in one flat bar matching the news ticker's surface-2/8px-radius style
+     instead of the week picker floating alone as a heavier pill next to a
+     separate favorites row and a permanently-visible legend underneath. */
+  .cmd-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 7px 10px; margin: 18px 0 8px;
+  }
+  .cmd-divider { width: 1px; align-self: stretch; background: var(--card-border); flex-shrink: 0; }
+  .cmd-favs {
+    display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; overflow-x: auto;
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .cmd-favs::-webkit-scrollbar { display: none; }
+  .cmd-fav-btn {
+    background: none; border: none; padding: 0; cursor: pointer; flex-shrink: 0; display: flex;
+    border-radius: 50%; transition: transform 0.12s;
+  }
+  .cmd-fav-btn:hover { transform: scale(1.12); }
+  .cmd-fav-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cmd-legend-toggle {
+    flex-shrink: 0; display: flex; align-items: center; gap: 5px; background: none;
+    border: 1px solid var(--card-border); border-radius: 999px; color: var(--text-dim);
+    font-size: 0.72rem; font-weight: 700; padding: 5px 10px; cursor: pointer; transition: border-color 0.15s, color 0.15s;
+  }
+  .cmd-legend-toggle:hover, .cmd-legend-toggle.open { border-color: var(--accent); color: var(--accent); }
+  @media (max-width: 720px) {
+    .cmd-bar { padding: 6px 8px; gap: 6px; }
+    .week-nav-trigger { font-size: 0.74rem; padding: 4px 4px; gap: 4px; }
+    .cmd-legend-toggle {
+      padding: 0; width: 26px; height: 26px; justify-content: center; border-radius: 50%;
+    }
+    .cmd-legend-toggle .cmd-legend-label { display: none; }
   }
 
   .favorites-bar {
@@ -10418,7 +10443,6 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           {context.note}
         </div>
       )}
-      <GradationLegend />
       <div className="schedule-grid">
         {games.map((g) => (
           <GameCard
@@ -13694,6 +13718,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showLeagues, setShowLeagues] = useState(false);
   const [pendingLeagueReopen, setPendingLeagueReopen] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
 
   // Keeps the URL hash in sync with the selected tab (replaceState, not
@@ -13887,12 +13912,49 @@ function App() {
           {view === "week" && <NewsTicker />}
 
           {view === "week" && (
-            <div className="header-toolbar">
-              <WeekNav periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
-            </div>
+            <>
+              <div className="cmd-bar">
+                <WeekNav periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
+                {favorites.length > 0 && (
+                  <>
+                    <div className="cmd-divider" aria-hidden="true" />
+                    <div className="cmd-favs">
+                      {favorites.map((teamId) => {
+                        const t = baseTeam(teamId);
+                        if (!t) return null;
+                        return (
+                          <button
+                            key={teamId}
+                            type="button"
+                            className="cmd-fav-btn"
+                            onClick={() => selectTeam(teamId)}
+                            title={t.name}
+                            aria-label={t.name}
+                          >
+                            <TeamLogo teamId={teamId} size={26} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+                <button
+                  type="button"
+                  className={"cmd-legend-toggle" + (showLegend ? " open" : "")}
+                  onClick={() => setShowLegend((v) => !v)}
+                  aria-expanded={showLegend}
+                >
+                  <span className="cmd-legend-label">Legend</span>
+                  <span className={"week-nav-chevron" + (showLegend ? " open" : "")}>
+                    <ChevronIcon direction="down" size={11} />
+                  </span>
+                </button>
+              </div>
+              {showLegend && <GradationLegend />}
+            </>
           )}
 
-          <FavoritesBar favorites={favorites} onSelect={selectTeam} />
+          {view !== "week" && <FavoritesBar favorites={favorites} onSelect={selectTeam} />}
 
           {view === "week" ? (
             <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} onSelectGame={selectGame} sportsbookId={sportsbookId} tz={resolvedTz} />

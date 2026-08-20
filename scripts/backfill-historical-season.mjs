@@ -367,11 +367,35 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
 .app { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
 a { color: var(--accent); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-header.top { text-align: center; margin-bottom: 18px; }
+header.top { position: relative; text-align: center; margin-bottom: 18px; }
 .brand-row { display: flex; align-items: center; justify-content: center; text-decoration: none; color: inherit; }
 header.top h1 { font-size: 1.85rem; margin: 0 0 4px; font-weight: 800; }
 header.top h1 a { text-decoration: none; color: inherit; }
 .brand-odds { color: var(--accent); }
+.settings-btn {
+  position: absolute; top: 2px; right: 0; display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--card-border);
+  color: var(--text-dim); cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.settings-btn:hover, .settings-btn:focus-visible { color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
+@media (max-width: 480px) { .settings-btn { width: 34px; height: 34px; top: 0; } }
+.theme-toggle { display: inline-flex; align-items: center; gap: 2px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px; padding: 3px; width: 100%; justify-content: space-between; }
+.theme-toggle-btn { display: flex; align-items: center; gap: 5px; background: transparent; border: none; color: var(--text-dim); padding: 6px 10px; border-radius: 999px; cursor: pointer; font-size: 0.72rem; font-weight: 600; transition: background 0.15s, color 0.15s; flex: 1; justify-content: center; }
+.theme-toggle-btn:hover { color: var(--text); }
+.theme-toggle-btn.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); }
+.theme-toggle-label { display: inline; }
+.settings-modal-overlay { position: fixed; inset: 0; background: rgba(4,8,16,0.6); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000; }
+.settings-modal { position: relative; width: 100%; max-width: 440px; max-height: 88vh; overflow-y: auto; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45); }
+.settings-modal-close { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--card-border); background: var(--surface-2); color: var(--text); font-size: 1.1rem; line-height: 1; cursor: pointer; }
+.settings-modal-title { font-size: 1.05rem; font-weight: 800; margin: 0 0 16px; padding-right: 30px; }
+.settings-section { margin-bottom: 20px; }
+.settings-section:last-child { margin-bottom: 4px; }
+.settings-section-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); font-weight: 700; margin: 0 0 10px; }
+.settings-hint { font-size: 0.75rem; color: var(--text-dim); margin: 10px 0 0; line-height: 1.4; }
+@media (max-width: 640px) {
+  .settings-modal-overlay { align-items: flex-end; padding: 0; }
+  .settings-modal { max-width: 100%; max-height: 85vh; border-radius: 16px 16px 0 0; padding: 20px 16px 24px; }
+}
 .breadcrumb { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 18px; }
 .breadcrumb a { color: var(--text-dim); }
 .archive-badge { display:inline-block; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
@@ -571,6 +595,102 @@ function brandWordmarkSvg(height) {
     </svg>`;
 }
 
+// Same GearIcon/SunIcon/MoonIcon/SystemIcon glyphs the live app uses in its
+// Settings button and ThemeToggle (index.html), transcribed to plain SVG.
+const GEAR_ICON_SVG = `<svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="2" />
+      <path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.5-2.4.6a7.7 7.7 0 0 0-1.7-1L14.9 3h-3.8l-.4 2.6a7.7 7.7 0 0 0-1.7 1l-2.4-.6-2 3.5 2 1.5a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.5 2.4-.6a7.7 7.7 0 0 0 1.7 1l.4 2.6h3.8l.4-2.6a7.7 7.7 0 0 0 1.7-1l2.4.6 2-3.5-2-1.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+    </svg>`;
+const SUN_ICON_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="2" />
+      <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="12" y1="1.5" x2="12" y2="4" /><line x1="12" y1="20" x2="12" y2="22.5" />
+        <line x1="1.5" y1="12" x2="4" y2="12" /><line x1="20" y1="12" x2="22.5" y2="12" />
+        <line x1="4.5" y1="4.5" x2="6.2" y2="6.2" /><line x1="17.8" y1="17.8" x2="19.5" y2="19.5" />
+        <line x1="4.5" y1="19.5" x2="6.2" y2="17.8" /><line x1="17.8" y1="6.2" x2="19.5" y2="4.5" />
+      </g>
+    </svg>`;
+const MOON_ICON_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+    </svg>`;
+const SYSTEM_ICON_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <rect x="2.5" y="4" width="19" height="13" rx="1.6" stroke="currentColor" stroke-width="2" />
+      <line x1="8" y1="20.5" x2="16" y2="20.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      <line x1="12" y1="17" x2="12" y2="20.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </svg>`;
+
+// Settings widget markup: a trimmed, framework-free version of the live
+// app's Settings modal - archive pages have no React runtime and no
+// sportsbook/timezone/favorites state to manage, so this only surfaces the
+// one setting that's actually meaningful here (theme), via SETTINGS_WIDGET_SCRIPT below.
+const SETTINGS_WIDGET_HTML = `<button type="button" class="settings-btn" id="settingsBtn" aria-label="Open settings" title="Settings">${GEAR_ICON_SVG}</button>
+  <div class="settings-modal-overlay" id="settingsOverlay" style="display:none">
+    <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
+      <button type="button" class="settings-modal-close" id="settingsClose" aria-label="Close">&times;</button>
+      <h2 class="settings-modal-title">Settings</h2>
+      <div class="settings-section">
+        <h3 class="settings-section-title">Theme</h3>
+        <div class="theme-toggle" role="group" aria-label="Theme" id="themeToggle">
+          <button type="button" class="theme-toggle-btn" data-mode="light">${SUN_ICON_SVG}<span class="theme-toggle-label">Light</span></button>
+          <button type="button" class="theme-toggle-btn" data-mode="dark">${MOON_ICON_SVG}<span class="theme-toggle-label">Dark</span></button>
+          <button type="button" class="theme-toggle-btn" data-mode="system">${SYSTEM_ICON_SVG}<span class="theme-toggle-label">System</span></button>
+        </div>
+        <p class="settings-hint">Saved on this device and shared with the live app - matches whatever you set there.</p>
+      </div>
+    </div>
+  </div>`;
+
+// Same localStorage key + resolution logic as THEME_INIT_SCRIPT/useThemeManager
+// in index.html, so picking a theme here stays in sync with the live app.
+const SETTINGS_WIDGET_SCRIPT = `(function () {
+  var KEY = "blitz-odds-theme";
+  var btn = document.getElementById("settingsBtn");
+  var overlay = document.getElementById("settingsOverlay");
+  var closeBtn = document.getElementById("settingsClose");
+  var toggle = document.getElementById("themeToggle");
+  if (!btn || !overlay || !toggle) return;
+
+  function getMode() {
+    try {
+      var saved = localStorage.getItem(KEY);
+      return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+    } catch (e) { return "system"; }
+  }
+  function resolve(mode) {
+    if (mode !== "system") return mode;
+    return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+  }
+  function applyTheme(mode) {
+    var resolved = resolve(mode);
+    if (resolved === "light") document.documentElement.setAttribute("data-theme", "light");
+    else document.documentElement.removeAttribute("data-theme");
+  }
+  function highlightActive(mode) {
+    var btns = toggle.querySelectorAll(".theme-toggle-btn");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle("active", btns[i].getAttribute("data-mode") === mode);
+    }
+  }
+  function setMode(mode) {
+    try { localStorage.setItem(KEY, mode); } catch (e) {}
+    applyTheme(mode);
+    highlightActive(mode);
+  }
+
+  highlightActive(getMode());
+  toggle.addEventListener("click", function (e) {
+    var target = e.target.closest(".theme-toggle-btn");
+    if (target) setMode(target.getAttribute("data-mode"));
+  });
+
+  function openModal() { overlay.style.display = "flex"; document.body.style.overflow = "hidden"; }
+  function closeModal() { overlay.style.display = "none"; document.body.style.overflow = ""; }
+  btn.addEventListener("click", openModal);
+  closeBtn.addEventListener("click", closeModal);
+  overlay.addEventListener("mousedown", function (e) { if (e.target === overlay) closeModal(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
+})();`;
+
 function pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd, pageScript }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -592,8 +712,9 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script
 <body>
 <div class="app">
   <header class="top">
+    ${SETTINGS_WIDGET_HTML}
     <a href="/" class="brand-row" aria-label="Blitz Odds home">
-      ${brandWordmarkSvg(56)}
+      ${brandWordmarkSvg(76)}
       <h1 class="sr-only">Blitz Odds</h1>
     </a>
   </header>
@@ -602,6 +723,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script
   <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
 </div>
 <script src="/js/analytics.js"></script>
+<script>${SETTINGS_WIDGET_SCRIPT}</script>
 ${pageScript ? `<script>${pageScript}</script>` : ""}
 </body>
 </html>

@@ -16,11 +16,20 @@ import { getStore } from "@netlify/blobs";
 // GET  /.netlify/functions/user-profile          -> caller's own profile
 //        (creates a default record on first login if none exists yet)
 // POST /.netlify/functions/user-profile           -> merge-update caller's
-//        own profile. Body: { displayName?, leagues?: string[] }
+//        own profile. Body: { displayName?, leagues?: string[], settings?: {
+//        themeMode?, sportsbookId?, tzId?, favorites? } }
 //        subscriptionTier is intentionally not settable here - that will be
 //        driven by the Stripe webhook once billing exists.
+//
+// `settings` mirrors the device-local preferences the app already keeps in
+// localStorage (theme, sportsbook, timezone, favorite teams). For signed-in
+// users this is the source of truth instead - the client fetches it once on
+// sign-in and applies it over whatever was on this device, then pushes any
+// further changes back here so the same preferences follow the user to
+// their next login/device. Signed-out users keep using localStorage only.
 
 const STORE_NAME = "blitz-users";
+const VALID_THEME_MODES = new Set(["light", "dark", "system"]);
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -39,6 +48,15 @@ function jsonResponse(status: number, body: unknown) {
   });
 }
 
+function defaultSettings() {
+  return {
+    themeMode: "system",
+    sportsbookId: "draftkings",
+    tzId: "auto",
+    favorites: [] as string[],
+  };
+}
+
 function defaultProfile(claims: any) {
   const now = new Date().toISOString();
   return {
@@ -49,9 +67,31 @@ function defaultProfile(claims: any) {
       (claims.email ? claims.email.split("@")[0] : "Player"),
     subscriptionTier: "free",
     leagues: [],
+    settings: defaultSettings(),
     createdAt: now,
     updatedAt: now,
   };
+}
+
+// Whitelists and coerces incoming settings fields rather than trusting the
+// body wholesale - this blob is small and cheap to write, but it's still
+// client-supplied input.
+function sanitizeSettings(input: any, existing: any) {
+  const base = existing && typeof existing === "object" ? existing : defaultSettings();
+  const out = { ...base };
+
+  if (VALID_THEME_MODES.has(input.themeMode)) out.themeMode = input.themeMode;
+  if (typeof input.sportsbookId === "string" && input.sportsbookId.trim()) {
+    out.sportsbookId = input.sportsbookId.trim().slice(0, 40);
+  }
+  if (typeof input.tzId === "string" && input.tzId.trim()) {
+    out.tzId = input.tzId.trim().slice(0, 60);
+  }
+  if (Array.isArray(input.favorites)) {
+    out.favorites = [...new Set(input.favorites.filter((f: unknown) => typeof f === "string"))].slice(0, 32);
+  }
+
+  return out;
 }
 
 export default async (req: Request, context: Context) => {
@@ -74,6 +114,10 @@ export default async (req: Request, context: Context) => {
       if (!profile) {
         profile = defaultProfile(claims);
         await store.setJSON(key, profile);
+      } else if (!profile.settings) {
+        // Profile created before `settings` existed - backfill defaults
+        // rather than sending the client an undefined settings object.
+        profile = { ...profile, settings: defaultSettings() };
       }
       return jsonResponse(200, profile);
     }
@@ -95,6 +139,9 @@ export default async (req: Request, context: Context) => {
           : {}),
         ...(Array.isArray(body.leagues)
           ? { leagues: body.leagues.filter((l: unknown) => typeof l === "string") }
+          : {}),
+        ...(body.settings && typeof body.settings === "object"
+          ? { settings: sanitizeSettings(body.settings, existing.settings) }
           : {}),
         updatedAt: new Date().toISOString(),
       };

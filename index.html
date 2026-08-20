@@ -141,24 +141,27 @@
     overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
   }
 
+  .header-right-cluster {
+    position: absolute; top: 2px; right: 0; display: flex; align-items: center; gap: 8px; z-index: 5;
+  }
+
   .settings-btn {
-    position: absolute; top: 2px; right: 0; display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     width: 38px; height: 38px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--card-border);
     color: var(--text-dim); cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
   .settings-btn:hover, .settings-btn:focus-visible { color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
   @media (max-width: 480px) {
-    .settings-btn { width: 34px; height: 34px; top: 0; }
+    .settings-btn { width: 34px; height: 34px; }
   }
 
-  .account-menu { position: absolute; top: 2px; left: 0; }
+  .account-menu { position: relative; flex-shrink: 0; }
   .account-btn {
     display: flex; align-items: center; justify-content: center;
     border-radius: 999px; border: 1px solid var(--card-border); cursor: pointer;
     transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
   .account-btn-signin {
-    position: absolute; top: 2px; left: 0;
     height: 38px; padding: 0 14px; background: var(--card-bg); color: var(--text-dim); font-size: 13px; font-weight: 600;
   }
   .account-btn-signin:hover, .account-btn-signin:focus-visible { color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
@@ -168,7 +171,7 @@
   }
   .account-avatar:hover, .account-avatar:focus-visible { filter: brightness(1.08); }
   .account-dropdown {
-    position: absolute; top: 46px; left: 0; min-width: 160px; z-index: 20;
+    position: absolute; top: 46px; right: 0; min-width: 170px; z-index: 20;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.28); padding: 6px; text-align: left;
   }
@@ -182,7 +185,7 @@
   }
   .account-dropdown-item:hover, .account-dropdown-item:focus-visible { background: rgba(var(--accent-rgb),0.08); color: var(--accent); }
   @media (max-width: 480px) {
-    .account-btn-signin, .account-avatar { top: 0; }
+    .account-btn-signin { height: 34px; padding: 0 12px; font-size: 12.5px; }
     .account-avatar { width: 34px; height: 34px; font-size: 13px; }
   }
 
@@ -12376,7 +12379,7 @@ function GearIcon({ size = 20 }) {
   );
 }
 
-function AccountButton({ auth, onOpenLeagues }) {
+function AccountButton({ auth, onOpenLeagues, onOpenSettings }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -12417,6 +12420,9 @@ function AccountButton({ auth, onOpenLeagues }) {
       {open && (
         <div className="account-dropdown">
           <div className="account-dropdown-name">{name}</div>
+          <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenSettings(); }}>
+            Settings
+          </button>
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenLeagues(); }}>
             My Leagues
           </button>
@@ -12959,6 +12965,67 @@ function App() {
     }
   }, [auth.status, pendingLeagueReopen]);
 
+  // Cross-device settings sync for signed-in users. Signed-out users keep
+  // using localStorage only (see useThemeManager/useSportsbookManager/
+  // useTimezoneManager/loadFavorites-saveFavorites above) - these two
+  // effects layer server persistence on top once someone's signed in,
+  // without changing how those hooks work when they're not.
+  const settingsLoadedForUserRef = useRef(null);
+  const skipNextSettingsSaveRef = useRef(false);
+
+  // On sign-in, fetch this user's saved settings and apply them over
+  // whatever's currently on this device - "same setting every time they
+  // log in" means the account's settings win, not the device's.
+  useEffect(() => {
+    if (auth.status !== "in" || !auth.user || !auth.user.id) return;
+    if (settingsLoadedForUserRef.current === auth.user.id) return;
+    settingsLoadedForUserRef.current = auth.user.id;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await auth.authenticatedFetch("/.netlify/functions/user-profile");
+        if (!res.ok || cancelled) return;
+        const profile = await res.json();
+        const s = profile && profile.settings;
+        if (!s || cancelled) return;
+        skipNextSettingsSaveRef.current = true;
+        if (s.themeMode === "light" || s.themeMode === "dark" || s.themeMode === "system") setThemeMode(s.themeMode);
+        if (typeof s.sportsbookId === "string") setSportsbookId(s.sportsbookId);
+        if (typeof s.tzId === "string") setTzId(s.tzId);
+        if (Array.isArray(s.favorites)) setFavorites(s.favorites);
+      } catch (e) {
+        // Offline or a transient function error - keep whatever's on this
+        // device rather than blocking the app on a failed fetch.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [auth.status, auth.user]);
+
+  useEffect(() => {
+    if (auth.status === "out") settingsLoadedForUserRef.current = null;
+  }, [auth.status]);
+
+  // Push local setting changes back to the account so they follow the user
+  // to their next login/device. Debounced since favorites in particular can
+  // change several times in quick succession (toggling a few teams).
+  // Skipped once right after the load effect above applies server settings,
+  // so we don't immediately POST back the exact values we just fetched.
+  useEffect(() => {
+    if (auth.status !== "in") return;
+    if (skipNextSettingsSaveRef.current) {
+      skipNextSettingsSaveRef.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      auth.authenticatedFetch("/.netlify/functions/user-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: { themeMode, sportsbookId, tzId, favorites } }),
+      }).catch(() => {});
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [themeMode, sportsbookId, tzId, favorites, auth.status]);
+
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
   useLiveWeatherData(); // background-refreshes weather from the live blob store; re-renders the app when they change
@@ -13027,20 +13094,28 @@ function App() {
   return (
     <div className="app">
       <header className="top">
-        <button
-          type="button"
-          className="settings-btn"
-          onClick={() => setShowSettings(true)}
-          aria-label="Open settings"
-          title="Settings"
-        >
-          <GearIcon size={19} />
-        </button>
+        <div className="header-right-cluster">
+          {auth.status !== "in" && (
+            <button
+              type="button"
+              className="settings-btn"
+              onClick={() => setShowSettings(true)}
+              aria-label="Open settings"
+              title="Settings"
+            >
+              <GearIcon size={19} />
+            </button>
+          )}
+          <AccountButton
+            auth={auth}
+            onOpenLeagues={() => setShowLeagues(true)}
+            onOpenSettings={() => setShowSettings(true)}
+          />
+        </div>
         <div className="brand-row" onClick={backToWeek}>
           <BrandWordmark height={76} />
           <h1 className="sr-only">Blitz Odds</h1>
         </div>
-        <AccountButton auth={auth} onOpenLeagues={() => setShowLeagues(true)} />
       </header>
 
       {view === "week" && <NewsTicker />}

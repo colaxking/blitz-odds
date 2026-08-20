@@ -1,0 +1,59 @@
+name: Blitz Odds - Hot Picks snapshot
+
+# Freezes this week's Hot Picks (top confidence picks + spread/moneyline/
+# total angles) so the track record feature always grades the exact pick a
+# user saw, not one recomputed later after odds/injuries moved. Idempotent -
+# see the header comment in scripts/hotpicks-snapshot.mjs for why it's safe
+# to run this more than once per week.
+#
+# Triggered externally, same pattern as odds-refresh.yml: GitHub Actions'
+# own `schedule:` cron is unreliable on low-traffic repos, so this repo
+# relies on cron-job.org calling GitHub's REST API to fire workflow_dispatch
+# on a schedule instead of using `schedule:` here. To wire this job up, add
+# a cron-job.org job pointing at:
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/hotpicks-snapshot.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+# Suggested cadence: once daily, Tuesday through Thursday (covers the
+# window after that week's lines are typically posted) - it's a no-op once
+# the week is already frozen either way.
+on:
+  #schedule:
+    #- cron: "0 15 * * 2,3,4"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blitz-odds-hotpicks-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run Hot Picks snapshot
+        env:
+          HOTPICKS_UPDATE_SECRET: ${{ secrets.HOTPICKS_UPDATE_SECRET }}
+        run: node scripts/hotpicks-snapshot.mjs
+
+      - name: Commit on-disk mirror if changed
+        run: |
+          if git diff --quiet -- data/hotpicks-snapshots.json; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "blitz-odds-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/hotpicks-snapshots.json
+          git commit -m "Hot Picks snapshot: automated update via GitHub Actions"
+          git push

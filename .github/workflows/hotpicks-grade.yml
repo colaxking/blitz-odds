@@ -1,0 +1,57 @@
+name: Blitz Odds - Hot Picks grading
+
+# Grades every frozen Hot Picks snapshot whose referenced games have all
+# gone final on ESPN, and rebuilds the season track record aggregate that
+# powers the Track Record panel on the Hot Picks page. Weeks that aren't
+# fully final yet are skipped and retried automatically on the next run -
+# see the header comment in scripts/hotpicks-grade.mjs.
+#
+# Triggered externally, same pattern as history-results-refresh.yml. To
+# wire this job up, add a cron-job.org job pointing at:
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/hotpicks-grade.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+# Suggested cadence: hourly through Thu-Mon game windows (roughly noon Thu
+# UTC through 10am Tue UTC covers Thursday/Sunday/Monday night games) -
+# mirrors history-results-refresh.yml's cadence since both are waiting on
+# the same ESPN final-score signal.
+on:
+  #schedule:
+    #- cron: "0 12-23,0-10 * * 4,5,6,0,1,2"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blitz-odds-hotpicks-grade
+  cancel-in-progress: false
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run Hot Picks grading
+        env:
+          HOTPICKS_UPDATE_SECRET: ${{ secrets.HOTPICKS_UPDATE_SECRET }}
+        run: node scripts/hotpicks-grade.mjs
+
+      - name: Commit on-disk mirror if changed
+        run: |
+          if git diff --quiet -- data/hotpicks-track-record.json; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "blitz-odds-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/hotpicks-track-record.json
+          git commit -m "Hot Picks grading: automated update via GitHub Actions"
+          git push

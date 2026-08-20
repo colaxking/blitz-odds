@@ -982,7 +982,10 @@
      so nothing depends on the viewport being wide enough to fit it all
      on one row. overflow-x stays as a safety net for edge cases, not the
      primary way to see the Result column. */
-  .team-schedule-table-wrap { overflow-x: auto; }
+  .team-schedule-table-wrap {
+    overflow-x: auto; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 12px;
+  }
   .result-cell { overflow-wrap: break-word; word-break: break-word; }
   .result-cell .live-tag { flex-wrap: wrap; }
   .live-clock-line {
@@ -992,10 +995,12 @@
   .team-schedule-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.85rem; }
   .team-schedule-table th {
     text-align: left; color: var(--text-dim); font-weight: 600; font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.5px; padding: 10px; border-bottom: 1px solid var(--card-border); white-space: nowrap;
+    letter-spacing: 0.5px; padding: 10px 14px; border-bottom: 1px solid var(--card-border); white-space: nowrap;
   }
-  .team-schedule-table td { padding: 12px 10px; border-bottom: 1px solid var(--card-border); vertical-align: middle; overflow-wrap: break-word; }
+  .team-schedule-table td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); vertical-align: middle; overflow-wrap: break-word; }
   .team-schedule-table td:first-child, .team-schedule-table th:first-child { white-space: nowrap; }
+  .team-schedule-table tr:nth-child(even) td { background: var(--surface-2); }
+  .team-schedule-table tbody tr:last-child td { border-bottom: none; }
   .team-schedule-table tbody tr:hover td { background: rgba(var(--accent-rgb),0.04); }
   .team-schedule-table tr.bye-row td { color: var(--text-dim); font-style: italic; }
   .team-schedule-table tr.bye-row:hover td { background: transparent; }

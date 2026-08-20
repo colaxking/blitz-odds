@@ -1317,6 +1317,7 @@
   .tour-spotlight-ring.is-settling { opacity: 0.4; }
   .tour-callout {
     position: fixed; z-index: 2001; width: 300px; max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px); overflow-y: auto;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 16px 16px 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); pointer-events: auto;
     transition: top 0.25s ease, left 0.25s ease, opacity 0.2s ease;
@@ -8051,7 +8052,7 @@
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
 <script type="text/babel" data-presets="react">
-const { useMemo, useState, useEffect, useRef } = React;
+const { useMemo, useState, useEffect, useLayoutEffect, useRef } = React;
 
 // These six all start out pointing at whatever was embedded in the page at
 // last deploy, and are `let` (not `const`) so useLiveSiteData() below can
@@ -11424,6 +11425,14 @@ function TutorialTour({ onClose, setActiveTab }) {
   // instead of a flash-to-black-and-back.
   const [settling, setSettling] = useState(false);
   const boxscoreOpenedRef = useRef(false);
+  const calloutRef = useRef(null);
+  // Real measured height of the callout, used instead of a guessed
+  // constant when deciding whether it fits below the spotlight - body
+  // copy length varies step to step (the Settings step's paragraph runs
+  // noticeably longer than most), and on a narrow mobile width that wraps
+  // into enough extra lines that a fixed guess under-shoots the real
+  // height, which was pushing the callout off the bottom of the screen.
+  const [calloutHeight, setCalloutHeight] = useState(210);
 
   // Opens a box score by clicking the first available live/final score
   // link on the page (rather than faking data), so the box-score step
@@ -11461,12 +11470,19 @@ function TutorialTour({ onClose, setActiveTab }) {
         return;
       }
       const useMockup = !el && !!step.mockup;
+      // Instant, not smooth: a smooth scroll's duration scales with
+      // distance (e.g. scrolling all the way back up to the header from
+      // deep in a card), so capturing the rect on a fixed delay after a
+      // smooth scroll could grab it mid-animation and place the callout
+      // using a stale position. Scrolling instantly makes the position
+      // deterministic; the ring/callout's own CSS transitions still make
+      // the step-to-step movement read as a glide.
       if (el && el.scrollIntoView) {
-        el.scrollIntoView({ block: "center", behavior: "smooth" });
+        el.scrollIntoView({ block: "center", behavior: "auto" });
       }
       setTimeout(() => {
         onDone({ index, rect: el ? el.getBoundingClientRect() : null, mockup: useMockup });
-      }, el ? 260 : 0);
+      }, el ? 60 : 0);
     });
   }
 
@@ -11524,6 +11540,16 @@ function TutorialTour({ onClose, setActiveTab }) {
     // eslint-disable-next-line
   }, [stepIndex]);
 
+  // Measures the callout's real rendered height right after it (re)paints
+  // for this step - runs before the browser paints, so correcting
+  // `calloutHeight` here doesn't produce a visible jump. Falls back to the
+  // constant initial value until the first measurement lands.
+  useLayoutEffect(() => {
+    if (!calloutRef.current) return;
+    const h = calloutRef.current.getBoundingClientRect().height;
+    if (h && Math.abs(h - calloutHeight) > 4) setCalloutHeight(h);
+  }, [stepIndex, showingMockup, rect]);
+
   if (!ready) return null;
   const step = TOUR_STEPS[stepIndex];
   const pad = 8;
@@ -11536,19 +11562,27 @@ function TutorialTour({ onClose, setActiveTab }) {
   // a fixed strip pinned to the bottom of the viewport (see .tab-bar's
   // mobile media query), so on small screens both the "is there room
   // below" check and the final clamp reserve extra space for it.
+  // `visualViewport` (when available) tracks the space actually visible
+  // above a mobile browser's address bar / keyboard, which can be
+  // meaningfully smaller than `window.innerHeight` on phones.
+  const viewportHeight = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
   const isMobile = window.innerWidth <= 720;
   const navReserve = isMobile ? 90 : 0;
-  const calloutHeightEstimate = showingMockup ? 320 : 210;
   let calloutStyle = { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
   if (effectiveRect) {
-    const calloutWidth = Math.min(300, window.innerWidth - 32);
+    // Must match the CSS breakpoint exactly (.tour-callout goes full-width
+    // below 640px via its own media query) - using a different formula
+    // here previously caused the JS to center a callout assuming it was
+    // 300px wide when it was actually rendering ~60px wider on phones,
+    // pushing it off the right edge.
+    const calloutWidth = window.innerWidth <= 640 ? (window.innerWidth - 32) : Math.min(300, window.innerWidth - 32);
     let left = effectiveRect.left + effectiveRect.width / 2 - calloutWidth / 2;
     left = Math.max(16, Math.min(left, window.innerWidth - calloutWidth - 16));
-    const spaceBelow = window.innerHeight - navReserve - effectiveRect.bottom;
-    let top = spaceBelow > calloutHeightEstimate + 10
+    const spaceBelow = viewportHeight - navReserve - effectiveRect.bottom;
+    let top = spaceBelow > calloutHeight + 10
       ? effectiveRect.bottom + 16
-      : Math.max(16, effectiveRect.top - 16 - calloutHeightEstimate);
-    top = Math.min(top, window.innerHeight - navReserve - calloutHeightEstimate - 16);
+      : Math.max(16, effectiveRect.top - 16 - calloutHeight);
+    top = Math.min(top, viewportHeight - navReserve - calloutHeight - 16);
     top = Math.max(16, top);
     calloutStyle = { top: `${top}px`, left: `${left}px`, transform: "none" };
   }
@@ -11577,6 +11611,7 @@ function TutorialTour({ onClose, setActiveTab }) {
       )}
       <button type="button" className="tour-skip-link" onClick={handleSkip}>Skip tour</button>
       <div
+        ref={calloutRef}
         className={"tour-callout" + (settling ? " is-settling" : "")}
         style={calloutStyle}
         role="dialog" aria-modal="true" aria-label={step.title}

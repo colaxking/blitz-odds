@@ -525,6 +525,11 @@
   .bet-tag-win { background: rgba(var(--win-rgb),0.15); color: var(--win); }
   .bet-tag-warn { background: rgba(var(--warn-rgb),0.15); color: var(--warn); }
   .bet-pick { font-weight: 700; font-size: 0.9rem; margin-bottom: 3px; }
+  .bet-card-matchup {
+    display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-dim);
+    font-weight: 600; margin-bottom: 4px;
+  }
+  .bet-card-matchup img { flex-shrink: 0; }
   .bet-reason { font-size: 0.78rem; color: var(--text-dim); line-height: 1.45; }
 
   /* Hot Picks - Track Record panel */
@@ -10734,6 +10739,11 @@ function BetCard({ tagLabel, tagClass, pick, week, onClick }) {
       <button type="button" className="bet-card-main" onClick={onClick}>
         <div className={"bet-tag " + tagClass}>{tagLabel}</div>
         <div className="bet-body">
+          <div className="bet-card-matchup">
+            <TeamLogo teamId={pick.game.awayId} size={16} />
+            <span>{pick.game.awayName} @ {pick.game.homeName}</span>
+            <TeamLogo teamId={pick.game.homeId} size={16} />
+          </div>
           <div className="bet-pick">{pick.pick}</div>
           <div className="bet-reason">{pick.advantage}</div>
         </div>

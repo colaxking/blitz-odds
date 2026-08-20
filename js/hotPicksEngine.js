@@ -46,9 +46,10 @@
   }
 
   /**
-   * Top N games by model confidence, each with a short "why" built from
-   * that game's own rating edge and the biggest single adjustment (injury
-   * or weather) working in the pick's favor, if any.
+   * Top N games by model confidence, each with a specific "why" built from
+   * that game's own rating edge (offense/defense grades, post injury and
+   * weather adjustments) plus the single biggest adjustment working against
+   * the opponent, when one exists - not templated filler.
    */
   function rankTopConfidence(games, n) {
     n = n || 3;
@@ -61,18 +62,41 @@
         const p = g.prediction;
         const pickHome = p.predictedWinner === g.homeId;
         const pickTeamName = pickHome ? g.homeName : g.awayName;
+        const oppTeamName = pickHome ? g.awayName : g.homeName;
         const pickTeamId = p.predictedWinner;
         const confidencePct = pct(p.confidence);
 
         const marketAgrees = g.odds && g.odds.favorite ? g.odds.favorite === pickTeamId : null;
 
-        let advantage;
+        // Rating-point gap between the two teams, from the pick's own
+        // offense/defense grades (already inclusive of injury and weather
+        // adjustments) - the core, per-game reason for the pick.
+        const edgePts = Math.round(Math.abs(p.edge) * 10) / 10;
+
+        // The single most impactful adjustment (injury, since weather hits
+        // both teams roughly evenly) working against the opponent - this is
+        // what explains an edge beyond the raw stat-rank gap, when one
+        // exists. NOTE_THRESHOLD keeps this to adjustments actually large
+        // enough to matter, not every questionable-tag noise.
+        const NOTE_THRESHOLD = 1;
+        const oppAdjustments = pickHome ? p.awayAdjustments : p.homeAdjustments;
+        const biggestOppInjury = (oppAdjustments || [])
+          .filter((a) => a.player && Math.abs(a.ratingDelta) >= NOTE_THRESHOLD)
+          .sort((a, b) => Math.abs(b.ratingDelta) - Math.abs(a.ratingDelta))[0];
+
+        let advantage = `${pickTeamName} carries a ${edgePts}-point rating edge over ${oppTeamName} once offense, defense, injuries, and weather are graded.`;
+
+        if (biggestOppInjury) {
+          const statusWord = biggestOppInjury.status === "out" ? "without" : "playing hurt with";
+          advantage += ` ${oppTeamName} are ${statusWord} ${biggestOppInjury.player} (${biggestOppInjury.status}), a real hit to their ${biggestOppInjury.side}.`;
+        }
+
         if (marketAgrees === false) {
-          advantage = `The sportsbook favorite disagrees with this pick - the model sees an edge the market line doesn't fully reflect.`;
+          advantage += ` The sportsbook favorite is actually ${oppTeamName} here - the model sees an edge this line doesn't fully reflect.`;
         } else if (marketAgrees === true) {
-          advantage = `The market agrees on the favorite, and the model's ${confidencePct}% confidence gives a sense of how comfortably.`;
+          advantage += ` The market agrees ${pickTeamName} is favored, and ${confidencePct}% confidence shows how comfortably.`;
         } else {
-          advantage = `No posted line yet for this game - this pick is purely the model's own offense/defense grading.`;
+          advantage += ` No line is posted for this game yet, so this read is purely the model's own grading.`;
         }
 
         return {

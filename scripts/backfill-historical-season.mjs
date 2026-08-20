@@ -714,12 +714,20 @@ const SETTINGS_WIDGET_SCRIPT = `(function () {
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
 })();`;
 
+// Mirrors LEAGUES_UI_ENABLED in index.html - keep these in sync manually,
+// since this script runs outside the SPA and can't import that constant.
+// When it's true, add the League <a> back in between Hot Picks and News.
+const LEAGUES_UI_ENABLED = false;
+
 const TAB_BAR_HTML = `<nav class="tab-bar" aria-label="Primary">
-    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#127880;</span><span class="tab-label">Games</span></a>
-    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#128293;</span><span class="tab-label">Hot Picks</span></a>
-    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#127942;</span><span class="tab-label">League</span></a>
-    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#128240;</span><span class="tab-label">News</span></a>
-    <a class="tab-btn active" href="/historical/index.html" aria-current="page"><span class="tab-icon" aria-hidden="true">&#128450;&#65039;</span><span class="tab-label">Archive</span></a>
+    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#x1F3C8;</span><span class="tab-label">Games</span></a>
+    <a class="tab-btn" href="/#picks"><span class="tab-icon" aria-hidden="true">&#x1F525;</span><span class="tab-label">Hot Picks</span></a>${
+      LEAGUES_UI_ENABLED
+        ? `\n    <a class="tab-btn" href="/#league"><span class="tab-icon" aria-hidden="true">&#x1F3C6;</span><span class="tab-label">League</span></a>`
+        : ""
+    }
+    <a class="tab-btn" href="/#news"><span class="tab-icon" aria-hidden="true">&#x1F4F0;</span><span class="tab-label">News</span></a>
+    <a class="tab-btn active" href="/historical/index.html" aria-current="page"><span class="tab-icon" aria-hidden="true">&#x1F5C2;&#xFE0F;</span><span class="tab-label">Archive</span></a>
   </nav>`;
 
 function pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd, pageScript }) {

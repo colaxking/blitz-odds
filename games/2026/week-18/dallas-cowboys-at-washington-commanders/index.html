@@ -13660,6 +13660,19 @@ function getInitialRoute() {
   try { return parseLocationPath(window.location.pathname); } catch (e) { return null; }
 }
 
+// Lets links from outside the SPA (e.g. the archive's static tab nav) land
+// directly on a specific tab via a URL hash - "/#picks" opens Hot Picks,
+// etc. - instead of always dropping the visitor on Games. Falls back to
+// "games" for an empty/unrecognized hash so a stray "#" never 404s a tab.
+const TAB_IDS = ["games", "picks", "league", "news", "archive"];
+function getInitialTab(leaguesEnabled) {
+  try {
+    const hash = (window.location.hash || "").replace(/^#/, "");
+    if (TAB_IDS.includes(hash) && (hash !== "league" || leaguesEnabled)) return hash;
+  } catch (e) {}
+  return "games";
+}
+
 function App() {
   const auth = useAuth();
   const [themeMode, setThemeMode] = useThemeManager();
@@ -13683,7 +13696,22 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showLeagues, setShowLeagues] = useState(false);
   const [pendingLeagueReopen, setPendingLeagueReopen] = useState(false);
-  const [activeTab, setActiveTab] = useState("games");
+  const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
+
+  // Keeps the URL hash in sync with the selected tab (replaceState, not
+  // pushState, so switching tabs doesn't spam the back button) - this is
+  // what makes "/#news" a real, shareable/linkable entry point rather than
+  // a one-way trip that can't be pointed back to.
+  useEffect(() => {
+    try {
+      const desired = activeTab === "games" ? "" : `#${activeTab}`;
+      const current = window.location.hash || "";
+      if (desired !== current) {
+        window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search + desired);
+      }
+    } catch (e) {}
+  }, [activeTab]);
+
 
   // The Leagues modal closes itself before opening the Identity sign-in
   // widget (see LeaguesModal's "Sign in" button) since the two modals

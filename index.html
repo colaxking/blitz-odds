@@ -527,15 +527,6 @@
   .bet-pick { font-weight: 700; font-size: 0.9rem; margin-bottom: 3px; }
   .bet-reason { font-size: 0.78rem; color: var(--text-dim); line-height: 1.45; }
 
-  .hot-picks-pro-note {
-    display: flex; align-items: flex-start; gap: 10px; font-size: 0.78rem; color: var(--text-dim); line-height: 1.5;
-    background: var(--surface-2); border: 1px dashed var(--card-border); border-radius: 10px; padding: 12px 14px;
-  }
-  .pro-badge {
-    flex-shrink: 0; background: var(--accent); color: #062018; font-size: 0.65rem; font-weight: 800;
-    letter-spacing: 0.4px; padding: 3px 7px; border-radius: 5px;
-  }
-
   /* Hot Picks - Track Record panel */
   .track-record-panel {
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
@@ -10595,11 +10586,6 @@ function HotPicksView({ week, sportsbookId, onSelectGame }) {
       </div>
 
       <TrackRecordPanel />
-
-      <div className="hot-picks-pro-note">
-        <span className="pro-badge">PRO</span>
-        Deeper picks — line-movement alerts, injury-adjusted breakdowns, and this report by email — are coming to Blitz Odds Pro.
-      </div>
     </div>
   );
 }

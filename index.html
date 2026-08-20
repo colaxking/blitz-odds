@@ -831,6 +831,42 @@
     }
   }
 
+  .leagues-signed-out { text-align: center; padding: 16px 4px 6px; }
+  .leagues-signed-out p { color: var(--text-dim); font-size: 0.9rem; margin: 0 0 14px; }
+  .leagues-empty { color: var(--text-dim); font-size: 0.85rem; margin: 0; }
+  .leagues-error { color: var(--out); font-size: 0.82rem; margin: 8px 0 0; }
+
+  .league-list { display: flex; flex-direction: column; gap: 8px; }
+  .league-list-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px;
+  }
+  .league-list-item-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .league-list-item-name { font-size: 0.9rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .league-list-item-meta { font-size: 0.74rem; color: var(--text-dim); }
+  .league-invite-chip {
+    flex-shrink: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 1px; background: var(--surface-2); border: 1px dashed var(--card-border); color: var(--accent);
+    border-radius: 8px; padding: 6px 10px; cursor: pointer;
+  }
+  .league-invite-chip:hover, .league-invite-chip:focus-visible { border-color: var(--accent); }
+
+  .league-form { display: flex; gap: 8px; }
+  .league-input {
+    flex: 1; min-width: 0; background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 9px 12px; color: var(--text); font-size: 0.88rem;
+  }
+  .league-input:focus-visible { outline: none; border-color: var(--accent); }
+  .league-input-code { text-transform: uppercase; letter-spacing: 1.5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .league-btn {
+    flex-shrink: 0; background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 8px; padding: 9px 16px; font-size: 0.86rem; font-weight: 700; cursor: pointer;
+  }
+  .league-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .league-btn:disabled { opacity: 0.5; cursor: default; }
+  .league-btn-primary { background: var(--accent); border-color: var(--accent); color: #062018; }
+  .league-btn-primary:hover:not(:disabled) { filter: brightness(1.08); color: #062018; }
+
   /* Clickable wrapper around a live/final score - opens the box score
      modal. Uses "all: unset" so it inherits whatever styling the score
      content already carries (pill background, bold weight, etc.) rather
@@ -10602,6 +10638,199 @@ function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode,
   );
 }
 
+// ---- Pick'em leagues: create, join, and list ----
+// Talks to league-create.mts / league-join.mts / leagues-mine.mts, all of
+// which require an authenticated Netlify Identity JWT (see useAuth's
+// authenticatedFetch). This modal only handles league membership - actual
+// pick submission and standings are a separate, later view.
+
+function LeaguesModal({ auth, onClose }) {
+  const overlayRef = useRef(null);
+  const [leagues, setLeagues] = useState(null); // null = loading
+  const [loadError, setLoadError] = useState(null);
+  const [createName, setCreateName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
+  const [joinCode, setJoinCode] = useState("");
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(null);
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  async function loadLeagues() {
+    setLoadError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/leagues-mine");
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to load leagues");
+      setLeagues(data.leagues || []);
+    } catch (err) {
+      setLoadError(err.message || "Failed to load leagues");
+      setLeagues([]);
+    }
+  }
+
+  useEffect(() => { loadLeagues(); }, []);
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    if (!createName.trim() || creating) return;
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: createName.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to create league");
+      setCreateName("");
+      await loadLeagues();
+    } catch (err) {
+      setCreateError(err.message || "Failed to create league");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function handleJoin(e) {
+    e.preventDefault();
+    if (!joinCode.trim() || joining) return;
+    setJoining(true);
+    setJoinError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteCode: joinCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to join league");
+      setJoinCode("");
+      await loadLeagues();
+    } catch (err) {
+      setJoinError(err.message || "Failed to join league");
+    } finally {
+      setJoining(false);
+    }
+  }
+
+  function copyInviteCode(code) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(() => {
+        setCopiedCode(code);
+        setTimeout(() => setCopiedCode(c => (c === code ? null : c)), 1500);
+      });
+    }
+  }
+
+  const body = auth.status !== "in" ? (
+    <div className="leagues-signed-out">
+      <p>Sign in to create or join a pick'em league with friends.</p>
+      <button type="button" className="league-btn league-btn-primary" onClick={auth.openLogin}>
+        Sign in
+      </button>
+    </div>
+  ) : (
+    <>
+      <div className="settings-section">
+        <h3 className="settings-section-title">Your Leagues</h3>
+        {leagues === null && <p className="leagues-empty">Loading…</p>}
+        {loadError && <p className="leagues-error">{loadError}</p>}
+        {leagues && leagues.length === 0 && !loadError && (
+          <p className="leagues-empty">You're not in any leagues yet - create one or join with a code below.</p>
+        )}
+        {leagues && leagues.length > 0 && (
+          <div className="league-list">
+            {leagues.map(l => (
+              <div key={l.id} className="league-list-item">
+                <div className="league-list-item-main">
+                  <span className="league-list-item-name">{l.name}</span>
+                  <span className="league-list-item-meta">
+                    {l.memberCount} member{l.memberCount === 1 ? "" : "s"} · {l.season}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="league-invite-chip"
+                  onClick={() => copyInviteCode(l.inviteCode)}
+                  title="Copy invite code"
+                >
+                  {copiedCode === l.inviteCode ? "Copied!" : l.inviteCode}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Create a League</h3>
+        <form className="league-form" onSubmit={handleCreate}>
+          <input
+            type="text"
+            className="league-input"
+            placeholder="League name"
+            value={createName}
+            onChange={e => setCreateName(e.target.value)}
+            maxLength={50}
+          />
+          <button type="submit" className="league-btn league-btn-primary" disabled={creating || !createName.trim()}>
+            {creating ? "Creating…" : "Create"}
+          </button>
+        </form>
+        {createError && <p className="leagues-error">{createError}</p>}
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Join a League</h3>
+        <form className="league-form" onSubmit={handleJoin}>
+          <input
+            type="text"
+            className="league-input league-input-code"
+            placeholder="Invite code"
+            value={joinCode}
+            onChange={e => setJoinCode(e.target.value.toUpperCase())}
+            maxLength={6}
+          />
+          <button type="submit" className="league-btn" disabled={joining || !joinCode.trim()}>
+            {joining ? "Joining…" : "Join"}
+          </button>
+        </form>
+        {joinError && <p className="leagues-error">{joinError}</p>}
+      </div>
+    </>
+  );
+
+  return ReactDOM.createPortal(
+    <div
+      className="settings-modal-overlay"
+      ref={overlayRef}
+      onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Leagues">
+        <button type="button" className="settings-modal-close" onClick={onClose} aria-label="Close">×</button>
+        <h2 className="settings-modal-title">Leagues</h2>
+        {body}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ---- Roster, depth chart & team news (ESPN public API, no key required) ---
 // Same approach as live scores: fetched directly from the browser, results
 // cached per team for the session so switching tabs doesn't re-fetch. If this
@@ -12143,7 +12372,7 @@ function GearIcon({ size = 20 }) {
   );
 }
 
-function AccountButton({ auth }) {
+function AccountButton({ auth, onOpenLeagues }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -12184,6 +12413,9 @@ function AccountButton({ auth }) {
       {open && (
         <div className="account-dropdown">
           <div className="account-dropdown-name">{name}</div>
+          <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenLeagues(); }}>
+            My Leagues
+          </button>
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); auth.logout(); }}>
             Sign out
           </button>
@@ -12688,6 +12920,7 @@ function App() {
   const [favorites, setFavorites] = useState(loadFavorites);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showLeagues, setShowLeagues] = useState(false);
 
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
@@ -12770,7 +13003,7 @@ function App() {
           <BrandWordmark height={76} />
           <h1 className="sr-only">Blitz Odds</h1>
         </div>
-        <AccountButton auth={auth} />
+        <AccountButton auth={auth} onOpenLeagues={() => setShowLeagues(true)} />
       </header>
 
       {view === "week" && <NewsTicker />}
@@ -12808,6 +13041,13 @@ function App() {
           >
             <span className="how-it-works-icon">&#9432;</span> How this works
             <span className="how-it-works-chevron">&#9656;</span>
+          </button>
+          <button
+            type="button"
+            className="how-it-works-toggle"
+            onClick={() => setShowLeagues(true)}
+          >
+            <span className="how-it-works-icon">&#127942;</span> Leagues
           </button>
         </div>
       )}
@@ -12854,6 +13094,10 @@ function App() {
           onToggleFavorite={toggleFavorite}
           onClose={() => setShowSettings(false)}
         />
+      )}
+
+      {showLeagues && (
+        <LeaguesModal auth={auth} onClose={() => setShowLeagues(false)} />
       )}
     </div>
   );

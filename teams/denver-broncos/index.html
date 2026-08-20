@@ -461,11 +461,15 @@
   .hot-picks-view { margin-top: 18px; }
   .hot-picks-title { font-size: 1.15rem; font-weight: 800; margin: 0 0 4px; }
   .hot-picks-sub { font-size: 0.82rem; color: var(--text-dim); margin: 0 0 20px; }
-  .hot-picks-section { margin-bottom: 24px; }
-  .hot-picks-section-label {
-    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
-    font-weight: 700; margin-bottom: 10px;
+  .hot-picks-subtabs { display: flex; gap: 6px; margin: 4px 0 20px; flex-wrap: wrap; }
+  .hot-picks-subtab-btn {
+    background: var(--card-bg); color: var(--text-dim); border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 7px 16px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
+  .hot-picks-subtab-btn:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
+  .hot-picks-subtab-btn.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); border-color: var(--accent); }
+  .hot-picks-section { margin-bottom: 24px; }
   .hot-picks-list { display: flex; flex-direction: column; gap: 8px; }
   .hot-pick-row {
     display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer;
@@ -484,14 +488,39 @@
   .hot-pick-advantage { font-size: 0.74rem; color: var(--text-dim); line-height: 1.4; }
   .hot-pick-conf { font-weight: 800; color: var(--accent); font-size: 1rem; flex-shrink: 0; }
 
+  .hot-picks-market-groups { display: flex; flex-direction: column; gap: 18px; }
+  .hot-picks-market-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; }
   .hot-picks-bets { display: flex; flex-direction: column; gap: 10px; }
   .hot-picks-empty { font-size: 0.82rem; color: var(--text-dim); }
   .bet-card {
-    display: flex; gap: 12px; width: 100%; text-align: left; cursor: pointer; align-items: flex-start;
-    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px;
-    font-family: inherit; color: var(--text); transition: border-color 0.15s;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
+    overflow: hidden; transition: border-color 0.15s;
   }
   .bet-card:hover { border-color: var(--accent); }
+  .bet-card-main {
+    display: flex; gap: 12px; width: 100%; text-align: left; cursor: pointer; align-items: flex-start;
+    background: transparent; border: none; padding: 12px 14px; font-family: inherit; color: var(--text);
+  }
+  .bet-card-books { border-top: 1px solid var(--card-border); }
+  .bet-card-books-toggle {
+    width: 100%; text-align: left; background: transparent; border: none; cursor: pointer;
+    font-family: inherit; color: var(--accent); font-size: 0.74rem; font-weight: 700;
+    padding: 8px 14px; letter-spacing: 0.2px;
+  }
+  .bet-card-books-toggle:hover { text-decoration: underline; }
+  .bet-card-books-list { padding: 0 14px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .bet-card-book-row {
+    display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem;
+    color: var(--text-dim); padding: 3px 0;
+  }
+  .bet-card-book-row.is-best { color: var(--win); font-weight: 700; }
+  .bet-card-book-label { display: flex; align-items: center; gap: 6px; }
+  .bet-card-book-best-tag {
+    font-size: 0.6rem; font-weight: 800; letter-spacing: 0.3px; color: var(--win);
+    background: rgba(var(--win-rgb),0.15); padding: 2px 5px; border-radius: 4px;
+  }
+  .bet-card-book-value { font-weight: 700; color: var(--text); }
+  .bet-card-book-row.is-best .bet-card-book-value { color: var(--win); }
   .bet-tag {
     flex-shrink: 0; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.4px; padding: 4px 8px;
     border-radius: 6px; margin-top: 2px; white-space: nowrap;
@@ -500,16 +529,46 @@
   .bet-tag-win { background: rgba(var(--win-rgb),0.15); color: var(--win); }
   .bet-tag-warn { background: rgba(var(--warn-rgb),0.15); color: var(--warn); }
   .bet-pick { font-weight: 700; font-size: 0.9rem; margin-bottom: 3px; }
+  .bet-card-matchup {
+    display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-dim);
+    font-weight: 600; margin-bottom: 4px;
+  }
+  .bet-card-matchup img { flex-shrink: 0; }
   .bet-reason { font-size: 0.78rem; color: var(--text-dim); line-height: 1.45; }
 
-  .hot-picks-pro-note {
-    display: flex; align-items: flex-start; gap: 10px; font-size: 0.78rem; color: var(--text-dim); line-height: 1.5;
-    background: var(--surface-2); border: 1px dashed var(--card-border); border-radius: 10px; padding: 12px 14px;
+  /* Hot Picks - Track Record panel */
+  .track-record-panel {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 24px;
   }
-  .pro-badge {
-    flex-shrink: 0; background: var(--accent); color: #062018; font-size: 0.65rem; font-weight: 800;
-    letter-spacing: 0.4px; padding: 3px 7px; border-radius: 5px;
+  .track-record-empty { padding: 14px 16px; }
+  .track-record-empty-note { font-size: 0.8rem; color: var(--text-dim); margin: 4px 0 0; }
+  .track-record-header { margin-bottom: 12px; }
+  .track-record-title {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
+    font-weight: 700; margin-bottom: 6px;
   }
+  .track-record-headline { font-size: 0.92rem; color: var(--text); line-height: 1.4; }
+  .track-record-headline strong { color: var(--accent); font-size: 1.05rem; }
+  .track-record-markets { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .track-record-market-row {
+    display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem;
+    padding: 6px 0; border-bottom: 1px solid var(--card-border);
+  }
+  .track-record-market-row:last-child { border-bottom: none; }
+  .track-record-market-label { color: var(--text-dim); }
+  .track-record-market-stat { font-weight: 700; color: var(--text); }
+  .track-record-market-record { font-weight: 400; color: var(--text-dim); font-size: 0.78rem; }
+  .track-record-weeks {
+    display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto;
+    padding-top: 8px; border-top: 1px solid var(--card-border);
+  }
+  .track-record-week-row {
+    display: flex; align-items: center; justify-content: space-between; font-size: 0.76rem;
+    color: var(--text-dim); padding: 3px 0;
+  }
+  .track-record-week-row span:first-child { color: var(--text); font-weight: 600; flex-shrink: 0; margin-right: 10px; }
+  .track-record-week-marks { text-align: right; }
 
   /* News tab */
   .news-view { margin-top: 18px; }
@@ -1237,10 +1296,10 @@
   .result-row .score { font-weight: 700; }
   .result-row .verdict.correct { color: var(--win); }
   .result-row .verdict.incorrect { color: var(--pill-bad-text); }
-  footer.app-footer { text-align: center; color: var(--text-dim); font-size: 0.72rem; margin-top: 32px; }
+  footer.app-footer { text-align: left; color: var(--text-dim); font-size: 0.72rem; margin-top: 32px; }
   footer.app-footer p { margin: 0 0 10px; }
   footer.app-footer p:last-child { margin-bottom: 0; }
-  .footer-gambling-notice { color: var(--text); font-size: 0.74rem; line-height: 1.5; }
+  .footer-gambling-notice { font-size: 0.74rem; line-height: 1.5; }
 
   .team-view-header {
     display: flex; align-items: center; gap: 16px; background: var(--card-bg); border: 1px solid var(--card-border);
@@ -10481,6 +10540,7 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
  *  game's own numbers - see hotPicksEngine.js for how each pick and its
  *  reasoning are derived. */
 function HotPicksView({ week, sportsbookId, onSelectGame }) {
+  const [activeSubTab, setActiveSubTab] = useState("top");
   const context = getWeekContext(week);
   const scheduledGames = getGamesForWeek(week);
 
@@ -10507,7 +10567,7 @@ function HotPicksView({ week, sportsbookId, onSelectGame }) {
   if (!hotPicksInput.length) return <p>No schedule data for this week yet.</p>;
 
   const hotPicks = HotPicksEngine.computeHotPicks(hotPicksInput);
-  const noMarketPicks = !hotPicks.spreadPick && !hotPicks.moneylinePick && !hotPicks.totalPick;
+  const noMarketPicks = !hotPicks.spreadPicks.length && !hotPicks.moneylinePicks.length && !hotPicks.totalPicks.length;
 
   function goToGame(game) {
     if (onSelectGame) onSelectGame(week, game.awayId, game.homeId);
@@ -10518,67 +10578,269 @@ function HotPicksView({ week, sportsbookId, onSelectGame }) {
       <div className="hot-picks-header">
         <h2 className="hot-picks-title">This Week's Hot Picks</h2>
         <p className="hot-picks-sub">
-          Top model picks, plus the sharpest angle on spread, moneyline, and total — powered by the Blitz Odds algorithm.
+          Top model picks, plus the sharpest angles on spread, moneyline, and total — powered by the Blitz Odds algorithm.
         </p>
       </div>
 
-      <div className="hot-picks-section">
-        <div className="hot-picks-section-label">Top Confidence Picks</div>
-        <div className="hot-picks-list">
-          {hotPicks.topConfidence.map((p, i) => (
-            <button key={i} type="button" className="hot-pick-row" onClick={() => goToGame(p.game)}>
-              <div className="hot-pick-rank">{i + 1}</div>
-              <div className="hot-pick-main">
-                <div className="hot-pick-teams">
-                  <TeamLogo teamId={p.game.awayId} size={20} />
-                  <span>{p.game.awayName} @ {p.game.homeName}</span>
-                  <TeamLogo teamId={p.game.homeId} size={20} />
-                </div>
-                <div className="hot-pick-summary">{p.summary}</div>
-                <div className="hot-pick-advantage">{p.advantage}</div>
-              </div>
-              <div className="hot-pick-conf">{p.confidencePct}%</div>
-            </button>
-          ))}
-        </div>
+      <div className="hot-picks-subtabs">
+        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "top" ? " active" : "")} onClick={() => setActiveSubTab("top")}>
+          Top Picks
+        </button>
+        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "bets" ? " active" : "")} onClick={() => setActiveSubTab("bets")}>
+          Best Bets
+        </button>
+        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "record" ? " active" : "")} onClick={() => setActiveSubTab("record")}>
+          Track Record
+        </button>
       </div>
 
-      <div className="hot-picks-section">
-        <div className="hot-picks-section-label">Best Bets by Market</div>
-        {noMarketPicks ? (
-          <p className="hot-picks-empty">No sportsbook lines posted yet this week — market picks will appear once lines go up.</p>
-        ) : (
-          <div className="hot-picks-bets">
-            {hotPicks.spreadPick && (
-              <BetCard tagLabel="SPREAD" tagClass="bet-tag-accent" pick={hotPicks.spreadPick} onClick={() => goToGame(hotPicks.spreadPick.game)} />
-            )}
-            {hotPicks.moneylinePick && (
-              <BetCard tagLabel="MONEYLINE" tagClass="bet-tag-win" pick={hotPicks.moneylinePick} onClick={() => goToGame(hotPicks.moneylinePick.game)} />
-            )}
-            {hotPicks.totalPick && (
-              <BetCard tagLabel="TOTAL" tagClass="bet-tag-warn" pick={hotPicks.totalPick} onClick={() => goToGame(hotPicks.totalPick.game)} />
-            )}
+      {activeSubTab === "top" && (
+        <div className="hot-picks-section">
+          <div className="hot-picks-list">
+            {hotPicks.topConfidence.map((p, i) => (
+              <button key={i} type="button" className="hot-pick-row" onClick={() => goToGame(p.game)}>
+                <div className="hot-pick-rank">{i + 1}</div>
+                <div className="hot-pick-main">
+                  <div className="hot-pick-teams">
+                    <TeamLogo teamId={p.game.awayId} size={20} />
+                    <span>{p.game.awayName} @ {p.game.homeName}</span>
+                    <TeamLogo teamId={p.game.homeId} size={20} />
+                  </div>
+                  <div className="hot-pick-summary">{p.summary}</div>
+                  <div className="hot-pick-advantage">{p.advantage}</div>
+                </div>
+                <div className="hot-pick-conf">{p.confidencePct}%</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeSubTab === "bets" && (
+        <div className="hot-picks-section">
+          {noMarketPicks ? (
+            <p className="hot-picks-empty">No sportsbook lines posted yet this week — market picks will appear once lines go up.</p>
+          ) : (
+            <div className="hot-picks-market-groups">
+              {hotPicks.spreadPicks.length > 0 && (
+                <div className="hot-picks-market-group">
+                  <div className="hot-picks-market-label">Spread</div>
+                  <div className="hot-picks-bets">
+                    {hotPicks.spreadPicks.map((p, i) => (
+                      <BetCard key={i} tagLabel="SPREAD" tagClass="bet-tag-accent" pick={p} week={week} onClick={() => goToGame(p.game)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {hotPicks.moneylinePicks.length > 0 && (
+                <div className="hot-picks-market-group">
+                  <div className="hot-picks-market-label">Moneyline</div>
+                  <div className="hot-picks-bets">
+                    {hotPicks.moneylinePicks.map((p, i) => (
+                      <BetCard key={i} tagLabel="MONEYLINE" tagClass="bet-tag-win" pick={p} week={week} onClick={() => goToGame(p.game)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {hotPicks.totalPicks.length > 0 && (
+                <div className="hot-picks-market-group">
+                  <div className="hot-picks-market-label">Total</div>
+                  <div className="hot-picks-bets">
+                    {hotPicks.totalPicks.map((p, i) => (
+                      <BetCard key={i} tagLabel="TOTAL" tagClass="bet-tag-warn" pick={p} week={week} onClick={() => goToGame(p.game)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeSubTab === "record" && <TrackRecordPanel />}
+    </div>
+  );
+}
+
+/** Season track record for the Hot Picks tab — powered by hotpicks-current.mts,
+ *  fed by the hotpicks-snapshot.mjs / hotpicks-grade.mjs scheduled scripts
+ *  (see .github/workflows/hotpicks-snapshot.yml and hotpicks-grade.yml).
+ *  Every graded pick was frozen at snapshot time via that week's
+ *  gradingContext, so this is always graded against the exact line a user
+ *  actually saw that week, not a line that may have moved since.
+ *
+ *  Full detail is shown to everyone for now — there's no subscription tier
+ *  to gate against yet. Once auth/subscriptions land, wrap the
+ *  track-record-detail block below in a tier check the same way
+ *  LEAGUES_UI_ENABLED gates the league tab today. */
+function TrackRecordPanel() {
+  const [aggregate, setAggregate] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/.netlify/functions/hotpicks-current?type=aggregate", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (!cancelled && data) setAggregate(data); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  if (!aggregate || !aggregate.byWeek || !aggregate.byWeek.length) {
+    return (
+      <div className="track-record-panel track-record-empty">
+        <div className="track-record-title">Track Record</div>
+        <p className="track-record-empty-note">Blitz Picks' season track record starts building Week 1 — check back once games are final.</p>
+      </div>
+    );
+  }
+
+  const cp = aggregate.confidencePicks;
+  const cpTotal = cp.wins + cp.losses;
+  const cpPct = cpTotal ? Math.round((cp.wins / cpTotal) * 100) : null;
+
+  const marketRows = [
+    { label: "Confidence Picks", stat: aggregate.confidencePicks },
+    { label: "Spread Picks", stat: aggregate.spreadPicks },
+    { label: "Moneyline Picks", stat: aggregate.moneylinePicks },
+    { label: "Total Leans", stat: aggregate.totalPicks },
+  ];
+
+  return (
+    <div className="track-record-panel">
+      <div className="track-record-header">
+        <div className="track-record-title">Track Record</div>
+        {cpPct != null && (
+          <div className="track-record-headline">
+            Blitz Picks are <strong>{cpPct}%</strong> ({cp.wins}-{cp.losses}) on confidence picks this season
           </div>
         )}
       </div>
 
-      <div className="hot-picks-pro-note">
-        <span className="pro-badge">PRO</span>
-        Deeper picks — line-movement alerts, injury-adjusted breakdowns, and this report by email — are coming to Blitz Odds Pro.
+      <div className="track-record-detail">
+        <div className="track-record-markets">
+          {marketRows.map((m) => {
+            const s = m.stat;
+            const total = s.wins + s.losses;
+            const pct = total ? Math.round((s.wins / total) * 100) : null;
+            const pushes = "pushes" in s && s.pushes ? `-${s.pushes}P` : "";
+            return (
+              <div key={m.label} className="track-record-market-row">
+                <span className="track-record-market-label">{m.label}</span>
+                <span className="track-record-market-stat">
+                  {pct != null ? `${pct}% ` : "— "}
+                  <span className="track-record-market-record">({s.wins}-{s.losses}{pushes})</span>
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="track-record-weeks">
+          {aggregate.byWeek.slice().reverse().map((w) => {
+            const marks = [
+              w.confidencePicks ? `Conf ${w.confidencePicks.wins}-${w.confidencePicks.losses}` : null,
+              w.spreadPick ? `Spread ${w.spreadPick}` : null,
+              w.moneylinePick ? `ML ${w.moneylinePick}` : null,
+              w.totalPick ? `Total ${w.totalPick}` : null,
+            ].filter(Boolean);
+            return (
+              <div key={w.week} className="track-record-week-row">
+                <span>Week {w.week}</span>
+                <span className="track-record-week-marks">{marks.join(" · ")}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
 
-function BetCard({ tagLabel, tagClass, pick, onClick }) {
+/** For one market pick, works out what each sportsbook is offering on the
+ *  specific side Blitz picked (not the whole game's 5-column table - just
+ *  the number that matters for this pick) and which book gives the best
+ *  value. Spread and moneyline: the highest signed number is always best
+ *  for the side being backed (more points, or a better payout) - true
+ *  whether that side is the favorite or the underdog. Total: best depends
+ *  on which way the lean points - the lowest number for an Over lean (less
+ *  scoring needed to clear it), the highest for an Under lean (more room
+ *  before it's blown). */
+function computeMarketBookRows(rows, pick) {
+  if (!rows || !rows.length) return null;
+  const items = rows.map((r) => {
+    let value;
+    if (pick.market === "spread") {
+      if (r.spread == null || !r.favorite) return null;
+      value = r.favorite === pick.pickTeamId ? r.spread : -r.spread;
+    } else if (pick.market === "moneyline") {
+      value = pick.pickTeamId === pick.game.homeId ? r.moneylineHome : r.moneylineAway;
+    } else {
+      value = r.overUnder;
+    }
+    if (value == null) return null;
+    return { id: r.id, label: r.label, isReal: r.isReal, value };
+  }).filter(Boolean);
+  if (!items.length) return null;
+
+  let bestValue;
+  if (pick.market === "total") {
+    bestValue = pick.lean === "over" ? Math.min(...items.map((i) => i.value)) : Math.max(...items.map((i) => i.value));
+  } else {
+    bestValue = Math.max(...items.map((i) => i.value));
+  }
+  return items.map((i) => ({ ...i, isBest: i.value === bestValue }));
+}
+
+function formatMarketValue(market, value) {
+  if (market === "moneyline") return formatMoneyline(value);
+  if (market === "spread") return value === 0 ? "PK" : (value > 0 ? `+${value}` : `${value}`);
+  return String(value);
+}
+
+function BetCard({ tagLabel, tagClass, pick, week, onClick }) {
+  const [expanded, setExpanded] = useState(false);
+  const allBookRows = useMemo(() => getAllBookLines(week, pick.game.awayId, pick.game.homeId), [week, pick.game.awayId, pick.game.homeId]);
+  const marketRows = useMemo(() => computeMarketBookRows(allBookRows, pick), [allBookRows, pick]);
+
   return (
-    <button type="button" className="bet-card" onClick={onClick}>
-      <div className={"bet-tag " + tagClass}>{tagLabel}</div>
-      <div className="bet-body">
-        <div className="bet-pick">{pick.pick}</div>
-        <div className="bet-reason">{pick.advantage}</div>
-      </div>
-    </button>
+    <div className="bet-card">
+      <button type="button" className="bet-card-main" onClick={onClick}>
+        <div className={"bet-tag " + tagClass}>{tagLabel}</div>
+        <div className="bet-body">
+          <div className="bet-card-matchup">
+            <TeamLogo teamId={pick.game.awayId} size={16} />
+            <span>{pick.game.awayName} @ {pick.game.homeName}</span>
+            <TeamLogo teamId={pick.game.homeId} size={16} />
+          </div>
+          <div className="bet-pick">{pick.pick}</div>
+          <div className="bet-reason">{pick.advantage}</div>
+        </div>
+      </button>
+      {marketRows && marketRows.length > 1 && (
+        <div className="bet-card-books">
+          <button
+            type="button"
+            className="bet-card-books-toggle"
+            onClick={() => setExpanded((x) => !x)}
+          >
+            {expanded ? "Hide sportsbook odds" : `Compare ${marketRows.length} sportsbooks`}
+          </button>
+          {expanded && (
+            <div className="bet-card-books-list">
+              {marketRows.map((r) => (
+                <div key={r.id} className={"bet-card-book-row" + (r.isBest ? " is-best" : "")}>
+                  <span className="bet-card-book-label">
+                    {r.label}
+                    {!r.isReal && <span className="odds-est-tag" title="No line posted yet for this book — showing the game's default line"> (est.)</span>}
+                    {r.isBest && <span className="bet-card-book-best-tag">BEST</span>}
+                  </span>
+                  <span className="bet-card-book-value">{formatMarketValue(pick.market, r.value)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

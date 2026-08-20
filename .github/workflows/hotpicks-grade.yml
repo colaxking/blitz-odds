@@ -42,6 +42,9 @@ jobs:
       - name: Run Hot Picks grading
         env:
           HOTPICKS_UPDATE_SECRET: ${{ secrets.HOTPICKS_UPDATE_SECRET }}
+          # See hotpicks-snapshot.yml - GitHub Actions runners have flaky
+          # IPv6 egress to Netlify that can cause ECONNRESET; force IPv4.
+          NODE_OPTIONS: "--dns-result-order=ipv4first"
         run: node scripts/hotpicks-grade.mjs
 
       - name: Commit on-disk mirror if changed

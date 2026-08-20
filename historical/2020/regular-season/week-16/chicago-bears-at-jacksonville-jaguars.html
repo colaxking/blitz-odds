@@ -11,6 +11,18 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://blitz-odds.netlify.app/historical/2020/regular-season/week-16/chicago-bears-at-jacksonville-jaguars.html" />
 <meta name="twitter:card" content="summary" />
+<script>(function () {
+  try {
+    var saved = localStorage.getItem("blitz-odds-theme");
+    var mode = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+    var resolved = mode === "system"
+      ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : mode;
+    if (resolved === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  } catch (e) {}
+})();</script>
 <style>
 :root {
   --bg: #0b1220; --card-bg: #131c2e; --card-border: #223049; --surface-2: #1a2438;
@@ -21,11 +33,22 @@
   --pill-good-fill-text: #062b16; --pill-bad-fill-text: #2a0505;
   --pill-out-text: #ff8080; --pill-questionable-text: #f5c168;
 }
+html[data-theme="light"] {
+  --bg: #dbe2ec; --card-bg: #ffffff; --card-border: #c3cedd; --surface-2: #e7ecf3;
+  --text: #16202f; --text-dim: #5b6b80; --accent: #0f8f83; --accent-rgb: 15,143,131;
+  --win: #1f9d54; --win-rgb: 31,157,84; --lose: #8a95a8; --demo: #8b3fd1; --demo-rgb: 139,63,209;
+  --warn: #b5720a; --warn-rgb: 181,114,10; --out: #d33a3a; --out-rgb: 211,58,58;
+  --pill-good-text: #1a7a43; --pill-bad-text: #b42318;
+  --pill-good-fill-text: #ffffff; --pill-bad-fill-text: #ffffff;
+  --pill-out-text: #b42318; --pill-questionable-text: #92530a;
+}
 * { box-sizing: border-box; }
-body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); transition: background 0.15s, color 0.15s; }
 .app { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
 a { color: var(--accent); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 header.top { text-align: center; margin-bottom: 18px; }
+.brand-row { display: flex; align-items: center; justify-content: center; text-decoration: none; color: inherit; }
 header.top h1 { font-size: 1.85rem; margin: 0 0 4px; font-weight: 800; }
 header.top h1 a { text-decoration: none; color: inherit; }
 .brand-odds { color: var(--accent); }
@@ -152,7 +175,63 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
 <body>
 <div class="app">
   <header class="top">
-    <h1><a href="/">Blitz<span class="brand-odds">Odds</span></a></h1>
+    <a href="/" class="brand-row" aria-label="Blitz Odds home">
+      <svg width="142.4" height="56" viewBox="0 0 660 220" style="flex-shrink:0">
+      <g transform="skewX(-6)">
+        <path d="M24.494140625 140.0V38.59375H51.9775390625Q63.0400390625 38.59375 68.08154296875 43.98095703125Q73.123046875 49.3681640625 73.123046875 61.755859375V66.1923828125Q73.123046875 73.3369140625 70.55908203125 77.7734375Q67.9951171875 82.2099609375 62.751953125 83.5927734375Q69.6083984375 85.3212890625 71.94189453125 91.68798828125Q74.275390625 98.0546875 74.275390625 107.2158203125Q74.275390625 117.068359375 72.431640625 124.443359375Q70.587890625 131.818359375 65.748046875 135.9091796875Q60.908203125 140.0 51.9775390625 140.0ZM44.314453125 76.7939453125H48.462890625Q51.2861328125 76.7939453125 52.0927734375 74.6044921875Q52.8994140625 72.4150390625 52.8994140625 69.361328125V59.1630859375Q52.8994140625 54.265625 48.578125 54.265625H44.314453125ZM46.3310546875 122.138671875Q54.224609375 122.138671875 54.224609375 114.6484375V101.97265625Q54.224609375 97.6513671875 52.92822265625 95.14501953125Q51.6318359375 92.638671875 48.0595703125 92.638671875H44.314453125V122.0234375Q45.58203125 122.138671875 46.3310546875 122.138671875Z M81.5236328125 140.0V38.59375H101.8048828125V122.71484375H122.6623046875V140.0Z M127.97115234374999 140.0V38.59375H147.56099609375V140.0Z M164.59494140625 140.0V58.068359375H152.55294921875V38.59375H196.91818359375V58.068359375H184.87619140625V140.0Z M200.3809765625 140.0V121.5625L223.600703125 57.26171875H202.628046875V38.59375H244.9766796875V56.33984375L221.3536328125 121.33203125H243.9971875V140.0Z" fill="var(--text)"/>
+        <path d="M404.1130078125 140.921875Q391.95578125 140.921875 385.53146484375 133.57568359375Q379.1071484375 126.2294921875 379.1071484375 112.34375V64.17578125Q379.1071484375 51.154296875 385.47384765625 44.4130859375Q391.840546875 37.671875 404.1130078125 37.671875Q416.38546875 37.671875 422.75216796875 44.4130859375Q429.1188671875 51.154296875 429.1188671875 64.17578125V112.34375Q429.1188671875 126.2294921875 422.69455078125 133.57568359375Q416.270234375 140.921875 404.1130078125 140.921875ZM404.285859375 122.25390625Q408.895234375 122.25390625 408.895234375 113.3232421875V63.830078125Q408.895234375 56.33984375 404.40109375 56.33984375Q399.33078125 56.33984375 399.33078125 64.0029296875V113.4384765625Q399.33078125 118.1630859375 400.483125 120.20849609375Q401.63546875 122.25390625 404.285859375 122.25390625Z M437.874375 140.0V38.59375H465.76109375Q476.708359375 38.59375 482.239609375 44.67236328125Q487.770859375 50.7509765625 487.770859375 62.447265625V109.923828125Q487.770859375 124.328125 482.72935546875 132.1640625Q477.6878515625 140.0 465.0696875 140.0ZM458.270859375 122.0810546875H461.7855078125Q467.374375 122.0810546875 467.374375 116.6650390625V64.3486328125Q467.374375 59.2783203125 466.02037109375 57.80908203125Q464.6663671875 56.33984375 460.5179296875 56.33984375H458.270859375Z M496.64966796875 140.0V38.59375H524.53638671875Q535.48365234375 38.59375 541.01490234375 44.67236328125Q546.54615234375 50.7509765625 546.54615234375 62.447265625V109.923828125Q546.54615234375 124.328125 541.5046484375 132.1640625Q536.46314453125 140.0 523.84498046875 140.0ZM517.04615234375 122.0810546875H520.56080078125Q526.14966796875 122.0810546875 526.14966796875 116.6650390625V64.3486328125Q526.14966796875 59.2783203125 524.7956640625 57.80908203125Q523.44166015625 56.33984375 519.29322265625 56.33984375H517.04615234375Z M579.5089453125 140.921875Q565.623203125 140.921875 559.48697265625 134.0078125Q553.3507421875 127.09375 553.3507421875 111.998046875V102.087890625H573.4015234375V114.763671875Q573.4015234375 118.2783203125 574.46744140625 120.26611328125Q575.533359375 122.25390625 578.18375 122.25390625Q580.949375 122.25390625 582.01529296875 120.640625Q583.0812109375 119.02734375 583.0812109375 115.33984375Q583.0812109375 110.6728515625 582.1593359375 107.53271484375Q581.2374609375 104.392578125 578.96158203125 101.54052734375Q576.685703125 98.6884765625 572.6525 94.8857421875L563.548984375 86.2431640625Q553.3507421875 76.62109375 553.3507421875 64.2333984375Q553.3507421875 51.26953125 559.37173828125 44.470703125Q565.392734375 37.671875 576.8009375 37.671875Q590.744296875 37.671875 596.59244140625 45.1044921875Q602.4405859375 52.537109375 602.4405859375 67.6904296875H581.8136328125V60.71875Q581.8136328125 58.64453125 580.63248046875 57.4921875Q579.451328125 56.33984375 577.4347265625 56.33984375Q575.0148046875 56.33984375 573.89126953125 57.69384765625Q572.767734375 59.0478515625 572.767734375 61.1796875Q572.767734375 63.3115234375 573.920078125 65.7890625Q575.072421875 68.2666015625 578.4718359375 71.4931640625L590.168125 82.728515625Q593.6827734375 86.0703125 596.62125 89.78662109375Q599.5597265625 93.5029296875 601.345859375 98.42919921875Q603.1319921875 103.35546875 603.1319921875 110.4423828125Q603.1319921875 124.7314453125 597.86001953125 132.82666015625Q592.588046875 140.921875 579.5089453125 140.921875Z" fill="var(--accent)"/>
+      </g>
+      <defs>
+        <clipPath id="brandBallClip">
+          <path d="M 0,-55 C 7,-55 29,-32 29,0 C 29,32 7,55 0,55 C -7,55 -29,32 -29,0 C -29,-32 -7,-55 0,-55 Z"/>
+        </clipPath>
+        <radialGradient id="brandBallBase" cx="38%" cy="28%" r="80%">
+          <stop offset="0%" stop-color="#a9673b"/>
+          <stop offset="35%" stop-color="#7a4324"/>
+          <stop offset="70%" stop-color="#552d15"/>
+          <stop offset="100%" stop-color="#33190a"/>
+        </radialGradient>
+        <radialGradient id="brandBallSpecular" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
+          <stop offset="60%" stop-color="#ffffff" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="brandBallRim" x1="1" y1="0.7" x2="0.3" y2="0.1">
+          <stop offset="0%" stop-color="#ffb27a" stop-opacity="0.5"/>
+          <stop offset="30%" stop-color="#ffb27a" stop-opacity="0"/>
+        </linearGradient>
+        <filter id="brandBallSoftBlur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3.2"/>
+        </filter>
+        <filter id="brandBallShadowBlur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="5"/>
+        </filter>
+      </defs>
+      <g transform="translate(302.7,89.3)">
+        <path d="M 0,-55 C 7,-55 29,-32 29,0 C 29,32 7,55 0,55 C -7,55 -29,32 -29,0 C -29,-32 -7,-55 0,-55 Z" fill="url(#brandBallBase)"/>
+        <g clip-path="url(#brandBallClip)">
+          <path d="M 0,-55 C 7,-55 29,-32 29,0 C 29,32 7,55 0,55 C -7,55 -29,32 -29,0 C -29,-32 -7,-55 0,-55 Z" fill="url(#brandBallRim)"/>
+          <ellipse cx="-9" cy="-22" rx="10" ry="17" fill="url(#brandBallSpecular)" filter="url(#brandBallSoftBlur)"/>
+          <ellipse cx="10" cy="19" rx="10" ry="15" fill="#000000" opacity="0.14" filter="url(#brandBallSoftBlur)"/>
+          <ellipse cx="-6" cy="32" rx="8" ry="11" fill="#000000" opacity="0.10" filter="url(#brandBallSoftBlur)"/>
+          <path d="M 0,-55 C 7,-55 29,-32 29,0 C 29,32 7,55 0,55 C -7,55 -29,32 -29,0 C -29,-32 -7,-55 0,-55 Z" fill="none" stroke="#000000" stroke-width="9" opacity="0.35" filter="url(#brandBallSoftBlur)"/>
+        </g>
+        <path d="M 0,-55 C 7,-55 29,-32 29,0 C 29,32 7,55 0,55 C -7,55 -29,32 -29,0 C -29,-32 -7,-55 0,-55 Z" fill="none" stroke="#1c0e05" stroke-width="1.6"/>
+        <path d="M 0,-44 C 6,-23 6,23 0,44" fill="none" stroke="#e9d9bd" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+        <g stroke="#e9d9bd" stroke-width="2" stroke-linecap="round" opacity="0.95">
+          <line x1="-6.5" y1="-17" x2="8" y2="-15.5"/>
+          <line x1="-7" y1="-8" x2="8.2" y2="-7"/>
+          <line x1="-7.2" y1="0" x2="8.3" y2="0.5"/>
+          <line x1="-7" y1="8" x2="8.2" y2="8.5"/>
+          <line x1="-6.5" y1="17" x2="8" y2="17.5"/>
+        </g>
+        <ellipse cx="0" cy="76.7" rx="18" ry="6" fill="#000000" opacity="0.3" filter="url(#brandBallShadowBlur)"/>
+      </g>
+      <polyline points="20,166 242.7,166 257.7,156 277.7,176 297.7,166 600,166"
+                fill="none" stroke="#FB4F14" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+      <h1 class="sr-only">Blitz Odds</h1>
+    </a>
   </header>
   <div class="breadcrumb"><a href="/">Home</a> &raquo; <a href="/historical/2020/regular-season/index.html">2020 Regular Season</a> &raquo; Week 16 &raquo; CHI @ JAX</div>
   

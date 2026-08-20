@@ -43,6 +43,24 @@ function log(...args) {
   console.log(new Date().toISOString(), ...args);
 }
 
+// Transient network blips (ECONNRESET, DNS hiccups, etc.) between the
+// GitHub Actions runner and Netlify's edge happen occasionally and aren't
+// worth failing the whole (idempotent, cheap-to-rerun) job over. Retry each
+// fetch a few times with backoff before giving up for real.
+async function fetchWithRetry(url, options, attempts = 3) {
+  let lastErr;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      lastErr = err;
+      log(`fetch failed (attempt ${i}/${attempts}) for ${url}: ${err.message}`);
+      if (i < attempts) await new Promise((r) => setTimeout(r, 1000 * i));
+    }
+  }
+  throw lastErr;
+}
+
 async function writeJson(relPath, data) {
   const full = path.join(REPO_ROOT, relPath);
   await writeFile(full, JSON.stringify(data, null, 2) + "\n", "utf8");
@@ -88,10 +106,10 @@ async function main() {
   }
 
   const [siteDataRes, oddsRes, weatherRes, stadiumsRes] = await Promise.all([
-    fetch(`${SITE_BASE}/.netlify/functions/site-data-current`),
-    fetch(`${SITE_BASE}/.netlify/functions/odds-current`),
-    fetch(`${SITE_BASE}/.netlify/functions/weather-current`),
-    fetch(`${SITE_BASE}/data/stadiums.json`),
+    fetchWithRetry(`${SITE_BASE}/.netlify/functions/site-data-current`),
+    fetchWithRetry(`${SITE_BASE}/.netlify/functions/odds-current`),
+    fetchWithRetry(`${SITE_BASE}/.netlify/functions/weather-current`),
+    fetchWithRetry(`${SITE_BASE}/data/stadiums.json`),
   ]);
   if (!siteDataRes.ok) throw new Error(`site-data-current failed: ${siteDataRes.status}`);
   if (!oddsRes.ok) throw new Error(`odds-current failed: ${oddsRes.status}`);
@@ -181,7 +199,7 @@ async function main() {
   }
 
   // Fetch-before-merge, same pattern as every other refresh script.
-  const snapshotsRes = await fetch(`${SITE_BASE}/.netlify/functions/hotpicks-current?type=snapshots`);
+  const snapshotsRes = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/hotpicks-current?type=snapshots`);
   const existingDoc = snapshotsRes.ok ? await snapshotsRes.json() : { weeks: {} };
   const snapshots = existingDoc && typeof existingDoc.weeks === "object" ? existingDoc : { weeks: {} };
 
@@ -198,7 +216,7 @@ async function main() {
     gradingContext,
   };
 
-  const publishRes = await fetch(`${SITE_BASE}/.netlify/functions/hotpicks-update`, {
+  const publishRes = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/hotpicks-update`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-hotpicks-update-secret": HOTPICKS_UPDATE_SECRET },
     body: JSON.stringify({ snapshots }),

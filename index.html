@@ -9980,7 +9980,7 @@ function FavoriteStar({ teamId, favorites, onToggle }) {
 function TeamBadge({ team, favorites, onToggle, onSelect }) {
   return (
     <div className="badge-wrap">
-      <button className="team-click" onClick={() => onSelect(team.id)} style={{ position: "static" }}>
+      <button className="team-click" data-tour="team-crest" onClick={() => onSelect(team.id)} style={{ position: "static" }}>
         <TeamLogo teamId={team.id} />
       </button>
       <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggle} />
@@ -11351,6 +11351,24 @@ const TOUR_STEPS = [
     body: "Tap this to expand a plain-language explanation of why the model favors the team it does - including any key injuries and weather that factored into the pick.",
   },
   {
+    id: "team-crest", tab: "games", target: "team-crest", optional: true,
+    title: "Team pages",
+    body: "Click any team's logo to open their full page - season schedule, roster, depth chart, and injury report.",
+  },
+  {
+    id: "team-schedule", target: "team-view-main", optional: true,
+    title: "Season schedule",
+    body: "Every game this team plays, with our predicted winner and confidence for each one. Past games show the actual result next to the call.",
+    onEnter: (ctx) => ctx.openTeamViewForTour(),
+  },
+  {
+    id: "team-roster", target: "team-view-main", optional: true,
+    title: "Roster & depth chart",
+    body: "Full roster grouped by position, with each player's depth chart spot and current injury status at a glance.",
+    onEnter: (ctx) => ctx.openTeamRosterTabForTour(),
+    onLeave: (ctx) => ctx.closeTeamViewForTour(),
+  },
+  {
     id: "live-scoring", tab: "games", target: "live-score", optional: true,
     title: "Live scores",
     body: "While a game is being played, the score updates automatically about every 30 seconds - no need to refresh. The football icon shows who has the ball, and you'll see the current quarter, clock, and down-and-distance right alongside it.",
@@ -11452,7 +11470,35 @@ function TutorialTour({ onClose, setActiveTab }) {
     if (closeBtn) closeBtn.click();
     boxscoreOpenedRef.current = false;
   }
-  const ctx = { openBoxScoreForTour, closeBoxScoreForTour, setActiveTab };
+  // Team page steps drive a real view change (Games -> Team), not just a
+  // modal open/close, so "already there" checks matter more here - these
+  // stay idempotent (safe to call even if the view is already open) so
+  // re-entering this section from a later step doesn't misfire.
+  function openTeamViewForTour() {
+    if (document.querySelector('[data-tour="team-view-main"]')) return; // already open
+    const crest = document.querySelector('[data-tour="team-crest"]');
+    if (crest) crest.click();
+  }
+  function openTeamRosterTabForTour(attemptsLeft) {
+    const tab = document.querySelector('[data-tour="team-tab-roster"]');
+    if (tab) { tab.click(); return; }
+    if (attemptsLeft === undefined) attemptsLeft = 5;
+    if (attemptsLeft <= 0) return;
+    // Team view may not have finished opening yet (e.g. re-entering this
+    // step after it was previously closed navigating backward) - open it
+    // and retry shortly after, rather than a single fire-and-forget click.
+    openTeamViewForTour();
+    setTimeout(() => openTeamRosterTabForTour(attemptsLeft - 1), 120);
+  }
+  function closeTeamViewForTour() {
+    const backBtn = document.querySelector('[data-tour="team-back"]');
+    if (backBtn) backBtn.click();
+  }
+  const ctx = {
+    openBoxScoreForTour, closeBoxScoreForTour,
+    openTeamViewForTour, openTeamRosterTabForTour, closeTeamViewForTour,
+    setActiveTab,
+  };
 
   // Shared step-resolution walk: locate the target for `index`, skipping
   // over any step whose target isn't on the page and has no mockup
@@ -13343,7 +13389,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
   return (
     <div>
       <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
-        <button className="back-btn" onClick={onBack}>
+        <button className="back-btn" data-tour="team-back" onClick={onBack}>
           <ChevronIcon direction="left" size={13} />
           <span>Back to week view</span>
         </button>
@@ -13419,6 +13465,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
             onClick={() => setActiveTab(t.id)}
             role="tab"
             aria-selected={activeTab === t.id}
+            data-tour={"team-tab-" + t.id}
           >
             {t.label}
           </button>
@@ -13426,7 +13473,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
       </div>
 
       <div className="team-view-layout">
-        <div className="team-view-main">
+        <div className="team-view-main" data-tour="team-view-main">
           {activeTab === "schedule" && (
             <>
               {preseasonCollapsible && (

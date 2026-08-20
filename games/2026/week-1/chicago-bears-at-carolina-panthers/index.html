@@ -1289,6 +1289,93 @@
     }
   }
 
+  /* ---- First-run tutorial tour: dims the page, cuts a spotlight hole over
+     the real element being explained, and shows a callout bubble pointing
+     at it. Sits above everything (including the box score / settings
+     modals, z-index 1000) since some steps run with a modal open behind
+     the spotlight.
+
+     The dimming comes from exactly one layer at a time, controlled inline
+     from JS: when a spotlight ring is showing, .tour-backdrop is set fully
+     transparent and the ring's own 9999px box-shadow spread is what dims
+     everything outside its box - leaving the ring's interior (the actual
+     highlighted element) at full brightness, not viewed through a second
+     dark layer. .tour-backdrop only paints its own dark background for
+     steps with no ring (welcome, mockup previews). */
+  .tour-overlay {
+    position: fixed; inset: 0; z-index: 2000; pointer-events: none;
+  }
+  .tour-backdrop {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.72);
+    pointer-events: auto; transition: background-color 0.25s ease;
+  }
+  .tour-spotlight-ring {
+    position: fixed; border-radius: 10px; pointer-events: none;
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.55), 0 0 0 9999px rgba(4,8,16,0.72);
+    transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease, opacity 0.2s ease;
+  }
+  .tour-spotlight-ring.is-settling { opacity: 0.4; }
+  .tour-callout {
+    position: fixed; z-index: 2001; width: 300px; max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px); overflow-y: auto;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 16px 16px 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); pointer-events: auto;
+    transition: top 0.25s ease, left 0.25s ease, opacity 0.2s ease;
+  }
+  .tour-callout.is-settling { opacity: 0.5; }
+  .tour-callout-eyebrow {
+    font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800;
+    color: var(--accent); margin-bottom: 6px;
+  }
+  .tour-callout-title { font-size: 0.98rem; font-weight: 800; margin-bottom: 6px; }
+  .tour-callout-body { font-size: 0.82rem; color: var(--text-dim); line-height: 1.55; margin: 0 0 14px; }
+  /* Mockup preview - shown inside the callout instead of a live spotlight
+     when there's no live game or open box score to point at right now.
+     Built from the same classes as the real UI (live-tag, last-play,
+     boxscore-linescore-table) so it looks authentic, with a small
+     "Example" chip so it's clearly labeled as illustrative sample data
+     rather than something currently happening. */
+  .tour-mockup-preview {
+    position: relative; margin: 2px 0 14px; padding: 12px 10px 10px;
+    background: var(--surface-2); border: 1px dashed var(--card-border); border-radius: 10px;
+  }
+  .tour-mockup-tag {
+    position: absolute; top: -9px; left: 10px; background: var(--card-bg);
+    border: 1px solid var(--card-border); color: var(--text-dim);
+    font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 2px 8px; border-radius: 999px;
+  }
+  .tour-mockup-live-row { margin-bottom: 6px; }
+  .tour-mockup-score { font-size: 0.92rem; font-weight: 800; margin: 6px 0 4px; }
+  .tour-mockup-table { margin: 6px 0 0; }
+  .tour-callout-footer { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+  .tour-callout-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .tour-btn {
+    border: none; background: none; color: var(--text-dim);
+    font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 9px 6px; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .tour-btn:hover { color: var(--text); }
+  .tour-btn-primary {
+    background: var(--accent); color: var(--bg); border-radius: 999px;
+    padding: 9px 20px; min-width: 76px; text-align: center;
+    box-shadow: 0 2px 10px rgba(var(--accent-rgb),0.35);
+  }
+  .tour-btn-primary:hover { opacity: 0.92; color: var(--bg); }
+  /* Sits inside the callout, on its own line below Back/Next, left-aligned -
+     a plain text link rather than a button so it doesn't compete visually
+     with the primary Next action. */
+  .tour-skip-link {
+    display: block; margin-top: 10px; padding: 0;
+    background: none; border: none; color: var(--text-dim);
+    font-family: inherit; font-size: 0.76rem; font-weight: 700; text-decoration: underline;
+    text-underline-offset: 2px; cursor: pointer;
+  }
+  .tour-skip-link:hover { color: var(--text); }
+  @media (max-width: 640px) {
+    .tour-callout { width: calc(100vw - 32px); }
+  }
+
   .result-row {
     display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;
     padding: 6px 10px; border-radius: 8px; background: rgba(var(--demo-rgb),0.1); border: 1px solid rgba(var(--demo-rgb),0.3);
@@ -8016,7 +8103,7 @@
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
 <script type="text/babel" data-presets="react">
-const { useMemo, useState, useEffect, useRef } = React;
+const { useMemo, useState, useEffect, useLayoutEffect, useRef } = React;
 
 // These six all start out pointing at whatever was embedded in the page at
 // last deploy, and are `let` (not `const`) so useLiveSiteData() below can
@@ -9219,6 +9306,7 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children, fallback
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpen(true); }}
         title="Click for boxscores"
         aria-label="Click for boxscores"
+        data-tour="score-link"
         data-away={awayAbbr}
         data-home={homeAbbr}
         data-week={week}
@@ -9407,9 +9495,9 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
       ref={overlayRef}
       onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="boxscore-modal" role="dialog" aria-modal="true" aria-label={`${awayAbbr} at ${homeAbbr} box score`}>
+      <div className="boxscore-modal" role="dialog" aria-modal="true" aria-label={`${awayAbbr} at ${homeAbbr} box score`} data-tour="boxscore-modal">
         <button type="button" className="boxscore-modal-close" onClick={onClose} aria-label="Close">×</button>
-        <div className="boxscore-modal-header">
+        <div className="boxscore-modal-header" data-tour="boxscore-header">
           <span className="boxscore-header-team">
             {liveInfo && liveInfo.possession === "away" && (
               <span className="poss-ball boxscore-header-ball" title={`${awayAbbr} has the ball`}>🏈</span>
@@ -9433,7 +9521,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
         {state.status === "error" && <div className="boxscore-error">{state.error}</div>}
 
         {liveInfo && (
-          <div className="boxscore-live-status">
+          <div className="boxscore-live-status" data-tour="boxscore-live-status">
             <div className="boxscore-live-top">
               <span className="live-tag">
                 <span className="live-dot"></span>
@@ -9450,7 +9538,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
         )}
 
         {linescores && (
-          <table className="boxscore-linescore-table">
+          <table className="boxscore-linescore-table" data-tour="boxscore-linescore">
             <thead>
               <tr>
                 <th></th>
@@ -9480,7 +9568,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
         )}
 
         {teamStats && (
-          <div className="boxscore-stats-section">
+          <div className="boxscore-stats-section" data-tour="boxscore-team-stats">
             <div className="player-modal-section-title">Team Stats</div>
             <table className="boxscore-stats-table">
               <thead>
@@ -9508,7 +9596,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
             : playerStats[0].abbr;
           const currentTeam = playerStats.find(t => t.abbr === currentAbbr);
           return (
-            <div className="boxscore-players-section">
+            <div className="boxscore-players-section" data-tour="boxscore-player-stats">
               <div className="player-modal-section-title">Player Stats</div>
               {playerStats.length > 1 && (
                 <div className="boxscore-team-tabs" role="tablist">
@@ -9943,7 +10031,7 @@ function FavoriteStar({ teamId, favorites, onToggle }) {
 function TeamBadge({ team, favorites, onToggle, onSelect }) {
   return (
     <div className="badge-wrap">
-      <button className="team-click" onClick={() => onSelect(team.id)} style={{ position: "static" }}>
+      <button className="team-click" data-tour="team-crest" onClick={() => onSelect(team.id)} style={{ position: "static" }}>
         <TeamLogo teamId={team.id} />
       </button>
       <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggle} />
@@ -10256,7 +10344,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         <span className="game-meta-left">
           {scoreInfo && scoreInfo.isLive ? (
             <GameScoreLink week={week} awayAbbr={game.away} homeAbbr={game.home} fallbackPossession={scoreInfo.possession}>
-              <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline">
+              <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline" data-tour="live-score">
                 {scoreInfo.possession === "away" && <span className="poss-ball">🏈</span>}
                 {away.id} {scoreInfo.awayScore} – {scoreInfo.homeScore} {home.id}
                 {scoreInfo.possession === "home" && <span className="poss-ball">🏈</span>}
@@ -10270,11 +10358,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           <WeatherPill weather={weather} />
         </span>
         {scoreInfo && scoreInfo.isLive ? (
-          <span className="live-tag">
+          <span className="live-tag" data-tour="live-clock">
             <span className="live-dot"></span>
             LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}
             {scoreInfo.downDistanceText && (
-              <span className={"down-distance" + (scoreInfo.isRedZone ? " is-redzone" : "")}>
+              <span className={"down-distance" + (scoreInfo.isRedZone ? " is-redzone" : "")} data-tour="live-down-distance">
                 {scoreInfo.downDistanceText}
               </span>
             )}
@@ -10282,7 +10370,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         ) : game.network ? <span>{game.network}</span> : null}
       </div>
       {scoreInfo && scoreInfo.isLive && scoreInfo.lastPlay && (
-        <div className="last-play">{scoreInfo.lastPlay}</div>
+        <div className="last-play" data-tour="live-last-play">{scoreInfo.lastPlay}</div>
       )}
       {internationalGame && game.note && <div className="odds-fallback-note" style={{marginTop: "-4px"}}>{game.note}</div>}
 
@@ -10301,7 +10389,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         </div>
       )}
 
-      <div className="matchup-row">
+      <div className="matchup-row" data-tour="matchup-teams">
         <div className={"team-block" + (!homeIsWinner ? " winner" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
           <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{away.name}</div>
@@ -10315,7 +10403,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         </div>
       </div>
 
-      <div className="confidence-bar-wrap">
+      <div className="confidence-bar-wrap" data-tour="confidence-bar">
         <span>{away.id} {awayPct}%</span>
         <div className="confidence-bar">
           <div style={{ width: awayPct + "%", background: "var(--lose)" }}></div>
@@ -10324,15 +10412,15 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         <span>{home.id} {homePct}%</span>
       </div>
 
-      <div className="odds-row">
+      <div className="odds-row" data-tour="betting-lines">
         {odds ? (
           <>
             <div className="odds-fields">
-              <span className="odds-field"><span className="odds-label">Spread</span> {odds.favorite} {formatSpread(odds.spread)}</span>
-              <span className="odds-field"><span className="odds-label">ML</span> {away.id} {formatMoneyline(odds.moneylineAway)} / {home.id} {formatMoneyline(odds.moneylineHome)}</span>
-              <span className="odds-field"><span className="odds-label">O/U</span> {odds.overUnder}</span>
+              <span className="odds-field" data-tour="odds-spread"><span className="odds-label">Spread</span> {odds.favorite} {formatSpread(odds.spread)}</span>
+              <span className="odds-field" data-tour="odds-ml"><span className="odds-label">ML</span> {away.id} {formatMoneyline(odds.moneylineAway)} / {home.id} {formatMoneyline(odds.moneylineHome)}</span>
+              <span className="odds-field" data-tour="odds-ou"><span className="odds-label">O/U</span> {odds.overUnder}</span>
             </div>
-            <div className={"odds-agree " + (modelAgreesWithMarket ? "agree" : "disagree")}>
+            <div className={"odds-agree " + (modelAgreesWithMarket ? "agree" : "disagree")} data-tour="odds-agree">
               {modelAgreesWithMarket ? "Model agrees with the market favorite" : "Model disagrees with the market favorite"}
             </div>
             <div className="odds-source">Line: {odds.sportsbook}</div>
@@ -10347,7 +10435,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         )}
       </div>
 
-      <div className="stat-compare">
+      <div className="stat-compare" data-tour="stat-compare">
         <div className="col">
           <div className="label">{away.id} offense</div>
           <div>Total <RankPill rank={away.stats.offense.rankTotal} /></div>
@@ -10387,13 +10475,13 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         </div>
       </div>
 
-      <details className="diff-explainer">
+      <details className="diff-explainer" data-tour="blitz-verdict">
         <summary>🔥 Blitz Verdict: Why {prediction.predictedWinner} is favored</summary>
         <p>{rationale}</p>
       </details>
 
       {sortedAdjustments.map((a, i) => (
-        <div key={i} className={"impact-note impact-" + a.status}>
+        <div key={i} className={"impact-note impact-" + a.status} data-tour={i === 0 ? "injury-notes" : undefined}>
           <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
           <span>
             <strong>{a.player}</strong> ({a.teamId} · {a.position}) is <strong>{a.status}</strong>
@@ -10407,6 +10495,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         <a
           href={buildGamePath(week, game.away, game.home)}
           className="full-matchup-link"
+          data-tour="full-matchup-link"
           onClick={(e) => { e.preventDefault(); onSelectGame(week, game.away, game.home); }}
         >
           <BrandLogo size={14} className="fm-brand-mark" />
@@ -11242,6 +11331,405 @@ function FavoriteTeamsPicker({ favorites, onToggleFavorite }) {
       <div className="fav-picker-group-label">All Teams</div>
       {otherTeams.map(renderRow)}
     </div>
+  );
+}
+
+/** ---- First-run tutorial tour ------------------------------------------
+ *  A spotlight coachmark walkthrough for first-time users. Each step names
+ *  a real on-screen element via a `data-tour="..."` attribute already
+ *  placed on that element elsewhere in this file, so the tour points at
+ *  the actual UI rather than a mockup of it. Copy avoids odds jargon -
+ *  "ML" and "O/U" are spelled out the first time they appear, since a
+ *  first-time visitor to a pick'em tool may not have used a sportsbook
+ *  before.
+ *
+ *  A step is skipped automatically (never shown, doesn't count toward the
+ *  progress dots) if its target isn't found on the page - e.g. no
+ *  injury-impacted players this week, no weather pill for a dome game, or
+ *  no live/final game currently on the schedule to open a box score from.
+ *  This keeps the tour honest: it only points at things that are actually
+ *  there right now, instead of describing something the visitor can't see. */
+/** ---- First-run tutorial tour ------------------------------------------
+ *  A spotlight coachmark walkthrough for first-time users. Each step names
+ *  a real on-screen element via a `data-tour="..."` attribute already
+ *  placed on that element elsewhere in this file, so the tour points at
+ *  the actual UI rather than a mockup of it wherever possible. Copy avoids
+ *  odds jargon - "ML" and "O/U" are spelled out the first time they
+ *  appear, since a first-time visitor to a pick'em tool may not have used
+ *  a sportsbook before.
+ *
+ *  Kept intentionally short - one step per main area of a game card, not
+ *  one per field. A step is skipped automatically (never shown, doesn't
+ *  count toward the progress dots) if its target isn't on the page and it
+ *  has no `mockup` fallback - e.g. no injury-impacted players this week.
+ *  The live-scoring and box-score steps are the two things a first-time
+ *  visitor is least likely to stumble into naturally (no game may be live
+ *  right now, and box scores only exist once a game has kicked off), so
+ *  those two carry a `mockup` renderer: if a real live game or a real box
+ *  score is on screen, the step spotlights it directly; otherwise it falls
+ *  back to a small illustrative preview built from the same CSS classes as
+ *  the real UI, clearly labeled as an example, so the tour still shows
+ *  what that part of the app looks like instead of silently skipping it. */
+const TOUR_STEPS = [
+  {
+    id: "welcome", tab: "games",
+    title: "Welcome to Blitz Odds",
+    body: "A free pick'em confidence tool - no paywall. This quick tour points out the main areas of a game card. You can skip it anytime.",
+  },
+  {
+    id: "matchup-teams", tab: "games", target: "matchup-teams",
+    title: "The matchup",
+    body: "Away team on the left, home team on the right. The team labeled \"Predicted Winner\" is who our model expects to win this game.",
+  },
+  {
+    id: "confidence-bar", tab: "games", target: "confidence-bar",
+    title: "Confidence score",
+    body: "How sure the model is about its pick, as a percentage split between the two teams. The bigger the gap, the more lopsided the model expects the game to be - useful for ranking your pick'em sheet from safest to riskiest picks.",
+  },
+  {
+    id: "betting-lines", tab: "games", target: "betting-lines", optional: true,
+    title: "Betting lines",
+    body: "Spread is the margin a team is favored to win by. Money Line (ML) is a straight bet on who wins, no points involved. Total, or Over/Under (O/U), is the combined score both teams are projected to add up to. Below that, a note on whether our model agrees with what the sportsbooks themselves favor.",
+  },
+  {
+    id: "stat-compare", tab: "games", target: "stat-compare",
+    title: "Team strength rankings",
+    body: "Each team's league-wide rank (1 = best) on offense and defense. Green means an advantage in that matchup, red means a disadvantage.",
+  },
+  {
+    id: "blitz-verdict", tab: "games", target: "blitz-verdict",
+    title: "Blitz Verdict",
+    body: "Tap this to expand a plain-language explanation of why the model favors the team it does - including any key injuries and weather that factored into the pick.",
+  },
+  {
+    id: "team-crest", tab: "games", target: "team-crest", optional: true,
+    title: "Team pages",
+    body: "Click any team's logo to open their full page - season schedule, roster, depth chart, and injury report.",
+  },
+  {
+    id: "team-schedule", target: "team-view-main", optional: true,
+    title: "Season schedule",
+    body: "Every game this team plays, with our predicted winner and confidence for each one. Past games show the actual result next to the call.",
+    onEnter: (ctx) => ctx.openTeamViewForTour(),
+  },
+  {
+    id: "team-roster", target: "team-view-main", optional: true,
+    title: "Roster & depth chart",
+    body: "Full roster grouped by position, with each player's depth chart spot and current injury status at a glance.",
+    onEnter: (ctx) => ctx.openTeamRosterTabForTour(),
+    onLeave: (ctx) => ctx.closeTeamViewForTour(),
+  },
+  {
+    id: "live-scoring", tab: "games", target: "live-score", optional: true,
+    title: "Live scores",
+    body: "While a game is being played, the score updates automatically about every 30 seconds - no need to refresh. The football icon shows who has the ball, and you'll see the current quarter, clock, and down-and-distance right alongside it.",
+    mockup: () => (
+      <div className="tour-mockup-preview">
+        <span className="tour-mockup-tag">Example</span>
+        <div className="tour-mockup-live-row">
+          <span className="live-tag">
+            <span className="live-dot"></span>
+            LIVE Q3 8:42
+            <span className="down-distance">3rd &amp; 7</span>
+          </span>
+        </div>
+        <div className="tour-mockup-score">
+          <span className="poss-ball">🏈</span> KC 20 – 17 DAL
+        </div>
+        <div className="last-play">Mahomes pass complete to Kelce for 12 yards</div>
+      </div>
+    ),
+  },
+  {
+    id: "box-scores", target: "boxscore-modal", optional: true,
+    title: "Box scores",
+    body: "Tap any live or final score to open the full box score - quarter-by-quarter scoring, team stats, and player stats, all in one place.",
+    onEnter: (ctx) => ctx.openBoxScoreForTour(),
+    onLeave: (ctx) => ctx.closeBoxScoreForTour(),
+    mockup: () => (
+      <div className="tour-mockup-preview">
+        <span className="tour-mockup-tag">Example</span>
+        <table className="boxscore-linescore-table tour-mockup-table">
+          <thead>
+            <tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>F</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>DAL</td><td>0</td><td>7</td><td>3</td><td>7</td><td className="boxscore-final-col">17</td></tr>
+            <tr className="boxscore-winner-row"><td>KC</td><td>7</td><td>3</td><td>7</td><td>3</td><td className="boxscore-final-col">20</td></tr>
+          </tbody>
+        </table>
+      </div>
+    ),
+  },
+  {
+    id: "tab-picks", tab: "games", target: "tab-picks",
+    title: "Hot Picks",
+    body: "Your ranked pick'em sheet for the week: the model's top 3 most confident picks, a favorite spread play, a value Money Line pick, and an Over/Under lean - all in one place.",
+    onEnter: (ctx) => ctx.setActiveTab("picks"),
+  },
+  {
+    id: "account-menu", tab: "picks", target: "account-menu",
+    title: "Settings & help",
+    body: "Set your preferred sportsbook, timezone, and favorite teams here, or revisit \"How this works\" anytime. You can also replay this tour from this menu.",
+    onEnter: (ctx) => ctx.setActiveTab("games"),
+  },
+];
+
+/** Finds a step's target element in the DOM, or null if it isn't currently
+ *  on the page (a step marked `optional` gets skipped in that case, unless
+ *  it also has a `mockup` fallback). */
+function findTourTarget(step) {
+  if (!step.target) return null;
+  return document.querySelector(`[data-tour="${step.target}"]`);
+}
+
+function TutorialTour({ onClose, setActiveTab }) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const [rect, setRect] = useState(null);
+  const [showingMockup, setShowingMockup] = useState(false);
+  const [ready, setReady] = useState(false);
+  // Briefly dims the ring/callout while the target for the next step is
+  // being located (rather than unmounting the whole overlay between
+  // steps), so moving from one spotlight to the next reads as a glide
+  // instead of a flash-to-black-and-back.
+  const [settling, setSettling] = useState(false);
+  const boxscoreOpenedRef = useRef(false);
+  const calloutRef = useRef(null);
+  // Real measured height of the callout, used instead of a guessed
+  // constant when deciding whether it fits below the spotlight - body
+  // copy length varies step to step (the Settings step's paragraph runs
+  // noticeably longer than most), and on a narrow mobile width that wraps
+  // into enough extra lines that a fixed guess under-shoots the real
+  // height, which was pushing the callout off the bottom of the screen.
+  const [calloutHeight, setCalloutHeight] = useState(210);
+
+  // Opens a box score by clicking the first available live/final score
+  // link on the page (rather than faking data), so the box-score step
+  // walks through a real box score whenever one exists. If none is on
+  // screen right now, this is a no-op and that step falls back to its
+  // mockup preview instead.
+  function openBoxScoreForTour() {
+    const link = document.querySelector('[data-tour="score-link"]');
+    if (link) {
+      link.click();
+      boxscoreOpenedRef.current = true;
+    }
+  }
+  function closeBoxScoreForTour() {
+    if (!boxscoreOpenedRef.current) return;
+    const closeBtn = document.querySelector(".boxscore-modal-close");
+    if (closeBtn) closeBtn.click();
+    boxscoreOpenedRef.current = false;
+  }
+  // Team page steps drive a real view change (Games -> Team), not just a
+  // modal open/close, so "already there" checks matter more here - these
+  // stay idempotent (safe to call even if the view is already open) so
+  // re-entering this section from a later step doesn't misfire.
+  function openTeamViewForTour() {
+    if (document.querySelector('[data-tour="team-view-main"]')) return; // already open
+    const crest = document.querySelector('[data-tour="team-crest"]');
+    if (crest) crest.click();
+  }
+  function openTeamRosterTabForTour(attemptsLeft) {
+    const tab = document.querySelector('[data-tour="team-tab-roster"]');
+    if (tab) { tab.click(); return; }
+    if (attemptsLeft === undefined) attemptsLeft = 5;
+    if (attemptsLeft <= 0) return;
+    // Team view may not have finished opening yet (e.g. re-entering this
+    // step after it was previously closed navigating backward) - open it
+    // and retry shortly after, rather than a single fire-and-forget click.
+    openTeamViewForTour();
+    setTimeout(() => openTeamRosterTabForTour(attemptsLeft - 1), 120);
+  }
+  function closeTeamViewForTour() {
+    const backBtn = document.querySelector('[data-tour="team-back"]');
+    if (backBtn) backBtn.click();
+  }
+  const ctx = {
+    openBoxScoreForTour, closeBoxScoreForTour,
+    openTeamViewForTour, openTeamRosterTabForTour, closeTeamViewForTour,
+    setActiveTab,
+  };
+
+  // Shared step-resolution walk: locate the target for `index`, skipping
+  // over any step whose target isn't on the page and has no mockup
+  // fallback, in the given `direction`. Falls into mockup mode for a step
+  // that has a target but no matching element and does supply one.
+  function resolveStep(index, direction, onDone) {
+    if (index < 0) { onDone(null); return; }
+    if (index >= TOUR_STEPS.length) { onClose(); return; }
+    const step = TOUR_STEPS[index];
+    if (step.onEnter) step.onEnter(ctx);
+    requestAnimationFrame(() => {
+      const el = findTourTarget(step);
+      if (!el && step.target && step.optional && !step.mockup) {
+        resolveStep(index + direction, direction, onDone);
+        return;
+      }
+      const useMockup = !el && !!step.mockup;
+      // Instant, not smooth: a smooth scroll's duration scales with
+      // distance (e.g. scrolling all the way back up to the header from
+      // deep in a card), so capturing the rect on a fixed delay after a
+      // smooth scroll could grab it mid-animation and place the callout
+      // using a stale position. Scrolling instantly makes the position
+      // deterministic; the ring/callout's own CSS transitions still make
+      // the step-to-step movement read as a glide.
+      if (el && el.scrollIntoView) {
+        el.scrollIntoView({ block: "center", behavior: "auto" });
+      }
+      setTimeout(() => {
+        onDone({ index, rect: el ? el.getBoundingClientRect() : null, mockup: useMockup });
+      }, el ? 60 : 0);
+    });
+  }
+
+  useEffect(() => {
+    resolveStep(0, 1, (result) => {
+      if (!result) { onClose(); return; }
+      setRect(result.rect);
+      setShowingMockup(result.mockup);
+      setStepIndex(result.index);
+      setReady(true);
+    });
+    // eslint-disable-next-line
+  }, []);
+
+  function goTo(nextIndex, direction) {
+    const currentStep = TOUR_STEPS[stepIndex];
+    if (currentStep && currentStep.onLeave) currentStep.onLeave(ctx);
+    setSettling(true);
+    resolveStep(nextIndex, direction, (result) => {
+      if (!result) { setSettling(false); return; }
+      setRect(result.rect);
+      setShowingMockup(result.mockup);
+      setStepIndex(result.index);
+      setSettling(false);
+    });
+  }
+
+  function handleSkip() {
+    const currentStep = TOUR_STEPS[stepIndex];
+    if (currentStep && currentStep.onLeave) currentStep.onLeave(ctx);
+    closeBoxScoreForTour();
+    onClose();
+  }
+
+  // Keep the spotlight glued to its target through scroll/resize.
+  useEffect(() => {
+    if (!ready || showingMockup) return;
+    const step = TOUR_STEPS[stepIndex];
+    function reposition() {
+      const el = findTourTarget(step);
+      if (el) setRect(el.getBoundingClientRect());
+    }
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [ready, showingMockup, stepIndex]);
+
+  useEffect(() => {
+    function onKeyDown(e) { if (e.key === "Escape") handleSkip(); }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line
+  }, [stepIndex]);
+
+  // Measures the callout's real rendered height right after it (re)paints
+  // for this step - runs before the browser paints, so correcting
+  // `calloutHeight` here doesn't produce a visible jump. Falls back to the
+  // constant initial value until the first measurement lands.
+  useLayoutEffect(() => {
+    if (!calloutRef.current) return;
+    const h = calloutRef.current.getBoundingClientRect().height;
+    if (h && Math.abs(h - calloutHeight) > 4) setCalloutHeight(h);
+  }, [stepIndex, showingMockup, rect]);
+
+  if (!ready) return null;
+  const step = TOUR_STEPS[stepIndex];
+  const pad = 8;
+  const effectiveRect = showingMockup ? null : rect;
+
+  // Position the callout below the spotlight if there's room, otherwise
+  // above it; centered horizontally on the target but clamped to stay
+  // fully on-screen. Falls back to screen-centered when there's no target
+  // (the welcome step, and mockup steps). Below 720px the tab bar becomes
+  // a fixed strip pinned to the bottom of the viewport (see .tab-bar's
+  // mobile media query), so on small screens both the "is there room
+  // below" check and the final clamp reserve extra space for it.
+  // `visualViewport` (when available) tracks the space actually visible
+  // above a mobile browser's address bar / keyboard, which can be
+  // meaningfully smaller than `window.innerHeight` on phones.
+  const viewportHeight = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+  const isMobile = window.innerWidth <= 720;
+  const navReserve = isMobile ? 90 : 0;
+  let calloutStyle = { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+  if (effectiveRect) {
+    // Must match the CSS breakpoint exactly (.tour-callout goes full-width
+    // below 640px via its own media query) - using a different formula
+    // here previously caused the JS to center a callout assuming it was
+    // 300px wide when it was actually rendering ~60px wider on phones,
+    // pushing it off the right edge.
+    const calloutWidth = window.innerWidth <= 640 ? (window.innerWidth - 32) : Math.min(300, window.innerWidth - 32);
+    let left = effectiveRect.left + effectiveRect.width / 2 - calloutWidth / 2;
+    left = Math.max(16, Math.min(left, window.innerWidth - calloutWidth - 16));
+    const spaceBelow = viewportHeight - navReserve - effectiveRect.bottom;
+    let top = spaceBelow > calloutHeight + 10
+      ? effectiveRect.bottom + 16
+      : Math.max(16, effectiveRect.top - 16 - calloutHeight);
+    top = Math.min(top, viewportHeight - navReserve - calloutHeight - 16);
+    top = Math.max(16, top);
+    calloutStyle = { top: `${top}px`, left: `${left}px`, transform: "none" };
+  }
+
+  return ReactDOM.createPortal(
+    <div className="tour-overlay">
+      {/* Only paints a full-screen dim when there's no real spotlight ring
+          to create the cutout itself (welcome step, mockup steps) - when a
+          ring is present, this stays transparent (a click-catcher only) so
+          the ring's own box-shadow is the sole source of dimming and the
+          highlighted element itself renders at full brightness instead of
+          showing through a second darkened layer. */}
+      <div
+        className="tour-backdrop"
+        style={{ background: effectiveRect ? "transparent" : undefined }}
+        onClick={handleSkip}
+      />
+      {effectiveRect && (
+        <div
+          className={"tour-spotlight-ring" + (settling ? " is-settling" : "")}
+          style={{
+            top: effectiveRect.top - pad, left: effectiveRect.left - pad,
+            width: effectiveRect.width + pad * 2, height: effectiveRect.height + pad * 2,
+          }}
+        />
+      )}
+      <div
+        ref={calloutRef}
+        className={"tour-callout" + (settling ? " is-settling" : "")}
+        style={calloutStyle}
+        role="dialog" aria-modal="true" aria-label={step.title}
+      >
+        <div className="tour-callout-eyebrow">Step {stepIndex + 1} of {TOUR_STEPS.length}</div>
+        <div className="tour-callout-title">{step.title}</div>
+        <p className="tour-callout-body">{step.body}</p>
+        {showingMockup && step.mockup && step.mockup()}
+        <div className="tour-callout-footer">
+          <div className="tour-callout-actions">
+            {stepIndex > 0 && (
+              <button type="button" className="tour-btn tour-btn-back" onClick={() => goTo(stepIndex - 1, -1)}>Back</button>
+            )}
+            <button type="button" className="tour-btn tour-btn-primary" onClick={() => goTo(stepIndex + 1, 1)}>
+              {stepIndex === TOUR_STEPS.length - 1 ? "Done" : "Next"}
+            </button>
+          </div>
+        </div>
+        <button type="button" className="tour-skip-link" onClick={handleSkip}>Skip tour</button>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -12947,7 +13435,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
   return (
     <div>
       <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
-        <button className="back-btn" onClick={onBack}>
+        <button className="back-btn" data-tour="team-back" onClick={onBack}>
           <ChevronIcon direction="left" size={13} />
           <span>Back to week view</span>
         </button>
@@ -13023,6 +13511,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
             onClick={() => setActiveTab(t.id)}
             role="tab"
             aria-selected={activeTab === t.id}
+            data-tour={"team-tab-" + t.id}
           >
             {t.label}
           </button>
@@ -13030,7 +13519,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
       </div>
 
       <div className="team-view-layout">
-        <div className="team-view-main">
+        <div className="team-view-main" data-tour="team-view-main">
           {activeTab === "schedule" && (
             <>
               {preseasonCollapsible && (
@@ -13277,7 +13766,7 @@ function WeatherPill({ weather }) {
   if (!weather) return null;
 
   if (weather.isDome) {
-    return <span className="weather-pill weather-pill-dome" title="Indoor stadium - no weather impact">🏟️ Dome</span>;
+    return <span className="weather-pill weather-pill-dome" data-tour="weather-pill" title="Indoor stadium - no weather impact">🏟️ Dome</span>;
   }
 
   if (typeof weather.tempF !== "number") return null;
@@ -13290,7 +13779,7 @@ function WeatherPill({ weather }) {
   if (typeof weather.precipChance === "number" && weather.precipChance > 0) titleParts.push(`${weather.precipChance}% precip`);
 
   return (
-    <span className={"weather-pill" + (windNotable ? " weather-pill-windy" : "")} title={titleParts.join(", ")}>
+    <span className={"weather-pill" + (windNotable ? " weather-pill-windy" : "")} data-tour="weather-pill" title={titleParts.join(", ")}>
       {icon} {weather.tempF}°F
       {windNotable && <span className="weather-wind"> · 💨 {weather.windMph}mph</span>}
     </span>
@@ -13349,6 +13838,7 @@ function TabBar({ activeTab, onSelectTab, leaguesEnabled }) {
             className={"tab-btn" + (activeTab === t.id ? " active" : "")}
             onClick={() => onSelectTab(t.id)}
             aria-current={activeTab === t.id ? "page" : undefined}
+            data-tour={"tab-" + t.id}
           >
             <span className="tab-icon" aria-hidden="true">{t.icon}</span>
             <span className="tab-label">{t.label}</span>
@@ -13359,7 +13849,7 @@ function TabBar({ activeTab, onSelectTab, leaguesEnabled }) {
   );
 }
 
-function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }) {
+function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks, onReplayTour }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -13380,7 +13870,7 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }
     // everything else that lives in the login widget pre-auth (currently
     // just "How this works").
     return (
-      <div className="account-menu" ref={ref}>
+      <div className="account-menu" ref={ref} data-tour="account-menu">
         <div className="account-signedout-row">
           <button type="button" className="account-btn account-btn-signin" onClick={auth.openLogin}>
             Sign in
@@ -13400,6 +13890,9 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }
             <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
               How this works
             </button>
+            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
+              Replay tutorial
+            </button>
           </div>
         )}
       </div>
@@ -13411,7 +13904,7 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }
   const initial = name.charAt(0).toUpperCase();
 
   return (
-    <div className="account-menu" ref={ref}>
+    <div className="account-menu" ref={ref} data-tour="account-menu">
       <button
         type="button"
         className="account-btn account-avatar"
@@ -13426,6 +13919,9 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }
           <div className="account-dropdown-name">{name}</div>
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
             How this works
+          </button>
+          <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
+            Replay tutorial
           </button>
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenSettings(); }}>
             Settings
@@ -13590,6 +14086,13 @@ function SystemIcon({ size = 13 }) {
 }
 
 const THEME_STORAGE_KEY = "blitz-odds-theme";
+const TUTORIAL_SEEN_KEY = "blitz-odds-tutorial-seen";
+function loadTutorialSeen() {
+  try { return window.localStorage.getItem(TUTORIAL_SEEN_KEY) === "1"; } catch (e) { return false; }
+}
+function saveTutorialSeen() {
+  try { window.localStorage.setItem(TUTORIAL_SEEN_KEY, "1"); } catch (e) {}
+}
 
 // Wraps the Netlify Identity widget (loaded via <script> in <head>) in a
 // React-friendly hook. status is "loading" until the widget's "init" event
@@ -13993,6 +14496,8 @@ function App() {
   const [pendingLeagueReopen, setPendingLeagueReopen] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
+  const [showTour, setShowTour] = useState(false);
+  const tourAutoOfferedRef = useRef(false);
 
   // Keeps the URL hash in sync with the selected tab (replaceState, not
   // pushState, so switching tabs doesn't spam the back button) - this is
@@ -14049,6 +14554,7 @@ function App() {
         if (typeof s.sportsbookId === "string") setSportsbookId(s.sportsbookId);
         if (typeof s.tzId === "string") setTzId(s.tzId);
         if (Array.isArray(s.favorites)) setFavorites(s.favorites);
+        if (s.tutorialSeen) saveTutorialSeen(); // mirror the account's flag onto this device too
       } catch (e) {
         // Offline or a transient function error - keep whatever's on this
         // device rather than blocking the app on a failed fetch.
@@ -14118,6 +14624,48 @@ function App() {
     setFavorites(prev => prev.includes(teamId) ? prev.filter(t => t !== teamId) : [...prev, teamId]);
   }
 
+  // First-visit auto-trigger: only on the main Games/week view (so there
+  // are game cards on screen to point at), and only once per browser
+  // (localStorage) or per account (the synced `tutorialSeen` setting,
+  // applied onto localStorage by the profile-load effect above). The delay
+  // gives the schedule/live-score data a moment to render before the tour
+  // starts measuring elements. On mobile this also means the tour won't
+  // interrupt someone who's already scrolled past the week view into a
+  // team or game page on their first load.
+  useEffect(() => {
+    if (tourAutoOfferedRef.current) return;
+    if (loadTutorialSeen()) return;
+    if (activeTab !== "games" || view !== "week") return;
+    tourAutoOfferedRef.current = true;
+    const timer = setTimeout(() => setShowTour(true), 1200);
+    return () => clearTimeout(timer);
+  }, [activeTab, view]);
+
+  function markTutorialSeen() {
+    saveTutorialSeen();
+    if (auth.status === "in") {
+      auth.authenticatedFetch("/.netlify/functions/user-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: { tutorialSeen: true } }),
+      }).catch(() => {});
+    }
+  }
+
+  function closeTour() {
+    setShowTour(false);
+    markTutorialSeen();
+  }
+
+  function replayTour() {
+    // A manual replay (from the account menu's "Replay tutorial") should
+    // work regardless of which tab/view someone's currently on, so jump
+    // back to the Games/week view first - the tour's own steps handle
+    // switching to Hot Picks etc. as they go.
+    backToWeek();
+    setShowTour(true);
+  }
+
   function selectTeam(teamId) {
     setSelectedTeamId(teamId);
     setSelectedGame(null);
@@ -14170,6 +14718,7 @@ function App() {
             onOpenLeagues={() => setShowLeagues(true)}
             onOpenSettings={() => setShowSettings(true)}
             onOpenHowItWorks={() => setShowHowItWorks(true)}
+            onReplayTour={replayTour}
           />
         </div>
         <div className="brand-row" onClick={backToWeek}>
@@ -14302,6 +14851,10 @@ function App() {
 
       {showHowItWorks && (
         <HowItWorksModal onClose={() => setShowHowItWorks(false)} />
+      )}
+
+      {showTour && (
+        <TutorialTour onClose={closeTour} setActiveTab={setActiveTab} />
       )}
     </div>
   );

@@ -1293,49 +1293,82 @@
      the real element being explained, and shows a callout bubble pointing
      at it. Sits above everything (including the box score / settings
      modals, z-index 1000) since some steps run with a modal open behind
-     the spotlight. */
+     the spotlight.
+
+     The dimming comes from exactly one layer at a time, controlled inline
+     from JS: when a spotlight ring is showing, .tour-backdrop is set fully
+     transparent and the ring's own 9999px box-shadow spread is what dims
+     everything outside its box - leaving the ring's interior (the actual
+     highlighted element) at full brightness, not viewed through a second
+     dark layer. .tour-backdrop only paints its own dark background for
+     steps with no ring (welcome, mockup previews). */
   .tour-overlay {
     position: fixed; inset: 0; z-index: 2000; pointer-events: none;
   }
   .tour-backdrop {
     position: fixed; inset: 0; background: rgba(4,8,16,0.72);
-    pointer-events: auto; transition: clip-path 0.25s ease;
+    pointer-events: auto; transition: background-color 0.25s ease;
   }
   .tour-spotlight-ring {
     position: fixed; border-radius: 10px; pointer-events: none;
     box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.55), 0 0 0 9999px rgba(4,8,16,0.72);
-    transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
+    transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease, opacity 0.2s ease;
   }
+  .tour-spotlight-ring.is-settling { opacity: 0.4; }
   .tour-callout {
     position: fixed; z-index: 2001; width: 300px; max-width: calc(100vw - 32px);
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 16px 16px 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); pointer-events: auto;
-    transition: top 0.25s ease, left 0.25s ease;
+    transition: top 0.25s ease, left 0.25s ease, opacity 0.2s ease;
   }
+  .tour-callout.is-settling { opacity: 0.5; }
   .tour-callout-eyebrow {
     font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800;
     color: var(--accent); margin-bottom: 6px;
   }
   .tour-callout-title { font-size: 0.98rem; font-weight: 800; margin-bottom: 6px; }
   .tour-callout-body { font-size: 0.82rem; color: var(--text-dim); line-height: 1.55; margin: 0 0 14px; }
+  /* Mockup preview - shown inside the callout instead of a live spotlight
+     when there's no live game or open box score to point at right now.
+     Built from the same classes as the real UI (live-tag, last-play,
+     boxscore-linescore-table) so it looks authentic, with a small
+     "Example" chip so it's clearly labeled as illustrative sample data
+     rather than something currently happening. */
+  .tour-mockup-preview {
+    position: relative; margin: 2px 0 14px; padding: 12px 10px 10px;
+    background: var(--surface-2); border: 1px dashed var(--card-border); border-radius: 10px;
+  }
+  .tour-mockup-tag {
+    position: absolute; top: -9px; left: 10px; background: var(--card-bg);
+    border: 1px solid var(--card-border); color: var(--text-dim);
+    font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 2px 8px; border-radius: 999px;
+  }
+  .tour-mockup-live-row { margin-bottom: 6px; }
+  .tour-mockup-score { font-size: 0.92rem; font-weight: 800; margin: 6px 0 4px; }
+  .tour-mockup-table { margin: 6px 0 0; }
   .tour-callout-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .tour-dots { display: flex; gap: 5px; }
   .tour-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--card-border); }
   .tour-dot.active { background: var(--accent); width: 16px; border-radius: 4px; }
   .tour-callout-actions { display: flex; align-items: center; gap: 8px; }
   .tour-btn {
-    border: 1px solid var(--card-border); background: var(--surface-2); color: var(--text);
-    font-size: 0.78rem; font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer;
+    border: none; background: none; color: var(--text-dim);
+    font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 9px 6px; cursor: pointer;
   }
-  .tour-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .tour-btn-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-  .tour-btn-primary:hover { opacity: 0.9; color: var(--bg); }
+  .tour-btn:hover { color: var(--text); }
+  .tour-btn-primary {
+    background: var(--accent); color: var(--bg); border-radius: 999px;
+    padding: 9px 20px; min-width: 76px; text-align: center;
+    box-shadow: 0 2px 10px rgba(var(--accent-rgb),0.35);
+  }
+  .tour-btn-primary:hover { opacity: 0.92; color: var(--bg); }
   .tour-skip-link {
     position: fixed; top: 14px; right: 14px; z-index: 2001; pointer-events: auto;
     background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-dim);
-    font-size: 0.76rem; font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer;
+    font-size: 0.76rem; font-weight: 700; padding: 8px 14px; border-radius: 999px; cursor: pointer;
   }
-  .tour-skip-link:hover { color: var(--text); }
+  .tour-skip-link:hover { color: var(--text); border-color: var(--accent); }
   @media (max-width: 640px) {
     .tour-callout { width: calc(100vw - 32px); }
   }
@@ -9410,7 +9443,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
       ref={overlayRef}
       onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="boxscore-modal" role="dialog" aria-modal="true" aria-label={`${awayAbbr} at ${homeAbbr} box score`}>
+      <div className="boxscore-modal" role="dialog" aria-modal="true" aria-label={`${awayAbbr} at ${homeAbbr} box score`} data-tour="boxscore-modal">
         <button type="button" className="boxscore-modal-close" onClick={onClose} aria-label="Close">×</button>
         <div className="boxscore-modal-header" data-tour="boxscore-header">
           <span className="boxscore-header-team">
@@ -10327,7 +10360,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         <span>{home.id} {homePct}%</span>
       </div>
 
-      <div className="odds-row">
+      <div className="odds-row" data-tour="betting-lines">
         {odds ? (
           <>
             <div className="odds-fields">
@@ -11264,11 +11297,32 @@ function FavoriteTeamsPicker({ favorites, onToggleFavorite }) {
  *  no live/final game currently on the schedule to open a box score from.
  *  This keeps the tour honest: it only points at things that are actually
  *  there right now, instead of describing something the visitor can't see. */
+/** ---- First-run tutorial tour ------------------------------------------
+ *  A spotlight coachmark walkthrough for first-time users. Each step names
+ *  a real on-screen element via a `data-tour="..."` attribute already
+ *  placed on that element elsewhere in this file, so the tour points at
+ *  the actual UI rather than a mockup of it wherever possible. Copy avoids
+ *  odds jargon - "ML" and "O/U" are spelled out the first time they
+ *  appear, since a first-time visitor to a pick'em tool may not have used
+ *  a sportsbook before.
+ *
+ *  Kept intentionally short - one step per main area of a game card, not
+ *  one per field. A step is skipped automatically (never shown, doesn't
+ *  count toward the progress dots) if its target isn't on the page and it
+ *  has no `mockup` fallback - e.g. no injury-impacted players this week.
+ *  The live-scoring and box-score steps are the two things a first-time
+ *  visitor is least likely to stumble into naturally (no game may be live
+ *  right now, and box scores only exist once a game has kicked off), so
+ *  those two carry a `mockup` renderer: if a real live game or a real box
+ *  score is on screen, the step spotlights it directly; otherwise it falls
+ *  back to a small illustrative preview built from the same CSS classes as
+ *  the real UI, clearly labeled as an example, so the tour still shows
+ *  what that part of the app looks like instead of silently skipping it. */
 const TOUR_STEPS = [
   {
     id: "welcome", tab: "games",
     title: "Welcome to Blitz Odds",
-    body: "A free pick'em confidence tool - no paywall. This quick tour points out what everything on a game card means. You can skip it anytime.",
+    body: "A free pick'em confidence tool - no paywall. This quick tour points out the main areas of a game card. You can skip it anytime.",
   },
   {
     id: "matchup-teams", tab: "games", target: "matchup-teams",
@@ -11281,81 +11335,61 @@ const TOUR_STEPS = [
     body: "How sure the model is about its pick, as a percentage split between the two teams. The bigger the gap, the more lopsided the model expects the game to be - useful for ranking your pick'em sheet from safest to riskiest picks.",
   },
   {
-    id: "odds-spread", tab: "games", target: "odds-spread", optional: true,
-    title: "Point Spread",
-    body: "The margin a sportsbook expects the favorite to win by. \"-3.5\" next to a team means they're favored to win by more than 3.5 points.",
-  },
-  {
-    id: "odds-ml", tab: "games", target: "odds-ml", optional: true,
-    title: "Money Line (ML)",
-    body: "A straight bet on which team wins - no points involved. The number is the payout: a plus number pays out more per dollar (the underdog), a minus number means you'd need to bet more to win the same amount (the favorite).",
-  },
-  {
-    id: "odds-ou", tab: "games", target: "odds-ou", optional: true,
-    title: "Total, or Over/Under (O/U)",
-    body: "The combined score both teams are projected to add up to. Betting \"Over\" means you think the final combined score will be higher than this number; \"Under\" means lower.",
-  },
-  {
-    id: "odds-agree", tab: "games", target: "odds-agree", optional: true,
-    title: "Model vs. market",
-    body: "Whether our prediction matches who the sportsbooks themselves have favored. When they disagree, that's often the most interesting game to look at closer.",
+    id: "betting-lines", tab: "games", target: "betting-lines", optional: true,
+    title: "Betting lines",
+    body: "Spread is the margin a team is favored to win by. Money Line (ML) is a straight bet on who wins, no points involved. Total, or Over/Under (O/U), is the combined score both teams are projected to add up to. Below that, a note on whether our model agrees with what the sportsbooks themselves favor.",
   },
   {
     id: "stat-compare", tab: "games", target: "stat-compare",
     title: "Team strength rankings",
-    body: "Each team's league-wide rank (1 = best) on offense and defense, split into total yards, rushing, and passing. Green means an advantage in that matchup, red means a disadvantage.",
+    body: "Each team's league-wide rank (1 = best) on offense and defense. Green means an advantage in that matchup, red means a disadvantage.",
   },
   {
     id: "blitz-verdict", tab: "games", target: "blitz-verdict",
     title: "Blitz Verdict",
-    body: "Tap this to expand a plain-language explanation of why the model favors the team it does.",
+    body: "Tap this to expand a plain-language explanation of why the model favors the team it does - including any key injuries and weather that factored into the pick.",
   },
   {
-    id: "injury-notes", tab: "games", target: "injury-notes", optional: true,
-    title: "Injury impact",
-    body: "Key players who are questionable or ruled out, and how much that docks their team's rating before the matchup is scored.",
+    id: "live-scoring", tab: "games", target: "live-score", optional: true,
+    title: "Live scores",
+    body: "While a game is being played, the score updates automatically about every 30 seconds - no need to refresh. The football icon shows who has the ball, and you'll see the current quarter, clock, and down-and-distance right alongside it.",
+    mockup: () => (
+      <div className="tour-mockup-preview">
+        <span className="tour-mockup-tag">Example</span>
+        <div className="tour-mockup-live-row">
+          <span className="live-tag">
+            <span className="live-dot"></span>
+            LIVE Q3 8:42
+            <span className="down-distance">3rd &amp; 7</span>
+          </span>
+        </div>
+        <div className="tour-mockup-score">
+          <span className="poss-ball">🏈</span> KC 20 – 17 DAL
+        </div>
+        <div className="last-play">Mahomes pass complete to Kelce for 12 yards</div>
+      </div>
+    ),
   },
   {
-    id: "weather-pill", tab: "games", target: "weather-pill", optional: true,
-    title: "Weather",
-    body: "Forecast conditions for outdoor stadiums. Wind, cold, and precipitation can all shift how a game plays out, and the model factors them in.",
-  },
-  {
-    id: "live-score", tab: "games", target: "live-score", optional: true,
-    title: "Live score",
-    body: "While a game is being played, the score updates automatically about every 30 seconds - no need to refresh the page. The football icon shows which team currently has the ball.",
-  },
-  {
-    id: "live-clock", tab: "games", target: "live-clock", optional: true,
-    title: "Game clock & down",
-    body: "The current quarter, time remaining, and down-and-distance (e.g. \"3rd & 7\") for the live game. A red highlight here means the offense is in the red zone, inside the opponent's 20-yard line.",
-  },
-  {
-    id: "score-link", tab: "games", target: "score-link", optional: true,
+    id: "box-scores", target: "boxscore-modal", optional: true,
     title: "Box scores",
-    body: "Click any live or final score to open the full box score - quarter-by-quarter scoring, team stats, and player stats.",
+    body: "Tap any live or final score to open the full box score - quarter-by-quarter scoring, team stats, and player stats, all in one place.",
     onEnter: (ctx) => ctx.openBoxScoreForTour(),
-  },
-  {
-    id: "boxscore-header", target: "boxscore-header", optional: true, inModal: true,
-    title: "Box score",
-    body: "Team logos and the current or final score. A gold ring around a logo marks the winning team once the game is final.",
-  },
-  {
-    id: "boxscore-linescore", target: "boxscore-linescore", optional: true, inModal: true,
-    title: "Quarter-by-quarter scoring",
-    body: "Points scored by each team in every quarter, with the final total on the right.",
-  },
-  {
-    id: "boxscore-team-stats", target: "boxscore-team-stats", optional: true, inModal: true,
-    title: "Team stats",
-    body: "Head-to-head totals for the game - total yards, turnovers, time of possession, and more.",
-  },
-  {
-    id: "boxscore-player-stats", target: "boxscore-player-stats", optional: true, inModal: true,
-    title: "Player stats",
-    body: "Individual passing, rushing, and receiving lines for each team. Switch teams using the tabs above the table.",
     onLeave: (ctx) => ctx.closeBoxScoreForTour(),
+    mockup: () => (
+      <div className="tour-mockup-preview">
+        <span className="tour-mockup-tag">Example</span>
+        <table className="boxscore-linescore-table tour-mockup-table">
+          <thead>
+            <tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>F</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>DAL</td><td>0</td><td>7</td><td>3</td><td>7</td><td className="boxscore-final-col">17</td></tr>
+            <tr className="boxscore-winner-row"><td>KC</td><td>7</td><td>3</td><td>7</td><td>3</td><td className="boxscore-final-col">20</td></tr>
+          </tbody>
+        </table>
+      </div>
+    ),
   },
   {
     id: "tab-picks", tab: "games", target: "tab-picks",
@@ -11372,7 +11406,8 @@ const TOUR_STEPS = [
 ];
 
 /** Finds a step's target element in the DOM, or null if it isn't currently
- *  on the page (a step marked `optional` gets skipped in that case). */
+ *  on the page (a step marked `optional` gets skipped in that case, unless
+ *  it also has a `mockup` fallback). */
 function findTourTarget(step) {
   if (!step.target) return null;
   return document.querySelector(`[data-tour="${step.target}"]`);
@@ -11381,14 +11416,20 @@ function findTourTarget(step) {
 function TutorialTour({ onClose, setActiveTab }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState(null);
+  const [showingMockup, setShowingMockup] = useState(false);
   const [ready, setReady] = useState(false);
+  // Briefly dims the ring/callout while the target for the next step is
+  // being located (rather than unmounting the whole overlay between
+  // steps), so moving from one spotlight to the next reads as a glide
+  // instead of a flash-to-black-and-back.
+  const [settling, setSettling] = useState(false);
   const boxscoreOpenedRef = useRef(false);
 
-  // Opens a box score by clicking the first available live/final score link
-  // on the page (rather than faking data), so the tour's box-score steps
-  // walk through a real box score. If no live/final game is on screen right
-  // now, this is a no-op and the box-score steps below skip themselves
-  // since their targets won't be found.
+  // Opens a box score by clicking the first available live/final score
+  // link on the page (rather than faking data), so the box-score step
+  // walks through a real box score whenever one exists. If none is on
+  // screen right now, this is a no-op and that step falls back to its
+  // mockup preview instead.
   function openBoxScoreForTour() {
     const link = document.querySelector('[data-tour="score-link"]');
     if (link) {
@@ -11404,77 +11445,53 @@ function TutorialTour({ onClose, setActiveTab }) {
   }
   const ctx = { openBoxScoreForTour, closeBoxScoreForTour, setActiveTab };
 
-  // Walk forward/back over TOUR_STEPS, skipping any step whose target
-  // isn't currently on the page (optional steps) or whose required tab
-  // isn't active yet - each step's onEnter is responsible for switching to
-  // its own tab, so give React a tick to re-render before checking.
-  useEffect(() => {
-    let cancelled = false;
-    setReady(false);
-
-    function resolveStep(index, direction) {
-      if (index < 0 || index >= TOUR_STEPS.length) {
-        onClose();
+  // Shared step-resolution walk: locate the target for `index`, skipping
+  // over any step whose target isn't on the page and has no mockup
+  // fallback, in the given `direction`. Falls into mockup mode for a step
+  // that has a target but no matching element and does supply one.
+  function resolveStep(index, direction, onDone) {
+    if (index < 0) { onDone(null); return; }
+    if (index >= TOUR_STEPS.length) { onClose(); return; }
+    const step = TOUR_STEPS[index];
+    if (step.onEnter) step.onEnter(ctx);
+    requestAnimationFrame(() => {
+      const el = findTourTarget(step);
+      if (!el && step.target && step.optional && !step.mockup) {
+        resolveStep(index + direction, direction, onDone);
         return;
       }
-      const step = TOUR_STEPS[index];
-      if (step.onEnter) step.onEnter(ctx);
-      requestAnimationFrame(() => {
-        if (cancelled) return;
-        const el = findTourTarget(step);
-        if (!el && step.target && step.optional) {
-          resolveStep(index + direction, direction);
-          return;
-        }
-        if (el && el.scrollIntoView) {
-          el.scrollIntoView({ block: "center", behavior: "smooth" });
-        }
-        setTimeout(() => {
-          if (cancelled) return;
-          const r = el ? el.getBoundingClientRect() : null;
-          setRect(r);
-          setStepIndex(index);
-          setReady(true);
-        }, el ? 260 : 0);
-      });
-    }
+      const useMockup = !el && !!step.mockup;
+      if (el && el.scrollIntoView) {
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+      setTimeout(() => {
+        onDone({ index, rect: el ? el.getBoundingClientRect() : null, mockup: useMockup });
+      }, el ? 260 : 0);
+    });
+  }
 
-    resolveStep(stepIndex, 1);
-    return () => { cancelled = true; };
+  useEffect(() => {
+    resolveStep(0, 1, (result) => {
+      if (!result) { onClose(); return; }
+      setRect(result.rect);
+      setShowingMockup(result.mockup);
+      setStepIndex(result.index);
+      setReady(true);
+    });
     // eslint-disable-next-line
   }, []);
 
   function goTo(nextIndex, direction) {
     const currentStep = TOUR_STEPS[stepIndex];
     if (currentStep && currentStep.onLeave) currentStep.onLeave(ctx);
-    setReady(false);
-
-    function resolveStep(index) {
-      if (index < 0) { setReady(true); return; }
-      if (index >= TOUR_STEPS.length) {
-        onClose();
-        return;
-      }
-      const step = TOUR_STEPS[index];
-      if (step.onEnter) step.onEnter(ctx);
-      requestAnimationFrame(() => {
-        const el = findTourTarget(step);
-        if (!el && step.target && step.optional) {
-          resolveStep(index + direction);
-          return;
-        }
-        if (el && el.scrollIntoView) {
-          el.scrollIntoView({ block: "center", behavior: "smooth" });
-        }
-        setTimeout(() => {
-          const r = el ? el.getBoundingClientRect() : null;
-          setRect(r);
-          setStepIndex(index);
-          setReady(true);
-        }, el ? 260 : 0);
-      });
-    }
-    resolveStep(nextIndex);
+    setSettling(true);
+    resolveStep(nextIndex, direction, (result) => {
+      if (!result) { setSettling(false); return; }
+      setRect(result.rect);
+      setShowingMockup(result.mockup);
+      setStepIndex(result.index);
+      setSettling(false);
+    });
   }
 
   function handleSkip() {
@@ -11486,7 +11503,7 @@ function TutorialTour({ onClose, setActiveTab }) {
 
   // Keep the spotlight glued to its target through scroll/resize.
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || showingMockup) return;
     const step = TOUR_STEPS[stepIndex];
     function reposition() {
       const el = findTourTarget(step);
@@ -11498,7 +11515,7 @@ function TutorialTour({ onClose, setActiveTab }) {
       window.removeEventListener("scroll", reposition, true);
       window.removeEventListener("resize", reposition);
     };
-  }, [ready, stepIndex]);
+  }, [ready, showingMockup, stepIndex]);
 
   useEffect(() => {
     function onKeyDown(e) { if (e.key === "Escape") handleSkip(); }
@@ -11510,28 +11527,27 @@ function TutorialTour({ onClose, setActiveTab }) {
   if (!ready) return null;
   const step = TOUR_STEPS[stepIndex];
   const pad = 8;
+  const effectiveRect = showingMockup ? null : rect;
 
   // Position the callout below the spotlight if there's room, otherwise
   // above it; centered horizontally on the target but clamped to stay
-  // fully on-screen. Falls back to screen-centered when there's no
-  // target (the welcome step). Below 720px the tab bar becomes a fixed
-  // strip pinned to the bottom of the viewport (see .tab-bar's mobile
-  // media query), so on small screens both the "is there room below"
-  // check and the final clamp reserve extra space for it - otherwise a
-  // callout placed "below" a mid-page target could render half-hidden
-  // underneath that bar.
+  // fully on-screen. Falls back to screen-centered when there's no target
+  // (the welcome step, and mockup steps). Below 720px the tab bar becomes
+  // a fixed strip pinned to the bottom of the viewport (see .tab-bar's
+  // mobile media query), so on small screens both the "is there room
+  // below" check and the final clamp reserve extra space for it.
   const isMobile = window.innerWidth <= 720;
   const navReserve = isMobile ? 90 : 0;
-  const calloutHeightEstimate = 210;
+  const calloutHeightEstimate = showingMockup ? 320 : 210;
   let calloutStyle = { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
-  if (rect) {
+  if (effectiveRect) {
     const calloutWidth = Math.min(300, window.innerWidth - 32);
-    let left = rect.left + rect.width / 2 - calloutWidth / 2;
+    let left = effectiveRect.left + effectiveRect.width / 2 - calloutWidth / 2;
     left = Math.max(16, Math.min(left, window.innerWidth - calloutWidth - 16));
-    const spaceBelow = window.innerHeight - navReserve - rect.bottom;
+    const spaceBelow = window.innerHeight - navReserve - effectiveRect.bottom;
     let top = spaceBelow > calloutHeightEstimate + 10
-      ? rect.bottom + 16
-      : Math.max(16, rect.top - 16 - calloutHeightEstimate);
+      ? effectiveRect.bottom + 16
+      : Math.max(16, effectiveRect.top - 16 - calloutHeightEstimate);
     top = Math.min(top, window.innerHeight - navReserve - calloutHeightEstimate - 16);
     top = Math.max(16, top);
     calloutStyle = { top: `${top}px`, left: `${left}px`, transform: "none" };
@@ -11539,21 +11555,36 @@ function TutorialTour({ onClose, setActiveTab }) {
 
   return ReactDOM.createPortal(
     <div className="tour-overlay">
-      <div className="tour-backdrop" onClick={handleSkip} />
-      {rect && (
+      {/* Only paints a full-screen dim when there's no real spotlight ring
+          to create the cutout itself (welcome step, mockup steps) - when a
+          ring is present, this stays transparent (a click-catcher only) so
+          the ring's own box-shadow is the sole source of dimming and the
+          highlighted element itself renders at full brightness instead of
+          showing through a second darkened layer. */}
+      <div
+        className="tour-backdrop"
+        style={{ background: effectiveRect ? "transparent" : undefined }}
+        onClick={handleSkip}
+      />
+      {effectiveRect && (
         <div
-          className="tour-spotlight-ring"
+          className={"tour-spotlight-ring" + (settling ? " is-settling" : "")}
           style={{
-            top: rect.top - pad, left: rect.left - pad,
-            width: rect.width + pad * 2, height: rect.height + pad * 2,
+            top: effectiveRect.top - pad, left: effectiveRect.left - pad,
+            width: effectiveRect.width + pad * 2, height: effectiveRect.height + pad * 2,
           }}
         />
       )}
       <button type="button" className="tour-skip-link" onClick={handleSkip}>Skip tour</button>
-      <div className="tour-callout" style={calloutStyle} role="dialog" aria-modal="true" aria-label={step.title}>
+      <div
+        className={"tour-callout" + (settling ? " is-settling" : "")}
+        style={calloutStyle}
+        role="dialog" aria-modal="true" aria-label={step.title}
+      >
         <div className="tour-callout-eyebrow">Step {stepIndex + 1} of {TOUR_STEPS.length}</div>
         <div className="tour-callout-title">{step.title}</div>
         <p className="tour-callout-body">{step.body}</p>
+        {showingMockup && step.mockup && step.mockup()}
         <div className="tour-callout-footer">
           <div className="tour-dots">
             {TOUR_STEPS.map((s, i) => (
@@ -11562,7 +11593,7 @@ function TutorialTour({ onClose, setActiveTab }) {
           </div>
           <div className="tour-callout-actions">
             {stepIndex > 0 && (
-              <button type="button" className="tour-btn" onClick={() => goTo(stepIndex - 1, -1)}>Back</button>
+              <button type="button" className="tour-btn tour-btn-back" onClick={() => goTo(stepIndex - 1, -1)}>Back</button>
             )}
             <button type="button" className="tour-btn tour-btn-primary" onClick={() => goTo(stepIndex + 1, 1)}>
               {stepIndex === TOUR_STEPS.length - 1 ? "Done" : "Next"}

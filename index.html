@@ -165,6 +165,15 @@
     height: 38px; padding: 0 14px; background: var(--card-bg); color: var(--text-dim); font-size: 13px; font-weight: 600;
   }
   .account-btn-signin:hover, .account-btn-signin:focus-visible { color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
+  .account-signedout-row { display: flex; align-items: stretch; }
+  .account-signedout-row .account-btn-signin { border-radius: 999px 0 0 999px; border-right: none; }
+  .account-menu-toggle {
+    display: flex; align-items: center; justify-content: center; width: 26px; height: 38px;
+    border-radius: 0 999px 999px 0; border: 1px solid var(--card-border); background: var(--card-bg);
+    color: var(--text-dim); cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .account-menu-toggle:hover, .account-menu-toggle:focus-visible { color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
+  .account-menu-toggle-chevron { font-size: 10px; line-height: 1; }
   .account-avatar {
     width: 38px; height: 38px; background: var(--accent); color: #062018; border-color: var(--accent);
     font-size: 15px; font-weight: 700;
@@ -186,6 +195,7 @@
   .account-dropdown-item:hover, .account-dropdown-item:focus-visible { background: rgba(var(--accent-rgb),0.08); color: var(--accent); }
   @media (max-width: 480px) {
     .account-btn-signin { height: 34px; padding: 0 12px; font-size: 12.5px; }
+    .account-menu-toggle { height: 34px; }
     .account-avatar { width: 34px; height: 34px; font-size: 13px; }
   }
 
@@ -354,9 +364,9 @@
   }
   .fav-chip:hover { border-color: var(--star); }
 
-  /* "How this works" toggle - just a quiet text link (no box) sitting inline
-     with the week nav in .header-toolbar. Its own height never changes, so
-     it can't push/misalign the week nav next to it when opened. */
+  /* "Leagues" toolbar button - quiet text link sitting inline with the week
+     nav in .header-toolbar (same treatment "How this works" used to have
+     before it moved into the account menu as a modal). */
   .how-it-works-toggle {
     cursor: pointer; background: none; border: none; font-family: inherit;
     display: inline-flex; align-items: center; gap: 6px;
@@ -365,19 +375,8 @@
   }
   .how-it-works-toggle:hover, .how-it-works-toggle.open { color: var(--text); }
   .how-it-works-toggle .how-it-works-icon { font-size: 0.88rem; line-height: 1; }
-  .how-it-works-toggle .how-it-works-chevron {
-    display: inline-block; color: var(--text-dim); font-size: 0.65rem; transition: transform 0.15s ease;
-  }
-  .how-it-works-toggle.open .how-it-works-chevron { transform: rotate(90deg); }
 
-  /* The expanded content itself: a full-width panel that appears ABOVE the
-     week nav row (not squeezed into it), so it never fights the toolbar's
-     layout regardless of how much text it holds. */
-  .how-it-works-panel {
-    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 10px;
-    padding: 12px 16px; margin: 16px 0 0; font-size: 0.8rem; color: var(--text-dim); line-height: 1.55;
-  }
-  .how-it-works-panel p { margin: 0; }
+  .how-it-works-copy { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
   .demo-banner {
     background: rgba(var(--demo-rgb),0.14); border: 1px solid rgba(var(--demo-rgb),0.4); color: var(--pill-purple-text);
     border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; margin: 8px 0 20px;
@@ -10590,6 +10589,54 @@ function FavoriteTeamsPicker({ favorites, onToggleFavorite }) {
   );
 }
 
+function HowItWorksModal({ onClose }) {
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return ReactDOM.createPortal(
+    <div
+      className="settings-modal-overlay"
+      ref={overlayRef}
+      onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="settings-modal" role="dialog" aria-modal="true" aria-label="How this works">
+        <button type="button" className="settings-modal-close" onClick={onClose} aria-label="Close">×</button>
+        <h2 className="settings-modal-title">How This Works</h2>
+        <p className="how-it-works-copy">
+          Each team gets an offense rating and a defense rating built from its
+          rush/pass/total yardage ranks (1 = best in the league). A matchup compares one team's offense rating to
+          the other's defense rating, adds a small home-field bonus, and converts the gap into a win probability.
+          If a star player is marked "out" or "questionable," their impact score docks their team's offense or
+          defense rating before the matchup is scored. While a game is being played, the score updates live
+          (polling every 30 seconds) with a <strong style={{ color: "var(--live)" }}>LIVE</strong> badge and running
+          score. Playoff rounds only appear in the Week dropdown once their matchups are actually announced.
+          Weeks marked "(has results)" show a frozen snapshot of that week's stats and predictions next to the
+          final score. Each card also shows the real sportsbook spread, moneyline, and over/under when a line has
+          been posted, alongside a note on whether the model's own pick agrees with the market favorite. Use the
+          "Sportsbook" picker in Settings (account menu, top right) to set which book's line you want to see —
+          if that book doesn't have its own line for a game yet, the default line is shown instead and labeled
+          accordingly. Click any team logo to see their full-season schedule, and click the star to favorite a
+          team. Click any live or final score to pull up that game's box score — quarter-by-quarter scoring, team
+          stats, and top performers.
+        </p>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode, tzId, setTzId, resolvedTz, favorites, onToggleFavorite, onClose }) {
   const overlayRef = useRef(null);
 
@@ -10658,6 +10705,17 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState(null);
   const [copiedCode, setCopiedCode] = useState(null);
+  const [debugOutput, setDebugOutput] = useState(null); // TEMPORARY - remove with debug button below
+
+  async function runAuthDebug() {
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/debug-clientcontext");
+      const data = await res.json();
+      setDebugOutput(JSON.stringify(data, null, 2));
+    } catch (err) {
+      setDebugOutput("authenticatedFetch threw: " + (err && err.message));
+    }
+  }
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -10818,6 +10876,17 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
           </button>
         </form>
         {joinError && <p className="leagues-error">{joinError}</p>}
+      </div>
+
+      {/* TEMPORARY - remove once the Unauthorized issue is diagnosed */}
+      <div className="settings-section">
+        <h3 className="settings-section-title">Debug (temporary)</h3>
+        <button type="button" className="league-btn" onClick={runAuthDebug}>Check auth</button>
+        {debugOutput && (
+          <pre style={{ marginTop: 8, fontSize: 11, whiteSpace: "pre-wrap", color: "var(--text-dim)", background: "var(--surface-2)", padding: 8, borderRadius: 8, maxHeight: 200, overflow: "auto" }}>
+            {debugOutput}
+          </pre>
+        )}
       </div>
     </>
   );
@@ -12379,7 +12448,7 @@ function GearIcon({ size = 20 }) {
   );
 }
 
-function AccountButton({ auth, onOpenLeagues, onOpenSettings }) {
+function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -12395,10 +12464,34 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings }) {
   if (auth.status === "loading") return null;
 
   if (auth.status === "out") {
+    // Split button: the "Sign in" pill keeps its original single-click
+    // behavior, and a small chevron beside it opens a menu holding
+    // everything else that lives in the login widget pre-auth (currently
+    // just "How this works").
     return (
-      <button type="button" className="account-btn account-btn-signin" onClick={auth.openLogin}>
-        Sign in
-      </button>
+      <div className="account-menu" ref={ref}>
+        <div className="account-signedout-row">
+          <button type="button" className="account-btn account-btn-signin" onClick={auth.openLogin}>
+            Sign in
+          </button>
+          <button
+            type="button"
+            className="account-menu-toggle"
+            onClick={() => setOpen(v => !v)}
+            aria-label="More options"
+            aria-expanded={open}
+          >
+            <span className="account-menu-toggle-chevron">&#9662;</span>
+          </button>
+        </div>
+        {open && (
+          <div className="account-dropdown">
+            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
+              How this works
+            </button>
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -12420,6 +12513,9 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings }) {
       {open && (
         <div className="account-dropdown">
           <div className="account-dropdown-name">{name}</div>
+          <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
+            How this works
+          </button>
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenSettings(); }}>
             Settings
           </button>
@@ -13110,6 +13206,7 @@ function App() {
             auth={auth}
             onOpenLeagues={() => setShowLeagues(true)}
             onOpenSettings={() => setShowSettings(true)}
+            onOpenHowItWorks={() => setShowHowItWorks(true)}
           />
         </div>
         <div className="brand-row" onClick={backToWeek}>
@@ -13120,40 +13217,9 @@ function App() {
 
       {view === "week" && <NewsTicker />}
 
-      {view === "week" && showHowItWorks && (
-        <div className="how-it-works-panel">
-          <p>
-            Each team gets an offense rating and a defense rating built from its
-            rush/pass/total yardage ranks (1 = best in the league). A matchup compares one team's offense rating to
-            the other's defense rating, adds a small home-field bonus, and converts the gap into a win probability.
-            If a star player is marked "out" or "questionable," their impact score docks their team's offense or
-            defense rating before the matchup is scored. While a game is being played, the score updates live
-            (polling every 30 seconds) with a <strong style={{ color: "var(--live)" }}>LIVE</strong> badge and running
-            score. Playoff rounds only appear in the Week dropdown once their matchups are actually announced.
-            Weeks marked "(has results)" show a frozen snapshot of that week's stats and predictions next to the
-            final score. Each card also shows the real sportsbook spread, moneyline, and over/under when a line has
-            been posted, alongside a note on whether the model's own pick agrees with the market favorite. Use the
-            "Sportsbook" picker in Settings (gear icon, top right) to set which book's line you want to see (saved
-            on this device, not a real account login) — if that book doesn't have its own line for a game yet, the
-            default line is shown instead and labeled accordingly. Click any team logo to see their full-season
-            schedule, and click the star to favorite a team. Click any live or final score to pull up that game's
-            box score — quarter-by-quarter scoring, team stats, and top performers.
-          </p>
-        </div>
-      )}
-
       {view === "week" && (
         <div className="header-toolbar">
           <WeekNav periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
-          <button
-            type="button"
-            className={"how-it-works-toggle" + (showHowItWorks ? " open" : "")}
-            onClick={() => setShowHowItWorks(v => !v)}
-            aria-expanded={showHowItWorks}
-          >
-            <span className="how-it-works-icon">&#9432;</span> How this works
-            <span className="how-it-works-chevron">&#9656;</span>
-          </button>
           <button
             type="button"
             className="how-it-works-toggle"
@@ -13214,6 +13280,10 @@ function App() {
           onClose={() => setShowLeagues(false)}
           onRequestLogin={() => { setShowLeagues(false); setPendingLeagueReopen(true); auth.openLogin(); }}
         />
+      )}
+
+      {showHowItWorks && (
+        <HowItWorksModal onClose={() => setShowHowItWorks(false)} />
       )}
     </div>
   );

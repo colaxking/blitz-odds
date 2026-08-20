@@ -6,12 +6,31 @@ import { getStore } from "@netlify/blobs";
 // pick'em leagues - one identity, one blob, two feature sets reading/writing
 // different fields on it.
 //
-// Auth: requires a Netlify Identity JWT as a Bearer token. Netlify verifies
-// the token and populates context.clientContext.user before this function
-// runs (v2/modern functions only - see @netlify/identity docs). We never
-// trust a userId passed in the request body/query for anything other than
+// Auth: requires a Netlify Identity JWT as a Bearer token. We verify it by
+// asking the site's own hosted Identity (GoTrue) instance who the token
+// belongs to - context.clientContext.user, which older Netlify Functions
+// docs describe, turns out to be a v1/Lambda-compatible-handler-only
+// mechanism. It is never populated for modern v2 "export default" functions
+// (confirmed via a temporary debug endpoint: Authorization header arrived
+// with a valid-looking JWT, but context.clientContext was entirely absent).
+// Hitting GET {site}/.netlify/identity/user with the same Bearer token is
+// the same verification GoTrue's own client libraries use, and works
+// identically regardless of function runtime version. We never trust a
+// userId passed in the request body/query for anything other than
 // admin-style lookups (not exposed here) - the authenticated user can only
-// ever read/write their own record, keyed by their Identity `sub` claim.
+// ever read/write their own record, keyed by their Identity user id.
+async function getAuthenticatedUser(req: Request): Promise<any | null> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) return null;
+  try {
+    const identityUrl = `${new URL(req.url).origin}/.netlify/identity/user`;
+    const res = await fetch(identityUrl, { headers: { Authorization: authHeader } });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
 //
 // GET  /.netlify/functions/user-profile          -> caller's own profile
 //        (creates a default record on first login if none exists yet)
@@ -60,7 +79,7 @@ function defaultSettings() {
 function defaultProfile(claims: any) {
   const now = new Date().toISOString();
   return {
-    id: claims.sub,
+    id: claims.id,
     email: claims.email || null,
     displayName:
       (claims.user_metadata && claims.user_metadata.full_name) ||
@@ -94,17 +113,17 @@ function sanitizeSettings(input: any, existing: any) {
   return out;
 }
 
-export default async (req: Request, context: Context) => {
+export default async (req: Request, _context: Context) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  const claims = (context as any).clientContext && (context as any).clientContext.user;
-  if (!claims || !claims.sub) {
+  const claims = await getAuthenticatedUser(req);
+  if (!claims || !claims.id) {
     return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" });
   }
 
-  const userId: string = claims.sub;
+  const userId: string = claims.id;
   const store = getStore(STORE_NAME);
   const key = `users:${userId}`;
 

@@ -10705,17 +10705,6 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState(null);
   const [copiedCode, setCopiedCode] = useState(null);
-  const [debugOutput, setDebugOutput] = useState(null); // TEMPORARY - remove with debug button below
-
-  async function runAuthDebug() {
-    try {
-      const res = await auth.authenticatedFetch("/.netlify/functions/debug-clientcontext");
-      const data = await res.json();
-      setDebugOutput(JSON.stringify(data, null, 2));
-    } catch (err) {
-      setDebugOutput("authenticatedFetch threw: " + (err && err.message));
-    }
-  }
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -10876,17 +10865,6 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
           </button>
         </form>
         {joinError && <p className="leagues-error">{joinError}</p>}
-      </div>
-
-      {/* TEMPORARY - remove once the Unauthorized issue is diagnosed */}
-      <div className="settings-section">
-        <h3 className="settings-section-title">Debug (temporary)</h3>
-        <button type="button" className="league-btn" onClick={runAuthDebug}>Check auth</button>
-        {debugOutput && (
-          <pre style={{ marginTop: 8, fontSize: 11, whiteSpace: "pre-wrap", color: "var(--text-dim)", background: "var(--surface-2)", padding: 8, borderRadius: 8, maxHeight: 200, overflow: "auto" }}>
-            {debugOutput}
-          </pre>
-        )}
       </div>
     </>
   );
@@ -12687,7 +12665,9 @@ const THEME_STORAGE_KEY = "blitz-odds-theme";
 // authenticatedFetch is the one thing every league/pick'em feature will
 // need: it grabs a fresh JWT (netlifyIdentity refreshes it under the hood
 // if the cached one is close to expiring) and attaches it as a Bearer
-// token, so Netlify Functions can populate context.clientContext.user.
+// token. Functions verify that token themselves against the site's
+// Identity endpoint (context.clientContext.user, despite what older docs
+// suggest, is never populated for modern v2 functions).
 function useAuth() {
   const [status, setStatus] = useState("loading");
   const [user, setUser] = useState(null);
@@ -12706,12 +12686,19 @@ function useAuth() {
     // widget's own modal content, but the iframe element itself sometimes
     // doesn't get its display reset, leaving an invisible, full-screen,
     // click-swallowing layer over the entire page even though nothing is
-    // visibly open. Forcing it hidden after every close/login is the
-    // standard community fix. The widget's own open() call resets this
-    // inline style back to visible, so it's safe to force-hide repeatedly.
+    // visibly open. Forcing it hidden after close/login is the standard
+    // community fix. A single delayed hide isn't reliable on its own - the
+    // widget's own close transition can asynchronously reset the iframe's
+    // display back to visible shortly after, re-freezing the page - so this
+    // re-applies the fix a few times over ~1s to win that race regardless
+    // of how long the widget's own animation takes.
     function hideWidgetIframe() {
       const iframe = document.getElementById("netlify-identity-widget");
       if (iframe) iframe.style.display = "none";
+    }
+    function hideWidgetIframeRepeatedly() {
+      hideWidgetIframe();
+      [50, 150, 300, 600, 1000].forEach((delay) => setTimeout(hideWidgetIframe, delay));
     }
 
     function onInit(u) {
@@ -12722,21 +12709,28 @@ function useAuth() {
       setUser(u);
       setStatus("in");
       identity.close();
-      setTimeout(hideWidgetIframe, 50);
+      hideWidgetIframeRepeatedly();
     }
     function onLogout() {
       setUser(null);
       setStatus("out");
-      setTimeout(hideWidgetIframe, 50);
+      hideWidgetIframeRepeatedly();
     }
     function onClose() {
-      setTimeout(hideWidgetIframe, 50);
+      hideWidgetIframeRepeatedly();
+    }
+    function onOpen() {
+      // Undo any forced display:none from a previous close/login cycle so
+      // the widget can actually render the next time it's opened.
+      const iframe = document.getElementById("netlify-identity-widget");
+      if (iframe) iframe.style.display = "";
     }
 
     identity.on("init", onInit);
     identity.on("login", onLogin);
     identity.on("logout", onLogout);
     identity.on("close", onClose);
+    identity.on("open", onOpen);
     identity.init();
 
     return () => {
@@ -12744,6 +12738,7 @@ function useAuth() {
       identity.off("login", onLogin);
       identity.off("logout", onLogout);
       identity.off("close", onClose);
+      identity.off("open", onOpen);
     };
   }, []);
 

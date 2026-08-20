@@ -29,14 +29,31 @@ function jsonResponse(status: number, body: unknown) {
   });
 }
 
-export default async (req: Request, context: Context) => {
+// Auth: verifies the caller's Netlify Identity JWT against the site's own
+// hosted Identity (GoTrue) endpoint - context.clientContext.user is a
+// v1/Lambda-handler-only mechanism, never populated for modern v2
+// "export default" functions like this one.
+async function getAuthenticatedUser(req: Request): Promise<any | null> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) return null;
+  try {
+    const identityUrl = `${new URL(req.url).origin}/.netlify/identity/user`;
+    const res = await fetch(identityUrl, { headers: { Authorization: authHeader } });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export default async (req: Request, _context: Context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (req.method !== "GET") return jsonResponse(405, { ok: false, error: "Method not allowed" });
 
-  const claims = (context as any).clientContext && (context as any).clientContext.user;
-  if (!claims || !claims.sub) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" });
+  const claims = await getAuthenticatedUser(req);
+  if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" });
 
-  const userId: string = claims.sub;
+  const userId: string = claims.id;
   const url = new URL(req.url);
   const singleLeagueId = url.searchParams.get("leagueId");
 

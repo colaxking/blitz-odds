@@ -1106,7 +1106,7 @@
   /* Depth chart */
   .depth-chart-block { margin-bottom: 22px; }
   .depth-chart-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 8px; }
-  .depth-slot { background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; }
+  .depth-slot { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
   .depth-slot-label { font-size: 0.7rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
   .depth-slot-players { display: flex; flex-direction: column; gap: 3px; }
   .depth-player { display: flex; align-items: center; gap: 6px; font-size: 0.83rem; }
@@ -1117,8 +1117,16 @@
   /* Full roster */
   .full-roster-block .roster-group { margin-bottom: 18px; }
   .roster-group-label { font-weight: 700; text-transform: capitalize; margin-bottom: 6px; font-size: 0.85rem; }
-  .roster-table-wrap { overflow-x: auto; }
+  .roster-table-wrap {
+    overflow-x: auto; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 12px;
+  }
   .roster-table { font-size: 0.8rem; }
+  .roster-table th { padding-left: 14px; }
+  .roster-table td:first-child { padding-left: 14px; }
+  .roster-table tbody tr:nth-child(even) td { background: var(--surface-2); }
+  .roster-table tbody tr:hover td { background: rgba(var(--accent-rgb),0.08); }
+  .roster-table tbody tr:last-child td { border-bottom: none; }
 
   /* Offense / Defense / Special Teams sub-tabs within Roster & Depth Chart */
   .roster-side-tabs { display: flex; gap: 6px; margin: 4px 0 16px; flex-wrap: wrap; }

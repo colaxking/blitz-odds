@@ -461,11 +461,15 @@
   .hot-picks-view { margin-top: 18px; }
   .hot-picks-title { font-size: 1.15rem; font-weight: 800; margin: 0 0 4px; }
   .hot-picks-sub { font-size: 0.82rem; color: var(--text-dim); margin: 0 0 20px; }
-  .hot-picks-section { margin-bottom: 24px; }
-  .hot-picks-section-label {
-    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
-    font-weight: 700; margin-bottom: 10px;
+  .hot-picks-subtabs { display: flex; gap: 6px; margin: 4px 0 20px; flex-wrap: wrap; }
+  .hot-picks-subtab-btn {
+    background: var(--card-bg); color: var(--text-dim); border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 7px 16px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
+  .hot-picks-subtab-btn:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
+  .hot-picks-subtab-btn.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); border-color: var(--accent); }
+  .hot-picks-section { margin-bottom: 24px; }
   .hot-picks-list { display: flex; flex-direction: column; gap: 8px; }
   .hot-pick-row {
     display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer;
@@ -10488,6 +10492,7 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
  *  game's own numbers - see hotPicksEngine.js for how each pick and its
  *  reasoning are derived. */
 function HotPicksView({ week, sportsbookId, onSelectGame }) {
+  const [activeSubTab, setActiveSubTab] = useState("top");
   const context = getWeekContext(week);
   const scheduledGames = getGamesForWeek(week);
 
@@ -10529,68 +10534,82 @@ function HotPicksView({ week, sportsbookId, onSelectGame }) {
         </p>
       </div>
 
-      <div className="hot-picks-section">
-        <div className="hot-picks-section-label">Top Confidence Picks</div>
-        <div className="hot-picks-list">
-          {hotPicks.topConfidence.map((p, i) => (
-            <button key={i} type="button" className="hot-pick-row" onClick={() => goToGame(p.game)}>
-              <div className="hot-pick-rank">{i + 1}</div>
-              <div className="hot-pick-main">
-                <div className="hot-pick-teams">
-                  <TeamLogo teamId={p.game.awayId} size={20} />
-                  <span>{p.game.awayName} @ {p.game.homeName}</span>
-                  <TeamLogo teamId={p.game.homeId} size={20} />
-                </div>
-                <div className="hot-pick-summary">{p.summary}</div>
-                <div className="hot-pick-advantage">{p.advantage}</div>
-              </div>
-              <div className="hot-pick-conf">{p.confidencePct}%</div>
-            </button>
-          ))}
-        </div>
+      <div className="hot-picks-subtabs">
+        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "top" ? " active" : "")} onClick={() => setActiveSubTab("top")}>
+          Top Picks
+        </button>
+        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "bets" ? " active" : "")} onClick={() => setActiveSubTab("bets")}>
+          Best Bets
+        </button>
+        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "record" ? " active" : "")} onClick={() => setActiveSubTab("record")}>
+          Track Record
+        </button>
       </div>
 
-      <div className="hot-picks-section">
-        <div className="hot-picks-section-label">Best Bets by Market</div>
-        {noMarketPicks ? (
-          <p className="hot-picks-empty">No sportsbook lines posted yet this week — market picks will appear once lines go up.</p>
-        ) : (
-          <div className="hot-picks-market-groups">
-            {hotPicks.spreadPicks.length > 0 && (
-              <div className="hot-picks-market-group">
-                <div className="hot-picks-market-label">Spread</div>
-                <div className="hot-picks-bets">
-                  {hotPicks.spreadPicks.map((p, i) => (
-                    <BetCard key={i} tagLabel="SPREAD" tagClass="bet-tag-accent" pick={p} week={week} onClick={() => goToGame(p.game)} />
-                  ))}
+      {activeSubTab === "top" && (
+        <div className="hot-picks-section">
+          <div className="hot-picks-list">
+            {hotPicks.topConfidence.map((p, i) => (
+              <button key={i} type="button" className="hot-pick-row" onClick={() => goToGame(p.game)}>
+                <div className="hot-pick-rank">{i + 1}</div>
+                <div className="hot-pick-main">
+                  <div className="hot-pick-teams">
+                    <TeamLogo teamId={p.game.awayId} size={20} />
+                    <span>{p.game.awayName} @ {p.game.homeName}</span>
+                    <TeamLogo teamId={p.game.homeId} size={20} />
+                  </div>
+                  <div className="hot-pick-summary">{p.summary}</div>
+                  <div className="hot-pick-advantage">{p.advantage}</div>
                 </div>
-              </div>
-            )}
-            {hotPicks.moneylinePicks.length > 0 && (
-              <div className="hot-picks-market-group">
-                <div className="hot-picks-market-label">Moneyline</div>
-                <div className="hot-picks-bets">
-                  {hotPicks.moneylinePicks.map((p, i) => (
-                    <BetCard key={i} tagLabel="MONEYLINE" tagClass="bet-tag-win" pick={p} week={week} onClick={() => goToGame(p.game)} />
-                  ))}
-                </div>
-              </div>
-            )}
-            {hotPicks.totalPicks.length > 0 && (
-              <div className="hot-picks-market-group">
-                <div className="hot-picks-market-label">Total</div>
-                <div className="hot-picks-bets">
-                  {hotPicks.totalPicks.map((p, i) => (
-                    <BetCard key={i} tagLabel="TOTAL" tagClass="bet-tag-warn" pick={p} week={week} onClick={() => goToGame(p.game)} />
-                  ))}
-                </div>
-              </div>
-            )}
+                <div className="hot-pick-conf">{p.confidencePct}%</div>
+              </button>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <TrackRecordPanel />
+      {activeSubTab === "bets" && (
+        <div className="hot-picks-section">
+          {noMarketPicks ? (
+            <p className="hot-picks-empty">No sportsbook lines posted yet this week — market picks will appear once lines go up.</p>
+          ) : (
+            <div className="hot-picks-market-groups">
+              {hotPicks.spreadPicks.length > 0 && (
+                <div className="hot-picks-market-group">
+                  <div className="hot-picks-market-label">Spread</div>
+                  <div className="hot-picks-bets">
+                    {hotPicks.spreadPicks.map((p, i) => (
+                      <BetCard key={i} tagLabel="SPREAD" tagClass="bet-tag-accent" pick={p} week={week} onClick={() => goToGame(p.game)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {hotPicks.moneylinePicks.length > 0 && (
+                <div className="hot-picks-market-group">
+                  <div className="hot-picks-market-label">Moneyline</div>
+                  <div className="hot-picks-bets">
+                    {hotPicks.moneylinePicks.map((p, i) => (
+                      <BetCard key={i} tagLabel="MONEYLINE" tagClass="bet-tag-win" pick={p} week={week} onClick={() => goToGame(p.game)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {hotPicks.totalPicks.length > 0 && (
+                <div className="hot-picks-market-group">
+                  <div className="hot-picks-market-label">Total</div>
+                  <div className="hot-picks-bets">
+                    {hotPicks.totalPicks.map((p, i) => (
+                      <BetCard key={i} tagLabel="TOTAL" tagClass="bet-tag-warn" pick={p} week={week} onClick={() => goToGame(p.game)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeSubTab === "record" && <TrackRecordPanel />}
     </div>
   );
 }

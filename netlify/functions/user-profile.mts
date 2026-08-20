@@ -73,6 +73,7 @@ function defaultSettings() {
     sportsbookId: "draftkings",
     tzId: "auto",
     favorites: [] as string[],
+    tutorialSeen: false,
   };
 }
 
@@ -109,6 +110,9 @@ function sanitizeSettings(input: any, existing: any) {
   if (Array.isArray(input.favorites)) {
     out.favorites = [...new Set(input.favorites.filter((f: unknown) => typeof f === "string"))].slice(0, 32);
   }
+  // One-way flip: once true (tour completed or skipped), never revert to
+  // false from a stale client payload that simply omitted the field.
+  if (input.tutorialSeen === true) out.tutorialSeen = true;
 
   return out;
 }

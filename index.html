@@ -1289,6 +1289,57 @@
     }
   }
 
+  /* ---- First-run tutorial tour: dims the page, cuts a spotlight hole over
+     the real element being explained, and shows a callout bubble pointing
+     at it. Sits above everything (including the box score / settings
+     modals, z-index 1000) since some steps run with a modal open behind
+     the spotlight. */
+  .tour-overlay {
+    position: fixed; inset: 0; z-index: 2000; pointer-events: none;
+  }
+  .tour-backdrop {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.72);
+    pointer-events: auto; transition: clip-path 0.25s ease;
+  }
+  .tour-spotlight-ring {
+    position: fixed; border-radius: 10px; pointer-events: none;
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.55), 0 0 0 9999px rgba(4,8,16,0.72);
+    transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
+  }
+  .tour-callout {
+    position: fixed; z-index: 2001; width: 300px; max-width: calc(100vw - 32px);
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 16px 16px 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); pointer-events: auto;
+    transition: top 0.25s ease, left 0.25s ease;
+  }
+  .tour-callout-eyebrow {
+    font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800;
+    color: var(--accent); margin-bottom: 6px;
+  }
+  .tour-callout-title { font-size: 0.98rem; font-weight: 800; margin-bottom: 6px; }
+  .tour-callout-body { font-size: 0.82rem; color: var(--text-dim); line-height: 1.55; margin: 0 0 14px; }
+  .tour-callout-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .tour-dots { display: flex; gap: 5px; }
+  .tour-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--card-border); }
+  .tour-dot.active { background: var(--accent); width: 16px; border-radius: 4px; }
+  .tour-callout-actions { display: flex; align-items: center; gap: 8px; }
+  .tour-btn {
+    border: 1px solid var(--card-border); background: var(--surface-2); color: var(--text);
+    font-size: 0.78rem; font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  }
+  .tour-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tour-btn-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .tour-btn-primary:hover { opacity: 0.9; color: var(--bg); }
+  .tour-skip-link {
+    position: fixed; top: 14px; right: 14px; z-index: 2001; pointer-events: auto;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-dim);
+    font-size: 0.76rem; font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  }
+  .tour-skip-link:hover { color: var(--text); }
+  @media (max-width: 640px) {
+    .tour-callout { width: calc(100vw - 32px); }
+  }
+
   .result-row {
     display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;
     padding: 6px 10px; border-radius: 8px; background: rgba(var(--demo-rgb),0.1); border: 1px solid rgba(var(--demo-rgb),0.3);
@@ -9170,6 +9221,7 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children, fallback
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpen(true); }}
         title="Click for boxscores"
         aria-label="Click for boxscores"
+        data-tour="score-link"
         data-away={awayAbbr}
         data-home={homeAbbr}
         data-week={week}
@@ -9360,7 +9412,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
     >
       <div className="boxscore-modal" role="dialog" aria-modal="true" aria-label={`${awayAbbr} at ${homeAbbr} box score`}>
         <button type="button" className="boxscore-modal-close" onClick={onClose} aria-label="Close">×</button>
-        <div className="boxscore-modal-header">
+        <div className="boxscore-modal-header" data-tour="boxscore-header">
           <span className="boxscore-header-team">
             {liveInfo && liveInfo.possession === "away" && (
               <span className="poss-ball boxscore-header-ball" title={`${awayAbbr} has the ball`}>🏈</span>
@@ -9384,7 +9436,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
         {state.status === "error" && <div className="boxscore-error">{state.error}</div>}
 
         {liveInfo && (
-          <div className="boxscore-live-status">
+          <div className="boxscore-live-status" data-tour="boxscore-live-status">
             <div className="boxscore-live-top">
               <span className="live-tag">
                 <span className="live-dot"></span>
@@ -9401,7 +9453,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
         )}
 
         {linescores && (
-          <table className="boxscore-linescore-table">
+          <table className="boxscore-linescore-table" data-tour="boxscore-linescore">
             <thead>
               <tr>
                 <th></th>
@@ -9431,7 +9483,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
         )}
 
         {teamStats && (
-          <div className="boxscore-stats-section">
+          <div className="boxscore-stats-section" data-tour="boxscore-team-stats">
             <div className="player-modal-section-title">Team Stats</div>
             <table className="boxscore-stats-table">
               <thead>
@@ -9459,7 +9511,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
             : playerStats[0].abbr;
           const currentTeam = playerStats.find(t => t.abbr === currentAbbr);
           return (
-            <div className="boxscore-players-section">
+            <div className="boxscore-players-section" data-tour="boxscore-player-stats">
               <div className="player-modal-section-title">Player Stats</div>
               {playerStats.length > 1 && (
                 <div className="boxscore-team-tabs" role="tablist">
@@ -10207,7 +10259,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         <span className="game-meta-left">
           {scoreInfo && scoreInfo.isLive ? (
             <GameScoreLink week={week} awayAbbr={game.away} homeAbbr={game.home} fallbackPossession={scoreInfo.possession}>
-              <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline">
+              <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline" data-tour="live-score">
                 {scoreInfo.possession === "away" && <span className="poss-ball">🏈</span>}
                 {away.id} {scoreInfo.awayScore} – {scoreInfo.homeScore} {home.id}
                 {scoreInfo.possession === "home" && <span className="poss-ball">🏈</span>}
@@ -10221,11 +10273,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           <WeatherPill weather={weather} />
         </span>
         {scoreInfo && scoreInfo.isLive ? (
-          <span className="live-tag">
+          <span className="live-tag" data-tour="live-clock">
             <span className="live-dot"></span>
             LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}
             {scoreInfo.downDistanceText && (
-              <span className={"down-distance" + (scoreInfo.isRedZone ? " is-redzone" : "")}>
+              <span className={"down-distance" + (scoreInfo.isRedZone ? " is-redzone" : "")} data-tour="live-down-distance">
                 {scoreInfo.downDistanceText}
               </span>
             )}
@@ -10233,7 +10285,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         ) : game.network ? <span>{game.network}</span> : null}
       </div>
       {scoreInfo && scoreInfo.isLive && scoreInfo.lastPlay && (
-        <div className="last-play">{scoreInfo.lastPlay}</div>
+        <div className="last-play" data-tour="live-last-play">{scoreInfo.lastPlay}</div>
       )}
       {internationalGame && game.note && <div className="odds-fallback-note" style={{marginTop: "-4px"}}>{game.note}</div>}
 
@@ -10252,7 +10304,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         </div>
       )}
 
-      <div className="matchup-row">
+      <div className="matchup-row" data-tour="matchup-teams">
         <div className={"team-block" + (!homeIsWinner ? " winner" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
           <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{away.name}</div>
@@ -10266,7 +10318,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         </div>
       </div>
 
-      <div className="confidence-bar-wrap">
+      <div className="confidence-bar-wrap" data-tour="confidence-bar">
         <span>{away.id} {awayPct}%</span>
         <div className="confidence-bar">
           <div style={{ width: awayPct + "%", background: "var(--lose)" }}></div>
@@ -10279,11 +10331,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         {odds ? (
           <>
             <div className="odds-fields">
-              <span className="odds-field"><span className="odds-label">Spread</span> {odds.favorite} {formatSpread(odds.spread)}</span>
-              <span className="odds-field"><span className="odds-label">ML</span> {away.id} {formatMoneyline(odds.moneylineAway)} / {home.id} {formatMoneyline(odds.moneylineHome)}</span>
-              <span className="odds-field"><span className="odds-label">O/U</span> {odds.overUnder}</span>
+              <span className="odds-field" data-tour="odds-spread"><span className="odds-label">Spread</span> {odds.favorite} {formatSpread(odds.spread)}</span>
+              <span className="odds-field" data-tour="odds-ml"><span className="odds-label">ML</span> {away.id} {formatMoneyline(odds.moneylineAway)} / {home.id} {formatMoneyline(odds.moneylineHome)}</span>
+              <span className="odds-field" data-tour="odds-ou"><span className="odds-label">O/U</span> {odds.overUnder}</span>
             </div>
-            <div className={"odds-agree " + (modelAgreesWithMarket ? "agree" : "disagree")}>
+            <div className={"odds-agree " + (modelAgreesWithMarket ? "agree" : "disagree")} data-tour="odds-agree">
               {modelAgreesWithMarket ? "Model agrees with the market favorite" : "Model disagrees with the market favorite"}
             </div>
             <div className="odds-source">Line: {odds.sportsbook}</div>
@@ -10298,7 +10350,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         )}
       </div>
 
-      <div className="stat-compare">
+      <div className="stat-compare" data-tour="stat-compare">
         <div className="col">
           <div className="label">{away.id} offense</div>
           <div>Total <RankPill rank={away.stats.offense.rankTotal} /></div>
@@ -10338,13 +10390,13 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         </div>
       </div>
 
-      <details className="diff-explainer">
+      <details className="diff-explainer" data-tour="blitz-verdict">
         <summary>🔥 Blitz Verdict: Why {prediction.predictedWinner} is favored</summary>
         <p>{rationale}</p>
       </details>
 
       {sortedAdjustments.map((a, i) => (
-        <div key={i} className={"impact-note impact-" + a.status}>
+        <div key={i} className={"impact-note impact-" + a.status} data-tour={i === 0 ? "injury-notes" : undefined}>
           <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
           <span>
             <strong>{a.player}</strong> ({a.teamId} · {a.position}) is <strong>{a.status}</strong>
@@ -10358,6 +10410,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         <a
           href={buildGamePath(week, game.away, game.home)}
           className="full-matchup-link"
+          data-tour="full-matchup-link"
           onClick={(e) => { e.preventDefault(); onSelectGame(week, game.away, game.home); }}
         >
           <BrandLogo size={14} className="fm-brand-mark" />
@@ -11193,6 +11246,332 @@ function FavoriteTeamsPicker({ favorites, onToggleFavorite }) {
       <div className="fav-picker-group-label">All Teams</div>
       {otherTeams.map(renderRow)}
     </div>
+  );
+}
+
+/** ---- First-run tutorial tour ------------------------------------------
+ *  A spotlight coachmark walkthrough for first-time users. Each step names
+ *  a real on-screen element via a `data-tour="..."` attribute already
+ *  placed on that element elsewhere in this file, so the tour points at
+ *  the actual UI rather than a mockup of it. Copy avoids odds jargon -
+ *  "ML" and "O/U" are spelled out the first time they appear, since a
+ *  first-time visitor to a pick'em tool may not have used a sportsbook
+ *  before.
+ *
+ *  A step is skipped automatically (never shown, doesn't count toward the
+ *  progress dots) if its target isn't found on the page - e.g. no
+ *  injury-impacted players this week, no weather pill for a dome game, or
+ *  no live/final game currently on the schedule to open a box score from.
+ *  This keeps the tour honest: it only points at things that are actually
+ *  there right now, instead of describing something the visitor can't see. */
+const TOUR_STEPS = [
+  {
+    id: "welcome", tab: "games",
+    title: "Welcome to Blitz Odds",
+    body: "A free pick'em confidence tool - no paywall. This quick tour points out what everything on a game card means. You can skip it anytime.",
+  },
+  {
+    id: "matchup-teams", tab: "games", target: "matchup-teams",
+    title: "The matchup",
+    body: "Away team on the left, home team on the right. The team labeled \"Predicted Winner\" is who our model expects to win this game.",
+  },
+  {
+    id: "confidence-bar", tab: "games", target: "confidence-bar",
+    title: "Confidence score",
+    body: "How sure the model is about its pick, as a percentage split between the two teams. The bigger the gap, the more lopsided the model expects the game to be - useful for ranking your pick'em sheet from safest to riskiest picks.",
+  },
+  {
+    id: "odds-spread", tab: "games", target: "odds-spread", optional: true,
+    title: "Point Spread",
+    body: "The margin a sportsbook expects the favorite to win by. \"-3.5\" next to a team means they're favored to win by more than 3.5 points.",
+  },
+  {
+    id: "odds-ml", tab: "games", target: "odds-ml", optional: true,
+    title: "Money Line (ML)",
+    body: "A straight bet on which team wins - no points involved. The number is the payout: a plus number pays out more per dollar (the underdog), a minus number means you'd need to bet more to win the same amount (the favorite).",
+  },
+  {
+    id: "odds-ou", tab: "games", target: "odds-ou", optional: true,
+    title: "Total, or Over/Under (O/U)",
+    body: "The combined score both teams are projected to add up to. Betting \"Over\" means you think the final combined score will be higher than this number; \"Under\" means lower.",
+  },
+  {
+    id: "odds-agree", tab: "games", target: "odds-agree", optional: true,
+    title: "Model vs. market",
+    body: "Whether our prediction matches who the sportsbooks themselves have favored. When they disagree, that's often the most interesting game to look at closer.",
+  },
+  {
+    id: "stat-compare", tab: "games", target: "stat-compare",
+    title: "Team strength rankings",
+    body: "Each team's league-wide rank (1 = best) on offense and defense, split into total yards, rushing, and passing. Green means an advantage in that matchup, red means a disadvantage.",
+  },
+  {
+    id: "blitz-verdict", tab: "games", target: "blitz-verdict",
+    title: "Blitz Verdict",
+    body: "Tap this to expand a plain-language explanation of why the model favors the team it does.",
+  },
+  {
+    id: "injury-notes", tab: "games", target: "injury-notes", optional: true,
+    title: "Injury impact",
+    body: "Key players who are questionable or ruled out, and how much that docks their team's rating before the matchup is scored.",
+  },
+  {
+    id: "weather-pill", tab: "games", target: "weather-pill", optional: true,
+    title: "Weather",
+    body: "Forecast conditions for outdoor stadiums. Wind, cold, and precipitation can all shift how a game plays out, and the model factors them in.",
+  },
+  {
+    id: "live-score", tab: "games", target: "live-score", optional: true,
+    title: "Live score",
+    body: "While a game is being played, the score updates automatically about every 30 seconds - no need to refresh the page. The football icon shows which team currently has the ball.",
+  },
+  {
+    id: "live-clock", tab: "games", target: "live-clock", optional: true,
+    title: "Game clock & down",
+    body: "The current quarter, time remaining, and down-and-distance (e.g. \"3rd & 7\") for the live game. A red highlight here means the offense is in the red zone, inside the opponent's 20-yard line.",
+  },
+  {
+    id: "score-link", tab: "games", target: "score-link", optional: true,
+    title: "Box scores",
+    body: "Click any live or final score to open the full box score - quarter-by-quarter scoring, team stats, and player stats.",
+    onEnter: (ctx) => ctx.openBoxScoreForTour(),
+  },
+  {
+    id: "boxscore-header", target: "boxscore-header", optional: true, inModal: true,
+    title: "Box score",
+    body: "Team logos and the current or final score. A gold ring around a logo marks the winning team once the game is final.",
+  },
+  {
+    id: "boxscore-linescore", target: "boxscore-linescore", optional: true, inModal: true,
+    title: "Quarter-by-quarter scoring",
+    body: "Points scored by each team in every quarter, with the final total on the right.",
+  },
+  {
+    id: "boxscore-team-stats", target: "boxscore-team-stats", optional: true, inModal: true,
+    title: "Team stats",
+    body: "Head-to-head totals for the game - total yards, turnovers, time of possession, and more.",
+  },
+  {
+    id: "boxscore-player-stats", target: "boxscore-player-stats", optional: true, inModal: true,
+    title: "Player stats",
+    body: "Individual passing, rushing, and receiving lines for each team. Switch teams using the tabs above the table.",
+    onLeave: (ctx) => ctx.closeBoxScoreForTour(),
+  },
+  {
+    id: "tab-picks", tab: "games", target: "tab-picks",
+    title: "Hot Picks",
+    body: "Your ranked pick'em sheet for the week: the model's top 3 most confident picks, a favorite spread play, a value Money Line pick, and an Over/Under lean - all in one place.",
+    onEnter: (ctx) => ctx.setActiveTab("picks"),
+  },
+  {
+    id: "account-menu", tab: "picks", target: "account-menu",
+    title: "Settings & help",
+    body: "Set your preferred sportsbook, timezone, and favorite teams here, or revisit \"How this works\" anytime. You can also replay this tour from this menu.",
+    onEnter: (ctx) => ctx.setActiveTab("games"),
+  },
+];
+
+/** Finds a step's target element in the DOM, or null if it isn't currently
+ *  on the page (a step marked `optional` gets skipped in that case). */
+function findTourTarget(step) {
+  if (!step.target) return null;
+  return document.querySelector(`[data-tour="${step.target}"]`);
+}
+
+function TutorialTour({ onClose, setActiveTab }) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const [rect, setRect] = useState(null);
+  const [ready, setReady] = useState(false);
+  const boxscoreOpenedRef = useRef(false);
+
+  // Opens a box score by clicking the first available live/final score link
+  // on the page (rather than faking data), so the tour's box-score steps
+  // walk through a real box score. If no live/final game is on screen right
+  // now, this is a no-op and the box-score steps below skip themselves
+  // since their targets won't be found.
+  function openBoxScoreForTour() {
+    const link = document.querySelector('[data-tour="score-link"]');
+    if (link) {
+      link.click();
+      boxscoreOpenedRef.current = true;
+    }
+  }
+  function closeBoxScoreForTour() {
+    if (!boxscoreOpenedRef.current) return;
+    const closeBtn = document.querySelector(".boxscore-modal-close");
+    if (closeBtn) closeBtn.click();
+    boxscoreOpenedRef.current = false;
+  }
+  const ctx = { openBoxScoreForTour, closeBoxScoreForTour, setActiveTab };
+
+  // Walk forward/back over TOUR_STEPS, skipping any step whose target
+  // isn't currently on the page (optional steps) or whose required tab
+  // isn't active yet - each step's onEnter is responsible for switching to
+  // its own tab, so give React a tick to re-render before checking.
+  useEffect(() => {
+    let cancelled = false;
+    setReady(false);
+
+    function resolveStep(index, direction) {
+      if (index < 0 || index >= TOUR_STEPS.length) {
+        onClose();
+        return;
+      }
+      const step = TOUR_STEPS[index];
+      if (step.onEnter) step.onEnter(ctx);
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        const el = findTourTarget(step);
+        if (!el && step.target && step.optional) {
+          resolveStep(index + direction, direction);
+          return;
+        }
+        if (el && el.scrollIntoView) {
+          el.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+        setTimeout(() => {
+          if (cancelled) return;
+          const r = el ? el.getBoundingClientRect() : null;
+          setRect(r);
+          setStepIndex(index);
+          setReady(true);
+        }, el ? 260 : 0);
+      });
+    }
+
+    resolveStep(stepIndex, 1);
+    return () => { cancelled = true; };
+    // eslint-disable-next-line
+  }, []);
+
+  function goTo(nextIndex, direction) {
+    const currentStep = TOUR_STEPS[stepIndex];
+    if (currentStep && currentStep.onLeave) currentStep.onLeave(ctx);
+    setReady(false);
+
+    function resolveStep(index) {
+      if (index < 0) { setReady(true); return; }
+      if (index >= TOUR_STEPS.length) {
+        onClose();
+        return;
+      }
+      const step = TOUR_STEPS[index];
+      if (step.onEnter) step.onEnter(ctx);
+      requestAnimationFrame(() => {
+        const el = findTourTarget(step);
+        if (!el && step.target && step.optional) {
+          resolveStep(index + direction);
+          return;
+        }
+        if (el && el.scrollIntoView) {
+          el.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+        setTimeout(() => {
+          const r = el ? el.getBoundingClientRect() : null;
+          setRect(r);
+          setStepIndex(index);
+          setReady(true);
+        }, el ? 260 : 0);
+      });
+    }
+    resolveStep(nextIndex);
+  }
+
+  function handleSkip() {
+    const currentStep = TOUR_STEPS[stepIndex];
+    if (currentStep && currentStep.onLeave) currentStep.onLeave(ctx);
+    closeBoxScoreForTour();
+    onClose();
+  }
+
+  // Keep the spotlight glued to its target through scroll/resize.
+  useEffect(() => {
+    if (!ready) return;
+    const step = TOUR_STEPS[stepIndex];
+    function reposition() {
+      const el = findTourTarget(step);
+      if (el) setRect(el.getBoundingClientRect());
+    }
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [ready, stepIndex]);
+
+  useEffect(() => {
+    function onKeyDown(e) { if (e.key === "Escape") handleSkip(); }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line
+  }, [stepIndex]);
+
+  if (!ready) return null;
+  const step = TOUR_STEPS[stepIndex];
+  const pad = 8;
+
+  // Position the callout below the spotlight if there's room, otherwise
+  // above it; centered horizontally on the target but clamped to stay
+  // fully on-screen. Falls back to screen-centered when there's no
+  // target (the welcome step). Below 720px the tab bar becomes a fixed
+  // strip pinned to the bottom of the viewport (see .tab-bar's mobile
+  // media query), so on small screens both the "is there room below"
+  // check and the final clamp reserve extra space for it - otherwise a
+  // callout placed "below" a mid-page target could render half-hidden
+  // underneath that bar.
+  const isMobile = window.innerWidth <= 720;
+  const navReserve = isMobile ? 90 : 0;
+  const calloutHeightEstimate = 210;
+  let calloutStyle = { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+  if (rect) {
+    const calloutWidth = Math.min(300, window.innerWidth - 32);
+    let left = rect.left + rect.width / 2 - calloutWidth / 2;
+    left = Math.max(16, Math.min(left, window.innerWidth - calloutWidth - 16));
+    const spaceBelow = window.innerHeight - navReserve - rect.bottom;
+    let top = spaceBelow > calloutHeightEstimate + 10
+      ? rect.bottom + 16
+      : Math.max(16, rect.top - 16 - calloutHeightEstimate);
+    top = Math.min(top, window.innerHeight - navReserve - calloutHeightEstimate - 16);
+    top = Math.max(16, top);
+    calloutStyle = { top: `${top}px`, left: `${left}px`, transform: "none" };
+  }
+
+  return ReactDOM.createPortal(
+    <div className="tour-overlay">
+      <div className="tour-backdrop" onClick={handleSkip} />
+      {rect && (
+        <div
+          className="tour-spotlight-ring"
+          style={{
+            top: rect.top - pad, left: rect.left - pad,
+            width: rect.width + pad * 2, height: rect.height + pad * 2,
+          }}
+        />
+      )}
+      <button type="button" className="tour-skip-link" onClick={handleSkip}>Skip tour</button>
+      <div className="tour-callout" style={calloutStyle} role="dialog" aria-modal="true" aria-label={step.title}>
+        <div className="tour-callout-eyebrow">Step {stepIndex + 1} of {TOUR_STEPS.length}</div>
+        <div className="tour-callout-title">{step.title}</div>
+        <p className="tour-callout-body">{step.body}</p>
+        <div className="tour-callout-footer">
+          <div className="tour-dots">
+            {TOUR_STEPS.map((s, i) => (
+              <span key={s.id} className={"tour-dot" + (i === stepIndex ? " active" : "")} />
+            ))}
+          </div>
+          <div className="tour-callout-actions">
+            {stepIndex > 0 && (
+              <button type="button" className="tour-btn" onClick={() => goTo(stepIndex - 1, -1)}>Back</button>
+            )}
+            <button type="button" className="tour-btn tour-btn-primary" onClick={() => goTo(stepIndex + 1, 1)}>
+              {stepIndex === TOUR_STEPS.length - 1 ? "Done" : "Next"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -13228,7 +13607,7 @@ function WeatherPill({ weather }) {
   if (!weather) return null;
 
   if (weather.isDome) {
-    return <span className="weather-pill weather-pill-dome" title="Indoor stadium - no weather impact">🏟️ Dome</span>;
+    return <span className="weather-pill weather-pill-dome" data-tour="weather-pill" title="Indoor stadium - no weather impact">🏟️ Dome</span>;
   }
 
   if (typeof weather.tempF !== "number") return null;
@@ -13241,7 +13620,7 @@ function WeatherPill({ weather }) {
   if (typeof weather.precipChance === "number" && weather.precipChance > 0) titleParts.push(`${weather.precipChance}% precip`);
 
   return (
-    <span className={"weather-pill" + (windNotable ? " weather-pill-windy" : "")} title={titleParts.join(", ")}>
+    <span className={"weather-pill" + (windNotable ? " weather-pill-windy" : "")} data-tour="weather-pill" title={titleParts.join(", ")}>
       {icon} {weather.tempF}°F
       {windNotable && <span className="weather-wind"> · 💨 {weather.windMph}mph</span>}
     </span>
@@ -13300,6 +13679,7 @@ function TabBar({ activeTab, onSelectTab, leaguesEnabled }) {
             className={"tab-btn" + (activeTab === t.id ? " active" : "")}
             onClick={() => onSelectTab(t.id)}
             aria-current={activeTab === t.id ? "page" : undefined}
+            data-tour={"tab-" + t.id}
           >
             <span className="tab-icon" aria-hidden="true">{t.icon}</span>
             <span className="tab-label">{t.label}</span>
@@ -13310,7 +13690,7 @@ function TabBar({ activeTab, onSelectTab, leaguesEnabled }) {
   );
 }
 
-function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }) {
+function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks, onReplayTour }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -13331,7 +13711,7 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }
     // everything else that lives in the login widget pre-auth (currently
     // just "How this works").
     return (
-      <div className="account-menu" ref={ref}>
+      <div className="account-menu" ref={ref} data-tour="account-menu">
         <div className="account-signedout-row">
           <button type="button" className="account-btn account-btn-signin" onClick={auth.openLogin}>
             Sign in
@@ -13351,6 +13731,9 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }
             <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
               How this works
             </button>
+            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
+              Replay tutorial
+            </button>
           </div>
         )}
       </div>
@@ -13362,7 +13745,7 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }
   const initial = name.charAt(0).toUpperCase();
 
   return (
-    <div className="account-menu" ref={ref}>
+    <div className="account-menu" ref={ref} data-tour="account-menu">
       <button
         type="button"
         className="account-btn account-avatar"
@@ -13377,6 +13760,9 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks }
           <div className="account-dropdown-name">{name}</div>
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
             How this works
+          </button>
+          <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
+            Replay tutorial
           </button>
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenSettings(); }}>
             Settings
@@ -13541,6 +13927,13 @@ function SystemIcon({ size = 13 }) {
 }
 
 const THEME_STORAGE_KEY = "blitz-odds-theme";
+const TUTORIAL_SEEN_KEY = "blitz-odds-tutorial-seen";
+function loadTutorialSeen() {
+  try { return window.localStorage.getItem(TUTORIAL_SEEN_KEY) === "1"; } catch (e) { return false; }
+}
+function saveTutorialSeen() {
+  try { window.localStorage.setItem(TUTORIAL_SEEN_KEY, "1"); } catch (e) {}
+}
 
 // Wraps the Netlify Identity widget (loaded via <script> in <head>) in a
 // React-friendly hook. status is "loading" until the widget's "init" event
@@ -13944,6 +14337,8 @@ function App() {
   const [pendingLeagueReopen, setPendingLeagueReopen] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
+  const [showTour, setShowTour] = useState(false);
+  const tourAutoOfferedRef = useRef(false);
 
   // Keeps the URL hash in sync with the selected tab (replaceState, not
   // pushState, so switching tabs doesn't spam the back button) - this is
@@ -14000,6 +14395,7 @@ function App() {
         if (typeof s.sportsbookId === "string") setSportsbookId(s.sportsbookId);
         if (typeof s.tzId === "string") setTzId(s.tzId);
         if (Array.isArray(s.favorites)) setFavorites(s.favorites);
+        if (s.tutorialSeen) saveTutorialSeen(); // mirror the account's flag onto this device too
       } catch (e) {
         // Offline or a transient function error - keep whatever's on this
         // device rather than blocking the app on a failed fetch.
@@ -14069,6 +14465,48 @@ function App() {
     setFavorites(prev => prev.includes(teamId) ? prev.filter(t => t !== teamId) : [...prev, teamId]);
   }
 
+  // First-visit auto-trigger: only on the main Games/week view (so there
+  // are game cards on screen to point at), and only once per browser
+  // (localStorage) or per account (the synced `tutorialSeen` setting,
+  // applied onto localStorage by the profile-load effect above). The delay
+  // gives the schedule/live-score data a moment to render before the tour
+  // starts measuring elements. On mobile this also means the tour won't
+  // interrupt someone who's already scrolled past the week view into a
+  // team or game page on their first load.
+  useEffect(() => {
+    if (tourAutoOfferedRef.current) return;
+    if (loadTutorialSeen()) return;
+    if (activeTab !== "games" || view !== "week") return;
+    tourAutoOfferedRef.current = true;
+    const timer = setTimeout(() => setShowTour(true), 1200);
+    return () => clearTimeout(timer);
+  }, [activeTab, view]);
+
+  function markTutorialSeen() {
+    saveTutorialSeen();
+    if (auth.status === "in") {
+      auth.authenticatedFetch("/.netlify/functions/user-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: { tutorialSeen: true } }),
+      }).catch(() => {});
+    }
+  }
+
+  function closeTour() {
+    setShowTour(false);
+    markTutorialSeen();
+  }
+
+  function replayTour() {
+    // A manual replay (from the account menu's "Replay tutorial") should
+    // work regardless of which tab/view someone's currently on, so jump
+    // back to the Games/week view first - the tour's own steps handle
+    // switching to Hot Picks etc. as they go.
+    backToWeek();
+    setShowTour(true);
+  }
+
   function selectTeam(teamId) {
     setSelectedTeamId(teamId);
     setSelectedGame(null);
@@ -14121,6 +14559,7 @@ function App() {
             onOpenLeagues={() => setShowLeagues(true)}
             onOpenSettings={() => setShowSettings(true)}
             onOpenHowItWorks={() => setShowHowItWorks(true)}
+            onReplayTour={replayTour}
           />
         </div>
         <div className="brand-row" onClick={backToWeek}>
@@ -14253,6 +14692,10 @@ function App() {
 
       {showHowItWorks && (
         <HowItWorksModal onClose={() => setShowHowItWorks(false)} />
+      )}
+
+      {showTour && (
+        <TutorialTour onClose={closeTour} setActiveTab={setActiveTab} />
       )}
     </div>
   );

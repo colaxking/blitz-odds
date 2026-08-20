@@ -379,7 +379,7 @@ header.top h1 a { text-decoration: none; color: inherit; }
 }
 .settings-btn:hover, .settings-btn:focus-visible { color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
 @media (max-width: 480px) { .settings-btn { width: 34px; height: 34px; top: 0; } }
-.tab-bar { display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border); justify-content: center; }
+.tab-bar { display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border); }
 .tab-btn { display: flex; align-items: center; gap: 9px; background: none; border: none; cursor: pointer;
   color: var(--text-dim); font-family: inherit; font-size: 0.86rem; font-weight: 700; text-decoration: none;
   padding: 0 0 14px; position: relative; transition: color 0.15s; }

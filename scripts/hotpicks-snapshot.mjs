@@ -105,12 +105,17 @@ async function main() {
     throw new Error("HOTPICKS_UPDATE_SECRET is required");
   }
 
-  const [siteDataRes, oddsRes, weatherRes, stadiumsRes] = await Promise.all([
-    fetchWithRetry(`${SITE_BASE}/.netlify/functions/site-data-current`),
-    fetchWithRetry(`${SITE_BASE}/.netlify/functions/odds-current`),
-    fetchWithRetry(`${SITE_BASE}/.netlify/functions/weather-current`),
-    fetchWithRetry(`${SITE_BASE}/data/stadiums.json`),
-  ]);
+  // Sequential, not Promise.all - concurrent fetches to the same host from
+  // GitHub Actions runners have been unreliable here (ECONNRESET survived
+  // both retries and forced IPv4 DNS resolution, on 4 different endpoints
+  // across repeated runs), which points at a Node/undici connection-pooling
+  // issue rather than a genuinely flaky network path. One connection at a
+  // time removes that whole class of failure at the cost of a few hundred
+  // extra ms of total runtime - a fine trade for a job that runs unattended.
+  const siteDataRes = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/site-data-current`);
+  const oddsRes = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/odds-current`);
+  const weatherRes = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/weather-current`);
+  const stadiumsRes = await fetchWithRetry(`${SITE_BASE}/data/stadiums.json`);
   if (!siteDataRes.ok) throw new Error(`site-data-current failed: ${siteDataRes.status}`);
   if (!oddsRes.ok) throw new Error(`odds-current failed: ${oddsRes.status}`);
   if (!weatherRes.ok) throw new Error(`weather-current failed: ${weatherRes.status}`);

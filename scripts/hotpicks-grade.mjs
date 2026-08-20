@@ -40,6 +40,23 @@ function log(...args) {
   console.log(new Date().toISOString(), ...args);
 }
 
+// Same rationale as hotpicks-snapshot.mjs: retry transient network blips
+// between the GitHub Actions runner and Netlify's edge instead of failing
+// the whole (idempotent, cheap-to-rerun) job over one bad connection.
+async function fetchWithRetry(url, options, attempts = 3) {
+  let lastErr;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      lastErr = err;
+      log(`fetch failed (attempt ${i}/${attempts}) for ${url}: ${err.message}`);
+      if (i < attempts) await new Promise((r) => setTimeout(r, 1000 * i));
+    }
+  }
+  throw lastErr;
+}
+
 async function writeJson(relPath, data) {
   const full = path.join(REPO_ROOT, relPath);
   await writeFile(full, JSON.stringify(data, null, 2) + "\n", "utf8");
@@ -54,7 +71,7 @@ function fixAbbr(a) {
  *  check for presence to decide "fully graded yet?". */
 async function fetchWeekResults(week) {
   const url = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?year=${SEASON}&seasontype=2&week=${week}`;
-  const res = await fetch(url, { headers: ESPN_FETCH_HEADERS });
+  const res = await fetchWithRetry(url, { headers: ESPN_FETCH_HEADERS });
   if (!res.ok) throw new Error(`ESPN scoreboard request failed (week=${week}): ${res.status}`);
   const data = await res.json();
   const results = {};
@@ -105,10 +122,9 @@ async function main() {
     throw new Error("HOTPICKS_UPDATE_SECRET is required");
   }
 
-  const [snapshotsRes, gradesRes] = await Promise.all([
-    fetch(`${SITE_BASE}/.netlify/functions/hotpicks-current?type=snapshots`),
-    fetch(`${SITE_BASE}/.netlify/functions/hotpicks-current?type=grades`),
-  ]);
+  // Sequential, not Promise.all - see hotpicks-snapshot.mjs for why.
+  const snapshotsRes = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/hotpicks-current?type=snapshots`);
+  const gradesRes = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/hotpicks-current?type=grades`);
   if (!snapshotsRes.ok) throw new Error(`hotpicks-current?type=snapshots failed: ${snapshotsRes.status}`);
   const snapshotsDoc = await snapshotsRes.json();
   const gradesDoc = gradesRes.ok ? await gradesRes.json() : { weeks: {} };
@@ -227,7 +243,7 @@ async function main() {
     aggregate.byWeek.push(weekTally);
   }
 
-  const publishRes = await fetch(`${SITE_BASE}/.netlify/functions/hotpicks-update`, {
+  const publishRes = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/hotpicks-update`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-hotpicks-update-secret": HOTPICKS_UPDATE_SECRET },
     body: JSON.stringify({ grades, aggregate }),

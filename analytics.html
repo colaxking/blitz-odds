@@ -37,6 +37,8 @@
     font-size: 1.35rem; margin: 0; letter-spacing: -0.01em;
   }
   header h1 span { color: var(--accent); }
+  header h1 { display: flex; align-items: center; gap: 10px; }
+  .brand-mark-icon { flex-shrink: 0; }
   .status-line {
     display: flex; align-items: center; gap: 10px;
     font-size: 0.78rem; color: var(--text-dim);
@@ -204,7 +206,16 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Blitz <span>Odds</span> — Analytics</h1>
+    <h1>
+      <svg class="brand-mark-icon" width="30" height="30" viewBox="0 0 220 220" aria-hidden="true">
+        <path d="M 40 100 C 50 60, 92 30, 138 28 C 160 27, 176 35, 184 46 C 168 38, 144 36, 120 45 C 94 55, 70 76, 54 108 Z" fill="#FB4F14"/>
+        <g transform="rotate(-28 110 118)">
+          <ellipse cx="110" cy="118" rx="58" ry="32" fill="#0c1526" stroke="#f4f7fb" stroke-width="7"/>
+        </g>
+        <path d="M 84 152 L 112 178 L 182 92 L 164 80 L 110 144 L 96 132 Z" fill="#4fd1c5"/>
+      </svg>
+      Blitz <span>Odds</span> — Analytics
+    </h1>
     <div class="status-line">
       <span class="status-dot" id="statusDot"></span>
       <span id="statusText">Loading…</span>

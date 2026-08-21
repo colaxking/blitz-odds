@@ -29,14 +29,14 @@
  * Required env vars:
  *   SITE_DATA_UPDATE_SECRET - shared secret for site-data-update
  * Optional env vars:
- *   SITE_BASE   - defaults to https://blitz-odds.netlify.app
+ *   SITE_BASE   - defaults to https://blitz-odds.com
  *   REPO_ROOT   - defaults to CWD; where data/*.json live
  */
 
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.netlify.app";
+const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.com";
 const SITE_DATA_UPDATE_SECRET = process.env.SITE_DATA_UPDATE_SECRET;
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const SEASON = 2026;

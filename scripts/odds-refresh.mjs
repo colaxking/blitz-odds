@@ -30,7 +30,7 @@
  * Required env vars:
  *   ODDS_UPDATE_SECRET   - shared secret for odds-lock / odds-update
  * Optional env vars:
- *   SITE_BASE            - defaults to https://blitz-odds.netlify.app
+ *   SITE_BASE            - defaults to https://blitz-odds.com
  *   ANCHOR_YEAR/MONTH/DAY - SportsGameOdds primary key's billing anchor date
  *                           (UTC). Defaults below; update if the key rotates
  *                           onto a different date. MONTH is 1-indexed here.
@@ -40,7 +40,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.netlify.app";
+const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.com";
 const ODDS_UPDATE_SECRET = process.env.ODDS_UPDATE_SECRET;
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 

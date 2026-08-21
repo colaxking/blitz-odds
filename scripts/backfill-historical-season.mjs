@@ -52,7 +52,7 @@ if (!YEAR || YEAR < 2000 || YEAR > 2100 || !["preseason", "postseason", "regular
   process.exit(1);
 }
 
-const SITE_BASE = "https://blitz-odds.netlify.app";
+const SITE_BASE = "https://blitz-odds.com";
 // The one season data/history.json's own live pipeline actually tracks -
 // only games from THIS year get a real point-in-time injury snapshot
 // available to overlay onto their archive page. Bump this each season.
@@ -1381,7 +1381,7 @@ async function main() {
   // NOTE: deliberately NOT pushing GAMES_INDEX_PATH into allNewPaths - it's
   // an internal JSON data file, not a page, and shouldn't be in the sitemap.
   // (It previously was, and lacked a leading slash besides, producing a
-  // malformed "https://blitz-odds.netlify.appdata/..." sitemap entry.)
+  // malformed "https://blitz-odds.comdata/..." sitemap entry.)
 
   const gamesForThisYear = mergedIndex.filter((g) => g.year === YEAR);
   const yearIndex = buildYearIndexPage(YEAR, gamesForThisYear);

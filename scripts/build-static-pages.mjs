@@ -37,7 +37,7 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
-const SITE_BASE = "https://blitz-odds.netlify.app";
+const SITE_BASE = "https://blitz-odds.com";
 
 const PredictionEngine = require(path.join(REPO_ROOT, "js/predictionEngine.js"));
 

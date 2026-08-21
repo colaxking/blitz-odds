@@ -6,7 +6,7 @@ import type { Context, Config } from "@netlify/functions";
 // does not include api.sportsgameodds.com (confirmed blocked as of
 // 2026-07-30 - both a direct curl and the WebFetch tool failed against
 // that domain). Netlify's own servers have no such restriction, and the
-// sandbox can already reach blitz-odds.netlify.app fine (it's how
+// sandbox can already reach blitz-odds.com fine (it's how
 // odds-current/odds-update work today) - so the scheduled task calls this
 // function instead of hitting the vendor API directly.
 //

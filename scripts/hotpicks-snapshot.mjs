@@ -23,7 +23,7 @@
  * Required env vars:
  *   HOTPICKS_UPDATE_SECRET - shared secret for hotpicks-update
  * Optional env vars:
- *   SITE_BASE        - defaults to https://blitz-odds.netlify.app
+ *   SITE_BASE        - defaults to https://blitz-odds.com
  *   REPO_ROOT         - defaults to CWD; where data/*.json live
  *   FORCE_RESNAPSHOT  - "1" to overwrite an existing snapshot for the target week
  *   TARGET_WEEK       - override the auto-detected current week (1-18)
@@ -34,7 +34,7 @@ import path from "node:path";
 import PredictionEngine from "../js/predictionEngine.js";
 import HotPicksEngine from "../js/hotPicksEngine.js";
 
-const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.netlify.app";
+const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.com";
 const HOTPICKS_UPDATE_SECRET = process.env.HOTPICKS_UPDATE_SECRET;
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const FORCE_RESNAPSHOT = process.env.FORCE_RESNAPSHOT === "1";

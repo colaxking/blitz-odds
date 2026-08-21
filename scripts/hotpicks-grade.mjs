@@ -17,7 +17,7 @@
  * Required env vars:
  *   HOTPICKS_UPDATE_SECRET - shared secret for hotpicks-update
  * Optional env vars:
- *   SITE_BASE  - defaults to https://blitz-odds.netlify.app
+ *   SITE_BASE  - defaults to https://blitz-odds.com
  *   REPO_ROOT  - defaults to CWD; where data/*.json live
  *   SEASON     - defaults to 2026
  */
@@ -25,7 +25,7 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.netlify.app";
+const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.com";
 const HOTPICKS_UPDATE_SECRET = process.env.HOTPICKS_UPDATE_SECRET;
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const SEASON = parseInt(process.env.SEASON || "2026", 10);

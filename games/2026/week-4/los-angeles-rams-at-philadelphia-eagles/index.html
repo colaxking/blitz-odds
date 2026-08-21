@@ -20,6 +20,7 @@
 <meta name="twitter:description" content="Los Angeles Rams @ Philadelphia Eagles: live odds, injury report, team rankings comparison, and win probability for this matchup." />
 <meta name="twitter:image" content="https://blitz-odds.com/branding/blitz-odds-og-image.png" />
 <meta name="google-site-verification" content="qjkim0nDaF3fk-Tq7pbpF8B3C-vM1hmozOcIbg4OGsY" />
+<meta name="google-site-verification" content="ZkdK4gk7gn60NNpTZeIyd-tcz7PT0V9SmfDhPRMQyT4" />
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -365,9 +366,9 @@
   }
 
   /* Command bar: week picker + favorites + an on-demand legend toggle, all
-     in one flat bar matching the news ticker's surface-2/8px-radius style
-     instead of the week picker floating alone as a heavier pill next to a
-     separate favorites row and a permanently-visible legend underneath. */
+     in one flat bar with a surface-2/8px-radius style instead of the week
+     picker floating alone as a heavier pill next to a separate favorites
+     row and a permanently-visible legend underneath. */
   .cmd-bar {
     display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;
     background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 8px;
@@ -861,56 +862,6 @@
   .gradation-legend-group { display: flex; align-items: center; gap: 6px; }
   .gradation-legend-label { font-weight: 600; color: var(--text); margin-right: 2px; }
   .gradation-legend .rank-pill { margin-left: 0; }
-  .news-ticker {
-    display: flex; align-items: center; gap: 12px; background: var(--surface-2);
-    border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 0;
-    margin-bottom: 14px; overflow: hidden;
-  }
-  .news-ticker-label {
-    flex-shrink: 0; margin-left: 12px; font-size: 0.66rem; font-weight: 800;
-    text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
-    white-space: nowrap;
-  }
-  .news-ticker-track-wrap {
-    flex: 1; overflow: hidden; min-width: 0;
-    /* Without this, iOS Safari's automatic font-boosting scales headline
-       text size based on line length inside this horizontally-scrolling
-       container - so a short headline (e.g. a Fox Sports one-liner) renders
-       at the CSS-defined 0.8rem while a longer one gets bumped up, even
-       though every .news-ticker-headline has the identical font-size rule.
-       Locking text-size-adjust to 100% disables that per-line heuristic so
-       every headline renders at the same size regardless of length. */
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
-  .news-ticker-track {
-    display: flex; align-items: center; width: max-content;
-    animation: news-ticker-scroll 120s linear infinite;
-  }
-  .news-ticker-track-wrap:hover .news-ticker-track { animation-play-state: paused; }
-  .news-ticker-item {
-    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
-    color: var(--text); text-decoration: none; font-size: 0.8rem; padding: 0 28px 0 0;
-  }
-  .news-ticker-headline {
-    font-size: 0.8rem; font-weight: 500; font-family: inherit;
-    -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
-  }
-  .news-ticker-item:hover .news-ticker-headline { text-decoration: underline; color: var(--accent); }
-  .news-ticker-source {
-    flex-shrink: 0; color: var(--text-dim); font-size: 0.64rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.4px; border: 1px solid var(--card-border);
-    border-radius: 4px; padding: 1px 5px;
-  }
-  .news-ticker-time { flex-shrink: 0; color: var(--text-dim); font-size: 0.72rem; }
-  @keyframes news-ticker-scroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .news-ticker-track { animation: none; }
-    .news-ticker-track-wrap { overflow-x: auto; }
-  }
   .impact-note {
     font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
   }
@@ -12539,19 +12490,21 @@ function PlayerHistoryModal({ player, onClose }) {
   );
 }
 
-// ---- Team news: ESPN + two independent RSS sources, deduplicated --------
+// ---- Team news: ESPN + four independent RSS sources, deduplicated -------
 // ESPN's team-news endpoint (used below) is the primary source, but it's a
-// single outlet. This blends in CBS Sports' and FOX Sports' general NFL
-// RSS feeds as independent second/third sources, filtered down
-// client-side to whichever team's page is open, so the panel isn't
-// single- or dual-sourced. A raw RSS feed has no CORS headers at all, so
-// it can't be fetched directly from the browser - rss2json.com exists
+// single outlet. This blends in CBS Sports', FOX Sports', Yahoo Sports',
+// and Pro Football Talk's general NFL RSS feeds as independent additional
+// sources, filtered down client-side to whichever team's page is open, so
+// the panel and the League News tab aren't relying on any single outlet -
+// if one source is slow to post a story or goes down entirely, the other
+// four still cover it. A raw RSS feed has no CORS headers at all, so it
+// can't be fetched directly from the browser - rss2json.com exists
 // specifically to solve that (their own docs show the api_key used
 // straight from client-side JS, confirming it's meant for exactly this).
 // Each feed is fetched once for the whole league, not once per team,
 // since it's the same feed URL regardless of team - a single shared fetch
 // per source also avoids rss2json's anonymous-tier "new feed" burst
-// limit, which only applies per distinct feed URL. If either feed is ever
+// limit, which only applies per distinct feed URL. If any feed is ever
 // unavailable (throttled, offline, CORS-blocked), it fails soft to an
 // empty list for that source rather than breaking the panel - the other
 // sources still render on their own.
@@ -12565,6 +12518,17 @@ const RSS2JSON_API_KEY = "0xcemmcvfabsgqs9x1jwxx5yntebmgxkkupxssko";
 // key baked into the URL itself (FOX's own RSS-feeds page publishes this
 // exact URL for public subscription - see foxsports.com/rss-feeds).
 const FOX_NFL_RSS_URL = "https://api.foxsports.com/v2/content/optimized-rss?partnerKey=MB0Wehpmuj2lUhuRhQaafhBjAJqaPU244mlTDK1i&size=30&tags=fs/nfl";
+
+// Yahoo Sports' NFL feed - mixes Yahoo's own writers with wire-service
+// (AP) coverage, so it independently catches wire stories the other four
+// sources sometimes miss or post later.
+const YAHOO_NFL_RSS_URL = "https://sports.yahoo.com/nfl/rss.xml";
+
+// NBC Sports' Pro Football Talk - an insider/beat-reporting feed (Mike
+// Florio et al.) that's typically among the fastest to post roster,
+// injury, and transaction news, complementing the more general-coverage
+// feeds above.
+const PFT_RSS_URL = "https://profootballtalk.nbcsports.com/feed/";
 
 /** Strips HTML tags/entities down to plain text - RSS <description> fields
  *  (CBS/FOX via rss2json) commonly carry markup or an embedded thumbnail
@@ -12625,15 +12589,17 @@ function fetchLeagueNewsFeed() {
     // items only sometimes carry a usable enclosure/thumbnail. Blending it
     // in here means the News tab gets the same image coverage the
     // per-team panel already has, not just three text-only sources.
-    const [espnItems, cbsItems, foxItems] = await Promise.all([
+    const [espnItems, cbsItems, foxItems, yahooItems, pftItems] = await Promise.all([
       fetchEspnLeagueNews(),
       fetchRssFeedViaJson("https://www.cbssports.com/rss/headlines/nfl/", "CBS Sports"),
       fetchRssFeedViaJson(FOX_NFL_RSS_URL, "FOX Sports"),
+      fetchRssFeedViaJson(YAHOO_NFL_RSS_URL, "Yahoo Sports"),
+      fetchRssFeedViaJson(PFT_RSS_URL, "Pro Football Talk"),
     ]);
     // Dedupe here too (not just in fetchTeamNews/useLeagueNews below) so
     // every caller of fetchLeagueNewsFeed gets an already-clean combined
-    // list, in case two+ sources both cover the same story.
-    return mergeAndDedupeNews([espnItems, cbsItems, foxItems]);
+    // list, in case multiple sources both cover the same story.
+    return mergeAndDedupeNews([espnItems, cbsItems, foxItems, yahooItems, pftItems]);
   })();
   // A throttled/offline attempt shouldn't permanently poison the feed for
   // the rest of the session - let the next team-page visit try again
@@ -12808,52 +12774,6 @@ function useLeagueNews() {
     return () => { cancelled = true; };
   }, []);
   return state;
-}
-
-const NEWS_TICKER_ITEM_COUNT = 15;
-
-/** Scrolling headline ticker for the week view, sitting under the
- *  advantage/disadvantage legend. Two copies of the headline list are
- *  rendered back to back and the track is animated exactly -50% of its own
- *  width, which is what makes the loop seamless (the moment the first copy
- *  scrolls fully offscreen, the second copy is sitting in the exact spot
- *  the first one started in). Renders nothing while loading or if the feed
- *  comes back empty, so it never reserves layout space with nothing to show. */
-function NewsTicker() {
-  const { loading, error, data } = useLeagueNews();
-  if (loading || error || !data || data.length === 0) return null;
-  const items = data.slice(0, NEWS_TICKER_ITEM_COUNT);
-
-  function renderItems(keyPrefix, hidden) {
-    return items.map((item, i) => (
-      <a
-        key={keyPrefix + (item.id || i)}
-        className="news-ticker-item"
-        href={item.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-news-source={item.source || "Unknown"}
-        tabIndex={hidden ? -1 : undefined}
-        aria-hidden={hidden || undefined}
-      >
-        {item.source && <span className="news-ticker-source">{item.source}</span>}
-        <span className="news-ticker-headline">{item.headline}</span>
-        {item.published && <span className="news-ticker-time">{timeAgo(item.published)}</span>}
-      </a>
-    ));
-  }
-
-  return (
-    <div className="news-ticker">
-      <span className="news-ticker-label">NFL News</span>
-      <div className="news-ticker-track-wrap">
-        <div className="news-ticker-track">
-          {renderItems("a-", false)}
-          {renderItems("b-", true)}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /** Full-feed "News" tab: same league-wide feed as the ticker (useLeagueNews)
@@ -14768,8 +14688,6 @@ function App() {
 
       {activeTab === "games" && (
         <>
-          {view === "week" && <NewsTicker />}
-
           {view === "week" && (
             <>
               <div className="cmd-bar">

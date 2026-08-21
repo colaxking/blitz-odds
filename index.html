@@ -12487,14 +12487,15 @@ function extractFirstImageFromHtml(html) {
   return match ? match[1] : null;
 }
 
-async function fetchRssFeedViaJson(feedUrl, sourceName) {
+async function fetchRssFeedViaJson(feedUrl, sourceName, { requireNflRelevance = false } = {}) {
   try {
     const encoded = encodeURIComponent(feedUrl);
     const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encoded}&count=50&api_key=${RSS2JSON_API_KEY}`);
     if (!res.ok) throw new Error(`rss2json request failed for ${sourceName}: ` + res.status);
     const data = await res.json();
     if (data.status !== "ok") throw new Error(`rss2json status for ${sourceName}: ` + data.status);
-    return (data.items || []).map(item => ({
+    const rawItems = requireNflRelevance ? (data.items || []).filter(isNflRelevant) : (data.items || []);
+    return rawItems.map(item => ({
       headline: decodeHtmlEntities(item.title),
       published: parsePubDateToIso(item.pubDate),
       url: item.link,
@@ -12558,8 +12559,8 @@ function fetchLeagueNewsFeed() {
     fetchNewsSourceCached("espn", fetchEspnLeagueNews),
     fetchNewsSourceCached("cbs", () => fetchRssFeedViaJson("https://www.cbssports.com/rss/headlines/nfl/", "CBS Sports")),
     fetchNewsSourceCached("fox", () => fetchRssFeedViaJson(FOX_NFL_RSS_URL, "FOX Sports")),
-    fetchNewsSourceCached("yahoo", () => fetchRssFeedViaJson(YAHOO_NFL_RSS_URL, "Yahoo Sports")),
-    fetchNewsSourceCached("pft", () => fetchRssFeedViaJson(PFT_RSS_URL, "Pro Football Talk")),
+    fetchNewsSourceCached("yahoo", () => fetchRssFeedViaJson(YAHOO_NFL_RSS_URL, "Yahoo Sports", { requireNflRelevance: true })),
+    fetchNewsSourceCached("pft", () => fetchRssFeedViaJson(PFT_RSS_URL, "Pro Football Talk", { requireNflRelevance: true })),
   ]).then(([espnItems, cbsItems, foxItems, yahooItems, pftItems]) =>
     // Dedupe here too (not just in fetchTeamNews/useLeagueNews below) so
     // every caller of fetchLeagueNewsFeed gets an already-clean combined
@@ -12588,6 +12589,43 @@ function getTeamNewsKeyword(team) {
   if (!team || !team.name) return null;
   const words = team.name.trim().split(/\s+/);
   return words[words.length - 1] || null;
+}
+
+/** Yahoo's general /nfl/ feed and Pro Football Talk's general feed both
+ *  occasionally carry non-NFL stories - PFT covers other sports/media news
+ *  on the same feed (e.g. a FIFA suspensions story), and Yahoo's feed has
+ *  pulled in SB Nation college-football posts. Neither includes a reliable
+ *  <category> tag to filter on. A require-NFL-keyword allowlist was tried
+ *  first but had too many false negatives (plenty of genuine NFL stories -
+ *  e.g. a coach-focused headline like "Klint Kubiak still not ready to
+ *  name starting QB" - don't mention any team name in the title or
+ *  description). A blocklist of terms unique to other sports/leagues is
+ *  more reliable: it only excludes stories that are confidently NOT NFL,
+ *  rather than requiring every real NFL story to prove itself. This
+ *  intentionally isn't applied to ESPN (already a dedicated NFL-news
+ *  endpoint) or CBS/FOX (already NFL-scoped feed URLs) - only to the two
+ *  general-purpose sources that need it. */
+const NON_NFL_BLOCKLIST_REGEX = new RegExp([
+  "FIFA", "UEFA", "World Cup", "Premier League", "La Liga", "Bundesliga",
+  "Serie A", "Champions League", "\\bMLS\\b", "\\bNBA\\b", "\\bWNBA\\b",
+  "\\bNHL\\b", "\\bMLB\\b", "\\bPGA\\b", "Olympic", "\\bUFC\\b", "\\bMMA\\b",
+  "boxing", "tennis", "cricket", "rugby", "Formula 1", "\\bNASCAR\\b",
+  "college football", "\\bNCAA\\b", "March Madness", "Final Four",
+].join("|"), "i");
+
+/** Checked against only the headline + description, not the full article
+ *  body - a body-text check caught more (e.g. a UNC college-football
+ *  recap that only reveals itself several paragraphs in), but also
+ *  produced false positives on genuinely NFL stories that just mention
+ *  another sport in passing (a "FIFA-quality grass field" comparison in
+ *  an NFL turf-injury piece, a rookie QB's college career, a fantasy
+ *  draft kit noting it covers "pro and college football"). Missing an
+ *  occasional buried college story is a smaller cost than hiding real
+ *  NFL news, so the check stays scoped to the title/description where a
+ *  match is a much more reliable signal that the whole story is off-topic. */
+function isNflRelevant(rawItem) {
+  const text = `${rawItem.title || ""} ${rawItem.description || ""}`;
+  return !NON_NFL_BLOCKLIST_REGEX.test(text);
 }
 
 function filterLeagueFeedForTeam(feedItems, team) {

@@ -559,51 +559,15 @@ const THEME_INIT_SCRIPT = `(function () {
 })();`;
 
 // Same wordmark used in the live app's header (BrandWordmark in index.html):
-// true vector artwork (branding/blitz-odds-wordmark-{dark,light}.svg paths
-// inlined directly), theme-swapped via the [data-theme] CSS rules in
-// PAGE_CSS. Keep in sync with index.html if the mark ever changes.
+// the real logo artwork (branding/blitz-odds-wordmark-{dark,light}.svg,
+// pixel-perfect crops of the approved artwork), theme-swapped via the
+// [data-theme] CSS rules in PAGE_CSS. Keep in sync with index.html if the
+// mark ever changes.
 function brandWordmarkSvg(height) {
   const h = height || 56;
-  const w = h * (1200 / 360);
   return `<span class="brand-logo-wrap" style="display:inline-flex;align-items:center;flex-shrink:0">
-      <svg class="brand-logo-img brand-logo-dark" width="${w}" height="${h}" viewBox="0 0 1200 360" style="display:block">
-        <g font-family="Arial Black, Impact, sans-serif" font-style="italic" font-weight="900">
-          <text x="72" y="205" font-size="126" letter-spacing="-7" fill="#F7F8FA">BLITZ</text>
-          <g transform="translate(520 62)">
-            <path d="M44 16 C78 3 113 13 132 39 C149 63 145 91 125 112
-                     C105 133 75 143 48 132 C27 124 12 107 8 86
-                     C3 59 17 29 44 16 Z"
-                  fill="#0B1220" stroke="#F7F8FA" stroke-width="9"/>
-            <path d="M28 103 C54 85 73 61 91 31" fill="none" stroke="#FF5A1F" stroke-width="12" stroke-linecap="round"/>
-            <path d="M61 55 L78 69 M56 65 L73 79 M51 75 L68 89"
-                  fill="none" stroke="#F7F8FA" stroke-width="6" stroke-linecap="round"/>
-            <path d="M92 102 L105 114 L135 83"
-                  fill="none" stroke="#35D6C7" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
-          </g>
-          <text x="700" y="205" font-size="126" letter-spacing="-7" fill="#35D6C7">ODDS</text>
-        </g>
-        <path d="M72 276 H520 L555 276 L575 258 L595 276 H1128"
-              fill="none" stroke="#FF5A1F" stroke-width="7" stroke-linecap="square" stroke-linejoin="miter"/>
-      </svg>
-      <svg class="brand-logo-img brand-logo-light" width="${w}" height="${h}" viewBox="0 0 1200 360" style="display:none">
-        <g font-family="Arial Black, Impact, sans-serif" font-style="italic" font-weight="900">
-          <text x="72" y="205" font-size="126" letter-spacing="-7" fill="#0B1220">BLITZ</text>
-          <g transform="translate(520 62)">
-            <path d="M44 16 C78 3 113 13 132 39 C149 63 145 91 125 112
-                     C105 133 75 143 48 132 C27 124 12 107 8 86
-                     C3 59 17 29 44 16 Z"
-                  fill="#F7F8FA" stroke="#0B1220" stroke-width="9"/>
-            <path d="M28 103 C54 85 73 61 91 31" fill="none" stroke="#FF5A1F" stroke-width="12" stroke-linecap="round"/>
-            <path d="M61 55 L78 69 M56 65 L73 79 M51 75 L68 89"
-                  fill="none" stroke="#0B1220" stroke-width="6" stroke-linecap="round"/>
-            <path d="M92 102 L105 114 L135 83"
-                  fill="none" stroke="#35D6C7" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
-          </g>
-          <text x="700" y="205" font-size="126" letter-spacing="-7" fill="#35D6C7">ODDS</text>
-        </g>
-        <path d="M72 276 H520 L555 276 L575 258 L595 276 H1128"
-              fill="none" stroke="#FF5A1F" stroke-width="7" stroke-linecap="square" stroke-linejoin="miter"/>
-      </svg>
+      <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" style="height:${h}px;width:auto;display:block" />
+      <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" style="height:${h}px;width:auto;display:none" />
     </span>`;
 }
 

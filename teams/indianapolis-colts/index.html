@@ -45,6 +45,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/branding/favicon-32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="/branding/favicon-16.png" />
 <link rel="apple-touch-icon" href="/branding/apple-touch-icon.png" />
+<link rel="apple-touch-icon-precomposed" href="/branding/apple-touch-icon.png" />
 <script src="/js/predictionEngine.js"></script>
 <script src="/js/hotPicksEngine.js"></script>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
@@ -12491,12 +12492,40 @@ const YAHOO_NFL_RSS_URL = "https://sports.yahoo.com/nfl/rss.xml";
 // feeds above.
 const PFT_RSS_URL = "https://profootballtalk.nbcsports.com/feed/";
 
-/** Strips HTML tags/entities down to plain text - RSS <description> fields
- *  (CBS/FOX via rss2json) commonly carry markup or an embedded thumbnail
- *  <img>, neither of which belongs in a plain-text excerpt. */
+/** Decodes HTML entities (&amp;, &#39;, &quot;, etc.) back to real characters.
+ *  rss2json sometimes double-encodes entities for certain feeds (Yahoo's in
+ *  particular) - e.g. a raw &#39; in the source XML comes back as the
+ *  literal text "&amp;#39;" in the JSON response, which still renders as
+ *  "&amp;#39;" instead of an apostrophe if only decoded once. Repeatedly
+ *  decoding via the browser's own entity table (through a detached
+ *  textarea, so nothing is ever actually inserted into the page) until the
+ *  string stops changing handles both single- and double-encoded cases
+ *  without needing a hardcoded entity list. Skips the DOM round-trip
+ *  entirely when there's no "&" present, since that's the only thing that
+ *  can start an entity - avoids parsing plain headlines as HTML for no
+ *  reason (and the risk of a stray "<" in a headline being read as a tag). */
+function decodeHtmlEntities(str) {
+  if (!str || str.indexOf("&") === -1) return str;
+  const el = document.createElement("textarea");
+  let text = str;
+  for (let i = 0; i < 3; i++) {
+    el.innerHTML = text;
+    const decoded = el.value;
+    if (decoded === text) break;
+    text = decoded;
+  }
+  return text;
+}
+
+/** Strips HTML tags down to plain text and decodes entities - RSS
+ *  <description> fields (CBS/FOX/Yahoo via rss2json) commonly carry markup
+ *  or an embedded thumbnail <img>, neither of which belongs in a plain-text
+ *  excerpt, plus entities that need decoding rather than blanking out (see
+ *  decodeHtmlEntities above). */
 function stripHtmlToText(html) {
   if (!html) return null;
-  const text = String(html).replace(/<[^>]*>/g, " ").replace(/&[a-z]+;|&#\d+;/gi, " ").replace(/\s+/g, " ").trim();
+  const withoutTags = String(html).replace(/<[^>]*>/g, " ");
+  const text = decodeHtmlEntities(withoutTags).replace(/\s+/g, " ").trim();
   return text || null;
 }
 
@@ -12510,15 +12539,16 @@ function extractFirstImageFromHtml(html) {
   return match ? match[1] : null;
 }
 
-async function fetchRssFeedViaJson(feedUrl, sourceName) {
+async function fetchRssFeedViaJson(feedUrl, sourceName, { requireNflRelevance = false } = {}) {
   try {
     const encoded = encodeURIComponent(feedUrl);
     const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encoded}&count=50&api_key=${RSS2JSON_API_KEY}`);
     if (!res.ok) throw new Error(`rss2json request failed for ${sourceName}: ` + res.status);
     const data = await res.json();
     if (data.status !== "ok") throw new Error(`rss2json status for ${sourceName}: ` + data.status);
-    return (data.items || []).map(item => ({
-      headline: item.title,
+    const rawItems = requireNflRelevance ? (data.items || []).filter(isNflRelevant) : (data.items || []);
+    return rawItems.map(item => ({
+      headline: decodeHtmlEntities(item.title),
       published: parsePubDateToIso(item.pubDate),
       url: item.link,
       image: (item.enclosure && item.enclosure.link) || item.thumbnail
@@ -12539,11 +12569,11 @@ async function fetchEspnLeagueNews() {
     return (data.articles || [])
       .filter(a => a.type !== "Media")
       .map(a => ({
-        headline: a.headline,
+        headline: decodeHtmlEntities(a.headline),
         published: a.published,
         url: a.links && a.links.web && a.links.web.href,
         image: a.images && a.images[0] && a.images[0].url,
-        description: a.description || null,
+        description: decodeHtmlEntities(a.description) || null,
         source: "ESPN",
       }));
   } catch (e) {
@@ -12581,8 +12611,8 @@ function fetchLeagueNewsFeed() {
     fetchNewsSourceCached("espn", fetchEspnLeagueNews),
     fetchNewsSourceCached("cbs", () => fetchRssFeedViaJson("https://www.cbssports.com/rss/headlines/nfl/", "CBS Sports")),
     fetchNewsSourceCached("fox", () => fetchRssFeedViaJson(FOX_NFL_RSS_URL, "FOX Sports")),
-    fetchNewsSourceCached("yahoo", () => fetchRssFeedViaJson(YAHOO_NFL_RSS_URL, "Yahoo Sports")),
-    fetchNewsSourceCached("pft", () => fetchRssFeedViaJson(PFT_RSS_URL, "Pro Football Talk")),
+    fetchNewsSourceCached("yahoo", () => fetchRssFeedViaJson(YAHOO_NFL_RSS_URL, "Yahoo Sports", { requireNflRelevance: true })),
+    fetchNewsSourceCached("pft", () => fetchRssFeedViaJson(PFT_RSS_URL, "Pro Football Talk", { requireNflRelevance: true })),
   ]).then(([espnItems, cbsItems, foxItems, yahooItems, pftItems]) =>
     // Dedupe here too (not just in fetchTeamNews/useLeagueNews below) so
     // every caller of fetchLeagueNewsFeed gets an already-clean combined
@@ -12611,6 +12641,43 @@ function getTeamNewsKeyword(team) {
   if (!team || !team.name) return null;
   const words = team.name.trim().split(/\s+/);
   return words[words.length - 1] || null;
+}
+
+/** Yahoo's general /nfl/ feed and Pro Football Talk's general feed both
+ *  occasionally carry non-NFL stories - PFT covers other sports/media news
+ *  on the same feed (e.g. a FIFA suspensions story), and Yahoo's feed has
+ *  pulled in SB Nation college-football posts. Neither includes a reliable
+ *  <category> tag to filter on. A require-NFL-keyword allowlist was tried
+ *  first but had too many false negatives (plenty of genuine NFL stories -
+ *  e.g. a coach-focused headline like "Klint Kubiak still not ready to
+ *  name starting QB" - don't mention any team name in the title or
+ *  description). A blocklist of terms unique to other sports/leagues is
+ *  more reliable: it only excludes stories that are confidently NOT NFL,
+ *  rather than requiring every real NFL story to prove itself. This
+ *  intentionally isn't applied to ESPN (already a dedicated NFL-news
+ *  endpoint) or CBS/FOX (already NFL-scoped feed URLs) - only to the two
+ *  general-purpose sources that need it. */
+const NON_NFL_BLOCKLIST_REGEX = new RegExp([
+  "FIFA", "UEFA", "World Cup", "Premier League", "La Liga", "Bundesliga",
+  "Serie A", "Champions League", "\\bMLS\\b", "\\bNBA\\b", "\\bWNBA\\b",
+  "\\bNHL\\b", "\\bMLB\\b", "\\bPGA\\b", "Olympic", "\\bUFC\\b", "\\bMMA\\b",
+  "boxing", "tennis", "cricket", "rugby", "Formula 1", "\\bNASCAR\\b",
+  "college football", "\\bNCAA\\b", "March Madness", "Final Four",
+].join("|"), "i");
+
+/** Checked against only the headline + description, not the full article
+ *  body - a body-text check caught more (e.g. a UNC college-football
+ *  recap that only reveals itself several paragraphs in), but also
+ *  produced false positives on genuinely NFL stories that just mention
+ *  another sport in passing (a "FIFA-quality grass field" comparison in
+ *  an NFL turf-injury piece, a rookie QB's college career, a fantasy
+ *  draft kit noting it covers "pro and college football"). Missing an
+ *  occasional buried college story is a smaller cost than hiding real
+ *  NFL news, so the check stays scoped to the title/description where a
+ *  match is a much more reliable signal that the whole story is off-topic. */
+function isNflRelevant(rawItem) {
+  const text = `${rawItem.title || ""} ${rawItem.description || ""}`;
+  return !NON_NFL_BLOCKLIST_REGEX.test(text);
 }
 
 function filterLeagueFeedForTeam(feedItems, team) {
@@ -12688,7 +12755,7 @@ async function fetchTeamNews(teamId) {
           return (data.articles || [])
             .filter(a => a.type !== "Media")
             .map(a => ({
-              headline: a.headline,
+              headline: decodeHtmlEntities(a.headline),
               published: a.published,
               url: a.links && a.links.web && a.links.web.href,
               image: a.images && a.images[0] && a.images[0].url,

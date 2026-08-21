@@ -1,3 +1,10 @@
+# Force the netlify.app subdomain to redirect to the custom domain.
+# Netlify's "primary domain" setting auto-redirects custom domain aliases
+# (like www) but does NOT auto-redirect the netlify.app subdomain itself -
+# that stays reachable by design. This rule closes that gap for SEO
+# (consolidates link equity onto blitz-odds.com, avoids duplicate content).
+https://blitz-odds.netlify.app/*  https://blitz-odds.com/:splat  301!
+
 # Phase 3 SPA routes: /teams/* and /games/* are client-side (pushState)
 # routes handled by index.html's React router. Until the Stage 2 static
 # pre-rendering build script generates real HTML files at these exact

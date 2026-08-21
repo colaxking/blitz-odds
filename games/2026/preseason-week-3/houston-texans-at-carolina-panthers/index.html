@@ -438,14 +438,18 @@
   }
   .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: var(--accent); }
   @media (max-width: 720px) {
-    .app { padding-bottom: 82px; }
+    .app { padding-bottom: 96px; }
     .tab-bar {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
       background: var(--card-bg); border-bottom: none; border-top: 1px solid var(--card-border);
-      padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+      /* Extra bottom padding (beyond the safe-area inset) keeps the tap
+         targets clear of iOS's edge-swipe gesture zone - without it, taps
+         near the bottom of the bar can land on whatever's behind it. */
+      padding: 8px 4px calc(14px + env(safe-area-inset-bottom, 0px));
     }
     .tab-btn {
-      flex: 1; flex-direction: column; gap: 3px; padding: 4px 2px 0; font-size: 0.64rem;
+      flex: 1; flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.64rem;
+      min-height: 48px;
     }
     .tab-btn.active::after { content: none; }
     .tab-icon { width: 24px; height: 24px; font-size: 12px; background: none; border-color: transparent; }

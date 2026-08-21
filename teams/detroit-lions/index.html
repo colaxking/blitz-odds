@@ -8149,6 +8149,43 @@ const LEAGUES_UI_ENABLED = false;
 const DEFAULT_SPORTSBOOK_ID = "draftkings";
 const SPORTSBOOK_STORAGE_KEY = "blitz-odds-sportsbook";
 
+// iOS Safari doesn't reliably honor `body { overflow: hidden }` as a scroll
+// lock - the page can still rubber-band scroll behind an open modal, and
+// when the style is removed the browser's viewport metrics can end up out
+// of sync, causing `position: fixed` elements (like the bottom tab bar) to
+// stop tracking the real viewport and drift into the document flow instead.
+// The reliable cross-browser fix is to pin <body> itself to position:fixed
+// at a negative top offset equal to the current scroll position while a
+// modal is open, then restore both the styles and the scroll position when
+// it closes. Nest-safe via a simple open-modal counter so stacked modals
+// (rare, but possible) don't stomp each other's saved scroll position.
+let _scrollLockCount = 0;
+let _scrollLockY = 0;
+function lockBodyScroll() {
+  if (_scrollLockCount === 0) {
+    _scrollLockY = window.scrollY || window.pageYOffset || 0;
+    const body = document.body;
+    body.style.position = "fixed";
+    body.style.top = `-${_scrollLockY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+  }
+  _scrollLockCount++;
+}
+function unlockBodyScroll() {
+  _scrollLockCount = Math.max(0, _scrollLockCount - 1);
+  if (_scrollLockCount === 0) {
+    const body = document.body;
+    body.style.position = "";
+    body.style.top = "";
+    body.style.left = "";
+    body.style.right = "";
+    body.style.width = "";
+    window.scrollTo(0, _scrollLockY);
+  }
+}
+
 // Time zone preference for displayed kickoff times. "auto" (the default)
 // means "whatever the device's own zone is right now", resolved fresh each
 // time rather than saved as a fixed zone, so someone who travels still sees
@@ -9326,11 +9363,10 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
   useEffect(() => {
     function onKeyDown(e) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", onKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = prevOverflow;
+      unlockBodyScroll();
     };
   }, [onClose]);
 
@@ -9885,11 +9921,10 @@ function InjuryDetailModal({ player, onClose }) {
       if (e.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = prevOverflow;
+      unlockBodyScroll();
     };
   }, [onClose]);
 
@@ -11690,11 +11725,10 @@ function HowItWorksModal({ onClose }) {
       if (e.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = prevOverflow;
+      unlockBodyScroll();
     };
   }, [onClose]);
 
@@ -11738,11 +11772,10 @@ function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode,
       if (e.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = prevOverflow;
+      unlockBodyScroll();
     };
   }, [onClose]);
 
@@ -11804,11 +11837,10 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
       if (e.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = prevOverflow;
+      unlockBodyScroll();
     };
   }, [onClose]);
 
@@ -12309,11 +12341,10 @@ function PlayerHistoryModal({ player, onClose }) {
   useEffect(() => {
     function onKeyDown(e) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", onKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = prevOverflow;
+      unlockBodyScroll();
     };
   }, [onClose]);
 

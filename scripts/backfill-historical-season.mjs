@@ -372,6 +372,12 @@ header.top { position: relative; text-align: center; margin-bottom: 18px; }
 .brand-logo-light { display: none; }
 html[data-theme="light"] .brand-logo-dark { display: none !important; }
 html[data-theme="light"] .brand-logo-light { display: block !important; }
+@media (max-width: 480px) {
+  .brand-logo-img { height: 52px !important; }
+}
+@media (max-width: 380px) {
+  .brand-logo-img { height: 42px !important; }
+}
 header.top h1 { font-size: 1.85rem; margin: 0 0 4px; font-weight: 800; }
 header.top h1 a { text-decoration: none; color: inherit; }
 .brand-odds { color: var(--accent); }

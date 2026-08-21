@@ -12538,6 +12538,16 @@ function stripHtmlToText(html) {
   return text || null;
 }
 
+/** Pulls the first <img src="..."> out of an HTML blob. Yahoo's RSS feed
+ *  leaves both `thumbnail` and `enclosure` empty on every item - its lead
+ *  image is only ever embedded as an <img> inside `content` - so without
+ *  this fallback every Yahoo article renders with no image at all. */
+function extractFirstImageFromHtml(html) {
+  if (!html) return null;
+  const match = String(html).match(/<img[^>]+src=["']([^"'#]+)["']/i);
+  return match ? match[1] : null;
+}
+
 async function fetchRssFeedViaJson(feedUrl, sourceName) {
   try {
     const encoded = encodeURIComponent(feedUrl);
@@ -12549,7 +12559,8 @@ async function fetchRssFeedViaJson(feedUrl, sourceName) {
       headline: item.title,
       published: parsePubDateToIso(item.pubDate),
       url: item.link,
-      image: (item.enclosure && item.enclosure.link) || item.thumbnail || null,
+      image: (item.enclosure && item.enclosure.link) || item.thumbnail
+        || extractFirstImageFromHtml(item.content) || extractFirstImageFromHtml(item.description) || null,
       description: stripHtmlToText(item.description),
       source: sourceName,
     }));
@@ -12578,35 +12589,44 @@ async function fetchEspnLeagueNews() {
   }
 }
 
-let leagueNewsFeedPromise = null;
+const newsSourceCache = {};
+/** Caches each news source's in-flight/resolved promise independently, keyed
+ *  by source. A source that comes back empty (throttled, offline, CORS-
+ *  blocked) clears its own cache entry so the next call retries just that
+ *  source - but a different source succeeding on the same round no longer
+ *  masks it. Previously a single shared promise covered all five sources
+ *  at once and only cleared if every source failed, so one transient outage
+ *  on four sources while a fifth succeeded got permanently cached as "the
+ *  feed" for the rest of the session. */
+function fetchNewsSourceCached(key, fetchFn) {
+  if (newsSourceCache[key]) return newsSourceCache[key];
+  const promise = fetchFn();
+  newsSourceCache[key] = promise;
+  promise.then(items => {
+    if (!items.length) newsSourceCache[key] = null;
+  });
+  return promise;
+}
+
 function fetchLeagueNewsFeed() {
-  if (leagueNewsFeedPromise) return leagueNewsFeedPromise;
-  leagueNewsFeedPromise = (async () => {
-    // ESPN's league-wide feed goes first: its API reliably supplies a real
-    // article image per story (see fetchTeamNews below, which leans on the
-    // same source for the same reason), where CBS/FOX's RSS-via-rss2json
-    // items only sometimes carry a usable enclosure/thumbnail. Blending it
-    // in here means the News tab gets the same image coverage the
-    // per-team panel already has, not just three text-only sources.
-    const [espnItems, cbsItems, foxItems, yahooItems, pftItems] = await Promise.all([
-      fetchEspnLeagueNews(),
-      fetchRssFeedViaJson("https://www.cbssports.com/rss/headlines/nfl/", "CBS Sports"),
-      fetchRssFeedViaJson(FOX_NFL_RSS_URL, "FOX Sports"),
-      fetchRssFeedViaJson(YAHOO_NFL_RSS_URL, "Yahoo Sports"),
-      fetchRssFeedViaJson(PFT_RSS_URL, "Pro Football Talk"),
-    ]);
+  // ESPN's league-wide feed goes first: its API reliably supplies a real
+  // article image per story (see fetchTeamNews below, which leans on the
+  // same source for the same reason), where CBS/FOX/Yahoo/PFT's RSS-via-
+  // rss2json items only sometimes carry a usable enclosure/thumbnail.
+  // Blending it in here means the News tab gets the same image coverage
+  // the per-team panel already has, not just RSS-only sources.
+  return Promise.all([
+    fetchNewsSourceCached("espn", fetchEspnLeagueNews),
+    fetchNewsSourceCached("cbs", () => fetchRssFeedViaJson("https://www.cbssports.com/rss/headlines/nfl/", "CBS Sports")),
+    fetchNewsSourceCached("fox", () => fetchRssFeedViaJson(FOX_NFL_RSS_URL, "FOX Sports")),
+    fetchNewsSourceCached("yahoo", () => fetchRssFeedViaJson(YAHOO_NFL_RSS_URL, "Yahoo Sports")),
+    fetchNewsSourceCached("pft", () => fetchRssFeedViaJson(PFT_RSS_URL, "Pro Football Talk")),
+  ]).then(([espnItems, cbsItems, foxItems, yahooItems, pftItems]) =>
     // Dedupe here too (not just in fetchTeamNews/useLeagueNews below) so
     // every caller of fetchLeagueNewsFeed gets an already-clean combined
     // list, in case multiple sources both cover the same story.
-    return mergeAndDedupeNews([espnItems, cbsItems, foxItems, yahooItems, pftItems]);
-  })();
-  // A throttled/offline attempt shouldn't permanently poison the feed for
-  // the rest of the session - let the next team-page visit try again
-  // rather than caching an empty result forever.
-  leagueNewsFeedPromise.then(items => {
-    if (!items.length) leagueNewsFeedPromise = null;
-  });
-  return leagueNewsFeedPromise;
+    mergeAndDedupeNews([espnItems, cbsItems, foxItems, yahooItems, pftItems])
+  );
 }
 
 /** rss2json normalizes pubDate to "YYYY-MM-DD HH:MM:SS" (no timezone

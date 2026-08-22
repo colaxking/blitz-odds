@@ -9829,13 +9829,13 @@ function BrandWordmark({ height, className }) {
 
 /** Team crest — a static badge image (custom-designed, non-trademarked
  *  artwork: football texture + team abbreviation, not an NFL/team logo)
- *  served locally from /team-badges/{TEAM}.png. No hotlinking, no network
- *  dependency on a third party, no broken-image fallback needed since the
- *  asset ships with the site. Falls back to the plain-color initial disc
- *  (old behavior) only if a badge image is ever missing for a team id. */
+ *  served locally from /team-badges/{TEAM}.png, transparent PNG with no
+ *  background of its own. No hotlinking, no network dependency on a third
+ *  party. No background color behind it - the badge art doesn't fill its
+ *  whole box (object-fit: contain), so any fill color would show through
+ *  the transparent gaps around the art as a visible colored chip. */
 function TeamLogo({ teamId, size }) {
   const dim = size || 46;
-  const primary = TEAM_COLORS[teamId] || "#666";
   return (
     <img
       className="team-crest"
@@ -9845,8 +9845,7 @@ function TeamLogo({ teamId, size }) {
       height={dim}
       style={{
         width: dim,
-        height: dim,
-        backgroundColor: primary
+        height: dim
       }}
       onError={(e) => { e.target.onerror = null; e.target.style.display = "none"; }}
     />

@@ -784,12 +784,18 @@
      a circle. width/height are set inline per instance via the size prop
      on TeamLogo, so only the shared visual rules live here. background-color
      (also set inline, team primary color) shows briefly while the image
-     loads and is what remains visible if onError hides a missing image. */
+     loads and is what remains visible if onError hides a missing image.
+     The ring box-shadow gives every crest the same edge definition against
+     the dark card background regardless of the badge art's own color -
+     without it, dark-toned teams (ATL, LV, PIT, NO, CHI, BAL, etc.) blend
+     into the background at the edges and read visibly smaller than
+     bright-toned teams at the same rendered size. */
   .team-crest {
     border-radius: 50%;
     object-fit: cover;
     display: block;
     user-select: none; flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.14), 0 1px 4px rgba(0,0,0,0.5);
   }
   .star-btn {
     position: absolute; top: -6px; right: -6px; background: var(--card-bg); border: 1px solid var(--card-border);

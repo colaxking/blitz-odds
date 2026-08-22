@@ -780,21 +780,16 @@
   .team-click { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; padding: 0; color: inherit; font: inherit; }
   .team-click:hover .team-name { text-decoration: underline; }
   .badge-wrap { position: relative; width: 46px; height: 46px; }
-  /* Team crest - circle with a diagonal two-tone fill (team primary/secondary
-     colors) and the abbreviation centered on top. Replaces the old hotlinked
-     NFL-CDN <img> badge; width/height/font-size are set inline per instance
-     via the size prop on TeamLogo, so only the shared visual rules live here. */
+  /* Team crest - a badge image (see /team-badges/{TEAM}.png), cropped to
+     a circle. width/height are set inline per instance via the size prop
+     on TeamLogo, so only the shared visual rules live here. background-color
+     (also set inline, team primary color) shows briefly while the image
+     loads and is what remains visible if onError hides a missing image. */
   .team-crest {
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; letter-spacing: -0.02em; color: #fff;
-    font-family: -apple-system, 'Inter', system-ui, sans-serif;
+    object-fit: cover;
+    display: block;
     user-select: none; flex-shrink: 0;
-    -webkit-text-stroke: 0.6px rgba(0,0,0,0.55);
-    text-shadow:
-      -1px -1px 0 rgba(0,0,0,0.65), 1px -1px 0 rgba(0,0,0,0.65),
-      -1px 1px 0 rgba(0,0,0,0.65), 1px 1px 0 rgba(0,0,0,0.65),
-      0 1px 3px rgba(0,0,0,0.4);
   }
   .star-btn {
     position: absolute; top: -6px; right: -6px; background: var(--card-bg); border: 1px solid var(--card-border);
@@ -9859,27 +9854,29 @@ function BrandWordmark({ height, className }) {
   );
 }
 
-/** Team crest — a colored circle in the team's own primary/secondary
- *  colors (diagonal split) with the team abbreviation centered on top,
- *  rather than a hotlinked NFL/team logo image. No trademarked artwork,
- *  no network request, no broken-image fallback needed - colors and city
- *  abbreviations aren't protected the way logo marks are. */
+/** Team crest — a static badge image (custom-designed, non-trademarked
+ *  artwork: football texture + team abbreviation, not an NFL/team logo)
+ *  served locally from /team-badges/{TEAM}.png. No hotlinking, no network
+ *  dependency on a third party, no broken-image fallback needed since the
+ *  asset ships with the site. Falls back to the plain-color initial disc
+ *  (old behavior) only if a badge image is ever missing for a team id. */
 function TeamLogo({ teamId, size }) {
   const dim = size || 46;
   const primary = TEAM_COLORS[teamId] || "#666";
-  const secondary = TEAM_COLORS_ALT[teamId] || "#ffffff";
   return (
-    <div
+    <img
       className="team-crest"
+      src={`/team-badges/${teamId}.png`}
+      alt={teamId}
+      width={dim}
+      height={dim}
       style={{
         width: dim,
         height: dim,
-        fontSize: dim * 0.32,
-        background: `linear-gradient(135deg, ${primary} 0%, ${primary} 55%, ${secondary} 55%, ${secondary} 100%)`
+        backgroundColor: primary
       }}
-    >
-      {teamId}
-    </div>
+      onError={(e) => { e.target.onerror = null; e.target.style.display = "none"; }}
+    />
   );
 }
 

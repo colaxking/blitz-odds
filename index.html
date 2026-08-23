@@ -1116,6 +1116,114 @@
   .league-btn-primary { background: var(--accent); border-color: var(--accent); color: #062018; }
   .league-btn-primary:hover:not(:disabled) { filter: brightness(1.08); color: #062018; }
 
+  /* ---- Pick'em league view (This Week / Standings) --------------------- */
+  /* Ported from the approved mockup - same tokens as the rest of the app,
+     namespaced under league-view-* / pickem-* / standings-* so nothing here
+     collides with the unrelated main-analyzer .game-card etc. */
+  .league-view { display: flex; flex-direction: column; gap: 16px; }
+  .league-view-empty {
+    text-align: center; padding: 40px 16px; color: var(--text-dim);
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  .league-picker-select {
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 8px 12px; color: var(--text); font-size: 0.85rem; font-weight: 700; align-self: flex-start;
+  }
+
+  .league-header {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  }
+  .league-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .league-header-name { font-size: 1.1rem; font-weight: 800; margin: 0 0 3px; }
+  .league-header-meta { font-size: 0.76rem; color: var(--text-dim); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .league-format-pill {
+    display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+    background: rgba(var(--accent-rgb),0.16); color: var(--accent); font-size: 0.66rem;
+    font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .league-header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .league-week-nav {
+    display: flex; align-items: center; justify-content: space-between; margin-top: 14px;
+    padding-top: 12px; border-top: 1px dashed var(--card-border);
+  }
+  .league-week-nav-btn {
+    background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 8px; width: 30px; height: 30px; font-size: 0.9rem; cursor: pointer;
+  }
+  .league-week-nav-btn:disabled { opacity: 0.4; cursor: default; }
+  .league-week-nav-label { font-size: 0.84rem; font-weight: 700; }
+
+  .league-subtabs { display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 12px; padding: 4px; }
+  .league-subtab {
+    flex: 1; text-align: center; padding: 8px 6px; border-radius: 9px; font-size: 0.78rem;
+    font-weight: 700; color: var(--text-dim); cursor: pointer; user-select: none; background: none; border: none;
+  }
+  .league-subtab.active { background: var(--accent); color: #062018; }
+
+  .picks-progress {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 16px; display: flex; align-items: center; gap: 14px;
+  }
+  .picks-progress-ring { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
+  .picks-progress-ring svg { transform: rotate(-90deg); }
+  .picks-progress-ring-track { fill: none; stroke: var(--surface-2); stroke-width: 5; }
+  .picks-progress-ring-fill { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.4s ease; }
+  .picks-progress-ring-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; }
+  .picks-progress-text { flex: 1; }
+  .picks-progress-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-dim); font-weight: 700; margin: 0 0 2px; }
+  .picks-progress-count { font-size: 1rem; font-weight: 800; margin: 0; }
+  .picks-progress-count .dim { color: var(--text-dim); font-weight: 600; font-size: 0.82rem; }
+  .picks-progress-deadline { font-size: 0.72rem; color: var(--warn); margin: 2px 0 0; font-weight: 600; }
+
+  .pickem-game-card {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 14px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .pickem-game-card.is-locked { opacity: 0.72; }
+  .pickem-game-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--text-dim); }
+  .pickem-lock-tag { display: inline-flex; align-items: center; gap: 4px; color: var(--text-dim); font-weight: 700; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.4px; }
+  .pickem-pick-row { display: flex; align-items: stretch; gap: 8px; }
+  .pickem-pick-option {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px 8px; border-radius: 10px; border: 1.5px solid var(--card-border);
+    background: var(--surface-2); cursor: pointer; transition: border-color 0.12s, background 0.12s;
+    position: relative; font: inherit; color: inherit;
+  }
+  .pickem-pick-option:hover:not(:disabled) { border-color: rgba(var(--accent-rgb),0.5); }
+  .pickem-pick-option.selected { border-color: var(--accent); background: rgba(var(--accent-rgb),0.12); box-shadow: 0 0 0 1px var(--accent); }
+  .pickem-pick-option:disabled { opacity: 0.55; cursor: default; }
+  .pickem-pick-check {
+    position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); color: #062018; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 900;
+  }
+  .pickem-team-name { font-size: 0.78rem; font-weight: 700; text-align: center; line-height: 1.2; }
+  .pickem-at-sep { display: flex; align-items: center; color: var(--text-dim); font-size: 0.72rem; padding: 0 2px; }
+  .pickem-confidence-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--surface-2); border-radius: 8px; padding: 8px 10px; font-size: 0.74rem; }
+  .pickem-confidence-label { color: var(--text-dim); font-weight: 600; }
+  .pickem-confidence-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); border-radius: 6px; padding: 4px 8px; font-size: 0.78rem; font-weight: 700; font-family: inherit; }
+  .pickem-pick-error { font-size: 0.68rem; color: var(--out); background: rgba(var(--out-rgb),0.1); border: 1px solid rgba(var(--out-rgb),0.3); border-radius: 6px; padding: 5px 8px; }
+  .pickem-autosave-note { font-size: 0.68rem; color: var(--text-dim); display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
+  .pickem-autosave-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--win); }
+
+  .league-standings-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .league-standings-table th {
+    text-align: left; color: var(--text-dim); font-size: 0.66rem; text-transform: uppercase;
+    letter-spacing: 0.3px; font-weight: 700; padding: 6px 8px; border-bottom: 1px solid var(--card-border);
+  }
+  .league-standings-table td { padding: 9px 8px; border-bottom: 1px solid var(--card-border); }
+  .league-standings-table tr.is-me { background: rgba(var(--accent-rgb),0.08); }
+  .league-standings-rank { font-weight: 800; width: 28px; }
+  .league-standings-rank.gold { color: var(--star); }
+  .league-standings-user { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+  .league-standings-avatar {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #062018;
+    display: flex; align-items: center; justify-content: center; font-size: 0.66rem; font-weight: 800; flex-shrink: 0;
+  }
+  .league-standings-points { font-weight: 800; }
+  .league-status-alive { color: var(--win); font-weight: 700; font-size: 0.72rem; }
+  .league-status-eliminated { color: var(--out); font-weight: 700; font-size: 0.72rem; text-decoration: line-through; opacity: 0.7; }
+
   /* Clickable wrapper around a live/final score - opens the box score
      modal. Uses "all: unset" so it inherits whatever styling the score
      content already carries (pill background, bold weight, etc.) rather
@@ -8057,7 +8165,7 @@
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
 <script type="text/babel" data-presets="react">
-const { useMemo, useState, useEffect, useLayoutEffect, useRef } = React;
+const { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback } = React;
 
 // These six all start out pointing at whatever was embedded in the page at
 // last deploy, and are `let` (not `const`) so useLiveSiteData() below can
@@ -11972,6 +12080,386 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
   );
 }
 
+// ---- Pick'em league view (This Week / Standings) --------------------------
+// Talks to picks-mine.mts / picks-submit.mts / standings-get.mts. Straight-Up
+// and Confidence formats are fully wired; Survivor picking works (one game
+// per week, team selection) but the "already used this team" warning is
+// server-enforced only for now - picks-mine doesn't return season-wide used
+// teams yet, so a rejected pick surfaces as the inline error picks-submit
+// already returns rather than being pre-empted client-side. ATS is not
+// rendered - league.format never resolves to "ats" in the UI until spread
+// data + scoring support ships (see js/scoringEngine.js).
+
+function useMyLeagues(auth) {
+  const [leagues, setLeagues] = useState(null); // null = loading
+  const [error, setError] = useState(null);
+
+  const reload = useCallback(async () => {
+    if (auth.status !== "in") { setLeagues([]); return; }
+    setError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/leagues-mine");
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to load leagues");
+      setLeagues(data.leagues || []);
+    } catch (err) {
+      setError(err.message || "Failed to load leagues");
+      setLeagues([]);
+    }
+  }, [auth.status]);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  return { leagues, error, reload };
+}
+
+/** Regular-season weeks only (1-18) - picks-mine/picks-submit only read
+ *  SCHEDULE_DATA.weeks, not preseason/playoff rounds, so the league week
+ *  nav is intentionally narrower than the main analyzer's week picker. */
+function clampToRegularSeasonWeek(week) {
+  const weeks = (SCHEDULE_DATA && SCHEDULE_DATA.weeks) || [];
+  if (!weeks.length) return 1;
+  const min = weeks[0].week, max = weeks[weeks.length - 1].week;
+  return Math.min(max, Math.max(min, week));
+}
+
+function LeagueHeader({ league, week, onWeekChange, onOpenLeagues }) {
+  const [copied, setCopied] = useState(false);
+  const weeks = (SCHEDULE_DATA && SCHEDULE_DATA.weeks) || [];
+  const minWeek = weeks.length ? weeks[0].week : 1;
+  const maxWeek = weeks.length ? weeks[weeks.length - 1].week : 18;
+
+  function copyInvite() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(league.inviteCode).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      });
+    }
+  }
+
+  const formatLabel = { straight_up: "Straight-Up", confidence: "Confidence", survivor: "Survivor", ats: "ATS" }[league.format] || league.format;
+
+  return (
+    <div className="league-header">
+      <div className="league-header-top">
+        <div>
+          <p className="league-header-name">{league.name}</p>
+          <div className="league-header-meta">
+            <span className="league-format-pill">{formatLabel}</span>
+            <span>·</span>
+            <span>{league.memberCount} member{league.memberCount === 1 ? "" : "s"}</span>
+            <span>·</span>
+            <span>{league.season}</span>
+          </div>
+        </div>
+        <div className="league-header-actions">
+          <button type="button" className="league-invite-chip" onClick={copyInvite} title="Copy invite code">
+            {copied ? "Copied!" : league.inviteCode}
+          </button>
+          <button type="button" className="league-btn" onClick={onOpenLeagues}>Manage</button>
+        </div>
+      </div>
+      <div className="league-week-nav">
+        <button
+          type="button"
+          className="league-week-nav-btn"
+          onClick={() => onWeekChange(clampToRegularSeasonWeek(week - 1))}
+          disabled={week <= minWeek}
+        >‹</button>
+        <span className="league-week-nav-label">Week {week}</span>
+        <button
+          type="button"
+          className="league-week-nav-btn"
+          onClick={() => onWeekChange(clampToRegularSeasonWeek(week + 1))}
+          disabled={week >= maxWeek}
+        >›</button>
+      </div>
+    </div>
+  );
+}
+
+function PicksProgressRing({ complete, total, week }) {
+  const radius = 22;
+  const circumference = 2 * Math.PI * radius;
+  const pct = total > 0 ? complete / total : 0;
+  const offset = circumference * (1 - pct);
+  return (
+    <div className="picks-progress">
+      <div className="picks-progress-ring">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle className="picks-progress-ring-track" cx="26" cy="26" r={radius}></circle>
+          <circle
+            className="picks-progress-ring-fill"
+            cx="26" cy="26" r={radius}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+          ></circle>
+        </svg>
+        <div className="picks-progress-ring-num">{complete}/{total}</div>
+      </div>
+      <div className="picks-progress-text">
+        <p className="picks-progress-title">NFL Pick'em — Week {week}</p>
+        <p className="picks-progress-count">{complete} <span className="dim">of {total} picks complete</span></p>
+        {complete < total && <p className="picks-progress-deadline">{total - complete} remaining</p>}
+      </div>
+    </div>
+  );
+}
+
+function LeaguePickCard({ game, format, maxConfidence, onPick, saving, error }) {
+  const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
+
+  useEffect(() => {
+    setPendingConfidence(game.pick?.confidence ?? "");
+  }, [game.pick?.confidence]);
+
+  function selectTeam(team) {
+    if (game.locked) return;
+    onPick(game.gameId, team, format === "confidence" ? (pendingConfidence || undefined) : undefined);
+  }
+
+  function changeConfidence(e) {
+    const val = Number(e.target.value);
+    setPendingConfidence(val);
+    if (game.pick?.team) onPick(game.gameId, game.pick.team, val);
+  }
+
+  return (
+    <div className={"pickem-game-card" + (game.locked ? " is-locked" : "")}>
+      <div className="pickem-game-meta">
+        <span>{game.date} · {game.time}</span>
+        {game.locked && <span className="pickem-lock-tag">🔒 Locked</span>}
+      </div>
+      <div className="pickem-pick-row">
+        {[game.away, game.home].map((teamId, i) => {
+          const selected = game.pick?.team === teamId;
+          const disabled = game.locked && !selected;
+          return (
+            <button
+              key={teamId}
+              type="button"
+              className={"pickem-pick-option" + (selected ? " selected" : "")}
+              onClick={() => selectTeam(teamId)}
+              disabled={disabled || saving}
+            >
+              {selected && <div className="pickem-pick-check">✓</div>}
+              <TeamLogo teamId={teamId} size={40} />
+              <div className="pickem-team-name">{teamId}</div>
+            </button>
+          );
+        })}
+      </div>
+      {format === "confidence" && (
+        <div className="pickem-confidence-row">
+          <span className="pickem-confidence-label">Confidence points</span>
+          <select
+            className="pickem-confidence-select"
+            value={pendingConfidence}
+            onChange={changeConfidence}
+            disabled={game.locked || !game.pick?.team || saving}
+          >
+            <option value="" disabled>—</option>
+            {Array.from({ length: maxConfidence }, (_, i) => i + 1).map(n => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      {error && <div className="pickem-pick-error">{error}</div>}
+    </div>
+  );
+}
+
+function LeagueWeekPanel({ auth, league, week }) {
+  const [data, setData] = useState(null); // null = loading
+  const [loadError, setLoadError] = useState(null);
+  const [savingGameId, setSavingGameId] = useState(null);
+  const [pickErrors, setPickErrors] = useState({});
+
+  const load = useCallback(async () => {
+    setLoadError(null);
+    try {
+      const res = await auth.authenticatedFetch(`/.netlify/functions/picks-mine?leagueId=${league.id}&week=${week}`);
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load picks");
+      setData(json);
+    } catch (err) {
+      setLoadError(err.message || "Failed to load picks");
+      setData(null);
+    }
+  }, [auth, league.id, week]);
+
+  useEffect(() => { setData(null); load(); }, [load]);
+
+  async function submitPick(gameId, team, confidence) {
+    setSavingGameId(gameId);
+    setPickErrors(prev => ({ ...prev, [gameId]: null }));
+    // Optimistic update so the tap feels instant; reconciled by the reload below.
+    setData(prev => prev && {
+      ...prev,
+      games: prev.games.map(g => g.gameId === gameId ? { ...g, pick: { team, confidence } } : g),
+    });
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/picks-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId: league.id, week, gameId, team, confidence }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error || "Failed to save pick");
+      await load();
+    } catch (err) {
+      setPickErrors(prev => ({ ...prev, [gameId]: err.message || "Failed to save pick" }));
+      await load(); // revert optimistic update to server truth
+    } finally {
+      setSavingGameId(null);
+    }
+  }
+
+  if (loadError) return <p className="leagues-error">{loadError}</p>;
+  if (!data) return <p className="leagues-empty">Loading…</p>;
+
+  return (
+    <>
+      <PicksProgressRing complete={data.picksComplete} total={data.totalGames} week={week} />
+      {data.games.map(game => (
+        <LeaguePickCard
+          key={game.gameId}
+          game={game}
+          format={data.format}
+          maxConfidence={data.totalGames}
+          onPick={submitPick}
+          saving={savingGameId === game.gameId}
+          error={pickErrors[game.gameId]}
+        />
+      ))}
+      <div className="pickem-autosave-note"><span className="pickem-autosave-dot"></span> Picks save automatically</div>
+    </>
+  );
+}
+
+function LeagueStandingsPanel({ auth, league }) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setError(null);
+      try {
+        const res = await auth.authenticatedFetch(`/.netlify/functions/standings-get?leagueId=${league.id}`);
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load standings");
+        if (!cancelled) setData(json);
+      } catch (err) {
+        if (!cancelled) setError(err.message || "Failed to load standings");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [auth, league.id]);
+
+  if (error) return <p className="leagues-error">{error}</p>;
+  if (!data) return <p className="leagues-empty">Loading…</p>;
+
+  const rows = data.season || [];
+  const survivor = data.survivor || null;
+  const meId = auth.user && auth.user.id;
+  const extraLabel = league.format === "confidence" ? "Conf. Pts" : league.format === "survivor" ? "Status" : "Correct";
+
+  return (
+    <table className="league-standings-table">
+      <thead>
+        <tr>
+          <th>#</th><th>User</th><th>{extraLabel}</th><th>Correct</th><th>Season</th><th>Win %</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.length === 0 && (
+          <tr><td colSpan={6} className="leagues-empty" style={{ padding: "12px 8px" }}>No results processed yet.</td></tr>
+        )}
+        {rows.map(row => {
+          const total = row.correct + row.incorrect;
+          const winPct = total > 0 ? Math.round((row.correct / total) * 100) : 0;
+          const survivorStatus = survivor && survivor[row.userId];
+          const extra =
+            league.format === "survivor" && survivorStatus
+              ? <span className={survivorStatus.alive ? "league-status-alive" : "league-status-eliminated"}>{survivorStatus.alive ? "Alive" : "Eliminated"}</span>
+              : league.format === "confidence" ? row.points : row.correct;
+          return (
+            <tr key={row.userId} className={row.userId === meId ? "is-me" : ""}>
+              <td className={"league-standings-rank" + (row.rank === 1 ? " gold" : "")}>{row.rank}</td>
+              <td><div className="league-standings-user"><div className="league-standings-avatar">{(row.displayName || "?")[0]}</div>{row.displayName}</div></td>
+              <td>{extra}</td>
+              <td>{row.correct}</td>
+              <td className="league-standings-points">{row.points}</td>
+              <td>{winPct}%</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function LeagueView({ auth, onRequestLogin, onOpenLeagues }) {
+  const { leagues, error: leaguesError } = useMyLeagues(auth);
+  const [selectedLeagueId, setSelectedLeagueId] = useState(null);
+  const [subTab, setSubTab] = useState("week");
+  const [week, setWeek] = useState(() => clampToRegularSeasonWeek(getDefaultWeek()));
+
+  useEffect(() => {
+    if (leagues && leagues.length > 0 && !leagues.some(l => l.id === selectedLeagueId)) {
+      setSelectedLeagueId(leagues[0].id);
+    }
+  }, [leagues, selectedLeagueId]);
+
+  if (auth.status !== "in") {
+    return (
+      <div className="league-view-empty">
+        <p>Sign in to view your pick'em leagues.</p>
+        <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
+      </div>
+    );
+  }
+
+  if (leagues === null) return <div className="league-view-empty"><p>Loading…</p></div>;
+  if (leaguesError) return <div className="league-view-empty"><p className="leagues-error">{leaguesError}</p></div>;
+
+  if (leagues.length === 0) {
+    return (
+      <div className="league-view-empty">
+        <p>You're not in any leagues yet.</p>
+        <button type="button" className="league-btn league-btn-primary" onClick={onOpenLeagues}>Create or Join a League</button>
+      </div>
+    );
+  }
+
+  const league = leagues.find(l => l.id === selectedLeagueId) || leagues[0];
+
+  return (
+    <div className="league-view">
+      {leagues.length > 1 && (
+        <select
+          className="league-picker-select"
+          value={league.id}
+          onChange={e => setSelectedLeagueId(e.target.value)}
+        >
+          {leagues.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+      )}
+      <LeagueHeader league={league} week={week} onWeekChange={setWeek} onOpenLeagues={onOpenLeagues} />
+      <div className="league-subtabs">
+        <button type="button" className={"league-subtab" + (subTab === "week" ? " active" : "")} onClick={() => setSubTab("week")}>This Week</button>
+        <button type="button" className={"league-subtab" + (subTab === "standings" ? " active" : "")} onClick={() => setSubTab("standings")}>Standings</button>
+      </div>
+      {subTab === "week"
+        ? <LeagueWeekPanel auth={auth} league={league} week={week} />
+        : <LeagueStandingsPanel auth={auth} league={league} />}
+    </div>
+  );
+}
+
 // ---- Roster, depth chart & team news (ESPN public API, no key required) ---
 // Same approach as live scores: fetched directly from the browser, results
 // cached per team for the session so switching tabs doesn't re-fetch. If this
@@ -14780,7 +15268,11 @@ function App() {
       {activeTab === "news" && <NewsView />}
 
       {activeTab === "league" && LEAGUES_UI_ENABLED && (
-        <div className="tab-placeholder">League standings and pick submission are coming soon.</div>
+        <LeagueView
+          auth={auth}
+          onRequestLogin={() => { setPendingLeagueReopen(false); auth.openLogin(); }}
+          onOpenLeagues={() => setShowLeagues(true)}
+        />
       )}
 
       <footer className="app-footer">

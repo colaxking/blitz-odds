@@ -21,6 +21,55 @@ const USER_STORE = "blitz-users";
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O/1/I - avoids ambiguous invite codes
 const CURRENT_SEASON = 2026;
 
+// "ats" is accepted here (schema-complete) but scoringEngine.js throws if
+// actually scored with it - it's gated on point-spread data availability
+// from the odds provider, not yet wired up. See js/scoringEngine.js header.
+const VALID_FORMATS = new Set(["straight_up", "confidence", "survivor", "ats"]);
+const VALID_VISIBILITY = new Set(["private", "public", "invite_only"]);
+const VALID_TIE_BREAKERS = new Set(["most_correct", "fewest_incorrect", null]);
+const DEFAULT_FORMAT = "straight_up";
+
+// Deadlines lock per-game at that game's own kickoff (Dan's call - not a
+// whole-week lock at the first game). "per_game" is the only value
+// implemented; the field exists so a future "whole_week" mode doesn't need
+// a schema migration.
+const VALID_PICK_DEADLINES = new Set(["per_game"]);
+
+function defaultScoringSettings(format: string) {
+  return {
+    pointsPerCorrect: 1,
+    tieHandling: "void", // "void" | "both_correct" | "incorrect"
+    uniqueConfidence: format === "confidence" ? true : undefined,
+    survivorTieHandling: format === "survivor" ? "eliminate" : undefined, // "eliminate" | "survive"
+    survivorShowEliminated: format === "survivor" ? true : undefined,
+    atsEnabled: false,
+  };
+}
+
+function sanitizeScoringSettings(format: string, incoming: any) {
+  const base = defaultScoringSettings(format);
+  if (!incoming || typeof incoming !== "object") return base;
+  const out: any = { ...base };
+  if (typeof incoming.pointsPerCorrect === "number" && incoming.pointsPerCorrect > 0) {
+    out.pointsPerCorrect = incoming.pointsPerCorrect;
+  }
+  if (["void", "both_correct", "incorrect"].includes(incoming.tieHandling)) {
+    out.tieHandling = incoming.tieHandling;
+  }
+  if (format === "confidence" && typeof incoming.uniqueConfidence === "boolean") {
+    out.uniqueConfidence = incoming.uniqueConfidence;
+  }
+  if (format === "survivor") {
+    if (["eliminate", "survive"].includes(incoming.survivorTieHandling)) {
+      out.survivorTieHandling = incoming.survivorTieHandling;
+    }
+    if (typeof incoming.survivorShowEliminated === "boolean") {
+      out.survivorShowEliminated = incoming.survivorShowEliminated;
+    }
+  }
+  return out;
+}
+
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -84,6 +133,20 @@ export default async (req: Request, _context: Context) => {
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 50) : "";
   if (!name) return jsonResponse(400, { ok: false, error: "League name is required" });
 
+  const description = typeof body.description === "string" ? body.description.trim().slice(0, 280) : "";
+
+  const format = VALID_FORMATS.has(body.format) ? body.format : DEFAULT_FORMAT;
+  const visibility = VALID_VISIBILITY.has(body.visibility) ? body.visibility : "private";
+  const pickDeadline = VALID_PICK_DEADLINES.has(body.pickDeadline) ? body.pickDeadline : "per_game";
+  const tieBreaker = VALID_TIE_BREAKERS.has(body.tieBreaker ?? null) ? (body.tieBreaker ?? null) : null;
+
+  let maxMembers: number | null = null;
+  if (typeof body.maxMembers === "number" && body.maxMembers >= 2 && body.maxMembers <= 500) {
+    maxMembers = Math.floor(body.maxMembers);
+  }
+
+  const scoringSettings = sanitizeScoringSettings(format, body.scoringSettings);
+
   const leagueStore = getStore(LEAGUE_STORE);
   const userStore = getStore(USER_STORE);
 
@@ -107,11 +170,19 @@ export default async (req: Request, _context: Context) => {
     const league = {
       id: leagueId,
       name,
+      description,
       ownerId: userId,
       ownerName: displayName,
       season: CURRENT_SEASON,
       inviteCode,
       memberCount: 1,
+      format,
+      visibility,
+      maxMembers,
+      pickDeadline,
+      tieBreaker,
+      scoringSettings,
+      locked: false,
       createdAt: now,
       updatedAt: now,
     };

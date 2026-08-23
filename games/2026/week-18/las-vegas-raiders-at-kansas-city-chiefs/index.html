@@ -789,22 +789,19 @@
   .team-click { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; padding: 0; color: inherit; font: inherit; }
   .team-click:hover .team-name { text-decoration: underline; }
   .badge-wrap { position: relative; width: 46px; height: 46px; }
-  /* Team crest - a badge image (see /team-badges/{TEAM}.png), cropped to
-     a circle. width/height are set inline per instance via the size prop
-     on TeamLogo, so only the shared visual rules live here. background-color
-     (also set inline, team primary color) shows briefly while the image
-     loads and is what remains visible if onError hides a missing image.
-     The ring box-shadow gives every crest the same edge definition against
-     the dark card background regardless of the badge art's own color -
-     without it, dark-toned teams (ATL, LV, PIT, NO, CHI, BAL, etc.) blend
-     into the background at the edges and read visibly smaller than
-     bright-toned teams at the same rendered size. */
+  /* Team crest - a badge image (see /team-badges/{TEAM}.png). The art is a
+     tilted football-with-checkmark badge (not a circular icon), already
+     edge-defined with its own dark outline/shadow, so it's shown in full via
+     object-fit: contain rather than center-cropped into a circle - a cover
+     crop would clip the checkmark tail and the badge's pointed ends.
+     width/height are set inline per instance via the size prop on TeamLogo,
+     so only the shared visual rules live here. background-color (also set
+     inline, team primary color) shows briefly while the image loads and is
+     what remains visible if onError hides a missing image. */
   .team-crest {
-    border-radius: 50%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
     user-select: none; flex-shrink: 0;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.14), 0 1px 4px rgba(0,0,0,0.5);
   }
   .star-btn {
     position: absolute; top: -6px; right: -6px; background: var(--card-bg); border: 1px solid var(--card-border);
@@ -9870,13 +9867,13 @@ function BrandWordmark({ height, className }) {
 
 /** Team crest — a static badge image (custom-designed, non-trademarked
  *  artwork: football texture + team abbreviation, not an NFL/team logo)
- *  served locally from /team-badges/{TEAM}.png. No hotlinking, no network
- *  dependency on a third party, no broken-image fallback needed since the
- *  asset ships with the site. Falls back to the plain-color initial disc
- *  (old behavior) only if a badge image is ever missing for a team id. */
+ *  served locally from /team-badges/{TEAM}.png, transparent PNG with no
+ *  background of its own. No hotlinking, no network dependency on a third
+ *  party. No background color behind it - the badge art doesn't fill its
+ *  whole box (object-fit: contain), so any fill color would show through
+ *  the transparent gaps around the art as a visible colored chip. */
 function TeamLogo({ teamId, size }) {
   const dim = size || 46;
-  const primary = TEAM_COLORS[teamId] || "#666";
   return (
     <img
       className="team-crest"
@@ -9886,8 +9883,7 @@ function TeamLogo({ teamId, size }) {
       height={dim}
       style={{
         width: dim,
-        height: dim,
-        backgroundColor: primary
+        height: dim
       }}
       onError={(e) => { e.target.onerror = null; e.target.style.display = "none"; }}
     />

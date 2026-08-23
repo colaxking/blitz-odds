@@ -1,0 +1,54 @@
+name: Blitz Odds - pick'em league results processing
+
+# Fetches final NFL scores from ESPN for every regular-season week and
+# posts them to results-process.mts, which scores every league's picks
+# for that week and updates standings (see netlify/functions/
+# results-process.mts and scripts/results-process-trigger.mjs).
+#
+# No on-disk mirror to commit here, unlike odds-refresh.yml/
+# history-results-refresh.yml/hotpicks-*.yml - league picks/standings live
+# only in Netlify Blobs (see the "two-layer data architecture" note in the
+# repo's own memory), there's no data/*.json counterpart for this job to
+# keep in sync.
+#
+# Triggered externally, same pattern as every other scheduled task in this
+# repo: GitHub Actions' own `schedule:` cron is unreliable (delayed/skipped
+# on low-traffic repos), so this relies on cron-job.org calling GitHub's
+# REST API to fire workflow_dispatch on a schedule instead of using
+# `schedule:` here. To wire this job up, add a cron-job.org job pointing at:
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/results-process.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+# Suggested cadence: hourly through Thu-Mon game windows (roughly noon Thu
+# UTC through 10am Tue UTC covers Thursday/Sunday/Monday night games) -
+# same window as history-results-refresh.yml/hotpicks-grade.yml, since all
+# three are waiting on the same ESPN final-score signal.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blitz-odds-results-process
+  cancel-in-progress: false
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run results processing
+        env:
+          RESULTS_PROCESS_SECRET: ${{ secrets.RESULTS_PROCESS_SECRET }}
+          # See hotpicks-snapshot.yml - GitHub Actions runners have flaky
+          # IPv6 egress to Netlify that can cause ECONNRESET; force IPv4.
+          NODE_OPTIONS: "--dns-result-order=ipv4first"
+        run: node scripts/results-process-trigger.mjs

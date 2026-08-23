@@ -1,0 +1,1130 @@
+From 4e4ee9952e8c9738c56257fbf08296dd105bd319 Mon Sep 17 00:00:00 2001
+From: colaxking <dan@blitz-odds.com>
+Date: Sun, 23 Aug 2026 20:14:26 +0000
+Subject: [PATCH] Add Phase 1 pick'em league backend: scoring engine,
+ picks/standings functions, schema for Confidence/Survivor/ATS
+
+- js/scoringEngine.js: pure scoring for straight_up/confidence/survivor (ats stubbed pending spread data)
+- js/gameId.js + netlify/functions/lib/gameId.mts: stable {season}-w{week}-{away}-{home} game IDs
+- netlify/functions/lib/kickoff.mts: parses schedule date/time strings into real UTC kickoff instants for deadline enforcement
+- netlify/functions/lib/auth.mts: shared Identity-JWT auth helper
+- netlify/functions/picks-submit.mts: validated pick writes (membership, per-game deadline, valid team, confidence range/uniqueness, survivor duplicate-team prevention)
+- netlify/functions/picks-mine.mts: week's games + caller's picks + live lock state
+- netlify/functions/results-process.mts: secret-protected, idempotent results/standings processor
+- netlify/functions/standings-get.mts: standings + survivor status read endpoint
+- league-create.mts: schema now includes format/visibility/maxMembers/pickDeadline/tieBreaker/scoringSettings
+- league-join.mts: enforces maxMembers + league lock
+---
+ js/gameId.js                          |  29 ++++
+ js/scoringEngine.js                   | 226 ++++++++++++++++++++++++++
+ netlify/functions/league-create.mts   |  71 ++++++++
+ netlify/functions/league-join.mts     |   4 +
+ netlify/functions/lib/auth.mts        |  46 ++++++
+ netlify/functions/lib/gameId.mts      |  27 +++
+ netlify/functions/lib/kickoff.mts     |  86 ++++++++++
+ netlify/functions/picks-mine.mts      |  84 ++++++++++
+ netlify/functions/picks-submit.mts    | 148 +++++++++++++++++
+ netlify/functions/results-process.mts | 182 +++++++++++++++++++++
+ netlify/functions/standings-get.mts   |  83 ++++++++++
+ 11 files changed, 986 insertions(+)
+ create mode 100644 js/gameId.js
+ create mode 100644 js/scoringEngine.js
+ create mode 100644 netlify/functions/lib/auth.mts
+ create mode 100644 netlify/functions/lib/gameId.mts
+ create mode 100644 netlify/functions/lib/kickoff.mts
+ create mode 100644 netlify/functions/picks-mine.mts
+ create mode 100644 netlify/functions/picks-submit.mts
+ create mode 100644 netlify/functions/results-process.mts
+ create mode 100644 netlify/functions/standings-get.mts
+
+diff --git a/js/gameId.js b/js/gameId.js
+new file mode 100644
+index 0000000..fd6844d
+--- /dev/null
++++ b/js/gameId.js
+@@ -0,0 +1,29 @@
++/**
++ * gameId.js
++ *
++ * Mirrors netlify/functions/lib/gameId.mts exactly - the schedule data has
++ * no stable per-game ID, so this is the one place the frontend derives it.
++ * If the format ever changes, both files must change together.
++ */
++(function (root, factory) {
++  if (typeof module === "object" && module.exports) {
++    module.exports = factory();
++  } else {
++    root.GameId = factory();
++  }
++})(typeof self !== "undefined" ? self : this, function () {
++
++  function makeGameId(season, week, away, home) {
++    return season + "-w" + week + "-" + away + "-" + home;
++  }
++
++  function findGameById(games, season, week, gameId) {
++    for (var i = 0; i < games.length; i++) {
++      var g = games[i];
++      if (makeGameId(season, week, g.away, g.home) === gameId) return g;
++    }
++    return null;
++  }
++
++  return { makeGameId: makeGameId, findGameById: findGameById };
++});
+diff --git a/js/scoringEngine.js b/js/scoringEngine.js
+new file mode 100644
+index 0000000..332ad28
+--- /dev/null
++++ b/js/scoringEngine.js
+@@ -0,0 +1,226 @@
++/**
++ * scoringEngine.js
++ *
++ * Pure, framework-agnostic scoring for NFL pick'em leagues. Mirrors the
++ * pattern in predictionEngine.js / hotPicksEngine.js on purpose: no DOM, no
++ * React, usable from a Netlify function (Node) or the browser unchanged.
++ *
++ * This is the ONLY place scoring math should live. netlify/functions/
++ * results-process.mts (authoritative, server-side) and any in-app "live
++ * preview of my points" UI both call into this file, so they can never
++ * silently disagree with each other.
++ *
++ * Formats implemented: straight_up, confidence, survivor.
++ * ats is intentionally not implemented yet - the league-create schema has a
++ * slot for it (format: "ats", scoringSettings.atsEnabled) so no DB shape
++ * change is needed later, but scoreWeek() throws if called with it until
++ * spread data availability from the odds provider is confirmed.
++ */
++(function (root, factory) {
++  if (typeof module === "object" && module.exports) {
++    module.exports = factory();
++  } else {
++    root.ScoringEngine = factory();
++  }
++})(typeof self !== "undefined" ? self : this, function () {
++
++  var SUPPORTED_FORMATS = ["straight_up", "confidence", "survivor"];
++
++  /**
++   * @param {"straight_up"|"confidence"|"survivor"} format
++   * @param {Object} scoringSettings - league.scoringSettings
++   * @param {Object} pick - { team, confidence? }
++   * @param {Object} result - { winner: string|null, tie?: boolean, final: boolean }
++   * @returns {{correct: boolean|null, points: number}} correct is null when
++   *   the pick doesn't count either way (unplayed game, or a void tie).
++   */
++  function scorePick(format, scoringSettings, pick, result) {
++    scoringSettings = scoringSettings || {};
++    if (!result || !result.final) return { correct: null, points: 0 };
++    if (!pick || !pick.team) return { correct: false, points: 0 };
++
++    if (result.tie) {
++      var tieHandling = scoringSettings.tieHandling || "void";
++      if (tieHandling === "void") return { correct: null, points: 0 };
++      if (tieHandling === "both_correct") {
++        return { correct: true, points: pointsForCorrect(format, scoringSettings, pick) };
++      }
++      // tieHandling === "incorrect"
++      return { correct: false, points: 0 };
++    }
++
++    var correct = pick.team === result.winner;
++    if (!correct) return { correct: false, points: 0 };
++    return { correct: true, points: pointsForCorrect(format, scoringSettings, pick) };
++  }
++
++  function pointsForCorrect(format, scoringSettings, pick) {
++    if (format === "confidence") {
++      var pts = Number(pick.confidence);
++      return Number.isFinite(pts) ? pts : 0;
++    }
++    // straight_up and survivor: flat points per correct pick (default 1).
++    // Survivor doesn't really use "points" for its win condition (alive/
++    // eliminated is what matters - see applySurvivorWeek), but a points
++    // value is still returned so Survivor leagues can optionally show a
++    // secondary "weeks survived" style column without a separate code path.
++    var flat = scoringSettings.pointsPerCorrect;
++    return Number.isFinite(flat) ? flat : 1;
++  }
++
++  /**
++   * Scores one user's full week of picks against that week's results.
++   * @param {string} format
++   * @param {Object} scoringSettings
++   * @param {Object.<string,Object>} userPicks - { [gameId]: pick }
++   * @param {Object.<string,Object>} weekResults - { [gameId]: result }
++   * @returns {{points:number, correct:number, incorrect:number, voided:number, accuracy:number}}
++   */
++  function scoreUserWeek(format, scoringSettings, userPicks, weekResults) {
++    if (SUPPORTED_FORMATS.indexOf(format) === -1) {
++      throw new Error("scoreUserWeek: unsupported format \"" + format + "\"");
++    }
++    userPicks = userPicks || {};
++    weekResults = weekResults || {};
++
++    var points = 0, correct = 0, incorrect = 0, voided = 0;
++
++    Object.keys(weekResults).forEach(function (gameId) {
++      var result = weekResults[gameId];
++      var pick = userPicks[gameId];
++      var scored = scorePick(format, scoringSettings, pick, result);
++      if (scored.correct === null) {
++        voided++;
++      } else if (scored.correct) {
++        correct++;
++        points += scored.points;
++      } else {
++        incorrect++;
++      }
++    });
++
++    var decided = correct + incorrect;
++    var accuracy = decided > 0 ? correct / decided : 0;
++
++    return { points: points, correct: correct, incorrect: incorrect, voided: voided, accuracy: accuracy };
++  }
++
++  /**
++   * Scores every league member for one week.
++   * @param {string} format
++   * @param {Object} scoringSettings
++   * @param {Object.<string,Object.<string,Object>>} weekPicks - { [userId]: { [gameId]: pick } }
++   * @param {Object.<string,Object>} weekResults - { [gameId]: result }
++   * @returns {Object.<string,Object>} { [userId]: scoreUserWeek(...) }
++   */
++  function scoreWeek(format, scoringSettings, weekPicks, weekResults) {
++    if (format === "ats") {
++      throw new Error("scoreWeek: ats format is not implemented yet (spread-data dependent)");
++    }
++    weekPicks = weekPicks || {};
++    var out = {};
++    Object.keys(weekPicks).forEach(function (userId) {
++      out[userId] = scoreUserWeek(format, scoringSettings, weekPicks[userId], weekResults);
++    });
++    return out;
++  }
++
++  /**
++   * Ranks a set of per-user week/season totals into { rank, ...totals }[],
++   * sorted by points desc. Tie-breaking beyond points (mostCorrect,
++   * fewestIncorrect) is applied when scores are exactly equal; anything
++   * still tied after that shares a rank (standard "1,2,2,4" competition
++   * ranking) rather than being arbitrarily ordered.
++   * @param {Object.<string,{points:number,correct:number,incorrect:number}>} totals
++   * @param {"most_correct"|"fewest_incorrect"|null} tieBreaker
++   */
++  function rankStandings(totals, tieBreaker) {
++    var rows = Object.keys(totals).map(function (userId) {
++      return Object.assign({ userId: userId }, totals[userId]);
++    });
++
++    rows.sort(function (a, b) {
++      if (b.points !== a.points) return b.points - a.points;
++      if (tieBreaker === "most_correct" && b.correct !== a.correct) return b.correct - a.correct;
++      if (tieBreaker === "fewest_incorrect" && a.incorrect !== b.incorrect) return a.incorrect - b.incorrect;
++      return 0;
++    });
++
++    var rank = 0, lastKey = null, seen = 0;
++    rows.forEach(function (row) {
++      seen++;
++      var key = row.points + ":" + (tieBreaker === "most_correct" ? row.correct : row.incorrect);
++      if (key !== lastKey) {
++        rank = seen;
++        lastKey = key;
++      }
++      row.rank = rank;
++    });
++
++    return rows;
++  }
++
++  /**
++   * Applies one week's Survivor results on top of the running season state.
++   * A user already eliminated in an earlier week is left untouched (they
++   * don't get re-evaluated) so historical elimination weeks stay stable.
++   *
++   * @param {Object.<string,{alive:boolean, usedTeams:string[], eliminatedWeek:number|null}>} state
++   * @param {Object.<string,Object>} weekPicks - { [userId]: { [gameId]: {team} } } (Survivor: one game/team per user per week)
++   * @param {Object.<string,Object>} weekResults - { [gameId]: result }
++   * @param {number} week
++   * @param {"eliminate"|"survive"} tieHandling - Survivor's own tie rule,
++   *   separate from scoringSettings.tieHandling used elsewhere, since a tied
++   *   game is ambiguous for a knockout format specifically.
++   * @returns {Object} updated state (new object; does not mutate input)
++   */
++  function applySurvivorWeek(state, weekPicks, weekResults, week, tieHandling) {
++    tieHandling = tieHandling || "eliminate";
++    weekPicks = weekPicks || {};
++    var next = {};
++
++    Object.keys(state).forEach(function (userId) {
++      next[userId] = Object.assign({}, state[userId], { usedTeams: (state[userId].usedTeams || []).slice() });
++    });
++
++    Object.keys(weekPicks).forEach(function (userId) {
++      var userState = next[userId] || { alive: true, usedTeams: [], eliminatedWeek: null };
++      if (!next[userId]) next[userId] = userState;
++      if (!userState.alive) return; // already out, no re-evaluation
++
++      var gamePicks = weekPicks[userId];
++      var gameId = Object.keys(gamePicks)[0]; // Survivor: exactly one pick per week
++      if (!gameId) return; // no pick made this week - left alive/unresolved; the UI should have blocked this
++      var pick = gamePicks[gameId];
++      var result = weekResults[gameId];
++      if (!result || !result.final) return; // not decided yet
++
++      if (userState.usedTeams.indexOf(pick.team) === -1) {
++        userState.usedTeams.push(pick.team);
++      }
++
++      var survived;
++      if (result.tie) {
++        survived = tieHandling === "survive";
++      } else {
++        survived = pick.team === result.winner;
++      }
++
++      if (!survived) {
++        userState.alive = false;
++        userState.eliminatedWeek = week;
++      }
++    });
++
++    return next;
++  }
++
++  return {
++    SUPPORTED_FORMATS: SUPPORTED_FORMATS,
++    scorePick: scorePick,
++    scoreUserWeek: scoreUserWeek,
++    scoreWeek: scoreWeek,
++    rankStandings: rankStandings,
++    applySurvivorWeek: applySurvivorWeek,
++  };
++});
+diff --git a/netlify/functions/league-create.mts b/netlify/functions/league-create.mts
+index 67e4499..fa24638 100644
+--- a/netlify/functions/league-create.mts
++++ b/netlify/functions/league-create.mts
+@@ -21,6 +21,55 @@ const USER_STORE = "blitz-users";
+ const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O/1/I - avoids ambiguous invite codes
+ const CURRENT_SEASON = 2026;
+ 
++// "ats" is accepted here (schema-complete) but scoringEngine.js throws if
++// actually scored with it - it's gated on point-spread data availability
++// from the odds provider, not yet wired up. See js/scoringEngine.js header.
++const VALID_FORMATS = new Set(["straight_up", "confidence", "survivor", "ats"]);
++const VALID_VISIBILITY = new Set(["private", "public", "invite_only"]);
++const VALID_TIE_BREAKERS = new Set(["most_correct", "fewest_incorrect", null]);
++const DEFAULT_FORMAT = "straight_up";
++
++// Deadlines lock per-game at that game's own kickoff (Dan's call - not a
++// whole-week lock at the first game). "per_game" is the only value
++// implemented; the field exists so a future "whole_week" mode doesn't need
++// a schema migration.
++const VALID_PICK_DEADLINES = new Set(["per_game"]);
++
++function defaultScoringSettings(format: string) {
++  return {
++    pointsPerCorrect: 1,
++    tieHandling: "void", // "void" | "both_correct" | "incorrect"
++    uniqueConfidence: format === "confidence" ? true : undefined,
++    survivorTieHandling: format === "survivor" ? "eliminate" : undefined, // "eliminate" | "survive"
++    survivorShowEliminated: format === "survivor" ? true : undefined,
++    atsEnabled: false,
++  };
++}
++
++function sanitizeScoringSettings(format: string, incoming: any) {
++  const base = defaultScoringSettings(format);
++  if (!incoming || typeof incoming !== "object") return base;
++  const out: any = { ...base };
++  if (typeof incoming.pointsPerCorrect === "number" && incoming.pointsPerCorrect > 0) {
++    out.pointsPerCorrect = incoming.pointsPerCorrect;
++  }
++  if (["void", "both_correct", "incorrect"].includes(incoming.tieHandling)) {
++    out.tieHandling = incoming.tieHandling;
++  }
++  if (format === "confidence" && typeof incoming.uniqueConfidence === "boolean") {
++    out.uniqueConfidence = incoming.uniqueConfidence;
++  }
++  if (format === "survivor") {
++    if (["eliminate", "survive"].includes(incoming.survivorTieHandling)) {
++      out.survivorTieHandling = incoming.survivorTieHandling;
++    }
++    if (typeof incoming.survivorShowEliminated === "boolean") {
++      out.survivorShowEliminated = incoming.survivorShowEliminated;
++    }
++  }
++  return out;
++}
++
+ const CORS_HEADERS: Record<string, string> = {
+   "Access-Control-Allow-Origin": "*",
+   "Access-Control-Allow-Methods": "POST, OPTIONS",
+@@ -84,6 +133,20 @@ export default async (req: Request, _context: Context) => {
+   const name = typeof body.name === "string" ? body.name.trim().slice(0, 50) : "";
+   if (!name) return jsonResponse(400, { ok: false, error: "League name is required" });
+ 
++  const description = typeof body.description === "string" ? body.description.trim().slice(0, 280) : "";
++
++  const format = VALID_FORMATS.has(body.format) ? body.format : DEFAULT_FORMAT;
++  const visibility = VALID_VISIBILITY.has(body.visibility) ? body.visibility : "private";
++  const pickDeadline = VALID_PICK_DEADLINES.has(body.pickDeadline) ? body.pickDeadline : "per_game";
++  const tieBreaker = VALID_TIE_BREAKERS.has(body.tieBreaker ?? null) ? (body.tieBreaker ?? null) : null;
++
++  let maxMembers: number | null = null;
++  if (typeof body.maxMembers === "number" && body.maxMembers >= 2 && body.maxMembers <= 500) {
++    maxMembers = Math.floor(body.maxMembers);
++  }
++
++  const scoringSettings = sanitizeScoringSettings(format, body.scoringSettings);
++
+   const leagueStore = getStore(LEAGUE_STORE);
+   const userStore = getStore(USER_STORE);
+ 
+@@ -107,11 +170,19 @@ export default async (req: Request, _context: Context) => {
+     const league = {
+       id: leagueId,
+       name,
++      description,
+       ownerId: userId,
+       ownerName: displayName,
+       season: CURRENT_SEASON,
+       inviteCode,
+       memberCount: 1,
++      format,
++      visibility,
++      maxMembers,
++      pickDeadline,
++      tieBreaker,
++      scoringSettings,
++      locked: false,
+       createdAt: now,
+       updatedAt: now,
+     };
+diff --git a/netlify/functions/league-join.mts b/netlify/functions/league-join.mts
+index 1dada46..a6c7974 100644
+--- a/netlify/functions/league-join.mts
++++ b/netlify/functions/league-join.mts
+@@ -74,6 +74,7 @@ export default async (req: Request, _context: Context) => {
+ 
+     const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
+     if (!league) return jsonResponse(404, { ok: false, error: "League no longer exists" });
++    if (league.locked) return jsonResponse(403, { ok: false, error: "This league is locked and not accepting new members" });
+ 
+     const membersDoc: any = (await leagueStore.get(`members:${leagueId}`, { type: "json" })) || {
+       leagueId,
+@@ -83,6 +84,9 @@ export default async (req: Request, _context: Context) => {
+     const already = membersDoc.members.find((m: any) => m.userId === userId);
+ 
+     if (!already) {
++      if (typeof league.maxMembers === "number" && membersDoc.members.length >= league.maxMembers) {
++        return jsonResponse(409, { ok: false, error: "This league is full" });
++      }
+       membersDoc.members.push({ userId, displayName, role: "member", joinedAt: now });
+       league.memberCount = membersDoc.members.length;
+       league.updatedAt = now;
+diff --git a/netlify/functions/lib/auth.mts b/netlify/functions/lib/auth.mts
+new file mode 100644
+index 0000000..810735a
+--- /dev/null
++++ b/netlify/functions/lib/auth.mts
+@@ -0,0 +1,46 @@
++// Verifies the caller's Netlify Identity JWT against the site's own hosted
++// Identity (GoTrue) endpoint. context.clientContext.user - what older docs
++// describe - is a v1/Lambda-handler-only mechanism and is never populated
++// for modern v2 "export default" functions. Hitting the Identity endpoint's
++// /user route with the same Bearer token is what GoTrue's own client
++// libraries do internally, and works regardless of function runtime.
++//
++// The existing league-create/league-join/leagues-mine.mts each have their
++// own copy of this function (predating this shared lib). New pick'em
++// functions should import this one instead of copy-pasting again.
++
++export interface AuthClaims {
++  id: string;
++  email?: string;
++  user_metadata?: { full_name?: string };
++  [key: string]: unknown;
++}
++
++export async function getAuthenticatedUser(req: Request): Promise<AuthClaims | null> {
++  const authHeader = req.headers.get("authorization");
++  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) return null;
++  try {
++    const identityUrl = `${new URL(req.url).origin}/.netlify/identity/user`;
++    const res = await fetch(identityUrl, { headers: { Authorization: authHeader } });
++    if (!res.ok) return null;
++    return (await res.json()) as AuthClaims;
++  } catch {
++    return null;
++  }
++}
++
++export function displayNameFromClaims(claims: AuthClaims): string {
++  return claims.user_metadata?.full_name || (claims.email ? claims.email.split("@")[0] : "Player");
++}
++
++export const CORS_HEADERS_BASE: Record<string, string> = {
++  "Access-Control-Allow-Origin": "*",
++  "Access-Control-Allow-Headers": "Content-Type, Authorization",
++};
++
++export function jsonResponse(status: number, body: unknown, extraHeaders: Record<string, string> = {}): Response {
++  return new Response(JSON.stringify(body), {
++    status,
++    headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...CORS_HEADERS_BASE, ...extraHeaders },
++  });
++}
+diff --git a/netlify/functions/lib/gameId.mts b/netlify/functions/lib/gameId.mts
+new file mode 100644
+index 0000000..1f3f2d0
+--- /dev/null
++++ b/netlify/functions/lib/gameId.mts
+@@ -0,0 +1,27 @@
++// The schedule data (data/schedule-full-2026.json / the "schedule" blob key)
++// has no stable per-game ID - just { away, home, date, time, network } under
++// each week. League picks need one ID per game that never changes, so this
++// is the single place that ID gets derived. The frontend's js/gameId.js
++// mirrors this exact format for rendering - keep the two in sync if this
++// ever changes.
++//
++// Format: {season}-w{week}-{away}-{home}
++// e.g. "2026-w3-LAC-KC" for the Week 3 Chargers @ Chiefs game.
++
++export function makeGameId(season: number, week: number, away: string, home: string): string {
++  return `${season}-w${week}-${away}-${home}`;
++}
++
++export interface ScheduleGame {
++  away: string;
++  home: string;
++  date: string;
++  time: string;
++  network?: string;
++  [key: string]: unknown;
++}
++
++/** Looks up a single game by its derived ID within a week's game list. */
++export function findGameById(games: ScheduleGame[], season: number, week: number, gameId: string): ScheduleGame | null {
++  return games.find((g) => makeGameId(season, week, g.away, g.home) === gameId) || null;
++}
+diff --git a/netlify/functions/lib/kickoff.mts b/netlify/functions/lib/kickoff.mts
+new file mode 100644
+index 0000000..be6edc8
+--- /dev/null
++++ b/netlify/functions/lib/kickoff.mts
+@@ -0,0 +1,86 @@
++// Turns the schedule data's display-only date/time strings into an actual
++// UTC Date the pick functions can compare `Date.now()` against.
++//
++// Why this exists: data/schedule-full-2026.json (and the "schedule" key in
++// the blitz-site-data blob store) stores games as
++//   { date: "Sun, Sep 13", time: "1:00 PM ET", ... }
++// which is fine for display but has no year and no real timezone - not
++// usable for a server-side deadline check. This is the one place that
++// logic lives; every pick'em function should import it rather than
++// re-deriving kickoff time.
++//
++// Per-game deadline (not whole-week): each game locks at its own kickoff,
++// per the league-settings default.
++
++const MONTHS: Record<string, number> = {
++  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
++  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
++};
++
++/**
++ * Resolves the actual UTC offset (in minutes, negative = behind UTC) that
++ * America/New_York is observing on a given UTC instant, by asking Intl what
++ * the wall-clock time in that zone is and diffing against the UTC instant
++ * itself. Avoids hand-maintaining DST transition dates.
++ */
++function nyOffsetMinutesAt(utcGuess: Date): number {
++  const dtf = new Intl.DateTimeFormat("en-US", {
++    timeZone: "America/New_York",
++    hour12: false,
++    year: "numeric", month: "2-digit", day: "2-digit",
++    hour: "2-digit", minute: "2-digit", second: "2-digit",
++  });
++  const parts = dtf.formatToParts(utcGuess).reduce<Record<string, string>>((acc, p) => {
++    if (p.type !== "literal") acc[p.type] = p.value;
++    return acc;
++  }, {});
++  const asIfUTC = Date.UTC(
++    Number(parts.year), Number(parts.month) - 1, Number(parts.day),
++    Number(parts.hour), Number(parts.minute), Number(parts.second)
++  );
++  return (asIfUTC - utcGuess.getTime()) / 60000;
++}
++
++/**
++ * @param seasonYear - the NFL season's starting year, e.g. 2026 for the
++ *   2026-27 season. Games in Jan/Feb belong to the following calendar year.
++ * @param dateStr - e.g. "Sun, Sep 13" (weekday prefix is ignored)
++ * @param timeStr - e.g. "1:00 PM ET" (always Eastern in this app's data)
++ * @returns UTC Date for kickoff, or null if either string is unparseable
++ *   (e.g. a flexed/TBD week 16-18 game with a placeholder time).
++ */
++export function parseKickoffUTC(seasonYear: number, dateStr: string, timeStr: string): Date | null {
++  if (!dateStr || !timeStr) return null;
++
++  const dateMatch = dateStr.match(/([A-Za-z]{3})\s+(\d{1,2})/);
++  if (!dateMatch) return null;
++  const month = MONTHS[dateMatch[1]];
++  const day = Number(dateMatch[2]);
++  if (month === undefined || !day) return null;
++
++  const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
++  if (!timeMatch) return null;
++  let hour = Number(timeMatch[1]);
++  const minute = Number(timeMatch[2]);
++  const meridiem = timeMatch[3].toUpperCase();
++  if (meridiem === "PM" && hour !== 12) hour += 12;
++  if (meridiem === "AM" && hour === 12) hour = 0;
++
++  // Jan/Feb games belong to the following calendar year (playoffs/Super Bowl).
++  const calendarYear = month <= 1 ? seasonYear + 1 : seasonYear;
++
++  // First pass: treat the wall-clock time as if it were UTC to get a
++  // same-day instant, then look up the real NY offset for that instant and
++  // correct. One pass is sufficient here since game times never fall near
++  // the 2am DST transition boundary.
++  const guess = new Date(Date.UTC(calendarYear, month, day, hour, minute));
++  const offsetMin = nyOffsetMinutesAt(guess);
++  return new Date(Date.UTC(calendarYear, month, day, hour, minute) - offsetMin * 60000);
++}
++
++/** True once `now` is at or past the game's kickoff (or kickoff is unparseable - fail locked, not open). */
++export function isPastKickoff(seasonYear: number, dateStr: string, timeStr: string, now: Date = new Date()): boolean {
++  const kickoff = parseKickoffUTC(seasonYear, dateStr, timeStr);
++  if (!kickoff) return true;
++  return now.getTime() >= kickoff.getTime();
++}
+diff --git a/netlify/functions/picks-mine.mts b/netlify/functions/picks-mine.mts
+new file mode 100644
+index 0000000..35ee431
+--- /dev/null
++++ b/netlify/functions/picks-mine.mts
+@@ -0,0 +1,84 @@
++import type { Context, Config } from "@netlify/functions";
++import { getStore } from "@netlify/blobs";
++import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
++import { makeGameId } from "./lib/gameId.mts";
++import { isPastKickoff } from "./lib/kickoff.mts";
++
++// GET /.netlify/functions/picks-mine?leagueId={id}&week={n}
++//   -> { ok, week, games: [{ gameId, away, home, date, time, locked, pick }] }
++// One request gives the frontend everything it needs to render the week's
++// game cards - the schedule, each game's live locked/unlocked state, and
++// whatever the caller has already picked - without three separate calls.
++
++const LEAGUE_STORE = "blitz-leagues";
++const SITE_DATA_STORE = "blitz-site-data";
++
++const CORS_HEADERS: Record<string, string> = {
++  ...CORS_HEADERS_BASE,
++  "Access-Control-Allow-Methods": "GET, OPTIONS",
++};
++
++export default async (req: Request, _context: Context) => {
++  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
++  if (req.method !== "GET") return jsonResponse(405, { ok: false, error: "Method not allowed" }, CORS_HEADERS);
++
++  const claims = await getAuthenticatedUser(req);
++  if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" }, CORS_HEADERS);
++  const userId = claims.id;
++
++  const url = new URL(req.url);
++  const leagueId = url.searchParams.get("leagueId") || "";
++  const week = Number(url.searchParams.get("week"));
++  if (!leagueId || !week) return jsonResponse(400, { ok: false, error: "leagueId and week query params are required" }, CORS_HEADERS);
++
++  const leagueStore = getStore(LEAGUE_STORE);
++  const siteDataStore = getStore(SITE_DATA_STORE);
++
++  try {
++    const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
++    if (!league) return jsonResponse(404, { ok: false, error: "League not found" }, CORS_HEADERS);
++
++    const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
++    const isMember = membersDoc?.members?.some((m: any) => m.userId === userId);
++    if (!isMember) return jsonResponse(403, { ok: false, error: "Not a member of this league" }, CORS_HEADERS);
++
++    const schedule: any = await siteDataStore.get("schedule", { type: "json" });
++    const weekEntry = schedule?.weeks?.find((w: any) => w.week === week);
++    if (!weekEntry) return jsonResponse(404, { ok: false, error: `No schedule found for week ${week}` }, CORS_HEADERS);
++
++    const weekPicksDoc: any = await leagueStore.get(`picks:${leagueId}:${week}`, { type: "json" });
++    const userPicks: any = weekPicksDoc?.[userId] || {};
++
++    const games = (weekEntry.games || []).map((g: any) => {
++      const gameId = makeGameId(league.season, week, g.away, g.home);
++      return {
++        gameId,
++        away: g.away,
++        home: g.home,
++        date: g.date,
++        time: g.time,
++        network: g.network || null,
++        locked: isPastKickoff(league.season, g.date, g.time),
++        pick: userPicks[gameId] || null,
++      };
++    });
++
++    const complete = games.filter((g: any) => g.pick).length;
++
++    return jsonResponse(200, {
++      ok: true,
++      week,
++      format: league.format,
++      scoringSettings: league.scoringSettings,
++      totalGames: games.length,
++      picksComplete: complete,
++      games,
++    }, CORS_HEADERS);
++  } catch (err) {
++    return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" }, CORS_HEADERS);
++  }
++};
++
++export const config: Config = {
++  path: "/.netlify/functions/picks-mine",
++};
+diff --git a/netlify/functions/picks-submit.mts b/netlify/functions/picks-submit.mts
+new file mode 100644
+index 0000000..2eaa74f
+--- /dev/null
++++ b/netlify/functions/picks-submit.mts
+@@ -0,0 +1,148 @@
++import type { Context, Config } from "@netlify/functions";
++import { getStore } from "@netlify/blobs";
++import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
++import { makeGameId, findGameById } from "./lib/gameId.mts";
++import { isPastKickoff } from "./lib/kickoff.mts";
++
++// Submits (or autosaves-over) one pick for one game in one league/week.
++// This is the only place a pick is allowed to be written - the client never
++// writes picks:{leagueId}:{week} directly, so every rule below is actually
++// enforced rather than just suggested by the UI.
++//
++// POST /.netlify/functions/picks-submit
++// Body: { leagueId, week, gameId, team, confidence? }
++//
++// Storage (blitz-leagues store, same as league-create/join/leagues-mine):
++//   picks:{leagueId}:{week} -> { [userId]: { [gameId]: { team, confidence?, updatedAt } } }
++// Lock state is never stored - it's derived live from kickoff.mts on every
++// request, so there's no separate "is this locked" flag that can go stale.
++
++const LEAGUE_STORE = "blitz-leagues";
++const SITE_DATA_STORE = "blitz-site-data";
++
++const CORS_HEADERS: Record<string, string> = {
++  ...CORS_HEADERS_BASE,
++  "Access-Control-Allow-Methods": "POST, OPTIONS",
++};
++
++export default async (req: Request, _context: Context) => {
++  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
++  if (req.method !== "POST") return jsonResponse(405, { ok: false, error: "Method not allowed" }, CORS_HEADERS);
++
++  const claims = await getAuthenticatedUser(req);
++  if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" }, CORS_HEADERS);
++  const userId = claims.id;
++
++  let body: any;
++  try {
++    body = await req.json();
++  } catch {
++    return jsonResponse(400, { ok: false, error: "Invalid JSON body" }, CORS_HEADERS);
++  }
++
++  const leagueId = typeof body.leagueId === "string" ? body.leagueId : "";
++  const week = Number(body.week);
++  const gameId = typeof body.gameId === "string" ? body.gameId : "";
++  const team = typeof body.team === "string" ? body.team.toUpperCase() : "";
++  const confidence = body.confidence !== undefined ? Number(body.confidence) : undefined;
++
++  if (!leagueId || !week || !gameId || !team) {
++    return jsonResponse(400, { ok: false, error: "leagueId, week, gameId, and team are required" }, CORS_HEADERS);
++  }
++
++  const leagueStore = getStore(LEAGUE_STORE);
++  const siteDataStore = getStore(SITE_DATA_STORE);
++
++  try {
++    // 1. League + membership check.
++    const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
++    if (!league) return jsonResponse(404, { ok: false, error: "League not found" }, CORS_HEADERS);
++    if (league.locked) return jsonResponse(403, { ok: false, error: "This league is locked" }, CORS_HEADERS);
++
++    const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
++    const isMember = membersDoc?.members?.some((m: any) => m.userId === userId);
++    if (!isMember) return jsonResponse(403, { ok: false, error: "Not a member of this league" }, CORS_HEADERS);
++
++    // 2. Game must actually exist in the schedule for this week, and the
++    //    picked team must actually be one of the two teams playing.
++    const schedule: any = await siteDataStore.get("schedule", { type: "json" });
++    const weekEntry = schedule?.weeks?.find((w: any) => w.week === week);
++    if (!weekEntry) return jsonResponse(400, { ok: false, error: `No schedule found for week ${week}` }, CORS_HEADERS);
++
++    const game = findGameById(weekEntry.games || [], league.season, week, gameId);
++    if (!game) return jsonResponse(400, { ok: false, error: "Game not found for this week" }, CORS_HEADERS);
++    if (team !== game.away.toUpperCase() && team !== game.home.toUpperCase()) {
++      return jsonResponse(400, { ok: false, error: "Selected team is not playing in this game" }, CORS_HEADERS);
++    }
++
++    // 3. Deadline check - per-game, at that game's own kickoff.
++    if (isPastKickoff(league.season, game.date, game.time)) {
++      return jsonResponse(403, { ok: false, error: "Pick deadline has passed for this game" }, CORS_HEADERS);
++    }
++
++    // 4. Confidence-format validation.
++    if (league.format === "confidence") {
++      const maxConfidence = (weekEntry.games || []).length;
++      if (!Number.isInteger(confidence) || confidence < 1 || confidence > maxConfidence) {
++        return jsonResponse(400, { ok: false, error: `Confidence must be an integer between 1 and ${maxConfidence}` }, CORS_HEADERS);
++      }
++    }
++
++    const picksKey = `picks:${leagueId}:${week}`;
++    const weekPicksDoc: any = (await leagueStore.get(picksKey, { type: "json" })) || {};
++    const userPicks: any = weekPicksDoc[userId] || {};
++
++    // (No separate "already locked" check needed here beyond step 3: lock
++    // state isn't stored, it's derived live from kickoff time every request,
++    // so there's nothing that can go stale between an earlier save and now.)
++
++    // 5. Confidence uniqueness, if the league requires it - the new value
++    //    can't collide with confidence already assigned to a DIFFERENT game
++    //    this week.
++    if (league.format === "confidence" && league.scoringSettings?.uniqueConfidence) {
++      const collision = Object.entries(userPicks).find(
++        ([gid, p]: [string, any]) => gid !== gameId && p.confidence === confidence
++      );
++      if (collision) {
++        return jsonResponse(409, { ok: false, error: `Confidence value ${confidence} is already used on another game this week` }, CORS_HEADERS);
++      }
++    }
++
++    // 6. Survivor: the picked team can't have been used already this season
++    //    (any prior week, not just this one) - default rule, always on
++    //    unless a future league setting relaxes it.
++    if (league.format === "survivor") {
++      for (let w = 1; w < week; w++) {
++        const priorDoc: any = await leagueStore.get(`picks:${leagueId}:${w}`, { type: "json" });
++        const priorPick = priorDoc?.[userId] && Object.values(priorDoc[userId])[0];
++        if (priorPick && (priorPick as any).team === team) {
++          return jsonResponse(409, { ok: false, error: `You've already used ${team} in week ${w} - Survivor teams can only be used once per season` }, CORS_HEADERS);
++        }
++      }
++      // Survivor is one pick per week - submitting a new game this week
++      // replaces any other game already picked this week rather than
++      // stacking multiple picks.
++      Object.keys(userPicks).forEach((gid) => {
++        if (gid !== gameId) delete userPicks[gid];
++      });
++    }
++
++    const now = new Date().toISOString();
++    userPicks[gameId] = {
++      team,
++      ...(league.format === "confidence" ? { confidence } : {}),
++      updatedAt: now,
++    };
++    weekPicksDoc[userId] = userPicks;
++
++    await leagueStore.setJSON(picksKey, weekPicksDoc);
++
++    return jsonResponse(200, { ok: true, gameId, pick: userPicks[gameId] }, CORS_HEADERS);
++  } catch (err) {
++    return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" }, CORS_HEADERS);
++  }
++};
++
++export const config: Config = {
++  path: "/.netlify/functions/picks-submit",
++};
+diff --git a/netlify/functions/results-process.mts b/netlify/functions/results-process.mts
+new file mode 100644
+index 0000000..6a1e1fe
+--- /dev/null
++++ b/netlify/functions/results-process.mts
+@@ -0,0 +1,182 @@
++import type { Context, Config } from "@netlify/functions";
++import { getStore } from "@netlify/blobs";
++import { makeGameId } from "./lib/gameId.mts";
++
++// Processes one week's final NFL results across every pick'em league, using
++// the same scoring engine (js/scoringEngine.js) the frontend does. Follows
++// the same secret-header write-endpoint pattern as odds-update.mts /
++// hotpicks-update.mts / site-data-update.mts: an external scheduled script
++// (GitHub Actions, triggered by cron-job.org - see repo memory on why
++// native `schedule:` triggers are avoided) fetches final scores from ESPN
++// and POSTs the distilled winner/tie per game here. This function itself
++// then does the league-specific work (matching against picks, scoring,
++// updating standings) because that needs Blobs access to picks/leagues
++// data the external script doesn't have.
++//
++// POST /.netlify/functions/results-process
++// Header: x-results-process-secret
++// Body: {
++//   season: number,             // defaults to CURRENT_SEASON if omitted
++//   week: number,
++//   results: {
++//     "AWAY-HOME": { winner: "AWAY"|"HOME"|"TIE" }   // team abbrevs, or "TIE"
++//   }
++// }
++//
++// IDEMPOTENCY: each run fully overwrites results:{leagueId}:{week} and
++// standings:{leagueId}.weeks[week] rather than incrementing anything, then
++// recomputes the season total by summing all stored weeks. Running this
++// twice with the same input produces exactly the same output - no
++// double-awarded points.
++
++const LEAGUE_STORE = "blitz-leagues";
++const CURRENT_SEASON = 2026;
++
++// scoringEngine.js is a UMD module (module.exports for Node / window global
++// for the browser) - importing it directly here keeps this function on the
++// exact same scoring logic as the frontend, per the "one scoring engine"
++// requirement rather than a re-implementation.
++// @ts-ignore - plain JS UMD module, no type declarations
++import ScoringEngine from "../../js/scoringEngine.js";
++
++function jsonResponse(status: number, body: unknown) {
++  return new Response(JSON.stringify(body), {
++    status,
++    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
++  });
++}
++
++interface RawResult {
++  winner: string; // team abbrev, or "TIE"
++}
++
++export default async (req: Request, _context: Context) => {
++  if (req.method !== "POST") return jsonResponse(405, { ok: false, error: "Method not allowed" });
++
++  const expectedSecret = process.env.RESULTS_PROCESS_SECRET;
++  if (!expectedSecret) return jsonResponse(500, { ok: false, error: "RESULTS_PROCESS_SECRET not configured on this site" });
++
++  const providedSecret = req.headers.get("x-results-process-secret");
++  if (!providedSecret || providedSecret !== expectedSecret) {
++    return jsonResponse(401, { ok: false, error: "Missing or invalid x-results-process-secret header" });
++  }
++
++  let body: any;
++  try {
++    body = await req.json();
++  } catch {
++    return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
++  }
++
++  const season = typeof body.season === "number" ? body.season : CURRENT_SEASON;
++  const week = Number(body.week);
++  const rawResults: Record<string, RawResult> = body.results;
++  if (!week || !rawResults || typeof rawResults !== "object") {
++    return jsonResponse(400, { ok: false, error: "week and results are required" });
++  }
++
++  const leagueStore = getStore(LEAGUE_STORE);
++
++  // Build { gameId: { winner, tie, final } } once - shared across every league.
++  const weekResults: Record<string, { winner: string | null; tie: boolean; final: boolean }> = {};
++  for (const [awayHome, r] of Object.entries(rawResults)) {
++    const [away, home] = awayHome.split("-");
++    if (!away || !home) continue;
++    const gameId = makeGameId(season, week, away, home);
++    const isTie = r.winner === "TIE";
++    weekResults[gameId] = {
++      winner: isTie ? null : r.winner,
++      tie: isTie,
++      final: true,
++    };
++  }
++
++  const processedLeagues: string[] = [];
++  const errors: Array<{ leagueId: string; error: string }> = [];
++
++  try {
++    for await (const page of leagueStore.list({ prefix: "league:", paginate: true })) {
++      for (const b of page.blobs) {
++        const leagueId = b.key.slice("league:".length);
++        try {
++          await processLeague(leagueStore, leagueId, season, week, weekResults);
++          processedLeagues.push(leagueId);
++        } catch (err) {
++          errors.push({ leagueId, error: err instanceof Error ? err.message : "Unknown error" });
++        }
++      }
++    }
++
++    return jsonResponse(200, { ok: true, season, week, processedLeagues, errors });
++  } catch (err) {
++    return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" });
++  }
++};
++
++async function processLeague(
++  leagueStore: ReturnType<typeof getStore>,
++  leagueId: string,
++  season: number,
++  week: number,
++  weekResults: Record<string, { winner: string | null; tie: boolean; final: boolean }>
++) {
++  const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
++  if (!league || league.season !== season) return; // different season, or league vanished mid-scan
++  if (league.format === "ats") return; // not implemented yet - see scoringEngine.js header
++
++  const weekPicksDoc: any = (await leagueStore.get(`picks:${leagueId}:${week}`, { type: "json" })) || {};
++
++  // 1. Score every member's week.
++  const weekScores = ScoringEngine.scoreWeek(league.format, league.scoringSettings, weekPicksDoc, weekResults);
++
++  await leagueStore.setJSON(`results:${leagueId}:${week}`, {
++    week,
++    results: weekResults,
++    scores: weekScores,
++    processedAt: new Date().toISOString(),
++  });
++
++  // 2. Update standings: overwrite this week's slice, then recompute season
++  //    totals by summing every stored week (not incrementing) - this is
++  //    what makes reruns idempotent.
++  const standingsDoc: any = (await leagueStore.get(`standings:${leagueId}`, { type: "json" })) || { weeks: {} };
++  standingsDoc.weeks[week] = weekScores;
++
++  const seasonTotals: Record<string, { points: number; correct: number; incorrect: number }> = {};
++  for (const wk of Object.keys(standingsDoc.weeks)) {
++    const wkScores = standingsDoc.weeks[wk];
++    for (const userId of Object.keys(wkScores)) {
++      const t = seasonTotals[userId] || (seasonTotals[userId] = { points: 0, correct: 0, incorrect: 0 });
++      t.points += wkScores[userId].points;
++      t.correct += wkScores[userId].correct;
++      t.incorrect += wkScores[userId].incorrect;
++    }
++  }
++  standingsDoc.season = ScoringEngine.rankStandings(seasonTotals, league.tieBreaker);
++  standingsDoc.updatedAt = new Date().toISOString();
++  await leagueStore.setJSON(`standings:${leagueId}`, standingsDoc);
++
++  // 3. Survivor: advance alive/eliminated state.
++  if (league.format === "survivor") {
++    const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
++    let survivorState: any = (await leagueStore.get(`survivor:${leagueId}`, { type: "json" })) || {};
++    // Initialize any member not yet tracked (new joiners, or first week processed).
++    for (const m of membersDoc?.members || []) {
++      if (!survivorState[m.userId]) {
++        survivorState[m.userId] = { alive: true, usedTeams: [], eliminatedWeek: null };
++      }
++    }
++    survivorState = ScoringEngine.applySurvivorWeek(
++      survivorState,
++      weekPicksDoc,
++      weekResults,
++      week,
++      league.scoringSettings?.survivorTieHandling
++    );
++    await leagueStore.setJSON(`survivor:${leagueId}`, survivorState);
++  }
++}
++
++export const config: Config = {
++  path: "/.netlify/functions/results-process",
++};
+diff --git a/netlify/functions/standings-get.mts b/netlify/functions/standings-get.mts
+new file mode 100644
+index 0000000..985a11e
+--- /dev/null
++++ b/netlify/functions/standings-get.mts
+@@ -0,0 +1,83 @@
++import type { Context, Config } from "@netlify/functions";
++import { getStore } from "@netlify/blobs";
++import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
++
++// GET /.netlify/functions/standings-get?leagueId={id}[&week={n}]
++//   -> { ok, format, season: [{userId,rank,points,correct,incorrect}],
++//        week?: {...} (only if ?week= was passed),
++//        survivor?: { [userId]: {alive, usedTeams, eliminatedWeek} } }
++//
++// Reads only - all the actual scoring happens in results-process.mts.
++
++const LEAGUE_STORE = "blitz-leagues";
++
++const CORS_HEADERS: Record<string, string> = {
++  ...CORS_HEADERS_BASE,
++  "Access-Control-Allow-Methods": "GET, OPTIONS",
++};
++
++export default async (req: Request, _context: Context) => {
++  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
++  if (req.method !== "GET") return jsonResponse(405, { ok: false, error: "Method not allowed" }, CORS_HEADERS);
++
++  const claims = await getAuthenticatedUser(req);
++  if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" }, CORS_HEADERS);
++  const userId = claims.id;
++
++  const url = new URL(req.url);
++  const leagueId = url.searchParams.get("leagueId") || "";
++  const week = url.searchParams.get("week") ? Number(url.searchParams.get("week")) : null;
++  if (!leagueId) return jsonResponse(400, { ok: false, error: "leagueId query param is required" }, CORS_HEADERS);
++
++  const leagueStore = getStore(LEAGUE_STORE);
++
++  try {
++    const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
++    if (!league) return jsonResponse(404, { ok: false, error: "League not found" }, CORS_HEADERS);
++
++    const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
++    const isMember = membersDoc?.members?.some((m: any) => m.userId === userId);
++    if (!isMember) return jsonResponse(403, { ok: false, error: "Not a member of this league" }, CORS_HEADERS);
++
++    const standingsDoc: any = (await leagueStore.get(`standings:${leagueId}`, { type: "json" })) || { weeks: {}, season: [] };
++    const memberById = new Map((membersDoc?.members || []).map((m: any) => [m.userId, m.displayName]));
++
++    const seasonWithNames = (standingsDoc.season || []).map((row: any) => ({
++      ...row,
++      displayName: memberById.get(row.userId) || "Player",
++    }));
++
++    const responseBody: any = {
++      ok: true,
++      format: league.format,
++      season: seasonWithNames,
++    };
++
++    if (week) {
++      const weekScores = standingsDoc.weeks?.[week] || {};
++      responseBody.week = Object.keys(weekScores).map((userId2) => ({
++        userId: userId2,
++        displayName: memberById.get(userId2) || "Player",
++        ...weekScores[userId2],
++      }));
++    }
++
++    if (league.format === "survivor") {
++      const survivorState: any = (await leagueStore.get(`survivor:${leagueId}`, { type: "json" })) || {};
++      responseBody.survivor = Object.fromEntries(
++        Object.entries(survivorState).map(([uid, s]: [string, any]) => [
++          uid,
++          { ...s, displayName: memberById.get(uid) || "Player" },
++        ])
++      );
++    }
++
++    return jsonResponse(200, responseBody, CORS_HEADERS);
++  } catch (err) {
++    return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" }, CORS_HEADERS);
++  }
++};
++
++export const config: Config = {
++  path: "/.netlify/functions/standings-get",
++};
+-- 
+2.43.0
+

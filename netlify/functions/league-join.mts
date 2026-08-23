@@ -74,6 +74,7 @@ export default async (req: Request, _context: Context) => {
 
     const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
     if (!league) return jsonResponse(404, { ok: false, error: "League no longer exists" });
+    if (league.locked) return jsonResponse(403, { ok: false, error: "This league is locked and not accepting new members" });
 
     const membersDoc: any = (await leagueStore.get(`members:${leagueId}`, { type: "json" })) || {
       leagueId,
@@ -83,6 +84,9 @@ export default async (req: Request, _context: Context) => {
     const already = membersDoc.members.find((m: any) => m.userId === userId);
 
     if (!already) {
+      if (typeof league.maxMembers === "number" && membersDoc.members.length >= league.maxMembers) {
+        return jsonResponse(409, { ok: false, error: "This league is full" });
+      }
       membersDoc.members.push({ userId, displayName, role: "member", joinedAt: now });
       league.memberCount = membersDoc.members.length;
       league.updatedAt = now;

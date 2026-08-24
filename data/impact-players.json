@@ -1,6 +1,6 @@
 {
   "isDemoData": false,
-  "disclaimer": "Injury statuses reflect training camp/preseason reports as of Aug. 22, 2026 (evening update). Re-checked all currently out/questionable situations league-wide against fresh nfl.com/injuries headlines and insider (Schefter/Rapoport) searches, plus a roster-moves scan - no new status changes found since the afternoon update (Penix Jr.'s Aug. 21 clearance to 11-on-11 work remains the latest confirmed move). Houston signed WR depth (Sterling Shepard, Zay Jones) after Jayden Higgins' season-ending ACL tear, but that doesn't affect any tracked starter. No other roster moves (trades/releases/signings) affected a tracked player. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
+  "disclaimer": "Injury statuses reflect training camp/preseason reports as of Aug. 23, 2026 (evening update). Christian McCaffrey (SF) returned to full practice and is back to active. Added Raiders RB Ashton Jeanty (questionable) after he was helped off Sunday's practice with an apparent right knee injury of undisclosed severity - the team has not yet released details. Refreshed Malik Nabers' (NYG) note with HC John Harbaugh's Aug. 23 comment that he could come out of his non-contact jersey this week. All other currently out/questionable situations re-checked against fresh nfl.com/injuries headlines, insider (Schefter/Rapoport/Pelissero) searches, and a roster-moves scan - no other status changes found since the afternoon update. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
   "players": {
     "NE": [
       {
@@ -41,12 +41,13 @@
         "name": "Christian McCaffrey",
         "position": "RB",
         "impactScore": 9,
-        "status": "questionable",
+        "status": "active",
         "injury": {
-          "type": "Calf/leg tightness (undisclosed body part)",
+          "type": "Calf/leg tightness (recovered)",
           "since": "2026-08-10",
-          "note": "Hasn't practiced since Aug. 10 with what the team calls general 'tightness'; per Ian Rapoport it's real, not a hold-in, though the exact muscle/tendon hasn't been specified. HC Kyle Shanahan says McCaffrey 'would play today' if it were a regular-season week and the team is just being cautious given his 2024 history, when a similar calf issue spiraled into a lost season (4 games, 50 carries). No firm return timetable yet."
-        }
+          "note": "Returned to full practice Aug. 23, taking part in 11-on-11 work including handoffs and routes out of the backfield, after being sidelined since Aug. 10. McCaffrey said the absence was a planned ramp-up rather than a new setback, telling reporters it was 'part of the plan from the jump...to be fresh for the duration.'"
+        },
+        "activatedDate": "2026-08-23"
       },
       {
         "name": "George Kittle",
@@ -185,7 +186,7 @@
         "injury": {
           "type": "Torn ACL",
           "since": "2026-07",
-          "note": "Non-contact tear suffered on the first day of training camp practice \u2014 out for the season. The injury happened during the mandatory acclimation period, which the NFLPA is investigating."
+          "note": "Non-contact tear suffered on the first day of training camp practice — out for the season. The injury happened during the mandatory acclimation period, which the NFLPA is investigating."
         }
       },
       {
@@ -361,7 +362,7 @@
         "injury": {
           "type": "Groin injury",
           "since": "2026-08-19",
-          "note": "Left Wednesday's joint practice vs. Atlanta clutching his groin and did not return; HC Shane Steichen confirmed the injury. Per NFL insider Jordan Schultz, the Colts avoided a critical injury \u2014 Warren is expected to be out roughly a week, not weeks \u2014 though he'll be shut down for the rest of camp/preseason as a precaution. Second-year first-round pick coming off a strong rookie season (76 catches, 817 yards, 5 total TDs) and expected to be a lead target for Daniel Jones; trending toward being ready for the regular season."
+          "note": "Left Wednesday's joint practice vs. Atlanta clutching his groin and did not return; HC Shane Steichen confirmed the injury. Per NFL insider Jordan Schultz, the Colts avoided a critical injury — Warren is expected to be out roughly a week, not weeks — though he'll be shut down for the rest of camp/preseason as a precaution. Second-year first-round pick coming off a strong rookie season (76 catches, 817 yards, 5 total TDs) and expected to be a lead target for Daniel Jones; trending toward being ready for the regular season."
         }
       }
     ],
@@ -485,7 +486,7 @@
         "injury": {
           "type": "Knee flare-up (surgically repaired patellar tendon)",
           "since": "2026-08-04",
-          "note": "Missed his 8th consecutive practice Tuesday (Aug. 18); HC Jim Harbaugh said Slater is working 'off to the sides' and expects him back this weekend. Will miss Thursday's preseason game vs. the 49ers. Slater has downplayed the issue ('nothing crazy'), but the absence has stretched well beyond the original veteran-rest-day framing - worth continuing to monitor given his 2025 patellar tendon tear."
+          "note": "Returned to practice Saturday, Aug. 22 as a limited participant, per HC Jim Harbaugh - his first practice action since missing 8 straight sessions. Worked through individual drills and the first team-drill period before stepping aside; still considered day-to-day, but the return is a positive sign after a knee flare-up in his surgically repaired patellar tendon. No firm timetable yet for a return to full practice."
         }
       },
       {
@@ -514,6 +515,17 @@
         "position": "QB",
         "impactScore": 6,
         "status": "active"
+      },
+      {
+        "name": "Ashton Jeanty",
+        "position": "RB",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Right knee injury (severity undisclosed)",
+          "since": "2026-08-23",
+          "note": "Landed awkwardly diving for a low throw during Sunday's practice and was helped off the field by trainers, unable to put pressure on his right leg. Raiders have not disclosed further detail on severity; rookie RB Mike Washington Jr. took over first-team reps in his absence. No MRI results or return timetable reported yet."
+        }
       }
     ],
     "GB": [
@@ -644,7 +656,7 @@
         "injury": {
           "type": "ACL + meniscus recovery (right knee)",
           "since": "2025-09",
-          "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery to clear scar tissue. Practiced for a second straight day Aug. 19 - in shells, taking team reps and catching passes in 7-on-7 - after his first live reps of camp Aug. 17. HC John Harbaugh says Nabers still needs to \"get bumped around and hit\" in practice before being considered for game action; not yet committed to Week 1 (Sept. 13 vs. Dallas), though the trajectory looks positive."
+          "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery to clear scar tissue. Practiced in team reps for a second straight day Aug. 19, and HC John Harbaugh said Sunday, Aug. 23 that Nabers could come out of his red non-contact jersey at some point this week - another step forward. Still not yet committed to Week 1 (Sept. 13 vs. Dallas), though the trajectory looks positive."
         }
       }
     ],

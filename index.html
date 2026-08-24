@@ -12433,7 +12433,7 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined }) {
   );
 }
 
-function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague }) {
+function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague }) {
   const [createName, setCreateName] = useState("");
   const [createDescription, setCreateDescription] = useState("");
   const [createFormat, setCreateFormat] = useState("straight_up");
@@ -12470,9 +12470,14 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, upsert
       setCreateDescription("");
       setCreateVisibility("private");
       // Reflect it in "Your Leagues" immediately from the response rather
-      // than waiting on a refetch, then select straight into it.
+      // than waiting on a refetch, then select straight into it. No
+      // reloadLeagues() call here on purpose - league-create's response is
+      // already the authoritative record, and a redundant reload that
+      // resolves later can race a still-propagating blob write and clobber
+      // this correct optimistic state with a list that's missing the
+      // league it just returned (see useMyLeagues' upsertLeague for the
+      // same reasoning applied to join/update/delete).
       upsertLeague(data.league);
-      reloadLeagues();
       onSelectLeague(data.league.id);
     } catch (err) {
       setCreateError(err.message || "Failed to create league");
@@ -12493,8 +12498,11 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, upsert
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to leave league");
+      // No reloadLeagues() here either - same reasoning as handleCreate
+      // above, and specifically risky in this direction too: a reload that
+      // resolves before the leave's own blob write has propagated could
+      // bring the just-left league right back into the list.
       removeLeague(league.id);
-      reloadLeagues();
       setPendingLeaveId(null);
     } catch (err) {
       setLeaveErrorId(league.id);
@@ -12612,7 +12620,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, upsert
       <LeagueSearchSection
         auth={auth}
         onRequestLogin={onRequestLogin}
-        onJoined={(league) => { upsertLeague(league); reloadLeagues(); onSelectLeague(league.id); }}
+        onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
       />
 
       <div className="leagues-page-section">
@@ -13195,7 +13203,7 @@ function LeagueStandingsPanel({ auth, league }) {
 // "closing" any of them just returns to the landing page rather than a
 // modal, since the whole tab now behaves like a small nested nav.
 function LeagueView({ auth, onRequestLogin, tz }) {
-  const { leagues, error: leaguesError, reload, upsertLeague, removeLeague } = useMyLeagues(auth);
+  const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   const [selectedLeagueId, setSelectedLeagueId] = useState(null);
   const [managingLeagueId, setManagingLeagueId] = useState(null);
   const [subTab, setSubTab] = useState("week");
@@ -13233,8 +13241,9 @@ function LeagueView({ auth, onRequestLogin, tz }) {
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to leave league");
+      // No reload() here - same reasoning as LeaguesLandingPage's own
+      // handleLeave.
       removeLeague(leagueId);
-      reload();
       setSelectedLeagueId(null);
     } catch (err) {
       // Non-fatal - the Leave button in LeagueHeader will just still be
@@ -13253,8 +13262,8 @@ function LeagueView({ auth, onRequestLogin, tz }) {
             auth={auth}
             league={managingLeague}
             onClose={() => setManagingLeagueId(null)}
-            onUpdated={(updated) => { upsertLeague(updated); reload(); }}
-            onDeleted={(deletedId) => { removeLeague(deletedId); setManagingLeagueId(null); setSelectedLeagueId(null); reload(); }}
+            onUpdated={(updated) => upsertLeague(updated)}
+            onDeleted={(deletedId) => { removeLeague(deletedId); setManagingLeagueId(null); setSelectedLeagueId(null); }}
           />
         </div>
       </div>
@@ -13297,7 +13306,6 @@ function LeagueView({ auth, onRequestLogin, tz }) {
       auth={auth}
       leagues={leagues}
       leaguesError={leaguesError}
-      reloadLeagues={reload}
       upsertLeague={upsertLeague}
       removeLeague={removeLeague}
       onRequestLogin={onRequestLogin}

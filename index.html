@@ -8951,12 +8951,20 @@ function applyDocumentMeta(title, description) {
 
 /** Keeps <title>/description (and their OG/Twitter mirrors) in sync with
  *  whatever the user is actually looking at - the current week on the week
- *  view, or a specific team on the team view - then restores the site
- *  default on unmount/view change. Team names/records come through
- *  baseTeam() so they reflect live-refreshed data. */
-function useDocumentMeta(view, teamId, week, game) {
+ *  view, a specific team on the team view, or the Leagues tab - then
+ *  restores the site default on unmount/view change. Team names/records
+ *  come through baseTeam() so they reflect live-refreshed data. activeTab
+ *  is checked first since it overrides whatever the Games tab's own
+ *  view/teamId/week/game state happens to be sitting at while a different
+ *  tab is open. */
+function useDocumentMeta(activeTab, view, teamId, week, game) {
   useEffect(() => {
-    if (view === "game" && game) {
+    if (activeTab === "league") {
+      applyDocumentMeta(
+        "NFL Pick'em Leagues — Compete With Friends | Blitz Odds",
+        "Create or join a free NFL pick'em league. Confidence, straight-up, survivor, and against-the-spread formats, with weekly picks and season-long standings tracked automatically."
+      );
+    } else if (view === "game" && game) {
       const away = baseTeam(game.awayAbbr);
       const home = baseTeam(game.homeAbbr);
       const awayName = away ? away.name : game.awayAbbr;
@@ -8982,7 +8990,7 @@ function useDocumentMeta(view, teamId, week, game) {
       applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
     }
     return () => applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
-  }, [view, teamId, week, game]);
+  }, [activeTab, view, teamId, week, game]);
 }
 
 /** Injects/updates/removes a single <script type="application/ld+json"> in
@@ -12829,7 +12837,7 @@ function PicksProgressRing({ complete, total, week }) {
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error }) {
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   useEffect(() => {
@@ -12859,10 +12867,17 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
     return teamSpread > 0 ? `+${teamSpread}` : `${teamSpread}`;
   }
 
+  // picks-mine.mts sends date/time as the league's canonical Eastern-time
+  // strings (same source as the main schedule) - re-render them in the
+  // viewer's chosen zone the same way GameCard does, rather than always
+  // showing ET regardless of the timezone picked in Settings.
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
+
   return (
     <div className={"pickem-game-card" + (game.locked ? " is-locked" : "")}>
       <div className="pickem-game-meta">
-        <span>{game.date} · {game.time}</span>
+        <span>{shownTime.date} · {shownTime.time}</span>
         {game.locked && <span className="pickem-lock-tag">🔒 Locked</span>}
       </div>
       <div className="pickem-pick-row">
@@ -12915,7 +12930,7 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
   );
 }
 
-function LeagueWeekPanel({ auth, league, week }) {
+function LeagueWeekPanel({ auth, league, week, tz }) {
   const [data, setData] = useState(null); // null = loading
   const [loadError, setLoadError] = useState(null);
   const [savingGameId, setSavingGameId] = useState(null);
@@ -12999,6 +13014,7 @@ function LeagueWeekPanel({ auth, league, week }) {
           onPick={submitPick}
           saving={savingGameId === game.gameId}
           error={pickErrors[game.gameId]}
+          tz={tz}
         />
       ))}
       <div className="pickem-autosave-note"><span className="pickem-autosave-dot"></span> Picks save automatically</div>
@@ -13076,7 +13092,7 @@ function LeagueStandingsPanel({ auth, league }) {
 // icon on the landing page or "Manage" in the per-league header, and
 // "closing" any of them just returns to the landing page rather than a
 // modal, since the whole tab now behaves like a small nested nav.
-function LeagueView({ auth, onRequestLogin }) {
+function LeagueView({ auth, onRequestLogin, tz }) {
   const { leagues, error: leaguesError, reload, upsertLeague, removeLeague } = useMyLeagues(auth);
   const [selectedLeagueId, setSelectedLeagueId] = useState(null);
   const [managingLeagueId, setManagingLeagueId] = useState(null);
@@ -13085,6 +13101,24 @@ function LeagueView({ auth, onRequestLogin }) {
   const [leavingLeagueId, setLeavingLeagueId] = useState(null);
 
   const myUserId = auth.user && auth.user.id;
+
+  // gtag.js only fires its automatic page_view once, at the initial
+  // document load in <head> - since this tab is reached entirely through
+  // client-side state with no real navigation, GA would otherwise never
+  // record a visit here at all. Firing a virtual pageview on mount (the
+  // GA4-recommended pattern for SPA route changes) makes Leagues show up
+  // in GA like any other page. Fires once per genuine tab visit thanks to
+  // the leagueTabResetKey remount in App - not on every internal state
+  // change within the tab (selecting a league, opening settings, etc).
+  useEffect(() => {
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "page_view", {
+        page_path: "/league",
+        page_title: "NFL Pick'em Leagues — Compete With Friends | Blitz Odds",
+        page_location: window.location.origin + "/#league",
+      });
+    }
+  }, []);
 
   async function handleLeave(leagueId) {
     if (leavingLeagueId) return;
@@ -13146,7 +13180,7 @@ function LeagueView({ auth, onRequestLogin }) {
             <button type="button" className={"league-subtab" + (subTab === "standings" ? " active" : "")} onClick={() => setSubTab("standings")}>Standings</button>
           </div>
           {subTab === "week"
-            ? <LeagueWeekPanel auth={auth} league={league} week={week} />
+            ? <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} />
             : <LeagueStandingsPanel auth={auth} league={league} />}
         </div>
       </div>
@@ -15678,8 +15712,29 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
+  const [leagueTabResetKey, setLeagueTabResetKey] = useState(0);
   const [showTour, setShowTour] = useState(false);
   const tourAutoOfferedRef = useRef(false);
+
+  // Tapping the League tab (or "My Leagues") while already on it is a
+  // no-op for setActiveTab - same value in, no re-render, so LeagueView's
+  // internal selectedLeagueId/managingLeagueId just sit wherever they were,
+  // with no way back to the Leagues landing page except the small
+  // "All Leagues" text link. Bumping this key forces LeagueView to remount
+  // (and its state to reset) any time the tab is (re)selected, so the tab
+  // icon always acts like "go home" the way a mobile tab bar should.
+  function goToLeaguesTab() {
+    setLeagueTabResetKey((k) => k + 1);
+    setActiveTab("league");
+  }
+
+  function selectTab(tab) {
+    if (tab === "league") {
+      goToLeaguesTab();
+      return;
+    }
+    setActiveTab(tab);
+  }
 
   // Keeps the URL hash in sync with the selected tab (replaceState, not
   // pushState, so switching tabs doesn't spam the back button) - this is
@@ -15761,7 +15816,7 @@ function App() {
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
   useLiveWeatherData(); // background-refreshes weather from the live blob store; re-renders the app when they change
-  useDocumentMeta(view, selectedTeamId, selectedWeek, selectedGame); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
+  useDocumentMeta(activeTab, view, selectedTeamId, selectedWeek, selectedGame); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
 
@@ -15874,7 +15929,7 @@ function App() {
         <div className="header-right-cluster">
           <AccountButton
             auth={auth}
-            onOpenLeagues={() => setActiveTab("league")}
+            onOpenLeagues={goToLeaguesTab}
             onOpenSettings={() => setShowSettings(true)}
             onOpenHowItWorks={() => setShowHowItWorks(true)}
             onReplayTour={replayTour}
@@ -15886,7 +15941,7 @@ function App() {
         </div>
       </header>
 
-      <TabBar activeTab={activeTab} onSelectTab={setActiveTab} leaguesEnabled={LEAGUES_UI_ENABLED} />
+      <TabBar activeTab={activeTab} onSelectTab={selectTab} leaguesEnabled={LEAGUES_UI_ENABLED} />
 
       {activeTab === "games" && (
         <>
@@ -15962,7 +16017,7 @@ function App() {
       {activeTab === "news" && <NewsView />}
 
       {activeTab === "league" && LEAGUES_UI_ENABLED && (
-        <LeagueView auth={auth} onRequestLogin={() => auth.openLogin()} />
+        <LeagueView key={leagueTabResetKey} auth={auth} onRequestLogin={() => auth.openLogin()} tz={resolvedTz} />
       )}
 
       <footer className="app-footer">

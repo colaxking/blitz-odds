@@ -1133,6 +1133,30 @@
   .league-format-option.selected { background: rgba(var(--accent-rgb),0.14); border-color: var(--accent); color: var(--accent); }
   .league-format-hint { font-size: 0.78rem; color: var(--text-dim); margin: -2px 0 0; line-height: 1.4; }
 
+  .league-settings-gear {
+    flex-shrink: 0; background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
+    border-radius: 8px; width: 32px; height: 32px; font-size: 0.9rem; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .league-settings-gear:hover { border-color: var(--accent); color: var(--accent); }
+  .league-settings-back {
+    background: none; border: none; color: var(--text-dim); font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; padding: 0 0 14px; display: block;
+  }
+  .league-settings-back:hover { color: var(--accent); }
+  .league-settings-form { display: flex; flex-direction: column; gap: 12px; }
+  .league-settings-row { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); }
+  .league-settings-row-checkbox { flex-direction: row; align-items: center; justify-content: space-between; }
+  .league-settings-row-checkbox input { width: 18px; height: 18px; accent-color: var(--accent); }
+  .league-format-pill-locked { cursor: default; }
+  .league-danger-zone { border-top: 1px dashed var(--card-border); padding-top: 16px; }
+  .league-btn-danger { border-color: var(--out); color: var(--out); }
+  .league-btn-danger:hover:not(:disabled) { background: rgba(var(--out-rgb),0.12); border-color: var(--out); color: var(--out); }
+  .league-delete-confirm { display: flex; flex-direction: column; gap: 8px; font-size: 0.84rem; }
+  .league-delete-confirm p { margin: 0; color: var(--text-dim); }
+  .league-delete-confirm-actions { display: flex; gap: 8px; }
+  .league-delete-confirm-actions .league-btn { flex: 1; }
+
   /* ---- Pick'em league view (This Week / Standings) --------------------- */
   /* Ported from the approved mockup - same tokens as the rest of the app,
      namespaced under league-view-* / pickem-* / standings-* so nothing here
@@ -1206,7 +1230,9 @@
     padding: 12px 8px; border-radius: 10px; border: 1.5px solid var(--card-border);
     background: var(--surface-2); cursor: pointer; transition: border-color 0.12s, background 0.12s;
     position: relative; font: inherit; color: inherit;
+    -webkit-tap-highlight-color: transparent; outline: none;
   }
+  .pickem-pick-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .pickem-pick-option:hover:not(:disabled) { border-color: rgba(var(--accent-rgb),0.5); }
   .pickem-pick-option.selected { border-color: var(--accent); background: rgba(var(--accent-rgb),0.12); box-shadow: 0 0 0 1px var(--accent); }
   .pickem-pick-option:disabled { opacity: 0.55; cursor: default; }
@@ -1224,6 +1250,7 @@
   .pickem-at-sep { display: flex; align-items: center; color: var(--text-dim); font-size: 0.72rem; padding: 0 2px; }
   .pickem-confidence-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--surface-2); border-radius: 8px; padding: 8px 10px; font-size: 0.74rem; }
   .pickem-confidence-label { color: var(--text-dim); font-weight: 600; }
+  .pickem-confidence-needed { color: var(--accent); font-weight: 700; }
   .pickem-confidence-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); border-radius: 6px; padding: 4px 8px; font-size: 0.78rem; font-weight: 700; font-family: inherit; }
   .pickem-pick-error { font-size: 0.68rem; color: var(--out); background: rgba(var(--out-rgb),0.1); border: 1px solid rgba(var(--out-rgb),0.3); border-radius: 6px; padding: 5px 8px; }
   .pickem-autosave-note { font-size: 0.68rem; color: var(--text-dim); display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
@@ -11975,6 +12002,221 @@ const LEAGUE_FORMAT_OPTIONS = [
   { value: "ats", label: "ATS", hint: "Pick against the spread instead of the straight winner." },
 ];
 
+const LEAGUE_TIE_HANDLING_OPTIONS = [
+  { value: "void", label: "Void (no one scores)" },
+  { value: "both_correct", label: "Both/all correct" },
+  { value: "incorrect", label: "Counts as incorrect" },
+];
+const LEAGUE_VISIBILITY_OPTIONS = [
+  { value: "private", label: "Private" },
+  { value: "invite_only", label: "Invite-only" },
+  { value: "public", label: "Public" },
+];
+const LEAGUE_TIE_BREAKER_OPTIONS = [
+  { value: "", label: "None" },
+  { value: "most_correct", label: "Most correct picks" },
+  { value: "fewest_incorrect", label: "Fewest incorrect picks" },
+];
+
+// Owner-only settings + delete for a single league, opened from the
+// gear icon next to a league in "Your Leagues". Everything editable here
+// goes through league-settings-update.mts, which enforces owner-only
+// server-side too (this UI just doesn't render the gear for non-owners).
+// format is deliberately never shown as editable - see
+// league-settings-update.mts's header for why.
+function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
+  const [name, setName] = useState(league.name || "");
+  const [description, setDescription] = useState(league.description || "");
+  const [visibility, setVisibility] = useState(league.visibility || "private");
+  const [maxMembers, setMaxMembers] = useState(league.maxMembers != null ? String(league.maxMembers) : "");
+  const [tieBreaker, setTieBreaker] = useState(league.tieBreaker || "");
+  const [pointsPerCorrect, setPointsPerCorrect] = useState(league.scoringSettings?.pointsPerCorrect ?? 1);
+  const [tieHandling, setTieHandling] = useState(league.scoringSettings?.tieHandling || "void");
+  const [uniqueConfidence, setUniqueConfidence] = useState(league.scoringSettings?.uniqueConfidence !== false);
+  const [survivorTieHandling, setSurvivorTieHandling] = useState(league.scoringSettings?.survivorTieHandling || "eliminate");
+  const [survivorShowEliminated, setSurvivorShowEliminated] = useState(league.scoringSettings?.survivorShowEliminated !== false);
+
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [saved, setSaved] = useState(false);
+
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteName, setDeleteName] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+
+  const formatInfo = LEAGUE_FORMAT_OPTIONS.find(f => f.value === league.format);
+
+  async function handleSave(e) {
+    e.preventDefault();
+    if (!name.trim() || saving) return;
+    setSaving(true);
+    setSaveError(null);
+    setSaved(false);
+    try {
+      const scoringSettings = {
+        pointsPerCorrect: Number(pointsPerCorrect) || 1,
+        tieHandling,
+        ...(league.format === "confidence" ? { uniqueConfidence } : {}),
+        ...(league.format === "survivor" ? { survivorTieHandling, survivorShowEliminated } : {}),
+      };
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-settings-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leagueId: league.id,
+          name: name.trim(),
+          description: description.trim(),
+          visibility,
+          maxMembers: maxMembers.trim() === "" ? null : Number(maxMembers),
+          tieBreaker: tieBreaker || null,
+          scoringSettings,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to save settings");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1800);
+      onUpdated(data.league);
+    } catch (err) {
+      setSaveError(err.message || "Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (deleteName.trim() !== league.name || deleting) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId: league.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to delete league");
+      onDeleted(league.id);
+    } catch (err) {
+      setDeleteError(err.message || "Failed to delete league");
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <>
+      <button type="button" className="league-settings-back" onClick={onClose}>← Back to Leagues</button>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">League Settings</h3>
+        <form className="league-settings-form" onSubmit={handleSave}>
+          <label className="league-settings-row">
+            <span>Name</span>
+            <input type="text" className="league-input" value={name} onChange={e => setName(e.target.value)} maxLength={50} />
+          </label>
+          <label className="league-settings-row">
+            <span>Description</span>
+            <input type="text" className="league-input" value={description} onChange={e => setDescription(e.target.value)} maxLength={280} placeholder="Optional" />
+          </label>
+          <div className="league-settings-row">
+            <span>Format</span>
+            <span className="league-format-pill league-format-pill-locked" title="Format can't be changed after a league is created">
+              {formatInfo ? formatInfo.label : league.format} 🔒
+            </span>
+          </div>
+          <label className="league-settings-row">
+            <span>Visibility</span>
+            <select className="league-input" value={visibility} onChange={e => setVisibility(e.target.value)}>
+              {LEAGUE_VISIBILITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+          <label className="league-settings-row">
+            <span>Max members</span>
+            <input type="number" className="league-input" min={league.memberCount || 2} max={500} value={maxMembers} onChange={e => setMaxMembers(e.target.value)} placeholder="Unlimited" />
+          </label>
+          <label className="league-settings-row">
+            <span>Tiebreaker</span>
+            <select className="league-input" value={tieBreaker} onChange={e => setTieBreaker(e.target.value)}>
+              {LEAGUE_TIE_BREAKER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+          <label className="league-settings-row">
+            <span>Points per correct pick</span>
+            <input type="number" className="league-input" min={1} value={pointsPerCorrect} onChange={e => setPointsPerCorrect(e.target.value)} disabled={league.format === "confidence"} title={league.format === "confidence" ? "Confidence leagues score by each pick's own confidence value" : undefined} />
+          </label>
+          <label className="league-settings-row">
+            <span>Tie handling</span>
+            <select className="league-input" value={tieHandling} onChange={e => setTieHandling(e.target.value)}>
+              {LEAGUE_TIE_HANDLING_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+          {league.format === "confidence" && (
+            <label className="league-settings-row league-settings-row-checkbox">
+              <span>Unique confidence values</span>
+              <input type="checkbox" checked={uniqueConfidence} onChange={e => setUniqueConfidence(e.target.checked)} />
+            </label>
+          )}
+          {league.format === "survivor" && (
+            <>
+              <label className="league-settings-row">
+                <span>On a tie</span>
+                <select className="league-input" value={survivorTieHandling} onChange={e => setSurvivorTieHandling(e.target.value)}>
+                  <option value="eliminate">Eliminate</option>
+                  <option value="survive">Survive</option>
+                </select>
+              </label>
+              <label className="league-settings-row league-settings-row-checkbox">
+                <span>Show eliminated members</span>
+                <input type="checkbox" checked={survivorShowEliminated} onChange={e => setSurvivorShowEliminated(e.target.checked)} />
+              </label>
+            </>
+          )}
+          <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={saving || !name.trim()}>
+            {saving ? "Saving…" : saved ? "Saved!" : "Save Settings"}
+          </button>
+        </form>
+        {saveError && <p className="leagues-error">{saveError}</p>}
+      </div>
+
+      <div className="settings-section league-danger-zone">
+        <h3 className="settings-section-title">Danger Zone</h3>
+        {!confirmingDelete ? (
+          <button type="button" className="league-btn league-btn-danger" onClick={() => setConfirmingDelete(true)}>
+            Delete League
+          </button>
+        ) : (
+          <div className="league-delete-confirm">
+            <p>This permanently deletes <strong>{league.name}</strong> for every member. This can't be undone.</p>
+            <p>Type the league name to confirm:</p>
+            <input
+              type="text"
+              className="league-input"
+              value={deleteName}
+              onChange={e => setDeleteName(e.target.value)}
+              placeholder={league.name}
+            />
+            <div className="league-delete-confirm-actions">
+              <button type="button" className="league-btn" onClick={() => { setConfirmingDelete(false); setDeleteName(""); setDeleteError(null); }}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="league-btn league-btn-danger"
+                disabled={deleteName.trim() !== league.name || deleting}
+                onClick={handleDelete}
+              >
+                {deleting ? "Deleting…" : "Permanently Delete"}
+              </button>
+            </div>
+            {deleteError && <p className="leagues-error">{deleteError}</p>}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 function LeaguesModal({ auth, onClose, onRequestLogin }) {
   const overlayRef = useRef(null);
   const [leagues, setLeagues] = useState(null); // null = loading
@@ -11987,6 +12229,7 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState(null);
   const [copiedCode, setCopiedCode] = useState(null);
+  const [managingLeague, setManagingLeague] = useState(null);
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -12068,7 +12311,21 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
     }
   }
 
-  const body = auth.status !== "in" ? (
+  const body = managingLeague ? (
+    <LeagueSettingsPanel
+      auth={auth}
+      league={managingLeague}
+      onClose={() => setManagingLeague(null)}
+      onUpdated={(updated) => {
+        setLeagues(prev => prev.map(l => l.id === updated.id ? updated : l));
+        setManagingLeague(updated);
+      }}
+      onDeleted={(deletedId) => {
+        setLeagues(prev => prev.filter(l => l.id !== deletedId));
+        setManagingLeague(null);
+      }}
+    />
+  ) : auth.status !== "in" ? (
     <div className="leagues-signed-out">
       <p>Sign in to create or join a pick'em league with friends.</p>
       <button
@@ -12098,6 +12355,17 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
                     {l.memberCount} member{l.memberCount === 1 ? "" : "s"} · {l.season}
                   </span>
                 </div>
+                {l.ownerId === (auth.user && auth.user.id) && (
+                  <button
+                    type="button"
+                    className="league-settings-gear"
+                    onClick={() => setManagingLeague(l)}
+                    title="League settings"
+                    aria-label="League settings"
+                  >
+                    ⚙
+                  </button>
+                )}
                 <button
                   type="button"
                   className="league-invite-chip"
@@ -12368,12 +12636,17 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
       </div>
       {format === "confidence" && (
         <div className="pickem-confidence-row">
-          <span className="pickem-confidence-label">Confidence points</span>
+          <span className="pickem-confidence-label">
+            Confidence points
+            {game.pick?.team && typeof game.pick?.confidence !== "number" && (
+              <span className="pickem-confidence-needed"> · set points to finish this pick</span>
+            )}
+          </span>
           <select
             className="pickem-confidence-select"
             value={pendingConfidence}
             onChange={changeConfidence}
-            disabled={game.locked || !game.pick?.team || saving}
+            disabled={game.locked || saving}
           >
             <option value="" disabled>—</option>
             {Array.from({ length: maxConfidence }, (_, i) => i + 1).map(n => (

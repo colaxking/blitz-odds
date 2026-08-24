@@ -1245,6 +1245,7 @@
   .league-invite-result { font-size: 0.82rem; }
   .league-invite-result p { margin: 0 0 4px; line-height: 1.4; }
   .league-invite-result-ok { color: var(--accent); }
+  .league-invite-panel-standalone { margin-top: 0; padding-top: 0; border-top: none; }
   .league-week-nav {
     display: flex; align-items: center; justify-content: space-between; margin-top: 14px;
     padding-top: 12px; border-top: 1px dashed var(--card-border);
@@ -12287,6 +12288,11 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
         {saveError && <p className="leagues-error">{saveError}</p>}
       </div>
 
+      <div className="settings-section">
+        <h3 className="settings-section-title">Invite Members</h3>
+        <LeagueInvitePanel auth={auth} league={league} showClose={false} />
+      </div>
+
       <div className="settings-section league-danger-zone">
         <h3 className="settings-section-title">Danger Zone</h3>
         {!confirmingDelete ? (
@@ -12827,7 +12833,7 @@ function parseInviteEmails(text) {
   return out;
 }
 
-function LeagueInvitePanel({ auth, league, onClose }) {
+function LeagueInvitePanel({ auth, league, onClose, showClose = true }) {
   const [emailsText, setEmailsText] = useState("");
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null); // { sent: [], failed: [{ email, error }] }
@@ -12860,7 +12866,7 @@ function LeagueInvitePanel({ auth, league, onClose }) {
   }
 
   return (
-    <div className="league-invite-panel">
+    <div className={"league-invite-panel" + (showClose ? "" : " league-invite-panel-standalone")}>
       <form onSubmit={handleSend}>
         <label className="league-settings-row">
           <span>Invite by email</span>
@@ -12878,7 +12884,7 @@ function LeagueInvitePanel({ auth, league, onClose }) {
             : "Each invite includes the league name, description, who invited them, and the invite code to join."}
         </p>
         <div className="league-invite-panel-actions">
-          <button type="button" className="league-btn" onClick={onClose}>Close</button>
+          {showClose && <button type="button" className="league-btn" onClick={onClose}>Close</button>}
           <button type="submit" className="league-btn league-btn-primary" disabled={sending || !parsedCount}>
             {sending ? "Sending…" : parsedCount > 1 ? `Send ${parsedCount} Invites` : "Send Invite"}
           </button>

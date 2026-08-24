@@ -12503,6 +12503,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   const [createDescription, setCreateDescription] = useState("");
   const [createFormat, setCreateFormat] = useState("straight_up");
   const [createVisibility, setCreateVisibility] = useState("private");
+  const [createInviteEmails, setCreateInviteEmails] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
   const [copiedCode, setCopiedCode] = useState(null);
@@ -12531,9 +12532,30 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to create league");
+
+      // Invite emails, if any were entered, are best-effort: the league
+      // itself is already created at this point, so a slow or failed
+      // Resend call shouldn't hold up navigation or read as league
+      // creation having failed. Same "Invite by Email" panel is right
+      // there in the league view/settings to retry if something didn't
+      // go out.
+      const inviteEmails = parseInviteEmails(createInviteEmails);
+      if (inviteEmails.length) {
+        try {
+          await auth.authenticatedFetch("/.netlify/functions/league-invite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ leagueId: data.league.id, emails: inviteEmails }),
+          });
+        } catch {
+          // Swallow - see comment above.
+        }
+      }
+
       setCreateName("");
       setCreateDescription("");
       setCreateVisibility("private");
+      setCreateInviteEmails("");
       // Reflect it in "Your Leagues" immediately from the response rather
       // than waiting on a refetch, then select straight into it. No
       // reloadLeagues() call here on purpose - league-create's response is
@@ -12744,6 +12766,20 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
               </div>
             </label>
             <p className="league-format-hint">{LEAGUE_VISIBILITY_INFO[createVisibility]}</p>
+
+            <label className="league-settings-row" style={{ marginTop: 4 }}>
+              <span>Invite by email (optional)</span>
+              <textarea
+                className="league-textarea"
+                placeholder="friend@email.com, another@email.com"
+                value={createInviteEmails}
+                onChange={e => setCreateInviteEmails(e.target.value)}
+                rows={2}
+              />
+            </label>
+            <p className="league-format-hint">
+              Sent right after the league is created - you can also invite more people later from the league page.
+            </p>
 
             <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={creating || !createName.trim()}>
               {creating ? "Creating…" : "Create League"}

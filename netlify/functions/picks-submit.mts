@@ -16,6 +16,16 @@ import { isPastKickoff } from "./lib/kickoff.mts";
 //   picks:{leagueId}:{week} -> { [userId]: { [gameId]: { team, confidence?, updatedAt } } }
 // Lock state is never stored - it's derived live from kickoff.mts on every
 // request, so there's no separate "is this locked" flag that can go stale.
+//
+// leagueStore uses strong consistency: this function does a read-modify-
+// write on the whole week's picks doc (read weekPicksDoc -> mutate -> write
+// the whole thing back), so a stale eventual-consistency read of an
+// in-flight write from a few seconds earlier would silently clobber it -
+// confirmed happening in practice when two different-game picks were
+// submitted back-to-back (exactly what the UI naturally does: selecting a
+// team then setting its confidence fires two close-together requests).
+// Strong consistency trades a bit of read latency to guarantee this read
+// always sees the most recent write.
 
 const LEAGUE_STORE = "blitz-leagues";
 const SITE_DATA_STORE = "blitz-site-data";
@@ -51,7 +61,7 @@ export default async (req: Request, _context: Context) => {
     return jsonResponse(400, { ok: false, error: "leagueId, week, gameId, and team are required" }, CORS_HEADERS);
   }
 
-  const leagueStore = getStore(LEAGUE_STORE);
+  const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
   const siteDataStore = getStore(SITE_DATA_STORE);
   const oddsStore = getStore(ODDS_STORE);
 

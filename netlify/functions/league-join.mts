@@ -6,6 +6,13 @@ import { getStore } from "@netlify/blobs";
 // than erroring or duplicating your membership row.
 //
 // POST /.netlify/functions/league-join   Body: { inviteCode: string }
+//
+// leagueStore uses strong consistency: this does a read-modify-write on
+// members:{leagueId} (read -> push new member -> write the whole doc back),
+// so two people joining within the same eventual-consistency window could
+// otherwise each read a membersDoc missing the other's not-yet-visible
+// write and clobber it (same failure mode found and fixed in
+// picks-submit.mts for picks).
 
 const LEAGUE_STORE = "blitz-leagues";
 const USER_STORE = "blitz-users";
@@ -62,7 +69,7 @@ export default async (req: Request, _context: Context) => {
   const inviteCode = typeof body.inviteCode === "string" ? body.inviteCode.trim().toUpperCase() : "";
   if (!inviteCode) return jsonResponse(400, { ok: false, error: "Invite code is required" });
 
-  const leagueStore = getStore(LEAGUE_STORE);
+  const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
   const userStore = getStore(USER_STORE);
 
   try {

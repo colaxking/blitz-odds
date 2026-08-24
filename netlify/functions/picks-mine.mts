@@ -39,7 +39,7 @@ export default async (req: Request, _context: Context) => {
   const week = Number(url.searchParams.get("week"));
   if (!leagueId || !week) return jsonResponse(400, { ok: false, error: "leagueId and week query params are required" }, CORS_HEADERS);
 
-  const leagueStore = getStore(LEAGUE_STORE);
+  const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
   const siteDataStore = getStore(SITE_DATA_STORE);
   const oddsStore = getStore(ODDS_STORE);
 

@@ -147,7 +147,7 @@ export default async (req: Request, _context: Context) => {
 
   const scoringSettings = sanitizeScoringSettings(format, body.scoringSettings);
 
-  const leagueStore = getStore(LEAGUE_STORE);
+  const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
   const userStore = getStore(USER_STORE);
 
   try {

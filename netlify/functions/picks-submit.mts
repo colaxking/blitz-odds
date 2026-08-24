@@ -25,8 +25,11 @@ import { isPastKickoff } from "./lib/kickoff.mts";
 // un-racy is for every write to go to its own key - this function's write
 // is now a plain set(), no read-modify-write at all. Reads that need "all
 // of a user's picks this week" (confidence uniqueness, survivor's cross-
-// week check, results-process.mts's scoring) list this prefix instead of
-// reading one combined document.
+// week check) derive every possible key from the schedule and get() each
+// one directly, rather than list()+prefix - live testing showed list()'s
+// own index lags well behind get()'s strong-consistency guarantee, so a
+// get() on an exact known key is the only read path proven to see a write
+// immediately.
 // Lock state is never stored - it's derived live from kickoff.mts on every
 // request, so there's no separate "is this locked" flag that can go stale.
 
@@ -130,9 +133,13 @@ export default async (req: Request, _context: Context) => {
     //    can't collide with confidence already assigned to a DIFFERENT game
     //    this week.
     if (league.format === "confidence" && league.scoringSettings?.uniqueConfidence) {
-      const { blobs } = await leagueStore.list({ prefix: weekPrefix });
-      const others = blobs.filter((b) => b.key !== `${weekPrefix}${gameId}`);
-      const otherPicks: any[] = await Promise.all(others.map((b) => leagueStore.get(b.key, { type: "json" })));
+      const otherGames = (weekEntry.games || []).filter((g: any) =>
+        makeGameId(league.season, week, g.away, g.home) !== gameId
+      );
+      const otherPicks: any[] = await Promise.all(otherGames.map((g: any) => {
+        const gid = makeGameId(league.season, week, g.away, g.home);
+        return leagueStore.get(`${weekPrefix}${gid}`, { type: "json" });
+      }));
       const collision = otherPicks.some((p) => p && p.confidence === confidence);
       if (collision) {
         return jsonResponse(409, { ok: false, error: `Confidence value ${confidence} is already used on another game this week` }, CORS_HEADERS);
@@ -144,23 +151,27 @@ export default async (req: Request, _context: Context) => {
     //    unless a future league setting relaxes it.
     if (league.format === "survivor") {
       for (let w = 1; w < week; w++) {
-        const { blobs } = await leagueStore.list({ prefix: `picks:${leagueId}:${w}:${userId}:` });
-        for (const b of blobs) {
-          const priorPick: any = await leagueStore.get(b.key, { type: "json" });
-          if (priorPick && priorPick.team === team) {
-            return jsonResponse(409, { ok: false, error: `You've already used ${team} in week ${w} - Survivor teams can only be used once per season` }, CORS_HEADERS);
-          }
+        const priorWeekEntry = schedule?.weeks?.find((x: any) => x.week === w);
+        if (!priorWeekEntry) continue;
+        const priorPicks: any[] = await Promise.all((priorWeekEntry.games || []).map((g: any) => {
+          const gid = makeGameId(league.season, w, g.away, g.home);
+          return leagueStore.get(`picks:${leagueId}:${w}:${userId}:${gid}`, { type: "json" });
+        }));
+        const usedThisWeek = priorPicks.find((p) => p && p.team === team);
+        if (usedThisWeek) {
+          return jsonResponse(409, { ok: false, error: `You've already used ${team} in week ${w} - Survivor teams can only be used once per season` }, CORS_HEADERS);
         }
       }
       // Survivor is one pick per week - submitting a new game this week
       // replaces any other game already picked this week rather than
       // stacking multiple picks.
-      const { blobs: thisWeekBlobs } = await leagueStore.list({ prefix: weekPrefix });
-      await Promise.all(
-        thisWeekBlobs
-          .filter((b) => b.key !== `${weekPrefix}${gameId}`)
-          .map((b) => leagueStore.delete(b.key))
+      const otherGamesThisWeek = (weekEntry.games || []).filter((g: any) =>
+        makeGameId(league.season, week, g.away, g.home) !== gameId
       );
+      await Promise.all(otherGamesThisWeek.map((g: any) => {
+        const gid = makeGameId(league.season, week, g.away, g.home);
+        return leagueStore.delete(`${weekPrefix}${gid}`);
+      }));
     }
 
     const now = new Date().toISOString();

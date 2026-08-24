@@ -37,6 +37,7 @@ import { makeGameId } from "./lib/gameId.mts";
 // double-awarded points.
 
 const LEAGUE_STORE = "blitz-leagues";
+const SITE_DATA_STORE = "blitz-site-data";
 const CURRENT_SEASON = 2026;
 
 // scoringEngine.js is a UMD module (module.exports for Node / window global
@@ -85,6 +86,17 @@ export default async (req: Request, _context: Context) => {
   }
 
   const leagueStore = getStore(LEAGUE_STORE);
+  const siteDataStore = getStore(SITE_DATA_STORE);
+
+  // Picks are keyed per game per member per week (see picks-submit.mts) and
+  // there's no reliable way to enumerate "every game a member picked" other
+  // than checking every game that existed that week - live testing showed
+  // list()'s index isn't a safe source of truth for freshly-written keys,
+  // so this fetches the schedule once and every league's picks get read by
+  // direct key from it instead.
+  const schedule: any = await siteDataStore.get("schedule", { type: "json" });
+  const weekEntry = schedule?.weeks?.find((w: any) => w.week === week);
+  const weekGames: Array<{ away: string; home: string }> = weekEntry?.games || [];
 
   // Build { gameId: { winner, tie, final, home, away, homeScore?, awayScore? } }
   // once - shared across every league. home/away/scores are only used by ats
@@ -117,7 +129,7 @@ export default async (req: Request, _context: Context) => {
       for (const b of page.blobs) {
         const leagueId = b.key.slice("league:".length);
         try {
-          await processLeague(leagueStore, leagueId, season, week, weekResults);
+          await processLeague(leagueStore, leagueId, season, week, weekGames, weekResults);
           processedLeagues.push(leagueId);
         } catch (err) {
           errors.push({ leagueId, error: err instanceof Error ? err.message : "Unknown error" });
@@ -136,6 +148,7 @@ async function processLeague(
   leagueId: string,
   season: number,
   week: number,
+  weekGames: Array<{ away: string; home: string }>,
   weekResults: Record<string, { winner: string | null; tie: boolean; final: boolean }>
 ) {
   const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
@@ -143,25 +156,22 @@ async function processLeague(
 
   // Picks live one key per game per member per week
   // (picks:{leagueId}:{week}:{userId}:{gameId} - see picks-submit.mts for
-  // why), so building weekPicksDoc means listing each current member's
-  // prefix, fetching every game key under it, and reassembling the
-  // { [userId]: { [gameId]: pick } } shape scoreWeek expects. Member list
-  // is fetched here rather than derived from the listed keys - it's the
-  // same list this function already needs for the Survivor step below.
+  // why). Reassembling { [userId]: { [gameId]: pick } } means, for every
+  // current member, a direct get() on every game that existed this week
+  // (derived from the schedule, not list()) and keeping whichever ones
+  // actually have a pick stored.
   const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
   const memberIds: string[] = (membersDoc?.members || []).map((m: any) => m.userId);
 
   const weekPicksDoc: Record<string, any> = {};
   await Promise.all(memberIds.map(async (userId) => {
-    const prefix = `picks:${leagueId}:${week}:${userId}:`;
-    const { blobs } = await leagueStore.list({ prefix });
-    if (blobs.length === 0) return;
     const userPicks: Record<string, any> = {};
-    await Promise.all(blobs.map(async (b) => {
-      const gid = b.key.slice(prefix.length);
-      userPicks[gid] = await leagueStore.get(b.key, { type: "json" });
+    await Promise.all(weekGames.map(async (g) => {
+      const gid = makeGameId(season, week, g.away, g.home);
+      const pick = await leagueStore.get(`picks:${leagueId}:${week}:${userId}:${gid}`, { type: "json" });
+      if (pick) userPicks[gid] = pick;
     }));
-    weekPicksDoc[userId] = userPicks;
+    if (Object.keys(userPicks).length > 0) weekPicksDoc[userId] = userPicks;
   }));
 
   // 1. Score every member's week.

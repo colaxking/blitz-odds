@@ -11,17 +11,19 @@ import { isPastKickoff } from "./lib/kickoff.mts";
 // game cards - the schedule, each game's live locked/unlocked state, and
 // whatever the caller has already picked - without three separate calls.
 // Reads picks:{leagueId}:{week}:{userId}:{gameId} - one key per game per
-// member per week (see picks-submit.mts for the full history: first tried
-// one key per league+week, then one key per user+week, and live testing
-// broke both - any key two in-flight requests can both read-modify-write
-// is a race). Listed by prefix and fetched individually rather than one
-// combined document. ats leagues additionally get each game's current
-// favorite/spread (for display before a pick is made - the actual grading
-// line is whatever gets snapshotted onto the pick at submit time, see
-// picks-submit.mts). survivor leagues additionally get usedTeams, the same
-// season-wide "already picked" set picks-submit.mts enforces server-side,
-// so the UI can disable those teams before a submit gets rejected rather
-// than only after.
+// member per week (see picks-submit.mts for the full history of why).
+// Fetched by direct get() on every possible key derived from the schedule
+// (not list()+prefix) - live testing showed list()'s own index lags well
+// behind get()'s strong-consistency guarantee, so a get() on the exact key
+// is the only read path here proven to see a write immediately. This means
+// one get() per game in the relevant week(s) instead of one list() call,
+// which is more requests but every one of them is a targeted, known key.
+// ats leagues additionally get each game's current favorite/spread (for
+// display before a pick is made - the actual grading line is whatever gets
+// snapshotted onto the pick at submit time, see picks-submit.mts). survivor
+// leagues additionally get usedTeams, the same season-wide "already picked"
+// set picks-submit.mts enforces server-side, so the UI can disable those
+// teams before a submit gets rejected rather than only after.
 
 const LEAGUE_STORE = "blitz-leagues";
 const SITE_DATA_STORE = "blitz-site-data";
@@ -61,14 +63,13 @@ export default async (req: Request, _context: Context) => {
     const weekEntry = schedule?.weeks?.find((w: any) => w.week === week);
     if (!weekEntry) return jsonResponse(404, { ok: false, error: `No schedule found for week ${week}` }, CORS_HEADERS);
 
-    // Fetch every pick this user has made this week: list the prefix, then
-    // get() each key individually and index by the gameId suffix.
-    const weekPrefix = `picks:${leagueId}:${week}:${userId}:`;
-    const { blobs: weekBlobs } = await leagueStore.list({ prefix: weekPrefix });
+    // Fetch every pick this user has made this week - direct get() on every
+    // game's own key (see header note on why not list()).
     const userPicks: Record<string, any> = {};
-    await Promise.all(weekBlobs.map(async (b) => {
-      const gid = b.key.slice(weekPrefix.length);
-      userPicks[gid] = await leagueStore.get(b.key, { type: "json" });
+    await Promise.all((weekEntry.games || []).map(async (g: any) => {
+      const gid = makeGameId(league.season, week, g.away, g.home);
+      const pick = await leagueStore.get(`picks:${leagueId}:${week}:${userId}:${gid}`, { type: "json" });
+      if (pick) userPicks[gid] = pick;
     }));
 
     // ats: pull current spreads so unpicked games can still show a line.
@@ -103,11 +104,13 @@ export default async (req: Request, _context: Context) => {
     if (league.format === "survivor") {
       const seen = new Set<string>();
       for (let w = 1; w < week; w++) {
-        const { blobs } = await leagueStore.list({ prefix: `picks:${leagueId}:${w}:${userId}:` });
-        for (const b of blobs) {
-          const priorPick: any = await leagueStore.get(b.key, { type: "json" });
-          if (priorPick?.team) seen.add(priorPick.team);
-        }
+        const priorWeekEntry = schedule?.weeks?.find((x: any) => x.week === w);
+        if (!priorWeekEntry) continue;
+        const priorPicks = await Promise.all((priorWeekEntry.games || []).map((g: any) => {
+          const gid = makeGameId(league.season, w, g.away, g.home);
+          return leagueStore.get(`picks:${leagueId}:${w}:${userId}:${gid}`, { type: "json" });
+        }));
+        priorPicks.forEach((p: any) => { if (p?.team) seen.add(p.team); });
       }
       usedTeams = [...seen];
     }

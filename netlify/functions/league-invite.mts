@@ -25,6 +25,11 @@ import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/aut
 const LEAGUE_STORE = "blitz-leagues";
 const RESEND_API_URL = "https://api.resend.com/emails";
 const FROM_EMAIL = "Blitz Odds <invites@blitz-odds.com>";
+// Explicit even though it matches FROM_EMAIL by default - domain now has
+// receiving enabled in Resend, so replies to this address actually land
+// somewhere instead of bouncing, and an explicit reply-to (vs. relying on
+// the from address) is itself a small deliverability signal.
+const REPLY_TO = "invites@blitz-odds.com";
 const SITE_URL = "https://blitz-odds.com";
 // Cropped/downscaled copy of the site's dark-background wordmark
 // (branding/blitz-odds-wordmark-dark.svg), sized for an email header
@@ -100,7 +105,13 @@ function buildInviteEmail(league: any, inviterName: string) {
         </p>
         ${descriptionHtml}
         ${joinHtml}
-        <p style="margin:24px 0 0;font-size:12px;color:#8b949e;">Blitz Odds - free NFL pick'em confidence tool and odds analyzer.</p>
+        <p style="margin:24px 0 0;font-size:12px;color:#8b949e;">
+          Blitz Odds - free NFL pick'em confidence tool and odds analyzer.
+        </p>
+        <p style="margin:6px 0 0;font-size:11px;color:#b1bac4;">
+          You're receiving this because ${escapeHtml(inviterName)} invited you to a league on Blitz Odds.
+          Questions? Just reply to this email.
+        </p>
       </div>
     </div>`;
 
@@ -113,6 +124,8 @@ function buildInviteEmail(league: any, inviterName: string) {
     isPrivate
       ? `Invite code: ${league.inviteCode}\nSign in at ${SITE_URL}, open the Leagues tab, and enter this code to join.`
       : `Sign in at ${SITE_URL}, open the Leagues tab, and search for "${league.name}" under Search Leagues to join.`,
+    "",
+    `You're receiving this because ${inviterName} invited you to a league on Blitz Odds. Questions? Just reply to this email.`,
   ].filter((line) => line !== null).join("\n");
 
   return { subject, html, text };
@@ -189,7 +202,7 @@ export default async (req: Request, _context: Context) => {
         const res = await fetch(RESEND_API_URL, {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ from: FROM_EMAIL, to: [toEmail], subject, html, text }),
+          body: JSON.stringify({ from: FROM_EMAIL, to: [toEmail], reply_to: REPLY_TO, subject, html, text }),
         });
         if (!res.ok) {
           let detail = "";

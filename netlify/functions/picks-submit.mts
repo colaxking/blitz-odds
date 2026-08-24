@@ -98,8 +98,14 @@ export default async (req: Request, _context: Context) => {
       return jsonResponse(403, { ok: false, error: "Pick deadline has passed for this game" }, CORS_HEADERS);
     }
 
-    // 4. Confidence-format validation.
-    if (league.format === "confidence") {
+    // 4. Confidence-format validation - only enforced when a value is
+    //    actually being set. A confidence-format pick can be submitted with
+    //    just a team and no confidence yet (this is exactly what happens on
+    //    the very first tap in the UI, before the confidence selector has a
+    //    value) - rejecting that outright would make it impossible to ever
+    //    get past the first pick, since the selector itself only enables
+    //    once a team is already picked.
+    if (league.format === "confidence" && confidence !== undefined) {
       const maxConfidence = (weekEntry.games || []).length;
       if (!Number.isInteger(confidence) || confidence < 1 || confidence > maxConfidence) {
         return jsonResponse(400, { ok: false, error: `Confidence must be an integer between 1 and ${maxConfidence}` }, CORS_HEADERS);
@@ -131,8 +137,10 @@ export default async (req: Request, _context: Context) => {
 
     // 5. Confidence uniqueness, if the league requires it - the new value
     //    can't collide with confidence already assigned to a DIFFERENT game
-    //    this week.
-    if (league.format === "confidence" && league.scoringSettings?.uniqueConfidence) {
+    //    this week. Only checked when a value is actually being set (see
+    //    step 4) - two team-only picks with no confidence yet aren't a real
+    //    collision.
+    if (league.format === "confidence" && league.scoringSettings?.uniqueConfidence && confidence !== undefined) {
       const otherGames = (weekEntry.games || []).filter((g: any) =>
         makeGameId(league.season, week, g.away, g.home) !== gameId
       );

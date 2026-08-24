@@ -111,7 +111,12 @@ export default async (req: Request, _context: Context) => {
       };
     });
 
-    const complete = games.filter((g: any) => g.pick).length;
+    // A confidence-format pick with a team but no confidence value yet
+    // (allowed - see picks-submit.mts) isn't actually complete for scoring
+    // purposes, so it shouldn't count toward "picks complete" either.
+    const complete = games.filter((g: any) =>
+      g.pick && (league.format !== "confidence" || typeof g.pick.confidence === "number")
+    ).length;
 
     // survivor: season-wide used teams (any prior week, mirrors the same
     // check picks-submit.mts enforces) so the client can disable those team

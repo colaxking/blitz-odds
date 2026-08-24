@@ -1139,11 +1139,6 @@
     align-items: center; justify-content: center;
   }
   .league-settings-gear:hover { border-color: var(--accent); color: var(--accent); }
-  .league-settings-back {
-    background: none; border: none; color: var(--text-dim); font-size: 0.82rem; font-weight: 700;
-    cursor: pointer; padding: 0 0 14px; display: block;
-  }
-  .league-settings-back:hover { color: var(--accent); }
   .league-settings-form { display: flex; flex-direction: column; gap: 12px; }
   .league-settings-row { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); }
   .league-settings-row-checkbox { flex-direction: row; align-items: center; justify-content: space-between; }
@@ -1156,6 +1151,63 @@
   .league-delete-confirm p { margin: 0; color: var(--text-dim); }
   .league-delete-confirm-actions { display: flex; gap: 8px; }
   .league-delete-confirm-actions .league-btn { flex: 1; }
+
+  /* ---- Leagues landing page (replaces the old Leagues popup) ----------- */
+  .leagues-page { max-width: 640px; margin: 18px auto 0; display: flex; flex-direction: column; gap: 18px; }
+  .leagues-page-intro { color: var(--text-dim); font-size: 0.88rem; line-height: 1.5; margin: -8px 0 0; }
+  .leagues-page-section {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 18px 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  }
+  .leagues-page-section-title { font-size: 1rem; font-weight: 800; margin: 0 0 4px; }
+  .leagues-page-section-sub { font-size: 0.78rem; color: var(--text-dim); margin: 0 0 14px; line-height: 1.4; }
+  .leagues-page-signin-banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    background: rgba(var(--accent-rgb),0.08); border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 12px 14px; font-size: 0.85rem; color: var(--text-dim);
+  }
+  .leagues-page-signin-banner strong { color: var(--text); }
+
+  .league-list-item-btn {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; background: none;
+    color: inherit; text-align: left; cursor: pointer; font: inherit;
+  }
+  .league-list-item-btn:hover, .league-list-item-btn:focus-visible { border-color: var(--accent); }
+  .league-search-item-desc {
+    font-size: 0.76rem; color: var(--text-dim); margin: 2px 0 0; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .league-search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .league-search-item-tags { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+  .league-invite-toggle {
+    background: none; border: none; color: var(--accent); font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; padding: 0; margin: 12px 0 0;
+  }
+
+  .league-leave-confirm {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    font-size: 0.84rem;
+  }
+  .league-leave-confirm-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+  .league-visibility-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .league-visibility-option {
+    background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
+    border-radius: 8px; padding: 8px 6px; font-size: 0.76rem; font-weight: 700; cursor: pointer; text-align: center;
+  }
+  .league-visibility-option:hover { border-color: var(--accent); }
+  .league-visibility-option.selected { background: rgba(var(--accent-rgb),0.14); border-color: var(--accent); color: var(--accent); }
+
+  .league-textarea {
+    width: 100%; box-sizing: border-box; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 16px; font-family: inherit;
+    resize: vertical; min-height: 52px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .league-textarea { font-size: 0.88rem; }
+  }
+  .league-textarea:focus-visible { outline: none; border-color: var(--accent); }
 
   /* ---- Pick'em league view (This Week / Standings) --------------------- */
   /* Ported from the approved mockup - same tokens as the rest of the app,
@@ -1243,6 +1295,18 @@
   }
   .pickem-team-name { font-size: 0.78rem; font-weight: 700; text-align: center; line-height: 1.2; }
   .pickem-team-spread { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .pickem-team-prob { font-size: 0.66rem; font-weight: 700; color: var(--text-dim); }
+  .pickem-team-prob.is-favored { color: var(--win); }
+  .pickem-prob-bar-wrap { display: flex; align-items: center; gap: 6px; font-size: 0.62rem; color: var(--text-dim); }
+  .pickem-prob-bar { flex: 1; height: 4px; border-radius: 3px; background: var(--lose); overflow: hidden; display: flex; }
+  .pickem-prob-bar > div { height: 100%; }
+  .pickem-suggested-chip {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 0.64rem; font-weight: 700;
+    color: var(--accent); background: rgba(var(--accent-rgb),0.12); border: 1px solid rgba(var(--accent-rgb),0.35);
+    border-radius: 6px; padding: 2px 7px; cursor: pointer; margin-left: 6px;
+  }
+  .pickem-suggested-chip:hover { background: rgba(var(--accent-rgb),0.2); }
+  .pickem-suggested-chip:disabled { opacity: 0.5; cursor: default; }
   .pickem-team-used-tag {
     font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
     color: var(--out); background: rgba(var(--out-rgb), 0.12); border-radius: 5px; padding: 1px 6px;
@@ -8933,12 +8997,20 @@ function applyDocumentMeta(title, description) {
 
 /** Keeps <title>/description (and their OG/Twitter mirrors) in sync with
  *  whatever the user is actually looking at - the current week on the week
- *  view, or a specific team on the team view - then restores the site
- *  default on unmount/view change. Team names/records come through
- *  baseTeam() so they reflect live-refreshed data. */
-function useDocumentMeta(view, teamId, week, game) {
+ *  view, a specific team on the team view, or the Leagues tab - then
+ *  restores the site default on unmount/view change. Team names/records
+ *  come through baseTeam() so they reflect live-refreshed data. activeTab
+ *  is checked first since it overrides whatever the Games tab's own
+ *  view/teamId/week/game state happens to be sitting at while a different
+ *  tab is open. */
+function useDocumentMeta(activeTab, view, teamId, week, game) {
   useEffect(() => {
-    if (view === "game" && game) {
+    if (activeTab === "league") {
+      applyDocumentMeta(
+        "NFL Pick'em Leagues — Compete With Friends | Blitz Odds",
+        "Create or join a free NFL pick'em league. Confidence, straight-up, survivor, and against-the-spread formats, with weekly picks and season-long standings tracked automatically."
+      );
+    } else if (view === "game" && game) {
       const away = baseTeam(game.awayAbbr);
       const home = baseTeam(game.homeAbbr);
       const awayName = away ? away.name : game.awayAbbr;
@@ -8964,7 +9036,7 @@ function useDocumentMeta(view, teamId, week, game) {
       applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
     }
     return () => applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
-  }, [view, teamId, week, game]);
+  }, [activeTab, view, teamId, week, game]);
 }
 
 /** Injects/updates/removes a single <script type="application/ld+json"> in
@@ -11992,11 +12064,33 @@ function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode,
 // pick submission and standings are a separate, later view.
 
 const LEAGUE_FORMAT_OPTIONS = [
-  { value: "straight_up", label: "Straight-Up", hint: "Pick the winner of every game." },
-  { value: "confidence", label: "Confidence", hint: "Rank your picks 1-N points; nail your most confident calls for the biggest payoff." },
-  { value: "survivor", label: "Survivor", hint: "One pick a week. Lose and you're out - each team can only be used once all season." },
-  { value: "ats", label: "ATS", hint: "Pick against the spread instead of the straight winner." },
+  {
+    value: "straight_up",
+    label: "Straight-Up",
+    hint: "Pick the winner of every game. Most correct picks wins - simplest format, great for casual groups.",
+  },
+  {
+    value: "confidence",
+    label: "Confidence",
+    hint: "Pick a winner for every game and rank your picks 1 through the number of games that week. Your most confident pick is worth the most points, so nailing it pays off big - but a bold call gone wrong costs you more too.",
+  },
+  {
+    value: "survivor",
+    label: "Survivor",
+    hint: "Pick one team to win each week. Lose and you're eliminated. Each team can only be used once all season, so the real game is pacing yourself - save your safest picks for the toughest weeks.",
+  },
+  {
+    value: "ats",
+    label: "ATS",
+    hint: "Pick against the spread instead of just the straight-up winner - a favorite has to win by more than the spread to \"cover.\" Every pick is closer to 50/50, so it rewards sharper analysis over just picking favorites.",
+  },
 ];
+
+const LEAGUE_VISIBILITY_INFO = {
+  private: "Only visible to people you invite with a code. Won't show up in search.",
+  invite_only: "Won't show up in search, but anyone with the invite code can join.",
+  public: "Anyone can find and join it from the Search Leagues section - no code needed.",
+};
 
 const LEAGUE_TIE_HANDLING_OPTIONS = [
   { value: "void", label: "Void (no one scores)" },
@@ -12102,7 +12196,10 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
 
   return (
     <>
-      <button type="button" className="league-settings-back" onClick={onClose}>← Back to Leagues</button>
+      <button className="back-btn" onClick={onClose}>
+        <ChevronIcon direction="left" size={13} />
+        <span>Back to League</span>
+      </button>
 
       <div className="settings-section">
         <h3 className="settings-section-title">League Settings</h3>
@@ -12213,46 +12310,182 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
   );
 }
 
-function LeaguesModal({ auth, onClose, onRequestLogin }) {
-  const overlayRef = useRef(null);
-  const [leagues, setLeagues] = useState(null); // null = loading
-  const [loadError, setLoadError] = useState(null);
-  const [createName, setCreateName] = useState("");
-  const [createFormat, setCreateFormat] = useState("straight_up");
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState(null);
+// The Leagues landing page - what the "League" tab shows before a specific
+// league is selected. Replaces the old LeaguesModal popup: same create/join/
+// manage functionality, but as a full page so it can also host public league
+// search/browse for signed-out visitors (search is open to everyone; join,
+// create, and "Your Leagues" require sign-in - enforced both here and
+// server-side by the functions themselves).
+function LeagueSearchSection({ auth, onRequestLogin, onJoined }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState(null); // null = not searched yet
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const [joiningId, setJoiningId] = useState(null);
+  const [joinErrorId, setJoinErrorId] = useState(null);
+  const [showCodeForm, setShowCodeForm] = useState(false);
   const [joinCode, setJoinCode] = useState("");
-  const [joining, setJoining] = useState(false);
-  const [joinError, setJoinError] = useState(null);
-  const [copiedCode, setCopiedCode] = useState(null);
-  const [managingLeague, setManagingLeague] = useState(null);
+  const [joiningCode, setJoiningCode] = useState(false);
+  const [joinCodeError, setJoinCodeError] = useState(null);
+  const debounceRef = useRef(null);
 
-  useEffect(() => {
-    function onKeyDown(e) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", onKeyDown);
-    lockBodyScroll();
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      unlockBodyScroll();
-    };
-  }, [onClose]);
-
-  async function loadLeagues() {
-    setLoadError(null);
+  async function runSearch(q) {
+    setSearching(true);
+    setSearchError(null);
     try {
-      const res = await auth.authenticatedFetch("/.netlify/functions/leagues-mine");
+      const res = await fetch(`/.netlify/functions/leagues-search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to load leagues");
-      setLeagues(data.leagues || []);
+      if (!res.ok || !data.ok) throw new Error(data.error || "Search failed");
+      setResults(data.leagues || []);
     } catch (err) {
-      setLoadError(err.message || "Failed to load leagues");
-      setLeagues([]);
+      setSearchError(err.message || "Search failed");
+      setResults([]);
+    } finally {
+      setSearching(false);
     }
   }
 
-  useEffect(() => { loadLeagues(); }, []);
+  useEffect(() => {
+    // Browse (empty query -> top public leagues) as soon as the section
+    // mounts, then re-search as the user types, debounced so every
+    // keystroke doesn't fire a request.
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => runSearch(query.trim()), query.trim() ? 300 : 0);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [query]);
+
+  async function handleJoinPublic(league) {
+    if (auth.status !== "in") { onRequestLogin(); return; }
+    if (joiningId) return;
+    setJoiningId(league.id);
+    setJoinErrorId(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId: league.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to join league");
+      onJoined(data.league);
+    } catch (err) {
+      setJoinErrorId(league.id);
+      setSearchError(err.message || "Failed to join league");
+    } finally {
+      setJoiningId(null);
+    }
+  }
+
+  async function handleJoinByCode(e) {
+    e.preventDefault();
+    if (auth.status !== "in") { onRequestLogin(); return; }
+    if (!joinCode.trim() || joiningCode) return;
+    setJoiningCode(true);
+    setJoinCodeError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteCode: joinCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to join league");
+      setJoinCode("");
+      onJoined(data.league);
+    } catch (err) {
+      setJoinCodeError(err.message || "Failed to join league");
+    } finally {
+      setJoiningCode(false);
+    }
+  }
+
+  return (
+    <div className="leagues-page-section">
+      <h2 className="leagues-page-section-title">Search Leagues</h2>
+      <p className="leagues-page-section-sub">Find a public league to join, or use an invite code for a private one.</p>
+      <div className="league-search-row">
+        <input
+          type="text"
+          className="league-input"
+          placeholder="Search league names…"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+      </div>
+
+      {searching && results === null && <p className="leagues-empty">Loading…</p>}
+      {searchError && <p className="leagues-error">{searchError}</p>}
+      {results && results.length === 0 && !searchError && (
+        <p className="leagues-empty">
+          {query.trim() ? "No public leagues match that search." : "No public leagues yet - be the first to create one below."}
+        </p>
+      )}
+      {results && results.length > 0 && (
+        <div className="league-list">
+          {results.map(l => (
+            <div key={l.id} className="league-list-item">
+              <div className="league-list-item-main">
+                <span className="league-list-item-name">{l.name}</span>
+                {l.description && <p className="league-search-item-desc">{l.description}</p>}
+                <div className="league-search-item-tags">
+                  <span className="league-format-pill">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format}</span>
+                  <span className="league-list-item-meta">
+                    {l.memberCount} member{l.memberCount === 1 ? "" : "s"}{l.maxMembers ? ` / ${l.maxMembers}` : ""} · {l.season}
+                  </span>
+                </div>
+                {joinErrorId === l.id && <p className="leagues-error">Couldn't join that league.</p>}
+              </div>
+              <button
+                type="button"
+                className="league-btn league-btn-primary"
+                onClick={() => handleJoinPublic(l)}
+                disabled={joiningId === l.id}
+              >
+                {joiningId === l.id ? "Joining…" : "Join"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!showCodeForm ? (
+        <button type="button" className="league-invite-toggle" onClick={() => setShowCodeForm(true)}>
+          Have an invite code instead?
+        </button>
+      ) : (
+        <form className="league-form" style={{ marginTop: 12 }} onSubmit={handleJoinByCode}>
+          <input
+            type="text"
+            className="league-input league-input-code"
+            placeholder="Invite code"
+            value={joinCode}
+            onChange={e => setJoinCode(e.target.value.toUpperCase())}
+            maxLength={6}
+          />
+          <button type="submit" className="league-btn" disabled={joiningCode || !joinCode.trim()}>
+            {joiningCode ? "Joining…" : "Join"}
+          </button>
+        </form>
+      )}
+      {joinCodeError && <p className="leagues-error">{joinCodeError}</p>}
+    </div>
+  );
+}
+
+function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague }) {
+  const [createName, setCreateName] = useState("");
+  const [createDescription, setCreateDescription] = useState("");
+  const [createFormat, setCreateFormat] = useState("straight_up");
+  const [createVisibility, setCreateVisibility] = useState("private");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(null);
+  const [pendingLeaveId, setPendingLeaveId] = useState(null);
+  const [leavingId, setLeavingId] = useState(null);
+  const [leaveErrorId, setLeaveErrorId] = useState(null);
+
+  const signedIn = auth.status === "in";
+  const myUserId = auth.user && auth.user.id;
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -12263,12 +12496,28 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
       const res = await auth.authenticatedFetch("/.netlify/functions/league-create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: createName.trim(), format: createFormat }),
+        body: JSON.stringify({
+          name: createName.trim(),
+          description: createDescription.trim(),
+          format: createFormat,
+          visibility: createVisibility,
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to create league");
       setCreateName("");
-      await loadLeagues();
+      setCreateDescription("");
+      setCreateVisibility("private");
+      // Reflect it in "Your Leagues" immediately from the response rather
+      // than waiting on a refetch, then select straight into it. No
+      // reloadLeagues() call here on purpose - league-create's response is
+      // already the authoritative record, and a redundant reload that
+      // resolves later can race a still-propagating blob write and clobber
+      // this correct optimistic state with a list that's missing the
+      // league it just returned (see useMyLeagues' upsertLeague for the
+      // same reasoning applied to join/update/delete).
+      upsertLeague(data.league);
+      onSelectLeague(data.league.id);
     } catch (err) {
       setCreateError(err.message || "Failed to create league");
     } finally {
@@ -12276,25 +12525,28 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
     }
   }
 
-  async function handleJoin(e) {
-    e.preventDefault();
-    if (!joinCode.trim() || joining) return;
-    setJoining(true);
-    setJoinError(null);
+  async function handleLeave(league) {
+    if (leavingId) return;
+    setLeavingId(league.id);
+    setLeaveErrorId(null);
     try {
-      const res = await auth.authenticatedFetch("/.netlify/functions/league-join", {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-leave", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inviteCode: joinCode.trim() }),
+        body: JSON.stringify({ leagueId: league.id }),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to join league");
-      setJoinCode("");
-      await loadLeagues();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to leave league");
+      // No reloadLeagues() here either - same reasoning as handleCreate
+      // above, and specifically risky in this direction too: a reload that
+      // resolves before the leave's own blob write has propagated could
+      // bring the just-left league right back into the list.
+      removeLeague(league.id);
+      setPendingLeaveId(null);
     } catch (err) {
-      setJoinError(err.message || "Failed to join league");
+      setLeaveErrorId(league.id);
     } finally {
-      setJoining(false);
+      setLeavingId(null);
     }
   }
 
@@ -12307,139 +12559,174 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
     }
   }
 
-  const body = managingLeague ? (
-    <LeagueSettingsPanel
-      auth={auth}
-      league={managingLeague}
-      onClose={() => setManagingLeague(null)}
-      onUpdated={(updated) => {
-        setLeagues(prev => prev.map(l => l.id === updated.id ? updated : l));
-        setManagingLeague(updated);
-      }}
-      onDeleted={(deletedId) => {
-        setLeagues(prev => prev.filter(l => l.id !== deletedId));
-        setManagingLeague(null);
-      }}
-    />
-  ) : auth.status !== "in" ? (
-    <div className="leagues-signed-out">
-      <p>Sign in to create or join a pick'em league with friends.</p>
-      <button
-        type="button"
-        className="league-btn league-btn-primary"
-        onClick={onRequestLogin}
-      >
-        Sign in
-      </button>
-    </div>
-  ) : (
-    <>
-      <div className="settings-section">
-        <h3 className="settings-section-title">Your Leagues</h3>
-        {leagues === null && <p className="leagues-empty">Loading…</p>}
-        {loadError && <p className="leagues-error">{loadError}</p>}
-        {leagues && leagues.length === 0 && !loadError && (
-          <p className="leagues-empty">You're not in any leagues yet - create one or join with a code below.</p>
-        )}
-        {leagues && leagues.length > 0 && (
-          <div className="league-list">
-            {leagues.map(l => (
-              <div key={l.id} className="league-list-item">
-                <div className="league-list-item-main">
-                  <span className="league-list-item-name">{l.name}</span>
-                  <span className="league-list-item-meta">
-                    {l.memberCount} member{l.memberCount === 1 ? "" : "s"} · {l.season}
-                  </span>
-                </div>
-                {l.ownerId === (auth.user && auth.user.id) && (
-                  <button
-                    type="button"
-                    className="league-settings-gear"
-                    onClick={() => setManagingLeague(l)}
-                    title="League settings"
-                    aria-label="League settings"
-                  >
-                    ⚙
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="league-invite-chip"
-                  onClick={() => copyInviteCode(l.inviteCode)}
-                  title="Copy invite code"
-                >
-                  {copiedCode === l.inviteCode ? "Copied!" : l.inviteCode}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+  return (
+    <div className="leagues-page">
+      <div>
+        <h1 className="sr-only">Leagues</h1>
+        <p className="leagues-page-intro">
+          Compete with friends using confidence, straight-up, survivor, or against-the-spread pick'em - create a
+          league, join one with an invite code, or search public leagues below.
+        </p>
       </div>
 
-      <div className="settings-section">
-        <h3 className="settings-section-title">Create a League</h3>
-        <form className="league-form-create" onSubmit={handleCreate}>
-          <input
-            type="text"
-            className="league-input"
-            placeholder="League name"
-            value={createName}
-            onChange={e => setCreateName(e.target.value)}
-            maxLength={50}
-          />
-          <div className="league-format-picker">
-            {LEAGUE_FORMAT_OPTIONS.map(f => (
-              <button
-                key={f.value}
-                type="button"
-                className={"league-format-option" + (createFormat === f.value ? " selected" : "")}
-                onClick={() => setCreateFormat(f.value)}
-              >
-                {f.label}
-              </button>
-            ))}
+      {!signedIn && (
+        <div className="leagues-page-signin-banner">
+          <span><strong>Sign in</strong> to see the leagues you're in, join one, or create your own.</span>
+          <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
+        </div>
+      )}
+
+      {signedIn && (
+        <div className="leagues-page-section">
+          <h2 className="leagues-page-section-title">Your Leagues</h2>
+          {leagues === null && <p className="leagues-empty">Loading…</p>}
+          {leaguesError && <p className="leagues-error">{leaguesError}</p>}
+          {leagues && leagues.length === 0 && !leaguesError && (
+            <p className="leagues-empty">You're not in any leagues yet - create one below or search for a public league to join.</p>
+          )}
+          {leagues && leagues.length > 0 && (
+            <div className="league-list">
+              {leagues.map(l => {
+                const isOwner = l.ownerId === myUserId;
+                const confirmingLeave = pendingLeaveId === l.id;
+                return (
+                  <div key={l.id} className="league-list-item">
+                    {confirmingLeave ? (
+                      <div className="league-leave-confirm">
+                        <span>Leave <strong>{l.name}</strong>?</span>
+                        <div className="league-leave-confirm-actions">
+                          <button type="button" className="league-btn" onClick={() => setPendingLeaveId(null)}>Cancel</button>
+                          <button
+                            type="button"
+                            className="league-btn league-btn-danger"
+                            disabled={leavingId === l.id}
+                            onClick={() => handleLeave(l)}
+                          >
+                            {leavingId === l.id ? "Leaving…" : "Leave"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button type="button" className="league-list-item-btn" onClick={() => onSelectLeague(l.id)}>
+                          <span className="league-list-item-main">
+                            <span className="league-list-item-name">{l.name}</span>
+                            <span className="league-list-item-meta">
+                              {(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format} · {l.memberCount} member{l.memberCount === 1 ? "" : "s"} · {l.season}
+                            </span>
+                          </span>
+                        </button>
+                        {isOwner ? (
+                          <button
+                            type="button"
+                            className="league-settings-gear"
+                            onClick={() => onManageLeague(l.id)}
+                            title="League settings"
+                            aria-label="League settings"
+                          >
+                            ⚙
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="league-settings-gear"
+                            onClick={() => setPendingLeaveId(l.id)}
+                            title="Leave league"
+                            aria-label="Leave league"
+                          >
+                            🚪
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="league-invite-chip"
+                          onClick={() => copyInviteCode(l.inviteCode)}
+                          title="Copy invite code"
+                        >
+                          {copiedCode === l.inviteCode ? "Copied!" : l.inviteCode}
+                        </button>
+                      </>
+                    )}
+                    {leaveErrorId === l.id && <p className="leagues-error">Couldn't leave that league.</p>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      <LeagueSearchSection
+        auth={auth}
+        onRequestLogin={onRequestLogin}
+        onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
+      />
+
+      <div className="leagues-page-section">
+        <h2 className="leagues-page-section-title">Create a League</h2>
+        <p className="leagues-page-section-sub">Pick a format below to see how scoring works for that type.</p>
+        {!signedIn ? (
+          <div className="leagues-signed-out">
+            <p>Sign in to create a league.</p>
+            <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
           </div>
-          <p className="league-format-hint">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === createFormat) || {}).hint}</p>
-          <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={creating || !createName.trim()}>
-            {creating ? "Creating…" : "Create League"}
-          </button>
-        </form>
+        ) : (
+          <form className="league-form-create" onSubmit={handleCreate}>
+            <input
+              type="text"
+              className="league-input"
+              placeholder="League name"
+              value={createName}
+              onChange={e => setCreateName(e.target.value)}
+              maxLength={50}
+            />
+            <textarea
+              className="league-textarea"
+              placeholder="Description (optional) - shown to members and, if public, in search"
+              value={createDescription}
+              onChange={e => setCreateDescription(e.target.value)}
+              maxLength={280}
+              rows={2}
+            />
+            <div className="league-format-picker">
+              {LEAGUE_FORMAT_OPTIONS.map(f => (
+                <button
+                  key={f.value}
+                  type="button"
+                  className={"league-format-option" + (createFormat === f.value ? " selected" : "")}
+                  onClick={() => setCreateFormat(f.value)}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <p className="league-format-hint">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === createFormat) || {}).hint}</p>
+
+            <label className="league-settings-row" style={{ marginTop: 4 }}>
+              <span>Who can join</span>
+              <div className="league-visibility-picker">
+                {LEAGUE_VISIBILITY_OPTIONS.map(o => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    className={"league-visibility-option" + (createVisibility === o.value ? " selected" : "")}
+                    onClick={() => setCreateVisibility(o.value)}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </label>
+            <p className="league-format-hint">{LEAGUE_VISIBILITY_INFO[createVisibility]}</p>
+
+            <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={creating || !createName.trim()}>
+              {creating ? "Creating…" : "Create League"}
+            </button>
+          </form>
+        )}
         {createError && <p className="leagues-error">{createError}</p>}
       </div>
-
-      <div className="settings-section">
-        <h3 className="settings-section-title">Join a League</h3>
-        <form className="league-form" onSubmit={handleJoin}>
-          <input
-            type="text"
-            className="league-input league-input-code"
-            placeholder="Invite code"
-            value={joinCode}
-            onChange={e => setJoinCode(e.target.value.toUpperCase())}
-            maxLength={6}
-          />
-          <button type="submit" className="league-btn" disabled={joining || !joinCode.trim()}>
-            {joining ? "Joining…" : "Join"}
-          </button>
-        </form>
-        {joinError && <p className="leagues-error">{joinError}</p>}
-      </div>
-    </>
-  );
-
-  return ReactDOM.createPortal(
-    <div
-      className="settings-modal-overlay"
-      ref={overlayRef}
-      onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
-    >
-      <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Leagues">
-        <button type="button" className="settings-modal-close" onClick={onClose} aria-label="Close">×</button>
-        <h2 className="settings-modal-title">Leagues</h2>
-        {body}
-      </div>
-    </div>,
-    document.body
+    </div>
   );
 }
 
@@ -12473,7 +12760,27 @@ function useMyLeagues(auth) {
 
   useEffect(() => { reload(); }, [reload]);
 
-  return { leagues, error, reload };
+  // Optimistic local updates for join/create/leave/settings-save so the UI
+  // reflects the change on the same click instead of waiting on a refetch -
+  // league-join/league-create/leagues-mine already write and read with
+  // strong consistency now, but there's no reason to pay a network
+  // round-trip for something the response already told us.
+  const upsertLeague = useCallback((league) => {
+    setLeagues(prev => {
+      const list = prev || [];
+      const idx = list.findIndex(l => l.id === league.id);
+      if (idx === -1) return [...list, league];
+      const next = list.slice();
+      next[idx] = league;
+      return next;
+    });
+  }, []);
+
+  const removeLeague = useCallback((leagueId) => {
+    setLeagues(prev => (prev || []).filter(l => l.id !== leagueId));
+  }, []);
+
+  return { leagues, error, reload, upsertLeague, removeLeague };
 }
 
 /** Regular-season weeks only (1-18) - picks-mine/picks-submit only read
@@ -12486,8 +12793,9 @@ function clampToRegularSeasonWeek(week) {
   return Math.min(max, Math.max(min, week));
 }
 
-function LeagueHeader({ league, week, onWeekChange, onOpenLeagues }) {
+function LeagueHeader({ league, week, onWeekChange, onOpenLeagues, isOwner, onLeave, leaving }) {
   const [copied, setCopied] = useState(false);
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
   const weeks = (SCHEDULE_DATA && SCHEDULE_DATA.weeks) || [];
   const minWeek = weeks.length ? weeks[0].week : 1;
   const maxWeek = weeks.length ? weeks[weeks.length - 1].week : 18;
@@ -12516,12 +12824,28 @@ function LeagueHeader({ league, week, onWeekChange, onOpenLeagues }) {
             <span>{league.season}</span>
           </div>
         </div>
-        <div className="league-header-actions">
-          <button type="button" className="league-invite-chip" onClick={copyInvite} title="Copy invite code">
-            {copied ? "Copied!" : league.inviteCode}
-          </button>
-          <button type="button" className="league-btn" onClick={onOpenLeagues}>Manage</button>
-        </div>
+        {confirmingLeave ? (
+          <div className="league-leave-confirm">
+            <span>Leave this league?</span>
+            <div className="league-leave-confirm-actions">
+              <button type="button" className="league-btn" onClick={() => setConfirmingLeave(false)}>Cancel</button>
+              <button type="button" className="league-btn league-btn-danger" disabled={leaving} onClick={onLeave}>
+                {leaving ? "Leaving…" : "Leave"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="league-header-actions">
+            <button type="button" className="league-invite-chip" onClick={copyInvite} title="Copy invite code">
+              {copied ? "Copied!" : league.inviteCode}
+            </button>
+            {isOwner ? (
+              <button type="button" className="league-btn" onClick={onOpenLeagues}>Manage</button>
+            ) : (
+              <button type="button" className="league-btn" onClick={() => setConfirmingLeave(true)}>Leave</button>
+            )}
+          </div>
+        )}
       </div>
       <div className="league-week-nav">
         <button
@@ -12570,7 +12894,7 @@ function PicksProgressRing({ complete, total, week }) {
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error }) {
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   useEffect(() => {
@@ -12588,6 +12912,27 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
     if (game.pick?.team) onPick(game.gameId, game.pick.team, val);
   }
 
+  function applySuggestedConfidence() {
+    if (!suggestedConfidence) return;
+    setPendingConfidence(suggestedConfidence);
+    if (game.pick?.team) onPick(game.gameId, game.pick.team, suggestedConfidence);
+  }
+
+  // Model win probabilities, shown for straight-up and confidence formats
+  // only - a raw win probability is the wrong signal for survivor (which
+  // needs season-long team scarcity, not just this week) and actively
+  // misleading for ats (a heavy favorite to win can still be a bad cover
+  // pick), so both are left out here rather than showing a number that
+  // would steer picks wrong. See predictionEngine.js for the model itself.
+  const showPrediction = !!prediction && (format === "straight_up" || format === "confidence");
+  const homePct = showPrediction ? Math.round(prediction.homeWinProbability * 100) : null;
+  const awayPct = showPrediction ? Math.round(prediction.awayWinProbability * 100) : null;
+
+  function probLabel(teamId) {
+    if (!showPrediction) return null;
+    return teamId === game.home ? homePct : awayPct;
+  }
+
   // ats: prefer the spread actually locked in on a saved pick (never moves
   // after submit) over the live line, which keeps drifting until kickoff.
   function spreadLabel(teamId) {
@@ -12600,10 +12945,17 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
     return teamSpread > 0 ? `+${teamSpread}` : `${teamSpread}`;
   }
 
+  // picks-mine.mts sends date/time as the league's canonical Eastern-time
+  // strings (same source as the main schedule) - re-render them in the
+  // viewer's chosen zone the same way GameCard does, rather than always
+  // showing ET regardless of the timezone picked in Settings.
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
+
   return (
     <div className={"pickem-game-card" + (game.locked ? " is-locked" : "")}>
       <div className="pickem-game-meta">
-        <span>{game.date} · {game.time}</span>
+        <span>{shownTime.date} · {shownTime.time}</span>
         {game.locked && <span className="pickem-lock-tag">🔒 Locked</span>}
       </div>
       <div className="pickem-pick-row">
@@ -12612,6 +12964,8 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
           const usedElsewhere = format === "survivor" && !selected && usedTeams?.includes(teamId);
           const disabled = (game.locked && !selected) || usedElsewhere;
           const spread = spreadLabel(teamId);
+          const prob = probLabel(teamId);
+          const isFavored = showPrediction && prediction.predictedWinner === teamId;
           return (
             <button
               key={teamId}
@@ -12625,17 +12979,39 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
               <TeamLogo teamId={teamId} size={40} />
               <div className="pickem-team-name">{teamId}</div>
               {spread && <div className="pickem-team-spread">{spread}</div>}
+              {prob !== null && <div className={"pickem-team-prob" + (isFavored ? " is-favored" : "")}>{prob}%</div>}
               {usedElsewhere && <div className="pickem-team-used-tag">Used</div>}
             </button>
           );
         })}
       </div>
+      {showPrediction && (
+        <div className="pickem-prob-bar-wrap">
+          <span>{game.away} {awayPct}%</span>
+          <div className="pickem-prob-bar">
+            <div style={{ width: awayPct + "%", background: "var(--lose)" }}></div>
+            <div style={{ width: homePct + "%", background: "var(--win)" }}></div>
+          </div>
+          <span>{game.home} {homePct}%</span>
+        </div>
+      )}
       {format === "confidence" && (
         <div className="pickem-confidence-row">
           <span className="pickem-confidence-label">
             Confidence points
             {game.pick?.team && typeof game.pick?.confidence !== "number" && (
               <span className="pickem-confidence-needed"> · set points to finish this pick</span>
+            )}
+            {suggestedConfidence && Number(pendingConfidence) !== suggestedConfidence && (
+              <button
+                type="button"
+                className="pickem-suggested-chip"
+                onClick={applySuggestedConfidence}
+                disabled={game.locked || saving}
+                title="Suggested ranking based on how lopsided the model sees this matchup, relative to the rest of the week"
+              >
+                Model: #{suggestedConfidence}
+              </button>
             )}
           </span>
           <select
@@ -12656,7 +13032,7 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
   );
 }
 
-function LeagueWeekPanel({ auth, league, week }) {
+function LeagueWeekPanel({ auth, league, week, tz }) {
   const [data, setData] = useState(null); // null = loading
   const [loadError, setLoadError] = useState(null);
   const [savingGameId, setSavingGameId] = useState(null);
@@ -12686,6 +13062,51 @@ function LeagueWeekPanel({ auth, league, week }) {
   }, [auth, league.id, week]);
 
   useEffect(() => { setData(null); load(); }, [load]);
+
+  // Model predictions for every game in the week, computed client-side off
+  // the same team/injury/weather data the main schedule and Hot Picks use -
+  // picks-mine.mts doesn't need to know about this at all. Keyed off the
+  // set of gameIds (not `data` itself) so submitting a pick, which mutates
+  // `data.games[].pick`, doesn't trigger a pointless recompute.
+  const gameIdsKey = data ? data.games.map(g => g.gameId).join(",") : "";
+  const predictions = useMemo(() => {
+    if (!data) return {};
+    const context = getWeekContext(week);
+    const map = {};
+    data.games.forEach(g => {
+      const home = context.getTeam(g.home);
+      const away = context.getTeam(g.away);
+      if (!home || !away) return;
+      const weather = getWeather(week, g.away, g.home);
+      map[g.gameId] = PredictionEngine.predictMatchup({
+        homeTeam: home,
+        awayTeam: away,
+        homeImpactPlayers: context.getPlayers(g.home),
+        awayImpactPlayers: context.getPlayers(g.away),
+        weather: weather,
+        homeIsDomeTeam: isDomeTeam(home.id),
+        awayIsDomeTeam: isDomeTeam(away.id),
+      });
+    });
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameIdsKey, week]);
+
+  // Confidence-format only: suggests a 1..N ranking by how lopsided the
+  // model sees each game relative to the rest of the week (least lopsided
+  // -> lowest suggested rank), as a tappable hint next to the points
+  // selector - never auto-filled, since the ranking call is the whole game
+  // in this format and shouldn't be made for the player.
+  const suggestedConfidence = useMemo(() => {
+    if (!data || data.format !== "confidence") return {};
+    const ranked = data.games
+      .filter(g => predictions[g.gameId])
+      .map(g => ({ gameId: g.gameId, gap: Math.abs(predictions[g.gameId].homeWinProbability - 0.5) }))
+      .sort((a, b) => a.gap - b.gap);
+    const map = {};
+    ranked.forEach((r, i) => { map[r.gameId] = i + 1; });
+    return map;
+  }, [data, predictions]);
 
   async function submitPick(gameId, team, confidence) {
     setSavingGameId(gameId);
@@ -12740,6 +13161,9 @@ function LeagueWeekPanel({ auth, league, week }) {
           onPick={submitPick}
           saving={savingGameId === game.gameId}
           error={pickErrors[game.gameId]}
+          tz={tz}
+          prediction={predictions[game.gameId] || null}
+          suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
         />
       ))}
       <div className="pickem-autosave-note"><span className="pickem-autosave-dot"></span> Picks save automatically</div>
@@ -12810,61 +13234,123 @@ function LeagueStandingsPanel({ auth, league }) {
   );
 }
 
-function LeagueView({ auth, onRequestLogin, onOpenLeagues }) {
-  const { leagues, error: leaguesError } = useMyLeagues(auth);
+// Hub for the "League" tab: the Leagues landing page (LeaguesLandingPage)
+// by default, drilling into a single league's This Week / Standings view
+// when the user picks one from "Your Leagues" or a search result. Owner
+// settings (LeagueSettingsPanel) are a third state reached via the gear
+// icon on the landing page or "Manage" in the per-league header, and
+// "closing" any of them just returns to the landing page rather than a
+// modal, since the whole tab now behaves like a small nested nav.
+function LeagueView({ auth, onRequestLogin, tz }) {
+  const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   const [selectedLeagueId, setSelectedLeagueId] = useState(null);
+  const [managingLeagueId, setManagingLeagueId] = useState(null);
   const [subTab, setSubTab] = useState("week");
   const [week, setWeek] = useState(() => clampToRegularSeasonWeek(getDefaultWeek()));
+  const [leavingLeagueId, setLeavingLeagueId] = useState(null);
 
+  const myUserId = auth.user && auth.user.id;
+
+  // gtag.js only fires its automatic page_view once, at the initial
+  // document load in <head> - since this tab is reached entirely through
+  // client-side state with no real navigation, GA would otherwise never
+  // record a visit here at all. Firing a virtual pageview on mount (the
+  // GA4-recommended pattern for SPA route changes) makes Leagues show up
+  // in GA like any other page. Fires once per genuine tab visit thanks to
+  // the leagueTabResetKey remount in App - not on every internal state
+  // change within the tab (selecting a league, opening settings, etc).
   useEffect(() => {
-    if (leagues && leagues.length > 0 && !leagues.some(l => l.id === selectedLeagueId)) {
-      setSelectedLeagueId(leagues[0].id);
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "page_view", {
+        page_path: "/league",
+        page_title: "NFL Pick'em Leagues — Compete With Friends | Blitz Odds",
+        page_location: window.location.origin + "/#league",
+      });
     }
-  }, [leagues, selectedLeagueId]);
+  }, []);
 
-  if (auth.status !== "in") {
+  async function handleLeave(leagueId) {
+    if (leavingLeagueId) return;
+    setLeavingLeagueId(leagueId);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-leave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to leave league");
+      // No reload() here - same reasoning as LeaguesLandingPage's own
+      // handleLeave.
+      removeLeague(leagueId);
+      setSelectedLeagueId(null);
+    } catch (err) {
+      // Non-fatal - the Leave button in LeagueHeader will just still be
+      // there to retry; nothing destructive happened.
+    } finally {
+      setLeavingLeagueId(null);
+    }
+  }
+
+  const managingLeague = managingLeagueId ? (leagues || []).find(l => l.id === managingLeagueId) : null;
+  if (managingLeagueId && managingLeague) {
     return (
-      <div className="league-view-empty">
-        <p>Sign in to view your pick'em leagues.</p>
-        <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
+      <div className="leagues-page">
+        <div className="leagues-page-section">
+          <LeagueSettingsPanel
+            auth={auth}
+            league={managingLeague}
+            onClose={() => setManagingLeagueId(null)}
+            onUpdated={(updated) => upsertLeague(updated)}
+            onDeleted={(deletedId) => { removeLeague(deletedId); setManagingLeagueId(null); setSelectedLeagueId(null); }}
+          />
+        </div>
       </div>
     );
   }
 
-  if (leagues === null) return <div className="league-view-empty"><p>Loading…</p></div>;
-  if (leaguesError) return <div className="league-view-empty"><p className="leagues-error">{leaguesError}</p></div>;
-
-  if (leagues.length === 0) {
+  const league = selectedLeagueId ? (leagues || []).find(l => l.id === selectedLeagueId) : null;
+  if (league) {
+    const isOwner = league.ownerId === myUserId;
     return (
-      <div className="league-view-empty">
-        <p>You're not in any leagues yet.</p>
-        <button type="button" className="league-btn league-btn-primary" onClick={onOpenLeagues}>Create or Join a League</button>
+      <div className="leagues-page">
+        <div className="league-view">
+          <button className="back-btn" onClick={() => setSelectedLeagueId(null)}>
+            <ChevronIcon direction="left" size={13} />
+            <span>Back to Leagues</span>
+          </button>
+          <LeagueHeader
+            league={league}
+            week={week}
+            onWeekChange={setWeek}
+            onOpenLeagues={() => setManagingLeagueId(league.id)}
+            isOwner={isOwner}
+            onLeave={() => handleLeave(league.id)}
+            leaving={leavingLeagueId === league.id}
+          />
+          <div className="league-subtabs">
+            <button type="button" className={"league-subtab" + (subTab === "week" ? " active" : "")} onClick={() => setSubTab("week")}>This Week</button>
+            <button type="button" className={"league-subtab" + (subTab === "standings" ? " active" : "")} onClick={() => setSubTab("standings")}>Standings</button>
+          </div>
+          {subTab === "week"
+            ? <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} />
+            : <LeagueStandingsPanel auth={auth} league={league} />}
+        </div>
       </div>
     );
   }
-
-  const league = leagues.find(l => l.id === selectedLeagueId) || leagues[0];
 
   return (
-    <div className="league-view">
-      {leagues.length > 1 && (
-        <select
-          className="league-picker-select"
-          value={league.id}
-          onChange={e => setSelectedLeagueId(e.target.value)}
-        >
-          {leagues.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-        </select>
-      )}
-      <LeagueHeader league={league} week={week} onWeekChange={setWeek} onOpenLeagues={onOpenLeagues} />
-      <div className="league-subtabs">
-        <button type="button" className={"league-subtab" + (subTab === "week" ? " active" : "")} onClick={() => setSubTab("week")}>This Week</button>
-        <button type="button" className={"league-subtab" + (subTab === "standings" ? " active" : "")} onClick={() => setSubTab("standings")}>Standings</button>
-      </div>
-      {subTab === "week"
-        ? <LeagueWeekPanel auth={auth} league={league} week={week} />
-        : <LeagueStandingsPanel auth={auth} league={league} />}
-    </div>
+    <LeaguesLandingPage
+      auth={auth}
+      leagues={leagues}
+      leaguesError={leaguesError}
+      upsertLeague={upsertLeague}
+      removeLeague={removeLeague}
+      onRequestLogin={onRequestLogin}
+      onSelectLeague={(id) => setSelectedLeagueId(id)}
+      onManageLeague={(id) => setManagingLeagueId(id)}
+    />
   );
 }
 
@@ -15376,12 +15862,31 @@ function App() {
   const [favorites, setFavorites] = useState(loadFavorites);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showLeagues, setShowLeagues] = useState(false);
-  const [pendingLeagueReopen, setPendingLeagueReopen] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
+  const [leagueTabResetKey, setLeagueTabResetKey] = useState(0);
   const [showTour, setShowTour] = useState(false);
   const tourAutoOfferedRef = useRef(false);
+
+  // Tapping the League tab (or "My Leagues") while already on it is a
+  // no-op for setActiveTab - same value in, no re-render, so LeagueView's
+  // internal selectedLeagueId/managingLeagueId just sit wherever they were,
+  // with no way back to the Leagues landing page except the small
+  // "All Leagues" text link. Bumping this key forces LeagueView to remount
+  // (and its state to reset) any time the tab is (re)selected, so the tab
+  // icon always acts like "go home" the way a mobile tab bar should.
+  function goToLeaguesTab() {
+    setLeagueTabResetKey((k) => k + 1);
+    setActiveTab("league");
+  }
+
+  function selectTab(tab) {
+    if (tab === "league") {
+      goToLeaguesTab();
+      return;
+    }
+    setActiveTab(tab);
+  }
 
   // Keeps the URL hash in sync with the selected tab (replaceState, not
   // pushState, so switching tabs doesn't spam the back button) - this is
@@ -15397,18 +15902,6 @@ function App() {
     } catch (e) {}
   }, [activeTab]);
 
-
-  // The Leagues modal closes itself before opening the Identity sign-in
-  // widget (see LeaguesModal's "Sign in" button) since the two modals
-  // stack and the widget would otherwise render underneath. This brings
-  // Leagues back automatically once sign-in actually completes, instead of
-  // silently dropping the user back on the main page.
-  useEffect(() => {
-    if (auth.status === "in" && pendingLeagueReopen) {
-      setShowLeagues(true);
-      setPendingLeagueReopen(false);
-    }
-  }, [auth.status, pendingLeagueReopen]);
 
   // Cross-device settings sync for signed-in users. Signed-out users keep
   // using localStorage only (see useThemeManager/useSportsbookManager/
@@ -15475,7 +15968,7 @@ function App() {
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
   useLiveWeatherData(); // background-refreshes weather from the live blob store; re-renders the app when they change
-  useDocumentMeta(view, selectedTeamId, selectedWeek, selectedGame); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
+  useDocumentMeta(activeTab, view, selectedTeamId, selectedWeek, selectedGame); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
 
@@ -15588,7 +16081,7 @@ function App() {
         <div className="header-right-cluster">
           <AccountButton
             auth={auth}
-            onOpenLeagues={() => setShowLeagues(true)}
+            onOpenLeagues={goToLeaguesTab}
             onOpenSettings={() => setShowSettings(true)}
             onOpenHowItWorks={() => setShowHowItWorks(true)}
             onReplayTour={replayTour}
@@ -15600,7 +16093,7 @@ function App() {
         </div>
       </header>
 
-      <TabBar activeTab={activeTab} onSelectTab={setActiveTab} leaguesEnabled={LEAGUES_UI_ENABLED} />
+      <TabBar activeTab={activeTab} onSelectTab={selectTab} leaguesEnabled={LEAGUES_UI_ENABLED} />
 
       {activeTab === "games" && (
         <>
@@ -15676,11 +16169,7 @@ function App() {
       {activeTab === "news" && <NewsView />}
 
       {activeTab === "league" && LEAGUES_UI_ENABLED && (
-        <LeagueView
-          auth={auth}
-          onRequestLogin={() => { setPendingLeagueReopen(false); auth.openLogin(); }}
-          onOpenLeagues={() => setShowLeagues(true)}
-        />
+        <LeagueView key={leagueTabResetKey} auth={auth} onRequestLogin={() => auth.openLogin()} tz={resolvedTz} />
       )}
 
       <footer className="app-footer">
@@ -15713,14 +16202,6 @@ function App() {
           favorites={favorites}
           onToggleFavorite={toggleFavorite}
           onClose={() => setShowSettings(false)}
-        />
-      )}
-
-      {showLeagues && (
-        <LeaguesModal
-          auth={auth}
-          onClose={() => setShowLeagues(false)}
-          onRequestLogin={() => { setShowLeagues(false); setPendingLeagueReopen(true); auth.openLogin(); }}
         />
       )}
 

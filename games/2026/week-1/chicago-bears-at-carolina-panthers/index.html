@@ -1087,6 +1087,8 @@
   .leagues-signed-out p { color: var(--text-dim); font-size: 0.9rem; margin: 0 0 14px; }
   .leagues-empty { color: var(--text-dim); font-size: 0.85rem; margin: 0; }
   .leagues-error { color: var(--out); font-size: 0.82rem; margin: 8px 0 0; }
+  .leagues-join-link-error { margin: 0 0 4px; padding: 10px 12px; background: rgba(220, 80, 80, 0.08); border: 1px solid var(--out); border-radius: 8px; }
+  .leagues-auto-join-status { text-align: center; padding: 40px 20px; color: var(--text-dim); }
 
   .league-list { display: flex; flex-direction: column; gap: 8px; }
   .league-list-item {
@@ -12339,17 +12341,17 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
 // search/browse for signed-out visitors (search is open to everyone; join,
 // create, and "Your Leagues" require sign-in - enforced both here and
 // server-side by the functions themselves).
-function LeagueSearchSection({ auth, onRequestLogin, onJoined }) {
+function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, initialError }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null); // null = not searched yet
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [joiningId, setJoiningId] = useState(null);
   const [joinErrorId, setJoinErrorId] = useState(null);
-  const [showCodeForm, setShowCodeForm] = useState(false);
-  const [joinCode, setJoinCode] = useState("");
+  const [showCodeForm, setShowCodeForm] = useState(!!initialCode);
+  const [joinCode, setJoinCode] = useState(initialCode || "");
   const [joiningCode, setJoiningCode] = useState(false);
-  const [joinCodeError, setJoinCodeError] = useState(null);
+  const [joinCodeError, setJoinCodeError] = useState(initialError || null);
   const debounceRef = useRef(null);
 
   async function runSearch(q) {
@@ -12495,7 +12497,7 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined }) {
   );
 }
 
-function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague }) {
+function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague, autoJoinCode, autoJoinCodeError, joinLinkError }) {
   const [createName, setCreateName] = useState("");
   const [createDescription, setCreateDescription] = useState("");
   const [createFormat, setCreateFormat] = useState("straight_up");
@@ -12614,6 +12616,12 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
         </p>
       </div>
 
+      {joinLinkError && (
+        <p className="leagues-error leagues-join-link-error">
+          That invite link didn't work: {joinLinkError}. Try searching for the league by name below instead.
+        </p>
+      )}
+
       {!signedIn && (
         <div className="leagues-page-signin-banner">
           <span><strong>Sign in</strong> to see the leagues you're in, join one, or create your own.</span>
@@ -12705,6 +12713,8 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
         auth={auth}
         onRequestLogin={onRequestLogin}
         onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
+        initialCode={autoJoinCode}
+        initialError={autoJoinCodeError}
       />
 
       <div className="leagues-page-section">
@@ -13400,15 +13410,54 @@ function LeagueStandingsPanel({ auth, league }) {
 // icon on the landing page or "Manage" in the per-league header, and
 // "closing" any of them just returns to the landing page rather than a
 // modal, since the whole tab now behaves like a small nested nav.
-function LeagueView({ auth, onRequestLogin, tz }) {
+function LeagueView({ auth, onRequestLogin, tz, pendingJoin, onConsumePendingJoin }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   const [selectedLeagueId, setSelectedLeagueId] = useState(null);
   const [managingLeagueId, setManagingLeagueId] = useState(null);
   const [subTab, setSubTab] = useState("week");
   const [week, setWeek] = useState(() => clampToRegularSeasonWeek(getDefaultWeek()));
   const [leavingLeagueId, setLeavingLeagueId] = useState(null);
+  const [autoJoining, setAutoJoining] = useState(!!pendingJoin);
+  const [autoJoinError, setAutoJoinError] = useState(null);
+  const autoJoinAttemptedRef = useRef(false);
 
   const myUserId = auth.user && auth.user.id;
+
+  // Runs an invite link's pendingJoin (see getInitialLeagueJoin/App) the
+  // moment auth is actually ready to make the call - which for someone who
+  // clicked the link signed-out means waiting through App's auto-opened
+  // sign-in widget first. auth.authenticatedFetch throws synchronously if
+  // there's no current user, so this simply does nothing useful until
+  // auth.status flips to "in", and this effect re-runs when it does.
+  useEffect(() => {
+    if (!pendingJoin || auth.status !== "in" || autoJoinAttemptedRef.current) return;
+    autoJoinAttemptedRef.current = true;
+    setAutoJoining(true);
+    setAutoJoinError(null);
+    (async () => {
+      try {
+        const res = await auth.authenticatedFetch("/.netlify/functions/league-join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            pendingJoin.type === "code" ? { inviteCode: pendingJoin.value } : { leagueId: pendingJoin.value }
+          ),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Failed to join league");
+        upsertLeague(data.league);
+        setSelectedLeagueId(data.league.id);
+        onConsumePendingJoin();
+      } catch (err) {
+        // Leave pendingJoin/the URL alone on failure so a refresh (or the
+        // "Have an invite code instead?" fallback, already prefilled with
+        // the same code) can retry rather than silently losing the code.
+        setAutoJoinError(err.message || "Failed to join league");
+      } finally {
+        setAutoJoining(false);
+      }
+    })();
+  }, [pendingJoin, auth.status]);
 
   // gtag.js only fires its automatic page_view once, at the initial
   // document load in <head> - since this tab is reached entirely through
@@ -13500,6 +13549,19 @@ function LeagueView({ auth, onRequestLogin, tz }) {
     );
   }
 
+  // Still resolving an invite link (waiting on auth to be ready, or the
+  // join call itself in flight) - show a dedicated loading state rather
+  // than flashing the full Leagues landing page for a moment first.
+  if (autoJoining) {
+    return (
+      <div className="leagues-page">
+        <div className="leagues-page-section leagues-auto-join-status">
+          <p>{auth.status === "out" ? "Sign in to join this league…" : "Joining league…"}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <LeaguesLandingPage
       auth={auth}
@@ -13510,6 +13572,9 @@ function LeagueView({ auth, onRequestLogin, tz }) {
       onRequestLogin={onRequestLogin}
       onSelectLeague={(id) => setSelectedLeagueId(id)}
       onManageLeague={(id) => setManagingLeagueId(id)}
+      autoJoinCode={pendingJoin && pendingJoin.type === "code" && autoJoinError ? pendingJoin.value : null}
+      autoJoinCodeError={pendingJoin && pendingJoin.type === "code" ? autoJoinError : null}
+      joinLinkError={pendingJoin && pendingJoin.type === "leagueId" ? autoJoinError : null}
     />
   );
 }
@@ -15980,6 +16045,25 @@ function ThemeToggle({ mode, setMode }) {
   );
 }
 
+/** Reads a league invite link's query params once at App-mount time -
+ *  ?joinCode=XXXX (private leagues, matches league-join.mts's inviteCode
+ *  body param) or ?joinLeague=ID (public leagues, matches its leagueId
+ *  param). Query string rather than a URL hash deliberately: Netlify
+ *  Identity's own email flows (confirm/invite/recovery) hijack
+ *  #confirmation_token=...-style hash fragments, and some email
+ *  click-trackers drop fragments entirely when rewriting links, but query
+ *  params survive both. */
+function getInitialLeagueJoin() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("joinCode");
+    if (code && code.trim()) return { type: "code", value: code.trim().toUpperCase() };
+    const leagueId = params.get("joinLeague");
+    if (leagueId && leagueId.trim()) return { type: "leagueId", value: leagueId.trim() };
+  } catch (e) {}
+  return null;
+}
+
 /** Reads the current URL once at App-mount time. Wrapped so every initial
  *  useState below can call it independently (each only runs its lazy
  *  initializer on first render, so the repeat calls cost nothing) without
@@ -15994,6 +16078,11 @@ function getInitialRoute() {
 // "games" for an empty/unrecognized hash so a stray "#" never 404s a tab.
 const TAB_IDS = ["games", "picks", "league", "news", "archive"];
 function getInitialTab(leaguesEnabled) {
+  // A league invite link always wins, regardless of hash - it's a much
+  // stronger signal of intent than whatever tab happened to be hashed in,
+  // and email link-tracking wrappers sometimes drop the hash anyway (see
+  // getInitialLeagueJoin).
+  if (leaguesEnabled && getInitialLeagueJoin()) return "league";
   try {
     const hash = (window.location.hash || "").replace(/^#/, "");
     if (TAB_IDS.includes(hash) && (hash !== "league" || leaguesEnabled)) return hash;
@@ -16025,6 +16114,35 @@ function App() {
   const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
   const [leagueTabResetKey, setLeagueTabResetKey] = useState(0);
+
+  // A league invite link's ?joinCode=/?joinLeague= (see getInitialLeagueJoin)
+  // that LeagueView should act on once auth is ready. Lives here rather
+  // than inside LeagueView so it survives that component's leagueTabResetKey
+  // remounts and so the "please sign in first" nudge below can fire even
+  // before LeagueView has mounted at all.
+  const [pendingJoin, setPendingJoin] = useState(getInitialLeagueJoin);
+  const loginPromptedForJoinRef = useRef(false);
+
+  function clearPendingJoin() {
+    setPendingJoin(null);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("joinCode");
+      url.searchParams.delete("joinLeague");
+      window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    } catch (e) {}
+  }
+
+  // Someone who clicked an invite link while signed out gets dropped on
+  // Leagues (via getInitialTab above) but can't actually join yet - open
+  // the sign-in widget for them once instead of leaving them to notice the
+  // "Sign in" button themselves. Once: if they close it without signing
+  // in, don't keep reopening it every render.
+  useEffect(() => {
+    if (!pendingJoin || auth.status !== "out" || loginPromptedForJoinRef.current) return;
+    loginPromptedForJoinRef.current = true;
+    auth.openLogin();
+  }, [pendingJoin, auth.status]);
   const [showTour, setShowTour] = useState(false);
   const tourAutoOfferedRef = useRef(false);
 
@@ -16329,7 +16447,14 @@ function App() {
       {activeTab === "news" && <NewsView />}
 
       {activeTab === "league" && LEAGUES_UI_ENABLED && (
-        <LeagueView key={leagueTabResetKey} auth={auth} onRequestLogin={() => auth.openLogin()} tz={resolvedTz} />
+        <LeagueView
+          key={leagueTabResetKey}
+          auth={auth}
+          onRequestLogin={() => auth.openLogin()}
+          tz={resolvedTz}
+          pendingJoin={pendingJoin}
+          onConsumePendingJoin={clearPendingJoin}
+        />
       )}
 
       <footer className="app-footer">

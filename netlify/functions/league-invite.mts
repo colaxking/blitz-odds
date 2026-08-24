@@ -65,24 +65,42 @@ function buildInviteEmail(league: any, inviterName: string) {
   const formatLabel = FORMAT_LABELS[league.format] || league.format;
   const subject = `${inviterName} invited you to join "${league.name}" on Blitz Odds`;
 
+  // Deep link straight into the join flow: the frontend reads this query
+  // param at load, forces the League tab open, and - once the recipient is
+  // signed in (prompting sign-in first if they aren't) - calls
+  // league-join.mts automatically. Query string, not a URL hash: Netlify
+  // Identity's own confirm/invite/recovery email flows use hash tokens, and
+  // some email click-trackers strip fragments entirely when rewriting
+  // links, but query params survive both (see getInitialLeagueJoin in
+  // index.html).
+  const joinUrl = isPrivate
+    ? `${SITE_URL}/?joinCode=${encodeURIComponent(league.inviteCode)}#league`
+    : `${SITE_URL}/?joinLeague=${encodeURIComponent(league.id)}#league`;
+
   const descriptionHtml = league.description
     ? `<p style="margin:0 0 18px;color:#333;font-size:14px;line-height:1.5;">${escapeHtml(league.description)}</p>`
     : "";
 
+  const joinButtonHtml = `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 20px;">
+      <tr>
+        <td style="border-radius:8px;background:#02a4a4;">
+          <a href="${joinUrl}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;">Join League</a>
+        </td>
+      </tr>
+    </table>`;
+
   const joinHtml = isPrivate
     ? `
-      <div style="margin:20px 0;padding:16px;border:1px solid #d8dee4;border-radius:8px;background:#f6f8fa;text-align:center;">
+      ${joinButtonHtml}
+      <div style="margin:0 0 20px;padding:16px;border:1px solid #d8dee4;border-radius:8px;background:#f6f8fa;text-align:center;">
         <p style="margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#57606a;">Invite Code</p>
         <p style="margin:0;font-size:24px;font-weight:800;letter-spacing:.1em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#111;">${escapeHtml(league.inviteCode)}</p>
-      </div>
+        <p style="margin:8px 0 0;font-size:12px;color:#57606a;">The button above uses this automatically - keep it handy only if you'd rather enter it by hand.</p>
+      </div>`
+    : `${joinButtonHtml}
       <p style="margin:0 0 20px;color:#333;font-size:14px;">
-        Open <a href="${SITE_URL}" style="color:#02a4a4;">blitz-odds.com</a>, sign in, go to the Leagues tab, and enter
-        this code under "Have an invite code instead?" to join.
-      </p>`
-    : `
-      <p style="margin:0 0 20px;color:#333;font-size:14px;">
-        Open <a href="${SITE_URL}" style="color:#02a4a4;">blitz-odds.com</a>, sign in, go to the Leagues tab, and search
-        for <strong>${escapeHtml(league.name)}</strong> under Search Leagues to join - no code needed.
+        The button signs you in (if needed) and joins <strong>${escapeHtml(league.name)}</strong> automatically - no code needed for public leagues.
       </p>`;
 
   const header = `
@@ -121,9 +139,8 @@ function buildInviteEmail(league: any, inviterName: string) {
     `${formatLabel} pick'em - ${league.season} season`,
     league.description || null,
     "",
-    isPrivate
-      ? `Invite code: ${league.inviteCode}\nSign in at ${SITE_URL}, open the Leagues tab, and enter this code to join.`
-      : `Sign in at ${SITE_URL}, open the Leagues tab, and search for "${league.name}" under Search Leagues to join.`,
+    `Join: ${joinUrl}`,
+    isPrivate ? `(Signs you in if needed and fills in the invite code, ${league.inviteCode}, automatically.)` : `(Signs you in if needed and joins automatically - no code needed.)`,
     "",
     `You're receiving this because ${inviterName} invited you to a league on Blitz Odds. Questions? Just reply to this email.`,
   ].filter((line) => line !== null).join("\n");

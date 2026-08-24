@@ -1121,6 +1121,17 @@
   .league-btn:disabled { opacity: 0.5; cursor: default; }
   .league-btn-primary { background: var(--accent); border-color: var(--accent); color: #062018; }
   .league-btn-primary:hover:not(:disabled) { filter: brightness(1.08); color: #062018; }
+  .league-btn-block { width: 100%; }
+
+  .league-form-create { display: flex; flex-direction: column; gap: 10px; }
+  .league-format-picker { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .league-format-option {
+    background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
+    border-radius: 8px; padding: 8px 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+  }
+  .league-format-option:hover { border-color: var(--accent); }
+  .league-format-option.selected { background: rgba(var(--accent-rgb),0.14); border-color: var(--accent); color: var(--accent); }
+  .league-format-hint { font-size: 0.78rem; color: var(--text-dim); margin: -2px 0 0; line-height: 1.4; }
 
   /* ---- Pick'em league view (This Week / Standings) --------------------- */
   /* Ported from the approved mockup - same tokens as the rest of the app,
@@ -1199,11 +1210,17 @@
   .pickem-pick-option:hover:not(:disabled) { border-color: rgba(var(--accent-rgb),0.5); }
   .pickem-pick-option.selected { border-color: var(--accent); background: rgba(var(--accent-rgb),0.12); box-shadow: 0 0 0 1px var(--accent); }
   .pickem-pick-option:disabled { opacity: 0.55; cursor: default; }
+  .pickem-pick-option.is-used { opacity: 0.45; }
   .pickem-pick-check {
     position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%;
     background: var(--accent); color: #062018; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 900;
   }
   .pickem-team-name { font-size: 0.78rem; font-weight: 700; text-align: center; line-height: 1.2; }
+  .pickem-team-spread { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .pickem-team-used-tag {
+    font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--out); background: rgba(var(--out-rgb), 0.12); border-radius: 5px; padding: 1px 6px;
+  }
   .pickem-at-sep { display: flex; align-items: center; color: var(--text-dim); font-size: 0.72rem; padding: 0 2px; }
   .pickem-confidence-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--surface-2); border-radius: 8px; padding: 8px 10px; font-size: 0.74rem; }
   .pickem-confidence-label { color: var(--text-dim); font-weight: 600; }
@@ -1678,10 +1695,10 @@
   <p>Thu, Dec 17 · 8:15 PM ET · Prime Video</p>
 
   
-  <p><strong>Odds (DraftKings):</strong> LAC -2.5 · ML SF +120 / LAC -142 · O/U 47.5</p>
+  <p><strong>Odds (DraftKings):</strong> LAC -2.5 · ML SF +114 / LAC -135 · O/U 47.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Los Angeles Chargers</strong> - SF 13% / LAC 87%</p>
+  <p>Predicted winner: <strong>Los Angeles Chargers</strong> - SF 16% / LAC 84%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -1703,7 +1720,7 @@
 
   <h2>Injury report</h2>
   <ul>
-<li><strong>Christian McCaffrey</strong> (SF · RB) - questionable - Calf/leg tightness (undisclosed body part)</li>
+<li><strong>Christian McCaffrey</strong> (SF · RB) - active - Calf/leg tightness (recovered)</li>
 <li><strong>Mike Evans</strong> (SF · WR) - questionable - Quad strain</li>
 <li><strong>Rashawn Slater</strong> (LAC · LT) - questionable - Knee flare-up (surgically repaired patellar tendon)</li>
 <li><strong>George Kittle</strong> (SF · TE) - out - Torn Achilles tendon</li>
@@ -2434,7 +2451,7 @@
 }</script>
 <script type="application/json" id="players-data">{
   "isDemoData": false,
-  "disclaimer": "Injury statuses reflect training camp/preseason reports as of Aug. 22, 2026 (evening update). Re-checked all currently out/questionable situations league-wide against fresh nfl.com/injuries headlines and insider (Schefter/Rapoport) searches, plus a roster-moves scan - no new status changes found since the afternoon update (Penix Jr.'s Aug. 21 clearance to 11-on-11 work remains the latest confirmed move). Houston signed WR depth (Sterling Shepard, Zay Jones) after Jayden Higgins' season-ending ACL tear, but that doesn't affect any tracked starter. No other roster moves (trades/releases/signings) affected a tracked player. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
+  "disclaimer": "Injury statuses reflect training camp/preseason reports as of Aug. 23, 2026 (evening update). Christian McCaffrey (SF) returned to full practice and is back to active. Added Raiders RB Ashton Jeanty (questionable) after he was helped off Sunday's practice with an apparent right knee injury of undisclosed severity - the team has not yet released details. Refreshed Malik Nabers' (NYG) note with HC John Harbaugh's Aug. 23 comment that he could come out of his non-contact jersey this week. All other currently out/questionable situations re-checked against fresh nfl.com/injuries headlines, insider (Schefter/Rapoport/Pelissero) searches, and a roster-moves scan - no other status changes found since the afternoon update. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
   "players": {
     "NE": [
       {
@@ -2475,12 +2492,13 @@
         "name": "Christian McCaffrey",
         "position": "RB",
         "impactScore": 9,
-        "status": "questionable",
+        "status": "active",
         "injury": {
-          "type": "Calf/leg tightness (undisclosed body part)",
+          "type": "Calf/leg tightness (recovered)",
           "since": "2026-08-10",
-          "note": "Hasn't practiced since Aug. 10 with what the team calls general 'tightness'; per Ian Rapoport it's real, not a hold-in, though the exact muscle/tendon hasn't been specified. HC Kyle Shanahan says McCaffrey 'would play today' if it were a regular-season week and the team is just being cautious given his 2024 history, when a similar calf issue spiraled into a lost season (4 games, 50 carries). No firm return timetable yet."
-        }
+          "note": "Returned to full practice Aug. 23, taking part in 11-on-11 work including handoffs and routes out of the backfield, after being sidelined since Aug. 10. McCaffrey said the absence was a planned ramp-up rather than a new setback, telling reporters it was 'part of the plan from the jump...to be fresh for the duration.'"
+        },
+        "activatedDate": "2026-08-23"
       },
       {
         "name": "George Kittle",
@@ -2619,7 +2637,7 @@
         "injury": {
           "type": "Torn ACL",
           "since": "2026-07",
-          "note": "Non-contact tear suffered on the first day of training camp practice \u2014 out for the season. The injury happened during the mandatory acclimation period, which the NFLPA is investigating."
+          "note": "Non-contact tear suffered on the first day of training camp practice — out for the season. The injury happened during the mandatory acclimation period, which the NFLPA is investigating."
         }
       },
       {
@@ -2795,7 +2813,7 @@
         "injury": {
           "type": "Groin injury",
           "since": "2026-08-19",
-          "note": "Left Wednesday's joint practice vs. Atlanta clutching his groin and did not return; HC Shane Steichen confirmed the injury. Per NFL insider Jordan Schultz, the Colts avoided a critical injury \u2014 Warren is expected to be out roughly a week, not weeks \u2014 though he'll be shut down for the rest of camp/preseason as a precaution. Second-year first-round pick coming off a strong rookie season (76 catches, 817 yards, 5 total TDs) and expected to be a lead target for Daniel Jones; trending toward being ready for the regular season."
+          "note": "Left Wednesday's joint practice vs. Atlanta clutching his groin and did not return; HC Shane Steichen confirmed the injury. Per NFL insider Jordan Schultz, the Colts avoided a critical injury — Warren is expected to be out roughly a week, not weeks — though he'll be shut down for the rest of camp/preseason as a precaution. Second-year first-round pick coming off a strong rookie season (76 catches, 817 yards, 5 total TDs) and expected to be a lead target for Daniel Jones; trending toward being ready for the regular season."
         }
       }
     ],
@@ -2919,7 +2937,7 @@
         "injury": {
           "type": "Knee flare-up (surgically repaired patellar tendon)",
           "since": "2026-08-04",
-          "note": "Missed his 8th consecutive practice Tuesday (Aug. 18); HC Jim Harbaugh said Slater is working 'off to the sides' and expects him back this weekend. Will miss Thursday's preseason game vs. the 49ers. Slater has downplayed the issue ('nothing crazy'), but the absence has stretched well beyond the original veteran-rest-day framing - worth continuing to monitor given his 2025 patellar tendon tear."
+          "note": "Returned to practice Saturday, Aug. 22 as a limited participant, per HC Jim Harbaugh - his first practice action since missing 8 straight sessions. Worked through individual drills and the first team-drill period before stepping aside; still considered day-to-day, but the return is a positive sign after a knee flare-up in his surgically repaired patellar tendon. No firm timetable yet for a return to full practice."
         }
       },
       {
@@ -2948,6 +2966,17 @@
         "position": "QB",
         "impactScore": 6,
         "status": "active"
+      },
+      {
+        "name": "Ashton Jeanty",
+        "position": "RB",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Right knee injury (severity undisclosed)",
+          "since": "2026-08-23",
+          "note": "Landed awkwardly diving for a low throw during Sunday's practice and was helped off the field by trainers, unable to put pressure on his right leg. Raiders have not disclosed further detail on severity; rookie RB Mike Washington Jr. took over first-team reps in his absence. No MRI results or return timetable reported yet."
+        }
       }
     ],
     "GB": [
@@ -3078,7 +3107,7 @@
         "injury": {
           "type": "ACL + meniscus recovery (right knee)",
           "since": "2025-09",
-          "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery to clear scar tissue. Practiced for a second straight day Aug. 19 - in shells, taking team reps and catching passes in 7-on-7 - after his first live reps of camp Aug. 17. HC John Harbaugh says Nabers still needs to \"get bumped around and hit\" in practice before being considered for game action; not yet committed to Week 1 (Sept. 13 vs. Dallas), though the trajectory looks positive."
+          "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery to clear scar tissue. Practiced in team reps for a second straight day Aug. 19, and HC John Harbaugh said Sunday, Aug. 23 that Nabers could come out of his red non-contact jersey at some point this week - another step forward. Still not yet committed to Week 1 (Sept. 13 vs. Dallas), though the trajectory looks positive."
         }
       }
     ],
@@ -11944,11 +11973,19 @@ function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode,
 // authenticatedFetch). This modal only handles league membership - actual
 // pick submission and standings are a separate, later view.
 
+const LEAGUE_FORMAT_OPTIONS = [
+  { value: "straight_up", label: "Straight-Up", hint: "Pick the winner of every game." },
+  { value: "confidence", label: "Confidence", hint: "Rank your picks 1-N points; nail your most confident calls for the biggest payoff." },
+  { value: "survivor", label: "Survivor", hint: "One pick a week. Lose and you're out - each team can only be used once all season." },
+  { value: "ats", label: "ATS", hint: "Pick against the spread instead of the straight winner." },
+];
+
 function LeaguesModal({ auth, onClose, onRequestLogin }) {
   const overlayRef = useRef(null);
   const [leagues, setLeagues] = useState(null); // null = loading
   const [loadError, setLoadError] = useState(null);
   const [createName, setCreateName] = useState("");
+  const [createFormat, setCreateFormat] = useState("straight_up");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
   const [joinCode, setJoinCode] = useState("");
@@ -11992,7 +12029,7 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
       const res = await auth.authenticatedFetch("/.netlify/functions/league-create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: createName.trim() }),
+        body: JSON.stringify({ name: createName.trim(), format: createFormat }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to create league");
@@ -12082,7 +12119,7 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
 
       <div className="settings-section">
         <h3 className="settings-section-title">Create a League</h3>
-        <form className="league-form" onSubmit={handleCreate}>
+        <form className="league-form-create" onSubmit={handleCreate}>
           <input
             type="text"
             className="league-input"
@@ -12091,8 +12128,21 @@ function LeaguesModal({ auth, onClose, onRequestLogin }) {
             onChange={e => setCreateName(e.target.value)}
             maxLength={50}
           />
-          <button type="submit" className="league-btn league-btn-primary" disabled={creating || !createName.trim()}>
-            {creating ? "Creating…" : "Create"}
+          <div className="league-format-picker">
+            {LEAGUE_FORMAT_OPTIONS.map(f => (
+              <button
+                key={f.value}
+                type="button"
+                className={"league-format-option" + (createFormat === f.value ? " selected" : "")}
+                onClick={() => setCreateFormat(f.value)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <p className="league-format-hint">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === createFormat) || {}).hint}</p>
+          <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={creating || !createName.trim()}>
+            {creating ? "Creating…" : "Create League"}
           </button>
         </form>
         {createError && <p className="leagues-error">{createError}</p>}
@@ -12192,7 +12242,7 @@ function LeagueHeader({ league, week, onWeekChange, onOpenLeagues }) {
     }
   }
 
-  const formatLabel = { straight_up: "Straight-Up", confidence: "Confidence", survivor: "Survivor", ats: "ATS" }[league.format] || league.format;
+  const formatLabel = (LEAGUE_FORMAT_OPTIONS.find(f => f.value === league.format) || {}).label || league.format;
 
   return (
     <div className="league-header">
@@ -12261,7 +12311,7 @@ function PicksProgressRing({ complete, total, week }) {
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, onPick, saving, error }) {
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   useEffect(() => {
@@ -12279,6 +12329,18 @@ function LeaguePickCard({ game, format, maxConfidence, onPick, saving, error }) 
     if (game.pick?.team) onPick(game.gameId, game.pick.team, val);
   }
 
+  // ats: prefer the spread actually locked in on a saved pick (never moves
+  // after submit) over the live line, which keeps drifting until kickoff.
+  function spreadLabel(teamId) {
+    if (format !== "ats") return null;
+    if (game.pick?.team === teamId && typeof game.pick?.spread === "number") {
+      return game.pick.spread > 0 ? `+${game.pick.spread}` : `${game.pick.spread}`;
+    }
+    if (typeof game.spread !== "number" || !game.favorite) return null;
+    const teamSpread = teamId === game.favorite ? game.spread : -game.spread;
+    return teamSpread > 0 ? `+${teamSpread}` : `${teamSpread}`;
+  }
+
   return (
     <div className={"pickem-game-card" + (game.locked ? " is-locked" : "")}>
       <div className="pickem-game-meta">
@@ -12288,18 +12350,23 @@ function LeaguePickCard({ game, format, maxConfidence, onPick, saving, error }) 
       <div className="pickem-pick-row">
         {[game.away, game.home].map((teamId, i) => {
           const selected = game.pick?.team === teamId;
-          const disabled = game.locked && !selected;
+          const usedElsewhere = format === "survivor" && !selected && usedTeams?.includes(teamId);
+          const disabled = (game.locked && !selected) || usedElsewhere;
+          const spread = spreadLabel(teamId);
           return (
             <button
               key={teamId}
               type="button"
-              className={"pickem-pick-option" + (selected ? " selected" : "")}
+              className={"pickem-pick-option" + (selected ? " selected" : "") + (usedElsewhere ? " is-used" : "")}
               onClick={() => selectTeam(teamId)}
               disabled={disabled || saving}
+              title={usedElsewhere ? `${teamId} already used this season` : undefined}
             >
               {selected && <div className="pickem-pick-check">✓</div>}
               <TeamLogo teamId={teamId} size={40} />
               <div className="pickem-team-name">{teamId}</div>
+              {spread && <div className="pickem-team-spread">{spread}</div>}
+              {usedElsewhere && <div className="pickem-team-used-tag">Used</div>}
             </button>
           );
         })}
@@ -12383,6 +12450,7 @@ function LeagueWeekPanel({ auth, league, week }) {
           game={game}
           format={data.format}
           maxConfidence={data.totalGames}
+          usedTeams={data.usedTeams}
           onPick={submitPick}
           saving={savingGameId === game.gameId}
           error={pickErrors[game.gameId]}

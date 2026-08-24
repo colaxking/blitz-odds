@@ -1,11 +1,16 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 
-// Joins the authenticated caller to a league via invite code. Idempotent -
-// joining a league you're already in just returns the current state rather
-// than erroring or duplicating your membership row.
+// Joins the authenticated caller to a league, either via invite code (any
+// league) or by leagueId directly (public leagues only - this is what the
+// Leagues landing page's search results use, via leagues-search.mts).
+// Idempotent - joining a league you're already in just returns the current
+// state rather than erroring or duplicating your membership row.
 //
 // POST /.netlify/functions/league-join   Body: { inviteCode: string }
+// POST /.netlify/functions/league-join   Body: { leagueId: string }
+//   The leagueId form is rejected with 403 unless that league's visibility
+//   is "public" - private/invite_only leagues still require the code.
 //
 // leagueStore uses strong consistency: this does a read-modify-write on
 // members:{leagueId} (read -> push new member -> write the whole doc back),
@@ -67,20 +72,34 @@ export default async (req: Request, _context: Context) => {
   }
 
   const inviteCode = typeof body.inviteCode === "string" ? body.inviteCode.trim().toUpperCase() : "";
-  if (!inviteCode) return jsonResponse(400, { ok: false, error: "Invite code is required" });
+  const leagueIdInput = typeof body.leagueId === "string" ? body.leagueId.trim() : "";
+  if (!inviteCode && !leagueIdInput) {
+    return jsonResponse(400, { ok: false, error: "Invite code or league is required" });
+  }
 
   const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
   const userStore = getStore(USER_STORE);
 
   try {
-    const inviteRecord: any = await leagueStore.get(`invite:${inviteCode}`, { type: "json" });
-    if (!inviteRecord || !inviteRecord.leagueId) {
-      return jsonResponse(404, { ok: false, error: "Invite code not found" });
+    let leagueId: string;
+    if (inviteCode) {
+      const inviteRecord: any = await leagueStore.get(`invite:${inviteCode}`, { type: "json" });
+      if (!inviteRecord || !inviteRecord.leagueId) {
+        return jsonResponse(404, { ok: false, error: "Invite code not found" });
+      }
+      leagueId = inviteRecord.leagueId;
+    } else {
+      leagueId = leagueIdInput;
     }
-    const leagueId = inviteRecord.leagueId;
 
     const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
     if (!league) return jsonResponse(404, { ok: false, error: "League no longer exists" });
+    // Joining by leagueId (no code) only works for public leagues - this is
+    // the path search results use. Private/invite_only leagues must go
+    // through the invite code branch above even if someone learns the id.
+    if (!inviteCode && league.visibility !== "public") {
+      return jsonResponse(403, { ok: false, error: "This league requires an invite code to join" });
+    }
     if (league.locked) return jsonResponse(403, { ok: false, error: "This league is locked and not accepting new members" });
 
     const membersDoc: any = (await leagueStore.get(`members:${leagueId}`, { type: "json" })) || {

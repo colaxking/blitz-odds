@@ -141,7 +141,21 @@ async function processLeague(
   const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
   if (!league || league.season !== season) return; // different season, or league vanished mid-scan
 
-  const weekPicksDoc: any = (await leagueStore.get(`picks:${leagueId}:${week}`, { type: "json" })) || {};
+  // Picks live one key per member per week (picks:{leagueId}:{week}:{userId} -
+  // see picks-submit.mts for why), not one shared doc for the whole league,
+  // so building weekPicksDoc means fetching each current member's key and
+  // reassembling the { [userId]: { [gameId]: pick } } shape scoreWeek
+  // expects. Fetched via the membership list rather than a prefix list()
+  // scan - it's the same list this function already needs for the Survivor
+  // step below, and avoids re-deriving userIds out of blob keys.
+  const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
+  const memberIds: string[] = (membersDoc?.members || []).map((m: any) => m.userId);
+
+  const weekPicksDoc: Record<string, any> = {};
+  await Promise.all(memberIds.map(async (userId) => {
+    const userPicks: any = await leagueStore.get(`picks:${leagueId}:${week}:${userId}`, { type: "json" });
+    if (userPicks) weekPicksDoc[userId] = userPicks;
+  }));
 
   // 1. Score every member's week.
   const weekScores = ScoringEngine.scoreWeek(league.format, league.scoringSettings, weekPicksDoc, weekResults);
@@ -175,7 +189,6 @@ async function processLeague(
 
   // 3. Survivor: advance alive/eliminated state.
   if (league.format === "survivor") {
-    const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
     let survivorState: any = (await leagueStore.get(`survivor:${leagueId}`, { type: "json" })) || {};
     // Initialize any member not yet tracked (new joiners, or first week processed).
     for (const m of membersDoc?.members || []) {

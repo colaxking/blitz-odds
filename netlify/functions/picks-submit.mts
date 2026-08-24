@@ -6,26 +6,27 @@ import { isPastKickoff } from "./lib/kickoff.mts";
 
 // Submits (or autosaves-over) one pick for one game in one league/week.
 // This is the only place a pick is allowed to be written - the client never
-// writes picks:{leagueId}:{week} directly, so every rule below is actually
-// enforced rather than just suggested by the UI.
+// writes picks:{leagueId}:{week}:{userId} directly, so every rule below is
+// actually enforced rather than just suggested by the UI.
 //
 // POST /.netlify/functions/picks-submit
 // Body: { leagueId, week, gameId, team, confidence? }
 //
 // Storage (blitz-leagues store, same as league-create/join/leagues-mine):
-//   picks:{leagueId}:{week} -> { [userId]: { [gameId]: { team, confidence?, updatedAt } } }
+//   picks:{leagueId}:{week}:{userId} -> { [gameId]: { team, confidence?, updatedAt } }
+// One key per user per week (not one shared doc for the whole league) -
+// found via live testing that a single shared doc means any two members of
+// the same league submitting picks around the same time (completely normal
+// right before a Sunday slate locks) do a read-modify-write on the exact
+// same key and can clobber each other, even with strong consistency reads
+// (which only protects a single writer's own sequential requests from
+// stale reads, not two independent writers racing each other). Splitting
+// by userId makes that structurally impossible - different users never
+// touch the same key, so there's nothing left to race on. See
+// results-process.mts for how a week's picks get read back across every
+// member (list by prefix instead of one big object).
 // Lock state is never stored - it's derived live from kickoff.mts on every
 // request, so there's no separate "is this locked" flag that can go stale.
-//
-// leagueStore uses strong consistency: this function does a read-modify-
-// write on the whole week's picks doc (read weekPicksDoc -> mutate -> write
-// the whole thing back), so a stale eventual-consistency read of an
-// in-flight write from a few seconds earlier would silently clobber it -
-// confirmed happening in practice when two different-game picks were
-// submitted back-to-back (exactly what the UI naturally does: selecting a
-// team then setting its confidence fires two close-together requests).
-// Strong consistency trades a bit of read latency to guarantee this read
-// always sees the most recent write.
 
 const LEAGUE_STORE = "blitz-leagues";
 const SITE_DATA_STORE = "blitz-site-data";
@@ -117,9 +118,8 @@ export default async (req: Request, _context: Context) => {
       atsSpread = team === oddsGame.favorite.toUpperCase() ? oddsGame.spread : -oddsGame.spread;
     }
 
-    const picksKey = `picks:${leagueId}:${week}`;
-    const weekPicksDoc: any = (await leagueStore.get(picksKey, { type: "json" })) || {};
-    const userPicks: any = weekPicksDoc[userId] || {};
+    const picksKey = `picks:${leagueId}:${week}:${userId}`;
+    const userPicks: any = (await leagueStore.get(picksKey, { type: "json" })) || {};
 
     // (No separate "already locked" check needed here beyond step 3: lock
     // state isn't stored, it's derived live from kickoff time every request,
@@ -142,8 +142,8 @@ export default async (req: Request, _context: Context) => {
     //    unless a future league setting relaxes it.
     if (league.format === "survivor") {
       for (let w = 1; w < week; w++) {
-        const priorDoc: any = await leagueStore.get(`picks:${leagueId}:${w}`, { type: "json" });
-        const priorPick = priorDoc?.[userId] && Object.values(priorDoc[userId])[0];
+        const priorDoc: any = await leagueStore.get(`picks:${leagueId}:${w}:${userId}`, { type: "json" });
+        const priorPick = priorDoc && Object.values(priorDoc)[0];
         if (priorPick && (priorPick as any).team === team) {
           return jsonResponse(409, { ok: false, error: `You've already used ${team} in week ${w} - Survivor teams can only be used once per season` }, CORS_HEADERS);
         }
@@ -163,9 +163,8 @@ export default async (req: Request, _context: Context) => {
       ...(league.format === "ats" ? { spread: atsSpread } : {}),
       updatedAt: now,
     };
-    weekPicksDoc[userId] = userPicks;
 
-    await leagueStore.setJSON(picksKey, weekPicksDoc);
+    await leagueStore.setJSON(picksKey, userPicks);
 
     return jsonResponse(200, { ok: true, gameId, pick: userPicks[gameId] }, CORS_HEADERS);
   } catch (err) {

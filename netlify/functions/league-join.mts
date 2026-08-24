@@ -78,7 +78,10 @@ export default async (req: Request, _context: Context) => {
   }
 
   const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
-  const userStore = getStore(USER_STORE);
+  // Strong consistency - a client that joins and immediately reloads
+  // leagues-mine.mts (also strong, below) shouldn't have a chance of
+  // reading its own eventually-consistent write back as stale/missing.
+  const userStore = getStore(USER_STORE, { consistency: "strong" });
 
   try {
     let leagueId: string;

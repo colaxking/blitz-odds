@@ -148,7 +148,10 @@ export default async (req: Request, _context: Context) => {
   const scoringSettings = sanitizeScoringSettings(format, body.scoringSettings);
 
   const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
-  const userStore = getStore(USER_STORE);
+  // Strong consistency, same reasoning as league-join.mts's own read-your-
+  // writes fix - a client that creates a league and immediately reloads
+  // leagues-mine.mts shouldn't be able to read its own write as stale.
+  const userStore = getStore(USER_STORE, { consistency: "strong" });
 
   try {
     // Generate a unique invite code - collisions are astronomically unlikely

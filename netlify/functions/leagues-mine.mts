@@ -57,8 +57,12 @@ export default async (req: Request, _context: Context) => {
   const url = new URL(req.url);
   const singleLeagueId = url.searchParams.get("leagueId");
 
-  const leagueStore = getStore(LEAGUE_STORE);
-  const userStore = getStore(USER_STORE);
+  // Strong consistency on both - this is the read a client hits right
+  // after joining/creating/leaving a league (also all strong-consistency
+  // writes now), so a stale eventual read here would show up directly as
+  // "I joined but it's not in my list yet."
+  const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
+  const userStore = getStore(USER_STORE, { consistency: "strong" });
 
   try {
     if (singleLeagueId) {

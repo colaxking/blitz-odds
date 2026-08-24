@@ -1190,6 +1190,12 @@
     cursor: pointer; padding: 0; margin: 12px 0 0;
   }
 
+  .league-leave-confirm {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    font-size: 0.84rem;
+  }
+  .league-leave-confirm-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
   .league-visibility-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .league-visibility-option {
     background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
@@ -12409,7 +12415,7 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined }) {
   );
 }
 
-function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, onRequestLogin, onSelectLeague, onManageLeague }) {
+function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague }) {
   const [createName, setCreateName] = useState("");
   const [createDescription, setCreateDescription] = useState("");
   const [createFormat, setCreateFormat] = useState("straight_up");
@@ -12417,8 +12423,12 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, onRequ
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
   const [copiedCode, setCopiedCode] = useState(null);
+  const [pendingLeaveId, setPendingLeaveId] = useState(null);
+  const [leavingId, setLeavingId] = useState(null);
+  const [leaveErrorId, setLeaveErrorId] = useState(null);
 
   const signedIn = auth.status === "in";
+  const myUserId = auth.user && auth.user.id;
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -12441,12 +12451,37 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, onRequ
       setCreateName("");
       setCreateDescription("");
       setCreateVisibility("private");
-      await reloadLeagues();
+      // Reflect it in "Your Leagues" immediately from the response rather
+      // than waiting on a refetch, then select straight into it.
+      upsertLeague(data.league);
+      reloadLeagues();
       onSelectLeague(data.league.id);
     } catch (err) {
       setCreateError(err.message || "Failed to create league");
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function handleLeave(league) {
+    if (leavingId) return;
+    setLeavingId(league.id);
+    setLeaveErrorId(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-leave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId: league.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to leave league");
+      removeLeague(league.id);
+      reloadLeagues();
+      setPendingLeaveId(null);
+    } catch (err) {
+      setLeaveErrorId(league.id);
+    } finally {
+      setLeavingId(null);
     }
   }
 
@@ -12486,37 +12521,71 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, onRequ
           )}
           {leagues && leagues.length > 0 && (
             <div className="league-list">
-              {leagues.map(l => (
-                <div key={l.id} className="league-list-item">
-                  <button type="button" className="league-list-item-btn" onClick={() => onSelectLeague(l.id)}>
-                    <span className="league-list-item-main">
-                      <span className="league-list-item-name">{l.name}</span>
-                      <span className="league-list-item-meta">
-                        {(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format} · {l.memberCount} member{l.memberCount === 1 ? "" : "s"} · {l.season}
-                      </span>
-                    </span>
-                  </button>
-                  {l.ownerId === (auth.user && auth.user.id) && (
-                    <button
-                      type="button"
-                      className="league-settings-gear"
-                      onClick={() => onManageLeague(l.id)}
-                      title="League settings"
-                      aria-label="League settings"
-                    >
-                      ⚙
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="league-invite-chip"
-                    onClick={() => copyInviteCode(l.inviteCode)}
-                    title="Copy invite code"
-                  >
-                    {copiedCode === l.inviteCode ? "Copied!" : l.inviteCode}
-                  </button>
-                </div>
-              ))}
+              {leagues.map(l => {
+                const isOwner = l.ownerId === myUserId;
+                const confirmingLeave = pendingLeaveId === l.id;
+                return (
+                  <div key={l.id} className="league-list-item">
+                    {confirmingLeave ? (
+                      <div className="league-leave-confirm">
+                        <span>Leave <strong>{l.name}</strong>?</span>
+                        <div className="league-leave-confirm-actions">
+                          <button type="button" className="league-btn" onClick={() => setPendingLeaveId(null)}>Cancel</button>
+                          <button
+                            type="button"
+                            className="league-btn league-btn-danger"
+                            disabled={leavingId === l.id}
+                            onClick={() => handleLeave(l)}
+                          >
+                            {leavingId === l.id ? "Leaving…" : "Leave"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button type="button" className="league-list-item-btn" onClick={() => onSelectLeague(l.id)}>
+                          <span className="league-list-item-main">
+                            <span className="league-list-item-name">{l.name}</span>
+                            <span className="league-list-item-meta">
+                              {(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format} · {l.memberCount} member{l.memberCount === 1 ? "" : "s"} · {l.season}
+                            </span>
+                          </span>
+                        </button>
+                        {isOwner ? (
+                          <button
+                            type="button"
+                            className="league-settings-gear"
+                            onClick={() => onManageLeague(l.id)}
+                            title="League settings"
+                            aria-label="League settings"
+                          >
+                            ⚙
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="league-settings-gear"
+                            onClick={() => setPendingLeaveId(l.id)}
+                            title="Leave league"
+                            aria-label="Leave league"
+                          >
+                            🚪
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="league-invite-chip"
+                          onClick={() => copyInviteCode(l.inviteCode)}
+                          title="Copy invite code"
+                        >
+                          {copiedCode === l.inviteCode ? "Copied!" : l.inviteCode}
+                        </button>
+                      </>
+                    )}
+                    {leaveErrorId === l.id && <p className="leagues-error">Couldn't leave that league.</p>}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -12525,7 +12594,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, reloadLeagues, onRequ
       <LeagueSearchSection
         auth={auth}
         onRequestLogin={onRequestLogin}
-        onJoined={(league) => { reloadLeagues(); onSelectLeague(league.id); }}
+        onJoined={(league) => { upsertLeague(league); reloadLeagues(); onSelectLeague(league.id); }}
       />
 
       <div className="leagues-page-section">
@@ -12626,7 +12695,27 @@ function useMyLeagues(auth) {
 
   useEffect(() => { reload(); }, [reload]);
 
-  return { leagues, error, reload };
+  // Optimistic local updates for join/create/leave/settings-save so the UI
+  // reflects the change on the same click instead of waiting on a refetch -
+  // league-join/league-create/leagues-mine already write and read with
+  // strong consistency now, but there's no reason to pay a network
+  // round-trip for something the response already told us.
+  const upsertLeague = useCallback((league) => {
+    setLeagues(prev => {
+      const list = prev || [];
+      const idx = list.findIndex(l => l.id === league.id);
+      if (idx === -1) return [...list, league];
+      const next = list.slice();
+      next[idx] = league;
+      return next;
+    });
+  }, []);
+
+  const removeLeague = useCallback((leagueId) => {
+    setLeagues(prev => (prev || []).filter(l => l.id !== leagueId));
+  }, []);
+
+  return { leagues, error, reload, upsertLeague, removeLeague };
 }
 
 /** Regular-season weeks only (1-18) - picks-mine/picks-submit only read
@@ -12639,8 +12728,9 @@ function clampToRegularSeasonWeek(week) {
   return Math.min(max, Math.max(min, week));
 }
 
-function LeagueHeader({ league, week, onWeekChange, onOpenLeagues }) {
+function LeagueHeader({ league, week, onWeekChange, onOpenLeagues, isOwner, onLeave, leaving }) {
   const [copied, setCopied] = useState(false);
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
   const weeks = (SCHEDULE_DATA && SCHEDULE_DATA.weeks) || [];
   const minWeek = weeks.length ? weeks[0].week : 1;
   const maxWeek = weeks.length ? weeks[weeks.length - 1].week : 18;
@@ -12669,12 +12759,28 @@ function LeagueHeader({ league, week, onWeekChange, onOpenLeagues }) {
             <span>{league.season}</span>
           </div>
         </div>
-        <div className="league-header-actions">
-          <button type="button" className="league-invite-chip" onClick={copyInvite} title="Copy invite code">
-            {copied ? "Copied!" : league.inviteCode}
-          </button>
-          <button type="button" className="league-btn" onClick={onOpenLeagues}>Manage</button>
-        </div>
+        {confirmingLeave ? (
+          <div className="league-leave-confirm">
+            <span>Leave this league?</span>
+            <div className="league-leave-confirm-actions">
+              <button type="button" className="league-btn" onClick={() => setConfirmingLeave(false)}>Cancel</button>
+              <button type="button" className="league-btn league-btn-danger" disabled={leaving} onClick={onLeave}>
+                {leaving ? "Leaving…" : "Leave"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="league-header-actions">
+            <button type="button" className="league-invite-chip" onClick={copyInvite} title="Copy invite code">
+              {copied ? "Copied!" : league.inviteCode}
+            </button>
+            {isOwner ? (
+              <button type="button" className="league-btn" onClick={onOpenLeagues}>Manage</button>
+            ) : (
+              <button type="button" className="league-btn" onClick={() => setConfirmingLeave(true)}>Leave</button>
+            )}
+          </div>
+        )}
       </div>
       <div className="league-week-nav">
         <button
@@ -12971,11 +13077,36 @@ function LeagueStandingsPanel({ auth, league }) {
 // "closing" any of them just returns to the landing page rather than a
 // modal, since the whole tab now behaves like a small nested nav.
 function LeagueView({ auth, onRequestLogin }) {
-  const { leagues, error: leaguesError, reload } = useMyLeagues(auth);
+  const { leagues, error: leaguesError, reload, upsertLeague, removeLeague } = useMyLeagues(auth);
   const [selectedLeagueId, setSelectedLeagueId] = useState(null);
   const [managingLeagueId, setManagingLeagueId] = useState(null);
   const [subTab, setSubTab] = useState("week");
   const [week, setWeek] = useState(() => clampToRegularSeasonWeek(getDefaultWeek()));
+  const [leavingLeagueId, setLeavingLeagueId] = useState(null);
+
+  const myUserId = auth.user && auth.user.id;
+
+  async function handleLeave(leagueId) {
+    if (leavingLeagueId) return;
+    setLeavingLeagueId(leagueId);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-leave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to leave league");
+      removeLeague(leagueId);
+      reload();
+      setSelectedLeagueId(null);
+    } catch (err) {
+      // Non-fatal - the Leave button in LeagueHeader will just still be
+      // there to retry; nothing destructive happened.
+    } finally {
+      setLeavingLeagueId(null);
+    }
+  }
 
   const managingLeague = managingLeagueId ? (leagues || []).find(l => l.id === managingLeagueId) : null;
   if (managingLeagueId && managingLeague) {
@@ -12986,8 +13117,8 @@ function LeagueView({ auth, onRequestLogin }) {
             auth={auth}
             league={managingLeague}
             onClose={() => setManagingLeagueId(null)}
-            onUpdated={() => { reload(); }}
-            onDeleted={() => { setManagingLeagueId(null); setSelectedLeagueId(null); reload(); }}
+            onUpdated={(updated) => { upsertLeague(updated); reload(); }}
+            onDeleted={(deletedId) => { removeLeague(deletedId); setManagingLeagueId(null); setSelectedLeagueId(null); reload(); }}
           />
         </div>
       </div>
@@ -12996,11 +13127,20 @@ function LeagueView({ auth, onRequestLogin }) {
 
   const league = selectedLeagueId ? (leagues || []).find(l => l.id === selectedLeagueId) : null;
   if (league) {
+    const isOwner = league.ownerId === myUserId;
     return (
       <div className="leagues-page">
         <div className="league-view">
           <button type="button" className="league-settings-back" onClick={() => setSelectedLeagueId(null)}>← All Leagues</button>
-          <LeagueHeader league={league} week={week} onWeekChange={setWeek} onOpenLeagues={() => setManagingLeagueId(league.id)} />
+          <LeagueHeader
+            league={league}
+            week={week}
+            onWeekChange={setWeek}
+            onOpenLeagues={() => setManagingLeagueId(league.id)}
+            isOwner={isOwner}
+            onLeave={() => handleLeave(league.id)}
+            leaving={leavingLeagueId === league.id}
+          />
           <div className="league-subtabs">
             <button type="button" className={"league-subtab" + (subTab === "week" ? " active" : "")} onClick={() => setSubTab("week")}>This Week</button>
             <button type="button" className={"league-subtab" + (subTab === "standings" ? " active" : "")} onClick={() => setSubTab("standings")}>Standings</button>
@@ -13019,6 +13159,8 @@ function LeagueView({ auth, onRequestLogin }) {
       leagues={leagues}
       leaguesError={leaguesError}
       reloadLeagues={reload}
+      upsertLeague={upsertLeague}
+      removeLeague={removeLeague}
       onRequestLogin={onRequestLogin}
       onSelectLeague={(id) => setSelectedLeagueId(id)}
       onManageLeague={(id) => setManagingLeagueId(id)}

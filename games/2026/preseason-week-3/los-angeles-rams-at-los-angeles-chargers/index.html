@@ -12665,17 +12665,27 @@ function LeagueWeekPanel({ auth, league, week }) {
   const [loadError, setLoadError] = useState(null);
   const [savingGameId, setSavingGameId] = useState(null);
   const [pickErrors, setPickErrors] = useState({});
+  const loadSeqRef = useRef(0);
 
+  // Every load() bumps this and only applies its result if it's still the
+  // most recently *initiated* call by the time it resolves. Without this,
+  // tapping several different picks quickly could fire overlapping loads
+  // that resolve out of order - an older, slower response landing after a
+  // newer one would silently overwrite a pick that had already saved,
+  // making it look like the tap "didn't take" even though it had.
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoadError(null);
     try {
       const res = await auth.authenticatedFetch(`/.netlify/functions/picks-mine?leagueId=${league.id}&week=${week}`);
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load picks");
-      setData(json);
+      if (seq === loadSeqRef.current) setData(json);
     } catch (err) {
-      setLoadError(err.message || "Failed to load picks");
-      setData(null);
+      if (seq === loadSeqRef.current) {
+        setLoadError(err.message || "Failed to load picks");
+        setData(null);
+      }
     }
   }, [auth, league.id, week]);
 
@@ -12684,7 +12694,7 @@ function LeagueWeekPanel({ auth, league, week }) {
   async function submitPick(gameId, team, confidence) {
     setSavingGameId(gameId);
     setPickErrors(prev => ({ ...prev, [gameId]: null }));
-    // Optimistic update so the tap feels instant; reconciled by the reload below.
+    // Optimistic update so the tap feels instant; reconciled below.
     setData(prev => prev && {
       ...prev,
       games: prev.games.map(g => g.gameId === gameId ? { ...g, pick: { team, confidence } } : g),
@@ -12697,7 +12707,19 @@ function LeagueWeekPanel({ auth, league, week }) {
       });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || "Failed to save pick");
-      await load();
+      // Merge the server-confirmed pick straight into state instead of
+      // doing a full reload - it's authoritative (has fields the optimistic
+      // update above couldn't know, like an ats spread snapshot) and,
+      // unlike load(), can't race against another in-flight submit's own
+      // update since it only ever touches this one game.
+      setData(prev => {
+        if (!prev) return prev;
+        const games = prev.games.map(g => g.gameId === gameId ? { ...g, pick: json.pick } : g);
+        const picksComplete = games.filter(g =>
+          g.pick && (prev.format !== "confidence" || typeof g.pick.confidence === "number")
+        ).length;
+        return { ...prev, games, picksComplete };
+      });
     } catch (err) {
       setPickErrors(prev => ({ ...prev, [gameId]: err.message || "Failed to save pick" }));
       await load(); // revert optimistic update to server truth

@@ -29,7 +29,7 @@ export default async (req: Request, _context: Context) => {
   const week = url.searchParams.get("week") ? Number(url.searchParams.get("week")) : null;
   if (!leagueId) return jsonResponse(400, { ok: false, error: "leagueId query param is required" }, CORS_HEADERS);
 
-  const leagueStore = getStore(LEAGUE_STORE);
+  const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
 
   try {
     const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });

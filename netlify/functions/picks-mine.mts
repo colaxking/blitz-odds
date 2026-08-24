@@ -72,6 +72,22 @@ export default async (req: Request, _context: Context) => {
       if (pick) userPicks[gid] = pick;
     }));
 
+    // survivor: submitting a new game mid-week deletes the previously
+    // picked game's key (see picks-submit.mts), but delete() has its own
+    // brief consistency lag independent of the store's strong-consistency
+    // setting - live testing showed a get() shortly after can transiently
+    // still return the deleted value. Rather than trust delete() to have
+    // already landed, only trust the most recently updated pick when more
+    // than one somehow shows up for the same week.
+    if (league.format === "survivor" && Object.keys(userPicks).length > 1) {
+      const latestGid = Object.keys(userPicks).reduce((a, b) =>
+        userPicks[a].updatedAt >= userPicks[b].updatedAt ? a : b
+      );
+      for (const gid of Object.keys(userPicks)) {
+        if (gid !== latestGid) delete userPicks[gid];
+      }
+    }
+
     // ats: pull current spreads so unpicked games can still show a line.
     let oddsWeekGames: any = null;
     if (league.format === "ats") {
@@ -106,11 +122,18 @@ export default async (req: Request, _context: Context) => {
       for (let w = 1; w < week; w++) {
         const priorWeekEntry = schedule?.weeks?.find((x: any) => x.week === w);
         if (!priorWeekEntry) continue;
-        const priorPicks = await Promise.all((priorWeekEntry.games || []).map((g: any) => {
+        const priorPicksByGid: Record<string, any> = {};
+        await Promise.all((priorWeekEntry.games || []).map(async (g: any) => {
           const gid = makeGameId(league.season, w, g.away, g.home);
-          return leagueStore.get(`picks:${leagueId}:${w}:${userId}:${gid}`, { type: "json" });
+          const p = await leagueStore.get(`picks:${leagueId}:${w}:${userId}:${gid}`, { type: "json" });
+          if (p) priorPicksByGid[gid] = p;
         }));
-        priorPicks.forEach((p: any) => { if (p?.team) seen.add(p.team); });
+        // Same "most recent wins" guard as above, for the same reason.
+        const gids = Object.keys(priorPicksByGid);
+        const latestGid = gids.length > 1
+          ? gids.reduce((a, b) => priorPicksByGid[a].updatedAt >= priorPicksByGid[b].updatedAt ? a : b)
+          : gids[0];
+        if (latestGid && priorPicksByGid[latestGid]?.team) seen.add(priorPicksByGid[latestGid].team);
       }
       usedTeams = [...seen];
     }

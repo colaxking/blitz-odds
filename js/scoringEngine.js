@@ -224,8 +224,16 @@
       if (!userState.alive) return; // already out, no re-evaluation
 
       var gamePicks = weekPicks[userId];
-      var gameId = Object.keys(gamePicks)[0]; // Survivor: exactly one pick per week
-      if (!gameId) return; // no pick made this week - left alive/unresolved; the UI should have blocked this
+      var gameIds = Object.keys(gamePicks);
+      if (gameIds.length === 0) return; // no pick made this week - left alive/unresolved; the UI should have blocked this
+      // Survivor is one pick per week, but if a mid-week switch's old key
+      // hadn't finished being deleted when this ran, more than one could
+      // show up here - the most recently updated one is the real pick.
+      var gameId = gameIds.length === 1
+        ? gameIds[0]
+        : gameIds.reduce(function (a, b) {
+            return (gamePicks[a].updatedAt || "") >= (gamePicks[b].updatedAt || "") ? a : b;
+          });
       var pick = gamePicks[gameId];
       var result = weekResults[gameId];
       if (!result || !result.final) return; // not decided yet

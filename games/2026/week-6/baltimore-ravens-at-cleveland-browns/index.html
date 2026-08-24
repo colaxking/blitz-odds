@@ -608,8 +608,11 @@
   }
   .news-team-filter-search {
     width: 100%; box-sizing: border-box; background: var(--surface-2); border: 1px solid var(--card-border);
-    border-radius: 8px; padding: 8px 10px; font-size: 0.84rem; color: var(--text); font-family: inherit;
+    border-radius: 8px; padding: 8px 10px; font-size: 16px; color: var(--text); font-family: inherit;
     margin-bottom: 6px; flex-shrink: 0;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .news-team-filter-search { font-size: 0.84rem; }
   }
   .news-team-filter-search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
   .news-team-filter-list { overflow-y: auto; }
@@ -1103,7 +1106,10 @@
   .league-form { display: flex; gap: 8px; }
   .league-input {
     flex: 1; min-width: 0; background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 8px;
-    padding: 9px 12px; color: var(--text); font-size: 0.88rem;
+    padding: 9px 12px; color: var(--text); font-size: 16px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .league-input { font-size: 0.88rem; }
   }
   .league-input:focus-visible { outline: none; border-color: var(--accent); }
   .league-input-code { text-transform: uppercase; letter-spacing: 1.5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }

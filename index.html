@@ -1139,11 +1139,6 @@
     align-items: center; justify-content: center;
   }
   .league-settings-gear:hover { border-color: var(--accent); color: var(--accent); }
-  .league-settings-back {
-    background: none; border: none; color: var(--text-dim); font-size: 0.82rem; font-weight: 700;
-    cursor: pointer; padding: 0 0 14px; display: block;
-  }
-  .league-settings-back:hover { color: var(--accent); }
   .league-settings-form { display: flex; flex-direction: column; gap: 12px; }
   .league-settings-row { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); }
   .league-settings-row-checkbox { flex-direction: row; align-items: center; justify-content: space-between; }
@@ -12150,7 +12145,10 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
 
   return (
     <>
-      <button type="button" className="league-settings-back" onClick={onClose}>← Back to Leagues</button>
+      <button className="back-btn" onClick={onClose}>
+        <ChevronIcon direction="left" size={13} />
+        <span>Back to League</span>
+      </button>
 
       <div className="settings-section">
         <h3 className="settings-section-title">League Settings</h3>
@@ -13165,7 +13163,10 @@ function LeagueView({ auth, onRequestLogin, tz }) {
     return (
       <div className="leagues-page">
         <div className="league-view">
-          <button type="button" className="league-settings-back" onClick={() => setSelectedLeagueId(null)}>← All Leagues</button>
+          <button className="back-btn" onClick={() => setSelectedLeagueId(null)}>
+            <ChevronIcon direction="left" size={13} />
+            <span>Back to Leagues</span>
+          </button>
           <LeagueHeader
             league={league}
             week={week}

@@ -1295,6 +1295,18 @@
   }
   .pickem-team-name { font-size: 0.78rem; font-weight: 700; text-align: center; line-height: 1.2; }
   .pickem-team-spread { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .pickem-team-prob { font-size: 0.66rem; font-weight: 700; color: var(--text-dim); }
+  .pickem-team-prob.is-favored { color: var(--win); }
+  .pickem-prob-bar-wrap { display: flex; align-items: center; gap: 6px; font-size: 0.62rem; color: var(--text-dim); }
+  .pickem-prob-bar { flex: 1; height: 4px; border-radius: 3px; background: var(--lose); overflow: hidden; display: flex; }
+  .pickem-prob-bar > div { height: 100%; }
+  .pickem-suggested-chip {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 0.64rem; font-weight: 700;
+    color: var(--accent); background: rgba(var(--accent-rgb),0.12); border: 1px solid rgba(var(--accent-rgb),0.35);
+    border-radius: 6px; padding: 2px 7px; cursor: pointer; margin-left: 6px;
+  }
+  .pickem-suggested-chip:hover { background: rgba(var(--accent-rgb),0.2); }
+  .pickem-suggested-chip:disabled { opacity: 0.5; cursor: default; }
   .pickem-team-used-tag {
     font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
     color: var(--out); background: rgba(var(--out-rgb), 0.12); border-radius: 5px; padding: 1px 6px;
@@ -12835,7 +12847,7 @@ function PicksProgressRing({ complete, total, week }) {
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz }) {
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   useEffect(() => {
@@ -12851,6 +12863,27 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
     const val = Number(e.target.value);
     setPendingConfidence(val);
     if (game.pick?.team) onPick(game.gameId, game.pick.team, val);
+  }
+
+  function applySuggestedConfidence() {
+    if (!suggestedConfidence) return;
+    setPendingConfidence(suggestedConfidence);
+    if (game.pick?.team) onPick(game.gameId, game.pick.team, suggestedConfidence);
+  }
+
+  // Model win probabilities, shown for straight-up and confidence formats
+  // only - a raw win probability is the wrong signal for survivor (which
+  // needs season-long team scarcity, not just this week) and actively
+  // misleading for ats (a heavy favorite to win can still be a bad cover
+  // pick), so both are left out here rather than showing a number that
+  // would steer picks wrong. See predictionEngine.js for the model itself.
+  const showPrediction = !!prediction && (format === "straight_up" || format === "confidence");
+  const homePct = showPrediction ? Math.round(prediction.homeWinProbability * 100) : null;
+  const awayPct = showPrediction ? Math.round(prediction.awayWinProbability * 100) : null;
+
+  function probLabel(teamId) {
+    if (!showPrediction) return null;
+    return teamId === game.home ? homePct : awayPct;
   }
 
   // ats: prefer the spread actually locked in on a saved pick (never moves
@@ -12884,6 +12917,8 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
           const usedElsewhere = format === "survivor" && !selected && usedTeams?.includes(teamId);
           const disabled = (game.locked && !selected) || usedElsewhere;
           const spread = spreadLabel(teamId);
+          const prob = probLabel(teamId);
+          const isFavored = showPrediction && prediction.predictedWinner === teamId;
           return (
             <button
               key={teamId}
@@ -12897,17 +12932,39 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
               <TeamLogo teamId={teamId} size={40} />
               <div className="pickem-team-name">{teamId}</div>
               {spread && <div className="pickem-team-spread">{spread}</div>}
+              {prob !== null && <div className={"pickem-team-prob" + (isFavored ? " is-favored" : "")}>{prob}%</div>}
               {usedElsewhere && <div className="pickem-team-used-tag">Used</div>}
             </button>
           );
         })}
       </div>
+      {showPrediction && (
+        <div className="pickem-prob-bar-wrap">
+          <span>{game.away} {awayPct}%</span>
+          <div className="pickem-prob-bar">
+            <div style={{ width: awayPct + "%", background: "var(--lose)" }}></div>
+            <div style={{ width: homePct + "%", background: "var(--win)" }}></div>
+          </div>
+          <span>{game.home} {homePct}%</span>
+        </div>
+      )}
       {format === "confidence" && (
         <div className="pickem-confidence-row">
           <span className="pickem-confidence-label">
             Confidence points
             {game.pick?.team && typeof game.pick?.confidence !== "number" && (
               <span className="pickem-confidence-needed"> · set points to finish this pick</span>
+            )}
+            {suggestedConfidence && Number(pendingConfidence) !== suggestedConfidence && (
+              <button
+                type="button"
+                className="pickem-suggested-chip"
+                onClick={applySuggestedConfidence}
+                disabled={game.locked || saving}
+                title="Suggested ranking based on how lopsided the model sees this matchup, relative to the rest of the week"
+              >
+                Model: #{suggestedConfidence}
+              </button>
             )}
           </span>
           <select
@@ -12958,6 +13015,51 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
   }, [auth, league.id, week]);
 
   useEffect(() => { setData(null); load(); }, [load]);
+
+  // Model predictions for every game in the week, computed client-side off
+  // the same team/injury/weather data the main schedule and Hot Picks use -
+  // picks-mine.mts doesn't need to know about this at all. Keyed off the
+  // set of gameIds (not `data` itself) so submitting a pick, which mutates
+  // `data.games[].pick`, doesn't trigger a pointless recompute.
+  const gameIdsKey = data ? data.games.map(g => g.gameId).join(",") : "";
+  const predictions = useMemo(() => {
+    if (!data) return {};
+    const context = getWeekContext(week);
+    const map = {};
+    data.games.forEach(g => {
+      const home = context.getTeam(g.home);
+      const away = context.getTeam(g.away);
+      if (!home || !away) return;
+      const weather = getWeather(week, g.away, g.home);
+      map[g.gameId] = PredictionEngine.predictMatchup({
+        homeTeam: home,
+        awayTeam: away,
+        homeImpactPlayers: context.getPlayers(g.home),
+        awayImpactPlayers: context.getPlayers(g.away),
+        weather: weather,
+        homeIsDomeTeam: isDomeTeam(home.id),
+        awayIsDomeTeam: isDomeTeam(away.id),
+      });
+    });
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameIdsKey, week]);
+
+  // Confidence-format only: suggests a 1..N ranking by how lopsided the
+  // model sees each game relative to the rest of the week (least lopsided
+  // -> lowest suggested rank), as a tappable hint next to the points
+  // selector - never auto-filled, since the ranking call is the whole game
+  // in this format and shouldn't be made for the player.
+  const suggestedConfidence = useMemo(() => {
+    if (!data || data.format !== "confidence") return {};
+    const ranked = data.games
+      .filter(g => predictions[g.gameId])
+      .map(g => ({ gameId: g.gameId, gap: Math.abs(predictions[g.gameId].homeWinProbability - 0.5) }))
+      .sort((a, b) => a.gap - b.gap);
+    const map = {};
+    ranked.forEach((r, i) => { map[r.gameId] = i + 1; });
+    return map;
+  }, [data, predictions]);
 
   async function submitPick(gameId, team, confidence) {
     setSavingGameId(gameId);
@@ -13013,6 +13115,8 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
           saving={savingGameId === game.gameId}
           error={pickErrors[game.gameId]}
           tz={tz}
+          prediction={predictions[game.gameId] || null}
+          suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
         />
       ))}
       <div className="pickem-autosave-note"><span className="pickem-autosave-dot"></span> Picks save automatically</div>

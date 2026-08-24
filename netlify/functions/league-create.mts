@@ -25,7 +25,7 @@ const CURRENT_SEASON = 2026;
 // actually scored with it - it's gated on point-spread data availability
 // from the odds provider, not yet wired up. See js/scoringEngine.js header.
 const VALID_FORMATS = new Set(["straight_up", "confidence", "survivor", "ats"]);
-const VALID_VISIBILITY = new Set(["private", "public", "invite_only"]);
+const VALID_VISIBILITY = new Set(["private", "public"]);
 const VALID_TIE_BREAKERS = new Set(["most_correct", "fewest_incorrect", null]);
 const DEFAULT_FORMAT = "straight_up";
 

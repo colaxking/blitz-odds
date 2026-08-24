@@ -1191,7 +1191,7 @@
   }
   .league-leave-confirm-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
-  .league-visibility-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .league-visibility-picker { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .league-visibility-option {
     background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
     border-radius: 8px; padding: 8px 6px; font-size: 0.76rem; font-weight: 700; cursor: pointer; text-align: center;
@@ -1235,7 +1235,16 @@
     background: rgba(var(--accent-rgb),0.16); color: var(--accent); font-size: 0.66rem;
     font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
   }
-  .league-header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .league-header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+  .league-invite-panel {
+    margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--card-border);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .league-invite-panel form { display: flex; flex-direction: column; gap: 10px; }
+  .league-invite-panel-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .league-invite-result { font-size: 0.82rem; }
+  .league-invite-result p { margin: 0 0 4px; line-height: 1.4; }
+  .league-invite-result-ok { color: var(--accent); }
   .league-week-nav {
     display: flex; align-items: center; justify-content: space-between; margin-top: 14px;
     padding-top: 12px; border-top: 1px dashed var(--card-border);
@@ -12100,7 +12109,6 @@ const LEAGUE_FORMAT_OPTIONS = [
 
 const LEAGUE_VISIBILITY_INFO = {
   private: "Only visible to people you invite with a code. Won't show up in search.",
-  invite_only: "Won't show up in search, but anyone with the invite code can join.",
   public: "Anyone can find and join it from the Search Leagues section - no code needed.",
 };
 
@@ -12111,7 +12119,6 @@ const LEAGUE_TIE_HANDLING_OPTIONS = [
 ];
 const LEAGUE_VISIBILITY_OPTIONS = [
   { value: "private", label: "Private" },
-  { value: "invite_only", label: "Invite-only" },
   { value: "public", label: "Public" },
 ];
 const LEAGUE_TIE_BREAKER_OPTIONS = [
@@ -12129,7 +12136,7 @@ const LEAGUE_TIE_BREAKER_OPTIONS = [
 function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
   const [name, setName] = useState(league.name || "");
   const [description, setDescription] = useState(league.description || "");
-  const [visibility, setVisibility] = useState(league.visibility || "private");
+  const [visibility, setVisibility] = useState(LEAGUE_VISIBILITY_OPTIONS.some(o => o.value === league.visibility) ? league.visibility : "private");
   const [maxMembers, setMaxMembers] = useState(league.maxMembers != null ? String(league.maxMembers) : "");
   const [tieBreaker, setTieBreaker] = useState(league.tieBreaker || "");
   const [pointsPerCorrect, setPointsPerCorrect] = useState(league.scoringSettings?.pointsPerCorrect ?? 1);
@@ -12805,9 +12812,103 @@ function clampToRegularSeasonWeek(week) {
   return Math.min(max, Math.max(min, week));
 }
 
-function LeagueHeader({ league, week, onWeekChange, onOpenLeagues, isOwner, onLeave, leaving }) {
+// Emails invitations to join this league via league-invite.mts. Any
+// member can open this (not owner-only - see league-invite.mts's header
+// for why), from the "Invite by Email" toggle in LeagueHeader. Splits on
+// commas, spaces, semicolons, and newlines so pasting from a contacts
+// export or typing a quick list both just work.
+function parseInviteEmails(text) {
+  const seen = new Set();
+  const out = [];
+  for (const raw of text.split(/[\s,;]+/)) {
+    const email = raw.trim();
+    if (!email) continue;
+    const key = email.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(email);
+  }
+  return out;
+}
+
+function LeagueInvitePanel({ auth, league, onClose }) {
+  const [emailsText, setEmailsText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null); // { sent: [], failed: [{ email, error }] }
+  const [error, setError] = useState(null);
+
+  const parsedCount = parseInviteEmails(emailsText).length;
+
+  async function handleSend(e) {
+    e.preventDefault();
+    const emails = parseInviteEmails(emailsText);
+    if (!emails.length || sending) return;
+    setSending(true);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId: league.id, emails }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to send invites");
+      setResult({ sent: data.sent || [], failed: data.failed || [] });
+      if (!(data.failed || []).length) setEmailsText("");
+    } catch (err) {
+      setError(err.message || "Failed to send invites");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="league-invite-panel">
+      <form onSubmit={handleSend}>
+        <label className="league-settings-row">
+          <span>Invite by email</span>
+          <textarea
+            className="league-textarea"
+            placeholder="friend@email.com, another@email.com"
+            value={emailsText}
+            onChange={e => setEmailsText(e.target.value)}
+            rows={3}
+          />
+        </label>
+        <p className="league-format-hint">
+          {league.visibility === "public"
+            ? "Each invite includes the league name, description, who invited them, and a link to find and join it."
+            : "Each invite includes the league name, description, who invited them, and the invite code to join."}
+        </p>
+        <div className="league-invite-panel-actions">
+          <button type="button" className="league-btn" onClick={onClose}>Close</button>
+          <button type="submit" className="league-btn league-btn-primary" disabled={sending || !parsedCount}>
+            {sending ? "Sending…" : parsedCount > 1 ? `Send ${parsedCount} Invites` : "Send Invite"}
+          </button>
+        </div>
+      </form>
+      {error && <p className="leagues-error">{error}</p>}
+      {result && (
+        <div className="league-invite-result">
+          {result.sent.length > 0 && (
+            <p className="league-invite-result-ok">Sent to {result.sent.length}: {result.sent.join(", ")}</p>
+          )}
+          {result.failed.length > 0 && (
+            <p className="leagues-error">
+              Couldn't send to {result.failed.map(f => `${f.email} (${f.error})`).join(", ")}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LeagueHeader({ auth, league, week, onWeekChange, onOpenLeagues, isOwner, onLeave, leaving }) {
   const [copied, setCopied] = useState(false);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
   const weeks = (SCHEDULE_DATA && SCHEDULE_DATA.weeks) || [];
   const minWeek = weeks.length ? weeks[0].week : 1;
   const maxWeek = weeks.length ? weeks[weeks.length - 1].week : 18;
@@ -12851,6 +12952,9 @@ function LeagueHeader({ league, week, onWeekChange, onOpenLeagues, isOwner, onLe
             <button type="button" className="league-invite-chip" onClick={copyInvite} title="Copy invite code">
               {copied ? "Copied!" : league.inviteCode}
             </button>
+            <button type="button" className="league-btn" onClick={() => setShowInvite(v => !v)}>
+              {showInvite ? "Close Invite" : "Invite by Email"}
+            </button>
             {isOwner ? (
               <button type="button" className="league-btn" onClick={onOpenLeagues}>Manage</button>
             ) : (
@@ -12859,6 +12963,9 @@ function LeagueHeader({ league, week, onWeekChange, onOpenLeagues, isOwner, onLe
           </div>
         )}
       </div>
+      {showInvite && (
+        <LeagueInvitePanel auth={auth} league={league} onClose={() => setShowInvite(false)} />
+      )}
       <div className="league-week-nav">
         <button
           type="button"
@@ -13332,6 +13439,7 @@ function LeagueView({ auth, onRequestLogin, tz }) {
             <span>Back to Leagues</span>
           </button>
           <LeagueHeader
+            auth={auth}
             league={league}
             week={week}
             onWeekChange={setWeek}

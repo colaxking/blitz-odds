@@ -28,7 +28,7 @@ import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/aut
 
 const LEAGUE_STORE = "blitz-leagues";
 
-const VALID_VISIBILITY = new Set(["private", "public", "invite_only"]);
+const VALID_VISIBILITY = new Set(["private", "public"]);
 const VALID_TIE_BREAKERS = new Set(["most_correct", "fewest_incorrect", null]);
 
 function sanitizeScoringSettingsPatch(format: string, existing: any, incoming: any) {

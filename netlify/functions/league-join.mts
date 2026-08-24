@@ -10,7 +10,7 @@ import { getStore } from "@netlify/blobs";
 // POST /.netlify/functions/league-join   Body: { inviteCode: string }
 // POST /.netlify/functions/league-join   Body: { leagueId: string }
 //   The leagueId form is rejected with 403 unless that league's visibility
-//   is "public" - private/invite_only leagues still require the code.
+//   is "public" - private leagues still require the code.
 //
 // leagueStore uses strong consistency: this does a read-modify-write on
 // members:{leagueId} (read -> push new member -> write the whole doc back),
@@ -98,8 +98,8 @@ export default async (req: Request, _context: Context) => {
     const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
     if (!league) return jsonResponse(404, { ok: false, error: "League no longer exists" });
     // Joining by leagueId (no code) only works for public leagues - this is
-    // the path search results use. Private/invite_only leagues must go
-    // through the invite code branch above even if someone learns the id.
+    // the path search results use. Private leagues must go through the
+    // invite code branch above even if someone learns the id.
     if (!inviteCode && league.visibility !== "public") {
       return jsonResponse(403, { ok: false, error: "This league requires an invite code to join" });
     }

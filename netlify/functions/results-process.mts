@@ -19,7 +19,14 @@ import { makeGameId } from "./lib/gameId.mts";
 //   season: number,             // defaults to CURRENT_SEASON if omitted
 //   week: number,
 //   results: {
-//     "AWAY-HOME": { winner: "AWAY"|"HOME"|"TIE" }   // team abbrevs, or "TIE"
+//     "AWAY-HOME": {
+//       winner: "AWAY"|"HOME"|"TIE",   // team abbrevs, or "TIE"
+//       homeScore?: number, awayScore?: number  // needed to grade ats leagues;
+//                                                // omit and ats picks for this
+//                                                // game stay ungraded (voided:0,
+//                                                // correct:null) until a later
+//                                                // run supplies them
+//     }
 //   }
 // }
 //
@@ -48,6 +55,8 @@ function jsonResponse(status: number, body: unknown) {
 
 interface RawResult {
   winner: string; // team abbrev, or "TIE"
+  homeScore?: number;
+  awayScore?: number;
 }
 
 export default async (req: Request, _context: Context) => {
@@ -77,8 +86,13 @@ export default async (req: Request, _context: Context) => {
 
   const leagueStore = getStore(LEAGUE_STORE);
 
-  // Build { gameId: { winner, tie, final } } once - shared across every league.
-  const weekResults: Record<string, { winner: string | null; tie: boolean; final: boolean }> = {};
+  // Build { gameId: { winner, tie, final, home, away, homeScore?, awayScore? } }
+  // once - shared across every league. home/away/scores are only used by ats
+  // grading (see scoreAtsPick in scoringEngine.js); other formats ignore them.
+  const weekResults: Record<string, {
+    winner: string | null; tie: boolean; final: boolean;
+    home: string; away: string; homeScore?: number; awayScore?: number;
+  }> = {};
   for (const [awayHome, r] of Object.entries(rawResults)) {
     const [away, home] = awayHome.split("-");
     if (!away || !home) continue;
@@ -88,6 +102,10 @@ export default async (req: Request, _context: Context) => {
       winner: isTie ? null : r.winner,
       tie: isTie,
       final: true,
+      home,
+      away,
+      ...(typeof r.homeScore === "number" ? { homeScore: r.homeScore } : {}),
+      ...(typeof r.awayScore === "number" ? { awayScore: r.awayScore } : {}),
     };
   }
 
@@ -122,7 +140,6 @@ async function processLeague(
 ) {
   const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
   if (!league || league.season !== season) return; // different season, or league vanished mid-scan
-  if (league.format === "ats") return; // not implemented yet - see scoringEngine.js header
 
   const weekPicksDoc: any = (await leagueStore.get(`picks:${leagueId}:${week}`, { type: "json" })) || {};
 

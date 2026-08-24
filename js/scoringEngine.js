@@ -10,11 +10,17 @@
  * preview of my points" UI both call into this file, so they can never
  * silently disagree with each other.
  *
- * Formats implemented: straight_up, confidence, survivor.
- * ats is intentionally not implemented yet - the league-create schema has a
- * slot for it (format: "ats", scoringSettings.atsEnabled) so no DB shape
- * change is needed later, but scoreWeek() throws if called with it until
- * spread data availability from the odds provider is confirmed.
+ * Formats implemented: straight_up, confidence, survivor, ats.
+ *
+ * ats (against the spread) picks are graded using the point-spread snapshot
+ * taken at pick time (pick.spread - see picks-submit.mts), not whatever the
+ * spread happens to be now, so a pick's grade never moves after it's made.
+ * pick.spread is always relative to pick.team (negative if pick.team was
+ * favored, positive if pick.team was the underdog), independent of home/
+ * away. Scoring needs the actual final score margin, not just a winner, so
+ * ats grading only runs once result.homeScore/result.awayScore are present
+ * (see results-process.mts) - a final result missing those is treated as
+ * not-yet-gradable rather than incorrect.
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
@@ -24,20 +30,24 @@
   }
 })(typeof self !== "undefined" ? self : this, function () {
 
-  var SUPPORTED_FORMATS = ["straight_up", "confidence", "survivor"];
+  var SUPPORTED_FORMATS = ["straight_up", "confidence", "survivor", "ats"];
 
   /**
-   * @param {"straight_up"|"confidence"|"survivor"} format
+   * @param {"straight_up"|"confidence"|"survivor"|"ats"} format
    * @param {Object} scoringSettings - league.scoringSettings
-   * @param {Object} pick - { team, confidence? }
-   * @param {Object} result - { winner: string|null, tie?: boolean, final: boolean }
+   * @param {Object} pick - { team, confidence?, spread? }
+   * @param {Object} result - { winner: string|null, tie?: boolean, final: boolean,
+   *   home?: string, away?: string, homeScore?: number, awayScore?: number }
    * @returns {{correct: boolean|null, points: number}} correct is null when
-   *   the pick doesn't count either way (unplayed game, or a void tie).
+   *   the pick doesn't count either way (unplayed game, void tie, or a not-
+   *   yet-gradable ats pick).
    */
   function scorePick(format, scoringSettings, pick, result) {
     scoringSettings = scoringSettings || {};
     if (!result || !result.final) return { correct: null, points: 0 };
     if (!pick || !pick.team) return { correct: false, points: 0 };
+
+    if (format === "ats") return scoreAtsPick(scoringSettings, pick, result);
 
     if (result.tie) {
       var tieHandling = scoringSettings.tieHandling || "void";
@@ -52,6 +62,34 @@
     var correct = pick.team === result.winner;
     if (!correct) return { correct: false, points: 0 };
     return { correct: true, points: pointsForCorrect(format, scoringSettings, pick) };
+  }
+
+  /** Grades one ats pick against the actual final score. A push (adjusted
+   *  margin of exactly 0) is handled with the same scoringSettings.tieHandling
+   *  knob straight_up/confidence use for game ties - "void" (default),
+   *  "both_correct", or "incorrect". */
+  function scoreAtsPick(scoringSettings, pick, result) {
+    if (typeof pick.spread !== "number") return { correct: false, points: 0 };
+    if (typeof result.homeScore !== "number" || typeof result.awayScore !== "number") {
+      return { correct: null, points: 0 }; // final winner known, but no score margin to grade against yet
+    }
+    var pickIsHome = pick.team === result.home;
+    var pickIsAway = pick.team === result.away;
+    if (!pickIsHome && !pickIsAway) return { correct: false, points: 0 };
+
+    var margin = pickIsHome
+      ? (result.homeScore - result.awayScore)
+      : (result.awayScore - result.homeScore);
+    var adjusted = margin + pick.spread;
+
+    if (adjusted > 0) return { correct: true, points: pointsForCorrect("ats", scoringSettings, pick) };
+    if (adjusted === 0) {
+      var pushHandling = scoringSettings.tieHandling || "void";
+      if (pushHandling === "both_correct") return { correct: true, points: pointsForCorrect("ats", scoringSettings, pick) };
+      if (pushHandling === "incorrect") return { correct: false, points: 0 };
+      return { correct: null, points: 0 };
+    }
+    return { correct: false, points: 0 };
   }
 
   function pointsForCorrect(format, scoringSettings, pick) {
@@ -114,9 +152,6 @@
    * @returns {Object.<string,Object>} { [userId]: scoreUserWeek(...) }
    */
   function scoreWeek(format, scoringSettings, weekPicks, weekResults) {
-    if (format === "ats") {
-      throw new Error("scoreWeek: ats format is not implemented yet (spread-data dependent)");
-    }
     weekPicks = weekPicks || {};
     var out = {};
     Object.keys(weekPicks).forEach(function (userId) {

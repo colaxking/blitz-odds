@@ -5,13 +5,21 @@ import { makeGameId } from "./lib/gameId.mts";
 import { isPastKickoff } from "./lib/kickoff.mts";
 
 // GET /.netlify/functions/picks-mine?leagueId={id}&week={n}
-//   -> { ok, week, games: [{ gameId, away, home, date, time, locked, pick }] }
+//   -> { ok, week, games: [{ gameId, away, home, date, time, locked, pick,
+//        favorite?, spread? }], usedTeams? }
 // One request gives the frontend everything it needs to render the week's
 // game cards - the schedule, each game's live locked/unlocked state, and
 // whatever the caller has already picked - without three separate calls.
+// ats leagues additionally get each game's current favorite/spread (for
+// display before a pick is made - the actual grading line is whatever gets
+// snapshotted onto the pick at submit time, see picks-submit.mts). survivor
+// leagues additionally get usedTeams, the same season-wide "already picked"
+// set picks-submit.mts enforces server-side, so the UI can disable those
+// teams before a submit gets rejected rather than only after.
 
 const LEAGUE_STORE = "blitz-leagues";
 const SITE_DATA_STORE = "blitz-site-data";
+const ODDS_STORE = "blitz-odds-live";
 
 const CORS_HEADERS: Record<string, string> = {
   ...CORS_HEADERS_BASE,
@@ -33,6 +41,7 @@ export default async (req: Request, _context: Context) => {
 
   const leagueStore = getStore(LEAGUE_STORE);
   const siteDataStore = getStore(SITE_DATA_STORE);
+  const oddsStore = getStore(ODDS_STORE);
 
   try {
     const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
@@ -49,8 +58,16 @@ export default async (req: Request, _context: Context) => {
     const weekPicksDoc: any = await leagueStore.get(`picks:${leagueId}:${week}`, { type: "json" });
     const userPicks: any = weekPicksDoc?.[userId] || {};
 
+    // ats: pull current spreads so unpicked games can still show a line.
+    let oddsWeekGames: any = null;
+    if (league.format === "ats") {
+      const oddsDoc: any = await oddsStore.get("odds", { type: "json" });
+      oddsWeekGames = oddsDoc?.weeks?.[String(week)]?.games || null;
+    }
+
     const games = (weekEntry.games || []).map((g: any) => {
       const gameId = makeGameId(league.season, week, g.away, g.home);
+      const oddsGame = oddsWeekGames ? oddsWeekGames[`${g.away}-${g.home}`] : null;
       return {
         gameId,
         away: g.away,
@@ -60,10 +77,25 @@ export default async (req: Request, _context: Context) => {
         network: g.network || null,
         locked: isPastKickoff(league.season, g.date, g.time),
         pick: userPicks[gameId] || null,
+        ...(oddsGame ? { favorite: oddsGame.favorite, spread: oddsGame.spread } : {}),
       };
     });
 
     const complete = games.filter((g: any) => g.pick).length;
+
+    // survivor: season-wide used teams (any prior week, mirrors the same
+    // check picks-submit.mts enforces) so the client can disable those team
+    // buttons up front instead of only surfacing a rejected-pick error.
+    let usedTeams: string[] | undefined;
+    if (league.format === "survivor") {
+      const seen = new Set<string>();
+      for (let w = 1; w < week; w++) {
+        const priorDoc: any = await leagueStore.get(`picks:${leagueId}:${w}`, { type: "json" });
+        const priorPick: any = priorDoc?.[userId] && Object.values(priorDoc[userId])[0];
+        if (priorPick?.team) seen.add(priorPick.team);
+      }
+      usedTeams = [...seen];
+    }
 
     return jsonResponse(200, {
       ok: true,
@@ -73,6 +105,7 @@ export default async (req: Request, _context: Context) => {
       totalGames: games.length,
       picksComplete: complete,
       games,
+      ...(usedTeams ? { usedTeams } : {}),
     }, CORS_HEADERS);
   } catch (err) {
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" }, CORS_HEADERS);

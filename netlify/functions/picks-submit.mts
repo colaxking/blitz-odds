@@ -19,6 +19,7 @@ import { isPastKickoff } from "./lib/kickoff.mts";
 
 const LEAGUE_STORE = "blitz-leagues";
 const SITE_DATA_STORE = "blitz-site-data";
+const ODDS_STORE = "blitz-odds-live";
 
 const CORS_HEADERS: Record<string, string> = {
   ...CORS_HEADERS_BASE,
@@ -52,6 +53,7 @@ export default async (req: Request, _context: Context) => {
 
   const leagueStore = getStore(LEAGUE_STORE);
   const siteDataStore = getStore(SITE_DATA_STORE);
+  const oddsStore = getStore(ODDS_STORE);
 
   try {
     // 1. League + membership check.
@@ -86,6 +88,23 @@ export default async (req: Request, _context: Context) => {
       if (!Number.isInteger(confidence) || confidence < 1 || confidence > maxConfidence) {
         return jsonResponse(400, { ok: false, error: `Confidence must be an integer between 1 and ${maxConfidence}` }, CORS_HEADERS);
       }
+    }
+
+    // 4b. ATS: snapshot the current spread, relative to the picked team, at
+    // the moment of pick - not whatever the line has drifted to by kickoff -
+    // so a pick's grade never moves after it's made. Requires a spread to
+    // actually be published for this game; without one there's nothing to
+    // grade against, so the pick is rejected rather than silently stored
+    // ungraded.
+    let atsSpread: number | undefined;
+    if (league.format === "ats") {
+      const oddsDoc: any = await oddsStore.get("odds", { type: "json" });
+      const oddsWeek = oddsDoc?.weeks?.[String(week)];
+      const oddsGame = oddsWeek?.games?.[`${game.away}-${game.home}`];
+      if (!oddsGame || typeof oddsGame.spread !== "number" || !oddsGame.favorite) {
+        return jsonResponse(400, { ok: false, error: "Odds aren't available for this game yet - try again closer to kickoff" }, CORS_HEADERS);
+      }
+      atsSpread = team === oddsGame.favorite.toUpperCase() ? oddsGame.spread : -oddsGame.spread;
     }
 
     const picksKey = `picks:${leagueId}:${week}`;
@@ -131,6 +150,7 @@ export default async (req: Request, _context: Context) => {
     userPicks[gameId] = {
       team,
       ...(league.format === "confidence" ? { confidence } : {}),
+      ...(league.format === "ats" ? { spread: atsSpread } : {}),
       updatedAt: now,
     };
     weekPicksDoc[userId] = userPicks;

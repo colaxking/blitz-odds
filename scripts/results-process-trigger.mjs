@@ -89,7 +89,10 @@ async function fetchWeekWinners(week) {
     if (homeScore === awayScore) winner = "TIE";
     else winner = homeScore > awayScore ? homeAbbr : awayAbbr;
 
-    results[`${awayAbbr}-${homeAbbr}`] = { winner };
+    // homeScore/awayScore are included alongside winner so results-process
+    // can grade ats (against-the-spread) leagues - straight_up/confidence/
+    // survivor leagues only ever use winner and ignore these.
+    results[`${awayAbbr}-${homeAbbr}`] = { winner, homeScore, awayScore };
   }
   return results;
 }

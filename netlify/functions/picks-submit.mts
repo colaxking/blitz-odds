@@ -6,25 +6,27 @@ import { isPastKickoff } from "./lib/kickoff.mts";
 
 // Submits (or autosaves-over) one pick for one game in one league/week.
 // This is the only place a pick is allowed to be written - the client never
-// writes picks:{leagueId}:{week}:{userId} directly, so every rule below is
-// actually enforced rather than just suggested by the UI.
+// writes picks:{leagueId}:{week}:{userId}:{gameId} directly, so every rule
+// below is actually enforced rather than just suggested by the UI.
 //
 // POST /.netlify/functions/picks-submit
 // Body: { leagueId, week, gameId, team, confidence? }
 //
 // Storage (blitz-leagues store, same as league-create/join/leagues-mine):
-//   picks:{leagueId}:{week}:{userId} -> { [gameId]: { team, confidence?, updatedAt } }
-// One key per user per week (not one shared doc for the whole league) -
-// found via live testing that a single shared doc means any two members of
-// the same league submitting picks around the same time (completely normal
-// right before a Sunday slate locks) do a read-modify-write on the exact
-// same key and can clobber each other, even with strong consistency reads
-// (which only protects a single writer's own sequential requests from
-// stale reads, not two independent writers racing each other). Splitting
-// by userId makes that structurally impossible - different users never
-// touch the same key, so there's nothing left to race on. See
-// results-process.mts for how a week's picks get read back across every
-// member (list by prefix instead of one big object).
+//   picks:{leagueId}:{week}:{userId}:{gameId} -> { team, confidence?, spread?, updatedAt }
+// One key per game per member per week - not one key per user per week
+// (tried that first; still broke). Live testing showed *any* shared key
+// that two requests can read-modify-write is a race, no matter how
+// narrowly it's scoped: a single user picking several games in quick
+// succession fires genuinely overlapping requests (this is normal UI
+// behavior, not a double-click edge case), and even with strong
+// consistency reads, two in-flight writers can each read before either has
+// written and clobber one another. The only way to make picks structurally
+// un-racy is for every write to go to its own key - this function's write
+// is now a plain set(), no read-modify-write at all. Reads that need "all
+// of a user's picks this week" (confidence uniqueness, survivor's cross-
+// week check, results-process.mts's scoring) list this prefix instead of
+// reading one combined document.
 // Lock state is never stored - it's derived live from kickoff.mts on every
 // request, so there's no separate "is this locked" flag that can go stale.
 
@@ -118,8 +120,7 @@ export default async (req: Request, _context: Context) => {
       atsSpread = team === oddsGame.favorite.toUpperCase() ? oddsGame.spread : -oddsGame.spread;
     }
 
-    const picksKey = `picks:${leagueId}:${week}:${userId}`;
-    const userPicks: any = (await leagueStore.get(picksKey, { type: "json" })) || {};
+    const weekPrefix = `picks:${leagueId}:${week}:${userId}:`;
 
     // (No separate "already locked" check needed here beyond step 3: lock
     // state isn't stored, it's derived live from kickoff time every request,
@@ -129,9 +130,10 @@ export default async (req: Request, _context: Context) => {
     //    can't collide with confidence already assigned to a DIFFERENT game
     //    this week.
     if (league.format === "confidence" && league.scoringSettings?.uniqueConfidence) {
-      const collision = Object.entries(userPicks).find(
-        ([gid, p]: [string, any]) => gid !== gameId && p.confidence === confidence
-      );
+      const { blobs } = await leagueStore.list({ prefix: weekPrefix });
+      const others = blobs.filter((b) => b.key !== `${weekPrefix}${gameId}`);
+      const otherPicks: any[] = await Promise.all(others.map((b) => leagueStore.get(b.key, { type: "json" })));
+      const collision = otherPicks.some((p) => p && p.confidence === confidence);
       if (collision) {
         return jsonResponse(409, { ok: false, error: `Confidence value ${confidence} is already used on another game this week` }, CORS_HEADERS);
       }
@@ -142,31 +144,36 @@ export default async (req: Request, _context: Context) => {
     //    unless a future league setting relaxes it.
     if (league.format === "survivor") {
       for (let w = 1; w < week; w++) {
-        const priorDoc: any = await leagueStore.get(`picks:${leagueId}:${w}:${userId}`, { type: "json" });
-        const priorPick = priorDoc && Object.values(priorDoc)[0];
-        if (priorPick && (priorPick as any).team === team) {
-          return jsonResponse(409, { ok: false, error: `You've already used ${team} in week ${w} - Survivor teams can only be used once per season` }, CORS_HEADERS);
+        const { blobs } = await leagueStore.list({ prefix: `picks:${leagueId}:${w}:${userId}:` });
+        for (const b of blobs) {
+          const priorPick: any = await leagueStore.get(b.key, { type: "json" });
+          if (priorPick && priorPick.team === team) {
+            return jsonResponse(409, { ok: false, error: `You've already used ${team} in week ${w} - Survivor teams can only be used once per season` }, CORS_HEADERS);
+          }
         }
       }
       // Survivor is one pick per week - submitting a new game this week
       // replaces any other game already picked this week rather than
       // stacking multiple picks.
-      Object.keys(userPicks).forEach((gid) => {
-        if (gid !== gameId) delete userPicks[gid];
-      });
+      const { blobs: thisWeekBlobs } = await leagueStore.list({ prefix: weekPrefix });
+      await Promise.all(
+        thisWeekBlobs
+          .filter((b) => b.key !== `${weekPrefix}${gameId}`)
+          .map((b) => leagueStore.delete(b.key))
+      );
     }
 
     const now = new Date().toISOString();
-    userPicks[gameId] = {
+    const pick = {
       team,
       ...(league.format === "confidence" ? { confidence } : {}),
       ...(league.format === "ats" ? { spread: atsSpread } : {}),
       updatedAt: now,
     };
 
-    await leagueStore.setJSON(picksKey, userPicks);
+    await leagueStore.setJSON(`${weekPrefix}${gameId}`, pick);
 
-    return jsonResponse(200, { ok: true, gameId, pick: userPicks[gameId] }, CORS_HEADERS);
+    return jsonResponse(200, { ok: true, gameId, pick }, CORS_HEADERS);
   } catch (err) {
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" }, CORS_HEADERS);
   }

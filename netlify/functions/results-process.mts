@@ -141,20 +141,27 @@ async function processLeague(
   const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
   if (!league || league.season !== season) return; // different season, or league vanished mid-scan
 
-  // Picks live one key per member per week (picks:{leagueId}:{week}:{userId} -
-  // see picks-submit.mts for why), not one shared doc for the whole league,
-  // so building weekPicksDoc means fetching each current member's key and
-  // reassembling the { [userId]: { [gameId]: pick } } shape scoreWeek
-  // expects. Fetched via the membership list rather than a prefix list()
-  // scan - it's the same list this function already needs for the Survivor
-  // step below, and avoids re-deriving userIds out of blob keys.
+  // Picks live one key per game per member per week
+  // (picks:{leagueId}:{week}:{userId}:{gameId} - see picks-submit.mts for
+  // why), so building weekPicksDoc means listing each current member's
+  // prefix, fetching every game key under it, and reassembling the
+  // { [userId]: { [gameId]: pick } } shape scoreWeek expects. Member list
+  // is fetched here rather than derived from the listed keys - it's the
+  // same list this function already needs for the Survivor step below.
   const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
   const memberIds: string[] = (membersDoc?.members || []).map((m: any) => m.userId);
 
   const weekPicksDoc: Record<string, any> = {};
   await Promise.all(memberIds.map(async (userId) => {
-    const userPicks: any = await leagueStore.get(`picks:${leagueId}:${week}:${userId}`, { type: "json" });
-    if (userPicks) weekPicksDoc[userId] = userPicks;
+    const prefix = `picks:${leagueId}:${week}:${userId}:`;
+    const { blobs } = await leagueStore.list({ prefix });
+    if (blobs.length === 0) return;
+    const userPicks: Record<string, any> = {};
+    await Promise.all(blobs.map(async (b) => {
+      const gid = b.key.slice(prefix.length);
+      userPicks[gid] = await leagueStore.get(b.key, { type: "json" });
+    }));
+    weekPicksDoc[userId] = userPicks;
   }));
 
   // 1. Score every member's week.

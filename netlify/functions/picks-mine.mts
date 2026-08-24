@@ -10,16 +10,18 @@ import { isPastKickoff } from "./lib/kickoff.mts";
 // One request gives the frontend everything it needs to render the week's
 // game cards - the schedule, each game's live locked/unlocked state, and
 // whatever the caller has already picked - without three separate calls.
-// Reads picks:{leagueId}:{week}:{userId} - one key per user per week (see
-// picks-submit.mts for why: a single shared doc for the whole league let
-// two different members submitting around the same time clobber each
-// other). ats leagues additionally get each game's current favorite/spread
-// (for display before a pick is made - the actual grading line is whatever
-// gets snapshotted onto the pick at submit time, see picks-submit.mts).
-// survivor leagues additionally get usedTeams, the same season-wide
-// "already picked" set picks-submit.mts enforces server-side, so the UI
-// can disable those teams before a submit gets rejected rather than only
-// after.
+// Reads picks:{leagueId}:{week}:{userId}:{gameId} - one key per game per
+// member per week (see picks-submit.mts for the full history: first tried
+// one key per league+week, then one key per user+week, and live testing
+// broke both - any key two in-flight requests can both read-modify-write
+// is a race). Listed by prefix and fetched individually rather than one
+// combined document. ats leagues additionally get each game's current
+// favorite/spread (for display before a pick is made - the actual grading
+// line is whatever gets snapshotted onto the pick at submit time, see
+// picks-submit.mts). survivor leagues additionally get usedTeams, the same
+// season-wide "already picked" set picks-submit.mts enforces server-side,
+// so the UI can disable those teams before a submit gets rejected rather
+// than only after.
 
 const LEAGUE_STORE = "blitz-leagues";
 const SITE_DATA_STORE = "blitz-site-data";
@@ -59,7 +61,15 @@ export default async (req: Request, _context: Context) => {
     const weekEntry = schedule?.weeks?.find((w: any) => w.week === week);
     if (!weekEntry) return jsonResponse(404, { ok: false, error: `No schedule found for week ${week}` }, CORS_HEADERS);
 
-    const userPicks: any = (await leagueStore.get(`picks:${leagueId}:${week}:${userId}`, { type: "json" })) || {};
+    // Fetch every pick this user has made this week: list the prefix, then
+    // get() each key individually and index by the gameId suffix.
+    const weekPrefix = `picks:${leagueId}:${week}:${userId}:`;
+    const { blobs: weekBlobs } = await leagueStore.list({ prefix: weekPrefix });
+    const userPicks: Record<string, any> = {};
+    await Promise.all(weekBlobs.map(async (b) => {
+      const gid = b.key.slice(weekPrefix.length);
+      userPicks[gid] = await leagueStore.get(b.key, { type: "json" });
+    }));
 
     // ats: pull current spreads so unpicked games can still show a line.
     let oddsWeekGames: any = null;
@@ -93,9 +103,11 @@ export default async (req: Request, _context: Context) => {
     if (league.format === "survivor") {
       const seen = new Set<string>();
       for (let w = 1; w < week; w++) {
-        const priorDoc: any = await leagueStore.get(`picks:${leagueId}:${w}:${userId}`, { type: "json" });
-        const priorPick: any = priorDoc && Object.values(priorDoc)[0];
-        if (priorPick?.team) seen.add(priorPick.team);
+        const { blobs } = await leagueStore.list({ prefix: `picks:${leagueId}:${w}:${userId}:` });
+        for (const b of blobs) {
+          const priorPick: any = await leagueStore.get(b.key, { type: "json" });
+          if (priorPick?.team) seen.add(priorPick.team);
+        }
       }
       usedTeams = [...seen];
     }

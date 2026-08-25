@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
 
+# Alias and private routes. /g/{gameId} is a notification target that
+# redirects to the canonical game URL - indexing it would split ranking
+# signal across two URLs for the same page. /join and /leagues/{id} are
+# per-user, not public content.
+Disallow: /g/
+Disallow: /join/
+Disallow: /leagues/
+
 Sitemap: https://blitz-odds.com/sitemap.xml

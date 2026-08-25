@@ -9012,24 +9012,77 @@ function weekFromSlug(slug) {
   const p = getSelectablePeriods().find(p => slugify(p.label) === slug);
   return p ? p.week : null;
 }
-function buildTeamPath(teamId) {
-  return `/teams/${teamSlug(teamId)}/`;
+function buildTeamPath(teamId, focus) {
+  return `/teams/${teamSlug(teamId)}/` + (focus === "injuries" ? "injuries" : "");
 }
 function buildGamePath(week, awayAbbr, homeAbbr) {
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   return `/games/${seasonYear}/${weekSlug(week)}/${teamSlug(awayAbbr)}-at-${teamSlug(homeAbbr)}/`;
 }
-/** Recovers {view, teamId} or {view, week, awayAbbr, homeAbbr} from a
- *  pathname, or null if it doesn't match a known route (falls back to the
- *  week view). Game URLs are matched against that week's actual scheduled
- *  games rather than split on "-at-" in the URL itself, since a team's own
- *  slug can itself contain dashes (e.g. "new-york-giants"), which would make
- *  a plain string split ambiguous. */
+
+/* Real paths for the tab bar. These used to be URL hashes ("/#news"), which
+ * the server never sees - so they were invisible to crawlers and, more
+ * pressingly, unreachable from a notification: Universal Links and App Links
+ * match on path and cannot see a fragment. The old hashes still work (see
+ * getInitialTab) since they're sitting in already-sent emails and bookmarks,
+ * they just rewrite themselves to the path on arrival. */
+const TAB_ROUTES = {
+  games: "/",
+  picks: "/picks",
+  league: "/leagues",
+  news: "/news",
+};
+/* "archive" is deliberately absent. It looks like a tab in TabBar, but it's
+ * an <a href> out to the separate static archive at /historical/ - there is
+ * no activeTab === "archive" branch to render, so treating it as an in-app
+ * route would land people on a page with a header and no content. (The old
+ * "#archive" hash had exactly that bug; it now falls through to Games.)
+ * /archive is a plain 301 to /historical/ in _redirects instead. */
+const TAB_BY_PATH = Object.entries(TAB_ROUTES).reduce((acc, [tab, path]) => {
+  if (path !== "/") acc[path] = tab;
+  return acc;
+}, {});
+function buildTabPath(tab) {
+  return TAB_ROUTES[tab] || "/";
+}
+function buildLeaguePath(leagueId) {
+  return `/leagues/${encodeURIComponent(leagueId)}`;
+}
+/** True for any path the tab bar owns, so the week view can tell "the URL is
+ *  stale, I should reset it to /" from "the URL is a team/game page that
+ *  selectTeam/selectGame is already maintaining." */
+function isTabPath(pathname) {
+  const clean = pathname.replace(/\/$/, "") || "/";
+  return clean !== "/" && (!!TAB_BY_PATH[clean] || /^\/leagues(\/|$)/.test(clean));
+}
+
+/* A stored notification can't use the canonical game URL. That URL encodes
+ * the week, and a flexed game moves weeks - which would silently invalidate
+ * every notification already delivered. Alerts carry /g/{gameId} instead,
+ * using the same identifier picks are keyed on (makeGameId -> "2026-w6-SEA-SF").
+ * It resolves here against the schedule the app already has, with no server
+ * lookup, and App replaces it with the canonical URL on arrival. */
+function parseGameIdPath(idRaw) {
+  const m = String(idRaw).match(/^(\d{4})-w(-?\d+)-([A-Za-z]{2,4})-([A-Za-z]{2,4})$/);
+  if (!m) return null;
+  const week = Number(m[2]);
+  const away = m[3].toUpperCase();
+  const home = m[4].toUpperCase();
+  const game = getGamesForWeek(week).find(g => g.away === away && g.home === home);
+  if (!game) return null;
+  return { view: "game", week, awayAbbr: game.away, homeAbbr: game.home, alias: true };
+}
+
+/** Recovers a route from a pathname, or null if it doesn't match anything
+ *  known (the caller falls back to the week view). Game URLs are matched
+ *  against that week's actual scheduled games rather than split on "-at-" in
+ *  the URL itself, since a team's own slug can contain dashes (e.g.
+ *  "new-york-giants"), which would make a plain string split ambiguous. */
 function parseLocationPath(pathname) {
-  const teamMatch = pathname.match(/^\/teams\/([a-z0-9-]+)\/?$/);
+  const teamMatch = pathname.match(/^\/teams\/([a-z0-9-]+)(?:\/(injuries))?\/?$/);
   if (teamMatch) {
     const teamId = teamIdFromSlug(teamMatch[1]);
-    if (teamId) return { view: "team", teamId };
+    if (teamId) return { view: "team", teamId, focus: teamMatch[2] || null };
   }
   const gameMatch = pathname.match(/^\/games\/(\d{4})\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
   if (gameMatch) {
@@ -9040,6 +9093,32 @@ function parseLocationPath(pathname) {
       if (game) return { view: "game", week, awayAbbr: game.away, homeAbbr: game.home };
     }
   }
+  const aliasMatch = pathname.match(/^\/g\/([A-Za-z0-9-]+)\/?$/);
+  if (aliasMatch) {
+    const resolved = parseGameIdPath(aliasMatch[1]);
+    if (resolved) return resolved;
+  }
+  // Invite links. /join/league/{id} is the public-league form (the old
+  // ?joinLeague=); /join/{code} is the private invite-code form (the old
+  // ?joinCode=). Both mean "act on this invite", which is a different
+  // intent from /leagues/{id} below - that one just opens a league you're
+  // already in, which is what a pick alert wants.
+  const joinLeagueMatch = pathname.match(/^\/join\/league\/([A-Za-z0-9_-]{1,64})\/?$/);
+  if (joinLeagueMatch) {
+    return { view: "week", tab: "league", join: { type: "leagueId", value: decodeURIComponent(joinLeagueMatch[1]) } };
+  }
+  const joinMatch = pathname.match(/^\/join\/([A-Za-z0-9_-]{1,64})\/?$/);
+  if (joinMatch) {
+    return { view: "week", tab: "league", join: { type: "code", value: joinMatch[1].toUpperCase() } };
+  }
+  // /leagues/{leagueId} - a specific league, which had no URL at all before
+  // this and is what a last-call pick alert needs to point at.
+  const leagueMatch = pathname.match(/^\/leagues\/([A-Za-z0-9_-]{1,64})\/?$/);
+  if (leagueMatch) {
+    return { view: "week", tab: "league", leagueId: decodeURIComponent(leagueMatch[1]) };
+  }
+  const cleanPath = pathname.replace(/\/$/, "") || "/";
+  if (TAB_BY_PATH[cleanPath]) return { view: "week", tab: TAB_BY_PATH[cleanPath] };
   return null;
 }
 
@@ -15093,9 +15172,12 @@ function LeaguePicksPanel({ auth, profile, league, week, tz }) {
 // icon on the landing page or "Manage" in the per-league header, and
 // "closing" any of them just returns to the landing page rather than a
 // modal, since the whole tab now behaves like a small nested nav.
-function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin }) {
+function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, onOpenLeagueRoute }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
-  const [selectedLeagueId, setSelectedLeagueId] = useState(null);
+  // /leagues/{id} opens straight into that league. Initial value only -
+  // once someone navigates inside the tab, their clicks own this, not the
+  // URL it was first loaded with.
+  const [selectedLeagueId, setSelectedLeagueId] = useState(initialLeagueId || null);
   const [managingLeagueId, setManagingLeagueId] = useState(null);
   const [subTab, setSubTab] = useState("week");
   const [week, setWeek] = useState(() => clampToRegularSeasonWeek(getDefaultWeek()));
@@ -15105,6 +15187,15 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   const autoJoinAttemptedRef = useRef(false);
 
   const myUserId = auth.user && auth.user.id;
+
+  // Mirror the open league into the address bar so it's shareable and, more
+  // to the point, so a last-call pick notification has somewhere to point.
+  // replaceState rather than push: moving between the list and a league is
+  // a sub-navigation inside the tab, not something Back should replay one
+  // step at a time.
+  useEffect(() => {
+    if (typeof onOpenLeagueRoute === "function") onOpenLeagueRoute(selectedLeagueId);
+  }, [selectedLeagueId, onOpenLeagueRoute]);
 
   // The landing page is where people sit before opening a league, and the
   // week they'll land on is entirely predictable (the selected week, which
@@ -16597,7 +16688,7 @@ function TeamNewsPanel({ teamId }) {
   );
 }
 
-function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, sportsbookId, tz }) {
+function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, sportsbookId, tz, focus }) {
   const team = baseTeam(teamId);
   if (!team) return <p>Unknown team.</p>;
   const injuryReport = [...(PLAYERS_DATA.players[teamId] || [])]
@@ -16612,6 +16703,22 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
   // score/clock changes live while it's open instead of needing a refresh.
   const currentWeek = useMemo(() => getDefaultWeek(), []);
   const liveMap = useLiveScores(currentWeek);
+
+  // /teams/{slug}/injuries is where an injury alert lands. The page renders
+  // top-down as normal; this just drops the reader at the section they were
+  // notified about. Deferred a frame so the block exists to scroll to, and
+  // only on the initial focus - re-running it on every render would yank
+  // the page back down while someone is reading elsewhere.
+  const injuryFocusDoneRef = useRef(false);
+  useEffect(() => {
+    if (focus !== "injuries" || injuryFocusDoneRef.current) return;
+    injuryFocusDoneRef.current = true;
+    const timer = setTimeout(() => {
+      const el = document.getElementById("team-injury-report");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [focus]);
 
   const tabs = isMobile
     ? [
@@ -16790,7 +16897,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
         </div>
       )}
 
-      <div className="injury-report">
+      <div className="injury-report" id="team-injury-report">
         <h3 className="injury-report-title">Injury Report — This Week</h3>
         {injuryReport.length === 0 ? (
           <p className="hw-tag">No tracked impact players for this team right now.</p>
@@ -17777,15 +17884,23 @@ function ThemeToggle({ mode, setMode }) {
   );
 }
 
-/** Reads a league invite link's query params once at App-mount time -
- *  ?joinCode=XXXX (private leagues, matches league-join.mts's inviteCode
- *  body param) or ?joinLeague=ID (public leagues, matches its leagueId
- *  param). Query string rather than a URL hash deliberately: Netlify
- *  Identity's own email flows (confirm/invite/recovery) hijack
- *  #confirmation_token=...-style hash fragments, and some email
- *  click-trackers drop fragments entirely when rewriting links, but query
- *  params survive both. */
+/** Reads a league invite link once at App-mount time. The current form is
+ *  the path /join/{code}; the older query forms - ?joinCode=XXXX (private
+ *  leagues, matches league-join.mts's inviteCode body param) and
+ *  ?joinLeague=ID (public leagues, matches its leagueId param) - are still
+ *  read and always will be, since invites already sitting in inboxes don't
+ *  expire on our schedule.
+ *
+ *  What neither form uses is a URL hash: Netlify Identity's own email flows
+ *  (confirm/invite/recovery) hijack #confirmation_token=...-style fragments,
+ *  and some email click-trackers drop fragments entirely when rewriting
+ *  links. A path also survives both, and unlike a query string it can be
+ *  matched by a native app's Universal Links later. */
 function getInitialLeagueJoin() {
+  try {
+    const route = parseLocationPath(window.location.pathname);
+    if (route && route.join) return route.join;
+  } catch (e) {}
   try {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("joinCode");
@@ -17804,17 +17919,23 @@ function getInitialRoute() {
   try { return parseLocationPath(window.location.pathname); } catch (e) { return null; }
 }
 
-// Lets links from outside the SPA (e.g. the archive's static tab nav) land
-// directly on a specific tab via a URL hash - "/#picks" opens Hot Picks,
-// etc. - instead of always dropping the visitor on Games. Falls back to
-// "games" for an empty/unrecognized hash so a stray "#" never 404s a tab.
-const TAB_IDS = ["games", "picks", "league", "news", "archive"];
+// Lets links from outside the SPA land directly on a tab. The real form is
+// a path ("/news"); the old hash form ("/#news") is still honoured because
+// it's sitting in already-sent emails, the archive's static tab nav, and
+// people's bookmarks - App rewrites it to the path on arrival rather than
+// leaving two URLs for the same screen. Falls back to "games" so a stray
+// "#" or an unknown tab never lands nowhere.
+const TAB_IDS = Object.keys(TAB_ROUTES);
 function getInitialTab(leaguesEnabled) {
-  // A league invite link always wins, regardless of hash - it's a much
-  // stronger signal of intent than whatever tab happened to be hashed in,
-  // and email link-tracking wrappers sometimes drop the hash anyway (see
-  // getInitialLeagueJoin).
+  // A league invite link always wins, regardless of path or hash - it's a
+  // much stronger signal of intent than whatever tab happened to be in the
+  // URL, and email link-tracking wrappers sometimes drop the hash anyway
+  // (see getInitialLeagueJoin).
   if (leaguesEnabled && getInitialLeagueJoin()) return "league";
+  try {
+    const route = parseLocationPath(window.location.pathname);
+    if (route && route.tab && (route.tab !== "league" || leaguesEnabled)) return route.tab;
+  } catch (e) {}
   try {
     const hash = (window.location.hash || "").replace(/^#/, "");
     if (TAB_IDS.includes(hash) && (hash !== "league" || leaguesEnabled)) return hash;
@@ -17831,6 +17952,13 @@ function App() {
   const [selectedWeek, setSelectedWeek] = useState(() => {
     const route = getInitialRoute();
     return route && route.view === "game" ? route.week : getDefaultWeek();
+  });
+  // Which section of the team page a link asked for, if any. Only ever set
+  // from the initial URL - clicking through to a team in-app lands at the
+  // top, the way it always has.
+  const [teamFocus, setTeamFocus] = useState(() => {
+    const route = getInitialRoute();
+    return route && route.view === "team" ? (route.focus || null) : null;
   });
   const [selectedTeamId, setSelectedTeamId] = useState(() => {
     const route = getInitialRoute();
@@ -17856,13 +17984,38 @@ function App() {
   const [pendingJoin, setPendingJoin] = useState(getInitialLeagueJoin);
   const loginPromptedForJoinRef = useRef(false);
 
+  // A /leagues/{id} link (what a last-call pick alert points at) opens that
+  // league directly. Read once at mount - after that the URL follows the
+  // user's clicks via syncLeagueRoute, not the other way round.
+  const [initialLeagueId] = useState(() => {
+    try {
+      const route = parseLocationPath(window.location.pathname);
+      return route && route.leagueId ? route.leagueId : null;
+    } catch (e) { return null; }
+  });
+
+  // Called by LeagueView whenever the open league changes. Guarded on the
+  // active tab so a background remount can't rewrite the URL out from under
+  // whatever tab is actually showing.
+  const syncLeagueRoute = useCallback((leagueId) => {
+    try {
+      if (activeTab !== "league") return;
+      const desired = leagueId ? buildLeaguePath(leagueId) : buildTabPath("league");
+      if (window.location.pathname !== desired) {
+        window.history.replaceState(window.history.state, "", desired + window.location.search);
+      }
+    } catch (e) {}
+  }, [activeTab]);
+
   function clearPendingJoin() {
     setPendingJoin(null);
     try {
       const url = new URL(window.location.href);
       url.searchParams.delete("joinCode");
       url.searchParams.delete("joinLeague");
-      window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+      // The path form needs clearing too, or a refresh re-triggers the join.
+      const path = /^\/join\//.test(url.pathname) ? buildTabPath("league") : url.pathname;
+      window.history.replaceState(window.history.state, "", path + url.search + url.hash);
     } catch (e) {}
   }
 
@@ -17899,19 +18052,57 @@ function App() {
     setActiveTab(tab);
   }
 
-  // Keeps the URL hash in sync with the selected tab (replaceState, not
-  // pushState, so switching tabs doesn't spam the back button) - this is
-  // what makes "/#news" a real, shareable/linkable entry point rather than
-  // a one-way trip that can't be pointed back to.
+  // Keeps the URL in sync with the selected tab. This wrote a hash before
+  // ("/#news"); it now writes a real path ("/news") so the tab is crawlable
+  // and, more to the point, linkable from a notification - Universal Links
+  // and App Links match on path and can't see a fragment.
+  //
+  // Two things this must not do. It must not clobber a team or game URL:
+  // those live under activeTab "games" and are maintained by selectTeam /
+  // selectGame / backToWeek, so this only touches the address bar when the
+  // week view is showing. And the very first run has to be replaceState,
+  // not pushState - arriving on "/#news", or on "/news" directly, is not a
+  // navigation the Back button should have to undo.
+  const tabRouteSyncedRef = useRef(false);
   useEffect(() => {
     try {
-      const desired = activeTab === "games" ? "" : `#${activeTab}`;
-      const current = window.location.hash || "";
-      if (desired !== current) {
-        window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search + desired);
+      const first = !tabRouteSyncedRef.current;
+      tabRouteSyncedRef.current = true;
+      const write = (path) => {
+        const url = path + window.location.search;
+        if (first) window.history.replaceState(window.history.state, "", url);
+        else window.history.pushState({ tab: activeTab }, "", url);
+      };
+
+      if (activeTab !== "games") {
+        // A specific league keeps its own deeper URL rather than being
+        // flattened back to /leagues every time this effect runs.
+        if (activeTab === "league" && /^\/leagues\/[^/]+\/?$/.test(window.location.pathname)) return;
+        const desired = buildTabPath(activeTab);
+        if (window.location.pathname !== desired || window.location.hash) write(desired);
+        return;
+      }
+
+      // activeTab === "games": the path belongs to whatever view is up. Only
+      // correct the case where the week view is showing but the URL still
+      // says a tab (or still carries a legacy hash).
+      if (view === "week" && (isTabPath(window.location.pathname) || window.location.hash)) {
+        write("/");
       }
     } catch (e) {}
-  }, [activeTab]);
+  }, [activeTab, view]);
+
+  // A notification carries /g/{gameId} rather than the canonical game URL,
+  // so once it resolves, swap the address bar over to the real one. Done
+  // with replaceState so Back doesn't return to the alias and re-resolve.
+  useEffect(() => {
+    try {
+      const route = parseLocationPath(window.location.pathname);
+      if (!route || !route.alias) return;
+      const canonical = buildGamePath(route.week, route.awayAbbr, route.homeAbbr);
+      window.history.replaceState({ view: "game", ...route }, "", canonical + window.location.search);
+    } catch (e) {}
+  }, []);
 
 
   // Cross-device settings sync for signed-in users. Signed-out users keep
@@ -17997,14 +18188,25 @@ function App() {
       if (route && route.view === "team") {
         setSelectedTeamId(route.teamId);
         setSelectedGame(null);
+        setTeamFocus(route.focus || null);
         setView("team");
+        setActiveTab("games");
       } else if (route && route.view === "game") {
         setSelectedGame({ week: route.week, awayAbbr: route.awayAbbr, homeAbbr: route.homeAbbr });
         setSelectedWeek(route.week);
         setView("game");
+        setActiveTab("games");
+      } else if (route && route.tab) {
+        // Tabs are real paths now, so Back out of /news has to put the tab
+        // back as well as the view - otherwise the URL and the screen
+        // disagree until the next click.
+        setSelectedGame(null);
+        setView("week");
+        setActiveTab(route.tab === "league" && !LEAGUES_UI_ENABLED ? "games" : route.tab);
       } else {
         setSelectedGame(null);
         setView("week");
+        setActiveTab("games");
       }
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }
@@ -18063,6 +18265,7 @@ function App() {
   function selectTeam(teamId) {
     setSelectedTeamId(teamId);
     setSelectedGame(null);
+    setTeamFocus(null);
     setView("team");
     setActiveTab("games");
     const path = buildTeamPath(teamId);
@@ -18177,7 +18380,7 @@ function App() {
               onOpenLeagues={goToLeaguesTab}
             />
           ) : (
-            <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} />
+            <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} focus={teamFocus} />
           )}
         </>
       )}
@@ -18197,6 +18400,8 @@ function App() {
           tz={resolvedTz}
           pendingJoin={pendingJoin}
           onConsumePendingJoin={clearPendingJoin}
+          initialLeagueId={initialLeagueId}
+          onOpenLeagueRoute={syncLeagueRoute}
         />
       )}
 

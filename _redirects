@@ -13,3 +13,23 @@ https://blitz-odds.netlify.app/*  https://blitz-odds.com/:splat  301!
 # client-side instead of getting a 404.
 /teams/*  /index.html  200
 /games/*  /index.html  200
+
+# Notification / tab routes. These are all client-side (pushState) routes
+# handled by index.html's React router, so a direct hit, a shared link, or a
+# crawler request has to fall back to index.html rather than 404.
+#
+# /g/{gameId} is the stable alias notifications carry - the canonical game
+# URL encodes the week, and a flexed game changes weeks, which would
+# invalidate every notification already delivered. The app resolves the id
+# against the schedule and replaces the URL with the canonical one.
+/g/*        /index.html  200
+/picks      /index.html  200
+/leagues    /index.html  200
+/leagues/*  /index.html  200
+/join/*     /index.html  200
+/news       /index.html  200
+
+# The archive is a separate static site, not an SPA tab - give it a clean
+# URL rather than an in-app route with nothing to render.
+/archive    /historical/index.html  301
+/archive/*  /historical/:splat      301

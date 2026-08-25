@@ -468,6 +468,14 @@ function buildTeamSnapshotHtml(data, team) {
 function buildHead(template, team, canonicalPath) {
   const title = `${team.name} Schedule, Odds & Predictions | Blitz Odds`;
   const description = `${team.name} full schedule, injury report, and NFL odds. See this week's matchup prediction and win probability for ${team.name}.`;
+  return applyMeta(template, { title, description, canonicalPath });
+}
+
+/** Rewrites the shared <head> metadata (title, description, canonical, and
+ *  the OG/Twitter mirrors of both) for one prerendered page. Split out of
+ *  buildHead so the tab pages below can reuse it without inventing a fake
+ *  team object. */
+function applyMeta(template, { title, description, canonicalPath }) {
   const canonicalUrl = `${SITE_BASE}${canonicalPath}`;
 
   let html = template;
@@ -549,7 +557,48 @@ async function buildTeamPage(template, data, team) {
   return canonicalPath;
 }
 
-async function updateSitemap(teamPaths, gamePaths) {
+/* The tab routes. These were hash fragments ("/#news") until the URL-scheme
+ * change, which meant the server never saw them: no crawlable page, and
+ * nothing a notification or a native app could link to. Prerendering them
+ * gives each one a real, indexable document. /leagues doubles as the SEO
+ * route that was already on the roadmap.
+ *
+ * No content snapshot here, unlike team and game pages - these screens are
+ * driven by live per-user data (your leagues, this week's hot picks), so
+ * there's nothing stable to bake in. The value is the metadata and the 200. */
+const TAB_PAGES = [
+  {
+    dir: "picks",
+    canonicalPath: "/picks",
+    title: "Hot Picks - This Week's Best NFL Bets | Blitz Odds",
+    description: "The model's highest-confidence NFL picks for this week, with win probability, spread value, and the reasoning behind each one.",
+  },
+  {
+    dir: "leagues",
+    canonicalPath: "/leagues",
+    title: "Pick'em Leagues - Free NFL Pools | Blitz Odds",
+    description: "Run a free NFL pick'em pool with friends. Straight-up, confidence, survivor, and against-the-spread formats, with automatic scoring and standings.",
+  },
+  {
+    dir: "news",
+    canonicalPath: "/news",
+    title: "NFL News | Blitz Odds",
+    description: "The latest NFL headlines, injury news, and roster moves, alongside the odds and predictions they move.",
+  },
+];
+
+async function buildTabPage(template, page) {
+  const html = applyMeta(template, page);
+  const outPath = path.join(REPO_ROOT, page.dir, "index.html");
+  await mkdir(path.dirname(outPath), { recursive: true });
+  await writeFile(outPath, html, "utf8");
+  return page.canonicalPath;
+}
+
+/** Paths that once had a prerendered page and no longer should. */
+const RETIRED_PATHS = ["/archive"];
+
+async function updateSitemap(teamPaths, gamePaths, tabPaths = []) {
   const sitemapPath = path.join(REPO_ROOT, "sitemap.xml");
   const xml = await readFile(sitemapPath, "utf8");
   const today = new Date().toISOString().slice(0, 10);
@@ -585,7 +634,15 @@ async function updateSitemap(teamPaths, gamePaths) {
     } catch {
       pathname = loc.replace(/^https?:\/\/[^/]+/, "");
     }
-    return /^\/(teams|games)\//.test(pathname);
+    // Tab pages are rebuilt every run too, so they're stripped and
+    // regenerated alongside team and game pages rather than accumulating.
+    // RETIRED_PATHS covers routes that were briefly in TAB_PAGES and no
+    // longer are - without it they'd be silently "kept" forever, and a
+    // sitemap entry that 301s is a soft error in Search Console.
+    const clean = pathname.replace(/\/$/, "");
+    return /^\/(teams|games)\//.test(pathname)
+      || TAB_PAGES.some(t => t.canonicalPath === clean)
+      || RETIRED_PATHS.includes(clean);
   };
 
   const header = [];
@@ -609,7 +666,7 @@ async function updateSitemap(teamPaths, gamePaths) {
   }
 
   const fresh = [];
-  for (const p of [...teamPaths, ...gamePaths]) {
+  for (const p of [...tabPaths, ...teamPaths, ...gamePaths]) {
     const loc = `${SITE_BASE}${p}`;
     if (seen.has(loc)) continue;
     seen.add(loc);
@@ -643,10 +700,16 @@ async function main() {
     }
   }
 
-  log("Updating sitemap...");
-  const sitemap = await updateSitemap(teamPaths, gamePaths);
+  log(`Building ${TAB_PAGES.length} tab pages...`);
+  const tabPaths = [];
+  for (const page of TAB_PAGES) {
+    tabPaths.push(await buildTabPage(template, page));
+  }
 
-  log(`Done. Wrote ${teamPaths.length} team pages and ${gamePaths.length} game pages.`);
+  log("Updating sitemap...");
+  const sitemap = await updateSitemap(teamPaths, gamePaths, tabPaths);
+
+  log(`Done. Wrote ${teamPaths.length} team pages, ${gamePaths.length} game pages, ${tabPaths.length} tab pages.`);
   log(`Sitemap: ${sitemap.kept} kept + ${sitemap.fresh} regenerated = ${sitemap.kept + sitemap.fresh} URLs.`);
 }
 

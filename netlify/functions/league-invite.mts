@@ -60,9 +60,14 @@ function buildInviteEmail(league: any, inviterName: string) {
   // some email click-trackers strip fragments entirely when rewriting
   // links, but query params survive both (see getInitialLeagueJoin in
   // index.html).
+  // Path form rather than the old `/?joinCode=...#league`. The hash never
+  // reached the server, so it was invisible to anything but the browser,
+  // and a path is the only shape a native app's Universal Links can match
+  // later. `getInitialLeagueJoin` still reads both query params, and always
+  // will - invites already sitting in inboxes don't expire on our schedule.
   const joinUrl = isPrivate
-    ? `${SITE_URL}/?joinCode=${encodeURIComponent(league.inviteCode)}#league`
-    : `${SITE_URL}/?joinLeague=${encodeURIComponent(league.id)}#league`;
+    ? `${SITE_URL}/join/${encodeURIComponent(league.inviteCode)}`
+    : `${SITE_URL}/join/league/${encodeURIComponent(league.id)}`;
 
   const descriptionHtml = league.description
     ? `<p style="margin:0 0 18px;color:${C.body};font-size:14px;line-height:1.5;">${escapeHtml(league.description)}</p>`

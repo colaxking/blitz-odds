@@ -137,7 +137,7 @@ export function buildReminderEmail(d: ReminderData): { subject: string; html: st
       ${lockPanel}
       ${leaguesBlock}
       ${teaser}
-      ${emailButton("Make my picks", `${SITE_URL}/#league`)}`;
+      ${emailButton("Make my picks", `${SITE_URL}/leagues`)}`;
 
   const html = emailShell(
     body,
@@ -155,7 +155,7 @@ export function buildReminderEmail(d: ReminderData): { subject: string; html: st
     "",
     ...d.leagues.map((l) => `- ${l.name}: ${l.missing} of ${l.total} still open`),
     "",
-    `Make your picks: ${SITE_URL}/#league`,
+    `Make your picks: ${SITE_URL}/leagues`,
     "",
     "You're receiving this because pick reminders are on for your account.",
     `Unsubscribe: ${d.unsubUrl}`,
@@ -342,7 +342,7 @@ export function buildRecapEmail(d: RecapData): { subject: string; html: string; 
       ${d.leagues.map(leagueBlockHtml).join("")}
       ${highlightsHtml}
       ${modelHtml}
-      ${emailButton("See full standings", `${SITE_URL}/#league`)}`;
+      ${emailButton("See full standings", `${SITE_URL}/leagues`)}`;
 
   const html = emailShell(
     body,
@@ -361,7 +361,7 @@ export function buildRecapEmail(d: RecapData): { subject: string; html: string; 
     "",
     ...d.leagues.map((l) => `- ${l.name}: ${l.headline} (${l.rank}${l.total ? ` of ${l.total}` : ""}) - ${l.foot}`),
     "",
-    `Full standings: ${SITE_URL}/#league`,
+    `Full standings: ${SITE_URL}/leagues`,
     "",
     "You're receiving this because the weekly recap is on for your account.",
     `Unsubscribe: ${d.unsubUrl}`,

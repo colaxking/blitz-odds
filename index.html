@@ -218,6 +218,12 @@
     width: 38px; height: 38px; background: var(--accent); color: #062018; border-color: var(--accent);
     font-size: 15px; font-weight: 700; overflow: hidden;
   }
+  /* Solid accent teal is only right for the dark-on-teal initial-letter
+     fallback. A chosen icon (many of which skew blue/teal themselves,
+     e.g. the cap) can end up low-contrast against that same teal, so a
+     real avatar gets a neutral card-toned circle instead - same idea as
+     the softer background already used behind the picker in Settings. */
+  .account-avatar.has-glyph { background: var(--surface-2); border-color: var(--card-border); }
   .account-avatar .avatar-glyph-img { width: 66%; height: 66%; object-fit: contain; }
   /* Emoji glyphs need a bigger font-size than plain text to read at the same
      visual size (emoji metrics carry extra built-in padding) - this used to
@@ -1529,6 +1535,7 @@
     display: flex; align-items: center; justify-content: center; font-size: 0.66rem; font-weight: 800; flex-shrink: 0;
     overflow: hidden;
   }
+  .league-standings-avatar.has-glyph { background: var(--surface-2); border: 1px solid var(--card-border); }
   .league-standings-avatar .avatar-glyph-img { width: 66%; height: 66%; object-fit: contain; }
   /* Same reasoning as .account-avatar span - emoji glyphs need a bigger
      font-size than the initial-letter fallback to read at the same size. */
@@ -14042,7 +14049,7 @@ function LeagueStandingsPanel({ auth, league }) {
           return (
             <tr key={row.userId} className={row.userId === meId ? "is-me" : ""}>
               <td className={"league-standings-rank" + (row.rank === 1 ? " gold" : "")}>{row.rank}</td>
-              <td><div className="league-standings-user"><div className="league-standings-avatar">{row.avatar && findProfileAvatar(row.avatar) ? <ProfileAvatarGlyph avatar={findProfileAvatar(row.avatar)} /> : (row.displayName || "?")[0]}</div>{row.displayName}</div></td>
+              <td><div className="league-standings-user"><div className={"league-standings-avatar" + (row.avatar && findProfileAvatar(row.avatar) ? " has-glyph" : "")}>{row.avatar && findProfileAvatar(row.avatar) ? <ProfileAvatarGlyph avatar={findProfileAvatar(row.avatar)} /> : (row.displayName || "?")[0]}</div>{row.displayName}</div></td>
               <td>{extra}</td>
               <td>{row.correct}</td>
               <td className="league-standings-points">{row.points}</td>
@@ -16158,7 +16165,7 @@ function AccountButton({ auth, profile, onOpenLeagues, onOpenSettings, onOpenHow
     <div className="account-menu" ref={ref} data-tour="account-menu">
       <button
         type="button"
-        className="account-btn account-avatar"
+        className={"account-btn account-avatar" + (chosenAvatar ? " has-glyph" : "")}
         onClick={() => setOpen(v => !v)}
         aria-label="Account menu"
         aria-expanded={open}

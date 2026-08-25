@@ -1200,9 +1200,13 @@
   .avatar-preview-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
   .avatar-preview {
     width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 1.6rem; background: rgba(var(--accent-rgb),0.16); border: 2px solid var(--accent); flex-shrink: 0;
-    overflow: hidden;
+    font-size: 1.6rem; background: var(--accent); color: #062018; font-weight: 800; border: 2px solid var(--accent);
+    flex-shrink: 0; overflow: hidden;
   }
+  /* With a glyph picked this is a container for artwork, so it drops the
+     solid accent fill the initial-letter state needs for contrast - same
+     split as .account-avatar / .account-avatar.has-glyph. */
+  .avatar-preview.has-glyph { background: rgba(var(--accent-rgb),0.16); color: inherit; }
   .avatar-preview-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
   .avatar-preview-hint { font-size: 0.76rem; color: var(--text-dim); margin-top: 2px; }
   .avatar-grid {
@@ -12846,13 +12850,22 @@ function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSport
 // source of truth for login, and an email change specifically triggers
 // GoTrue's own confirmation-link flow rather than applying immediately.
 function ProfileTab({ auth, profile, onProfileUpdated }) {
-  const initialAvatarId = (profile && profile.avatar) || "blitz-edge";
+  // null means "no avatar saved", and it has to stay null rather than being
+  // silently defaulted to blitz-edge. Defaulting here is what caused the
+  // header avatar to disagree with this panel: the picker showed blitz-edge
+  // ringed as if it were selected, while the rest of the app (account menu,
+  // league standings) correctly saw no saved avatar and fell back to the
+  // name initial. Worse, it made the mismatch unfixable from the UI - the
+  // change check below compared against that same fake default, so clicking
+  // the already-"selected" blitz-edge and hitting Save was a no-op and the
+  // avatar could never actually be persisted.
+  const storedAvatarId = (profile && profile.avatar) || null;
   const initialName = (profile && profile.displayName) ||
     (auth.user && auth.user.user_metadata && auth.user.user_metadata.full_name) ||
     (auth.user && auth.user.email ? auth.user.email.split("@")[0] : "Player");
   const currentEmail = (auth.user && auth.user.email) || "";
 
-  const [avatarId, setAvatarId] = useState(initialAvatarId);
+  const [avatarId, setAvatarId] = useState(storedAvatarId);
   const [displayName, setDisplayName] = useState(initialName);
   const [editingEmail, setEditingEmail] = useState(false);
   const [emailValue, setEmailValue] = useState(currentEmail);
@@ -12870,7 +12883,7 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
     setSaving(true);
     const trimmedName = displayName.trim().slice(0, 40) || "Player";
     const nameChanged = trimmedName !== initialName;
-    const avatarChanged = avatarId !== initialAvatarId;
+    const avatarChanged = avatarId !== storedAvatarId;
     const emailChanged = editingEmail && emailValue.trim() && emailValue.trim() !== currentEmail;
 
     try {
@@ -12890,7 +12903,9 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
         const res = await auth.authenticatedFetch("/.netlify/functions/user-profile", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ displayName: trimmedName, avatar: avatarId }),
+          // avatar is omitted entirely when nothing is picked, so a
+          // name-only save can't wipe an avatar the user already has.
+          body: JSON.stringify({ displayName: trimmedName, ...(avatarId ? { avatar: avatarId } : {}) }),
         });
         if (res.ok) {
           const updated = await res.json();
@@ -12917,19 +12932,25 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
     }
   }
 
-  const previewAvatar = findProfileAvatar(avatarId) || findProfileAvatar("blitz-edge");
+  // Mirrors exactly what the account menu and league standings render, so
+  // this preview is a truthful picture of how the user appears elsewhere
+  // rather than a best-case rendering of a default they haven't chosen.
+  const previewAvatar = avatarId ? findProfileAvatar(avatarId) : null;
+  const previewInitial = (displayName || "Player").charAt(0).toUpperCase();
 
   return (
     <React.Fragment>
       <div className="settings-section">
         <h3 className="settings-section-title">Avatar</h3>
         <div className="avatar-preview-row">
-          <div className="avatar-preview">
-            <ProfileAvatarGlyph avatar={previewAvatar} />
+          <div className={"avatar-preview" + (previewAvatar ? " has-glyph" : "")}>
+            {previewAvatar ? <ProfileAvatarGlyph avatar={previewAvatar} /> : previewInitial}
           </div>
           <div>
             <div className="avatar-preview-name">{displayName || "Player"}</div>
-            <div className="avatar-preview-hint">Pick an icon below</div>
+            <div className="avatar-preview-hint">
+              {previewAvatar ? "Tap another icon to change it" : "Pick an icon below"}
+            </div>
           </div>
         </div>
         <div className="avatar-grid">

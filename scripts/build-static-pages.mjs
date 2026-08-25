@@ -551,17 +551,74 @@ async function buildTeamPage(template, data, team) {
 
 async function updateSitemap(teamPaths, gamePaths) {
   const sitemapPath = path.join(REPO_ROOT, "sitemap.xml");
-  let xml = await readFile(sitemapPath, "utf8");
+  const xml = await readFile(sitemapPath, "utf8");
   const today = new Date().toISOString().slice(0, 10);
+
   // Team and game pages get rebuilt every run (schedule/injuries/odds/
-  // predictions change week to week) - strip any previous /teams/ or
-  // /games/ entries before re-adding so reruns update lastmod instead of
-  // duplicating or going stale.
-  xml = xml.replace(/ {2}<url><loc>https:\/\/blitz-odds\.netlify\.app\/teams\/[^<]*<\/loc><lastmod>[^<]*<\/lastmod><\/url>\n/g, "");
-  xml = xml.replace(/ {2}<url><loc>https:\/\/blitz-odds\.netlify\.app\/games\/[^<]*<\/loc><lastmod>[^<]*<\/lastmod><\/url>\n/g, "");
-  const newEntries = [...teamPaths, ...gamePaths].map((p) => `  <url><loc>${SITE_BASE}${p}</loc><lastmod>${today}</lastmod></url>`).join("\n");
-  xml = xml.replace("</urlset>", `${newEntries}\n</urlset>`);
-  await writeFile(sitemapPath, xml, "utf8");
+  // predictions change week to week), so the previous run's entries have to
+  // come out before the fresh ones go in.
+  //
+  // This used to be two regexes matching a hardcoded
+  // https://blitz-odds.netlify.app/... prefix. SITE_BASE moved to the
+  // custom domain, and the strip patterns were never updated - so they
+  // stopped matching anything the script itself writes, and every run
+  // appended a full set of team + game URLs without removing the last one.
+  // By the time this was caught the sitemap had grown to 32,915 entries for
+  // 3,969 unique URLs: each team and game listed 83 times, once per run.
+  //
+  // Rebuilt as a parse-filter-rebuild rather than another prefix regex, so
+  // it can't silently no-op again if the domain changes: entries are
+  // matched on their *path* whatever the host, and the surviving entries
+  // are deduped by URL. That also clears out a legacy generation of
+  // /teams/{slug}/index.html URLs (duplicate content alongside the
+  // canonical directory form) and three relocated-franchise slugs
+  // (oak, sd, stl) that no longer have pages built for them.
+  const urlLine = /^\s*<url><loc>([^<]*)<\/loc>(?:<lastmod>[^<]*<\/lastmod>)?<\/url>\s*$/;
+  // Anchored at the path root on purpose: /historical/teams/... and
+  // /historical/games/... are a separate archive that this script does not
+  // generate and must not touch. Both branches resolve a pathname first so
+  // an unparseable URL can't fall through to a looser substring match.
+  const isTeamOrGame = (loc) => {
+    let pathname;
+    try {
+      pathname = new URL(loc).pathname;
+    } catch {
+      pathname = loc.replace(/^https?:\/\/[^/]+/, "");
+    }
+    return /^\/(teams|games)\//.test(pathname);
+  };
+
+  const header = [];
+  const kept = [];
+  const seen = new Set();
+  let inUrlSet = false;
+
+  for (const line of xml.split("\n")) {
+    if (line.includes("</urlset>")) break;
+    const m = line.match(urlLine);
+    if (!m) {
+      if (!inUrlSet) header.push(line);
+      continue;
+    }
+    inUrlSet = true;
+    const loc = m[1];
+    if (isTeamOrGame(loc)) continue;      // regenerated below
+    if (seen.has(loc)) continue;          // de-dupe anything already accumulated
+    seen.add(loc);
+    kept.push(line.replace(/\s+$/, ""));
+  }
+
+  const fresh = [];
+  for (const p of [...teamPaths, ...gamePaths]) {
+    const loc = `${SITE_BASE}${p}`;
+    if (seen.has(loc)) continue;
+    seen.add(loc);
+    fresh.push(`  <url><loc>${loc}</loc><lastmod>${today}</lastmod></url>`);
+  }
+
+  const out = [...header, ...kept, ...fresh, "</urlset>", ""].join("\n");
+  await writeFile(sitemapPath, out, "utf8");
+  return { kept: kept.length, fresh: fresh.length };
 }
 
 async function main() {
@@ -587,9 +644,10 @@ async function main() {
   }
 
   log("Updating sitemap...");
-  await updateSitemap(teamPaths, gamePaths);
+  const sitemap = await updateSitemap(teamPaths, gamePaths);
 
   log(`Done. Wrote ${teamPaths.length} team pages and ${gamePaths.length} game pages.`);
+  log(`Sitemap: ${sitemap.kept} kept + ${sitemap.fresh} regenerated = ${sitemap.kept + sitemap.fresh} URLs.`);
 }
 
 main().catch((err) => {

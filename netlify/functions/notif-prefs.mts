@@ -1,6 +1,7 @@
 import type { Context, Config } from "@netlify/functions";
 import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
 import { getPrefs, setPrefs, isValidTimezone } from "./lib/notif.mts";
+import { listDevices } from "./lib/push.mts";
 
 // The signed-in read/write path for notification preferences. The signed-out
 // path is unsubscribe.mts, which is HMAC-authenticated instead - a reader
@@ -34,7 +35,22 @@ export default async (req: Request, _context: Context) => {
   try {
     if (req.method === "GET") {
       const prefs = await getPrefs(userId);
-      return jsonResponse(200, { ok: true, prefs }, CORS_HEADERS);
+      // The client needs the public VAPID key to call PushManager.subscribe,
+      // and the device list to show what's already registered. Both belong
+      // to the same screen, so they ride along rather than costing a second
+      // round trip on every Settings open.
+      const devices = (await listDevices(userId)).map(({ id, device }) => ({
+        id,
+        platform: device.platform,
+        label: device.label || null,
+        createdAt: device.createdAt,
+      }));
+      return jsonResponse(200, {
+        ok: true,
+        prefs,
+        devices,
+        vapidPublicKey: process.env.VAPID_PUBLIC_KEY || null,
+      }, CORS_HEADERS);
     }
 
     if (req.method === "POST") {
@@ -55,7 +71,9 @@ export default async (req: Request, _context: Context) => {
       const prefs = await setPrefs(userId, {
         emailPickReminders: body.emailPickReminders,
         emailWeeklyRecap: body.emailWeeklyRecap,
+        emailRecapTeamNews: body.emailRecapTeamNews,
         timezone: body.timezone,
+        push: body.push,
       });
       return jsonResponse(200, { ok: true, prefs }, CORS_HEADERS);
     }

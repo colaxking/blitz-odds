@@ -173,7 +173,18 @@ export default async (req: Request, _context: Context) => {
     }
 
     // --- Who might get something? ------------------------------------------
-    const users: Array<{ userId: string; email: string; leagues: string[] }> = [];
+    // This used to drop anyone with no leagues right here, which was correct
+    // while pick reminders and the recap were the only two things that
+    // existed - both are about leagues, so a user without one had nothing
+    // coming either way.
+    //
+    // It stopped being correct the moment alerts started keying off
+    // favourite teams. Someone with three starred teams and no pool is a
+    // perfectly ordinary user of this app, and silently excluding them from
+    // the whole dispatch pass would have been invisible from the outside:
+    // no error, no log line, just a reader who never hears anything. The
+    // list is now built once, and each alert type applies its own filter.
+    const users: Array<{ userId: string; email: string; leagues: string[]; favorites: string[]; profile: any }> = [];
     for await (const page of userStore.list({ prefix: "users:", paginate: true })) {
       for (const b of page.blobs) {
         const userId = b.key.slice("users:".length);
@@ -182,8 +193,9 @@ export default async (req: Request, _context: Context) => {
           const profile: any = await userStore.get(b.key, { type: "json" });
           if (!profile?.email) continue;          // no address, nothing to send to
           const leagues: string[] = Array.isArray(profile.leagues) ? profile.leagues : [];
-          if (!leagues.length) continue;          // nothing to remind or recap about
-          users.push({ userId, email: profile.email, leagues });
+          const favorites: string[] = Array.isArray(profile?.settings?.favorites) ? profile.settings.favorites : [];
+          if (!leagues.length && !favorites.length) continue;   // genuinely nothing to say
+          users.push({ userId, email: profile.email, leagues, favorites, profile });
         } catch (err) {
           report.errors.push({ userId, error: err instanceof Error ? err.message : "profile read failed" });
         }
@@ -243,6 +255,7 @@ export default async (req: Request, _context: Context) => {
 
       for (const u of users) {
         if (tooLate) { report.reminder.skipped++; continue; }
+        if (!u.leagues.length) { report.reminder.skipped++; continue; }   // league-only alert
         try {
           const prefs = await getPrefs(u.userId);
           if (!prefs.emailPickReminders) { report.reminder.skipped++; continue; }
@@ -291,6 +304,11 @@ export default async (req: Request, _context: Context) => {
         try {
           const prefs = await getPrefs(u.userId);
           if (!prefs.emailWeeklyRecap) { report.recap.skipped++; continue; }
+          // BUG 3 (see below): the recap is no longer league-only, so a
+          // user with favourites but no league is still eligible if they
+          // asked for the team-news block.
+          const wantsTeamNews = prefs.emailRecapTeamNews && u.favorites.length > 0;
+          if (!u.leagues.length && !wantsTeamNews) { report.recap.skipped++; continue; }
           if (await alreadySent("recap", CURRENT_SEASON, rw, u.userId)) { report.recap.skipped++; continue; }
 
           const lp = localParts(now, prefs.timezone);
@@ -299,13 +317,19 @@ export default async (req: Request, _context: Context) => {
           const built = await buildRecapFor(u, rw, weekGames, {
             loadLeague, loadMembers, loadStandings, loadSurvivor, loadResults, leagueStore, nameOf,
           });
-          // Nothing scored for this reader in any league - an empty recap is
-          // worse than no recap, so hold rather than send a hollow one.
-          if (!built) { report.recap.skipped++; continue; }
+          // Nothing scored for this reader in any league. An empty recap is
+          // worse than no recap - but "empty" now depends on what they asked
+          // for. Someone who opted into favourite-team news and has no
+          // league (or has one that hasn't scored yet) still has an email
+          // worth sending; before this, they'd have opted in and then
+          // received nothing, forever, with nothing to indicate why.
+          if (!built && !wantsTeamNews) { report.recap.skipped++; continue; }
 
           const email = buildRecapEmail({
             season: CURRENT_SEASON, week: rw,
-            intro: built.intro, leagues: built.leagues, highlights: built.highlights,
+            intro: built ? built.intro : "",
+            leagues: built ? built.leagues : [],
+            highlights: built ? built.highlights : [],
             unsubUrl: unsubUrl(u.userId, "weekly"),
           });
 
@@ -313,7 +337,7 @@ export default async (req: Request, _context: Context) => {
             await markSent("recap", CURRENT_SEASON, rw, u.userId);
             await sendEmail({ to: u.email, subject: email.subject, html: email.html, text: email.text, type: "weekly", userId: u.userId });
           }
-          report.recap.sent.push({ userId: u.userId, leagues: built.leagues.length, subject: email.subject });
+          report.recap.sent.push({ userId: u.userId, leagues: built ? built.leagues.length : 0, subject: email.subject });
         } catch (err) {
           report.errors.push({ userId: u.userId, stage: "recap", error: err instanceof Error ? err.message : "unknown" });
         }

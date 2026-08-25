@@ -54,6 +54,10 @@
 <link rel="icon" type="image/svg+xml" href="/branding/blitz-odds-icon.svg" />
 <link rel="apple-touch-icon" href="/branding/apple-touch-icon.png" />
 <link rel="apple-touch-icon-precomposed" href="/branding/apple-touch-icon.png" />
+<!-- Required for push on iOS: Safari only delivers notifications to a site
+     that's been added to the Home Screen, and it won't offer that unless a
+     manifest with display:standalone is present. -->
+<link rel="manifest" href="/manifest.webmanifest" />
 <script src="/js/predictionEngine.js"></script>
 <script src="/js/hotPicksEngine.js"></script>
 <script src="/js/gameId.js"></script>
@@ -1239,6 +1243,83 @@
   }
   .notif-status.err { color: var(--out); }
   .notif-status.ok { color: var(--win); }
+
+  /* ---- Push section (Alerts tab) ---- */
+  .notif-section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .notif-section-head .settings-section-title { margin: 0; }
+  .notif-channel-tag {
+    font-size: 0.64rem; font-weight: 750; letter-spacing: 0.4px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+  }
+  .notif-channel-tag.push { color: var(--edge-b); background: rgba(122,184,255,0.12); border: 1px solid rgba(122,184,255,0.32); }
+  html[data-theme="light"] .notif-channel-tag.push { background: rgba(29,111,201,0.10); border-color: rgba(29,111,201,0.3); }
+  .notif-channel-tag.email { color: var(--accent); background: rgba(var(--accent-rgb),0.12); border: 1px solid rgba(var(--accent-rgb),0.3); }
+  /* Pro badging is built but hidden until the tier is announced - the label
+     is meant to land ahead of any gating, not alongside it. */
+  .notif-channel-tag.pro { color: var(--blitz-orange); background: rgba(253,127,1,0.12); border: 1px solid rgba(253,127,1,0.32); }
+  html[data-theme="light"] .notif-channel-tag.pro { background: rgba(179,89,0,0.10); border-color: rgba(179,89,0,0.3); }
+
+  .notif-enable {
+    border: 1px solid var(--card-border); border-radius: 11px; padding: 14px;
+    background: var(--surface-2); margin-bottom: 16px;
+  }
+  .notif-enable-title { font-size: 0.86rem; font-weight: 700; margin: 0 0 5px; }
+  .notif-enable-desc { font-size: 0.78rem; color: var(--text-dim); margin: 0 0 12px; line-height: 1.5; }
+  .notif-enable-desc:last-child { margin-bottom: 0; }
+  .notif-enable-btn {
+    font: inherit; font-size: 0.82rem; font-weight: 700; width: 100%; padding: 10px;
+    border-radius: 9px; border: none; background: var(--accent); color: #06231f; cursor: pointer;
+  }
+  html[data-theme="light"] .notif-enable-btn { color: #fff; }
+  .notif-enable-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .notif-enable-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  .notif-enable.blocked { border-color: rgba(var(--out-rgb),0.45); background: rgba(var(--out-rgb),0.07); }
+  .notif-enable.ready { border-color: rgba(122,184,255,0.4); background: rgba(122,184,255,0.07); }
+  html[data-theme="light"] .notif-enable.ready { background: rgba(29,111,201,0.06); border-color: rgba(29,111,201,0.3); }
+  .notif-device { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-dim); flex-wrap: wrap; }
+  .notif-device-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--win); flex: 0 0 7px; }
+  .notif-device-name { color: var(--text); font-weight: 600; }
+  .notif-device-actions { display: flex; gap: 10px; margin-left: auto; }
+  .notif-link-btn {
+    font-size: 0.74rem; color: var(--accent); background: none; border: none; cursor: pointer;
+    font-family: inherit; font-weight: 650; padding: 0;
+  }
+  .notif-link-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .notif-link-btn.danger { color: var(--out); }
+
+  .notif-seg {
+    display: flex; gap: 4px; margin-top: 9px; background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 8px; padding: 3px;
+  }
+  .notif-seg-btn {
+    flex: 1; border: none; background: transparent; color: var(--text-dim); font-family: inherit;
+    font-size: 0.72rem; font-weight: 700; padding: 6px 4px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  }
+  .notif-seg-btn[aria-pressed="true"] { background: rgba(var(--accent-rgb),0.16); color: var(--accent); }
+  .notif-seg-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .notif-seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .notif-sub { padding-left: 12px; border-left: 2px solid var(--card-border); margin: 2px 0 2px 2px; }
+  .notif-sub .notif-row { border-top: none; }
+
+  .notif-fav-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 12px; align-items: center; }
+  .notif-fav-chip {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 0.74rem; font-weight: 700;
+    padding: 4px 10px; border-radius: 999px; background: var(--surface-2);
+    border: 1px solid var(--card-border); color: var(--text);
+  }
+  .notif-fav-chip .star { color: var(--star); font-size: 0.8rem; }
+  .notif-empty {
+    font-size: 0.78rem; color: var(--text-dim); background: var(--surface-2);
+    border: 1px dashed var(--card-border); border-radius: 9px; padding: 14px;
+    text-align: center; line-height: 1.5;
+  }
+  .notif-empty b { color: var(--text); }
+  .notif-quiet { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.78rem; color: var(--text-dim); flex-wrap: wrap; }
+  .notif-quiet select {
+    font: inherit; font-size: 0.76rem; font-weight: 600; color: var(--text); background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 7px; padding: 5px 8px;
+  }
   @media (prefers-reduced-motion: reduce) {
     .notif-switch, .notif-switch::after { transition: none; }
   }
@@ -9132,6 +9213,157 @@ function parseLocationPath(pathname) {
   return null;
 }
 
+// ---- Web push (client side) ----------------------------------------------
+// Registration, permission, and subscribe/unsubscribe against
+// push-subscribe.mts. Deliberately not wired to run on page load: see
+// pushPermissionState below for why the prompt only ever fires from a tap.
+
+const SW_PATH = "/sw.js";
+
+/** What the browser can do here, before we ask it for anything.
+ *  - "unsupported": no service worker or no Push API (older Safari, some
+ *    embedded webviews).
+ *  - "ios-not-installed": iOS/iPadOS Safari that hasn't been added to the
+ *    Home Screen. Push genuinely cannot work until it has been, and there's
+ *    no prompt we can show to change that - only instructions.
+ *  - "blocked": permission was denied. Not recoverable from here; the
+ *    browser will not re-prompt, which is exactly why we never ask
+ *    speculatively.
+ *  - "ready" / "prompt": subscribed already, or able to ask. */
+function pushEnvironment() {
+  try {
+    if (typeof window === "undefined") return "unsupported";
+    const hasSW = "serviceWorker" in navigator;
+    const hasPush = "PushManager" in window;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    if (isIOS && !standalone && !hasPush) return "ios-not-installed";
+    if (!hasSW || !hasPush || !("Notification" in window)) return "unsupported";
+    if (Notification.permission === "denied") return "blocked";
+    if (Notification.permission === "granted") return "granted";
+    return "prompt";
+  } catch (e) {
+    return "unsupported";
+  }
+}
+
+/** base64url VAPID key -> Uint8Array, the only form PushManager accepts. */
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+async function registerPushServiceWorker() {
+  // Scope "/" so a notification can deep-link anywhere in the app. The
+  // worker handles push and notificationclick only - it has no fetch
+  // handler, so registering it does not put anything between this app and
+  // the network. (See sw.js; that constraint is load-bearing, because
+  // index.html is the whole app and has no cache-busting.)
+  return navigator.serviceWorker.register(SW_PATH, { scope: "/" });
+}
+
+/** A human-readable name for the device row, so "Devices (2)" can be
+ *  explained rather than just counted. */
+function describeThisDevice() {
+  const ua = navigator.userAgent || "";
+  const browser = /Edg\//.test(ua) ? "Edge"
+    : /OPR\//.test(ua) ? "Opera"
+    : /Chrome\//.test(ua) ? "Chrome"
+    : /Firefox\//.test(ua) ? "Firefox"
+    : /Safari\//.test(ua) ? "Safari"
+    : "Browser";
+  const os = /iPhone|iPad|iPod/.test(ua) ? "iOS"
+    : /Android/.test(ua) ? "Android"
+    : /Mac OS X/.test(ua) ? "Mac"
+    : /Windows/.test(ua) ? "Windows"
+    : /Linux/.test(ua) ? "Linux"
+    : "";
+  return os ? `${browser} on ${os}` : browser;
+}
+
+/**
+ * Asks for permission, subscribes, and registers the device server-side.
+ * Only ever called from a click handler - the permission prompt fires once
+ * per site, and a denial is effectively permanent, so spending it on
+ * someone who hasn't asked for alerts is unrecoverable.
+ */
+async function enablePush(auth, vapidPublicKey) {
+  if (!vapidPublicKey) throw new Error("Push isn't configured on this site yet.");
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    throw new Error(permission === "denied"
+      ? "Notifications are blocked for this site. You can turn them back on in your browser's site settings."
+      : "Notifications weren't enabled.");
+  }
+
+  const registration = await registerPushServiceWorker();
+  await navigator.serviceWorker.ready;
+
+  // An existing subscription is reused rather than replaced: re-subscribing
+  // would mint a new endpoint and orphan the row already stored for it.
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+    });
+  }
+
+  const res = await auth.authenticatedFetch("/.netlify/functions/push-subscribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "subscribe",
+      subscription: subscription.toJSON(),
+      label: describeThisDevice(),
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't register this device.");
+  return data.deviceId;
+}
+
+/** Unsubscribes this browser and drops its server row. Removing only one
+ *  side would leave either a dead row being pushed at until it 410s, or a
+ *  live browser subscription nothing will ever send to. */
+async function disablePush(auth) {
+  let endpoint = null;
+  try {
+    const registration = await navigator.serviceWorker.getRegistration(SW_PATH);
+    const subscription = registration && (await registration.pushManager.getSubscription());
+    if (subscription) {
+      endpoint = subscription.endpoint;
+      await subscription.unsubscribe();
+    }
+  } catch (e) { /* fall through - still clear the server side */ }
+
+  if (!endpoint) return;
+  await auth.authenticatedFetch("/.netlify/functions/push-subscribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "unsubscribe", endpoint }),
+  });
+}
+
+/** True when this browser holds a live subscription. The server's device
+ *  list can't answer this on its own - it knows about every device on the
+ *  account, not which one you're looking at. */
+async function hasLocalPushSubscription() {
+  try {
+    if (!("serviceWorker" in navigator)) return false;
+    const registration = await navigator.serviceWorker.getRegistration(SW_PATH);
+    if (!registration) return false;
+    return !!(await registration.pushManager.getSubscription());
+  } catch (e) {
+    return false;
+  }
+}
+
 // ---- Division alignment (for highlighting division games) -----------------
 // The NFL's 8-division, 4-team alignment is essentially static reference
 // data - it only changes on the rare franchise relocation, not week to week
@@ -12951,7 +13183,7 @@ function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSport
         )}
 
         {signedIn && tab === "notifications" && (
-          <NotificationsTab auth={auth} resolvedTz={resolvedTz} />
+          <NotificationsTab auth={auth} resolvedTz={resolvedTz} favorites={favorites} />
         )}
 
         {(!signedIn || tab === "prefs") && (
@@ -12992,10 +13224,72 @@ function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSport
 // Preferences tab (`resolvedTz`). Reusing that means one source of truth,
 // and someone who deliberately set their zone there gets emails on that
 // zone rather than on whatever device they last opened.
-function NotificationsTab({ auth, resolvedTz }) {
+function NotifSwitch({ checked, onToggle, disabled, label }) {
+  return (
+    <button
+      type="button"
+      className="notif-switch"
+      role="switch"
+      aria-checked={!!checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={onToggle}
+    />
+  );
+}
+
+function NotifSegmented({ value, options, onChange, disabled, label }) {
+  return (
+    <div className="notif-seg" role="group" aria-label={label}>
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          className="notif-seg-btn"
+          aria-pressed={value === opt.value}
+          disabled={disabled}
+          onClick={() => onChange(opt.value)}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const QUIET_FROM_OPTIONS = [
+  { value: 22, label: "10:00 PM" },
+  { value: 23, label: "11:00 PM" },
+  { value: 0, label: "Midnight" },
+  { value: null, label: "Never" },
+];
+const QUIET_TO_OPTIONS = [
+  { value: 6, label: "6:00 AM" },
+  { value: 7, label: "7:00 AM" },
+  { value: 8, label: "8:00 AM" },
+];
+
+/* Pro badging is written but not shown. The tier isn't announced yet, and
+ * the label is meant to land with real runway ahead of any gating - a free
+ * beta people know is premium reads as a trial ending, whereas a label and
+ * a paywall arriving together is the same as taking something away. Flip
+ * this when the tier is close. */
+const SHOW_PRO_BADGES = false;
+
+function ProBadge() {
+  if (!SHOW_PRO_BADGES) return null;
+  return <span className="notif-channel-tag pro">Pro · free in beta</span>;
+}
+
+function NotificationsTab({ auth, resolvedTz, favorites }) {
   const [prefs, setPrefs] = useState(null);
+  const [devices, setDevices] = useState([]);
+  const [vapidKey, setVapidKey] = useState(null);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(null);
+  const [pushEnv, setPushEnv] = useState(() => pushEnvironment());
+  const [subscribedHere, setSubscribedHere] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const authedFetch = useCallback(async (opts) => {
     return auth.authenticatedFetch("/.netlify/functions/notif-prefs", {
@@ -13013,6 +13307,8 @@ function NotificationsTab({ auth, resolvedTz }) {
         if (cancelled) return;
         if (!data.ok) { setStatus({ kind: "err", text: "Couldn't load your settings." }); return; }
         setPrefs(data.prefs);
+        setDevices(data.devices || []);
+        setVapidKey(data.vapidPublicKey || null);
         // Keep the server's copy of the timezone aligned with the app's own
         // setting. Fire-and-forget: a failure here only affects send timing,
         // and the next visit retries.
@@ -13028,25 +13324,96 @@ function NotificationsTab({ auth, resolvedTz }) {
     return () => { cancelled = true; };
   }, [authedFetch, resolvedTz]);
 
-  const toggle = async (key) => {
+  // Whether THIS browser holds a subscription, which the server's device
+  // list can't answer - it knows every device on the account, not which one
+  // is in front of you.
+  useEffect(() => {
+    let cancelled = false;
+    hasLocalPushSubscription().then((has) => { if (!cancelled) setSubscribedHere(has); });
+    return () => { cancelled = true; };
+  }, []);
+
+  async function persist(patch, optimistic) {
     if (!prefs || saving) return;
-    const next = { ...prefs, [key]: !prefs[key] };
-    setPrefs(next);              // optimistic - the switch should move on tap
+    const previous = prefs;
+    setPrefs(optimistic);       // the control should move on tap, not after a round trip
     setSaving(true);
     setStatus(null);
     try {
-      const res = await authedFetch({ method: "POST", body: JSON.stringify({ [key]: next[key] }) });
+      const res = await authedFetch({ method: "POST", body: JSON.stringify(patch) });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || "Save failed");
       setPrefs(data.prefs);
       setStatus({ kind: "ok", text: "Saved" });
     } catch {
-      setPrefs(prefs);           // roll back to what the server still believes
+      setPrefs(previous);       // roll back to what the server still believes
       setStatus({ kind: "err", text: "Couldn't save that. Try again." });
     } finally {
       setSaving(false);
     }
-  };
+  }
+
+  const toggleEmail = (key) => persist({ [key]: !prefs[key] }, { ...prefs, [key]: !prefs[key] });
+  const setPush = (key, value) => persist(
+    { push: { [key]: value } },
+    { ...prefs, push: { ...prefs.push, [key]: value } }
+  );
+  const togglePush = (key) => setPush(key, !prefs.push[key]);
+
+  async function handleEnablePush() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      await enablePush(auth, vapidKey);
+      setSubscribedHere(true);
+      setPushEnv(pushEnvironment());
+      const res = await authedFetch({ method: "GET" });
+      const data = await res.json();
+      if (data.ok) setDevices(data.devices || []);
+      setStatus({ kind: "ok", text: "Push is on for this device." });
+    } catch (err) {
+      setPushEnv(pushEnvironment());
+      setStatus({ kind: "err", text: err.message || "Couldn't turn on push." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDisablePush() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      await disablePush(auth);
+      setSubscribedHere(false);
+      const res = await authedFetch({ method: "GET" });
+      const data = await res.json();
+      if (data.ok) setDevices(data.devices || []);
+      setStatus({ kind: "ok", text: "Push is off for this device." });
+    } catch (err) {
+      setStatus({ kind: "err", text: err.message || "Couldn't turn off push." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleTestPush() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/push-subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "test" }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't send a test.");
+      setStatus({ kind: "ok", text: "Sent — it should arrive in a second or two." });
+    } catch (err) {
+      setStatus({ kind: "err", text: err.message || "Couldn't send a test." });
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (!prefs) {
     return (
@@ -13056,54 +13423,262 @@ function NotificationsTab({ auth, resolvedTz }) {
     );
   }
 
-  const onCount = (prefs.emailPickReminders ? 1 : 0) + (prefs.emailWeeklyRecap ? 1 : 0);
-  const capText = onCount === 0 ? "no emails" : onCount === 1 ? "1 email" : "2 emails";
+  const favs = favorites || [];
+  const pushLive = subscribedHere;
+  const emailCount = (prefs.emailPickReminders ? 1 : 0) + (prefs.emailWeeklyRecap ? 1 : 0);
+  const emailText = emailCount === 0 ? "no emails" : emailCount === 1 ? "1 email" : "2 emails";
   const tzLabel = (resolvedTz || prefs.timezone || "").replace(/_/g, " ").split("/").pop() || prefs.timezone;
 
   return (
     <React.Fragment>
-      <div className="settings-section">
-        <h3 className="settings-section-title">Email</h3>
-        <p className="notif-row-desc" style={{ marginBottom: 6 }}>
-          At most two a week. Nothing else.
-        </p>
+      {/* ---- Push permission ---- */}
+      {pushEnv === "unsupported" && (
+        <div className="notif-enable">
+          <p className="notif-enable-title">This browser can't do push notifications</p>
+          <p className="notif-enable-desc">Email alerts below still work. For live scores and injury alerts, open Blitz Odds in Chrome, Edge, Firefox, or Safari.</p>
+        </div>
+      )}
 
-        <div className="notif-row">
-          <div className="notif-row-body">
-            <p className="notif-row-name">Pick reminder</p>
-            <p className="notif-row-desc">
-              Sent only if you still have games open in a league. Skipped once your picks are in.
-            </p>
-            <span className="notif-when">Evening before the first kickoff</span>
+      {pushEnv === "ios-not-installed" && (
+        <div className="notif-enable">
+          <p className="notif-enable-title">Add Blitz Odds to your Home Screen first</p>
+          <p className="notif-enable-desc">iPhone and iPad only deliver notifications to installed sites. Tap Share, then Add to Home Screen, then open Blitz Odds from the icon and come back here.</p>
+        </div>
+      )}
+
+      {pushEnv === "blocked" && (
+        <div className="notif-enable blocked">
+          <p className="notif-enable-title">This browser is blocking notifications</p>
+          <p className="notif-enable-desc">Blitz Odds can't turn them back on for you. Open your browser's site settings for blitz-odds.com, set Notifications to Allow, then reload this page.</p>
+        </div>
+      )}
+
+      {(pushEnv === "prompt" || pushEnv === "granted") && !pushLive && (
+        <div className="notif-enable">
+          <p className="notif-enable-title">Turn on push alerts</p>
+          <p className="notif-enable-desc">
+            Scores, injuries, and last-call pick reminders arrive on this device as they happen. Email stays capped at two a week either way.
+          </p>
+          <button type="button" className="notif-enable-btn" disabled={busy || !vapidKey} onClick={handleEnablePush}>
+            {busy ? "Working\u2026" : vapidKey ? "Turn on push alerts" : "Push isn't set up on this site yet"}
+          </button>
+        </div>
+      )}
+
+      {pushLive && (
+        <div className="notif-enable ready">
+          <div className="notif-device">
+            <span className="notif-device-dot" />
+            <span>Push is on for <span className="notif-device-name">{describeThisDevice()}</span></span>
+            <span className="notif-device-actions">
+              <button type="button" className="notif-link-btn" disabled={busy} onClick={handleTestPush}>Send a test</button>
+              <button type="button" className="notif-link-btn danger" disabled={busy} onClick={handleDisablePush}>Turn off</button>
+            </span>
           </div>
-          <button
-            type="button"
-            className="notif-switch"
-            role="switch"
-            aria-checked={prefs.emailPickReminders}
-            aria-label="Pick reminder email"
-            disabled={saving}
-            onClick={() => toggle("emailPickReminders")}
-          />
+          {devices.length > 1 && (
+            <p className="notif-enable-desc" style={{ marginTop: 8, marginBottom: 0 }}>
+              {devices.length} devices on this account. Turning off here only affects this one.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* ---- Games ---- */}
+      <div className="settings-section">
+        <div className="notif-section-head">
+          <h3 className="settings-section-title">Games</h3>
+          <span className="notif-channel-tag push">Push</span>
         </div>
 
         <div className="notif-row">
           <div className="notif-row-body">
-            <p className="notif-row-name">Weekly recap</p>
-            <p className="notif-row-desc">
-              How you finished in each league and where you stand now.
-            </p>
+            <p className="notif-row-name">Kickoff</p>
+            <p className="notif-row-desc">A heads-up before a game you're following starts.</p>
+            <span className="notif-when">10 minutes before</span>
+          </div>
+          <NotifSwitch checked={prefs.push.kickoff} disabled={!pushLive || saving} label="Kickoff alerts" onToggle={() => togglePush("kickoff")} />
+        </div>
+
+        <div className="notif-row">
+          <div className="notif-row-body">
+            <p className="notif-row-name">Scoring <ProBadge /></p>
+            <p className="notif-row-desc">Touchdowns, field goals, and safeties as they land.</p>
+            <NotifSegmented
+              label="How much scoring detail"
+              value={prefs.push.scoring}
+              disabled={!pushLive || saving}
+              onChange={(v) => setPush("scoring", v)}
+              options={[
+                { value: "all", label: "Every score" },
+                { value: "lead", label: "Lead changes" },
+                { value: "off", label: "Off" },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div className="notif-row">
+          <div className="notif-row-body">
+            <p className="notif-row-name">Final score</p>
+            <p className="notif-row-desc">The result, plus whether your pick came in.</p>
+          </div>
+          <NotifSwitch checked={prefs.push.final} disabled={!pushLive || saving} label="Final score alerts" onToggle={() => togglePush("final")} />
+        </div>
+
+        <div className="notif-row">
+          <div className="notif-row-body">
+            <p className="notif-row-name">Which games</p>
+            <p className="notif-row-desc">Everything above applies to these.</p>
+            <NotifSegmented
+              label="Which games to follow"
+              value={prefs.push.scope}
+              disabled={!pushLive || saving}
+              onChange={(v) => setPush("scope", v)}
+              options={[
+                { value: "fav", label: "Favorites" },
+                { value: "picks", label: "My picks" },
+                { value: "both", label: "Both" },
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ---- Your teams ---- */}
+      <div className="settings-section">
+        <div className="notif-section-head">
+          <h3 className="settings-section-title">Your teams</h3>
+          <span className="notif-channel-tag push">Push</span>
+        </div>
+
+        {favs.length === 0 ? (
+          <div className="notif-empty">
+            You haven't starred any teams yet. Tap the <b>★</b> on any team crest, or pick them under <b>Preferences → Favorite teams</b>, and injury alerts turn on here.
+          </div>
+        ) : (
+          <React.Fragment>
+            <div className="notif-fav-chips">
+              {favs.map((id) => (
+                <span key={id} className="notif-fav-chip"><span className="star">★</span> {id}</span>
+              ))}
+            </div>
+
+            <div className="notif-row">
+              <div className="notif-row-body">
+                <p className="notif-row-name">Injuries</p>
+                <p className="notif-row-desc">When a player's status changes — ruled out, questionable, or cleared to return.</p>
+                <NotifSegmented
+                  label="Which injury changes"
+                  value={prefs.push.injuries}
+                  disabled={!pushLive || saving}
+                  onChange={(v) => setPush("injuries", v)}
+                  options={[
+                    { value: "key", label: "Key players" },
+                    { value: "all", label: "Any change" },
+                    { value: "off", label: "Off" },
+                  ]}
+                />
+              </div>
+            </div>
+
+            <div className="notif-row">
+              <div className="notif-row-body">
+                <p className="notif-row-name">In-game injuries</p>
+                <p className="notif-row-desc">When someone goes down during a game, before the report is official.</p>
+                <span className="notif-when">Live games only</span>
+              </div>
+              <NotifSwitch checked={prefs.push.inGameInjury} disabled={!pushLive || saving} label="In-game injury alerts" onToggle={() => togglePush("inGameInjury")} />
+            </div>
+          </React.Fragment>
+        )}
+      </div>
+
+      {/* ---- Picks ---- */}
+      <div className="settings-section">
+        <div className="notif-section-head">
+          <h3 className="settings-section-title">Picks</h3>
+        </div>
+
+        <div className="notif-row">
+          <div className="notif-row-body">
+            <p className="notif-row-name">Pick reminder <span className="notif-channel-tag email">Email</span></p>
+            <p className="notif-row-desc">Sent only if you still have games open in a league. Skipped once your picks are in.</p>
+            <span className="notif-when">Evening before the first kickoff</span>
+          </div>
+          <NotifSwitch checked={prefs.emailPickReminders} disabled={saving} label="Pick reminder email" onToggle={() => toggleEmail("emailPickReminders")} />
+        </div>
+
+        <div className="notif-row">
+          <div className="notif-row-body">
+            <p className="notif-row-name">Last call <span className="notif-channel-tag push">Push</span></p>
+            <p className="notif-row-desc">One final nudge if a game is about to start and your pick still isn't in.</p>
+            <span className="notif-when">90 minutes before kickoff</span>
+          </div>
+          <NotifSwitch checked={prefs.push.lastCall} disabled={!pushLive || saving} label="Last call push" onToggle={() => togglePush("lastCall")} />
+        </div>
+
+        <div className="notif-row">
+          <div className="notif-row-body">
+            <p className="notif-row-name">Weekly recap <span className="notif-channel-tag email">Email</span></p>
+            <p className="notif-row-desc">How you finished in each league and where you stand now.</p>
             <span className="notif-when">Tuesday morning</span>
           </div>
-          <button
-            type="button"
-            className="notif-switch"
-            role="switch"
-            aria-checked={prefs.emailWeeklyRecap}
-            aria-label="Weekly recap email"
-            disabled={saving}
-            onClick={() => toggle("emailWeeklyRecap")}
-          />
+          <NotifSwitch checked={prefs.emailWeeklyRecap} disabled={saving} label="Weekly recap email" onToggle={() => toggleEmail("emailWeeklyRecap")} />
+        </div>
+
+        {prefs.emailWeeklyRecap && favs.length > 0 && (
+          <div className="notif-sub">
+            <div className="notif-row">
+              <div className="notif-row-body">
+                <p className="notif-row-name">Include news from your teams</p>
+                <p className="notif-row-desc">
+                  The week's headlines for {favs.join(", ")}, in the same email. Nothing about any other team.
+                </p>
+              </div>
+              <NotifSwitch
+                checked={prefs.emailRecapTeamNews}
+                disabled={saving}
+                label="Include favorite team news in the recap"
+                onToggle={() => toggleEmail("emailRecapTeamNews")}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ---- Quiet hours ---- */}
+      <div className="settings-section">
+        <div className="notif-section-head">
+          <h3 className="settings-section-title">Quiet hours</h3>
+        </div>
+        <p className="notif-row-desc">
+          Nothing but last-call pick reminders gets through overnight — a deadline you slept through is worse than being woken.
+        </p>
+        <div className="notif-quiet">
+          <span>Hold alerts from</span>
+          <select
+            value={prefs.push.quietFrom === null ? "null" : String(prefs.push.quietFrom)}
+            disabled={!pushLive || saving}
+            onChange={(e) => setPush("quietFrom", e.target.value === "null" ? null : Number(e.target.value))}
+          >
+            {QUIET_FROM_OPTIONS.map((o) => (
+              <option key={String(o.value)} value={o.value === null ? "null" : String(o.value)}>{o.label}</option>
+            ))}
+          </select>
+          {prefs.push.quietFrom !== null && (
+            <React.Fragment>
+              <span>to</span>
+              <select
+                value={String(prefs.push.quietTo)}
+                disabled={!pushLive || saving}
+                onChange={(e) => setPush("quietTo", Number(e.target.value))}
+              >
+                {QUIET_TO_OPTIONS.map((o) => (
+                  <option key={o.value} value={String(o.value)}>{o.label}</option>
+                ))}
+              </select>
+            </React.Fragment>
+          )}
         </div>
 
         <p className={"notif-status" + (status ? " " + status.kind : "")} aria-live="polite">
@@ -13116,7 +13691,7 @@ function NotificationsTab({ auth, resolvedTz }) {
         </div>
 
         <div className="notif-cap">
-          <span>This week you'll get <b>{capText}</b></span>
+          <span>Each week you'll get <b>{emailText}</b>{pushLive ? ", plus alerts on this device" : ""}</span>
         </div>
       </div>
     </React.Fragment>

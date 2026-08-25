@@ -1283,7 +1283,7 @@
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px;
   }
-  .league-list-item-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .league-list-item-main { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .league-list-item-name { font-size: 0.9rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .league-list-item-meta { font-size: 0.74rem; color: var(--text-dim); }
   .league-invite-chip {
@@ -1359,7 +1359,7 @@
   .leagues-page-signin-banner strong { color: var(--text); }
 
   .league-list-item-btn {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;
     border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; background: none;
     color: inherit; text-align: left; cursor: pointer; font: inherit;
   }
@@ -1398,6 +1398,100 @@
     .league-textarea { font-size: 0.88rem; }
   }
   .league-textarea:focus-visible { outline: none; border-color: var(--accent); }
+
+  /* ---- Leagues landing: format badge images -----------------------------
+     Full icon+wordmark lockup, boxed at a fixed size next to the league
+     name/format-picker label. See LEAGUE_FORMAT_ICON_URLS above for why
+     these are never shrunk into a tiny inline icon. */
+  .format-icon-badge {
+    flex-shrink: 0; width: 88px; height: 68px; border-radius: 10px; overflow: hidden; display: flex;
+    align-items: center; justify-content: center; background: var(--surface-2);
+  }
+  .format-icon-badge img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+  /* ---- Leagues landing: mobile tab bar (My Leagues / Search / Create) -- */
+  .leagues-tabbar {
+    display: none; gap: 6px; margin-bottom: 4px; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 4px;
+  }
+  .leagues-tab {
+    flex: 1; background: none; border: none; color: var(--text-dim); font-family: inherit; font-size: 0.8rem;
+    font-weight: 800; padding: 9px 6px; border-radius: 9px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px;
+  }
+  .leagues-tab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+  .leagues-tab .tab-count {
+    background: rgba(var(--accent-rgb),0.18); color: var(--accent); border-radius: 999px; font-size: 0.66rem;
+    padding: 1px 6px; font-weight: 800;
+  }
+
+  /* ---- Leagues landing: desktop 2-col grid, Search/Create sharing the
+     right column via a subtab bar (defaults to Search) --------------------
+     Scoped to a min-width query on purpose: an unconditional rule here
+     would out-specificity the mobile tab bar's display:none below (both
+     would be 3-class selectors, so specificity - not source order - would
+     decide the conflict) and bleed the inactive subtab through on mobile. */
+  .leagues-columns { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; align-items: start; }
+  .leagues-search-create-col { display: flex; flex-direction: column; }
+  .leagues-subtabbar {
+    display: flex; gap: 6px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 4px;
+  }
+  .leagues-subtab {
+    flex: 1; background: none; border: none; color: var(--text-dim); font-family: inherit; font-size: 0.82rem;
+    font-weight: 800; padding: 9px 6px; border-radius: 9px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px;
+  }
+  .leagues-subtab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+
+  @media (min-width: 860px) {
+    .leagues-search-create-col .leagues-page-section { display: none; }
+    .leagues-search-create-col .leagues-page-section.subtab-active { display: block; }
+  }
+  @media (max-width: 859px) {
+    .leagues-columns { display: block; }
+    .leagues-tabbar { display: flex; }
+    .leagues-subtabbar { display: none; }
+    .leagues-columns > .leagues-page-section, .leagues-search-create-col { display: none; margin-bottom: 14px; }
+    .leagues-columns > .leagues-page-section.mobile-active, .leagues-search-create-col.mobile-active { display: block; }
+    /* The outer mobile-active toggle above only decides whether this whole
+       column (search + create together) is showing at all. Within it, the
+       two inner panels still need their own hide/show pass - otherwise
+       both stay visible since neither is a .leagues-columns direct child
+       matched by the rule above. */
+    .leagues-search-create-col .leagues-page-section { display: none; }
+    .leagues-search-create-col .leagues-page-section.subtab-active { display: block; }
+  }
+
+  /* ---- Leagues landing: always-visible invite code box + results divider */
+  .league-code-box {
+    display: flex; align-items: center; gap: 8px; background: rgba(var(--accent-rgb),0.08);
+    border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; margin: 12px 0 16px;
+  }
+  .league-code-box-label { flex-shrink: 0; font-size: 0.78rem; font-weight: 700; color: var(--text); white-space: nowrap; }
+  .league-code-box .league-input-code { flex: 1; min-width: 70px; background: var(--card-bg); padding: 9px 8px; text-align: center; }
+  .league-results-divider {
+    display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; font-size: 0.72rem; font-weight: 700;
+    color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .league-results-divider::before, .league-results-divider::after { content: ""; flex: 1; height: 1px; background: var(--card-border); }
+  .league-results-count { font-size: 0.78rem; color: var(--text-dim); margin: 0 0 10px; }
+  .league-load-more { margin-top: 8px; }
+
+  /* ---- Leagues landing: horizontal icon+label format picker ------------- */
+  .league-format-option {
+    display: flex; align-items: center; text-align: left; width: 100%; min-height: 76px;
+    background: var(--surface-2); border: 1.5px solid var(--card-border); color: var(--text-dim);
+    border-radius: 10px; padding: 8px 12px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+  }
+  .league-format-option .fmt-icon-row { display: flex; align-items: center; gap: 12px; width: 100%; }
+  .league-format-option .fmt-icon {
+    flex-shrink: 0; height: 52px; width: auto; border-radius: 8px; overflow: hidden; display: flex;
+    align-items: center; justify-content: center; background: var(--surface-2);
+  }
+  .league-format-option .fmt-icon img { height: 100%; width: auto; object-fit: contain; display: block; }
+  .league-format-option:hover { border-color: var(--card-border); filter: brightness(1.15); }
+  .league-format-option.selected { background: rgba(var(--accent-rgb),0.14); border-color: var(--accent); color: var(--text); }
 
   /* ---- Pick'em league view (This Week / Standings) --------------------- */
   /* Ported from the approved mockup - same tokens as the rest of the app,
@@ -12762,10 +12856,22 @@ const LEAGUE_FORMAT_OPTIONS = [
   },
   {
     value: "ats",
-    label: "ATS",
+    label: "Against The Spread (ATS)",
     hint: "Pick against the spread instead of just the straight-up winner - a favorite has to win by more than the spread to \"cover.\" Every pick is closer to 50/50, so it rewards sharper analysis over just picking favorites.",
   },
 ];
+
+// Full icon+wordmark lockup per format (branding/format-badge-*-icon.png -
+// 600px, in-app size; see branding/README.txt). There's no icon-only crop -
+// that was tried and abandoned, the full lockup is the canonical asset - so
+// these are always sized large enough to read the wordmark, never shrunk to
+// a tiny inline icon.
+const LEAGUE_FORMAT_ICON_URLS = {
+  straight_up: "/branding/format-badge-straight-up-icon.png",
+  confidence: "/branding/format-badge-confidence-icon.png",
+  survivor: "/branding/format-badge-survivor-icon.png",
+  ats: "/branding/format-badge-ats-icon.png",
+};
 
 const LEAGUE_VISIBILITY_INFO = {
   private: "Only visible to people you invite with a code. Won't show up in search.",
@@ -13003,40 +13109,54 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
 function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, initialError }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null); // null = not searched yet
+  const [total, setTotal] = useState(0);
+  const [limit, setLimit] = useState(20);
   const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [joiningId, setJoiningId] = useState(null);
   const [joinErrorId, setJoinErrorId] = useState(null);
-  const [showCodeForm, setShowCodeForm] = useState(!!initialCode);
   const [joinCode, setJoinCode] = useState(initialCode || "");
   const [joiningCode, setJoiningCode] = useState(false);
   const [joinCodeError, setJoinCodeError] = useState(initialError || null);
   const debounceRef = useRef(null);
 
-  async function runSearch(q) {
-    setSearching(true);
+  async function runSearch(q, searchLimit, { silent } = {}) {
+    if (silent) setLoadingMore(true); else setSearching(true);
     setSearchError(null);
     try {
-      const res = await fetch(`/.netlify/functions/leagues-search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/.netlify/functions/leagues-search?q=${encodeURIComponent(q)}&limit=${searchLimit}`);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Search failed");
       setResults(data.leagues || []);
+      setTotal(data.total || 0);
     } catch (err) {
       setSearchError(err.message || "Search failed");
       setResults([]);
+      setTotal(0);
     } finally {
       setSearching(false);
+      setLoadingMore(false);
     }
   }
 
   useEffect(() => {
     // Browse (empty query -> top public leagues) as soon as the section
     // mounts, then re-search as the user types, debounced so every
-    // keystroke doesn't fire a request.
+    // keystroke doesn't fire a request. Typing resets the page size back
+    // to 20 - a fresh search should start small, not carry over a "show
+    // more" expansion from a previous query.
+    setLimit(20);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => runSearch(query.trim()), query.trim() ? 300 : 0);
+    debounceRef.current = setTimeout(() => runSearch(query.trim(), 20), query.trim() ? 300 : 0);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
+
+  function handleShowMore() {
+    const nextLimit = Math.min(limit + 20, 50);
+    setLimit(nextLimit);
+    runSearch(query.trim(), nextLimit, { silent: true });
+  }
 
   async function handleJoinPublic(league) {
     if (auth.status !== "in") { onRequestLogin(); return; }
@@ -13083,8 +13203,14 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
     }
   }
 
+  // "Show more" only expands within the backend's existing limit param (max
+  // 50, see leagues-search.mts) - there's no cursor/index-backed pagination
+  // yet, so this can't page past 50 results. That's a separate follow-up
+  // (leagues-search.mts's own scale-note comment already flags it).
+  const canShowMore = results && results.length < total && limit < 50;
+
   return (
-    <div className="leagues-page-section">
+    <>
       <h2 className="leagues-page-section-title">Search Leagues</h2>
       <p className="leagues-page-section-sub">Find a public league to join, or use an invite code for a private one.</p>
       <div className="league-search-row">
@@ -13097,6 +13223,24 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
         />
       </div>
 
+      <form className="league-code-box" onSubmit={handleJoinByCode}>
+        <span className="league-code-box-label">🔑 Have a code?</span>
+        <input
+          type="text"
+          className="league-input league-input-code"
+          placeholder="CODE"
+          value={joinCode}
+          onChange={e => setJoinCode(e.target.value.toUpperCase())}
+          maxLength={6}
+        />
+        <button type="submit" className="league-btn league-btn-primary" disabled={joiningCode || !joinCode.trim()}>
+          {joiningCode ? "Joining…" : "Join"}
+        </button>
+      </form>
+      {joinCodeError && <p className="leagues-error">{joinCodeError}</p>}
+
+      <div className="league-results-divider">Public leagues</div>
+
       {searching && results === null && <p className="leagues-empty">Loading…</p>}
       {searchError && <p className="leagues-error">{searchError}</p>}
       {results && results.length === 0 && !searchError && (
@@ -13105,54 +13249,49 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
         </p>
       )}
       {results && results.length > 0 && (
-        <div className="league-list">
-          {results.map(l => (
-            <div key={l.id} className="league-list-item">
-              <div className="league-list-item-main">
-                <span className="league-list-item-name">{l.name}</span>
-                {l.description && <p className="league-search-item-desc">{l.description}</p>}
-                <div className="league-search-item-tags">
-                  <span className="league-format-pill">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format}</span>
-                  <span className="league-list-item-meta">
-                    {l.memberCount} member{l.memberCount === 1 ? "" : "s"}{l.maxMembers ? ` / ${l.maxMembers}` : ""} · {l.season}
-                  </span>
+        <>
+          <p className="league-results-count">Showing {results.length} of {total.toLocaleString()} public league{total === 1 ? "" : "s"}</p>
+          <div className="league-list">
+            {results.map(l => {
+              const iconUrl = LEAGUE_FORMAT_ICON_URLS[l.format];
+              return (
+                <div key={l.id} className="league-list-item">
+                  {iconUrl && (
+                    <div className="format-icon-badge">
+                      <img src={iconUrl} alt="" />
+                    </div>
+                  )}
+                  <div className="league-list-item-main">
+                    <span className="league-list-item-name">{l.name}</span>
+                    {l.description && <p className="league-search-item-desc">{l.description}</p>}
+                    <div className="league-search-item-tags">
+                      <span className="league-format-pill">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format}</span>
+                      <span className="league-list-item-meta">
+                        {l.memberCount} member{l.memberCount === 1 ? "" : "s"}{l.maxMembers ? ` / ${l.maxMembers}` : ""} · {l.season}
+                      </span>
+                    </div>
+                    {joinErrorId === l.id && <p className="leagues-error">Couldn't join that league.</p>}
+                  </div>
+                  <button
+                    type="button"
+                    className="league-btn league-btn-primary"
+                    onClick={() => handleJoinPublic(l)}
+                    disabled={joiningId === l.id}
+                  >
+                    {joiningId === l.id ? "Joining…" : "Join"}
+                  </button>
                 </div>
-                {joinErrorId === l.id && <p className="leagues-error">Couldn't join that league.</p>}
-              </div>
-              <button
-                type="button"
-                className="league-btn league-btn-primary"
-                onClick={() => handleJoinPublic(l)}
-                disabled={joiningId === l.id}
-              >
-                {joiningId === l.id ? "Joining…" : "Join"}
-              </button>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+          {canShowMore && (
+            <button type="button" className="league-btn league-btn-block league-load-more" onClick={handleShowMore} disabled={loadingMore}>
+              {loadingMore ? "Loading…" : "Show more leagues"}
+            </button>
+          )}
+        </>
       )}
-
-      {!showCodeForm ? (
-        <button type="button" className="league-invite-toggle" onClick={() => setShowCodeForm(true)}>
-          Have an invite code instead?
-        </button>
-      ) : (
-        <form className="league-form" style={{ marginTop: 12 }} onSubmit={handleJoinByCode}>
-          <input
-            type="text"
-            className="league-input league-input-code"
-            placeholder="Invite code"
-            value={joinCode}
-            onChange={e => setJoinCode(e.target.value.toUpperCase())}
-            maxLength={6}
-          />
-          <button type="submit" className="league-btn" disabled={joiningCode || !joinCode.trim()}>
-            {joiningCode ? "Joining…" : "Join"}
-          </button>
-        </form>
-      )}
-      {joinCodeError && <p className="leagues-error">{joinCodeError}</p>}
-    </div>
+    </>
   );
 }
 
@@ -13168,9 +13307,23 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   const [pendingLeaveId, setPendingLeaveId] = useState(null);
   const [leavingId, setLeavingId] = useState(null);
   const [leaveErrorId, setLeaveErrorId] = useState(null);
+  const [mobileTab, setMobileTab] = useState("mine");
+  const [subTab, setSubTab] = useState("search");
 
   const signedIn = auth.status === "in";
   const myUserId = auth.user && auth.user.id;
+
+  // Keeps the mobile 3-tab bar (My Leagues/Search/Create) and the desktop
+  // Search/Create subtab bar in sync so switching via one never leaves the
+  // other disagreeing (e.g. after a resize).
+  function selectMobileTab(name) {
+    setMobileTab(name);
+    if (name === "search" || name === "create") setSubTab(name);
+  }
+  function selectSubTab(name) {
+    setSubTab(name);
+    setMobileTab(name);
+  }
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -13288,19 +13441,50 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
         </div>
       )}
 
-      {signedIn && (
-        <div className="leagues-page-section">
+      {/* Mobile-only: My Leagues / Search / Create, one panel at a time. */}
+      <div className="leagues-tabbar">
+        <button
+          type="button"
+          className={"leagues-tab" + (mobileTab === "mine" ? " active" : "")}
+          onClick={() => selectMobileTab("mine")}
+        >
+          👥 My Leagues
+          {signedIn && leagues && leagues.length > 0 && <span className="tab-count">{leagues.length}</span>}
+        </button>
+        <button
+          type="button"
+          className={"leagues-tab" + (mobileTab === "search" ? " active" : "")}
+          onClick={() => selectMobileTab("search")}
+        >
+          🔍 Search
+        </button>
+        <button
+          type="button"
+          className={"leagues-tab" + (mobileTab === "create" ? " active" : "")}
+          onClick={() => selectMobileTab("create")}
+        >
+          ➕ Create
+        </button>
+      </div>
+
+      {/* Desktop: Your Leagues in a left column, Search/Create sharing the
+          right column via a subtab bar defaulting to Search. Collapses to
+          the mobile tab bar above below 860px (see CSS media queries). */}
+      <div className="leagues-columns">
+        <div className={"leagues-page-section" + (mobileTab === "mine" ? " mobile-active" : "")}>
           <h2 className="leagues-page-section-title">Your Leagues</h2>
-          {leagues === null && <p className="leagues-empty">Loading…</p>}
-          {leaguesError && <p className="leagues-error">{leaguesError}</p>}
-          {leagues && leagues.length === 0 && !leaguesError && (
-            <p className="leagues-empty">You're not in any leagues yet - create one below or search for a public league to join.</p>
+          {!signedIn && <p className="leagues-empty">Sign in to see the leagues you're in.</p>}
+          {signedIn && leagues === null && <p className="leagues-empty">Loading…</p>}
+          {signedIn && leaguesError && <p className="leagues-error">{leaguesError}</p>}
+          {signedIn && leagues && leagues.length === 0 && !leaguesError && (
+            <p className="leagues-empty">You're not in any leagues yet - create one or search for a public league to join.</p>
           )}
-          {leagues && leagues.length > 0 && (
+          {signedIn && leagues && leagues.length > 0 && (
             <div className="league-list">
               {leagues.map(l => {
                 const isOwner = l.ownerId === myUserId;
                 const confirmingLeave = pendingLeaveId === l.id;
+                const iconUrl = LEAGUE_FORMAT_ICON_URLS[l.format];
                 return (
                   <div key={l.id} className="league-list-item">
                     {confirmingLeave ? (
@@ -13321,6 +13505,11 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
                     ) : (
                       <>
                         <button type="button" className="league-list-item-btn" onClick={() => onSelectLeague(l.id)}>
+                          {iconUrl && (
+                            <div className="format-icon-badge">
+                              <img src={iconUrl} alt="" />
+                            </div>
+                          )}
                           <span className="league-list-item-main">
                             <span className="league-list-item-name">{l.name}</span>
                             <span className="league-list-item-meta">
@@ -13366,93 +13555,119 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
             </div>
           )}
         </div>
-      )}
 
-      <LeagueSearchSection
-        auth={auth}
-        onRequestLogin={onRequestLogin}
-        onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
-        initialCode={autoJoinCode}
-        initialError={autoJoinCodeError}
-      />
-
-      <div className="leagues-page-section">
-        <h2 className="leagues-page-section-title">Create a League</h2>
-        <p className="leagues-page-section-sub">Pick a format below to see how scoring works for that type.</p>
-        {!signedIn ? (
-          <div className="leagues-signed-out">
-            <p>Sign in to create a league.</p>
-            <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
-          </div>
-        ) : (
-          <form className="league-form-create" onSubmit={handleCreate}>
-            <input
-              type="text"
-              className="league-input"
-              placeholder="League name"
-              value={createName}
-              onChange={e => setCreateName(e.target.value)}
-              maxLength={50}
-            />
-            <textarea
-              className="league-textarea"
-              placeholder="Description (optional) - shown to members and, if public, in search"
-              value={createDescription}
-              onChange={e => setCreateDescription(e.target.value)}
-              maxLength={280}
-              rows={2}
-            />
-            <div className="league-format-picker">
-              {LEAGUE_FORMAT_OPTIONS.map(f => (
-                <button
-                  key={f.value}
-                  type="button"
-                  className={"league-format-option" + (createFormat === f.value ? " selected" : "")}
-                  onClick={() => setCreateFormat(f.value)}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-            <p className="league-format-hint">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === createFormat) || {}).hint}</p>
-
-            <label className="league-settings-row" style={{ marginTop: 4 }}>
-              <span>Who can join</span>
-              <div className="league-visibility-picker">
-                {LEAGUE_VISIBILITY_OPTIONS.map(o => (
-                  <button
-                    key={o.value}
-                    type="button"
-                    className={"league-visibility-option" + (createVisibility === o.value ? " selected" : "")}
-                    onClick={() => setCreateVisibility(o.value)}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-            </label>
-            <p className="league-format-hint">{LEAGUE_VISIBILITY_INFO[createVisibility]}</p>
-
-            <label className="league-settings-row" style={{ marginTop: 4 }}>
-              <span>Invite by email (optional)</span>
-              <textarea
-                className="league-textarea"
-                placeholder="friend@email.com, another@email.com"
-                value={createInviteEmails}
-                onChange={e => setCreateInviteEmails(e.target.value)}
-                rows={2}
-              />
-            </label>
-            <p className="league-format-hint">
-              Sent right after the league is created - you can also invite more people later from the league page.
-            </p>
-
-            <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={creating || !createName.trim()}>
-              {creating ? "Creating…" : "Create League"}
+        <div className={"leagues-search-create-col" + ((mobileTab === "search" || mobileTab === "create") ? " mobile-active" : "")}>
+          <div className="leagues-subtabbar">
+            <button
+              type="button"
+              className={"leagues-subtab" + (subTab === "search" ? " active" : "")}
+              onClick={() => selectSubTab("search")}
+            >
+              🔍 Search Leagues
             </button>
-          </form>
-        )}
-        {createError && <p className="leagues-error">{createError}</p>}
+            <button
+              type="button"
+              className={"leagues-subtab" + (subTab === "create" ? " active" : "")}
+              onClick={() => selectSubTab("create")}
+            >
+              ➕ Create a League
+            </button>
+          </div>
+
+          <div className={"leagues-page-section" + (subTab === "search" ? " subtab-active" : "")}>
+            <LeagueSearchSection
+              auth={auth}
+              onRequestLogin={onRequestLogin}
+              onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
+              initialCode={autoJoinCode}
+              initialError={autoJoinCodeError}
+            />
+          </div>
+
+          <div className={"leagues-page-section" + (subTab === "create" ? " subtab-active" : "")}>
+            <h2 className="leagues-page-section-title">Create a League</h2>
+            <p className="leagues-page-section-sub">Pick a format below to see how scoring works for that type.</p>
+            {!signedIn ? (
+              <div className="leagues-signed-out">
+                <p>Sign in to create a league.</p>
+                <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
+              </div>
+            ) : (
+              <form className="league-form-create" onSubmit={handleCreate}>
+                <input
+                  type="text"
+                  className="league-input"
+                  placeholder="League name"
+                  value={createName}
+                  onChange={e => setCreateName(e.target.value)}
+                  maxLength={50}
+                />
+                <textarea
+                  className="league-textarea"
+                  placeholder="Description (optional) - shown to members and, if public, in search"
+                  value={createDescription}
+                  onChange={e => setCreateDescription(e.target.value)}
+                  maxLength={280}
+                  rows={2}
+                />
+                <div className="league-format-picker">
+                  {LEAGUE_FORMAT_OPTIONS.map(f => (
+                    <button
+                      key={f.value}
+                      type="button"
+                      className={"league-format-option" + (createFormat === f.value ? " selected" : "")}
+                      onClick={() => setCreateFormat(f.value)}
+                    >
+                      <span className="fmt-icon-row">
+                        <span className="fmt-icon">
+                          <img src={LEAGUE_FORMAT_ICON_URLS[f.value]} alt="" />
+                        </span>
+                        {f.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <p className="league-format-hint">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === createFormat) || {}).hint}</p>
+
+                <label className="league-settings-row" style={{ marginTop: 4 }}>
+                  <span>Who can join</span>
+                  <div className="league-visibility-picker">
+                    {LEAGUE_VISIBILITY_OPTIONS.map(o => (
+                      <button
+                        key={o.value}
+                        type="button"
+                        className={"league-visibility-option" + (createVisibility === o.value ? " selected" : "")}
+                        onClick={() => setCreateVisibility(o.value)}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                </label>
+                <p className="league-format-hint">{LEAGUE_VISIBILITY_INFO[createVisibility]}</p>
+
+                <label className="league-settings-row" style={{ marginTop: 4 }}>
+                  <span>Invite by email (optional)</span>
+                  <textarea
+                    className="league-textarea"
+                    placeholder="friend@email.com, another@email.com"
+                    value={createInviteEmails}
+                    onChange={e => setCreateInviteEmails(e.target.value)}
+                    rows={2}
+                  />
+                </label>
+                <p className="league-format-hint">
+                  Sent right after the league is created - you can also invite more people later from the league page.
+                </p>
+
+                <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={creating || !createName.trim()}>
+                  {creating ? "Creating…" : "Create League"}
+                </button>
+              </form>
+            )}
+            {createError && <p className="leagues-error">{createError}</p>}
+          </div>
+        </div>
       </div>
     </div>
   );

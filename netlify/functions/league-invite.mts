@@ -1,6 +1,10 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
+import {
+  SITE_URL, FORMAT_LABELS, FORMAT_BADGE_URLS, escapeHtml,
+  emailShell, emailButton, emailFormatBadge, EMAIL_COLORS as C, EMAIL_MONO,
+} from "./lib/email-shell.mts";
 
 // Emails league invitations via Resend (https://resend.com). Any current
 // member can send invites - not owner-only, since pick'em pools are
@@ -30,13 +34,6 @@ const FROM_EMAIL = "Blitz Odds <invites@blitz-odds.com>";
 // somewhere instead of bouncing, and an explicit reply-to (vs. relying on
 // the from address) is itself a small deliverability signal.
 const REPLY_TO = "invites@blitz-odds.com";
-const SITE_URL = "https://blitz-odds.com";
-// Cropped/downscaled copy of the site's dark-background wordmark
-// (branding/blitz-odds-wordmark-dark.svg), sized for an email header
-// instead of the full 900px source - see branding/README.txt for the
-// original artwork. Raster PNG, not SVG, since Outlook desktop doesn't
-// render SVG in HTML email at all.
-const WORDMARK_URL = "https://blitz-odds.com/branding/blitz-odds-wordmark-dark-email.png";
 const MAX_RECIPIENTS = 25;
 // Deliberately simple - this only gates what we'll try to send an email
 // to, not full RFC 5322 validation. Resend's own API is the real check.
@@ -47,36 +44,13 @@ const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const FORMAT_LABELS: Record<string, string> = {
-  straight_up: "Straight-Up",
-  confidence: "Confidence",
-  survivor: "Survivor",
-  ats: "Against The Spread (ATS)",
-};
 
-// Icon+wordmark lockup per format (branding/format-badge-*.png - see
-// branding/README.txt), swapped in next to the format label so an invite
-// email reads at a glance instead of relying on plain text. Raster PNG for
-// the same Outlook-doesn't-render-SVG reason as WORDMARK_URL above. Each
-// is ~420px wide source, shown at 84px in the email (5x for retina).
-const FORMAT_BADGE_URLS: Record<string, string> = {
-  straight_up: "https://blitz-odds.com/branding/format-badge-straight-up.png",
-  confidence: "https://blitz-odds.com/branding/format-badge-confidence.png",
-  survivor: "https://blitz-odds.com/branding/format-badge-survivor.png",
-  ats: "https://blitz-odds.com/branding/format-badge-ats.png",
-};
 
-function escapeHtml(s: unknown): string {
-  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string)
-  );
-}
 
 function buildInviteEmail(league: any, inviterName: string) {
   const isPrivate = league.visibility !== "public";
   const formatLabel = FORMAT_LABELS[league.format] || league.format;
-  const badgeUrl = FORMAT_BADGE_URLS[league.format];
-  const subject = `${inviterName} invited you to join "${league.name}" on Blitz Odds`;
+    const subject = `${inviterName} invited you to join "${league.name}" on Blitz Odds`;
 
   // Deep link straight into the join flow: the frontend reads this query
   // param at load, forces the League tab open, and - once the recipient is
@@ -91,28 +65,21 @@ function buildInviteEmail(league: any, inviterName: string) {
     : `${SITE_URL}/?joinLeague=${encodeURIComponent(league.id)}#league`;
 
   const descriptionHtml = league.description
-    ? `<p style="margin:0 0 18px;color:#333;font-size:14px;line-height:1.5;">${escapeHtml(league.description)}</p>`
+    ? `<p style="margin:0 0 18px;color:${C.body};font-size:14px;line-height:1.5;">${escapeHtml(league.description)}</p>`
     : "";
 
-  const joinButtonHtml = `
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 20px;">
-      <tr>
-        <td style="border-radius:8px;background:#02a4a4;">
-          <a href="${joinUrl}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;">Join League</a>
-        </td>
-      </tr>
-    </table>`;
+  const joinButtonHtml = emailButton("Join League", joinUrl);
 
   const joinHtml = isPrivate
     ? `
       ${joinButtonHtml}
-      <div style="margin:0 0 20px;padding:16px;border:1px solid #d8dee4;border-radius:8px;background:#f6f8fa;text-align:center;">
-        <p style="margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#57606a;">Invite Code</p>
-        <p style="margin:0;font-size:24px;font-weight:800;letter-spacing:.1em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#111;">${escapeHtml(league.inviteCode)}</p>
-        <p style="margin:8px 0 0;font-size:12px;color:#57606a;">The button above uses this automatically - keep it handy only if you'd rather enter it by hand.</p>
+      <div style="margin:0 0 20px;padding:16px;border:1px solid ${C.panelBorder};border-radius:8px;background:${C.panelBg};text-align:center;">
+        <p style="margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:${C.muted};">Invite Code</p>
+        <p style="margin:0;font-size:24px;font-weight:800;letter-spacing:.1em;font-family:${EMAIL_MONO};color:${C.heading};">${escapeHtml(league.inviteCode)}</p>
+        <p style="margin:8px 0 0;font-size:12px;color:${C.muted};">The button above uses this automatically - keep it handy only if you'd rather enter it by hand.</p>
       </div>`
     : `${joinButtonHtml}
-      <p style="margin:0 0 20px;color:#333;font-size:14px;">
+      <p style="margin:0 0 20px;color:${C.body};font-size:14px;">
         The button signs you in (if needed) and joins <strong>${escapeHtml(league.name)}</strong> automatically - no code needed for public leagues.
       </p>`;
 
@@ -120,50 +87,27 @@ function buildInviteEmail(league: any, inviterName: string) {
   // plain-text pill this email used before badges existed - keeps this
   // forward-compatible with a future format value that hasn't gotten
   // artwork yet instead of rendering a broken image icon.
-  const formatBadgeHtml = badgeUrl
-    ? `
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
-      <tr>
-        <td style="vertical-align:middle;padding-right:10px;">
-          <img src="${badgeUrl}" width="84" alt="${escapeHtml(formatLabel)}" style="display:block;width:84px;height:auto;">
-        </td>
-        <td style="vertical-align:middle;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#02a4a4;">
-          ${escapeHtml(formatLabel)} pick'em<br>${escapeHtml(league.season)} season
-        </td>
-      </tr>
-    </table>`
-    : `
-    <p style="margin:0 0 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#02a4a4;">
-      ${escapeHtml(formatLabel)} pick'em &middot; ${escapeHtml(league.season)} season
-    </p>`;
+  const formatBadgeHtml = emailFormatBadge(
+    league.format,
+    `${formatLabel} pick'em`,
+    `${league.season} season`
+  );
 
-  const header = `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-      <tr>
-        <td align="center" style="padding:24px;background:#0a1420;border-radius:12px 12px 0 0;">
-          <img src="${WORDMARK_URL}" width="200" alt="Blitz Odds" style="display:block;max-width:200px;height:auto;">
-        </td>
-      </tr>
-    </table>`;
-
-  const html = `
-    <div style="max-width:480px;margin:0 auto;background:#ffffff;border:1px solid #e5e9ef;border-radius:12px;overflow:hidden;">
-      ${header}
-      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:28px 24px;">
-        <p style="margin:0 0 6px;font-size:13px;color:#57606a;">${escapeHtml(inviterName)} invited you to a pick'em league</p>
-        <h1 style="margin:0 0 10px;font-size:22px;line-height:1.25;color:#111;">${escapeHtml(league.name)}</h1>
+  // No unsubscribe link: an invite is solicited by a person, not a
+  // subscription, so there's nothing to unsubscribe from. emailShell omits
+  // the whole line when unsubType is absent.
+  const html = emailShell(
+    `
+        <p style="margin:0 0 6px;font-size:13px;color:${C.muted};">${escapeHtml(inviterName)} invited you to a pick'em league</p>
+        <h1 style="margin:0 0 10px;font-size:22px;line-height:1.25;color:${C.heading};">${escapeHtml(league.name)}</h1>
         ${formatBadgeHtml}
         ${descriptionHtml}
-        ${joinHtml}
-        <p style="margin:24px 0 0;font-size:12px;color:#8b949e;">
-          Blitz Odds - free NFL pick'em confidence tool and odds analyzer.
-        </p>
-        <p style="margin:6px 0 0;font-size:11px;color:#b1bac4;">
-          You're receiving this because ${escapeHtml(inviterName)} invited you to a league on Blitz Odds.
-          Questions? Just reply to this email.
-        </p>
-      </div>
-    </div>`;
+        ${joinHtml}`,
+    {
+      reason: `You're receiving this because ${inviterName} invited you to a league on Blitz Odds. Questions? Just reply to this email.`,
+    },
+    `${inviterName} invited you to ${league.name} - ${formatLabel} pick'em.`
+  );
 
   const text = [
     `${inviterName} invited you to join "${league.name}" on Blitz Odds`,

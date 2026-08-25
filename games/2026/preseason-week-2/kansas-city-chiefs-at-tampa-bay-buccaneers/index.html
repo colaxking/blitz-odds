@@ -1197,6 +1197,52 @@
   .settings-tab-btn.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); }
   .settings-tab-btn:hover:not(.active) { color: var(--text); }
 
+  /* ---- Notifications tab (SettingsModal) ---- */
+  .notif-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; }
+  .notif-row + .notif-row { border-top: 1px solid var(--card-border); }
+  .notif-row-body { flex: 1; min-width: 0; }
+  .notif-row-name { font-size: 0.88rem; font-weight: 650; margin: 0 0 3px; color: var(--text); }
+  .notif-row-desc { font-size: 0.78rem; color: var(--text-dim); margin: 0; line-height: 1.5; }
+  .notif-when {
+    display: inline-block; margin-top: 8px; font-size: 0.72rem; font-weight: 650;
+    color: var(--accent); background: rgba(var(--accent-rgb),0.12);
+    border: 1px solid rgba(var(--accent-rgb),0.3); padding: 3px 9px; border-radius: 999px;
+  }
+  .notif-switch {
+    position: relative; width: 46px; height: 27px; flex: 0 0 46px; border-radius: 999px;
+    cursor: pointer; background: var(--lose); border: none; padding: 0;
+    transition: background 0.16s; -webkit-appearance: none; appearance: none;
+  }
+  .notif-switch::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 21px; height: 21px;
+    border-radius: 50%; background: #fff; transition: transform 0.16s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  }
+  .notif-switch[aria-checked="true"] { background: var(--accent); }
+  .notif-switch[aria-checked="true"]::after { transform: translateX(19px); }
+  .notif-switch:disabled { opacity: 0.45; cursor: not-allowed; }
+  .notif-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .notif-tz {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    font-size: 0.78rem; color: var(--text-dim); margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid var(--card-border);
+  }
+  .notif-tz b { color: var(--text); font-weight: 600; }
+  .notif-cap {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    font-size: 0.78rem; color: var(--text-dim); background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 9px; padding: 11px 13px; margin-top: 18px;
+  }
+  .notif-cap b { color: var(--text); }
+  .notif-status {
+    font-size: 0.72rem; font-weight: 600; margin: 8px 0 0; min-height: 1em;
+  }
+  .notif-status.err { color: var(--out); }
+  .notif-status.ok { color: var(--win); }
+  @media (prefers-reduced-motion: reduce) {
+    .notif-switch, .notif-switch::after { transition: none; }
+  }
+
   .avatar-preview-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
   .avatar-preview {
     width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -12797,6 +12843,13 @@ function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSport
             </button>
             <button
               type="button"
+              className={"settings-tab-btn" + (tab === "notifications" ? " active" : "")}
+              onClick={() => setTab("notifications")}
+            >
+              Alerts
+            </button>
+            <button
+              type="button"
               className={"settings-tab-btn" + (tab === "prefs" ? " active" : "")}
               onClick={() => setTab("prefs")}
             >
@@ -12807,6 +12860,10 @@ function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSport
 
         {signedIn && tab === "profile" && (
           <ProfileTab auth={auth} profile={profile} onProfileUpdated={onProfileUpdated} />
+        )}
+
+        {signedIn && tab === "notifications" && (
+          <NotificationsTab auth={auth} resolvedTz={resolvedTz} />
         )}
 
         {(!signedIn || tab === "prefs") && (
@@ -12835,6 +12892,146 @@ function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSport
       </div>
     </div>,
     document.body
+  );
+}
+
+// Signed-in-only tab inside SettingsModal: which of the two scheduled
+// emails this account gets. Reads and writes notif-prefs.mts.
+//
+// The reader's timezone is pushed to the server from here rather than being
+// a separate control: the dispatcher needs it to work out when 7pm is for
+// this person, and the app already has an explicit Time Zone setting on the
+// Preferences tab (`resolvedTz`). Reusing that means one source of truth,
+// and someone who deliberately set their zone there gets emails on that
+// zone rather than on whatever device they last opened.
+function NotificationsTab({ auth, resolvedTz }) {
+  const [prefs, setPrefs] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState(null);
+
+  const authedFetch = useCallback(async (opts) => {
+    return auth.authenticatedFetch("/.netlify/functions/notif-prefs", {
+      ...opts,
+      headers: { "Content-Type": "application/json", ...(opts && opts.headers) },
+    });
+  }, [auth]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await authedFetch({ method: "GET" });
+        const data = await res.json();
+        if (cancelled) return;
+        if (!data.ok) { setStatus({ kind: "err", text: "Couldn't load your settings." }); return; }
+        setPrefs(data.prefs);
+        // Keep the server's copy of the timezone aligned with the app's own
+        // setting. Fire-and-forget: a failure here only affects send timing,
+        // and the next visit retries.
+        if (resolvedTz && data.prefs.timezone !== resolvedTz) {
+          authedFetch({ method: "POST", body: JSON.stringify({ timezone: resolvedTz }) })
+            .then(() => { if (!cancelled) setPrefs((p) => (p ? { ...p, timezone: resolvedTz } : p)); })
+            .catch(() => {});
+        }
+      } catch {
+        if (!cancelled) setStatus({ kind: "err", text: "Couldn't load your settings." });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [authedFetch, resolvedTz]);
+
+  const toggle = async (key) => {
+    if (!prefs || saving) return;
+    const next = { ...prefs, [key]: !prefs[key] };
+    setPrefs(next);              // optimistic - the switch should move on tap
+    setSaving(true);
+    setStatus(null);
+    try {
+      const res = await authedFetch({ method: "POST", body: JSON.stringify({ [key]: next[key] }) });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "Save failed");
+      setPrefs(data.prefs);
+      setStatus({ kind: "ok", text: "Saved" });
+    } catch {
+      setPrefs(prefs);           // roll back to what the server still believes
+      setStatus({ kind: "err", text: "Couldn't save that. Try again." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!prefs) {
+    return (
+      <div className="settings-section">
+        <p className="notif-row-desc">{status ? status.text : "Loading\u2026"}</p>
+      </div>
+    );
+  }
+
+  const onCount = (prefs.emailPickReminders ? 1 : 0) + (prefs.emailWeeklyRecap ? 1 : 0);
+  const capText = onCount === 0 ? "no emails" : onCount === 1 ? "1 email" : "2 emails";
+  const tzLabel = (resolvedTz || prefs.timezone || "").replace(/_/g, " ").split("/").pop() || prefs.timezone;
+
+  return (
+    <React.Fragment>
+      <div className="settings-section">
+        <h3 className="settings-section-title">Email</h3>
+        <p className="notif-row-desc" style={{ marginBottom: 6 }}>
+          At most two a week. Nothing else.
+        </p>
+
+        <div className="notif-row">
+          <div className="notif-row-body">
+            <p className="notif-row-name">Pick reminder</p>
+            <p className="notif-row-desc">
+              Sent only if you still have games open in a league. Skipped once your picks are in.
+            </p>
+            <span className="notif-when">Evening before the first kickoff</span>
+          </div>
+          <button
+            type="button"
+            className="notif-switch"
+            role="switch"
+            aria-checked={prefs.emailPickReminders}
+            aria-label="Pick reminder email"
+            disabled={saving}
+            onClick={() => toggle("emailPickReminders")}
+          />
+        </div>
+
+        <div className="notif-row">
+          <div className="notif-row-body">
+            <p className="notif-row-name">Weekly recap</p>
+            <p className="notif-row-desc">
+              How you finished in each league and where you stand now.
+            </p>
+            <span className="notif-when">Tuesday morning</span>
+          </div>
+          <button
+            type="button"
+            className="notif-switch"
+            role="switch"
+            aria-checked={prefs.emailWeeklyRecap}
+            aria-label="Weekly recap email"
+            disabled={saving}
+            onClick={() => toggle("emailWeeklyRecap")}
+          />
+        </div>
+
+        <p className={"notif-status" + (status ? " " + status.kind : "")} aria-live="polite">
+          {status ? status.text : ""}
+        </p>
+
+        <div className="notif-tz">
+          <span>Sending on <b>{tzLabel}</b> time</span>
+          <span style={{ opacity: 0.7 }}>Change under Preferences</span>
+        </div>
+
+        <div className="notif-cap">
+          <span>This week you'll get <b>{capText}</b></span>
+        </div>
+      </div>
+    </React.Fragment>
   );
 }
 

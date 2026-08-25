@@ -1,0 +1,106 @@
+name: Blitz Odds - notification dispatch
+
+# Pokes notif-dispatch-background.mts, which works out for itself which
+# readers are due for a pick reminder or a weekly recap right now and sends
+# them. This workflow carries no scheduling logic of its own - it's a
+# doorbell, not a timer.
+#
+# WHY EVERY 15 MINUTES. Send times are local to each reader (7pm the evening
+# before the week's first kickoff; 9am Tuesday for the recap), and readers
+# are spread across timezones, so there is no single UTC moment that serves
+# everyone. The function is asked repeatedly and answers "not yet" for
+# almost everyone almost always. Firing it far less often would push some
+# readers' mail hours off their intended slot; firing it more often just
+# burns Blobs reads for no gain.
+#
+# Triggered externally, same pattern as the other workflows here: GitHub's
+# own `schedule:` cron is unreliable on low-traffic repos (delayed or
+# skipped), so cron-job.org calls the REST API to fire workflow_dispatch.
+# To wire this up, add a cron-job.org job pointing at:
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/notif-dispatch.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+# Cadence: every 15 minutes, year-round. Outside the season the function
+# finds no upcoming week and returns immediately, so an off-season tick
+# costs one schedule read.
+#
+# SAFE TO DOUBLE-FIRE. Every send writes an idempotency ledger key before
+# calling Resend and checks it first (see lib/notif.mts), so a duplicated
+# trigger produces no duplicate mail.
+#
+# DRY RUN. Run this manually from the Actions tab with dry_run = true to see
+# exactly who would be emailed, without sending anything. The plan lands in
+# the function log in the Netlify dashboard - background functions return
+# 202 immediately, so it will not appear in this workflow's own output.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Compute the plan but send nothing"
+        type: boolean
+        default: false
+      only:
+        description: "Limit to one email type (reminder / recap), or leave blank for both"
+        type: string
+        default: ""
+      user_id:
+        description: "Limit to a single Netlify Identity user id (for testing)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+# Overlapping runs would each do the same work; the ledger makes that safe
+# but not free, so they're serialized instead.
+concurrency:
+  group: blitz-odds-notif-dispatch
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger notification dispatch
+        env:
+          NOTIF_DISPATCH_SECRET: ${{ secrets.NOTIF_DISPATCH_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          ONLY: ${{ inputs.only }}
+          USER_ID: ${{ inputs.user_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NOTIF_DISPATCH_SECRET}" ]; then
+            echo "NOTIF_DISPATCH_SECRET is not set in repository secrets." >&2
+            exit 1
+          fi
+
+          BODY="{\"dryRun\":${DRY_RUN:-false}"
+          if [ -n "${ONLY}" ]; then BODY="${BODY},\"only\":\"${ONLY}\""; fi
+          if [ -n "${USER_ID}" ]; then BODY="${BODY},\"userId\":\"${USER_ID}\""; fi
+          BODY="${BODY}}"
+
+          echo "POSTing: ${BODY}"
+
+          # A background function replies 202 with an empty body and keeps
+          # working - so a 202 means "accepted", not "sent". The outcome is
+          # in the Netlify function log.
+          STATUS=$(curl -sS -o /tmp/resp.txt -w "%{http_code}" \
+            --max-time 30 \
+            -X POST "https://blitz-odds.com/.netlify/functions/notif-dispatch-background" \
+            -H "Content-Type: application/json" \
+            -H "x-notif-dispatch-secret: ${NOTIF_DISPATCH_SECRET}" \
+            -d "${BODY}")
+
+          echo "HTTP ${STATUS}"
+          cat /tmp/resp.txt || true
+          echo
+
+          case "${STATUS}" in
+            200|202) echo "Dispatch accepted." ;;
+            401)     echo "Rejected: NOTIF_DISPATCH_SECRET doesn't match the site's env var." >&2; exit 1 ;;
+            500)     echo "Function error - check NOTIF_UNSUB_SECRET and RESEND_API_KEY are set in Netlify." >&2; exit 1 ;;
+            *)       echo "Unexpected status ${STATUS}." >&2; exit 1 ;;
+          esac

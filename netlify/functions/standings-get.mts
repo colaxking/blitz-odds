@@ -10,6 +10,7 @@ import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/aut
 // Reads only - all the actual scoring happens in results-process.mts.
 
 const LEAGUE_STORE = "blitz-leagues";
+const USER_STORE = "blitz-users";
 
 const CORS_HEADERS: Record<string, string> = {
   ...CORS_HEADERS_BASE,
@@ -43,6 +44,34 @@ export default async (req: Request, _context: Context) => {
     const memberById = new Map(
       (membersDoc?.members || []).map((m: any) => [m.userId, { displayName: m.displayName, avatar: m.avatar ?? null }])
     );
+
+    // The members doc is a snapshot, kept in sync on a best-effort basis
+    // by user-profile.mts whenever someone edits their name/avatar (see
+    // that function's fan-out). Rather than depend on every past and
+    // future write path remembering to keep that snapshot current, read
+    // each member's live profile here too and let it win when present -
+    // this is the one place people actually look to see if a change
+    // "took," so it should never be able to show a stale name/icon just
+    // because some other write path missed the fan-out.
+    const userStore = getStore(USER_STORE);
+    await Promise.all(
+      Array.from(memberById.keys()).map(async (uid) => {
+        try {
+          const profile: any = await userStore.get(`users:${uid}`, { type: "json" });
+          if (!profile) return;
+          const current = memberById.get(uid)!;
+          memberById.set(uid, {
+            displayName: (typeof profile.displayName === "string" && profile.displayName.trim())
+              ? profile.displayName
+              : current.displayName,
+            avatar: typeof profile.avatar === "string" ? profile.avatar : (profile.avatar === null ? null : current.avatar),
+          });
+        } catch {
+          // Best-effort - fall back to the members-doc snapshot already in the map.
+        }
+      })
+    );
+
     const memberInfo = (uid: string) => memberById.get(uid) || { displayName: "Player", avatar: null };
 
     const seasonWithNames = (standingsDoc.season || []).map((row: any) => ({

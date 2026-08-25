@@ -34,13 +34,28 @@ const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
+// The schedule blob is the same document for every caller and changes at
+// most a few times a week (flex scheduling), but it was being re-read on
+// every single request - one extra round trip in front of the picks reads,
+// paid by every member of every league on every week change. Module scope
+// survives between invocations on a warm instance, so this holds it for a
+// minute at a time. Deliberately short: a flex-time change still shows up
+// within a minute, and a cold instance always reads fresh. Only cached on
+// a successful non-empty read so a transient miss can't pin an empty
+// schedule in memory for the next minute.
+const SCHEDULE_CACHE_MS = 60 * 1000;
+let scheduleCache: { at: number; doc: any } | null = null;
+
+async function getSchedule(store: ReturnType<typeof getStore>): Promise<any> {
+  if (scheduleCache && Date.now() - scheduleCache.at < SCHEDULE_CACHE_MS) return scheduleCache.doc;
+  const doc: any = await store.get("schedule", { type: "json" });
+  if (doc?.weeks) scheduleCache = { at: Date.now(), doc };
+  return doc;
+}
+
 export default async (req: Request, _context: Context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (req.method !== "GET") return jsonResponse(405, { ok: false, error: "Method not allowed" }, CORS_HEADERS);
-
-  const claims = await getAuthenticatedUser(req);
-  if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" }, CORS_HEADERS);
-  const userId = claims.id;
 
   const url = new URL(req.url);
   const leagueId = url.searchParams.get("leagueId") || "";
@@ -52,25 +67,52 @@ export default async (req: Request, _context: Context) => {
   const oddsStore = getStore(ODDS_STORE);
 
   try {
-    const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
+    // Auth verification is a network call out to the site's own Identity
+    // endpoint, and the league/members/schedule reads are three more - none
+    // of which depend on each other's results, so waiting for each in turn
+    // was spending four sequential round trips before the first pick read
+    // even started. They all go out together now and get validated below in
+    // the same order as before, so the responses (401/404/403) are
+    // unchanged; only the wall-clock cost is. The reads are cheap and
+    // authorization is still checked before any of their contents are
+    // returned, so speculatively issuing them costs nothing but a couple of
+    // wasted gets on a request that was going to be rejected anyway.
+    const [claims, league, membersDoc, schedule] = await Promise.all([
+      getAuthenticatedUser(req),
+      leagueStore.get(`league:${leagueId}`, { type: "json" }) as Promise<any>,
+      leagueStore.get(`members:${leagueId}`, { type: "json" }) as Promise<any>,
+      getSchedule(siteDataStore),
+    ]);
+
+    if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" }, CORS_HEADERS);
+    const userId = claims.id;
+
     if (!league) return jsonResponse(404, { ok: false, error: "League not found" }, CORS_HEADERS);
 
-    const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
     const isMember = membersDoc?.members?.some((m: any) => m.userId === userId);
     if (!isMember) return jsonResponse(403, { ok: false, error: "Not a member of this league" }, CORS_HEADERS);
 
-    const schedule: any = await siteDataStore.get("schedule", { type: "json" });
     const weekEntry = schedule?.weeks?.find((w: any) => w.week === week);
     if (!weekEntry) return jsonResponse(404, { ok: false, error: `No schedule found for week ${week}` }, CORS_HEADERS);
 
     // Fetch every pick this user has made this week - direct get() on every
     // game's own key (see header note on why not list()).
+    // ats: pull current spreads so unpicked games can still show a line.
+    // Issued alongside the pick reads rather than after them - it's an
+    // independent read against a different store and there's no reason for
+    // it to wait its turn behind them.
+    const oddsPromise: Promise<any> = league.format === "ats"
+      ? (oddsStore.get("odds", { type: "json" }) as Promise<any>)
+      : Promise.resolve(null);
+
     const userPicks: Record<string, any> = {};
-    await Promise.all((weekEntry.games || []).map(async (g: any) => {
+    const picksPromise = Promise.all((weekEntry.games || []).map(async (g: any) => {
       const gid = makeGameId(league.season, week, g.away, g.home);
       const pick = await leagueStore.get(`picks:${leagueId}:${week}:${userId}:${gid}`, { type: "json" });
       if (pick) userPicks[gid] = pick;
     }));
+
+    const [, oddsDoc] = await Promise.all([picksPromise, oddsPromise]);
 
     // survivor: submitting a new game mid-week deletes the previously
     // picked game's key (see picks-submit.mts), but delete() has its own
@@ -88,12 +130,7 @@ export default async (req: Request, _context: Context) => {
       }
     }
 
-    // ats: pull current spreads so unpicked games can still show a line.
-    let oddsWeekGames: any = null;
-    if (league.format === "ats") {
-      const oddsDoc: any = await oddsStore.get("odds", { type: "json" });
-      oddsWeekGames = oddsDoc?.weeks?.[String(week)]?.games || null;
-    }
+    const oddsWeekGames: any = oddsDoc?.weeks?.[String(week)]?.games || null;
 
     const games = (weekEntry.games || []).map((g: any) => {
       const gameId = makeGameId(league.season, week, g.away, g.home);
@@ -121,12 +158,17 @@ export default async (req: Request, _context: Context) => {
     // survivor: season-wide used teams (any prior week, mirrors the same
     // check picks-submit.mts enforces) so the client can disable those team
     // buttons up front instead of only surfacing a rejected-pick error.
+    // Every prior week is independent of every other one, but this used to
+    // await each week's reads before starting the next - by week 15 that's
+    // fourteen sequential round trips stacked in front of the response, and
+    // it got slower every week of the season. The weeks all go out at once
+    // now; the per-week "most recent pick wins" resolution is unchanged.
     let usedTeams: string[] | undefined;
     if (league.format === "survivor") {
-      const seen = new Set<string>();
-      for (let w = 1; w < week; w++) {
+      const priorWeeks = Array.from({ length: Math.max(0, week - 1) }, (_, i) => i + 1);
+      const teamsByWeek = await Promise.all(priorWeeks.map(async (w) => {
         const priorWeekEntry = schedule?.weeks?.find((x: any) => x.week === w);
-        if (!priorWeekEntry) continue;
+        if (!priorWeekEntry) return null;
         const priorPicksByGid: Record<string, any> = {};
         await Promise.all((priorWeekEntry.games || []).map(async (g: any) => {
           const gid = makeGameId(league.season, w, g.away, g.home);
@@ -138,9 +180,9 @@ export default async (req: Request, _context: Context) => {
         const latestGid = gids.length > 1
           ? gids.reduce((a, b) => priorPicksByGid[a].updatedAt >= priorPicksByGid[b].updatedAt ? a : b)
           : gids[0];
-        if (latestGid && priorPicksByGid[latestGid]?.team) seen.add(priorPicksByGid[latestGid].team);
-      }
-      usedTeams = [...seen];
+        return (latestGid && priorPicksByGid[latestGid]?.team) || null;
+      }));
+      usedTeams = [...new Set(teamsByWeek.filter((t): t is string => !!t))];
     }
 
     return jsonResponse(200, {

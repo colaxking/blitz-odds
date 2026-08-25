@@ -1283,7 +1283,7 @@
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px;
   }
-  .league-list-item-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .league-list-item-main { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .league-list-item-name { font-size: 0.9rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .league-list-item-meta { font-size: 0.74rem; color: var(--text-dim); }
   .league-invite-chip {
@@ -1359,7 +1359,7 @@
   .leagues-page-signin-banner strong { color: var(--text); }
 
   .league-list-item-btn {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;
     border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; background: none;
     color: inherit; text-align: left; cursor: pointer; font: inherit;
   }
@@ -1398,6 +1398,100 @@
     .league-textarea { font-size: 0.88rem; }
   }
   .league-textarea:focus-visible { outline: none; border-color: var(--accent); }
+
+  /* ---- Leagues landing: format badge images -----------------------------
+     Full icon+wordmark lockup, boxed at a fixed size next to the league
+     name/format-picker label. See LEAGUE_FORMAT_ICON_URLS above for why
+     these are never shrunk into a tiny inline icon. */
+  .format-icon-badge {
+    flex-shrink: 0; width: 88px; height: 68px; border-radius: 10px; overflow: hidden; display: flex;
+    align-items: center; justify-content: center; background: var(--surface-2);
+  }
+  .format-icon-badge img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+  /* ---- Leagues landing: mobile tab bar (My Leagues / Search / Create) -- */
+  .leagues-tabbar {
+    display: none; gap: 6px; margin-bottom: 4px; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 4px;
+  }
+  .leagues-tab {
+    flex: 1; background: none; border: none; color: var(--text-dim); font-family: inherit; font-size: 0.8rem;
+    font-weight: 800; padding: 9px 6px; border-radius: 9px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px;
+  }
+  .leagues-tab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+  .leagues-tab .tab-count {
+    background: rgba(var(--accent-rgb),0.18); color: var(--accent); border-radius: 999px; font-size: 0.66rem;
+    padding: 1px 6px; font-weight: 800;
+  }
+
+  /* ---- Leagues landing: desktop 2-col grid, Search/Create sharing the
+     right column via a subtab bar (defaults to Search) --------------------
+     Scoped to a min-width query on purpose: an unconditional rule here
+     would out-specificity the mobile tab bar's display:none below (both
+     would be 3-class selectors, so specificity - not source order - would
+     decide the conflict) and bleed the inactive subtab through on mobile. */
+  .leagues-columns { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; align-items: start; }
+  .leagues-search-create-col { display: flex; flex-direction: column; }
+  .leagues-subtabbar {
+    display: flex; gap: 6px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 4px;
+  }
+  .leagues-subtab {
+    flex: 1; background: none; border: none; color: var(--text-dim); font-family: inherit; font-size: 0.82rem;
+    font-weight: 800; padding: 9px 6px; border-radius: 9px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px;
+  }
+  .leagues-subtab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+
+  @media (min-width: 860px) {
+    .leagues-search-create-col .leagues-page-section { display: none; }
+    .leagues-search-create-col .leagues-page-section.subtab-active { display: block; }
+  }
+  @media (max-width: 859px) {
+    .leagues-columns { display: block; }
+    .leagues-tabbar { display: flex; }
+    .leagues-subtabbar { display: none; }
+    .leagues-columns > .leagues-page-section, .leagues-search-create-col { display: none; margin-bottom: 14px; }
+    .leagues-columns > .leagues-page-section.mobile-active, .leagues-search-create-col.mobile-active { display: block; }
+    /* The outer mobile-active toggle above only decides whether this whole
+       column (search + create together) is showing at all. Within it, the
+       two inner panels still need their own hide/show pass - otherwise
+       both stay visible since neither is a .leagues-columns direct child
+       matched by the rule above. */
+    .leagues-search-create-col .leagues-page-section { display: none; }
+    .leagues-search-create-col .leagues-page-section.subtab-active { display: block; }
+  }
+
+  /* ---- Leagues landing: always-visible invite code box + results divider */
+  .league-code-box {
+    display: flex; align-items: center; gap: 8px; background: rgba(var(--accent-rgb),0.08);
+    border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; margin: 12px 0 16px;
+  }
+  .league-code-box-label { flex-shrink: 0; font-size: 0.78rem; font-weight: 700; color: var(--text); white-space: nowrap; }
+  .league-code-box .league-input-code { flex: 1; min-width: 70px; background: var(--card-bg); padding: 9px 8px; text-align: center; }
+  .league-results-divider {
+    display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; font-size: 0.72rem; font-weight: 700;
+    color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .league-results-divider::before, .league-results-divider::after { content: ""; flex: 1; height: 1px; background: var(--card-border); }
+  .league-results-count { font-size: 0.78rem; color: var(--text-dim); margin: 0 0 10px; }
+  .league-load-more { margin-top: 8px; }
+
+  /* ---- Leagues landing: horizontal icon+label format picker ------------- */
+  .league-format-option {
+    display: flex; align-items: center; text-align: left; width: 100%; min-height: 76px;
+    background: var(--surface-2); border: 1.5px solid var(--card-border); color: var(--text-dim);
+    border-radius: 10px; padding: 8px 12px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+  }
+  .league-format-option .fmt-icon-row { display: flex; align-items: center; gap: 12px; width: 100%; }
+  .league-format-option .fmt-icon {
+    flex-shrink: 0; height: 52px; width: auto; border-radius: 8px; overflow: hidden; display: flex;
+    align-items: center; justify-content: center; background: var(--surface-2);
+  }
+  .league-format-option .fmt-icon img { height: 100%; width: auto; object-fit: contain; display: block; }
+  .league-format-option:hover { border-color: var(--card-border); filter: brightness(1.15); }
+  .league-format-option.selected { background: rgba(var(--accent-rgb),0.14); border-color: var(--accent); color: var(--text); }
 
   /* ---- Pick'em league view (This Week / Standings) --------------------- */
   /* Ported from the approved mockup - same tokens as the rest of the app,
@@ -1541,8 +1635,114 @@
      font-size than the initial-letter fallback to read at the same size. */
   .league-standings-avatar span { font-size: 11px; }
   .league-standings-points { font-weight: 800; }
+  .league-standings-record { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .league-status-alive { color: var(--win); font-weight: 700; font-size: 0.72rem; }
   .league-status-eliminated { color: var(--out); font-weight: 700; font-size: 0.72rem; text-decoration: line-through; opacity: 0.7; }
+
+  /* A member the scoring pass hasn't touched yet (new league, mid-season
+     joiner, or just before the first Sunday finishes). They're real
+     members and belong in the table, but a 0-0 record and a 0% win rate
+     would read as "played and lost everything" rather than "hasn't
+     played" - hence the dash treatment and the dimmed row. */
+  .standings-dash { color: var(--text-dim); opacity: 0.65; }
+  .league-standings-table tr.is-unplayed td { color: var(--text-dim); }
+  .league-standings-table tr.is-unplayed .league-standings-user { font-weight: 600; }
+
+  .standings-pending-note {
+    font-size: 0.72rem; color: var(--text-dim); margin: 0 0 10px; line-height: 1.45;
+    background: var(--surface-2); border-radius: 8px; padding: 8px 10px;
+  }
+  .standings-table-block { display: flex; flex-direction: column; }
+  .standings-table-head { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 8px; }
+  .standings-table-head h3 {
+    margin: 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--text-dim); font-weight: 700;
+  }
+  .standings-table-count { font-size: 0.72rem; color: var(--text-dim); font-weight: 600; }
+
+  /* The signed-in user's own line, lifted above the table - see
+     StandingsMeCard for why. Accent-tinted so it reads as "this one is
+     yours" at a glance without needing to be found by name. */
+  .standings-me-card {
+    background: linear-gradient(180deg, rgba(var(--accent-rgb),0.12), rgba(var(--accent-rgb),0.04));
+    border: 1px solid rgba(var(--accent-rgb),0.35); border-radius: 14px;
+    padding: 14px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .standings-me-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .standings-me-you {
+    font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--accent); background: rgba(var(--accent-rgb),0.16);
+    border: 1px solid rgba(var(--accent-rgb),0.35); border-radius: 5px; padding: 2px 7px;
+  }
+  .standings-me-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .standings-me-stat { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .standings-me-stat-label {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--text-dim); font-weight: 700;
+  }
+  .standings-me-stat-value { font-size: 1rem; font-weight: 800; line-height: 1.1; }
+  .standings-me-stat-value.gold { color: var(--star); }
+  .standings-me-stat-value .dim { color: var(--text-dim); font-weight: 600; font-size: 0.78rem; }
+  .standings-me-note { margin: 0; font-size: 0.68rem; color: var(--text-dim); line-height: 1.45; }
+
+  /* ---- League Picks sub-tab (who picked what, post-kickoff) ------------ */
+  .league-picks-intro {
+    font-size: 0.72rem; color: var(--text-dim); line-height: 1.45;
+    background: var(--surface-2); border-radius: 8px; padding: 8px 10px;
+  }
+  .league-picks-game {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 12px; display: flex; flex-direction: column; gap: 10px;
+  }
+  /* Pre-kickoff games stay in the list rather than being filtered out, so
+     the week reads as a complete slate and it's obvious the rest is coming
+     rather than missing. Dimmed, with no pick data attached at all. */
+  .league-picks-game.is-hidden { opacity: 0.6; }
+  .league-picks-game-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .league-picks-matchup { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 700; }
+  .league-picks-matchup .is-winner { color: var(--win); }
+  .league-picks-at { color: var(--text-dim); font-weight: 600; margin: 0 1px; }
+  .league-picks-time { font-size: 0.68rem; color: var(--text-dim); font-weight: 600; }
+  .league-picks-locked-note { margin: 0; font-size: 0.72rem; color: var(--text-dim); font-weight: 600; }
+
+  .league-picks-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .league-picks-column {
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 10px;
+    padding: 8px; display: flex; flex-direction: column; gap: 5px; min-width: 0;
+  }
+  .league-picks-column.is-winner { border-color: rgba(var(--win-rgb),0.45); background: rgba(var(--win-rgb),0.08); }
+  .league-picks-column-head {
+    display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800;
+    padding-bottom: 5px; border-bottom: 1px solid var(--card-border);
+  }
+  .league-picks-column-count {
+    margin-left: auto; font-size: 0.66rem; font-weight: 700; color: var(--text-dim);
+    background: var(--card-bg); border-radius: 5px; padding: 1px 6px;
+  }
+  .league-picks-none { margin: 2px 0; font-size: 0.68rem; color: var(--text-dim); font-style: italic; }
+  .league-picks-person {
+    display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600;
+    min-width: 0;
+  }
+  .league-picks-person-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .league-picks-person.is-me .league-picks-person-name { color: var(--accent); font-weight: 800; }
+  .league-picks-person.is-correct .league-picks-mark { color: var(--win); }
+  .league-picks-person.is-wrong { opacity: 0.65; }
+  .league-picks-person.is-wrong .league-picks-mark { color: var(--out); }
+  .league-picks-mark { font-weight: 900; font-size: 0.68rem; }
+  .league-picks-conf {
+    margin-left: auto; font-size: 0.62rem; font-weight: 800; color: var(--text-dim);
+    background: var(--card-bg); border-radius: 4px; padding: 0 5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .league-picks-nopick {
+    margin: 0; font-size: 0.66rem; color: var(--text-dim); line-height: 1.4;
+    border-top: 1px solid var(--card-border); padding-top: 8px;
+  }
+
+  @media (max-width: 420px) {
+    .standings-me-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  }
 
   /* Clickable wrapper around a live/final score - opens the box score
      modal. Uses "all: unset" so it inherits whatever styling the score
@@ -12810,10 +13010,22 @@ const LEAGUE_FORMAT_OPTIONS = [
   },
   {
     value: "ats",
-    label: "ATS",
+    label: "Against The Spread (ATS)",
     hint: "Pick against the spread instead of just the straight-up winner - a favorite has to win by more than the spread to \"cover.\" Every pick is closer to 50/50, so it rewards sharper analysis over just picking favorites.",
   },
 ];
+
+// Full icon+wordmark lockup per format (branding/format-badge-*-icon.png -
+// 600px, in-app size; see branding/README.txt). There's no icon-only crop -
+// that was tried and abandoned, the full lockup is the canonical asset - so
+// these are always sized large enough to read the wordmark, never shrunk to
+// a tiny inline icon.
+const LEAGUE_FORMAT_ICON_URLS = {
+  straight_up: "/branding/format-badge-straight-up-icon.png",
+  confidence: "/branding/format-badge-confidence-icon.png",
+  survivor: "/branding/format-badge-survivor-icon.png",
+  ats: "/branding/format-badge-ats-icon.png",
+};
 
 const LEAGUE_VISIBILITY_INFO = {
   private: "Only visible to people you invite with a code. Won't show up in search.",
@@ -13051,40 +13263,54 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
 function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, initialError }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null); // null = not searched yet
+  const [total, setTotal] = useState(0);
+  const [limit, setLimit] = useState(20);
   const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [joiningId, setJoiningId] = useState(null);
   const [joinErrorId, setJoinErrorId] = useState(null);
-  const [showCodeForm, setShowCodeForm] = useState(!!initialCode);
   const [joinCode, setJoinCode] = useState(initialCode || "");
   const [joiningCode, setJoiningCode] = useState(false);
   const [joinCodeError, setJoinCodeError] = useState(initialError || null);
   const debounceRef = useRef(null);
 
-  async function runSearch(q) {
-    setSearching(true);
+  async function runSearch(q, searchLimit, { silent } = {}) {
+    if (silent) setLoadingMore(true); else setSearching(true);
     setSearchError(null);
     try {
-      const res = await fetch(`/.netlify/functions/leagues-search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/.netlify/functions/leagues-search?q=${encodeURIComponent(q)}&limit=${searchLimit}`);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Search failed");
       setResults(data.leagues || []);
+      setTotal(data.total || 0);
     } catch (err) {
       setSearchError(err.message || "Search failed");
       setResults([]);
+      setTotal(0);
     } finally {
       setSearching(false);
+      setLoadingMore(false);
     }
   }
 
   useEffect(() => {
     // Browse (empty query -> top public leagues) as soon as the section
     // mounts, then re-search as the user types, debounced so every
-    // keystroke doesn't fire a request.
+    // keystroke doesn't fire a request. Typing resets the page size back
+    // to 20 - a fresh search should start small, not carry over a "show
+    // more" expansion from a previous query.
+    setLimit(20);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => runSearch(query.trim()), query.trim() ? 300 : 0);
+    debounceRef.current = setTimeout(() => runSearch(query.trim(), 20), query.trim() ? 300 : 0);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
+
+  function handleShowMore() {
+    const nextLimit = Math.min(limit + 20, 50);
+    setLimit(nextLimit);
+    runSearch(query.trim(), nextLimit, { silent: true });
+  }
 
   async function handleJoinPublic(league) {
     if (auth.status !== "in") { onRequestLogin(); return; }
@@ -13131,8 +13357,14 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
     }
   }
 
+  // "Show more" only expands within the backend's existing limit param (max
+  // 50, see leagues-search.mts) - there's no cursor/index-backed pagination
+  // yet, so this can't page past 50 results. That's a separate follow-up
+  // (leagues-search.mts's own scale-note comment already flags it).
+  const canShowMore = results && results.length < total && limit < 50;
+
   return (
-    <div className="leagues-page-section">
+    <>
       <h2 className="leagues-page-section-title">Search Leagues</h2>
       <p className="leagues-page-section-sub">Find a public league to join, or use an invite code for a private one.</p>
       <div className="league-search-row">
@@ -13145,6 +13377,24 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
         />
       </div>
 
+      <form className="league-code-box" onSubmit={handleJoinByCode}>
+        <span className="league-code-box-label">🔑 Have a code?</span>
+        <input
+          type="text"
+          className="league-input league-input-code"
+          placeholder="CODE"
+          value={joinCode}
+          onChange={e => setJoinCode(e.target.value.toUpperCase())}
+          maxLength={6}
+        />
+        <button type="submit" className="league-btn league-btn-primary" disabled={joiningCode || !joinCode.trim()}>
+          {joiningCode ? "Joining…" : "Join"}
+        </button>
+      </form>
+      {joinCodeError && <p className="leagues-error">{joinCodeError}</p>}
+
+      <div className="league-results-divider">Public leagues</div>
+
       {searching && results === null && <p className="leagues-empty">Loading…</p>}
       {searchError && <p className="leagues-error">{searchError}</p>}
       {results && results.length === 0 && !searchError && (
@@ -13153,54 +13403,49 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
         </p>
       )}
       {results && results.length > 0 && (
-        <div className="league-list">
-          {results.map(l => (
-            <div key={l.id} className="league-list-item">
-              <div className="league-list-item-main">
-                <span className="league-list-item-name">{l.name}</span>
-                {l.description && <p className="league-search-item-desc">{l.description}</p>}
-                <div className="league-search-item-tags">
-                  <span className="league-format-pill">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format}</span>
-                  <span className="league-list-item-meta">
-                    {l.memberCount} member{l.memberCount === 1 ? "" : "s"}{l.maxMembers ? ` / ${l.maxMembers}` : ""} · {l.season}
-                  </span>
+        <>
+          <p className="league-results-count">Showing {results.length} of {total.toLocaleString()} public league{total === 1 ? "" : "s"}</p>
+          <div className="league-list">
+            {results.map(l => {
+              const iconUrl = LEAGUE_FORMAT_ICON_URLS[l.format];
+              return (
+                <div key={l.id} className="league-list-item">
+                  {iconUrl && (
+                    <div className="format-icon-badge">
+                      <img src={iconUrl} alt="" />
+                    </div>
+                  )}
+                  <div className="league-list-item-main">
+                    <span className="league-list-item-name">{l.name}</span>
+                    {l.description && <p className="league-search-item-desc">{l.description}</p>}
+                    <div className="league-search-item-tags">
+                      <span className="league-format-pill">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format}</span>
+                      <span className="league-list-item-meta">
+                        {l.memberCount} member{l.memberCount === 1 ? "" : "s"}{l.maxMembers ? ` / ${l.maxMembers}` : ""} · {l.season}
+                      </span>
+                    </div>
+                    {joinErrorId === l.id && <p className="leagues-error">Couldn't join that league.</p>}
+                  </div>
+                  <button
+                    type="button"
+                    className="league-btn league-btn-primary"
+                    onClick={() => handleJoinPublic(l)}
+                    disabled={joiningId === l.id}
+                  >
+                    {joiningId === l.id ? "Joining…" : "Join"}
+                  </button>
                 </div>
-                {joinErrorId === l.id && <p className="leagues-error">Couldn't join that league.</p>}
-              </div>
-              <button
-                type="button"
-                className="league-btn league-btn-primary"
-                onClick={() => handleJoinPublic(l)}
-                disabled={joiningId === l.id}
-              >
-                {joiningId === l.id ? "Joining…" : "Join"}
-              </button>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+          {canShowMore && (
+            <button type="button" className="league-btn league-btn-block league-load-more" onClick={handleShowMore} disabled={loadingMore}>
+              {loadingMore ? "Loading…" : "Show more leagues"}
+            </button>
+          )}
+        </>
       )}
-
-      {!showCodeForm ? (
-        <button type="button" className="league-invite-toggle" onClick={() => setShowCodeForm(true)}>
-          Have an invite code instead?
-        </button>
-      ) : (
-        <form className="league-form" style={{ marginTop: 12 }} onSubmit={handleJoinByCode}>
-          <input
-            type="text"
-            className="league-input league-input-code"
-            placeholder="Invite code"
-            value={joinCode}
-            onChange={e => setJoinCode(e.target.value.toUpperCase())}
-            maxLength={6}
-          />
-          <button type="submit" className="league-btn" disabled={joiningCode || !joinCode.trim()}>
-            {joiningCode ? "Joining…" : "Join"}
-          </button>
-        </form>
-      )}
-      {joinCodeError && <p className="leagues-error">{joinCodeError}</p>}
-    </div>
+    </>
   );
 }
 
@@ -13216,9 +13461,23 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   const [pendingLeaveId, setPendingLeaveId] = useState(null);
   const [leavingId, setLeavingId] = useState(null);
   const [leaveErrorId, setLeaveErrorId] = useState(null);
+  const [mobileTab, setMobileTab] = useState("mine");
+  const [subTab, setSubTab] = useState("search");
 
   const signedIn = auth.status === "in";
   const myUserId = auth.user && auth.user.id;
+
+  // Keeps the mobile 3-tab bar (My Leagues/Search/Create) and the desktop
+  // Search/Create subtab bar in sync so switching via one never leaves the
+  // other disagreeing (e.g. after a resize).
+  function selectMobileTab(name) {
+    setMobileTab(name);
+    if (name === "search" || name === "create") setSubTab(name);
+  }
+  function selectSubTab(name) {
+    setSubTab(name);
+    setMobileTab(name);
+  }
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -13336,19 +13595,50 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
         </div>
       )}
 
-      {signedIn && (
-        <div className="leagues-page-section">
+      {/* Mobile-only: My Leagues / Search / Create, one panel at a time. */}
+      <div className="leagues-tabbar">
+        <button
+          type="button"
+          className={"leagues-tab" + (mobileTab === "mine" ? " active" : "")}
+          onClick={() => selectMobileTab("mine")}
+        >
+          👥 My Leagues
+          {signedIn && leagues && leagues.length > 0 && <span className="tab-count">{leagues.length}</span>}
+        </button>
+        <button
+          type="button"
+          className={"leagues-tab" + (mobileTab === "search" ? " active" : "")}
+          onClick={() => selectMobileTab("search")}
+        >
+          🔍 Search
+        </button>
+        <button
+          type="button"
+          className={"leagues-tab" + (mobileTab === "create" ? " active" : "")}
+          onClick={() => selectMobileTab("create")}
+        >
+          ➕ Create
+        </button>
+      </div>
+
+      {/* Desktop: Your Leagues in a left column, Search/Create sharing the
+          right column via a subtab bar defaulting to Search. Collapses to
+          the mobile tab bar above below 860px (see CSS media queries). */}
+      <div className="leagues-columns">
+        <div className={"leagues-page-section" + (mobileTab === "mine" ? " mobile-active" : "")}>
           <h2 className="leagues-page-section-title">Your Leagues</h2>
-          {leagues === null && <p className="leagues-empty">Loading…</p>}
-          {leaguesError && <p className="leagues-error">{leaguesError}</p>}
-          {leagues && leagues.length === 0 && !leaguesError && (
-            <p className="leagues-empty">You're not in any leagues yet - create one below or search for a public league to join.</p>
+          {!signedIn && <p className="leagues-empty">Sign in to see the leagues you're in.</p>}
+          {signedIn && leagues === null && <p className="leagues-empty">Loading…</p>}
+          {signedIn && leaguesError && <p className="leagues-error">{leaguesError}</p>}
+          {signedIn && leagues && leagues.length === 0 && !leaguesError && (
+            <p className="leagues-empty">You're not in any leagues yet - create one or search for a public league to join.</p>
           )}
-          {leagues && leagues.length > 0 && (
+          {signedIn && leagues && leagues.length > 0 && (
             <div className="league-list">
               {leagues.map(l => {
                 const isOwner = l.ownerId === myUserId;
                 const confirmingLeave = pendingLeaveId === l.id;
+                const iconUrl = LEAGUE_FORMAT_ICON_URLS[l.format];
                 return (
                   <div key={l.id} className="league-list-item">
                     {confirmingLeave ? (
@@ -13369,6 +13659,11 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
                     ) : (
                       <>
                         <button type="button" className="league-list-item-btn" onClick={() => onSelectLeague(l.id)}>
+                          {iconUrl && (
+                            <div className="format-icon-badge">
+                              <img src={iconUrl} alt="" />
+                            </div>
+                          )}
                           <span className="league-list-item-main">
                             <span className="league-list-item-name">{l.name}</span>
                             <span className="league-list-item-meta">
@@ -13414,93 +13709,119 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
             </div>
           )}
         </div>
-      )}
 
-      <LeagueSearchSection
-        auth={auth}
-        onRequestLogin={onRequestLogin}
-        onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
-        initialCode={autoJoinCode}
-        initialError={autoJoinCodeError}
-      />
-
-      <div className="leagues-page-section">
-        <h2 className="leagues-page-section-title">Create a League</h2>
-        <p className="leagues-page-section-sub">Pick a format below to see how scoring works for that type.</p>
-        {!signedIn ? (
-          <div className="leagues-signed-out">
-            <p>Sign in to create a league.</p>
-            <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
-          </div>
-        ) : (
-          <form className="league-form-create" onSubmit={handleCreate}>
-            <input
-              type="text"
-              className="league-input"
-              placeholder="League name"
-              value={createName}
-              onChange={e => setCreateName(e.target.value)}
-              maxLength={50}
-            />
-            <textarea
-              className="league-textarea"
-              placeholder="Description (optional) - shown to members and, if public, in search"
-              value={createDescription}
-              onChange={e => setCreateDescription(e.target.value)}
-              maxLength={280}
-              rows={2}
-            />
-            <div className="league-format-picker">
-              {LEAGUE_FORMAT_OPTIONS.map(f => (
-                <button
-                  key={f.value}
-                  type="button"
-                  className={"league-format-option" + (createFormat === f.value ? " selected" : "")}
-                  onClick={() => setCreateFormat(f.value)}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-            <p className="league-format-hint">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === createFormat) || {}).hint}</p>
-
-            <label className="league-settings-row" style={{ marginTop: 4 }}>
-              <span>Who can join</span>
-              <div className="league-visibility-picker">
-                {LEAGUE_VISIBILITY_OPTIONS.map(o => (
-                  <button
-                    key={o.value}
-                    type="button"
-                    className={"league-visibility-option" + (createVisibility === o.value ? " selected" : "")}
-                    onClick={() => setCreateVisibility(o.value)}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-            </label>
-            <p className="league-format-hint">{LEAGUE_VISIBILITY_INFO[createVisibility]}</p>
-
-            <label className="league-settings-row" style={{ marginTop: 4 }}>
-              <span>Invite by email (optional)</span>
-              <textarea
-                className="league-textarea"
-                placeholder="friend@email.com, another@email.com"
-                value={createInviteEmails}
-                onChange={e => setCreateInviteEmails(e.target.value)}
-                rows={2}
-              />
-            </label>
-            <p className="league-format-hint">
-              Sent right after the league is created - you can also invite more people later from the league page.
-            </p>
-
-            <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={creating || !createName.trim()}>
-              {creating ? "Creating…" : "Create League"}
+        <div className={"leagues-search-create-col" + ((mobileTab === "search" || mobileTab === "create") ? " mobile-active" : "")}>
+          <div className="leagues-subtabbar">
+            <button
+              type="button"
+              className={"leagues-subtab" + (subTab === "search" ? " active" : "")}
+              onClick={() => selectSubTab("search")}
+            >
+              🔍 Search Leagues
             </button>
-          </form>
-        )}
-        {createError && <p className="leagues-error">{createError}</p>}
+            <button
+              type="button"
+              className={"leagues-subtab" + (subTab === "create" ? " active" : "")}
+              onClick={() => selectSubTab("create")}
+            >
+              ➕ Create a League
+            </button>
+          </div>
+
+          <div className={"leagues-page-section" + (subTab === "search" ? " subtab-active" : "")}>
+            <LeagueSearchSection
+              auth={auth}
+              onRequestLogin={onRequestLogin}
+              onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
+              initialCode={autoJoinCode}
+              initialError={autoJoinCodeError}
+            />
+          </div>
+
+          <div className={"leagues-page-section" + (subTab === "create" ? " subtab-active" : "")}>
+            <h2 className="leagues-page-section-title">Create a League</h2>
+            <p className="leagues-page-section-sub">Pick a format below to see how scoring works for that type.</p>
+            {!signedIn ? (
+              <div className="leagues-signed-out">
+                <p>Sign in to create a league.</p>
+                <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
+              </div>
+            ) : (
+              <form className="league-form-create" onSubmit={handleCreate}>
+                <input
+                  type="text"
+                  className="league-input"
+                  placeholder="League name"
+                  value={createName}
+                  onChange={e => setCreateName(e.target.value)}
+                  maxLength={50}
+                />
+                <textarea
+                  className="league-textarea"
+                  placeholder="Description (optional) - shown to members and, if public, in search"
+                  value={createDescription}
+                  onChange={e => setCreateDescription(e.target.value)}
+                  maxLength={280}
+                  rows={2}
+                />
+                <div className="league-format-picker">
+                  {LEAGUE_FORMAT_OPTIONS.map(f => (
+                    <button
+                      key={f.value}
+                      type="button"
+                      className={"league-format-option" + (createFormat === f.value ? " selected" : "")}
+                      onClick={() => setCreateFormat(f.value)}
+                    >
+                      <span className="fmt-icon-row">
+                        <span className="fmt-icon">
+                          <img src={LEAGUE_FORMAT_ICON_URLS[f.value]} alt="" />
+                        </span>
+                        {f.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <p className="league-format-hint">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === createFormat) || {}).hint}</p>
+
+                <label className="league-settings-row" style={{ marginTop: 4 }}>
+                  <span>Who can join</span>
+                  <div className="league-visibility-picker">
+                    {LEAGUE_VISIBILITY_OPTIONS.map(o => (
+                      <button
+                        key={o.value}
+                        type="button"
+                        className={"league-visibility-option" + (createVisibility === o.value ? " selected" : "")}
+                        onClick={() => setCreateVisibility(o.value)}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                </label>
+                <p className="league-format-hint">{LEAGUE_VISIBILITY_INFO[createVisibility]}</p>
+
+                <label className="league-settings-row" style={{ marginTop: 4 }}>
+                  <span>Invite by email (optional)</span>
+                  <textarea
+                    className="league-textarea"
+                    placeholder="friend@email.com, another@email.com"
+                    value={createInviteEmails}
+                    onChange={e => setCreateInviteEmails(e.target.value)}
+                    rows={2}
+                  />
+                </label>
+                <p className="league-format-hint">
+                  Sent right after the league is created - you can also invite more people later from the league page.
+                </p>
+
+                <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={creating || !createName.trim()}>
+                  {creating ? "Creating…" : "Create League"}
+                </button>
+              </form>
+            )}
+            {createError && <p className="leagues-error">{createError}</p>}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -13516,8 +13837,68 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
 // rendered - league.format never resolves to "ats" in the UI until spread
 // data + scoring support ships (see js/scoringEngine.js).
 
+// ---- Session caches for league data ---------------------------------------
+// Everything under the League tab used to start from nothing on every
+// mount: tapping the tab bumps leagueTabResetKey (which remounts
+// LeagueView by design, so the tab acts like "go home"), and opening a
+// league mounts a fresh LeagueWeekPanel. Each of those meant a spinner and
+// a full round trip for data the browser had already fetched seconds
+// earlier. These module-scope caches make a revisit render instantly from
+// the last known payload while a refresh goes out in the background -
+// stale-while-revalidate - so the only time anyone waits on a spinner is
+// the genuine first load.
+//
+// Deliberately module-scope rather than component state: the whole point
+// is to survive the remounts. Cleared on sign-out (see useAuth's onLogout)
+// so a second account on the same browser never sees the first one's data.
+let myLeaguesCache = null;
+const leagueWeekCache = new Map();     // `${leagueId}:${week}` -> picks-mine payload
+const leagueWeekInflight = new Map();  // same key -> in-flight promise, for dedupe
+
+function leagueWeekKey(leagueId, week) { return `${leagueId}:${week}`; }
+
+function clearLeagueCaches() {
+  myLeaguesCache = null;
+  leagueWeekCache.clear();
+  leagueWeekInflight.clear();
+}
+
+/** Single fetch path for a league week, shared by the panel and the
+ *  prefetchers. Collapses concurrent callers onto one request so a
+ *  prefetch already in flight is reused rather than duplicated when the
+ *  user opens that week a moment later. */
+function fetchLeagueWeek(auth, leagueId, week) {
+  const key = leagueWeekKey(leagueId, week);
+  const existing = leagueWeekInflight.get(key);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    const res = await auth.authenticatedFetch(`/.netlify/functions/picks-mine?leagueId=${leagueId}&week=${week}`);
+    const json = await res.json();
+    if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load picks");
+    leagueWeekCache.set(key, json);
+    return json;
+  })();
+
+  leagueWeekInflight.set(key, promise);
+  promise.catch(() => {}).then(() => { leagueWeekInflight.delete(key); });
+  return promise;
+}
+
+/** Warm the cache without rendering anything. Silent by design - a failed
+ *  prefetch is a non-event, since the real load will surface its own error
+ *  if it also fails. */
+function prefetchLeagueWeek(auth, leagueId, week) {
+  if (!auth || auth.status !== "in" || !leagueId || !week) return;
+  const key = leagueWeekKey(leagueId, week);
+  if (leagueWeekCache.has(key) || leagueWeekInflight.has(key)) return;
+  fetchLeagueWeek(auth, leagueId, week).catch(() => {});
+}
+
 function useMyLeagues(auth) {
-  const [leagues, setLeagues] = useState(null); // null = loading
+  // Seeded from the cache so a remount renders the list immediately
+  // instead of flashing "Loading…" for data we already have.
+  const [leagues, setLeagues] = useState(myLeaguesCache); // null = loading
   const [error, setError] = useState(null);
 
   const reload = useCallback(async () => {
@@ -13527,12 +13908,18 @@ function useMyLeagues(auth) {
       const res = await auth.authenticatedFetch("/.netlify/functions/leagues-mine");
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to load leagues");
-      setLeagues(data.leagues || []);
+      myLeaguesCache = data.leagues || [];
+      setLeagues(myLeaguesCache);
     } catch (err) {
-      setError(err.message || "Failed to load leagues");
-      setLeagues([]);
+      // Only surface the failure if there's nothing cached to fall back
+      // on - a background refresh that fails shouldn't replace a list
+      // that's currently on screen and perfectly usable.
+      if (!myLeaguesCache) {
+        setError(err.message || "Failed to load leagues");
+        setLeagues([]);
+      }
     }
-  }, [auth.status]);
+  }, [auth.status, auth.authenticatedFetch]);
 
   useEffect(() => { reload(); }, [reload]);
 
@@ -13541,19 +13928,33 @@ function useMyLeagues(auth) {
   // league-join/league-create/leagues-mine already write and read with
   // strong consistency now, but there's no reason to pay a network
   // round-trip for something the response already told us.
+  // Both mirror the change into myLeaguesCache as well as component state.
+  // Without that, remounting the tab (which now seeds from the cache) would
+  // resurrect the pre-change list for a moment until the background refresh
+  // landed - a league you'd just left reappearing, or one you'd just
+  // created vanishing.
   const upsertLeague = useCallback((league) => {
     setLeagues(prev => {
       const list = prev || [];
       const idx = list.findIndex(l => l.id === league.id);
-      if (idx === -1) return [...list, league];
-      const next = list.slice();
-      next[idx] = league;
+      const next = idx === -1 ? [...list, league] : list.slice();
+      if (idx !== -1) next[idx] = league;
+      myLeaguesCache = next;
       return next;
     });
   }, []);
 
   const removeLeague = useCallback((leagueId) => {
-    setLeagues(prev => (prev || []).filter(l => l.id !== leagueId));
+    setLeagues(prev => {
+      const next = (prev || []).filter(l => l.id !== leagueId);
+      myLeaguesCache = next;
+      // Drop that league's cached weeks too, so rejoining later starts
+      // from server truth rather than a snapshot from a previous stint.
+      for (const key of Array.from(leagueWeekCache.keys())) {
+        if (key.startsWith(leagueId + ":")) leagueWeekCache.delete(key);
+      }
+      return next;
+    });
   }, []);
 
   return { leagues, error, reload, upsertLeague, removeLeague };
@@ -13909,7 +14310,11 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
 }
 
 function LeagueWeekPanel({ auth, league, week, tz }) {
-  const [data, setData] = useState(null); // null = loading
+  // Seeded straight from the cache, so reopening a league or stepping back
+  // to a week already visited paints immediately with the previous payload
+  // and refreshes underneath. Only a genuinely uncached week shows a
+  // spinner.
+  const [data, setData] = useState(() => leagueWeekCache.get(leagueWeekKey(league.id, week)) || null);
   const [loadError, setLoadError] = useState(null);
   const [savingGameId, setSavingGameId] = useState(null);
   const [pickErrors, setPickErrors] = useState({});
@@ -13925,19 +14330,50 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
     const seq = ++loadSeqRef.current;
     setLoadError(null);
     try {
-      const res = await auth.authenticatedFetch(`/.netlify/functions/picks-mine?leagueId=${league.id}&week=${week}`);
-      const json = await res.json();
-      if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load picks");
+      const json = await fetchLeagueWeek(auth, league.id, week);
       if (seq === loadSeqRef.current) setData(json);
     } catch (err) {
       if (seq === loadSeqRef.current) {
-        setLoadError(err.message || "Failed to load picks");
-        setData(null);
+        // Keep whatever's already on screen if this was a background
+        // refresh of cached data - a flaky refresh shouldn't wipe a week
+        // the user is actively picking. Only a cold load surfaces the error.
+        const cached = leagueWeekCache.get(leagueWeekKey(league.id, week));
+        if (cached) {
+          setData(cached);
+        } else {
+          setLoadError(err.message || "Failed to load picks");
+          setData(null);
+        }
       }
     }
   }, [auth, league.id, week]);
 
-  useEffect(() => { setData(null); load(); }, [load]);
+  useEffect(() => {
+    setData(leagueWeekCache.get(leagueWeekKey(league.id, week)) || null);
+    load();
+  }, [load, league.id, week]);
+
+  // Picks are edited in place here (optimistically on tap, then merged
+  // with the server's confirmed pick), so the cache has to follow that
+  // state rather than only the fetch - otherwise stepping a week away and
+  // back would repaint from a snapshot taken before the pick was made.
+  useEffect(() => {
+    if (data) leagueWeekCache.set(leagueWeekKey(league.id, week), data);
+  }, [data, league.id, week]);
+
+  // Week nav is the most predictable move a user makes in this panel, so
+  // the neighbouring weeks are fetched quietly once the current one is up.
+  // Deferred behind the current load (and only for weeks in range) so it
+  // never competes with the request the user is actually waiting on.
+  useEffect(() => {
+    if (!data) return;
+    const timer = setTimeout(() => {
+      [week - 1, week + 1]
+        .filter(w => w === clampToRegularSeasonWeek(w))
+        .forEach(w => prefetchLeagueWeek(auth, league.id, w));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [data, auth, league.id, week]);
 
   // Model predictions for every game in the week, computed client-side off
   // the same team/injury/weather data the main schedule and Hot Picks use -
@@ -14047,6 +14483,73 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
   );
 }
 
+// A single standings row's avatar + name, shared by the "you" card and the
+// full table so the two can never drift apart visually.
+function StandingsIdentity({ row }) {
+  const glyph = row.avatar && findProfileAvatar(row.avatar);
+  return (
+    <div className="league-standings-user">
+      <div className={"league-standings-avatar" + (glyph ? " has-glyph" : "")}>
+        {glyph ? <ProfileAvatarGlyph avatar={glyph} /> : (row.displayName || "?")[0]}
+      </div>
+      {row.displayName}
+    </div>
+  );
+}
+
+/** The signed-in user's own line, pulled out above the table. In a pool of
+ *  any size your own row is the one thing you always want and the one thing
+ *  hardest to find - especially on a phone, where sitting 11th means
+ *  scrolling to look for yourself every single time. The full standings
+ *  still list everyone including you (highlighted, as before); this is a
+ *  shortcut, not a replacement. */
+function StandingsMeCard({ row, rankOf, total, format, survivorStatus }) {
+  const played = row.correct + row.incorrect;
+  const winPct = played > 0 ? Math.round((row.correct / played) * 100) : null;
+  return (
+    <div className="standings-me-card">
+      <div className="standings-me-head">
+        <StandingsIdentity row={row} />
+        <span className="standings-me-you">You</span>
+      </div>
+      <div className="standings-me-stats">
+        <div className="standings-me-stat">
+          <span className="standings-me-stat-label">Rank</span>
+          <span className={"standings-me-stat-value" + (row.hasResults && row.rank === 1 ? " gold" : "")}>
+            {row.hasResults ? <>{rankOf}<span className="dim"> / {total}</span></> : "—"}
+          </span>
+        </div>
+        {format === "survivor" ? (
+          <div className="standings-me-stat">
+            <span className="standings-me-stat-label">Status</span>
+            <span className="standings-me-stat-value">
+              <span className={survivorStatus && !survivorStatus.alive ? "league-status-eliminated" : "league-status-alive"}>
+                {survivorStatus && !survivorStatus.alive ? "Eliminated" : "Alive"}
+              </span>
+            </span>
+          </div>
+        ) : (
+          <div className="standings-me-stat">
+            <span className="standings-me-stat-label">{format === "confidence" ? "Conf. Pts" : "Points"}</span>
+            <span className="standings-me-stat-value">{row.hasResults ? row.points : "—"}</span>
+          </div>
+        )}
+        <div className="standings-me-stat">
+          <span className="standings-me-stat-label">Record</span>
+          <span className="standings-me-stat-value">{row.hasResults ? `${row.correct}-${row.incorrect}` : "—"}</span>
+        </div>
+        <div className="standings-me-stat">
+          <span className="standings-me-stat-label">Win %</span>
+          <span className="standings-me-stat-value">{winPct === null ? "—" : `${winPct}%`}</span>
+        </div>
+      </div>
+      {!row.hasResults && (
+        <p className="standings-me-note">No games scored yet — your record shows up once results are processed.</p>
+      )}
+    </div>
+  );
+}
+
 function LeagueStandingsPanel({ auth, league }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -14070,43 +14573,237 @@ function LeagueStandingsPanel({ auth, league }) {
   if (error) return <p className="leagues-error">{error}</p>;
   if (!data) return <p className="leagues-empty">Loading…</p>;
 
+  // standings-get now returns the league's whole roster, not just the
+  // members results-process has scored - people with nothing scored yet
+  // carry hasResults:false and are rendered as "not played yet" rather
+  // than as a real 0-0, 0% record.
   const rows = data.season || [];
   const survivor = data.survivor || null;
   const meId = auth.user && auth.user.id;
-  const extraLabel = league.format === "confidence" ? "Conf. Pts" : league.format === "survivor" ? "Status" : "Correct";
+  const meRow = rows.find(r => r.userId === meId) || null;
+  const scoredCount = rows.filter(r => r.hasResults).length;
+  const anyResults = scoredCount > 0;
+  // Only survivor has a column that isn't already covered elsewhere in the
+  // row. The old layout rendered a format-specific column *and* fixed
+  // Correct/Season columns, which meant straight-up leagues showed
+  // "Correct" twice with identical numbers in both, and confidence leagues
+  // showed the same points figure under both "Conf. Pts" and "Season".
+  // Record collapses correct/incorrect into one W-L cell instead.
+  const isSurvivor = league.format === "survivor";
+  const pointsLabel = league.format === "confidence" ? "Conf. Pts" : "Points";
 
   return (
-    <table className="league-standings-table">
-      <thead>
-        <tr>
-          <th>#</th><th>User</th><th>{extraLabel}</th><th>Correct</th><th>Season</th><th>Win %</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.length === 0 && (
-          <tr><td colSpan={6} className="leagues-empty" style={{ padding: "12px 8px" }}>No results processed yet.</td></tr>
+    <>
+      {meRow && (
+        <StandingsMeCard
+          row={meRow}
+          rankOf={meRow.rank}
+          total={rows.length}
+          format={league.format}
+          survivorStatus={survivor && survivor[meId]}
+        />
+      )}
+
+      <div className="standings-table-block">
+        <div className="standings-table-head">
+          <h3>Full Standings</h3>
+          <span className="standings-table-count">{rows.length} {rows.length === 1 ? "member" : "members"}</span>
+        </div>
+
+        {!anyResults && (
+          <p className="standings-pending-note">
+            No results processed yet — everyone starts level. Records fill in after each week's games are final.
+          </p>
         )}
-        {rows.map(row => {
-          const total = row.correct + row.incorrect;
-          const winPct = total > 0 ? Math.round((row.correct / total) * 100) : 0;
-          const survivorStatus = survivor && survivor[row.userId];
-          const extra =
-            league.format === "survivor" && survivorStatus
-              ? <span className={survivorStatus.alive ? "league-status-alive" : "league-status-eliminated"}>{survivorStatus.alive ? "Alive" : "Eliminated"}</span>
-              : league.format === "confidence" ? row.points : row.correct;
+
+      <table className="league-standings-table">
+        <thead>
+          <tr>
+            <th>#</th><th>User</th>
+            {isSurvivor && <th>Status</th>}
+            <th>Record</th><th>{pointsLabel}</th><th>Win %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 && (
+            <tr><td colSpan={isSurvivor ? 6 : 5} className="leagues-empty" style={{ padding: "12px 8px" }}>No members yet.</td></tr>
+          )}
+          {rows.map(row => {
+            const played = row.correct + row.incorrect;
+            const winPct = played > 0 ? Math.round((row.correct / played) * 100) : null;
+            const survivorStatus = survivor && survivor[row.userId];
+            const dash = <span className="standings-dash">—</span>;
+            return (
+              <tr key={row.userId} className={(row.userId === meId ? "is-me" : "") + (row.hasResults ? "" : " is-unplayed")}>
+                <td className={"league-standings-rank" + (row.hasResults && row.rank === 1 ? " gold" : "")}>
+                  {row.hasResults ? row.rank : dash}
+                </td>
+                <td><StandingsIdentity row={row} /></td>
+                {isSurvivor && (
+                  <td>
+                    <span className={survivorStatus && !survivorStatus.alive ? "league-status-eliminated" : "league-status-alive"}>
+                      {survivorStatus && !survivorStatus.alive ? "Eliminated" : "Alive"}
+                    </span>
+                  </td>
+                )}
+                <td className="league-standings-record">{row.hasResults ? `${row.correct}-${row.incorrect}` : dash}</td>
+                <td className="league-standings-points">{row.hasResults ? row.points : dash}</td>
+                <td>{winPct === null ? dash : `${winPct}%`}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      </div>
+    </>
+  );
+}
+
+/** Everyone's picks for one game, split into a column per team. Only ever
+ *  rendered for a game the server has already confirmed is locked - the
+ *  pre-kickoff case is handled by the caller and never receives pick data
+ *  at all (see league-picks.mts). */
+function LeaguePicksGame({ game, format, tz, meId }) {
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
+
+  if (!game.locked) {
+    return (
+      <div className="league-picks-game is-hidden">
+        <div className="league-picks-game-head">
+          <div className="league-picks-matchup">
+            <TeamLogo teamId={game.away} size={22} />
+            <span>{game.away}</span>
+            <span className="league-picks-at">@</span>
+            <TeamLogo teamId={game.home} size={22} />
+            <span>{game.home}</span>
+          </div>
+          <span className="league-picks-time">{shownTime.date} · {shownTime.time}</span>
+        </div>
+        <p className="league-picks-locked-note">🔒 Picks reveal at kickoff</p>
+      </div>
+    );
+  }
+
+  const byTeam = { [game.away]: [], [game.home]: [] };
+  game.picks.forEach(p => { if (byTeam[p.team]) byTeam[p.team].push(p); });
+
+  return (
+    <div className="league-picks-game">
+      <div className="league-picks-game-head">
+        <div className="league-picks-matchup">
+          <TeamLogo teamId={game.away} size={22} />
+          <span className={game.final && game.winner === game.away ? "is-winner" : ""}>{game.away}</span>
+          <span className="league-picks-at">@</span>
+          <TeamLogo teamId={game.home} size={22} />
+          <span className={game.final && game.winner === game.home ? "is-winner" : ""}>{game.home}</span>
+        </div>
+        <span className="league-picks-time">
+          {game.final ? (game.tie ? "Final · Tie" : "Final") : `${shownTime.date} · ${shownTime.time}`}
+        </span>
+      </div>
+
+      <div className="league-picks-columns">
+        {[game.away, game.home].map(teamId => {
+          const list = byTeam[teamId] || [];
+          const isWinner = game.final && !game.tie && game.winner === teamId;
           return (
-            <tr key={row.userId} className={row.userId === meId ? "is-me" : ""}>
-              <td className={"league-standings-rank" + (row.rank === 1 ? " gold" : "")}>{row.rank}</td>
-              <td><div className="league-standings-user"><div className={"league-standings-avatar" + (row.avatar && findProfileAvatar(row.avatar) ? " has-glyph" : "")}>{row.avatar && findProfileAvatar(row.avatar) ? <ProfileAvatarGlyph avatar={findProfileAvatar(row.avatar)} /> : (row.displayName || "?")[0]}</div>{row.displayName}</div></td>
-              <td>{extra}</td>
-              <td>{row.correct}</td>
-              <td className="league-standings-points">{row.points}</td>
-              <td>{winPct}%</td>
-            </tr>
+            <div key={teamId} className={"league-picks-column" + (isWinner ? " is-winner" : "")}>
+              <div className="league-picks-column-head">
+                <TeamLogo teamId={teamId} size={18} />
+                <span>{teamId}</span>
+                <span className="league-picks-column-count">{list.length}</span>
+              </div>
+              {list.length === 0 && <p className="league-picks-none">Nobody</p>}
+              {list.map(p => (
+                <div
+                  key={p.userId}
+                  className={"league-picks-person"
+                    + (p.userId === meId ? " is-me" : "")
+                    + (p.correct === true ? " is-correct" : p.correct === false ? " is-wrong" : "")}
+                >
+                  <span className="league-picks-person-name">{p.displayName}</span>
+                  {format === "confidence" && typeof p.confidence === "number" && (
+                    <span className="league-picks-conf">{p.confidence}</span>
+                  )}
+                  {p.correct === true && <span className="league-picks-mark">✓</span>}
+                  {p.correct === false && <span className="league-picks-mark">✗</span>}
+                </div>
+              ))}
+            </div>
           );
         })}
-      </tbody>
-    </table>
+      </div>
+
+      {game.noPick && game.noPick.length > 0 && (
+        <p className="league-picks-nopick">
+          No pick: {game.noPick.map(m => m.displayName).join(", ")}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** "League Picks" sub-tab: who in this league picked what, for the selected
+ *  week. Everything here is gated server-side on each game's own kickoff -
+ *  see league-picks.mts. The client never receives an unlocked game's picks,
+ *  so this component can render whatever it's given without needing to
+ *  police the deadline itself. */
+function LeaguePicksPanel({ auth, league, week, tz }) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setData(null);
+    (async () => {
+      setError(null);
+      try {
+        const res = await auth.authenticatedFetch(`/.netlify/functions/league-picks?leagueId=${league.id}&week=${week}`);
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load league picks");
+        if (!cancelled) setData(json);
+      } catch (err) {
+        if (!cancelled) setError(err.message || "Failed to load league picks");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [auth, league.id, week]);
+
+  if (error) return <p className="leagues-error">{error}</p>;
+  if (!data) return <p className="leagues-empty">Loading…</p>;
+
+  const meId = auth.user && auth.user.id;
+  const games = data.games || [];
+  const lockedCount = games.filter(g => g.locked).length;
+
+  // Members with no pick on a locked game, computed here rather than
+  // server-side so the response stays a plain list of picks.
+  const membersById = new Map((data.members || []).map(m => [m.userId, m]));
+  const decorated = games.map(g => {
+    if (!g.locked) return g;
+    const picked = new Set(g.picks.map(p => p.userId));
+    return {
+      ...g,
+      picks: g.picks.map(p => ({ ...p, displayName: membersById.get(p.userId)?.displayName || "Player" })),
+      noPick: (data.members || []).filter(m => !picked.has(m.userId)),
+    };
+  });
+
+  return (
+    <>
+      <div className="league-picks-intro">
+        <span>
+          {lockedCount === 0
+            ? "Nothing has kicked off yet this week — picks stay hidden until each game starts."
+            : `${lockedCount} of ${games.length} ${games.length === 1 ? "game" : "games"} revealed. Each game unlocks at its own kickoff.`}
+        </span>
+      </div>
+      {games.length === 0 && <p className="leagues-empty">No games scheduled for this week.</p>}
+      {decorated.map(g => (
+        <LeaguePicksGame key={g.gameId} game={g} format={data.format} tz={tz} meId={meId} />
+      ))}
+    </>
   );
 }
 
@@ -14129,6 +14826,24 @@ function LeagueView({ auth, onRequestLogin, tz, pendingJoin, onConsumePendingJoi
   const autoJoinAttemptedRef = useRef(false);
 
   const myUserId = auth.user && auth.user.id;
+
+  // The landing page is where people sit before opening a league, and the
+  // week they'll land on is entirely predictable (the selected week, which
+  // defaults to the current one). Warming those payloads while the list is
+  // on screen turns the tap into an instant render instead of a spinner
+  // plus a round trip. Capped at the first few leagues so someone in a
+  // dozen pools doesn't fire a dozen requests, skipped once a league is
+  // already open (nothing left to anticipate), and a no-op for anything
+  // already cached or in flight.
+  const leagueIdsKey = (leagues || []).map(l => l.id).join(",");
+  useEffect(() => {
+    if (selectedLeagueId || auth.status !== "in") return;
+    const timer = setTimeout(() => {
+      (leagues || []).slice(0, 4).forEach(l => prefetchLeagueWeek(auth, l.id, week));
+    }, 250);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leagueIdsKey, selectedLeagueId, week, auth.status]);
 
   // Runs an invite link's pendingJoin (see getInitialLeagueJoin/App) the
   // moment auth is actually ready to make the call - which for someone who
@@ -14245,12 +14960,13 @@ function LeagueView({ auth, onRequestLogin, tz, pendingJoin, onConsumePendingJoi
             leaving={leavingLeagueId === league.id}
           />
           <div className="league-subtabs">
-            <button type="button" className={"league-subtab" + (subTab === "week" ? " active" : "")} onClick={() => setSubTab("week")}>This Week</button>
+            <button type="button" className={"league-subtab" + (subTab === "week" ? " active" : "")} onClick={() => setSubTab("week")}>My Picks</button>
+            <button type="button" className={"league-subtab" + (subTab === "picks" ? " active" : "")} onClick={() => setSubTab("picks")}>League Picks</button>
             <button type="button" className={"league-subtab" + (subTab === "standings" ? " active" : "")} onClick={() => setSubTab("standings")}>Standings</button>
           </div>
-          {subTab === "week"
-            ? <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} />
-            : <LeagueStandingsPanel auth={auth} league={league} />}
+          {subTab === "week" && <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} />}
+          {subTab === "picks" && <LeaguePicksPanel auth={auth} league={league} week={week} tz={tz} />}
+          {subTab === "standings" && <LeagueStandingsPanel auth={auth} league={league} />}
         </div>
       </div>
     );
@@ -16461,6 +17177,12 @@ function useAuth() {
       setUser(null);
       setStatus("out");
       widgetShouldBeOpen = false;
+      // The league caches are module-scope by design (they have to survive
+      // component remounts), which means they'd otherwise outlive the
+      // session - a second account signing in on the same browser would
+      // briefly render the previous account's leagues, picks and standings
+      // from cache before its own fetches landed.
+      clearLeagueCaches();
     }
     function onWidgetOpen() {
       widgetShouldBeOpen = true;
@@ -16488,11 +17210,24 @@ function useAuth() {
     };
   }, []);
 
-  const openLogin = () => window.netlifyIdentity && window.netlifyIdentity.open("login");
-  const openSignup = () => window.netlifyIdentity && window.netlifyIdentity.open("signup");
-  const logout = () => window.netlifyIdentity && window.netlifyIdentity.logout();
+  // Every one of these reads window.netlifyIdentity at call time and closes
+  // over nothing from this render, so they're safe to define once - and
+  // they have to be. The object returned below is a dependency of effects
+  // all over the app (LeagueWeekPanel's load(), LeagueStandingsPanel,
+  // useMyLeagues, the settings sync); when it was rebuilt fresh on every
+  // render, every one of those effects saw a "changed" dependency on every
+  // single App re-render and re-ran. In the league week panel that meant
+  // blanking the week's picks back to a spinner and refetching them from
+  // scratch each time anything unrelated updated - and something always
+  // does, since useLiveSiteData/useLiveOddsData/useLiveWeatherData each
+  // force a re-render as soon as their fetch lands right after mount. The
+  // week schedule was effectively being loaded two or three times over,
+  // with a visible flash back to "Loading…" in between.
+  const openLogin = useCallback(() => window.netlifyIdentity && window.netlifyIdentity.open("login"), []);
+  const openSignup = useCallback(() => window.netlifyIdentity && window.netlifyIdentity.open("signup"), []);
+  const logout = useCallback(() => window.netlifyIdentity && window.netlifyIdentity.logout(), []);
 
-  async function authenticatedFetch(path, options) {
+  const authenticatedFetch = useCallback(async (path, options) => {
     const identity = window.netlifyIdentity;
     const current = identity && identity.currentUser();
     if (!current) throw new Error("Not signed in");
@@ -16505,9 +17240,14 @@ function useAuth() {
         Authorization: `Bearer ${token}`,
       },
     });
-  }
+  }, []);
 
-  return { status, user, openLogin, openSignup, logout, authenticatedFetch };
+  // Identity changes only when sign-in state actually changes, which is
+  // exactly when a consumer genuinely does need to re-run.
+  return useMemo(
+    () => ({ status, user, openLogin, openSignup, logout, authenticatedFetch }),
+    [status, user, openLogin, openSignup, logout, authenticatedFetch]
+  );
 }
 
 function useThemeManager() {

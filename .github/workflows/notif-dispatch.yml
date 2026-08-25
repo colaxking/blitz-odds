@@ -30,9 +30,10 @@ name: Blitz Odds - notification dispatch
 # trigger produces no duplicate mail.
 #
 # DRY RUN. Run this manually from the Actions tab with dry_run = true to see
-# exactly who would be emailed, without sending anything. The plan lands in
-# the function log in the Netlify dashboard - background functions return
-# 202 immediately, so it will not appear in this workflow's own output.
+# exactly who would be emailed, without sending anything. This workflow will
+# tell you whether the secrets and env vars are right; the per-user plan
+# lands in the notif-dispatch-background function log in the Netlify
+# dashboard, since the actual work happens after the handoff returns.
 on:
   workflow_dispatch:
     inputs:
@@ -84,12 +85,14 @@ jobs:
 
           echo "POSTing: ${BODY}"
 
-          # A background function replies 202 with an empty body and keeps
-          # working - so a 202 means "accepted", not "sent". The outcome is
-          # in the Netlify function log.
+          # Deliberately the SYNCHRONOUS endpoint, not the -background one.
+          # Netlify answers a background function 202 before the handler
+          # runs, so posting straight to it would report success even with a
+          # wrong secret. notif-dispatch validates configuration first and
+          # returns a real status code, then hands off.
           STATUS=$(curl -sS -o /tmp/resp.txt -w "%{http_code}" \
             --max-time 30 \
-            -X POST "https://blitz-odds.com/.netlify/functions/notif-dispatch-background" \
+            -X POST "https://blitz-odds.com/.netlify/functions/notif-dispatch" \
             -H "Content-Type: application/json" \
             -H "x-notif-dispatch-secret: ${NOTIF_DISPATCH_SECRET}" \
             -d "${BODY}")
@@ -99,8 +102,9 @@ jobs:
           echo
 
           case "${STATUS}" in
-            200|202) echo "Dispatch accepted." ;;
-            401)     echo "Rejected: NOTIF_DISPATCH_SECRET doesn't match the site's env var." >&2; exit 1 ;;
-            500)     echo "Function error - check NOTIF_UNSUB_SECRET and RESEND_API_KEY are set in Netlify." >&2; exit 1 ;;
-            *)       echo "Unexpected status ${STATUS}." >&2; exit 1 ;;
+            200) echo "Configuration OK, dispatch handed off. Per-user results are in the notif-dispatch-background function log." ;;
+            401) echo "Rejected: NOTIF_DISPATCH_SECRET here doesn't match the site's env var." >&2; exit 1 ;;
+            500) echo "Site is missing a required env var - see the response body above." >&2; exit 1 ;;
+            502) echo "Handoff to the background function failed - see the response body above." >&2; exit 1 ;;
+            *)   echo "Unexpected status ${STATUS}." >&2; exit 1 ;;
           esac

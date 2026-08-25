@@ -48,6 +48,13 @@ span timezones — there is no single UTC moment that serves everyone. Almost
 every tick decides nobody is due and returns. Off-season, it finds no
 upcoming week and costs one schedule read.
 
+**Post to `/.netlify/functions/notif-dispatch`, not the `-background` one.**
+Netlify answers a background function with 202 the instant the request
+arrives, *before the handler runs* — so a wrong secret would return 202 and
+the cron would silently do nothing forever. `notif-dispatch` is a small
+synchronous front door that validates the secret and the required env vars,
+returns a real status code (401 / 500), and only then hands off.
+
 Double-firing is safe: every send writes an idempotency ledger key
 (`sent:{type}:{season}:{week}:{userId}`) **before** calling Resend and checks
 it first. A crash between the ledger write and the send loses that one
@@ -161,7 +168,8 @@ netlify/functions/
   lib/notif-emails.mts             both email builders (HTML + text)
   notif-prefs.mts                  GET/POST prefs (authenticated)
   unsubscribe.mts                  signed GET page + one-click POST
-  notif-dispatch-background.mts    the 15-minute tick
+  notif-dispatch.mts               synchronous front door: validates, then hands off
+  notif-dispatch-background.mts    the 15-minute tick (does the actual work)
   league-invite.mts                refactored onto email-shell
 index.html                         Settings -> Alerts tab (NotificationsTab)
 scripts/test-notif-timing.mjs      send-time assertions

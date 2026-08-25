@@ -49,6 +49,14 @@ async function getAuthenticatedUser(req: Request): Promise<any | null> {
 
 const STORE_NAME = "blitz-users";
 const VALID_THEME_MODES = new Set(["light", "dark", "system"]);
+// Mirrors the `id` values in PROFILE_AVATARS in index.html - keep these two
+// lists in sync if avatar options are ever added/removed.
+const VALID_AVATAR_IDS = new Set([
+  "blitz-edge", "bolt", "check",
+  "football", "trophy", "medal", "target", "fire", "goat", "chart",
+  "shield", "cleat", "cap", "clipboard", "party", "muscle", "flag",
+  "clock", "stadium", "horn",
+]);
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -159,6 +167,9 @@ export default async (req: Request, _context: Context) => {
         ...existing,
         ...(typeof body.displayName === "string" && body.displayName.trim()
           ? { displayName: body.displayName.trim().slice(0, 40) }
+          : {}),
+        ...(typeof body.avatar === "string" && VALID_AVATAR_IDS.has(body.avatar)
+          ? { avatar: body.avatar }
           : {}),
         ...(Array.isArray(body.leagues)
           ? { leagues: body.leagues.filter((l: unknown) => typeof l === "string") }

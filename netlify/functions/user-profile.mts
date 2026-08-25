@@ -137,7 +137,7 @@ export default async (req: Request, _context: Context) => {
   }
 
   const userId: string = claims.id;
-  const store = getStore(STORE_NAME);
+  const store = getStore(STORE_NAME, { consistency: "strong" });
   const key = `users:${userId}`;
 
   try {

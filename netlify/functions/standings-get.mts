@@ -53,7 +53,7 @@ export default async (req: Request, _context: Context) => {
     // this is the one place people actually look to see if a change
     // "took," so it should never be able to show a stale name/icon just
     // because some other write path missed the fan-out.
-    const userStore = getStore(USER_STORE);
+    const userStore = getStore(USER_STORE, { consistency: "strong" });
     await Promise.all(
       Array.from(memberById.keys()).map(async (uid) => {
         try {

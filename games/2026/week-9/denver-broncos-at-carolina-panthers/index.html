@@ -56,6 +56,7 @@
 <link rel="apple-touch-icon-precomposed" href="/branding/apple-touch-icon.png" />
 <script src="/js/predictionEngine.js"></script>
 <script src="/js/hotPicksEngine.js"></script>
+<script src="/js/gameId.js"></script>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -97,6 +98,11 @@
     --live: #ff3b30;
     --live-rgb: 255,59,48;
     --edge-b: #7ab8ff;
+    /* Sampled from the Blitz Edge brand mark - used only for the
+       "called it" badge on a final game, kept distinct from --win so a
+       correct call reads as a Blitz Edge signal rather than a generic
+       win/loss color. */
+    --blitz-orange: #fd7f01;
     --pill-good-text: #6be3a1;
     --pill-bad-text: #ff8080;
     --pill-good-fill-text: #062b16;
@@ -128,6 +134,9 @@
     --live: #d92d20;
     --live-rgb: 217,45,32;
     --edge-b: #1d6fc9;
+    /* Darkened from the same brand orange to hold AA text contrast
+       (~4.8:1) on a white card - the raw logo orange only clears ~2.6:1. */
+    --blitz-orange: #b35900;
     --pill-good-text: #1a7a43;
     --pill-bad-text: #b42318;
     --pill-good-fill-text: #ffffff;
@@ -696,11 +705,12 @@
   }
   .schedule-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;
+    align-items: start;
   }
   .game-card {
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 16px; display: flex; flex-direction: column; gap: 10px;
-    width: 100%; height: 100%; box-sizing: border-box;
+    width: 100%; box-sizing: border-box;
   }
   .game-card.is-historical { border-color: rgba(var(--demo-rgb),0.35); }
   .game-card.is-division {
@@ -846,6 +856,112 @@
   .diff-explainer summary::after { content: "\25B8"; color: var(--text-dim); font-size: 0.65rem; transition: transform 0.15s ease; }
   .diff-explainer[open] summary::after { transform: rotate(90deg); }
   .diff-explainer p { color: var(--text-dim); font-size: 0.68rem; line-height: 1.4; margin: 6px 0 0; }
+
+  /* ============================================================
+     GAMECARD REDESIGN - compact default state + Full Details
+     ============================================================ */
+  .game-meta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; max-width: 55%; text-align: right; }
+  .game-network { font-weight: 600; white-space: normal; word-break: break-word; }
+
+  .live-strip {
+    background: rgba(var(--live-rgb),0.08); border: 1px solid rgba(var(--live-rgb),0.25);
+    border-radius: 10px; padding: 9px 11px; margin: 6px 0; display: flex; flex-direction: column; gap: 5px;
+  }
+  .live-strip-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .live-strip-network { font-size: 0.72rem; font-weight: 700; color: var(--text-dim); white-space: nowrap; }
+
+  .final-score-mid { display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0; padding: 0 2px; }
+  .final-score-mid .fs-nums { font-size: 1rem; font-weight: 800; white-space: nowrap; }
+  .final-score-mid .fs-sep { color: var(--text-dim); font-weight: 600; margin: 0 3px; }
+  .final-score-mid .fs-label { font-size: 0.58rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; }
+  .final-call-badge { font-size: 0.56rem; font-weight: 800; white-space: nowrap; margin-top: 1px; }
+  .final-call-badge.correct { color: var(--blitz-orange); }
+  .final-call-badge.incorrect { color: var(--pill-bad-text); }
+
+  .combo-row {
+    display: flex; align-items: stretch; border: 1px solid var(--card-border, rgba(148,163,184,0.25));
+    border-radius: 10px; overflow: hidden; margin: 10px 0; background: var(--card-bg-2, rgba(148,163,184,0.05));
+  }
+  .combo-edge { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 8px 12px; background: rgba(var(--accent-rgb),0.12); }
+  .combo-edge-icon { height: 24px; width: auto; display: block; flex-shrink: 0; }
+  .combo-edge-label { font-size: 0.76rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
+  .combo-odds {
+    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    padding: 8px 8px; font-size: 0.72rem; border-left: 1px solid var(--card-border); border-right: 1px solid var(--card-border);
+  }
+  .combo-odds b { font-weight: 800; }
+  .combo-odds span { font-size: 0.64rem; color: var(--text-dim); }
+  .combo-fav { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 0.8rem; font-weight: 800; color: var(--win); }
+  .combo-fav-pct { font-size: 0.94rem; }
+
+  .gc-actions { display: flex; border-top: 1px solid var(--card-border); margin: 10px -14px -12px; }
+  .gc-action {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 8px;
+    background: none; border: none; cursor: pointer; font-size: 0.76rem; font-weight: 700; font-family: inherit;
+    color: var(--text);
+  }
+  .gc-action:first-child:not(:only-child) { border-right: 1px solid var(--card-border); color: var(--accent); }
+  .gc-action:hover { background: rgba(var(--accent-rgb),0.08); }
+  .gc-chevron { transition: transform 0.2s ease; display: inline-block; }
+  .gc-chevron.expanded { transform: rotate(180deg); }
+
+  .full-details-panel { padding-top: 12px; display: flex; flex-direction: column; gap: 14px; }
+  .full-details-panel .sec-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
+  .edge-detail { background: rgba(var(--accent-rgb),0.06); border: 1px solid rgba(var(--accent-rgb),0.25); border-radius: 10px; padding: 12px; }
+  .edge-detail-logo { height: 30px; width: auto; display: block; margin: 0 0 10px; }
+  .edge-detail p { margin: 0; font-size: 0.8rem; line-height: 1.5; color: var(--text); }
+
+  .short-boxscore-loading { font-size: 0.76rem; color: var(--text-dim); padding: 4px 0; }
+  .short-boxscore-stats { display: flex; flex-direction: column; gap: 5px; }
+  .short-boxscore-head { display: grid; grid-template-columns: 1fr 1.4fr 1fr; font-size: 0.68rem; font-weight: 800; color: var(--text-dim); text-align: center; }
+  .short-boxscore-row { display: grid; grid-template-columns: 1fr 1.4fr 1fr; align-items: center; font-size: 0.78rem; font-weight: 700; text-align: center; }
+  .short-boxscore-label { font-size: 0.66rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
+  .view-boxscore-link {
+    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 9px;
+    border: 1px solid var(--card-border); border-radius: 10px; background: none; color: var(--accent);
+    font-family: inherit; font-size: 0.76rem; font-weight: 800; cursor: pointer; margin-top: 8px;
+  }
+
+  .add-to-league-sheet-backdrop {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.55); z-index: 200;
+  }
+  .add-to-league-sheet {
+    position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 480px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-bottom: none;
+    border-radius: 18px 18px 0 0; padding: 16px 18px 20px; z-index: 201; max-height: 85vh;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .add-to-league-sheet h3 { margin: 0 0 4px; font-size: 1rem; }
+  .add-to-league-sub { font-size: 0.8rem; color: var(--text-dim); margin: 0 0 14px; }
+  .add-to-league-step-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
+  .add-to-league-team-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .add-to-league-team-opt {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px;
+    border: 2px solid var(--card-border); border-radius: 12px; cursor: pointer; background: none; font-family: inherit;
+  }
+  .add-to-league-team-opt.selected { border-color: var(--accent); background: rgba(var(--accent-rgb),0.1); }
+  .add-to-league-list { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .add-to-league-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--card-border);
+    border-radius: 12px; cursor: pointer;
+  }
+  .add-to-league-item.checked { border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
+  .add-to-league-item-name { font-size: 0.84rem; font-weight: 700; }
+  .add-to-league-item-meta { font-size: 0.7rem; color: var(--text-dim); }
+  .add-to-league-cta { display: flex; gap: 10px; flex-shrink: 0; }
+  .add-to-league-cta button {
+    flex: 1; border-radius: 10px; padding: 12px; font-size: 0.86rem; font-weight: 800; cursor: pointer;
+    font-family: inherit; border: 1px solid var(--card-border); background: var(--surface-2, transparent); color: var(--text);
+  }
+  .add-to-league-cta button.primary { background: var(--accent); border-color: var(--accent); color: var(--card-bg); }
+  .add-to-league-cta button.primary:disabled { opacity: 0.45; cursor: default; }
+  .add-to-league-per-league-status { font-size: 0.72rem; margin-top: 2px; }
+  .add-to-league-per-league-status.err { color: var(--pill-bad-text); }
+  .add-to-league-added-strip {
+    display: flex; align-items: center; gap: 7px; font-size: 0.74rem; font-weight: 700; color: var(--win);
+    background: rgba(var(--win-rgb),0.1); padding: 9px 14px; border-radius: 8px; margin: 10px -14px -12px;
+  }
+
   .rank-pill {
     display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; margin-left: 4px;
     border: 1px solid transparent;
@@ -10522,7 +10638,194 @@ function isVisibleInInjuryReport(p) {
   return (Date.now() - activated.getTime()) <= ACTIVE_VISIBILITY_DAYS * 24 * 60 * 60 * 1000;
 }
 
-function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGame, context, live, week, sportsbookId, tz, hideFullMatchupLink }) {
+/** Short inline box score for a live or final game - Total/Passing/Rushing
+ *  yards side by side, plus a link that opens the existing full BoxScoreModal
+ *  (linescore + full team/player stats). Kept deliberately separate from
+ *  GameScoreLink's own tap-to-open trigger on the score itself: the redesign
+ *  wants an always-visible summary inside Full Details rather than relying on
+ *  the user discovering the score is tappable. One-shot fetch (no live
+ *  polling) since this is just a glance - the full modal already polls live
+ *  games itself once opened. */
+function ShortBoxScore({ week, awayAbbr, homeAbbr, awayId, homeId }) {
+  const [state, setState] = useState({ status: "loading", stats: null });
+  const [showFull, setShowFull] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ status: "loading", stats: null });
+    fetchBoxScore(week, awayAbbr, homeAbbr, false)
+      .then(data => {
+        if (cancelled) return;
+        const boxTeams = (data.boxscore && data.boxscore.teams) || [];
+        const findTeam = abbr => boxTeams.find(t => (ESPN_ABBR_FIX[t.team.abbreviation] || t.team.abbreviation) === abbr);
+        const homeBox = findTeam(homeAbbr);
+        const awayBox = findTeam(awayAbbr);
+        if (!homeBox || !awayBox) { setState({ status: "empty", stats: null }); return; }
+        const statVal = (teamBox, key) => {
+          const s = teamBox.statistics.find(s => s.name === key);
+          return s ? s.displayValue : "—";
+        };
+        const stats = BOXSCORE_KEY_STATS.slice(0, 3).map(stat => ({
+          label: stat.label,
+          away: statVal(awayBox, stat.key),
+          home: statVal(homeBox, stat.key),
+        }));
+        setState({ status: "ready", stats });
+      })
+      .catch(() => { if (!cancelled) setState({ status: "error", stats: null }); });
+    return () => { cancelled = true; };
+  }, [week, awayAbbr, homeAbbr]);
+
+  return (
+    <div className="short-boxscore" data-tour="short-boxscore">
+      {state.status === "loading" && <div className="short-boxscore-loading">Loading box score…</div>}
+      {state.status === "ready" && state.stats && (
+        <div className="short-boxscore-stats">
+          <div className="short-boxscore-head"><span>{awayId}</span><span></span><span>{homeId}</span></div>
+          {state.stats.map((s, i) => (
+            <div className="short-boxscore-row" key={i}>
+              <span>{s.away}</span>
+              <span className="short-boxscore-label">{s.label}</span>
+              <span>{s.home}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <button type="button" className="view-boxscore-link" onClick={() => setShowFull(true)}>
+        View Full Box Score →
+      </button>
+      {showFull && <BoxScoreModal week={week} awayAbbr={awayAbbr} homeAbbr={homeAbbr} onClose={() => setShowFull(false)} />}
+    </div>
+  );
+}
+
+/** Two-step bottom sheet for submitting a pick to one or more of the user's
+ *  leagues straight from a GameCard, without leaving the week view. Only
+ *  rendered for games that haven't kicked off yet - the caller is
+ *  responsible for that gating (picks-submit.mts also enforces the deadline
+ *  server-side, this is just so the UI doesn't invite a doomed submission).
+ *  Confidence is intentionally omitted here even for confidence-format
+ *  leagues - picks-submit.mts allows a team-only pick, and ranking every
+ *  confidence-format league from a compact sheet isn't a great UX; players
+ *  who want to set confidence can still do it from the league's own week
+ *  panel afterward. */
+function AddToLeagueSheet({ game, away, home, week, auth, onClose }) {
+  const { leagues, error: leaguesError } = useMyLeagues(auth);
+  const [selectedTeam, setSelectedTeam] = useState(away.id);
+  const [checked, setChecked] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [statuses, setStatuses] = useState({});
+  const [done, setDone] = useState(false);
+
+  function toggle(leagueId) {
+    setChecked(prev => ({ ...prev, [leagueId]: !prev[leagueId] }));
+  }
+
+  async function handleSubmit() {
+    const targets = (leagues || []).filter(l => checked[l.id]);
+    if (!targets.length) return;
+    setSaving(true);
+    const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+    const gameId = window.GameId.makeGameId(seasonYear, week, game.away, game.home);
+    const results = {};
+    await Promise.all(targets.map(async (l) => {
+      try {
+        const res = await auth.authenticatedFetch("/.netlify/functions/picks-submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leagueId: l.id, week, gameId, team: selectedTeam }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "Failed to save pick");
+        results[l.id] = { ok: true };
+      } catch (err) {
+        results[l.id] = { ok: false, error: err.message || "Failed to save pick" };
+      }
+    }));
+    setStatuses(results);
+    setSaving(false);
+    if (Object.keys(results).length && Object.values(results).every(r => r.ok)) setDone(true);
+  }
+
+  const anyChecked = Object.values(checked).some(Boolean);
+
+  return ReactDOM.createPortal(
+    <React.Fragment>
+      <div className="add-to-league-sheet-backdrop" onClick={onClose} />
+      <div className="add-to-league-sheet" role="dialog" aria-modal="true" aria-label="Add pick to league">
+        <h3>Add to League</h3>
+        <p className="add-to-league-sub">{away.id} @ {home.id} — pick a team, then choose which leagues to submit it to.</p>
+
+        {done ? (
+          <>
+            <div className="add-to-league-added-strip">✓ Pick submitted</div>
+            <div className="add-to-league-cta" style={{ marginTop: 14 }}>
+              <button type="button" className="primary" onClick={onClose}>Done</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="add-to-league-step-label">1. Pick a team</div>
+            <div className="add-to-league-team-row">
+              <button
+                type="button"
+                className={"add-to-league-team-opt" + (selectedTeam === away.id ? " selected" : "")}
+                onClick={() => setSelectedTeam(away.id)}
+              >
+                <TeamLogo teamId={away.id} size={28} />
+                <span>{away.id}</span>
+              </button>
+              <button
+                type="button"
+                className={"add-to-league-team-opt" + (selectedTeam === home.id ? " selected" : "")}
+                onClick={() => setSelectedTeam(home.id)}
+              >
+                <TeamLogo teamId={home.id} size={28} />
+                <span>{home.id}</span>
+              </button>
+            </div>
+
+            <div className="add-to-league-step-label">2. Choose leagues</div>
+            {leagues === null ? (
+              <p className="add-to-league-sub">Loading your leagues…</p>
+            ) : leaguesError ? (
+              <p className="add-to-league-sub">{leaguesError}</p>
+            ) : leagues.length === 0 ? (
+              <p className="add-to-league-sub">You're not in any leagues yet. Head to Leagues to create or join one.</p>
+            ) : (
+              <div className="add-to-league-list">
+                {leagues.map(l => (
+                  <label key={l.id} className={"add-to-league-item" + (checked[l.id] ? " checked" : "")}>
+                    <input type="checkbox" checked={!!checked[l.id]} onChange={() => toggle(l.id)} />
+                    <span>
+                      <div className="add-to-league-item-name">{l.name}</div>
+                      <div className="add-to-league-item-meta">
+                        {(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format}
+                      </div>
+                      {statuses[l.id] && !statuses[l.id].ok && (
+                        <div className="add-to-league-per-league-status err">{statuses[l.id].error}</div>
+                      )}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            <div className="add-to-league-cta">
+              <button type="button" onClick={onClose}>Cancel</button>
+              <button type="button" className="primary" disabled={saving || !anyChecked || leagues === null} onClick={handleSubmit}>
+                {saving ? "Submitting…" : "Submit Pick"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </React.Fragment>,
+    document.body
+  );
+}
+
+function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGame, context, live, week, sportsbookId, tz, hideFullMatchupLink, auth, onOpenLeagues }) {
   const home = context.getTeam(game.home);
   const away = context.getTeam(game.away);
   if (!home || !away) return null;
@@ -10582,55 +10885,73 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
 
   const divisionGame = isDivisionGame(home.id, away.id);
   const internationalGame = !!game.international;
+  const isLive = !!(scoreInfo && scoreInfo.isLive);
+  const isFinal = !!(scoreInfo && scoreInfo.isFinal);
+  const kickoffMs = gameKickoffUtcMs(game.date, game.time, seasonYear);
+  // Add to League is only offered before kickoff - picks-submit.mts rejects
+  // a pick once the deadline passes anyway, but hiding the action once the
+  // game is live/final (or just past its scheduled kickoff, in case a score
+  // feed hasn't flipped isLive yet) avoids inviting a submission the backend
+  // is just going to reject.
+  const canAddToLeague = !isLive && !isFinal && !(kickoffMs != null && Date.now() >= kickoffMs);
+
+  const [fullDetailsOpen, setFullDetailsOpen] = useState(false);
+  const [showAddToLeague, setShowAddToLeague] = useState(false);
+
+  function handleAddToLeagueClick() {
+    if (auth && auth.status === "in") {
+      setShowAddToLeague(true);
+    } else {
+      // Signed out: route to the Leagues tab and prompt sign-up rather than
+      // opening the sheet itself, since there's nothing to pick a league
+      // from yet.
+      onOpenLeagues && onOpenLeagues();
+      auth && auth.openSignup && auth.openSignup();
+    }
+  }
 
   return (
-    <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (divisionGame ? " is-division" : "") + (internationalGame ? " is-international" : "") + (scoreInfo && scoreInfo.isLive ? " is-live" : "")}>
+    <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (divisionGame ? " is-division" : "") + (internationalGame ? " is-international" : "") + (isLive ? " is-live" : "")}>
       <div className="game-meta">
         <span className="game-meta-left">
-          {scoreInfo && scoreInfo.isLive ? (
-            <GameScoreLink week={week} awayAbbr={game.away} homeAbbr={game.home} fallbackPossession={scoreInfo.possession}>
-              <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline" data-tour="live-score">
-                {scoreInfo.possession === "away" && <span className="poss-ball">🏈</span>}
-                {away.id} {scoreInfo.awayScore} – {scoreInfo.homeScore} {home.id}
-                {scoreInfo.possession === "home" && <span className="poss-ball">🏈</span>}
-              </LiveScoreFlash>
-            </GameScoreLink>
-          ) : (
-            <>{shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}</>
-          )}
+          {!isLive && <>{shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}</>}
           {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
           {internationalGame && <span className="international-tag" title={game.note || "International Game"}><GlobeIcon /> International</span>}
-          <WeatherPill weather={weather} />
+          {/* Weather is skipped once a game goes live - the live strip below
+              takes priority over the forecast, and by kickoff the forecast
+              isn't actionable information anymore anyway. */}
+          {!isLive && <WeatherPill weather={weather} />}
         </span>
-        {scoreInfo && scoreInfo.isLive ? (
-          <span className="live-tag" data-tour="live-clock">
-            <span className="live-dot"></span>
-            LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}
-            {scoreInfo.downDistanceText && (
-              <span className={"down-distance" + (scoreInfo.isRedZone ? " is-redzone" : "")} data-tour="live-down-distance">
-                {scoreInfo.downDistanceText}
-              </span>
-            )}
-          </span>
-        ) : game.network ? <span>{game.network}</span> : null}
+        <span className="game-meta-right">
+          {!isLive && game.network && <span className="game-network">{game.network}</span>}
+        </span>
       </div>
-      {scoreInfo && scoreInfo.isLive && scoreInfo.lastPlay && (
-        <div className="last-play" data-tour="live-last-play">{scoreInfo.lastPlay}</div>
-      )}
       {internationalGame && game.note && <div className="odds-fallback-note" style={{marginTop: "-4px"}}>{game.note}</div>}
 
-      {/* Final score + prediction verdict shown above the team logos so the
-          outcome is the first thing visible on a completed game's card. */}
-      {scoreInfo && scoreInfo.isFinal && (
-        <div className="result-row">
-          <span>
-            Final: <GameScoreLink week={week} awayAbbr={game.away} homeAbbr={game.home}>
-              <span className="score">{away.id} {scoreInfo.awayScore} - {scoreInfo.homeScore} {home.id}</span>
-            </GameScoreLink>
-          </span>
-          <span className={"verdict " + (predictionCorrect ? "correct" : "incorrect")}>
-            {predictionCorrect ? "Prediction correct ✓" : "Prediction missed ✗"}
-          </span>
+      {isLive && (
+        <div className="live-strip" data-tour="live-score">
+          <div className="live-strip-row">
+            <LiveScoreFlash awayScore={scoreInfo.awayScore} homeScore={scoreInfo.homeScore} className="live-score-inline">
+              {scoreInfo.possession === "away" && <span className="poss-ball">🏈</span>}
+              {away.id} {scoreInfo.awayScore} – {scoreInfo.homeScore} {home.id}
+              {scoreInfo.possession === "home" && <span className="poss-ball">🏈</span>}
+            </LiveScoreFlash>
+            <span className="live-tag" data-tour="live-clock">
+              <span className="live-dot"></span>
+              LIVE {scoreInfo.clock ? `Q${scoreInfo.period} ${scoreInfo.clock}` : ""}
+            </span>
+          </div>
+          {(scoreInfo.downDistanceText || game.network) && (
+            <div className="live-strip-row">
+              {scoreInfo.downDistanceText ? (
+                <span className={"down-distance" + (scoreInfo.isRedZone ? " is-redzone" : "")} data-tour="live-down-distance">
+                  {scoreInfo.downDistanceText}
+                </span>
+              ) : <span />}
+              {game.network && <span className="live-strip-network">{game.network}</span>}
+            </div>
+          )}
+          {scoreInfo.lastPlay && <div className="last-play" data-tour="live-last-play">{scoreInfo.lastPlay}</div>}
         </div>
       )}
 
@@ -10640,7 +10961,17 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           <div className="team-name">{away.name}</div>
           <div className={"win-tag" + (!homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
         </div>
-        <div className="at-sep">@</div>
+        {isFinal ? (
+          <div className="final-score-mid">
+            <span className="fs-nums">{scoreInfo.awayScore}<span className="fs-sep">-</span>{scoreInfo.homeScore}</span>
+            <span className="fs-label">Final</span>
+            <span className={"final-call-badge " + (predictionCorrect ? "correct" : "incorrect")}>
+              {predictionCorrect ? "Called it ✓" : "Missed ✗"}
+            </span>
+          </div>
+        ) : (
+          <div className="at-sep">@</div>
+        )}
         <div className={"team-block" + (homeIsWinner ? " winner" : "") + (actualWinnerId === home.id ? " actual-winner" : "")}>
           <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{home.name}</div>
@@ -10648,105 +10979,181 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         </div>
       </div>
 
-      <div className="confidence-bar-wrap" data-tour="confidence-bar">
-        <span>{away.id} {awayPct}%</span>
-        <div className="confidence-bar">
-          <div style={{ width: awayPct + "%", background: "var(--lose)" }}></div>
-          <div style={{ width: homePct + "%", background: "var(--win)" }}></div>
+      <div className="combo-row" data-tour="combo-row">
+        <div className="combo-edge">
+          <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="combo-edge-icon" />
+          <span className="combo-edge-label">{prediction.predictedWinner}</span>
         </div>
-        <span>{home.id} {homePct}%</span>
+        <div className="combo-odds">
+          {odds ? (
+            <>
+              <div><b>{odds.favorite} {formatSpread(odds.spread)}</b> <span>Spread</span></div>
+              <div><b>{odds.overUnder}</b> <span>O/U</span></div>
+            </>
+          ) : (
+            <div><span>Odds not yet posted</span></div>
+          )}
+        </div>
+        <div className="combo-fav">
+          <span className="combo-fav-pct">{homeIsWinner ? homePct : awayPct}%</span>
+        </div>
       </div>
 
-      <div className="odds-row" data-tour="betting-lines">
-        {odds ? (
-          <>
-            <div className="odds-fields">
-              <span className="odds-field" data-tour="odds-spread"><span className="odds-label">Spread</span> {odds.favorite} {formatSpread(odds.spread)}</span>
-              <span className="odds-field" data-tour="odds-ml"><span className="odds-label">ML</span> {away.id} {formatMoneyline(odds.moneylineAway)} / {home.id} {formatMoneyline(odds.moneylineHome)}</span>
-              <span className="odds-field" data-tour="odds-ou"><span className="odds-label">O/U</span> {odds.overUnder}</span>
-            </div>
-            <div className={"odds-agree " + (modelAgreesWithMarket ? "agree" : "disagree")} data-tour="odds-agree">
-              {modelAgreesWithMarket ? "Model agrees with the market favorite" : "Model disagrees with the market favorite"}
-            </div>
-            <div className="odds-source">Line: {odds.sportsbook}</div>
-            {odds.isFallback && (
-              <div className="odds-fallback-note">
-                No {getSportsbookLabel(sportsbookId)} line yet for this game — showing the {odds.sportsbook} default.
-              </div>
-            )}
-          </>
-        ) : (
-          <span className="hw-tag">Odds not yet posted for this game</span>
+      <div className="gc-actions">
+        {canAddToLeague && (
+          <button type="button" className="gc-action" data-tour="add-to-league" onClick={handleAddToLeagueClick}>
+            {auth && auth.status === "in" ? "+ Add to League" : "Join a League"}
+          </button>
         )}
-      </div>
-
-      <div className="stat-compare" data-tour="stat-compare">
-        <div className="col">
-          <div className="label">{away.id} offense</div>
-          <div>Total <RankPill rank={away.stats.offense.rankTotal} /></div>
-          <div>Rush <RankPill rank={away.stats.offense.rankRush} /></div>
-          <div>Pass <RankPill rank={away.stats.offense.rankPass} /></div>
-        </div>
-        <div className="col">
-          <div className="label">{home.id} defense</div>
-          <div>Total <RankPill rank={home.stats.defense.rankTotal} /></div>
-          <div>Rush <RankPill rank={home.stats.defense.rankRush} /></div>
-          <div>Pass <RankPill rank={home.stats.defense.rankPass} /></div>
-        </div>
-        <div className="col">
-          <div className="label">Total Difference</div>
-          <div>Total <DiffPill offRank={away.stats.offense.rankTotal} defRank={home.stats.defense.rankTotal} offTeamId={away.id} /></div>
-          <div>Rush <DiffPill offRank={away.stats.offense.rankRush} defRank={home.stats.defense.rankRush} offTeamId={away.id} /></div>
-          <div>Pass <DiffPill offRank={away.stats.offense.rankPass} defRank={home.stats.defense.rankPass} offTeamId={away.id} /></div>
-        </div>
-
-        <div className="col">
-          <div className="label">{home.id} offense</div>
-          <div>Total <RankPill rank={home.stats.offense.rankTotal} /></div>
-          <div>Rush <RankPill rank={home.stats.offense.rankRush} /></div>
-          <div>Pass <RankPill rank={home.stats.offense.rankPass} /></div>
-        </div>
-        <div className="col">
-          <div className="label">{away.id} defense</div>
-          <div>Total <RankPill rank={away.stats.defense.rankTotal} /></div>
-          <div>Rush <RankPill rank={away.stats.defense.rankRush} /></div>
-          <div>Pass <RankPill rank={away.stats.defense.rankPass} /></div>
-        </div>
-        <div className="col">
-          <div className="label">&nbsp;</div>
-          <div>Total <DiffPill offRank={home.stats.offense.rankTotal} defRank={away.stats.defense.rankTotal} offTeamId={home.id} /></div>
-          <div>Rush <DiffPill offRank={home.stats.offense.rankRush} defRank={away.stats.defense.rankRush} offTeamId={home.id} /></div>
-          <div>Pass <DiffPill offRank={home.stats.offense.rankPass} defRank={away.stats.defense.rankPass} offTeamId={home.id} /></div>
-        </div>
-      </div>
-
-      <details className="diff-explainer" data-tour="blitz-verdict">
-        <summary>🔥 Blitz Verdict: Why {prediction.predictedWinner} is favored</summary>
-        <p>{rationale}</p>
-      </details>
-
-      {sortedAdjustments.map((a, i) => (
-        <div key={i} className={"impact-note impact-" + a.status} data-tour={i === 0 ? "injury-notes" : undefined}>
-          <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
-          <span>
-            <strong>{a.player}</strong> ({a.teamId} · {a.position}) is <strong>{a.status}</strong>
-            {a.injury && a.injury.type ? " — " + a.injury.type : ""}
-            <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury, teamId: a.teamId, teamName: a.teamName }} />
-          </span>
-        </div>
-      ))}
-
-      {!hideFullMatchupLink && onSelectGame && (
-        <a
-          href={buildGamePath(week, game.away, game.home)}
-          className="full-matchup-link"
-          data-tour="full-matchup-link"
-          onClick={(e) => { e.preventDefault(); onSelectGame(week, game.away, game.home); }}
+        <button
+          type="button"
+          className="gc-action"
+          data-tour="full-details-toggle"
+          aria-expanded={fullDetailsOpen}
+          onClick={() => setFullDetailsOpen(o => !o)}
         >
-          <BrandLogo size={14} className="fm-brand-mark" />
-          <span>Full matchup &amp; odds history</span>
-          <span className="fm-arrow">→</span>
-        </a>
+          Full Details &amp; History
+          <span className={"gc-chevron" + (fullDetailsOpen ? " expanded" : "")}>▾</span>
+        </button>
+      </div>
+
+      {fullDetailsOpen && (
+        <div className="full-details-panel" data-tour="full-details-panel">
+          <div>
+            <div className="sec-label">Betting Lines</div>
+            <div className="odds-row" data-tour="betting-lines">
+              {odds ? (
+                <>
+                  <div className="odds-fields">
+                    <span className="odds-field" data-tour="odds-spread"><span className="odds-label">Spread</span> {odds.favorite} {formatSpread(odds.spread)}</span>
+                    <span className="odds-field" data-tour="odds-ml"><span className="odds-label">ML</span> {away.id} {formatMoneyline(odds.moneylineAway)} / {home.id} {formatMoneyline(odds.moneylineHome)}</span>
+                    <span className="odds-field" data-tour="odds-ou"><span className="odds-label">O/U</span> {odds.overUnder}</span>
+                  </div>
+                  <div className={"odds-agree " + (modelAgreesWithMarket ? "agree" : "disagree")} data-tour="odds-agree">
+                    {modelAgreesWithMarket ? "Model agrees with the market favorite" : "Model disagrees with the market favorite"}
+                  </div>
+                  <div className="odds-source">Line: {odds.sportsbook}</div>
+                  {odds.isFallback && (
+                    <div className="odds-fallback-note">
+                      No {getSportsbookLabel(sportsbookId)} line yet for this game — showing the {odds.sportsbook} default.
+                    </div>
+                  )}
+                </>
+              ) : (
+                <span className="hw-tag">Odds not yet posted for this game</span>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="sec-label">Blitz Edge</div>
+            <div className="edge-detail" data-tour="blitz-verdict">
+              <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="edge-detail-logo" />
+              <p>{rationale}</p>
+            </div>
+          </div>
+
+          <div>
+            <div className="sec-label">Team Comparison</div>
+            <div className="stat-compare" data-tour="stat-compare">
+              <div className="col">
+                <div className="label">{away.id} offense</div>
+                <div>Total <RankPill rank={away.stats.offense.rankTotal} /></div>
+                <div>Rush <RankPill rank={away.stats.offense.rankRush} /></div>
+                <div>Pass <RankPill rank={away.stats.offense.rankPass} /></div>
+              </div>
+              <div className="col">
+                <div className="label">{home.id} defense</div>
+                <div>Total <RankPill rank={home.stats.defense.rankTotal} /></div>
+                <div>Rush <RankPill rank={home.stats.defense.rankRush} /></div>
+                <div>Pass <RankPill rank={home.stats.defense.rankPass} /></div>
+              </div>
+              <div className="col">
+                <div className="label">Total Difference</div>
+                <div>Total <DiffPill offRank={away.stats.offense.rankTotal} defRank={home.stats.defense.rankTotal} offTeamId={away.id} /></div>
+                <div>Rush <DiffPill offRank={away.stats.offense.rankRush} defRank={home.stats.defense.rankRush} offTeamId={away.id} /></div>
+                <div>Pass <DiffPill offRank={away.stats.offense.rankPass} defRank={home.stats.defense.rankPass} offTeamId={away.id} /></div>
+              </div>
+
+              <div className="col">
+                <div className="label">{home.id} offense</div>
+                <div>Total <RankPill rank={home.stats.offense.rankTotal} /></div>
+                <div>Rush <RankPill rank={home.stats.offense.rankRush} /></div>
+                <div>Pass <RankPill rank={home.stats.offense.rankPass} /></div>
+              </div>
+              <div className="col">
+                <div className="label">{away.id} defense</div>
+                <div>Total <RankPill rank={away.stats.defense.rankTotal} /></div>
+                <div>Rush <RankPill rank={away.stats.defense.rankRush} /></div>
+                <div>Pass <RankPill rank={away.stats.defense.rankPass} /></div>
+              </div>
+              <div className="col">
+                <div className="label">&nbsp;</div>
+                <div>Total <DiffPill offRank={home.stats.offense.rankTotal} defRank={away.stats.defense.rankTotal} offTeamId={home.id} /></div>
+                <div>Rush <DiffPill offRank={home.stats.offense.rankRush} defRank={away.stats.defense.rankRush} offTeamId={home.id} /></div>
+                <div>Pass <DiffPill offRank={home.stats.offense.rankPass} defRank={away.stats.defense.rankPass} offTeamId={home.id} /></div>
+              </div>
+            </div>
+          </div>
+
+          {sortedAdjustments.length > 0 && (
+            <div>
+              <div className="sec-label">Injury Report</div>
+              {sortedAdjustments.map((a, i) => (
+                <div key={i} className={"impact-note impact-" + a.status} data-tour={i === 0 ? "injury-notes" : undefined}>
+                  <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
+                  <span>
+                    <strong>{a.player}</strong> ({a.teamId} · {a.position}) is <strong>{a.status}</strong>
+                    {a.injury && a.injury.type ? " — " + a.injury.type : ""}
+                    <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury, teamId: a.teamId, teamName: a.teamName }} />
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Reused as-is from the standalone per-game page (SportsbookCompareSection) -
+              only embedded here when this card is NOT already on that page
+              (hideFullMatchupLink is how the caller signals that), so it
+              never renders twice for the same matchup. */}
+          {!hideFullMatchupLink && (
+            <div>
+              <div className="sec-label">Compare Sportsbooks</div>
+              <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} />
+            </div>
+          )}
+
+          {(isLive || isFinal) && (
+            <div>
+              <div className="sec-label">Box Score</div>
+              <ShortBoxScore week={week} awayAbbr={game.away} homeAbbr={game.home} awayId={away.id} homeId={home.id} />
+            </div>
+          )}
+
+          {!hideFullMatchupLink && onSelectGame && (
+            <a
+              href={buildGamePath(week, game.away, game.home)}
+              className="full-matchup-link"
+              data-tour="full-matchup-link"
+              onClick={(e) => { e.preventDefault(); onSelectGame(week, game.away, game.home); }}
+            >
+              <BrandLogo size={14} className="fm-brand-mark" />
+              <span>Full matchup &amp; odds history</span>
+              <span className="fm-arrow">→</span>
+            </a>
+          )}
+        </div>
+      )}
+
+      {showAddToLeague && (
+        <AddToLeagueSheet
+          game={game}
+          away={away}
+          home={home}
+          week={week}
+          auth={auth}
+          onClose={() => setShowAddToLeague(false)}
+        />
       )}
     </div>
   );
@@ -10812,7 +11219,7 @@ function GradationLegend() {
   );
 }
 
-function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGame, sportsbookId, tz }) {
+function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGame, sportsbookId, tz, auth, onOpenLeagues }) {
   const scheduledGames = getGamesForWeek(week);
   const liveMap = useLiveScores(week);
   const context = getWeekContext(week);
@@ -10861,6 +11268,8 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             week={week}
             sportsbookId={sportsbookId}
             tz={tz}
+            auth={auth}
+            onOpenLeagues={onOpenLeagues}
           />
         ))}
       </div>
@@ -11397,7 +11806,7 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr }) {
  *  out of sync with what the week view shows for the same matchup.
  *  hideFullMatchupLink suppresses GameCard's own "Full matchup ->" link,
  *  since we're already on that page. */
-function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, sportsbookId, tz }) {
+function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, sportsbookId, tz, auth, onOpenLeagues }) {
   const game = useMemo(
     () => getGamesForWeek(week).find(g => g.away === awayAbbr && g.home === homeAbbr),
     [week, awayAbbr, homeAbbr]
@@ -11428,6 +11837,8 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
             week={week}
             sportsbookId={sportsbookId}
             tz={tz}
+            auth={auth}
+            onOpenLeagues={onOpenLeagues}
             hideFullMatchupLink
           />
           <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} />
@@ -11615,6 +12026,18 @@ function FavoriteTeamsPicker({ favorites, onToggleFavorite }) {
  *  back to a small illustrative preview built from the same CSS classes as
  *  the real UI, clearly labeled as an example, so the tour still shows
  *  what that part of the app looks like instead of silently skipping it. */
+/** Kill switch for the whole tour while the GameCard redesign lands.
+ *  TOUR_STEPS below still points at the pre-redesign layout (the always-
+ *  visible confidence bar, stat-compare, and Blitz Verdict `<details>`;
+ *  tapping a score to open the box score modal directly; no coverage at
+ *  all for Full Details & History or Add to League) - showing it against
+ *  the redesigned card would coachmark UI that no longer exists and stay
+ *  silent on UI that does. Sequencing: this flips back to false only once
+ *  TOUR_STEPS has been rewritten for the new layout - see the "first-run
+ *  tutorial needs a rewrite" section of the game-card-redesign-notes
+ *  project doc for the full step-by-step spec. Do not ship the GameCard
+ *  redesign with this still true. */
+const TOUR_DISABLED_PENDING_REDESIGN = true;
 const TOUR_STEPS = [
   {
     id: "welcome", tab: "games",
@@ -15478,9 +15901,11 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks, 
             <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
               How this works
             </button>
-            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
-              Replay tutorial
-            </button>
+            {!TOUR_DISABLED_PENDING_REDESIGN && (
+              <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
+                Replay tutorial
+              </button>
+            )}
             <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenSettings(); }}>
               Settings
             </button>
@@ -15511,9 +15936,11 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks, 
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
             How this works
           </button>
-          <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
-            Replay tutorial
-          </button>
+          {!TOUR_DISABLED_PENDING_REDESIGN && (
+            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
+              Replay tutorial
+            </button>
+          )}
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenSettings(); }}>
             Settings
           </button>
@@ -16284,6 +16711,7 @@ function App() {
   // interrupt someone who's already scrolled past the week view into a
   // team or game page on their first load.
   useEffect(() => {
+    if (TOUR_DISABLED_PENDING_REDESIGN) return;
     if (tourAutoOfferedRef.current) return;
     if (loadTutorialSeen()) return;
     if (activeTab !== "games" || view !== "week") return;
@@ -16309,6 +16737,7 @@ function App() {
   }
 
   function replayTour() {
+    if (TOUR_DISABLED_PENDING_REDESIGN) return;
     // A manual replay (from the account menu's "Replay tutorial") should
     // work regardless of which tab/view someone's currently on, so jump
     // back to the Games/week view first - the tour's own steps handle
@@ -16417,7 +16846,7 @@ function App() {
           {view !== "week" && <FavoritesBar favorites={favorites} onSelect={selectTeam} />}
 
           {view === "week" ? (
-            <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} onSelectGame={selectGame} sportsbookId={sportsbookId} tz={resolvedTz} />
+            <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} onSelectGame={selectGame} sportsbookId={sportsbookId} tz={resolvedTz} auth={auth} onOpenLeagues={goToLeaguesTab} />
           ) : view === "game" && selectedGame ? (
             <GameView
               week={selectedGame.week}
@@ -16429,6 +16858,8 @@ function App() {
               onBack={backToWeek}
               sportsbookId={sportsbookId}
               tz={resolvedTz}
+              auth={auth}
+              onOpenLeagues={goToLeaguesTab}
             />
           ) : (
             <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} />
@@ -16490,7 +16921,7 @@ function App() {
         <HowItWorksModal onClose={() => setShowHowItWorks(false)} />
       )}
 
-      {showTour && (
+      {showTour && !TOUR_DISABLED_PENDING_REDESIGN && (
         <TutorialTour onClose={closeTour} setActiveTab={setActiveTab} />
       )}
     </div>

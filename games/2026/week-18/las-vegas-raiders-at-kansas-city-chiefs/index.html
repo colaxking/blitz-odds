@@ -1343,7 +1343,13 @@
   .league-delete-confirm-actions .league-btn { flex: 1; }
 
   /* ---- Leagues landing page (replaces the old Leagues popup) ----------- */
-  .leagues-page { max-width: 640px; margin: 18px auto 0; display: flex; flex-direction: column; gap: 18px; }
+  /* Left-aligned, not centered. Every other tab's content starts at the
+     app container's left edge (a game card sits at the same x as the nav),
+     so a 640px block centered under a full-width header read as floating
+     in the middle of the page with nothing anchoring it. `auto` stays on
+     the right margin only, so the block still stops growing rather than
+     stretching edge to edge. */
+  .leagues-page { max-width: 640px; margin: 18px auto 0 0; display: flex; flex-direction: column; gap: 18px; }
   .leagues-page-intro { color: var(--text-dim); font-size: 0.88rem; line-height: 1.5; margin: -8px 0 0; }
   .leagues-page-section {
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
@@ -1431,7 +1437,15 @@
      would out-specificity the mobile tab bar's display:none below (both
      would be 3-class selectors, so specificity - not source order - would
      decide the conflict) and bleed the inactive subtab through on mobile. */
-  .leagues-columns { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; align-items: start; }
+  /* minmax(0, Nfr) rather than a bare `Nfr`: a plain fr track floors at the
+     column's min-content width, and the Search/Create column's intrinsic
+     width (subtab bar + search field + result rows) is wide enough that it
+     was claiming that floor and leaving the remainder to My Leagues. The
+     declared 1 : 1.3 was being ignored entirely - at 1440px the tracks
+     resolved to 188px / 436px, which is why league cards on the left wrapped
+     their format and member counts onto four cramped lines. Allowing both
+     tracks to shrink below min-content makes the ratio actually hold. */
+  .leagues-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 16px; align-items: start; }
   .leagues-search-create-col { display: flex; flex-direction: column; }
   .leagues-subtabbar {
     display: flex; gap: 6px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--card-border);
@@ -1443,6 +1457,14 @@
     justify-content: center; gap: 6px;
   }
   .leagues-subtab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+
+  /* Only the landing page goes wide - it's the one view here with two
+     columns to fit, and below 860px it still wants the full container
+     rather than a 640px column with dead space beside it. The per-league
+     view and the settings panel keep the narrower 640px measure, since a
+     full-width column of pick cards or form fields is harder to read,
+     not easier. */
+  .leagues-page-landing { max-width: 1000px; }
 
   @media (min-width: 860px) {
     .leagues-search-create-col .leagues-page-section { display: none; }
@@ -13041,7 +13063,7 @@ const LEAGUE_TIE_BREAKER_OPTIONS = [
 ];
 
 // Owner-only settings + delete for a single league, opened from the
-// gear icon next to a league in "Your Leagues". Everything editable here
+// gear icon next to a league in "My Leagues". Everything editable here
 // goes through league-settings-update.mts, which enforces owner-only
 // server-side too (this UI just doesn't render the gear for non-owners).
 // format is deliberately never shown as editable - see
@@ -13251,7 +13273,7 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
 // league is selected. Replaces the old LeaguesModal popup: same create/join/
 // manage functionality, but as a full page so it can also host public league
 // search/browse for signed-out visitors (search is open to everyone; join,
-// create, and "Your Leagues" require sign-in - enforced both here and
+// create, and "My Leagues" require sign-in - enforced both here and
 // server-side by the functions themselves).
 function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, initialError }) {
   const [query, setQuery] = useState("");
@@ -13514,7 +13536,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
       setCreateDescription("");
       setCreateVisibility("private");
       setCreateInviteEmails("");
-      // Reflect it in "Your Leagues" immediately from the response rather
+      // Reflect it in "My Leagues" immediately from the response rather
       // than waiting on a refetch, then select straight into it. No
       // reloadLeagues() call here on purpose - league-create's response is
       // already the authoritative record, and a redundant reload that
@@ -13565,8 +13587,15 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
     }
   }
 
+  // "My League" reads wrong the moment there's more than one, and "My
+  // Leagues" reads wrong when there's exactly one - so the label follows
+  // the count. Falls back to the plural while the list is still loading or
+  // the viewer is signed out, since that's the generic name for the
+  // section rather than a claim about how many they have.
+  const myLeaguesLabel = (signedIn && leagues && leagues.length === 1) ? "My League" : "My Leagues";
+
   return (
-    <div className="leagues-page">
+    <div className="leagues-page leagues-page-landing">
       <div>
         <h1 className="sr-only">Leagues</h1>
         <p className="leagues-page-intro">
@@ -13595,7 +13624,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
           className={"leagues-tab" + (mobileTab === "mine" ? " active" : "")}
           onClick={() => selectMobileTab("mine")}
         >
-          👥 My Leagues
+          👥 {myLeaguesLabel}
           {signedIn && leagues && leagues.length > 0 && <span className="tab-count">{leagues.length}</span>}
         </button>
         <button
@@ -13614,12 +13643,12 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
         </button>
       </div>
 
-      {/* Desktop: Your Leagues in a left column, Search/Create sharing the
+      {/* Desktop: My Leagues in a left column, Search/Create sharing the
           right column via a subtab bar defaulting to Search. Collapses to
           the mobile tab bar above below 860px (see CSS media queries). */}
       <div className="leagues-columns">
         <div className={"leagues-page-section" + (mobileTab === "mine" ? " mobile-active" : "")}>
-          <h2 className="leagues-page-section-title">Your Leagues</h2>
+          <h2 className="leagues-page-section-title">{myLeaguesLabel}</h2>
           {!signedIn && <p className="leagues-empty">Sign in to see the leagues you're in.</p>}
           {signedIn && leagues === null && <p className="leagues-empty">Loading…</p>}
           {signedIn && leaguesError && <p className="leagues-error">{leaguesError}</p>}
@@ -14802,7 +14831,7 @@ function LeaguePicksPanel({ auth, league, week, tz }) {
 
 // Hub for the "League" tab: the Leagues landing page (LeaguesLandingPage)
 // by default, drilling into a single league's This Week / Standings view
-// when the user picks one from "Your Leagues" or a search result. Owner
+// when the user picks one from "My Leagues" or a search result. Owner
 // settings (LeagueSettingsPanel) are a third state reached via the gear
 // icon on the landing page or "Manage" in the per-league header, and
 // "closing" any of them just returns to the landing page rather than a

@@ -48,6 +48,7 @@ async function getAuthenticatedUser(req: Request): Promise<any | null> {
 // their next login/device. Signed-out users keep using localStorage only.
 
 const STORE_NAME = "blitz-users";
+const LEAGUE_STORE = "blitz-leagues";
 const VALID_THEME_MODES = new Set(["light", "dark", "system"]);
 // Mirrors the `id` values in PROFILE_AVATARS in index.html - keep these two
 // lists in sync if avatar options are ever added/removed.
@@ -181,6 +182,43 @@ export default async (req: Request, _context: Context) => {
       };
 
       await store.setJSON(key, updated);
+
+      // Fan out a changed name/avatar to every league roster this user
+      // belongs to. League membership rows snapshot displayName/avatar at
+      // join time (so standings-get.mts doesn't need to look up every
+      // member's profile on every read) - without this, a Settings change
+      // here would never show up in League/Standings, which only ever read
+      // the frozen copy on the members:{leagueId} blob.
+      const nameChanged = updated.displayName !== existing.displayName;
+      const avatarChanged = updated.avatar !== existing.avatar;
+      if ((nameChanged || avatarChanged) && Array.isArray(updated.leagues) && updated.leagues.length) {
+        const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
+        await Promise.all(
+          updated.leagues.map(async (leagueId: string) => {
+            try {
+              const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
+              if (!membersDoc || !Array.isArray(membersDoc.members)) return;
+              const member = membersDoc.members.find((m: any) => m.userId === userId);
+              if (!member) return;
+              member.displayName = updated.displayName;
+              member.avatar = updated.avatar ?? null;
+              await leagueStore.setJSON(`members:${leagueId}`, membersDoc);
+
+              if (nameChanged) {
+                const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
+                if (league && league.ownerId === userId && league.ownerName !== updated.displayName) {
+                  league.ownerName = updated.displayName;
+                  await leagueStore.setJSON(`league:${leagueId}`, league);
+                }
+              }
+            } catch {
+              // Best-effort - a failure to update one league's roster
+              // shouldn't fail the profile save itself.
+            }
+          })
+        );
+      }
+
       return jsonResponse(200, updated);
     }
 

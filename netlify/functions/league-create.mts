@@ -119,7 +119,7 @@ export default async (req: Request, _context: Context) => {
   if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" });
 
   const userId: string = claims.id;
-  const displayName =
+  const claimsDisplayName =
     (claims.user_metadata && claims.user_metadata.full_name) ||
     (claims.email ? claims.email.split("@")[0] : "Player");
 
@@ -170,6 +170,24 @@ export default async (req: Request, _context: Context) => {
     const leagueId = crypto.randomUUID();
     const now = new Date().toISOString();
 
+    // Prefer the user's already-saved profile displayName/avatar (set via
+    // Settings) over the raw Identity claims - otherwise a member who
+    // customized their name/icon before ever creating/joining a league
+    // would see the un-customized claims version baked into this league's
+    // roster from day one.
+    const profile: any = (await userStore.get(`users:${userId}`, { type: "json" })) || {
+      id: userId,
+      email: claims.email || null,
+      displayName: claimsDisplayName,
+      subscriptionTier: "free",
+      leagues: [],
+      createdAt: now,
+    };
+    const displayName = (typeof profile.displayName === "string" && profile.displayName.trim())
+      ? profile.displayName
+      : claimsDisplayName;
+    const avatar = typeof profile.avatar === "string" ? profile.avatar : null;
+
     const league = {
       id: leagueId,
       name,
@@ -192,7 +210,7 @@ export default async (req: Request, _context: Context) => {
 
     const members = {
       leagueId,
-      members: [{ userId, displayName, role: "owner", joinedAt: now }],
+      members: [{ userId, displayName, avatar, role: "owner", joinedAt: now }],
     };
 
     await Promise.all([
@@ -202,14 +220,6 @@ export default async (req: Request, _context: Context) => {
     ]);
 
     // Merge-update the owner's profile with the new league id.
-    const profile: any = (await userStore.get(`users:${userId}`, { type: "json" })) || {
-      id: userId,
-      email: claims.email || null,
-      displayName,
-      subscriptionTier: "free",
-      leagues: [],
-      createdAt: now,
-    };
     const leagues = Array.isArray(profile.leagues) ? profile.leagues : [];
     if (!leagues.includes(leagueId)) leagues.push(leagueId);
     await userStore.setJSON(`users:${userId}`, { ...profile, leagues, updatedAt: now });

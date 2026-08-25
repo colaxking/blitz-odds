@@ -40,11 +40,14 @@ export default async (req: Request, _context: Context) => {
     if (!isMember) return jsonResponse(403, { ok: false, error: "Not a member of this league" }, CORS_HEADERS);
 
     const standingsDoc: any = (await leagueStore.get(`standings:${leagueId}`, { type: "json" })) || { weeks: {}, season: [] };
-    const memberById = new Map((membersDoc?.members || []).map((m: any) => [m.userId, m.displayName]));
+    const memberById = new Map(
+      (membersDoc?.members || []).map((m: any) => [m.userId, { displayName: m.displayName, avatar: m.avatar ?? null }])
+    );
+    const memberInfo = (uid: string) => memberById.get(uid) || { displayName: "Player", avatar: null };
 
     const seasonWithNames = (standingsDoc.season || []).map((row: any) => ({
       ...row,
-      displayName: memberById.get(row.userId) || "Player",
+      ...memberInfo(row.userId),
     }));
 
     const responseBody: any = {
@@ -57,7 +60,7 @@ export default async (req: Request, _context: Context) => {
       const weekScores = standingsDoc.weeks?.[week] || {};
       responseBody.week = Object.keys(weekScores).map((userId2) => ({
         userId: userId2,
-        displayName: memberById.get(userId2) || "Player",
+        ...memberInfo(userId2),
         ...weekScores[userId2],
       }));
     }
@@ -67,7 +70,7 @@ export default async (req: Request, _context: Context) => {
       responseBody.survivor = Object.fromEntries(
         Object.entries(survivorState).map(([uid, s]: [string, any]) => [
           uid,
-          { ...s, displayName: memberById.get(uid) || "Player" },
+          { ...s, ...memberInfo(uid) },
         ])
       );
     }

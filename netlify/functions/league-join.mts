@@ -60,7 +60,7 @@ export default async (req: Request, _context: Context) => {
   if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" });
 
   const userId: string = claims.id;
-  const displayName =
+  const claimsDisplayName =
     (claims.user_metadata && claims.user_metadata.full_name) ||
     (claims.email ? claims.email.split("@")[0] : "Player");
 
@@ -105,18 +105,34 @@ export default async (req: Request, _context: Context) => {
     }
     if (league.locked) return jsonResponse(403, { ok: false, error: "This league is locked and not accepting new members" });
 
+    const now = new Date().toISOString();
+
+    // Prefer the user's already-saved profile displayName/avatar over the
+    // raw Identity claims - same reasoning as league-create.mts.
+    const profile: any = (await userStore.get(`users:${userId}`, { type: "json" })) || {
+      id: userId,
+      email: claims.email || null,
+      displayName: claimsDisplayName,
+      subscriptionTier: "free",
+      leagues: [],
+      createdAt: now,
+    };
+    const displayName = (typeof profile.displayName === "string" && profile.displayName.trim())
+      ? profile.displayName
+      : claimsDisplayName;
+    const avatar = typeof profile.avatar === "string" ? profile.avatar : null;
+
     const membersDoc: any = (await leagueStore.get(`members:${leagueId}`, { type: "json" })) || {
       leagueId,
       members: [],
     };
-    const now = new Date().toISOString();
     const already = membersDoc.members.find((m: any) => m.userId === userId);
 
     if (!already) {
       if (typeof league.maxMembers === "number" && membersDoc.members.length >= league.maxMembers) {
         return jsonResponse(409, { ok: false, error: "This league is full" });
       }
-      membersDoc.members.push({ userId, displayName, role: "member", joinedAt: now });
+      membersDoc.members.push({ userId, displayName, avatar, role: "member", joinedAt: now });
       league.memberCount = membersDoc.members.length;
       league.updatedAt = now;
       await Promise.all([
@@ -126,14 +142,6 @@ export default async (req: Request, _context: Context) => {
     }
 
     // Merge-update the joiner's profile with the league id.
-    const profile: any = (await userStore.get(`users:${userId}`, { type: "json" })) || {
-      id: userId,
-      email: claims.email || null,
-      displayName,
-      subscriptionTier: "free",
-      leagues: [],
-      createdAt: now,
-    };
     const leagues = Array.isArray(profile.leagues) ? profile.leagues : [];
     if (!leagues.includes(leagueId)) leagues.push(leagueId);
     await userStore.setJSON(`users:${userId}`, { ...profile, leagues, updatedAt: now });

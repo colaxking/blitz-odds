@@ -218,7 +218,12 @@
     font-size: 15px; font-weight: 700; overflow: hidden;
   }
   .account-avatar .avatar-glyph-img { width: 66%; height: 66%; object-fit: contain; }
-  .account-avatar .branded-orange, .account-avatar .branded-teal { font-size: 15px; }
+  /* Emoji glyphs need a bigger font-size than plain text to read at the same
+     visual size (emoji metrics carry extra built-in padding) - this used to
+     only be set for the bolt/check icons, so every other emoji option in
+     PROFILE_AVATARS shrank along with the "D"-initial fallback on the
+     mobile breakpoint below. Apply to all emoji glyphs, not just those two. */
+  .account-avatar span { font-size: 17px; }
   .account-avatar:hover, .account-avatar:focus-visible { filter: brightness(1.08); }
   .account-dropdown {
     position: absolute; top: 46px; right: 0; min-width: 170px; z-index: 20;
@@ -238,6 +243,7 @@
     .account-btn-signin { height: 34px; padding: 0 12px; font-size: 12.5px; }
     .account-menu-toggle { height: 34px; }
     .account-avatar { width: 34px; height: 34px; font-size: 13px; }
+    .account-avatar span { font-size: 15px; }
   }
 
   .controls-row {
@@ -1520,7 +1526,12 @@
   .league-standings-avatar {
     width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #062018;
     display: flex; align-items: center; justify-content: center; font-size: 0.66rem; font-weight: 800; flex-shrink: 0;
+    overflow: hidden;
   }
+  .league-standings-avatar .avatar-glyph-img { width: 66%; height: 66%; object-fit: contain; }
+  /* Same reasoning as .account-avatar span - emoji glyphs need a bigger
+     font-size than the initial-letter fallback to read at the same size. */
+  .league-standings-avatar span { font-size: 11px; }
   .league-standings-points { font-weight: 800; }
   .league-status-alive { color: var(--win); font-weight: 700; font-size: 0.72rem; }
   .league-status-eliminated { color: var(--out); font-weight: 700; font-size: 0.72rem; text-decoration: line-through; opacity: 0.7; }
@@ -14030,7 +14041,7 @@ function LeagueStandingsPanel({ auth, league }) {
           return (
             <tr key={row.userId} className={row.userId === meId ? "is-me" : ""}>
               <td className={"league-standings-rank" + (row.rank === 1 ? " gold" : "")}>{row.rank}</td>
-              <td><div className="league-standings-user"><div className="league-standings-avatar">{(row.displayName || "?")[0]}</div>{row.displayName}</div></td>
+              <td><div className="league-standings-user"><div className="league-standings-avatar">{row.avatar && findProfileAvatar(row.avatar) ? <ProfileAvatarGlyph avatar={findProfileAvatar(row.avatar)} /> : (row.displayName || "?")[0]}</div>{row.displayName}</div></td>
               <td>{extra}</td>
               <td>{row.correct}</td>
               <td className="league-standings-points">{row.points}</td>

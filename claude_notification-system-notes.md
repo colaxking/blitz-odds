@@ -12,13 +12,25 @@ link in the footer.
 
 ## Before this can send anything
 
-Three env vars in Netlify (Site settings → Environment variables):
+Env vars in Netlify (Site settings → Environment variables):
 
 | Var | Purpose |
 |---|---|
 | `RESEND_API_KEY` | already set — shared with `league-invite.mts` |
 | `NOTIF_UNSUB_SECRET` | signs unsubscribe links. Any long random string; **changing it invalidates every unsubscribe link already sitting in someone's inbox**, so set it once and leave it |
 | `NOTIF_DISPATCH_SECRET` | gates the dispatcher. Also needs to exist as a GitHub repository secret of the same name for the workflow |
+| `VAPID_PUBLIC_KEY` | web push. Also served to the client by `notif-prefs` — it's a public key, safe to expose |
+| `VAPID_PRIVATE_KEY` | web push signing key. Never leaves the server |
+| `VAPID_SUBJECT` | optional; `mailto:` or a URL identifying the sender to the push service. Defaults to `SITE_URL` |
+
+**Changing the VAPID keypair invalidates every push subscription already
+registered** — every browser subscribed under the old public key silently
+stops receiving, and there's no error to notice. Set it once, like
+`NOTIF_UNSUB_SECRET`. A fresh pair can be generated with:
+
+```bash
+node -e "const{generateKeyPairSync}=require('node:crypto');const{publicKey,privateKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'});const b=x=>Buffer.from(x).toString('base64url');console.log('public ',b(publicKey.export({type:'spki',format:'der'}).subarray(-65)));console.log('private',privateKey.export({format:'jwk'}).d)"
+```
 
 The dispatcher refuses to run if either notif secret is missing, rather than
 sending mail with unsigned unsubscribe links.
@@ -128,13 +140,10 @@ there.
 - **Highlights are confidence-only.** In straight-up and ATS every pick is
   worth the same, so "best call" would just be an arbitrary correct pick.
   Omitted rather than faked.
-- **Web push not built.** Needs a VAPID keypair, a manifest, and a
-  **push-only** service worker. Note for whoever builds it: this app is a
-  single `index.html` transpiled in-browser with no cache-busting, so a
-  service worker with a `fetch` handler will serve a stale *entire
-  application*. Handle `push` and `notificationclick` only — no `fetch`, no
-  caching. Also, iOS Safari only allows push once the site is installed to
-  the Home Screen, which caps reachable coverage.
+- **Web push is built (Phase 0), but nothing sends over it yet.** The
+  channel works end to end — subscribe, store, send, prune — and the only
+  thing that currently pushes is the "Send a test" button in Settings →
+  Alerts. Alert types land in Phase 1.
 
 ## Deliverability notes
 
@@ -179,3 +188,143 @@ scripts/preview-notif-emails.mjs   render emails to HTML without sending
 
 `email-shell.mts` is the only place the email look lives. Adding a third
 email type means writing a builder, not another copy of the chrome.
+
+
+---
+
+# Web push (Phase 0)
+
+The channel, with no alert types on it yet. Two scheduled emails a week is
+still the whole of what this system *sends*; everything below is the
+plumbing that lets Phase 1 add kickoff, final score, and last-call alerts
+without touching any of it again.
+
+## The service worker constraint
+
+`sw.js` handles `push` and `notificationclick`. It must never gain a
+`fetch` handler, a cache, or Workbox.
+
+`index.html` is the entire application — one file, Babel-transpiled in the
+browser, no build step, no cache-busting on the URL. A worker intercepting
+`fetch` would be caching *the whole app* under a URL that never changes,
+and would keep serving a stale copy long after a deploy. There is no
+version to bust and no filename to hash, so there is no safe way to do it.
+A worker with no `fetch` handler doesn't sit between the app and the
+network at all, which is the point. There's a comment saying so at the top
+of the file; leave it there.
+
+## Payload shape
+
+`lib/push.mts` defines `PushPayload` — `{ title, body, url, collapseKey,
+data }` — deliberately not the shape of any one transport's API.
+
+`collapseKey` is the one that matters. Web calls it `tag`, FCM calls it
+`collapse_key`, APNs calls it `apns-collapse-id`; all three mean "a newer
+message about the same subject replaces the one already on the lock
+screen." Scoring alerts are unusable without it — six score changes in one
+game would otherwise be six notifications. Naming it once here is what
+stops every payload from needing a rewrite when a native adapter lands.
+
+`url` is always a path, never a hash. See `claude_url-scheme.md`: Universal
+Links and App Links match on path and can't see a fragment.
+
+## Storage
+
+```
+push:{userId}:{deviceId} -> {
+  platform: "web" | "ios" | "android",
+  web?:   { endpoint, keys: { p256dh, auth } },
+  token?: string,
+  ua, label, createdAt, lastOkAt, failCount
+}
+```
+
+`deviceId` is a truncated sha256 of the endpoint (web) or token (native),
+so a browser that silently rotates its subscription and re-registers
+overwrites its own row instead of leaving a dead one to be pushed at until
+it 410s. One row per device, several per user, is the normal case.
+
+The `web` sub-object exists so the same row can hold an APNs/FCM token
+later without a migration — web push needs an endpoint plus two keys,
+native needs one opaque token, and flattening either into the top level
+would mean rewriting every stored row when the second one arrives.
+
+## Pruning
+
+404 and 410 from a push service mean the subscription is dead — cleared
+site data, uninstall, browser rotation. That's not transient, so the row is
+deleted rather than retried. Anything else increments `failCount`, and ten
+consecutive failures is also treated as gone: each attempt costs a request
+on every tick the device is due for one.
+
+## Entitlements
+
+`lib/entitlements.mts` exists and gates nothing — `has()` returns true for
+everything. It's there because the expensive version of a paywall is the
+one retrofitted through a dozen call sites later.
+
+Capability strings (`"alerts.scoring"`), not a tier enum, because the tier
+model hasn't been designed and `tier >= PRO` would force that decision now.
+`PLANNED_PRO_CAPABILITIES` lists what's expected to become paid, so usage
+can be filtered to "who would this affect" before anything is switched on.
+
+Pro badging in the Alerts tab is written but hidden behind
+`SHOW_PRO_BADGES = false` in `index.html`. The label is meant to land with
+real runway *ahead* of any gating — a free beta people know is premium
+reads as a trial ending; a label and a paywall arriving together reads as
+something being taken away.
+
+## Permission, and why it's never requested on load
+
+`Notification.requestPermission()` fires once per site. A denial is close
+to permanent — the browser will not re-prompt, and the app cannot undo it.
+So it's only ever called from a deliberate tap on "Turn on push alerts" in
+Settings → Alerts. `pushEnvironment()` in `index.html` reports which of the
+five states applies (`unsupported`, `ios-not-installed`, `blocked`,
+`prompt`, `granted`) and the tab renders a different panel for each.
+
+iOS/iPadOS only delivers push to a site added to the Home Screen, and won't
+offer that without a manifest declaring `display: standalone` — hence
+`manifest.webmanifest` and the square `branding/app-icon-*.png` set. (The
+existing `blitz-edge-icon.png` is 555×415; manifest icons have to be
+square, so they're generated from it rather than referencing it.) There is
+no way around the Home Screen requirement, and it caps reachable iOS
+coverage.
+
+## Three bugs fixed alongside this
+
+1. **`if (!leagues.length) continue;`** in the dispatcher dropped every
+   user with no league before any alert type got to decide. Correct while
+   pick reminders and the recap were all that existed — both are about
+   leagues — and wrong the moment alerts started keying off favourite
+   teams. Someone with three starred teams and no pool would have been
+   excluded from the whole pass with no error and no log line. The user
+   list is now built once and each type applies its own filter.
+2. **Week-scoped ledger keys** couldn't express per-event alerts. Added
+   `eventLedgerKey` → `evt:{season}:{week}:{type}:{event}:{userId}`.
+   Season and week lead the key, unlike the weekly `sent:` keys, because a
+   sweep wants "everything from week 6" rather than "every scoring alert
+   ever" — Blobs has no TTL, and one alert per scoring play per user is
+   tens of thousands of keys a season. `sweepEventLedger()` deletes a week
+   by prefix; whichever alert type first writes event keys should schedule
+   it a few weeks behind the current one.
+3. **Recap eligibility** was "has a scored league result", full stop. With
+   favourite-team news riding the recap, someone with favourites and no
+   league would opt in and receive nothing, forever, silently.
+
+## Testing
+
+```bash
+node /tmp/sw-unit.mjs        # sw.js push/notificationclick in a fake worker scope
+```
+
+The service worker's handlers are plain functions on a `self` object, so
+they can be exercised in `vm.runInNewContext` with a stubbed scope — worth
+keeping, since the one assertion that matters (`'fetch' in handlers ===
+false`) is exactly the thing a well-meaning future change would break.
+
+Preference merging is also worth checking directly after any change to the
+prefs shape: bundle `lib/notif.mts` with `@netlify/blobs` left external and
+resolved to an in-memory stub, then assert that a record written before
+`push` existed still comes back with its stored email settings intact and a
+fully populated `push` block.

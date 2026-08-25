@@ -23,18 +23,64 @@ export const USER_STORE = "blitz-users";
 
 export type NotifType = "reminders" | "weekly" | "all";
 
+/** Which games the game-time alerts apply to. */
+export type PushScope = "fav" | "picks" | "both";
+
+export interface PushPrefs {
+  /** ~10 minutes before a followed game starts. */
+  kickoff: boolean;
+  /** "all" is every score; "lead" only the ones that change who's ahead. */
+  scoring: "all" | "lead" | "off";
+  final: boolean;
+  scope: PushScope;
+  /** "key" limits it to tracked impact players. */
+  injuries: "key" | "all" | "off";
+  /** Someone going down mid-game, before any official designation exists. */
+  inGameInjury: boolean;
+  /** Final nudge before kickoff if picks are still open. */
+  lastCall: boolean;
+  /** Local hours. Null disables quiet hours entirely. */
+  quietFrom: number | null;
+  quietTo: number | null;
+}
+
 export interface NotifPrefs {
   emailPickReminders: boolean;
   emailWeeklyRecap: boolean;
+  /** Favourite-team headlines inside the Tuesday recap. Off by default -
+   *  it's an addition to an email people already agreed to receive, so it
+   *  should be asked for rather than assumed. */
+  emailRecapTeamNews: boolean;
   /** IANA zone captured from the browser, e.g. "America/New_York". */
   timezone: string;
+  push: PushPrefs;
   updatedAt?: string;
 }
+
+/* Push defaults are chosen to be survivable rather than exciting. Favourites
+ * only, lead changes rather than every score, key players only: about 20 a
+ * week for someone with three starred teams. Scope "both" with every score
+ * is closer to 190, which is the rate at which people turn notifications off
+ * permanently and never come back. Anyone who wants more can opt up; nobody
+ * gets buried by a default they didn't choose. */
+export const DEFAULT_PUSH_PREFS: PushPrefs = {
+  kickoff: true,
+  scoring: "lead",
+  final: true,
+  scope: "fav",
+  injuries: "key",
+  inGameInjury: true,
+  lastCall: true,
+  quietFrom: 23,
+  quietTo: 7,
+};
 
 export const DEFAULT_PREFS: NotifPrefs = {
   emailPickReminders: true,
   emailWeeklyRecap: true,
+  emailRecapTeamNews: false,
   timezone: "America/New_York",
+  push: { ...DEFAULT_PUSH_PREFS },
 };
 
 /**
@@ -50,10 +96,52 @@ export async function getPrefs(userId: string): Promise<NotifPrefs> {
   try {
     const stored = (await notifStore().get(`prefs:${userId}`, { type: "json" })) as Partial<NotifPrefs> | null;
     if (!stored) return { ...DEFAULT_PREFS };
-    return { ...DEFAULT_PREFS, ...stored };
+    // The spread has to be nested, not just top-level: a record written
+    // before `push` existed has no push block at all, and one written
+    // before a later field was added has a partial one. A shallow merge
+    // would hand the dispatcher `undefined` for a field it reads.
+    return {
+      ...DEFAULT_PREFS,
+      ...stored,
+      push: { ...DEFAULT_PUSH_PREFS, ...(stored.push || {}) },
+    };
   } catch {
     return { ...DEFAULT_PREFS };
   }
+}
+
+const SCORING_VALUES = new Set(["all", "lead", "off"]);
+const SCOPE_VALUES = new Set(["fav", "picks", "both"]);
+const INJURY_VALUES = new Set(["key", "all", "off"]);
+
+/** Whitelists an incoming push block. This is client-supplied input, and an
+ *  unrecognised enum value reaching the dispatcher would fall through every
+ *  comparison there and silently mean "send nothing". */
+function sanitizePush(input: any, existing: PushPrefs): PushPrefs {
+  const out: PushPrefs = { ...existing };
+  if (!input || typeof input !== "object") return out;
+  for (const key of ["kickoff", "final", "inGameInjury", "lastCall"] as const) {
+    if (typeof input[key] === "boolean") out[key] = input[key];
+  }
+  if (SCORING_VALUES.has(input.scoring)) out.scoring = input.scoring;
+  if (SCOPE_VALUES.has(input.scope)) out.scope = input.scope;
+  if (INJURY_VALUES.has(input.injuries)) out.injuries = input.injuries;
+  for (const key of ["quietFrom", "quietTo"] as const) {
+    if (input[key] === null) out[key] = null;
+    else if (Number.isInteger(input[key]) && input[key] >= 0 && input[key] <= 23) out[key] = input[key];
+  }
+  return out;
+}
+
+/** True when `at`, seen in `tz`, falls inside the user's quiet hours.
+ *  Handles the overnight case (23 -> 7) as well as a same-day window. */
+export function inQuietHours(at: Date, prefs: NotifPrefs): boolean {
+  const { quietFrom, quietTo } = prefs.push;
+  if (quietFrom === null || quietTo === null || quietFrom === quietTo) return false;
+  const hour = localParts(at, prefs.timezone).hour;
+  return quietFrom < quietTo
+    ? hour >= quietFrom && hour < quietTo
+    : hour >= quietFrom || hour < quietTo;   // wraps past midnight
 }
 
 export async function setPrefs(userId: string, patch: Partial<NotifPrefs>): Promise<NotifPrefs> {
@@ -62,7 +150,9 @@ export async function setPrefs(userId: string, patch: Partial<NotifPrefs>): Prom
     ...existing,
     ...(typeof patch.emailPickReminders === "boolean" ? { emailPickReminders: patch.emailPickReminders } : {}),
     ...(typeof patch.emailWeeklyRecap === "boolean" ? { emailWeeklyRecap: patch.emailWeeklyRecap } : {}),
+    ...(typeof patch.emailRecapTeamNews === "boolean" ? { emailRecapTeamNews: patch.emailRecapTeamNews } : {}),
     ...(typeof patch.timezone === "string" && isValidTimezone(patch.timezone) ? { timezone: patch.timezone } : {}),
+    push: sanitizePush(patch.push, existing.push),
     updatedAt: new Date().toISOString(),
   };
   await notifStore().setJSON(`prefs:${userId}`, next);
@@ -189,6 +279,59 @@ export async function sendEmail(args: SendArgs): Promise<void> {
 
 export function ledgerKey(type: string, season: number, week: number, userId: string): string {
   return `sent:${type}:${season}:${week}:${userId}`;
+}
+
+/**
+ * Ledger key for a per-event alert, as opposed to the once-a-week emails
+ * above. `event` identifies the specific thing that happened - a scoring
+ * play, an injury designation - so a poll that sees the same event twice
+ * finds the key and stays quiet, while a genuine escalation makes a new key
+ * and correctly sends.
+ *
+ * The {season}:{week} segment is here even though the event id is already
+ * unique. It's what makes the store sweepable: Netlify Blobs has no TTL, so
+ * without a prefix that groups by week, this namespace grows for the life of
+ * the site and nothing can ever be deleted in bulk. One scoring alert per
+ * play per user across a full slate is tens of thousands of keys a season.
+ */
+export function eventLedgerKey(type: string, season: number, week: number, event: string, userId: string): string {
+  return `evt:${season}:${week}:${type}:${event}:${userId}`;
+}
+
+/** Prefix covering every event ledger key for one week, across all types -
+ *  the unit a sweep deletes. This is why season and week lead the key
+ *  rather than following the type the way the weekly `sent:` keys do: a
+ *  sweep wants "everything from week 6", not "every scoring alert ever". */
+export function eventLedgerWeekPrefix(season: number, week: number): string {
+  return `evt:${season}:${week}:`;
+}
+
+/** Deletes a whole week of event ledger keys. Nothing calls this yet - the
+ *  first alert type that writes event keys should also schedule it, a few
+ *  weeks behind the current one, so the namespace has a ceiling from the
+ *  day it starts filling rather than being someone's cleanup job later. */
+export async function sweepEventLedger(season: number, week: number): Promise<number> {
+  const store = notifStore();
+  let deleted = 0;
+  for await (const page of store.list({ prefix: eventLedgerWeekPrefix(season, week), paginate: true })) {
+    for (const blob of page.blobs) {
+      try { await store.delete(blob.key); deleted++; } catch { /* best effort */ }
+    }
+  }
+  return deleted;
+}
+
+export async function alreadySentEvent(type: string, season: number, week: number, event: string, userId: string): Promise<boolean> {
+  try {
+    const doc = await notifStore().get(eventLedgerKey(type, season, week, event, userId), { type: "json" });
+    return !!doc;
+  } catch {
+    return false;
+  }
+}
+
+export async function markSentEvent(type: string, season: number, week: number, event: string, userId: string): Promise<void> {
+  await notifStore().setJSON(eventLedgerKey(type, season, week, event, userId), { sentAt: new Date().toISOString() });
 }
 
 export async function alreadySent(type: string, season: number, week: number, userId: string): Promise<boolean> {

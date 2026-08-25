@@ -704,7 +704,7 @@
     border-radius: 999px; padding: 4px 12px 4px 4px; font-size: 0.78rem;
   }
   .schedule-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 16px;
     align-items: start;
   }
   .game-card {
@@ -995,15 +995,6 @@
   .impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
   .impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
   .impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
-  .full-matchup-link {
-    display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 12px;
-    border-top: 1px dashed var(--card-border); color: var(--accent); font-size: 0.72rem; font-weight: 700;
-    text-decoration: none; width: 100%;
-  }
-  .full-matchup-link:hover { text-decoration: underline; }
-  .full-matchup-link .fm-brand-mark { flex-shrink: 0; }
-  .full-matchup-link .fm-arrow { transition: transform 0.15s ease; margin-left: auto; }
-  .full-matchup-link:hover .fm-arrow { transform: translateX(2px); }
   .game-page { max-width: 720px; margin: 0 auto; }
   .game-page-back { display: inline-flex; align-items: center; gap: 5px; color: var(--text-dim); font-size: 0.8rem; font-weight: 600; text-decoration: none; margin-bottom: 14px; }
   .game-page-back:hover { color: var(--text); }
@@ -1021,6 +1012,7 @@
     display: flex; align-items: center; gap: 6px; font-size: 0.78rem; text-transform: uppercase;
     letter-spacing: 0.5px; color: var(--text-dim); font-weight: 700; margin: 0 0 12px;
   }
+  .section-title-icon { height: 14px; width: auto; display: block; flex-shrink: 0; }
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .linescore-table, .teamstats-table, .odds-compare-table {
     width: 100%; border-collapse: collapse; font-size: 0.82rem;
@@ -1913,7 +1905,7 @@
   <p>Cleveland Browns @ Jacksonville Jaguars: live odds, injury report, team rankings comparison, and win probability for this matchup.</p>
   <p>Sun, Sep 13 · 1:00 PM ET · CBS</p>
 
-  <p><strong>Final:</strong> Cleveland Browns 13 - 26 Jacksonville Jaguars. Jacksonville Jaguars won. Model prediction was correct.</p>
+  
   <p><strong>Odds (DraftKings):</strong> JAX -7.5 · ML CLE +310 / JAX -395 · O/U 40.5</p>
 
   <h2>Model prediction</h2>
@@ -10202,24 +10194,6 @@ function RankPill({ rank }) {
   return <span className={"rank-pill " + rankClass(rank)}>#{rank}</span>;
 }
 
-function BrandLogo({ size, className }) {
-  const dim = size || 52;
-  return (
-    <svg width={dim} height={dim} viewBox="0 0 512 512" className={className} style={{ flexShrink: 0 }}>
-      <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#00335e"/>
-      <stop offset="100%" stop-color="#001529"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
-  <path d="M23.90234375 352.0V128.5625H84.458984375Q108.833984375 128.5625 119.9423828125 140.4326171875Q131.05078125 152.302734375 131.05078125 179.59765625V189.373046875Q131.05078125 205.115234375 125.4013671875 214.890625Q119.751953125 224.666015625 108.19921875 227.712890625Q123.306640625 231.521484375 128.4482421875 245.5498046875Q133.58984375 259.578125 133.58984375 279.763671875Q133.58984375 301.47265625 129.52734375 317.72265625Q125.46484375 333.97265625 114.80078125 342.986328125Q104.13671875 352.0 84.458984375 352.0ZM67.57421875 212.732421875H76.71484375Q82.935546875 212.732421875 84.712890625 207.908203125Q86.490234375 203.083984375 86.490234375 196.35546875V173.884765625Q86.490234375 163.09375 76.96875 163.09375H67.57421875ZM72.017578125 312.64453125Q89.41015625 312.64453125 89.41015625 296.140625V268.2109375Q89.41015625 258.689453125 86.5537109375 253.1669921875Q83.697265625 247.64453125 75.826171875 247.64453125H67.57421875V312.390625Q70.3671875 312.64453125 72.017578125 312.64453125Z" fill="#ffffff"/>
-  <polygon points="218,118 320,118 258,198 340,198 216,392 250,258 190,258" fill="#FB4F14"/>
-  <path d="M415.22265625 354.03125Q388.435546875 354.03125 374.2802734375 337.8447265625Q360.125 321.658203125 360.125 291.0625V184.9296875Q360.125 156.23828125 374.1533203125 141.384765625Q388.181640625 126.53125 415.22265625 126.53125Q442.263671875 126.53125 456.2919921875 141.384765625Q470.3203125 156.23828125 470.3203125 184.9296875V291.0625Q470.3203125 321.658203125 456.1650390625 337.8447265625Q442.009765625 354.03125 415.22265625 354.03125ZM415.603515625 312.8984375Q425.759765625 312.8984375 425.759765625 293.220703125V184.16796875Q425.759765625 167.6640625 415.857421875 167.6640625Q404.685546875 167.6640625 404.685546875 184.548828125V293.474609375Q404.685546875 303.884765625 407.224609375 308.3916015625Q409.763671875 312.8984375 415.603515625 312.8984375Z" fill="#2dd4bf"/>
-    </svg>
-  );
-}
-
 function BrandWordmark({ height, className }) {
   const h = height || 76;
   return (
@@ -11109,10 +11083,10 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             </div>
           )}
 
-          {/* Reused as-is from the standalone per-game page (SportsbookCompareSection) -
-              only embedded here when this card is NOT already on that page
-              (hideFullMatchupLink is how the caller signals that), so it
-              never renders twice for the same matchup. */}
+          {/* Reused as-is from the standalone per-game page (SportsbookCompareSection,
+              HeadToHeadHistory) - only embedded here when this card is NOT already on
+              that page (hideFullMatchupLink is how the caller signals that), so neither
+              one renders twice for the same matchup. */}
           {!hideFullMatchupLink && (
             <div>
               <div className="sec-label">Compare Sportsbooks</div>
@@ -11127,17 +11101,8 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             </div>
           )}
 
-          {!hideFullMatchupLink && onSelectGame && (
-            <a
-              href={buildGamePath(week, game.away, game.home)}
-              className="full-matchup-link"
-              data-tour="full-matchup-link"
-              onClick={(e) => { e.preventDefault(); onSelectGame(week, game.away, game.home); }}
-            >
-              <BrandLogo size={14} className="fm-brand-mark" />
-              <span>Full matchup &amp; odds history</span>
-              <span className="fm-arrow">→</span>
-            </a>
+          {!hideFullMatchupLink && (
+            <HeadToHeadHistory awayAbbr={game.away} homeAbbr={game.home} />
           )}
         </div>
       )}
@@ -11597,7 +11562,7 @@ function SportsbookCompareSection({ week, awayAbbr, homeAbbr }) {
   if (!rows) {
     return (
       <div className="game-page-section">
-        <div className="section-title"><BrandLogo size={14} /> Compare Sportsbooks</div>
+        <div className="section-title"><img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Compare Sportsbooks</div>
         <span className="hw-tag">Odds not yet posted for this game</span>
       </div>
     );
@@ -11611,7 +11576,7 @@ function SportsbookCompareSection({ week, awayAbbr, homeAbbr }) {
 
   return (
     <div className="game-page-section">
-      <div className="section-title"><BrandLogo size={14} /> Compare Sportsbooks</div>
+      <div className="section-title"><img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Compare Sportsbooks</div>
       <div className="table-scroll">
         <table className="odds-compare-table">
           <thead>
@@ -11776,7 +11741,7 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr }) {
 
   return (
     <div className="game-page-section">
-      <div className="section-title"><BrandLogo size={14} /> Past Matchups</div>
+      <div className="section-title"><img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Past Matchups</div>
       {status === "loading" && <span className="hw-tag">Loading past meetings…</span>}
       {status === "ready" && games.length === 0 && (
         <span className="hw-tag">No prior meetings found in the archive (2015–present).</span>

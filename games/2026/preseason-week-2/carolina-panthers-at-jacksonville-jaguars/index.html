@@ -199,6 +199,7 @@
     display: flex; align-items: center; justify-content: center;
     border-radius: 999px; border: 1px solid var(--card-border); cursor: pointer;
     transition: border-color 0.15s, color 0.15s, background 0.15s;
+    padding: 0; font: inherit;
   }
   .account-btn-signin {
     height: 38px; padding: 0 14px; background: var(--card-bg); color: var(--text-dim); font-size: 13px; font-weight: 600;
@@ -215,8 +216,21 @@
   .account-menu-toggle-chevron { font-size: 10px; line-height: 1; }
   .account-avatar {
     width: 38px; height: 38px; background: var(--accent); color: #062018; border-color: var(--accent);
-    font-size: 15px; font-weight: 700;
+    font-size: 15px; font-weight: 700; overflow: hidden;
   }
+  /* Solid accent teal is only right for the dark-on-teal initial-letter
+     fallback. A chosen icon (many of which skew blue/teal themselves,
+     e.g. the cap) can end up low-contrast against that same teal, so a
+     real avatar gets a neutral card-toned circle instead - same idea as
+     the softer background already used behind the picker in Settings. */
+  .account-avatar.has-glyph { background: var(--surface-2); border-color: var(--card-border); }
+  .account-avatar .avatar-glyph-img { width: 66%; height: 66%; object-fit: contain; }
+  /* Emoji glyphs need a bigger font-size than plain text to read at the same
+     visual size (emoji metrics carry extra built-in padding) - this used to
+     only be set for the bolt/check icons, so every other emoji option in
+     PROFILE_AVATARS shrank along with the "D"-initial fallback on the
+     mobile breakpoint below. Apply to all emoji glyphs, not just those two. */
+  .account-avatar span { font-size: 17px; }
   .account-avatar:hover, .account-avatar:focus-visible { filter: brightness(1.08); }
   .account-dropdown {
     position: absolute; top: 46px; right: 0; min-width: 170px; z-index: 20;
@@ -236,6 +250,7 @@
     .account-btn-signin { height: 34px; padding: 0 12px; font-size: 12.5px; }
     .account-menu-toggle { height: 34px; }
     .account-avatar { width: 34px; height: 34px; font-size: 13px; }
+    .account-avatar span { font-size: 15px; }
   }
 
   .controls-row {
@@ -1169,6 +1184,71 @@
   .settings-section .theme-toggle-btn { flex: 1; justify-content: center; }
   .settings-section .theme-toggle-label { display: inline; }
 
+  /* ---- Profile tab (SettingsModal) ---- */
+  .settings-tabbar {
+    display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 4px; margin-bottom: 18px;
+  }
+  .settings-tab-btn {
+    flex: 1; border: none; background: transparent; color: var(--text-dim); font-family: inherit;
+    font-size: 0.82rem; font-weight: 700; padding: 8px 6px; border-radius: 7px; cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .settings-tab-btn.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); }
+  .settings-tab-btn:hover:not(.active) { color: var(--text); }
+
+  .avatar-preview-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .avatar-preview {
+    width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; background: rgba(var(--accent-rgb),0.16); border: 2px solid var(--accent); flex-shrink: 0;
+    overflow: hidden;
+  }
+  .avatar-preview-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+  .avatar-preview-hint { font-size: 0.76rem; color: var(--text-dim); margin-top: 2px; }
+  .avatar-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 10px; background: var(--surface-2);
+  }
+  .avatar-option {
+    aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; background: rgba(var(--accent-rgb),0.08);
+    display: flex; align-items: center; justify-content: center; font-size: 1.15rem; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s; padding: 0; overflow: hidden;
+  }
+  .avatar-option:hover { background: rgba(var(--accent-rgb),0.16); }
+  .avatar-option.selected { border-color: var(--accent); background: rgba(var(--accent-rgb),0.22); }
+  .avatar-glyph-img { width: 70%; height: 70%; object-fit: contain; }
+  .avatar-preview .avatar-glyph-img { width: 62%; height: 62%; }
+  .branded-orange { color: var(--blitz-orange); }
+  .branded-teal { color: var(--accent); }
+
+  .profile-field { margin-bottom: 16px; }
+  .profile-input {
+    width: 100%; background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 9px;
+    color: var(--text); font-family: inherit; font-size: 0.92rem; padding: 10px 12px; outline: none;
+    transition: border-color 0.15s; box-sizing: border-box;
+  }
+  .profile-input:focus { border-color: var(--accent); }
+  .profile-input:disabled { color: var(--text-dim); cursor: not-allowed; }
+  .profile-field-hint { font-size: 0.74rem; color: var(--text-dim); margin-top: 5px; line-height: 1.4; }
+  .profile-row-inline { display: flex; gap: 8px; align-items: center; }
+  .profile-row-inline .profile-input { flex: 1; }
+  .link-btn {
+    background: none; border: none; color: var(--accent); font-family: inherit; font-size: 0.82rem;
+    font-weight: 700; cursor: pointer; padding: 4px 0; white-space: nowrap;
+  }
+  .link-btn:hover { text-decoration: underline; }
+  .save-btn {
+    width: 100%; background: var(--accent); color: #06201d; border: none; border-radius: 10px;
+    font-family: inherit; font-size: 0.9rem; font-weight: 800; padding: 12px; cursor: pointer;
+    margin-top: 4px; transition: filter 0.15s;
+  }
+  .save-btn:hover { filter: brightness(1.06); }
+  .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .profile-toast {
+    margin-top: 10px; background: var(--win); color: #06210f; font-weight: 700; font-size: 0.82rem;
+    padding: 9px 14px; border-radius: 8px; text-align: center;
+  }
+
   .fav-picker-list { max-height: 320px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 12px; padding: 6px; }
   .fav-picker-group-label {
     font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim);
@@ -1453,7 +1533,13 @@
   .league-standings-avatar {
     width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #062018;
     display: flex; align-items: center; justify-content: center; font-size: 0.66rem; font-weight: 800; flex-shrink: 0;
+    overflow: hidden;
   }
+  .league-standings-avatar.has-glyph { background: var(--surface-2); border: 1px solid var(--card-border); }
+  .league-standings-avatar .avatar-glyph-img { width: 66%; height: 66%; object-fit: contain; }
+  /* Same reasoning as .account-avatar span - emoji glyphs need a bigger
+     font-size than the initial-letter fallback to read at the same size. */
+  .league-standings-avatar span { font-size: 11px; }
   .league-standings-points { font-weight: 800; }
   .league-status-alive { color: var(--win); font-weight: 700; font-size: 0.72rem; }
   .league-status-eliminated { color: var(--out); font-weight: 700; font-size: 0.72rem; text-decoration: line-through; opacity: 0.7; }
@@ -12413,8 +12499,50 @@ function HowItWorksModal({ onClose }) {
   );
 }
 
-function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode, tzId, setTzId, resolvedTz, favorites, onToggleFavorite, onClose }) {
+// Avatar choices for the Profile tab / AccountButton. Branded entries first
+// (the real Blitz Edge icon plus two brand-colored glyphs), then a set of
+// football/fantasy-football emoji. `id` is what's persisted on the profile
+// record (user-profile.mts validates against this same set server-side).
+const PROFILE_AVATARS = [
+  { id: "blitz-edge", type: "image", src: "/branding/blitz-edge-icon.png" },
+  { id: "bolt", type: "emoji", glyph: "⚡", cls: "branded-orange" },
+  { id: "check", type: "emoji", glyph: "✓", cls: "branded-teal" },
+  { id: "football", type: "emoji", glyph: "🏈" },
+  { id: "trophy", type: "emoji", glyph: "🏆" },
+  { id: "medal", type: "emoji", glyph: "🥇" },
+  { id: "target", type: "emoji", glyph: "🎯" },
+  { id: "fire", type: "emoji", glyph: "🔥" },
+  { id: "goat", type: "emoji", glyph: "🐐" },
+  { id: "chart", type: "emoji", glyph: "📈" },
+  { id: "shield", type: "emoji", glyph: "🛡️" },
+  { id: "cleat", type: "emoji", glyph: "👟" },
+  { id: "cap", type: "emoji", glyph: "🧢" },
+  { id: "clipboard", type: "emoji", glyph: "📋" },
+  { id: "party", type: "emoji", glyph: "🎉" },
+  { id: "muscle", type: "emoji", glyph: "💪" },
+  { id: "flag", type: "emoji", glyph: "🚩" },
+  { id: "clock", type: "emoji", glyph: "⏱️" },
+  { id: "stadium", type: "emoji", glyph: "🏟️" },
+  { id: "horn", type: "emoji", glyph: "📣" },
+];
+const PROFILE_AVATAR_IDS = new Set(PROFILE_AVATARS.map(a => a.id));
+function findProfileAvatar(id) {
+  return PROFILE_AVATARS.find(a => a.id === id) || null;
+}
+// Small renderer used both in the Profile tab's picker/preview and in the
+// AccountButton toggle - keeps the image-vs-emoji branching in one place.
+function ProfileAvatarGlyph({ avatar }) {
+  if (!avatar) return null;
+  if (avatar.type === "image") {
+    return <img src={avatar.src} alt="" className="avatar-glyph-img" />;
+  }
+  return <span className={avatar.cls || ""}>{avatar.glyph}</span>;
+}
+
+function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSportsbookId, themeMode, setThemeMode, tzId, setTzId, resolvedTz, favorites, onToggleFavorite, onClose }) {
   const overlayRef = useRef(null);
+  const signedIn = auth && auth.status === "in";
+  const [tab, setTab] = useState(signedIn ? "profile" : "prefs");
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -12438,28 +12566,220 @@ function SettingsModal({ sportsbookId, setSportsbookId, themeMode, setThemeMode,
         <button type="button" className="settings-modal-close" onClick={onClose} aria-label="Close">×</button>
         <h2 className="settings-modal-title">Settings</h2>
 
-        <div className="settings-section">
-          <h3 className="settings-section-title">Sportsbook</h3>
-          <SportsbookPicker bookId={sportsbookId} setBookId={setSportsbookId} />
-        </div>
+        {signedIn && (
+          <div className="settings-tabbar">
+            <button
+              type="button"
+              className={"settings-tab-btn" + (tab === "profile" ? " active" : "")}
+              onClick={() => setTab("profile")}
+            >
+              Profile
+            </button>
+            <button
+              type="button"
+              className={"settings-tab-btn" + (tab === "prefs" ? " active" : "")}
+              onClick={() => setTab("prefs")}
+            >
+              Preferences
+            </button>
+          </div>
+        )}
 
-        <div className="settings-section">
-          <h3 className="settings-section-title">Theme</h3>
-          <ThemeToggle mode={themeMode} setMode={setThemeMode} />
-        </div>
+        {signedIn && tab === "profile" && (
+          <ProfileTab auth={auth} profile={profile} onProfileUpdated={onProfileUpdated} />
+        )}
 
-        <div className="settings-section">
-          <h3 className="settings-section-title">Time Zone</h3>
-          <TimezonePicker tzId={tzId} setTzId={setTzId} resolvedTz={resolvedTz} />
-        </div>
+        {(!signedIn || tab === "prefs") && (
+          <React.Fragment>
+            <div className="settings-section">
+              <h3 className="settings-section-title">Sportsbook</h3>
+              <SportsbookPicker bookId={sportsbookId} setBookId={setSportsbookId} />
+            </div>
 
-        <div className="settings-section">
-          <h3 className="settings-section-title">Favorite Teams</h3>
-          <FavoriteTeamsPicker favorites={favorites} onToggleFavorite={onToggleFavorite} />
-        </div>
+            <div className="settings-section">
+              <h3 className="settings-section-title">Theme</h3>
+              <ThemeToggle mode={themeMode} setMode={setThemeMode} />
+            </div>
+
+            <div className="settings-section">
+              <h3 className="settings-section-title">Time Zone</h3>
+              <TimezonePicker tzId={tzId} setTzId={setTzId} resolvedTz={resolvedTz} />
+            </div>
+
+            <div className="settings-section">
+              <h3 className="settings-section-title">Favorite Teams</h3>
+              <FavoriteTeamsPicker favorites={favorites} onToggleFavorite={onToggleFavorite} />
+            </div>
+          </React.Fragment>
+        )}
       </div>
     </div>,
     document.body
+  );
+}
+
+// Signed-in-only tab inside SettingsModal: avatar (branded icon/glyphs +
+// football emoji), display name, and email. Display name + avatar persist
+// to the user-profile blob (same record leagues/settings already use).
+// Email and display-name changes also go through Netlify Identity directly
+// (currentUser().update(...)) since Identity - not the blob - is the
+// source of truth for login, and an email change specifically triggers
+// GoTrue's own confirmation-link flow rather than applying immediately.
+function ProfileTab({ auth, profile, onProfileUpdated }) {
+  const initialAvatarId = (profile && profile.avatar) || "blitz-edge";
+  const initialName = (profile && profile.displayName) ||
+    (auth.user && auth.user.user_metadata && auth.user.user_metadata.full_name) ||
+    (auth.user && auth.user.email ? auth.user.email.split("@")[0] : "Player");
+  const currentEmail = (auth.user && auth.user.email) || "";
+
+  const [avatarId, setAvatarId] = useState(initialAvatarId);
+  const [displayName, setDisplayName] = useState(initialName);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [emailValue, setEmailValue] = useState(currentEmail);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 2400);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  async function handleSave() {
+    if (saving) return;
+    setSaving(true);
+    const trimmedName = displayName.trim().slice(0, 40) || "Player";
+    const nameChanged = trimmedName !== initialName;
+    const avatarChanged = avatarId !== initialAvatarId;
+    const emailChanged = editingEmail && emailValue.trim() && emailValue.trim() !== currentEmail;
+
+    try {
+      // Identity metadata (full_name) - keeps the Netlify Identity record
+      // itself in sync even though display name is read from the profile
+      // blob elsewhere in the app.
+      if (nameChanged && window.netlifyIdentity && window.netlifyIdentity.currentUser()) {
+        try {
+          await window.netlifyIdentity.currentUser().update({ data: { full_name: trimmedName } });
+        } catch (e) {
+          // Non-fatal - the profile blob update below is what the rest of
+          // the app actually reads from.
+        }
+      }
+
+      if (nameChanged || avatarChanged) {
+        const res = await auth.authenticatedFetch("/.netlify/functions/user-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ displayName: trimmedName, avatar: avatarId }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          onProfileUpdated && onProfileUpdated(updated);
+        }
+      }
+
+      if (emailChanged) {
+        const current = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+        if (current) {
+          await current.update({ email: emailValue.trim() });
+          setToast("Confirmation link sent to new email");
+          setEditingEmail(false);
+          setSaving(false);
+          return;
+        }
+      }
+
+      setToast("Profile updated");
+    } catch (e) {
+      setToast(e && e.message ? e.message : "Couldn't save changes");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const previewAvatar = findProfileAvatar(avatarId) || findProfileAvatar("blitz-edge");
+
+  return (
+    <React.Fragment>
+      <div className="settings-section">
+        <h3 className="settings-section-title">Avatar</h3>
+        <div className="avatar-preview-row">
+          <div className="avatar-preview">
+            <ProfileAvatarGlyph avatar={previewAvatar} />
+          </div>
+          <div>
+            <div className="avatar-preview-name">{displayName || "Player"}</div>
+            <div className="avatar-preview-hint">Pick an icon below</div>
+          </div>
+        </div>
+        <div className="avatar-grid">
+          {PROFILE_AVATARS.map(a => (
+            <button
+              type="button"
+              key={a.id}
+              className={"avatar-option" + (a.id === avatarId ? " selected" : "")}
+              onClick={() => setAvatarId(a.id)}
+              aria-label={a.id}
+            >
+              <ProfileAvatarGlyph avatar={a} />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Display Name</h3>
+        <div className="profile-field">
+          <input
+            className="profile-input"
+            type="text"
+            maxLength={40}
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Display name"
+          />
+          <div className="profile-field-hint">Shown on league standings and picks. Up to 40 characters.</div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Email</h3>
+        <div className="profile-field">
+          <div className="profile-row-inline">
+            <input
+              className="profile-input"
+              type="email"
+              value={editingEmail ? emailValue : currentEmail}
+              disabled={!editingEmail}
+              onChange={(e) => setEmailValue(e.target.value)}
+            />
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => {
+                if (editingEmail) {
+                  setEmailValue(currentEmail);
+                  setEditingEmail(false);
+                } else {
+                  setEditingEmail(true);
+                }
+              }}
+            >
+              {editingEmail ? "Cancel" : "Change"}
+            </button>
+          </div>
+          <div className="profile-field-hint">
+            We'll send a confirmation link to your new address before the change takes effect.
+          </div>
+        </div>
+      </div>
+
+      <button type="button" className="save-btn" onClick={handleSave} disabled={saving}>
+        {saving ? "Saving…" : "Save Profile"}
+      </button>
+
+      {toast && <div className="profile-toast">{toast}</div>}
+    </React.Fragment>
   );
 }
 
@@ -13774,7 +14094,7 @@ function LeagueStandingsPanel({ auth, league }) {
           return (
             <tr key={row.userId} className={row.userId === meId ? "is-me" : ""}>
               <td className={"league-standings-rank" + (row.rank === 1 ? " gold" : "")}>{row.rank}</td>
-              <td><div className="league-standings-user"><div className="league-standings-avatar">{(row.displayName || "?")[0]}</div>{row.displayName}</div></td>
+              <td><div className="league-standings-user"><div className={"league-standings-avatar" + (row.avatar && findProfileAvatar(row.avatar) ? " has-glyph" : "")}>{row.avatar && findProfileAvatar(row.avatar) ? <ProfileAvatarGlyph avatar={findProfileAvatar(row.avatar)} /> : (row.displayName || "?")[0]}</div>{row.displayName}</div></td>
               <td>{extra}</td>
               <td>{row.correct}</td>
               <td className="league-standings-points">{row.points}</td>
@@ -15825,7 +16145,7 @@ function TabBar({ activeTab, onSelectTab, leaguesEnabled }) {
   );
 }
 
-function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks, onReplayTour }) {
+function AccountButton({ auth, profile, onOpenLeagues, onOpenSettings, onOpenHowItWorks, onReplayTour }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -15880,20 +16200,22 @@ function AccountButton({ auth, onOpenLeagues, onOpenSettings, onOpenHowItWorks, 
     );
   }
 
-  const name = (auth.user && auth.user.user_metadata && auth.user.user_metadata.full_name) ||
+  const name = (profile && profile.displayName) ||
+    (auth.user && auth.user.user_metadata && auth.user.user_metadata.full_name) ||
     (auth.user && auth.user.email) || "Player";
   const initial = name.charAt(0).toUpperCase();
+  const chosenAvatar = profile && profile.avatar ? findProfileAvatar(profile.avatar) : null;
 
   return (
     <div className="account-menu" ref={ref} data-tour="account-menu">
       <button
         type="button"
-        className="account-btn account-avatar"
+        className={"account-btn account-avatar" + (chosenAvatar ? " has-glyph" : "")}
         onClick={() => setOpen(v => !v)}
         aria-label="Account menu"
         aria-expanded={open}
       >
-        {initial}
+        {chosenAvatar ? <ProfileAvatarGlyph avatar={chosenAvatar} /> : initial}
       </button>
       {open && (
         <div className="account-dropdown">
@@ -16497,6 +16819,7 @@ function App() {
     return route && route.view === "game" ? { week: route.week, awayAbbr: route.awayAbbr, homeAbbr: route.homeAbbr } : null;
   });
   const [favorites, setFavorites] = useState(loadFavorites);
+  const [profile, setProfile] = useState(null);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
@@ -16590,6 +16913,7 @@ function App() {
         const res = await auth.authenticatedFetch("/.netlify/functions/user-profile");
         if (!res.ok || cancelled) return;
         const profile = await res.json();
+        if (!cancelled) setProfile(profile);
         const s = profile && profile.settings;
         if (!s || cancelled) return;
         skipNextSettingsSaveRef.current = true;
@@ -16607,7 +16931,10 @@ function App() {
   }, [auth.status, auth.user]);
 
   useEffect(() => {
-    if (auth.status === "out") settingsLoadedForUserRef.current = null;
+    if (auth.status === "out") {
+      settingsLoadedForUserRef.current = null;
+      setProfile(null);
+    }
   }, [auth.status]);
 
   // Push local setting changes back to the account so they follow the user
@@ -16749,6 +17076,7 @@ function App() {
         <div className="header-right-cluster">
           <AccountButton
             auth={auth}
+            profile={profile}
             onOpenLeagues={goToLeaguesTab}
             onOpenSettings={() => setShowSettings(true)}
             onOpenHowItWorks={() => setShowHowItWorks(true)}
@@ -16869,6 +17197,9 @@ function App() {
 
       {showSettings && (
         <SettingsModal
+          auth={auth}
+          profile={profile}
+          onProfileUpdated={setProfile}
           sportsbookId={sportsbookId}
           setSportsbookId={setSportsbookId}
           themeMode={themeMode}

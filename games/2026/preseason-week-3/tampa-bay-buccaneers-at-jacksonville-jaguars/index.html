@@ -14591,9 +14591,21 @@ function StandingsMeCard({ row, rankOf, total, format, survivorStatus }) {
   );
 }
 
-function LeagueStandingsPanel({ auth, league }) {
+function LeagueStandingsPanel({ auth, profile, league }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+
+  // Editing your avatar or display name in Settings updates `profile` in
+  // App, but nothing here depended on it, so an already-open standings
+  // table kept rendering the name and icon from whenever it last fetched.
+  // (Before `auth` was memoized this was masked: every App re-render
+  // changed the auth identity and re-fired this effect, so the table
+  // happened to refetch constantly. Fixing that churn exposed the real
+  // missing dependency.) Keyed on the two fields that actually appear in
+  // the table rather than the whole object, so unrelated profile writes -
+  // theme, sportsbook, favorites, all of which live on the same record -
+  // don't trigger a pointless refetch.
+  const identityKey = `${(profile && profile.displayName) || ""}|${(profile && profile.avatar) || ""}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -14609,7 +14621,7 @@ function LeagueStandingsPanel({ auth, league }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [auth, league.id]);
+  }, [auth, league.id, identityKey]);
 
   if (error) return <p className="leagues-error">{error}</p>;
   if (!data) return <p className="leagues-empty">Loading…</p>;
@@ -14618,9 +14630,25 @@ function LeagueStandingsPanel({ auth, league }) {
   // members results-process has scored - people with nothing scored yet
   // carry hasResults:false and are rendered as "not played yet" rather
   // than as a real 0-0, 0% record.
-  const rows = data.season || [];
-  const survivor = data.survivor || null;
   const meId = auth.user && auth.user.id;
+
+  // The refetch above eventually brings the new name/icon back from the
+  // server, but "eventually" is a round trip the user reads as the change
+  // not having taken. For the viewer's own row we already hold the
+  // authoritative values locally, so paint them immediately and let the
+  // fetch confirm. Only the viewer's row is overridden - everyone else's
+  // identity genuinely has to come from the server.
+  const rawRows = data.season || [];
+  const rows = (profile && meId)
+    ? rawRows.map(r => (r.userId === meId
+        ? {
+            ...r,
+            displayName: profile.displayName || r.displayName,
+            avatar: profile.avatar !== undefined ? profile.avatar : r.avatar,
+          }
+        : r))
+    : rawRows;
+  const survivor = data.survivor || null;
   const meRow = rows.find(r => r.userId === meId) || null;
   const scoredCount = rows.filter(r => r.hasResults).length;
   const anyResults = scoredCount > 0;
@@ -14790,9 +14818,14 @@ function LeaguePicksGame({ game, format, tz, meId }) {
  *  see league-picks.mts. The client never receives an unlocked game's picks,
  *  so this component can render whatever it's given without needing to
  *  police the deadline itself. */
-function LeaguePicksPanel({ auth, league, week, tz }) {
+function LeaguePicksPanel({ auth, profile, league, week, tz }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+
+  // Same missing dependency as LeagueStandingsPanel - this panel prints
+  // member names too, so a display-name change made in Settings while it's
+  // open needs to re-pull. Keyed on the fields that actually render here.
+  const identityKey = `${(profile && profile.displayName) || ""}|${(profile && profile.avatar) || ""}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -14809,7 +14842,7 @@ function LeaguePicksPanel({ auth, league, week, tz }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [auth, league.id, week]);
+  }, [auth, league.id, week, identityKey]);
 
   if (error) return <p className="leagues-error">{error}</p>;
   if (!data) return <p className="leagues-empty">Loading…</p>;
@@ -14819,15 +14852,24 @@ function LeaguePicksPanel({ auth, league, week, tz }) {
   const lockedCount = games.filter(g => g.locked).length;
 
   // Members with no pick on a locked game, computed here rather than
-  // server-side so the response stays a plain list of picks.
-  const membersById = new Map((data.members || []).map(m => [m.userId, m]));
+  // server-side so the response stays a plain list of picks. The viewer's
+  // own entry is overridden from the local profile for the same reason as
+  // in the standings table - we already hold the authoritative value, so
+  // there's no need to make them wait on the refetch to see it.
+  const membersById = new Map((data.members || []).map(m => [
+    m.userId,
+    (profile && meId && m.userId === meId)
+      ? { ...m, displayName: profile.displayName || m.displayName }
+      : m,
+  ]));
+  const members = Array.from(membersById.values());
   const decorated = games.map(g => {
     if (!g.locked) return g;
     const picked = new Set(g.picks.map(p => p.userId));
     return {
       ...g,
       picks: g.picks.map(p => ({ ...p, displayName: membersById.get(p.userId)?.displayName || "Player" })),
-      noPick: (data.members || []).filter(m => !picked.has(m.userId)),
+      noPick: members.filter(m => !picked.has(m.userId)),
     };
   });
 
@@ -14855,7 +14897,7 @@ function LeaguePicksPanel({ auth, league, week, tz }) {
 // icon on the landing page or "Manage" in the per-league header, and
 // "closing" any of them just returns to the landing page rather than a
 // modal, since the whole tab now behaves like a small nested nav.
-function LeagueView({ auth, onRequestLogin, tz, pendingJoin, onConsumePendingJoin }) {
+function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   const [selectedLeagueId, setSelectedLeagueId] = useState(null);
   const [managingLeagueId, setManagingLeagueId] = useState(null);
@@ -15006,8 +15048,8 @@ function LeagueView({ auth, onRequestLogin, tz, pendingJoin, onConsumePendingJoi
             <button type="button" className={"league-subtab" + (subTab === "standings" ? " active" : "")} onClick={() => setSubTab("standings")}>Standings</button>
           </div>
           {subTab === "week" && <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} />}
-          {subTab === "picks" && <LeaguePicksPanel auth={auth} league={league} week={week} tz={tz} />}
-          {subTab === "standings" && <LeagueStandingsPanel auth={auth} league={league} />}
+          {subTab === "picks" && <LeaguePicksPanel auth={auth} profile={profile} league={league} week={week} tz={tz} />}
+          {subTab === "standings" && <LeagueStandingsPanel auth={auth} profile={profile} league={league} />}
         </div>
       </div>
     );
@@ -17954,6 +17996,7 @@ function App() {
         <LeagueView
           key={leagueTabResetKey}
           auth={auth}
+          profile={profile}
           onRequestLogin={() => auth.openLogin()}
           tz={resolvedTz}
           pendingJoin={pendingJoin}

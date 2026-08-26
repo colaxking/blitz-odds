@@ -382,16 +382,53 @@ a week is swept**, the ledger is empty. Without the guard, every completed
 game in the schedule would fire at once. Anything that changes how finals
 are detected needs to keep an equivalent bound.
 
-## Last call is once a week, not once a slate
+## Last call fires at two locking slots, not one
 
-It fires ahead of the week's first kickoff, when picks start locking — not
-before Thursday *and* Sunday *and* Monday. The evening-before email already
-covers the week; this is the final safety net, and a net that fires three
-times a week is nagging. Per-slate nudges want the 90-second tick anyway, so
-they're a Phase 3 question.
+Picks lock per game at that game's own kickoff, so a week is not one
+deadline. Week 6 of 2026:
 
-It is also **the only alert allowed through quiet hours**. A pick deadline
-you slept through is worse than being woken for it.
+| Games locking | Kickoff |
+|---|---|
+| 1 | Thu 8:15 PM |
+| 1 | Sun 9:30 AM |
+| **7** | **Sun 1:00 PM** |
+| 1 | Sun 4:05 PM |
+| 2 | Sun 4:25 PM |
+| 1 | Sun 8:20 PM |
+| 1 | Mon 8:15 PM |
+
+Fourteen games, seven deadlines, and half the slate locking in one moment on
+Sunday afternoon against a single Thursday opener.
+
+Nudging every slot is seven pushes a week on top of the evening-before
+email. Nudging only the first — which is what this did originally — leaves
+the hole that actually matters: someone who picks the Thursday game and
+forgets the rest gets no warning at all before the Sunday block.
+
+`lastCallSlots()` takes the two that count: **the week's first kickoff, and
+the biggest block** if that's a different moment. In practice the second
+rarely fires, because most people have picked by Sunday morning — it exists
+for the stragglers, who are exactly who a last call is for.
+
+Copy states what's locking *now* rather than what's open in total. "14 games
+still open" 90 minutes before a Thursday opener is true and useless when
+thirteen of them have three more days; "1 game locks in 95 minutes — 11 more
+open after that" is the honest version.
+
+**Do not gate this pass on `reminderWeek`.** That's "the earliest week whose
+*first* kickoff hasn't happened yet", so it goes null the moment the
+Thursday game starts — which made the Sunday anchor unreachable by
+construction, silently, for a whole season. It uses `weekOfNextKickoff()`
+instead: the week that still has games left to lock. This was caught only
+because the test drove a realistic week shape rather than a two-game
+fixture; a synthetic week with one kickoff time would have passed happily.
+
+Survivor is one pick for the whole week, so it can't be attributed to a
+slot — it counts against the week's own first kickoff, which is when it
+stops being pickable.
+
+Last call is also **the only alert allowed through quiet hours**. A pick
+deadline you slept through is worse than being woken for it.
 
 ## Testing
 
@@ -401,7 +438,13 @@ against stubbed Blobs and a stubbed `web-push`:
 ```bash
 node /tmp/phase1-test.mjs      # windows, scope, quiet hours, dedupe, finals
 node /tmp/phase1-regress.mjs   # only= filter and dryRun routing
+node /tmp/lastcall-test.mjs    # locking slots against a real Week 6 shape
 ```
+
+Use a realistic week in the fixtures - a Thursday game, a big Sunday block,
+a Monday nighter. The `reminderWeek` bug above was invisible against a
+two-game fixture and obvious the moment the schedule had more than one
+kickoff time.
 
 Bundle with `--external:@netlify/blobs --external:@netlify/functions
 --external:web-push` and resolve those three to in-memory stubs at runtime

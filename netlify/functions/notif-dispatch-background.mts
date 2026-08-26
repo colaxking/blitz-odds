@@ -7,7 +7,7 @@ import {
 } from "./lib/notif.mts";
 import { buildReminderEmail, buildRecapEmail, type RecapLeague, type RecapHighlight } from "./lib/notif-emails.mts";
 import { FORMAT_LABELS } from "./lib/email-shell.mts";
-import { followsGame, deliverAlert, inLeadWindow, minutesUntil, type AlertUser } from "./lib/alerts.mts";
+import { followsGame, deliverAlert, inLeadWindow, minutesUntil, lastCallSlots, type AlertUser } from "./lib/alerts.mts";
 
 // @ts-ignore - plain JS UMD module, no type declarations
 import ScoringEngine from "../../js/scoringEngine.js";
@@ -84,6 +84,29 @@ export function firstKickoffOf(season: number, games: ScheduleGame[]): Date | nu
     if (!earliest || k.getTime() < earliest.getTime()) earliest = k;
   }
   return earliest;
+}
+
+/**
+ * The week containing the next kickoff from `now` - i.e. the week that still
+ * has games left to lock, which is not the same question as "which week
+ * hasn't started". A week is current from before its Thursday opener right
+ * through to its Monday night game.
+ */
+export function weekOfNextKickoff(
+  weeks: Array<{ week: number; games: ScheduleGame[] }>,
+  now: Date
+): { week: number; games: ScheduleGame[]; kickoff: Date } | null {
+  let best: { week: number; games: ScheduleGame[]; kickoff: Date } | null = null;
+  for (const w of weeks) {
+    for (const g of w.games || []) {
+      const k = parseKickoffUTC(CURRENT_SEASON, g.date, g.time);
+      if (!k || k.getTime() <= now.getTime()) continue;
+      if (!best || k.getTime() < best.kickoff.getTime()) {
+        best = { week: w.week, games: w.games || [], kickoff: k };
+      }
+    }
+  }
+  return best;
 }
 
 function gameWithKickoff(season: number, games: ScheduleGame[], at: Date): ScheduleGame | null {
@@ -521,45 +544,81 @@ export default async (req: Request, _context: Context) => {
       }
 
       // ---- Last call ------------------------------------------------------
-      // One per user per week, ahead of the week's first kickoff - the point
-      // at which picks start locking. Deliberately not one per slate: the
-      // evening-before email already covers the week, this is the final
-      // safety net, and a nudge that can fire on Thursday, Sunday and Monday
-      // is how a safety net becomes nagging. Per-slate nudges want the
-      // 90-second tick from Phase 3 anyway, so they can be revisited there.
-      if (reminderWeek && inLeadWindow(now, reminderWeek.kickoff, LAST_CALL_LEAD_MIN)) {
-        const rw = reminderWeek;
-        for (const u of users) {
-          if (!u.leagues.length) { tally(report.lastCall, "no-leagues"); continue; }
-          try {
-            const prefs = await getPrefs(u.userId);
-            if (!prefs.push.lastCall) { tally(report.lastCall, "off"); continue; }
+      // Picks lock per game at that game's own kickoff, so a week isn't one
+      // deadline - Week 6 of 2026 has fourteen games across seven of them,
+      // with seven games locking together at Sunday 1:00 PM against a single
+      // Thursday opener. Nudging every slot would be seven pushes a week on
+      // top of the evening-before email. Nudging only the first leaves the
+      // real hole: someone who picks the Thursday game and forgets the rest
+      // gets no warning before half the slate locks on Sunday afternoon.
+      //
+      // lastCallSlots picks the two that matter - first kickoff, and the
+      // biggest block. The second usually doesn't fire, because most people
+      // have picked by Sunday morning; it's there for the stragglers, who
+      // are exactly who a last call is for.
+      // NOT gated on reminderWeek. That's "the earliest week whose FIRST
+      // kickoff hasn't happened yet", so it goes null the moment the
+      // Thursday game starts - which would make the Sunday anchor slot
+      // unreachable by construction, silently, for the entire season. Last
+      // call needs the week that still has games to lock, not the week that
+      // hasn't started.
+      const lastCallWeek = weekOfNextKickoff(weeks, now);
+      if (lastCallWeek) {
+        const rw = lastCallWeek;
+        const slots = lastCallSlots(CURRENT_SEASON, rw.games)
+          .filter((s) => inLeadWindow(now, s.at, LAST_CALL_LEAD_MIN));
 
-            const open = await openLeaguesFor(u, rw.week, rw.games, { loadLeague, loadMembers, loadSurvivor, leagueStore });
-            if (!open.length) { tally(report.lastCall, "nothing-open"); continue; }
+        for (const slot of slots) {
+          const slotGameIds = new Set(slot.games.map((g) => makeGameId(CURRENT_SEASON, rw.week, g.away, g.home)));
+          // Survivor locks at the week's OWN first kickoff, which after
+          // Thursday is no longer the next one coming up.
+          const weekFirstKickoff = firstKickoffOf(CURRENT_SEASON, rw.games);
+          const isFirstSlot = !!weekFirstKickoff && slot.at.getTime() === weekFirstKickoff.getTime();
+          const mins = minutesUntil(now, slot.at);
 
-            const missing = open.reduce((sum, l) => sum + l.missing, 0);
-            const mins = minutesUntil(now, rw.kickoff);
-            const outcome = await deliverAlert({
-              user: u, prefs, type: "lastcall", event: `w${rw.week}`,
-              season: CURRENT_SEASON, week: rw.week,
-              capability: "alerts.last-call", now, dryRun,
-              // The one alert allowed through quiet hours: a pick deadline
-              // slept through is worse than being woken for it.
-              pierceQuietHours: true,
-              payload: {
-                title: `${mins} minutes to pick`,
-                body: open.length === 1
-                  ? `${missing} game${missing === 1 ? "" : "s"} still open in ${open[0].name}.`
-                  : `${missing} games still open across ${open.length} leagues.`,
-                url: "/leagues",
-                collapseKey: `lastcall:${CURRENT_SEASON}:${rw.week}`,
-                data: { kind: "last-call", week: rw.week },
-              },
-            });
-            tally(report.lastCall, outcome);
-          } catch (err) {
-            report.errors.push({ userId: u.userId, stage: "lastCall", error: err instanceof Error ? err.message : "unknown" });
+          for (const u of users) {
+            if (!u.leagues.length) { tally(report.lastCall, "no-leagues"); continue; }
+            try {
+              const prefs = await getPrefs(u.userId);
+              if (!prefs.push.lastCall) { tally(report.lastCall, "off"); continue; }
+
+              const open = await openGamesFor(u, CURRENT_SEASON, rw.week, rw.games, { loadLeague, loadMembers, loadSurvivor, leagueStore });
+
+              // Only what's locking at THIS slot justifies waking someone.
+              // Survivor has no per-game slot, and stops being pickable at
+              // the week's first kickoff, so it counts against that one.
+              let lockingNow = 0;
+              for (const gid of open.openGameIds) if (slotGameIds.has(gid)) lockingNow++;
+              if (isFirstSlot && open.survivorOpen) lockingNow++;
+              if (lockingNow === 0) { tally(report.lastCall, "nothing-locking"); continue; }
+
+              const laterOpen = open.openGameIds.size + (open.survivorOpen ? 1 : 0) - lockingNow;
+              const noun = lockingNow === 1 ? "game locks" : "games lock";
+              const tail = laterOpen > 0
+                ? ` ${laterOpen} more open after that.`
+                : " That's the last of them this week.";
+
+              const outcome = await deliverAlert({
+                user: u, prefs, type: "lastcall", event: slot.id,
+                season: CURRENT_SEASON, week: rw.week,
+                capability: "alerts.last-call", now, dryRun,
+                // The one alert allowed through quiet hours: a pick deadline
+                // slept through is worse than being woken for it.
+                pierceQuietHours: true,
+                payload: {
+                  title: `${lockingNow} ${noun} in ${mins} minutes`,
+                  body: (open.leagueNames.length === 1
+                    ? `Still unpicked in ${open.leagueNames[0]}.`
+                    : `Still unpicked across ${open.leagueNames.length} leagues.`) + tail,
+                  url: "/leagues",
+                  collapseKey: `lastcall:${CURRENT_SEASON}:${rw.week}`,
+                  data: { kind: "last-call", week: rw.week, slot: slot.id },
+                },
+              });
+              tally(report.lastCall, outcome);
+            } catch (err) {
+              report.errors.push({ userId: u.userId, stage: "lastCall", error: err instanceof Error ? err.message : "unknown" });
+            }
           }
         }
       }
@@ -614,6 +673,65 @@ async function openLeaguesFor(
   }
 
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// Last call: which specific games are still unpicked
+// ---------------------------------------------------------------------------
+
+/**
+ * Same league-eligibility rules as openLeaguesFor, but resolved down to
+ * individual games rather than a per-league count.
+ *
+ * The count is what the reminder email needs ("3 games open in Sunday
+ * Funday"); the last-call push needs to know *which* games, because it has
+ * to distinguish "about to lock right now" from "open but not until
+ * Sunday". Saying "14 games still open" 90 minutes before a Thursday opener
+ * is true and useless - thirteen of them have three more days.
+ */
+async function openGamesFor(
+  u: { userId: string; leagues: string[] },
+  season: number,
+  week: number,
+  games: ScheduleGame[],
+  io: any
+): Promise<{ openGameIds: Set<string>; survivorOpen: boolean; leagueNames: string[] }> {
+  const openGameIds = new Set<string>();
+  const leagueNames: string[] = [];
+  let survivorOpen = false;
+
+  for (const leagueId of u.leagues) {
+    const league = await io.loadLeague(leagueId);
+    if (!league || league.locked || league.season !== season) continue;
+
+    const members = await io.loadMembers(leagueId);
+    if (!members?.members?.some((m: any) => m.userId === u.userId)) continue;
+
+    // Survivor is one pick for the whole week rather than one per game, so
+    // it can't be attributed to a slot. It's treated as locking at the
+    // week's first kickoff, which is when it actually stops being pickable.
+    if (league.format === "survivor") {
+      const state = await io.loadSurvivor(leagueId);
+      if (state?.[u.userId]?.alive === false) continue;
+      const anyPick = await Promise.all(
+        games.map((g) => io.leagueStore.get(`picks:${leagueId}:${week}:${u.userId}:${makeGameId(season, week, g.away, g.home)}`, { type: "json" }))
+      );
+      if (!anyPick.some(Boolean)) { survivorOpen = true; leagueNames.push(league.name); }
+      continue;
+    }
+
+    let anyOpen = false;
+    await Promise.all(
+      games.map(async (g) => {
+        const gid = makeGameId(season, week, g.away, g.home);
+        const pick = await io.leagueStore.get(`picks:${leagueId}:${week}:${u.userId}:${gid}`, { type: "json" });
+        if (!pick) { openGameIds.add(gid); anyOpen = true; }
+      })
+    );
+    if (anyOpen) leagueNames.push(league.name);
+  }
+
+  return { openGameIds, survivorOpen, leagueNames };
 }
 
 // ---------------------------------------------------------------------------

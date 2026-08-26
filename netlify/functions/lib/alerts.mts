@@ -1,4 +1,5 @@
 import { makeGameId } from "./gameId.mts";
+import { parseKickoffUTC } from "./kickoff.mts";
 import {
   getPrefs, inQuietHours, alreadySentEvent, markSentEvent, type NotifPrefs,
 } from "./notif.mts";
@@ -160,3 +161,67 @@ export function inLeadWindow(now: Date, target: Date, leadMinutes: number, windo
 export function minutesUntil(now: Date, target: Date): number {
   return Math.max(0, Math.round((target.getTime() - now.getTime()) / 60000));
 }
+
+/* ------------------------------------------------------------------------ */
+/* Locking slots                                                             */
+/* ------------------------------------------------------------------------ */
+
+export interface LockSlot {
+  /** Kickoff instant shared by every game in the slot. */
+  at: Date;
+  games: ScheduleGame[];
+  /** Stable id for the ledger, e.g. "2026-10-18T17:00:00.000Z". */
+  id: string;
+}
+
+/**
+ * Games grouped by the moment they lock, earliest first.
+ *
+ * Picks lock per game at that game's own kickoff, so a week is not one
+ * deadline - a typical week has around seven, and they are wildly uneven.
+ * Week 6 of 2026: fourteen games across seven kickoff times, with SEVEN of
+ * them locking together at Sunday 1:00 PM and the Thursday opener being a
+ * single game.
+ */
+export function lockSlots(season: number, games: ScheduleGame[]): LockSlot[] {
+  const byTime = new Map<number, LockSlot>();
+  for (const g of games) {
+    const at = parseKickoffUTC(season, g.date, g.time);
+    if (!at) continue;   // flexed/TBD placeholder
+    const key = at.getTime();
+    if (!byTime.has(key)) byTime.set(key, { at, games: [], id: at.toISOString() });
+    byTime.get(key)!.games.push(g);
+  }
+  return [...byTime.values()].sort((a, b) => a.at.getTime() - b.at.getTime());
+}
+
+/**
+ * The slots worth a last-call nudge: the week's first kickoff, plus the
+ * biggest block of games if that's a different moment. At most two.
+ *
+ * Nudging every slot would be seven pushes a week on top of the
+ * evening-before email, which is nagging rather than helping. Nudging only
+ * the first - which is what this originally did - leaves the real hole:
+ * the opener is usually one game, so the alert fires when a single pick is
+ * about to lock and then stays silent through the Sunday block where half
+ * the slate locks at once. Someone who picks the Thursday game and forgets
+ * the rest would get no second warning at all.
+ *
+ * First-and-biggest covers both ends. In practice the second rarely fires,
+ * because most people have picked by Sunday morning - it exists for the
+ * stragglers, who are exactly who a last call is for.
+ */
+export function lastCallSlots(season: number, games: ScheduleGame[]): LockSlot[] {
+  const slots = lockSlots(season, games);
+  if (slots.length <= 1) return slots;
+
+  const first = slots[0];
+  let biggest = slots[0];
+  for (const s of slots) {
+    // Strictly greater, so an early slot wins a tie - a nudge is more useful
+    // before the first of two equal blocks than before the second.
+    if (s.games.length > biggest.games.length) biggest = s;
+  }
+  return biggest.id === first.id ? [first] : [first, biggest];
+}
+

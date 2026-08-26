@@ -79,14 +79,21 @@ export async function listDevices(userId: string): Promise<Array<{ id: string; d
   const out: Array<{ id: string; device: PushDevice }> = [];
   const prefix = `push:${userId}:`;
   for await (const page of store.list({ prefix, paginate: true })) {
-    for (const blob of page.blobs) {
-      try {
-        const device = (await store.get(blob.key, { type: "json" })) as PushDevice | null;
-        if (device) out.push({ id: blob.key.slice(prefix.length), device });
-      } catch {
-        // One unreadable row shouldn't cost the user every other device.
-      }
-    }
+    // One request per device, issued together rather than in a chain. These
+    // are independent reads and there are only ever a handful of them, so
+    // the page costs one round trip instead of N. Settled individually so
+    // one unreadable row still doesn't cost the user every other device.
+    const rows = await Promise.all(
+      page.blobs.map(async (blob) => {
+        try {
+          const device = (await store.get(blob.key, { type: "json" })) as PushDevice | null;
+          return device ? { id: blob.key.slice(prefix.length), device } : null;
+        } catch {
+          return null;
+        }
+      })
+    );
+    for (const row of rows) if (row) out.push(row);
   }
   return out;
 }

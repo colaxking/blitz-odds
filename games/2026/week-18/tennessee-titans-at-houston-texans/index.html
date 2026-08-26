@@ -1267,6 +1267,10 @@
   .notif-switch[aria-checked="true"] { background: var(--accent); }
   .notif-switch[aria-checked="true"]::after { transform: translateX(19px); }
   .notif-switch:disabled { opacity: 0.45; cursor: not-allowed; }
+  .notif-loading-note {
+    font-size: 0.74rem; font-weight: 600; color: var(--text-dim);
+    margin: 0 0 12px; letter-spacing: 0.01em;
+  }
   .notif-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   .notif-tz {
     display: flex; justify-content: space-between; align-items: center; gap: 10px;
@@ -13792,8 +13796,57 @@ function ProBadge() {
   return <span className="notif-channel-tag pro">Pro · free in beta</span>;
 }
 
+// Mirrors DEFAULT_PREFS / DEFAULT_PUSH_PREFS in netlify/functions/lib/notif.mts.
+// Only ever seen by an account that has never saved prefs and has no cached
+// copy on this device; everyone else is seeded from NOTIF_PREFS_CACHE below.
+// If the server defaults change, change these too.
+const CLIENT_DEFAULT_NOTIF_PREFS = {
+  emailPickReminders: true,
+  emailWeeklyRecap: true,
+  emailRecapTeamNews: false,
+  timezone: "America/New_York",
+  push: {
+    kickoff: true, scoring: "lead", final: true, scope: "fav",
+    injuries: "key", inGameInjury: true, lastCall: true,
+    quietFrom: 23, quietTo: 7,
+  },
+};
+
+// Last-known prefs per account, so reopening Settings paints the reader's
+// actual switch positions immediately rather than the generic defaults and
+// then flipping them a second later when the fetch lands. Keyed by Identity
+// id: a second account on the same browser must not inherit the first's.
+const NOTIF_PREFS_CACHE_KEY = (userId) => `blitzNotifPrefs:${userId}`;
+
+function readCachedNotifPrefs(userId) {
+  if (!userId) return null;
+  try {
+    const raw = window.localStorage.getItem(NOTIF_PREFS_CACHE_KEY(userId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !parsed.push) return null;
+    // Merged over the defaults so a cache written by an older build, before
+    // a field existed, can't hand the render `undefined` for it.
+    return {
+      ...CLIENT_DEFAULT_NOTIF_PREFS,
+      ...parsed,
+      push: { ...CLIENT_DEFAULT_NOTIF_PREFS.push, ...parsed.push },
+    };
+  } catch (e) { return null; }
+}
+
+function writeCachedNotifPrefs(userId, prefs) {
+  if (!userId || !prefs) return;
+  try { window.localStorage.setItem(NOTIF_PREFS_CACHE_KEY(userId), JSON.stringify(prefs)); } catch (e) {}
+}
+
 function NotificationsTab({ auth, resolvedTz, favorites }) {
-  const [prefs, setPrefs] = useState(null);
+  const userId = (auth.user && auth.user.id) || null;
+  // Seeded, never null - the panel renders on the first frame. `loaded`
+  // is what says whether these numbers are the server's or a guess, and
+  // every control stays disabled until it flips.
+  const [prefs, setPrefs] = useState(() => readCachedNotifPrefs(userId) || CLIENT_DEFAULT_NOTIF_PREFS);
+  const [loaded, setLoaded] = useState(false);
   const [devices, setDevices] = useState([]);
   const [vapidKey, setVapidKey] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -13818,6 +13871,8 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
         if (cancelled) return;
         if (!data.ok) { setStatus({ kind: "err", text: "Couldn't load your settings." }); return; }
         setPrefs(data.prefs);
+        setLoaded(true);
+        writeCachedNotifPrefs(userId, data.prefs);
         setDevices(data.devices || []);
         setVapidKey(data.vapidPublicKey || null);
         // Keep the server's copy of the timezone aligned with the app's own
@@ -13833,7 +13888,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [authedFetch, resolvedTz]);
+  }, [authedFetch, resolvedTz, userId]);
 
   // Whether THIS browser holds a subscription, which the server's device
   // list can't answer - it knows every device on the account, not which one
@@ -13845,7 +13900,10 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
   }, []);
 
   async function persist(patch, optimistic) {
-    if (!prefs || saving) return;
+    // `prefs` is always populated now, so the guard has to be on whether
+    // the server has actually answered - toggling from a guessed base
+    // would write the guess back as if the reader had chosen it.
+    if (!loaded || saving) return;
     const previous = prefs;
     setPrefs(optimistic);       // the control should move on tap, not after a round trip
     setSaving(true);
@@ -13855,6 +13913,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || "Save failed");
       setPrefs(data.prefs);
+      writeCachedNotifPrefs(userId, data.prefs);
       setStatus({ kind: "ok", text: "Saved" });
     } catch {
       setPrefs(previous);       // roll back to what the server still believes
@@ -13926,22 +13985,32 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
     }
   }
 
-  if (!prefs) {
-    return (
-      <div className="settings-section">
-        <p className="notif-row-desc">{status ? status.text : "Loading\u2026"}</p>
-      </div>
-    );
-  }
-
   const favs = favorites || [];
   const pushLive = subscribedHere;
+  // Everything is interactive except while we're still waiting on the
+  // server's copy - the switch positions on screen are a cached guess until
+  // then, and a tap against a guess would save the guess.
+  const loadFailed = !loaded && status && status.kind === "err";
+  const locked = saving || !loaded;
   const emailCount = (prefs.emailPickReminders ? 1 : 0) + (prefs.emailWeeklyRecap ? 1 : 0);
   const emailText = emailCount === 0 ? "no emails" : emailCount === 1 ? "1 email" : "2 emails";
   const tzLabel = (resolvedTz || prefs.timezone || "").replace(/_/g, " ").split("/").pop() || prefs.timezone;
 
   return (
     <React.Fragment>
+      {!loaded && !loadFailed && (
+        <p className="notif-loading-note" aria-live="polite">{"Loading your alert settings\u2026"}</p>
+      )}
+
+      {loadFailed && (
+        <div className="notif-enable blocked">
+          <p className="notif-enable-title">Couldn't load your alert settings</p>
+          <p className="notif-enable-desc">
+            The switches below are what this device last saw, so they may be out of date — they stay locked until the real settings load. Reload the page to try again.
+          </p>
+        </div>
+      )}
+
       {/* ---- Push permission ---- */}
       {pushEnv === "unsupported" && (
         <div className="notif-enable">
@@ -14007,7 +14076,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
             <p className="notif-row-desc">A heads-up before a game you're following starts.</p>
             <span className="notif-when">Shortly before kickoff</span>
           </div>
-          <NotifSwitch checked={prefs.push.kickoff} disabled={!pushLive || saving} label="Kickoff alerts" onToggle={() => togglePush("kickoff")} />
+          <NotifSwitch checked={prefs.push.kickoff} disabled={!pushLive || locked} label="Kickoff alerts" onToggle={() => togglePush("kickoff")} />
         </div>
 
         <div className="notif-row">
@@ -14017,7 +14086,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
             <NotifSegmented
               label="How much scoring detail"
               value={prefs.push.scoring}
-              disabled={!pushLive || saving}
+              disabled={!pushLive || locked}
               onChange={(v) => setPush("scoring", v)}
               options={[
                 { value: "all", label: "Every score" },
@@ -14033,7 +14102,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
             <p className="notif-row-name">Final score</p>
             <p className="notif-row-desc">The result, plus whether your pick came in.</p>
           </div>
-          <NotifSwitch checked={prefs.push.final} disabled={!pushLive || saving} label="Final score alerts" onToggle={() => togglePush("final")} />
+          <NotifSwitch checked={prefs.push.final} disabled={!pushLive || locked} label="Final score alerts" onToggle={() => togglePush("final")} />
         </div>
 
         <div className="notif-row">
@@ -14043,7 +14112,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
             <NotifSegmented
               label="Which games to follow"
               value={prefs.push.scope}
-              disabled={!pushLive || saving}
+              disabled={!pushLive || locked}
               onChange={(v) => setPush("scope", v)}
               options={[
                 { value: "fav", label: "Favorites" },
@@ -14081,7 +14150,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
                 <NotifSegmented
                   label="Which injury changes"
                   value={prefs.push.injuries}
-                  disabled={!pushLive || saving}
+                  disabled={!pushLive || locked}
                   onChange={(v) => setPush("injuries", v)}
                   options={[
                     { value: "key", label: "Key players" },
@@ -14098,7 +14167,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
                 <p className="notif-row-desc">When someone goes down during a game, before the report is official.</p>
                 <span className="notif-when">Live games only</span>
               </div>
-              <NotifSwitch checked={prefs.push.inGameInjury} disabled={!pushLive || saving} label="In-game injury alerts" onToggle={() => togglePush("inGameInjury")} />
+              <NotifSwitch checked={prefs.push.inGameInjury} disabled={!pushLive || locked} label="In-game injury alerts" onToggle={() => togglePush("inGameInjury")} />
             </div>
           </React.Fragment>
         )}
@@ -14116,7 +14185,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
             <p className="notif-row-desc">Sent only if you still have games open in a league. Skipped once your picks are in.</p>
             <span className="notif-when">Evening before the first kickoff</span>
           </div>
-          <NotifSwitch checked={prefs.emailPickReminders} disabled={saving} label="Pick reminder email" onToggle={() => toggleEmail("emailPickReminders")} />
+          <NotifSwitch checked={prefs.emailPickReminders} disabled={locked} label="Pick reminder email" onToggle={() => toggleEmail("emailPickReminders")} />
         </div>
 
         <div className="notif-row">
@@ -14125,7 +14194,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
             <p className="notif-row-desc">One final nudge before the week's first kickoff if your picks still aren't in.</p>
             <span className="notif-when">About 90 minutes before kickoff</span>
           </div>
-          <NotifSwitch checked={prefs.push.lastCall} disabled={!pushLive || saving} label="Last call push" onToggle={() => togglePush("lastCall")} />
+          <NotifSwitch checked={prefs.push.lastCall} disabled={!pushLive || locked} label="Last call push" onToggle={() => togglePush("lastCall")} />
         </div>
 
         <div className="notif-row">
@@ -14134,7 +14203,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
             <p className="notif-row-desc">How you finished in each league and where you stand now.</p>
             <span className="notif-when">Tuesday morning</span>
           </div>
-          <NotifSwitch checked={prefs.emailWeeklyRecap} disabled={saving} label="Weekly recap email" onToggle={() => toggleEmail("emailWeeklyRecap")} />
+          <NotifSwitch checked={prefs.emailWeeklyRecap} disabled={locked} label="Weekly recap email" onToggle={() => toggleEmail("emailWeeklyRecap")} />
         </div>
 
         {prefs.emailWeeklyRecap && favs.length > 0 && (
@@ -14148,7 +14217,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
               </div>
               <NotifSwitch
                 checked={prefs.emailRecapTeamNews}
-                disabled={saving}
+                disabled={locked}
                 label="Include favorite team news in the recap"
                 onToggle={() => toggleEmail("emailRecapTeamNews")}
               />
@@ -14169,7 +14238,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
           <span>Hold alerts from</span>
           <select
             value={prefs.push.quietFrom === null ? "null" : String(prefs.push.quietFrom)}
-            disabled={!pushLive || saving}
+            disabled={!pushLive || locked}
             onChange={(e) => setPush("quietFrom", e.target.value === "null" ? null : Number(e.target.value))}
           >
             {QUIET_FROM_OPTIONS.map((o) => (
@@ -14181,7 +14250,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
               <span>to</span>
               <select
                 value={String(prefs.push.quietTo)}
-                disabled={!pushLive || saving}
+                disabled={!pushLive || locked}
                 onChange={(e) => setPush("quietTo", Number(e.target.value))}
               >
                 {QUIET_TO_OPTIONS.map((o) => (
@@ -14192,8 +14261,8 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
           )}
         </div>
 
-        <p className={"notif-status" + (status ? " " + status.kind : "")} aria-live="polite">
-          {status ? status.text : ""}
+        <p className={"notif-status" + (status && !loadFailed ? " " + status.kind : "")} aria-live="polite">
+          {status && !loadFailed ? status.text : ""}
         </p>
 
         <div className="notif-tz">

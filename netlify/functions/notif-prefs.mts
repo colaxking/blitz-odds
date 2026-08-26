@@ -34,12 +34,16 @@ export default async (req: Request, _context: Context) => {
 
   try {
     if (req.method === "GET") {
-      const prefs = await getPrefs(userId);
       // The client needs the public VAPID key to call PushManager.subscribe,
       // and the device list to show what's already registered. Both belong
       // to the same screen, so they ride along rather than costing a second
       // round trip on every Settings open.
-      const devices = (await listDevices(userId)).map(({ id, device }) => ({
+      //
+      // The two reads touch different keys and neither depends on the
+      // other, so they go out together - chaining them made the panel wait
+      // for a full extra origin round trip for no reason.
+      const [prefs, deviceRows] = await Promise.all([getPrefs(userId), listDevices(userId)]);
+      const devices = deviceRows.map(({ id, device }) => ({
         id,
         platform: device.platform,
         label: device.label || null,

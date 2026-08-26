@@ -210,6 +210,22 @@
     width: 100%; margin-top: 8px; background: none; border: 1px dashed var(--card-border);
     color: var(--text-dim); font-family: inherit; font-size: 0.76rem; padding: 8px; border-radius: 8px; cursor: pointer;
   }
+
+  /* ---- Injury review queue ---- */
+  .ir-row { border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; }
+  .ir-row.ir-done { opacity:.5; }
+  .ir-top { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .ir-name { font-weight:700; }
+  .ir-meta { color:var(--dim); font-size:.78rem; }
+  .ir-move { font-weight:700; }
+  .ir-tag { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.3px;
+            padding:1px 7px; border-radius:999px; white-space:nowrap; }
+  .ir-tag-tracked { color:#fd7f01; background:rgba(253,127,1,.14); border:1px solid rgba(253,127,1,.35); }
+  .ir-tag-new { color:#4fd1c5; background:rgba(79,209,197,.12); border:1px solid rgba(79,209,197,.32); }
+  .ir-note { color:var(--dim); font-size:.78rem; margin-top:5px; line-height:1.45; }
+  .ir-ours { font-size:.78rem; margin-top:4px; }
+  .ir-actions { margin-top:8px; }
+  .ir-empty { color:var(--dim); font-size:.85rem; padding:8px 2px; }
 </style>
 </head>
 <body>
@@ -264,6 +280,25 @@
       <div class="label">Game page views</div>
       <div class="value" id="kpiGamePageViews">—</div>
     </div>
+  </div>
+
+  <!-- Injury review queue. Fed by notif-injury-dispatch-background: every
+       ESPN status change on a tracked player, plus untracked players at
+       premium positions who might be worth adding. This is the half of the
+       injury system that's for the site owner rather than for readers - the
+       curated file isn't slow because the research is slow, it's slow
+       because nothing says when to look. -->
+  <div class="card" id="injuryReviewCard">
+    <div class="card-head-row">
+      <h2 style="margin:0;">Injury review <span id="injuryReviewCount" class="chart-hint"></span></h2>
+      <div>
+        <label class="chart-hint" style="margin-right:8px;">
+          <input type="checkbox" id="injuryShowDone"> show done
+        </label>
+        <button id="injuryReviewRefresh">Refresh</button>
+      </div>
+    </div>
+    <div id="injuryReviewBody" class="bar-list"></div>
   </div>
 
   <div class="card">
@@ -946,6 +981,130 @@
   refreshTimer = setInterval(function () {
     if (!document.hidden) fetchAndRender(false);
   }, REFRESH_MS);
+
+  /* ---------------- Injury review queue ---------------- */
+  // Gated by a shared secret rather than Identity auth: this page is a plain
+  // static file with no Identity widget, and there's no admin role in the
+  // user model to check. Same pattern as every other write endpoint here.
+  // Kept in localStorage so it's asked for once per browser.
+  var IR_ENDPOINT = "/.netlify/functions/injury-review";
+  var IR_KEY = "blitz-injury-review-secret";
+
+  function irSecret(force) {
+    var s = null;
+    try { s = window.localStorage.getItem(IR_KEY); } catch (e) {}
+    if (!s || force) {
+      s = window.prompt("Injury review secret (INJURY_REVIEW_SECRET):", s || "");
+      if (s) { try { window.localStorage.setItem(IR_KEY, s); } catch (e) {} }
+    }
+    return s;
+  }
+
+  function irEscape(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  }
+
+  function irWhen(iso) {
+    if (!iso) return "";
+    var t = Date.parse(iso);
+    if (isNaN(t)) return "";
+    var mins = Math.round((Date.now() - t) / 60000);
+    if (mins < 60) return mins + " min ago";
+    if (mins < 1440) return Math.round(mins / 60) + "h ago";
+    return new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+
+  function renderInjuryReview(items) {
+    var body = document.getElementById("injuryReviewBody");
+    var count = document.getElementById("injuryReviewCount");
+    var open = items.filter(function (i) { return !i.resolved; }).length;
+    count.textContent = open ? "· " + open + " to look at" : "· all clear";
+
+    if (!items.length) {
+      body.innerHTML = '<div class="ir-empty">Nothing waiting. ESPN hasn\'t moved anyone since the last check.</div>';
+      return;
+    }
+
+    body.innerHTML = items.map(function (i) {
+      var tracked = i.kind === "tracked-change";
+      var move = (i.from || "—") + " \u2192 " + i.to;
+      var ours = tracked && i.ours
+        ? '<div class="ir-ours">Your file says <strong>' + irEscape(i.ours) + "</strong>" +
+          (i.ours !== i.to ? " \u2014 ESPN now disagrees." : " \u2014 already matches.") + "</div>"
+        : "";
+      return '<div class="ir-row' + (i.resolved ? " ir-done" : "") + '">' +
+        '<div class="ir-top">' +
+          '<span class="ir-name">' + irEscape(i.name) + "</span>" +
+          '<span class="ir-meta">' + irEscape(i.team) + " \u00b7 " + irEscape(i.position || "?") + "</span>" +
+          '<span class="ir-move">' + irEscape(move) + "</span>" +
+          '<span class="ir-tag ' + (tracked ? "ir-tag-tracked" : "ir-tag-new") + '">' +
+            (tracked ? "Tracked" : "Not tracked") + "</span>" +
+          '<span class="ir-meta">' + irEscape(irWhen(i.reportedAt || i.seenAt)) + "</span>" +
+        "</div>" +
+        (i.detail || i.returnDate
+          ? '<div class="ir-note">' + irEscape(i.espnStatus || "") +
+            (i.detail ? " \u2014 " + irEscape(i.detail) : "") +
+            (i.returnDate ? ". Est. return " + irEscape(i.returnDate) : "") + ".</div>"
+          : "") +
+        (i.comment ? '<div class="ir-note">' + irEscape(i.comment) + "</div>" : "") +
+        ours +
+        '<div class="ir-actions">' +
+          '<button data-ir-id="' + irEscape(i.id) + '" data-ir-resolved="' + (i.resolved ? "0" : "1") + '">' +
+            (i.resolved ? "Reopen" : "Mark done") + "</button>" +
+        "</div>" +
+      "</div>";
+    }).join("");
+
+    Array.prototype.forEach.call(body.querySelectorAll("button[data-ir-id]"), function (btn) {
+      btn.addEventListener("click", function () {
+        irResolve(btn.getAttribute("data-ir-id"), btn.getAttribute("data-ir-resolved") === "1");
+      });
+    });
+  }
+
+  function loadInjuryReview(force) {
+    var secret = irSecret(force);
+    if (!secret) return;
+    var showDone = document.getElementById("injuryShowDone").checked;
+    fetch(IR_ENDPOINT + (showDone ? "?all=1" : ""), {
+      cache: "no-store",
+      headers: { "x-injury-review-secret": secret }
+    })
+      .then(function (r) {
+        if (r.status === 401) { throw new Error("unauthorized"); }
+        return r.json();
+      })
+      .then(function (d) {
+        if (!d.ok) throw new Error(d.error || "failed");
+        renderInjuryReview(d.items || []);
+      })
+      .catch(function (e) {
+        var body = document.getElementById("injuryReviewBody");
+        if (String(e.message) === "unauthorized") {
+          body.innerHTML = '<div class="ir-empty">Wrong secret. Click Refresh to re-enter it.</div>';
+          try { window.localStorage.removeItem(IR_KEY); } catch (err) {}
+        } else {
+          body.innerHTML = '<div class="ir-empty">Couldn\'t load the review queue.</div>';
+        }
+      });
+  }
+
+  function irResolve(id, resolved) {
+    var secret = irSecret(false);
+    if (!secret) return;
+    fetch(IR_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-injury-review-secret": secret },
+      body: JSON.stringify({ id: id, resolved: resolved })
+    }).then(function () { loadInjuryReview(false); });
+  }
+
+  document.getElementById("injuryReviewRefresh").addEventListener("click", function () { loadInjuryReview(true); });
+  document.getElementById("injuryShowDone").addEventListener("change", function () { loadInjuryReview(false); });
+  loadInjuryReview(false);
+
 })();
 </script>
 </body>

@@ -562,3 +562,99 @@ game, and the off-season short-circuit.
 
 `force: true` polls even when the schedule says nothing is on, which is the
 only way to exercise this out of season.
+
+
+---
+
+# Phase 4: injuries
+
+Two halves. Readers get fast, generic alerts; Dan gets a review queue that
+tells him when to look.
+
+```
+lib/espn-injuries.mts                 feed fetch, normalisation, COLLAPSE map
+notif-injury-dispatch.mts             synchronous front door
+notif-injury-dispatch-background.mts  the diff, the alerts, the queue
+injury-review.mts                     queue read/resolve (x-injury-review-secret)
+scripts/injury-espn-refresh.mjs       trimmed mirror -> site-data, for the UI
+analytics.html                        the queue panel
+```
+
+## The rule everything rests on
+
+**Diff ESPN against its own previous snapshot, never against
+`impact-players.json`.**
+
+The two sources disagree constantly and always have — 13 of 71 tracked
+players the day this shipped. Those are standing drift, not events: ESPN
+reports the official designation, the curated file reports what actually
+happened. Diffing against the curated file would fire a dozen alerts on the
+first tick for nothing, and again every time the snapshot was lost.
+
+**ESPN never writes a status.** 12 tracked players had no ESPN record at all,
+eight of them carried as "out" — a feed-driven status would have been wrong
+about eight players immediately.
+
+## Collapse before comparing
+
+Six ESPN statuses map onto three of ours. Without that, a routine
+Out → Injured Reserve move reads as an escalation and fires an alert for a
+transition that means nothing to a pick'em player.
+
+## First run is silent
+
+No snapshot means every record looks new. The first tick records the world
+and alerts on nothing. Firing 800 alerts because a blob went missing is not
+recoverable. There's a second guard too: a report whose own timestamp is
+more than 36 hours old is recorded, not alerted — that's backfill, not news.
+
+## Copy reports the designation, not availability
+
+> **Injury update — George Kittle (SF)**
+> ESPN now lists him Out. Achilles, right, surgery. Tap for the full picture.
+
+True even when the curated file says otherwise, because ESPN does list him
+that way. Never assert duration, never say "for Sunday". The tap-through
+lands on `/teams/{slug}/injuries`, where the two-layer block shows both.
+
+## Who gets alerted
+
+Tracked players only, to followers of that player's team, filtered by the
+`injuries` preference — `"key"` means impactScore ≥ 7, `"all"` means any
+tracked player. An untracked name has no impact score and no curated note;
+it goes to the queue and starts alerting once it's added to the file.
+
+Team comes from the **curated** file, not ESPN — a starred team follows the
+roster the app believes in, and the two differ after a trade.
+
+## The review queue
+
+Every change on a tracked player, plus untracked players at premium
+positions with a real designation. Items are marked done rather than
+deleted, so a repeat is recognisable as a repeat, and swept after 21 days on
+read.
+
+Gated by `INJURY_REVIEW_SECRET` (new env var) rather than Identity auth:
+analytics.html is a static page with no Identity widget, and there's no admin
+role in the user model. The GET is gated too — the contents aren't secret,
+but a list of exactly which players the site is currently wrong about isn't
+worth leaving open.
+
+## Testing
+
+```bash
+node /tmp/inj-test.mjs    # diff, collapse, thresholds, queue routing
+```
+
+Stub `fetch` for the injuries URL and swap the fake feed between ticks.
+Cover: first run silent, a standing disagreement never firing, a real ESPN
+move alerting, Out → IR not counting, the key/all threshold, the favourites
+filter, untracked-premium queueing without alerting, untracked-non-premium
+ignored, and a stale report recorded but not alerted.
+
+## Two copies of the same map
+
+`scripts/injury-espn-refresh.mjs` duplicates the normalisation in
+`lib/espn-injuries.mts`, because the script is plain `.mjs` run from a GitHub
+Action and can't import a `.mts` module. **If COLLAPSE changes, change it in
+both.**

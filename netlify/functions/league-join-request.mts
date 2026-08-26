@@ -1,6 +1,8 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
+import { sendTransactional, emailForUser } from "./lib/send-email.mts";
+import { buildJoinRequestEmail } from "./lib/request-emails.mts";
 
 // POST /.netlify/functions/league-join-request   Body: { leagueId: string }
 //   -> { ok, status: "pending" | "member" }
@@ -95,6 +97,37 @@ export default async (req: Request, _context: Context) => {
       status: "pending",
       requestedAt: new Date().toISOString(),
     });
+
+    // Tell the owner, but only when this is the only thing waiting on them.
+    // A league that collects ten requests shouldn't send ten emails: the
+    // first one already got them to the queue, and the dashboard badge and
+    // tab pip carry every one after that. The count is read after the write
+    // so the new request is included.
+    try {
+      const { blobs } = await leagueStore.list({ prefix: `request:${leagueId}:` });
+      const all = await Promise.all(
+        blobs.map((b) => leagueStore.get(b.key, { type: "json" }).catch(() => null))
+      );
+      const pendingCount = all.filter((r: any) => r && r.status === "pending").length;
+      if (pendingCount === 1) {
+        const ownerEmail = await emailForUser(userStore, league.ownerId);
+        if (ownerEmail) {
+          const mail = buildJoinRequestEmail({
+            leagueId,
+            leagueName: league.name,
+            format: league.format,
+            requesterName: displayName,
+            memberCount: membersDoc.members.length,
+            maxMembers: typeof league.maxMembers === "number" ? league.maxMembers : null,
+            pendingCount,
+          });
+          await sendTransactional({ to: ownerEmail, subject: mail.subject, html: mail.html });
+        }
+      }
+    } catch {
+      // The request is already stored. An email that doesn't go out must
+      // never turn a lodged request into an error for the person who made it.
+    }
 
     return jsonResponse(200, { ok: true, status: "pending" }, CORS_HEADERS);
   } catch (err) {

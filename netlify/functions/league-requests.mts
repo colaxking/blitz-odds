@@ -1,6 +1,8 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
+import { sendTransactional, emailForUser } from "./lib/send-email.mts";
+import { buildRequestApprovedEmail, buildRequestDeclinedEmail } from "./lib/request-emails.mts";
 
 // GET  /.netlify/functions/league-requests?leagueId=...
 //        -> { ok, pending: [...], handled: [...] }
@@ -34,6 +36,27 @@ async function requireOwner(leagueStore: any, leagueId: string, userId: string) 
     return { error: jsonResponse(403, { ok: false, error: "Only the league owner can manage join requests" }, CORS_HEADERS) };
   }
   return { league };
+}
+
+/** Best-effort mail to the person who asked. Never throws: the membership
+ *  write has already happened by the time this runs, and an email failure
+ *  must not report a successful approval back as an error. */
+async function notifyRequester(userStore: any, userId: string, mail: { subject: string; html: string }) {
+  try {
+    const to = await emailForUser(userStore, userId);
+    if (to) await sendTransactional({ to, subject: mail.subject, html: mail.html });
+  } catch {
+    // swallow - see above
+  }
+}
+
+async function ownerDisplayName(userStore: any, ownerId: string): Promise<string | null> {
+  try {
+    const p: any = await userStore.get(`users:${ownerId}`, { type: "json" });
+    return p && typeof p.displayName === "string" && p.displayName.trim() ? p.displayName : null;
+  } catch {
+    return null;
+  }
 }
 
 export default async (req: Request, _context: Context) => {
@@ -110,6 +133,10 @@ export default async (req: Request, _context: Context) => {
 
     if (action === "decline") {
       await leagueStore.setJSON(key, { ...request, status: "declined", handledAt: now });
+      await notifyRequester(userStore, targetUserId, buildRequestDeclinedEmail({
+        leagueId, leagueName: league.name, format: league.format,
+        ownerName: await ownerDisplayName(userStore, league.ownerId),
+      }));
       return jsonResponse(200, { ok: true, status: "declined" }, CORS_HEADERS);
     }
 
@@ -147,6 +174,12 @@ export default async (req: Request, _context: Context) => {
         ? userStore.setJSON(`users:${targetUserId}`, { ...profile, leagues, updatedAt: now })
         : Promise.resolve(),
     ]);
+
+    await notifyRequester(userStore, targetUserId, buildRequestApprovedEmail({
+      leagueId, leagueName: league.name, format: league.format,
+      ownerName: await ownerDisplayName(userStore, league.ownerId),
+      memberCount: league.memberCount,
+    }));
 
     return jsonResponse(200, { ok: true, status: "approved", memberCount: league.memberCount }, CORS_HEADERS);
   } catch (err) {

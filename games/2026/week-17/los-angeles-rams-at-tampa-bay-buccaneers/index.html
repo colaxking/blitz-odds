@@ -19183,8 +19183,14 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
 
           <div className="home-card hd-tile">
             <span className="home-eyebrow">Blitz follow rate</span>
-            <div className="hd-val dim">—</div>
-            <div className="hd-foot">Coming soon</div>
+            <div className={"hd-val " + (totals.followRate != null ? "accent" : "dim")}>
+              {totals.followRate != null ? `${Math.round(totals.followRate * 100)}%` : "—"}
+            </div>
+            <div className="hd-foot">
+              {totals.followRate != null
+                ? `You matched the Blitz on ${totals.followed} of ${totals.followable} picks`
+                : "Once a week is scored"}
+            </div>
           </div>
           </div>
 

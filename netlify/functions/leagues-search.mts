@@ -1,10 +1,17 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { getAuthenticatedUser } from "./lib/auth.mts";
 
 // Public league discovery for the Leagues landing page's search section.
 // No auth required - signed-out visitors can browse/search public leagues
 // too (they just get prompted to sign in when they try to actually join,
 // same as league-join.mts enforces server-side).
+//
+// Auth is *optional* rather than absent: if a Bearer token is supplied, each
+// private league the caller has already asked to join comes back with a
+// `requestStatus` field ("pending" | "approved" | "declined"). Nothing else
+// about the response changes, and no result is added or removed based on who
+// is asking.
 //
 // GET /.netlify/functions/leagues-search?q=text&limit=20
 //   -> { ok, leagues: [ { id, name, description, format, memberCount,
@@ -120,9 +127,45 @@ export default async (req: Request, _context: Context) => {
       })
     );
 
+    // If (and only if) the caller is signed in, tell them which of these
+    // private leagues they've already asked to join. Without this the client
+    // has no way to know on a fresh page load, so it renders "Request to
+    // Join" for a league it already has a request in and the user taps a
+    // button that can't do anything new. Auth stays optional - a signed-out
+    // visitor still gets the full search, just without the annotations.
+    const requestStatus: Record<string, string> = {};
+    const privateIds = page.filter((l: any) => l.visibility === "private").map((l: any) => l.id);
+    if (privateIds.length && req.headers.get("authorization")) {
+      const claims = await getAuthenticatedUser(req);
+      if (claims && claims.id) {
+        await Promise.all(
+          privateIds.map(async (id: string) => {
+            try {
+              // Strong per-operation read: the store is on eventual for the
+              // league scan above, but this one is frequently read seconds
+              // after the user lodged the request that created it.
+              const rec: any = await leagueStore.get(`request:${id}:${claims.id}`, {
+                type: "json",
+                consistency: "strong",
+              });
+              if (rec && typeof rec.status === "string") requestStatus[id] = rec.status;
+            } catch {
+              // An annotation that can't be read is simply left off - the
+              // button falls back to its normal state and the server still
+              // enforces the real rules on the way through.
+            }
+          })
+        );
+      }
+    }
+
     return jsonResponse(200, {
       ok: true,
-      leagues: page.map((l: any) => toSearchResult(l, ownerNames[l.ownerId] || null)),
+      leagues: page.map((l: any) => {
+        const row: any = toSearchResult(l, ownerNames[l.ownerId] || null);
+        if (requestStatus[l.id]) row.requestStatus = requestStatus[l.id];
+        return row;
+      }),
       total,
       offset,
       limit,

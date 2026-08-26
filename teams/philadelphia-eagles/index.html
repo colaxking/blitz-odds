@@ -2967,7 +2967,7 @@
   <table>
     <thead><tr><th>Week</th><th>Opponent</th><th>Date</th><th>Prediction</th><th>Result</th></tr></thead>
     <tbody>
-      <tr><td>Preseason Week 1</td><td>@ Baltimore Ravens</td><td>Sat, Aug 15 7:00 PM ET</td><td>Model predicts Baltimore Ravens to win (38%)</td><td>PHI 7 - 24 BAL (L, prediction correct)</td></tr>
+      <tr><td>Preseason Week 1</td><td>@ Baltimore Ravens</td><td>Sat, Aug 15 7:00 PM ET</td><td>Model predicts Baltimore Ravens to win (41%)</td><td>PHI 7 - 24 BAL (L, prediction correct)</td></tr>
       <tr><td>Preseason Week 2</td><td>@ New England Patriots</td><td>Sat, Aug 22 7:00 PM ET</td><td>Model predicts New England Patriots to win (8%)</td><td>PHI 21 - 24 NE (L, prediction correct)</td></tr>
       <tr><td>Preseason Week 3</td><td>vs Cincinnati Bengals</td><td>Fri, Aug 28 8:00 PM ET</td><td>Model predicts Philadelphia Eagles to win (57%)</td><td>Not played yet</td></tr>
       <tr><td>Week 1</td><td>vs Washington Commanders</td><td>Sun, Sep 13 4:25 PM ET</td><td>Model predicts Philadelphia Eagles to win (60%)</td><td>Not played yet</td></tr>
@@ -4208,6 +4208,20 @@
           "note": "Flowers isn't practicing Wednesday for the second day while he tends to an apparent undisclosed injury, Cordell Woodland of 105.7 The Fan Baltimore reports."
         },
         "statusUpdatedAt": "2026-08-26T19:40:27.971Z",
+        "source": "curated"
+      },
+      {
+        "name": "Bilhal Kone",
+        "position": "CB",
+        "espnId": "5083656",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Lower Body",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T20:57:20.591Z",
         "source": "curated"
       }
     ],
@@ -15456,12 +15470,37 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
       const params = new URLSearchParams({ q, limit: String(PAGE_SIZE), offset: String(offset) });
       if (formatFilter) params.set("format", formatFilter);
       if (typeFilter) params.set("type", typeFilter);
-      const res = await fetch(`/.netlify/functions/leagues-search?${params.toString()}`);
+      const url = `/.netlify/functions/leagues-search?${params.toString()}`;
+      // Signed in, go through authenticatedFetch so the server can annotate
+      // each private league with this user's own request status. Signed out,
+      // a plain fetch - search is deliberately open to everyone.
+      // The annotations are a nicety; the search itself is not. If the token
+      // lookup hiccups (status says "in" a beat before the Identity user is
+      // actually there), fall back to the open request rather than failing
+      // the whole search.
+      let res = null;
+      if (auth.status === "in") {
+        try {
+          res = await auth.authenticatedFetch(url);
+        } catch {
+          res = null;
+        }
+      }
+      if (!res) res = await fetch(url);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Search failed");
       const page = data.leagues || [];
       setResults((prev) => (append && prev ? [...prev, ...page] : page));
       setTotal(data.total || 0);
+      // Seed from the server so a league the user already asked to join
+      // renders "Requested ✓" on a fresh page load instead of offering a
+      // button that can't do anything new. Locally-set entries win: if they
+      // just requested in this session, that's the more recent truth.
+      const seeded = {};
+      page.forEach((l) => { if (l.requestStatus) seeded[l.id] = l.requestStatus; });
+      if (Object.keys(seeded).length) {
+        setRequestState((prev) => ({ ...seeded, ...prev }));
+      }
     } catch (err) {
       setSearchError(err.message || "Search failed");
       if (!append) { setResults([]); setTotal(0); }
@@ -15480,7 +15519,10 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => runSearch(query.trim(), 0), query.trim() ? 300 : 0);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query, formatFilter, typeFilter]);
+    // auth.status is a dependency because signing in mid-session is what
+    // unlocks the per-user requestStatus annotations - without it, someone
+    // who signs in while this page is open keeps the signed-out results.
+  }, [query, formatFilter, typeFilter, auth.status]);
 
   function handleShowMore() {
     // leagues-search caps limit at 50 per call, so the window grows by
@@ -15580,8 +15622,13 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
     if (state === "pending") {
       return <button type="button" className="league-btn" disabled>Requested ✓</button>;
     }
-    if (state === "member") {
+    if (state === "member" || state === "approved") {
       return <button type="button" className="league-btn" disabled>Already a member</button>;
+    }
+    // A decline is final server-side (league-join-request returns 403), so
+    // say so here rather than offering a button that only produces an error.
+    if (state === "declined") {
+      return <button type="button" className="league-btn" disabled>Request declined</button>;
     }
     return (
       <button type="button" className="league-btn league-btn-request"

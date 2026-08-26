@@ -21,9 +21,17 @@ import { buildJoinRequestEmail } from "./lib/request-emails.mts";
 // The requester's display name is snapshotted onto the record so the owner's
 // queue renders without a profile fetch per row, the same tradeoff
 // members:{leagueId} already makes.
+//
+// Re-requesting while already pending is a no-op on the record but still
+// runs the owner-notification path, subject to a per-league cooldown - see
+// the notify block near the bottom for why.
 
 const LEAGUE_STORE = "blitz-leagues";
 const USER_STORE = "blitz-users";
+
+/** How long after mailing a league owner about join requests before another
+ *  request against the same league is allowed to mail them again. */
+const NOTIFY_COOLDOWN_MS = 60 * 60 * 1000;
 
 const CORS_HEADERS: Record<string, string> = {
   ...CORS_HEADERS_BASE,
@@ -72,15 +80,19 @@ export default async (req: Request, _context: Context) => {
 
     const key = `request:${leagueId}:${userId}`;
     const existing: any = await leagueStore.get(key, { type: "json" });
-    if (existing) {
-      // Pending is idempotent. A previous decline is deliberately not
-      // re-openable: without that, declining someone just invites them to
-      // ask again, and the owner has no way to make it stop.
-      if (existing.status === "pending") return jsonResponse(200, { ok: true, status: "pending" }, CORS_HEADERS);
-      if (existing.status === "declined") {
-        return jsonResponse(403, { ok: false, error: "Your previous request for this league was declined" }, CORS_HEADERS);
-      }
+    // A previous decline is deliberately not re-openable: without that,
+    // declining someone just invites them to ask again, and the owner has no
+    // way to make it stop.
+    if (existing && existing.status === "declined") {
+      return jsonResponse(403, { ok: false, error: "Your previous request for this league was declined" }, CORS_HEADERS);
     }
+    // An existing pending request is idempotent as far as the *record* goes -
+    // it isn't rewritten, so requestedAt stays honest. It deliberately does
+    // NOT return early any more: it used to short-circuit above the notify
+    // block, which meant that once someone had a request in flight, no
+    // attempt they ever made could produce an email. The owner-side cooldown
+    // below is what stops a retry turning into a mailbox full of duplicates.
+    const alreadyPending = !!(existing && existing.status === "pending");
 
     const profile: any = await userStore.get(`users:${userId}`, { type: "json" });
     const displayName =
@@ -89,27 +101,47 @@ export default async (req: Request, _context: Context) => {
         : ((claims.user_metadata && claims.user_metadata.full_name) ||
            (claims.email ? claims.email.split("@")[0] : "Player"));
 
-    await leagueStore.setJSON(key, {
-      leagueId,
-      userId,
-      displayName,
-      avatar: profile && typeof profile.avatar === "string" ? profile.avatar : null,
-      status: "pending",
-      requestedAt: new Date().toISOString(),
-    });
+    if (!alreadyPending) {
+      await leagueStore.setJSON(key, {
+        leagueId,
+        userId,
+        displayName,
+        avatar: profile && typeof profile.avatar === "string" ? profile.avatar : null,
+        status: "pending",
+        requestedAt: new Date().toISOString(),
+      });
+    }
 
-    // Tell the owner, but only when this is the only thing waiting on them.
-    // A league that collects ten requests shouldn't send ten emails: the
-    // first one already got them to the queue, and the dashboard badge and
-    // tab pip carry every one after that. The count is read after the write
-    // so the new request is included.
+    // Tell the owner, rate-limited by time rather than by queue depth.
+    //
+    // This used to fire only when the new request was the *only* pending one.
+    // That read as "don't send ten emails for ten requests", but what it
+    // actually did was go permanently silent: one request left unhandled in
+    // the queue meant no further request against that league could ever mail
+    // the owner again. A time window gets the same anti-spam result without
+    // the trapdoor - a busy league is still capped at one mail an hour, and
+    // the mail names the total waiting, so nothing is lost by batching.
+    //
+    // The stamp lives on its own key rather than on the request record,
+    // because the thing being limited is "mail to this owner about this
+    // league", not "mail about this one requester". Note the key does not
+    // start with `request:`, so it can't turn up in the queue listings that
+    // league-requests.mts and home-summary.mts do.
     try {
       const { blobs } = await leagueStore.list({ prefix: `request:${leagueId}:` });
       const all = await Promise.all(
         blobs.map((b) => leagueStore.get(b.key, { type: "json" }).catch(() => null))
       );
       const pendingCount = all.filter((r: any) => r && r.status === "pending").length;
-      if (pendingCount === 1) {
+
+      const stampKey = `notify:league:${leagueId}`;
+      const stamp: any = await leagueStore.get(stampKey, { type: "json" });
+      const lastAt = stamp && typeof stamp.lastNotifiedAt === "string" ? Date.parse(stamp.lastNotifiedAt) : NaN;
+      const withinCooldown = Number.isFinite(lastAt) && Date.now() - lastAt < NOTIFY_COOLDOWN_MS;
+
+      if (withinCooldown) {
+        console.info("[join-request] owner mail suppressed by cooldown", { leagueId, pendingCount });
+      } else {
         const ownerEmail = await emailForUser(userStore, league.ownerId);
         if (ownerEmail) {
           const mail = buildJoinRequestEmail({
@@ -121,12 +153,24 @@ export default async (req: Request, _context: Context) => {
             maxMembers: typeof league.maxMembers === "number" ? league.maxMembers : null,
             pendingCount,
           });
-          await sendTransactional({ to: ownerEmail, subject: mail.subject, html: mail.html });
+          const sent = await sendTransactional({ to: ownerEmail, subject: mail.subject, html: mail.html });
+          // Only stamp on a successful send. Stamping regardless would let a
+          // single Resend blip start an hour of silence on top of the failure.
+          if (sent) {
+            await leagueStore.setJSON(stampKey, { leagueId, lastNotifiedAt: new Date().toISOString() });
+            console.info("[join-request] owner notified", { leagueId, pendingCount });
+          }
+        } else {
+          console.warn("[join-request] owner has no email address", { leagueId, ownerId: league.ownerId });
         }
       }
-    } catch {
+    } catch (err) {
       // The request is already stored. An email that doesn't go out must
       // never turn a lodged request into an error for the person who made it.
+      console.warn("[join-request] notify step failed", {
+        leagueId,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
 
     return jsonResponse(200, { ok: true, status: "pending" }, CORS_HEADERS);

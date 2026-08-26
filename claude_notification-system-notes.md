@@ -658,3 +658,82 @@ ignored, and a stale report recorded but not alerted.
 `lib/espn-injuries.mts`, because the script is plain `.mjs` run from a GitHub
 Action and can't import a `.mts` module. **If COLLAPSE changes, change it in
 both.**
+
+
+---
+
+# Automating the injury file
+
+`scripts/injury-player-sync.mjs` (+ `injury-player-sync.yml`) keeps
+`impact-players.json` in step with ESPN without waiting on a human, and keeps
+its two copies from drifting.
+
+## The two-copies problem it fixes
+
+`data/impact-players.json` and the `players-data` seed inside `index.html`
+are separate copies of the same thing. They drift the moment either changes,
+and **a player without an `espnId` never joins to the ESPN feed** — no second
+line on the page, no fast alert, no error. That has silently broken twice.
+The script writes both, resolves missing ids from the ESPN rosters, and fails
+loudly on a duplicate id.
+
+## What it does unattended
+
+- **Resolves a missing `espnId`.** Pure lookup, disambiguated on team then
+  position.
+- **Applies an escalation** — a player getting worse — when ESPN's report is
+  newer than our `statusUpdatedAt`.
+- **Adds an untracked first-string player** at a premium position who's been
+  ruled out.
+
+## What it deliberately won't do
+
+**De-escalate a human-set status.** This is the rule that makes it safe to
+leave running. Measured on the real file, **8 of the 13** standing
+disagreements were a player carried as `out` whom ESPN still listed
+`questionable` — ESPN behind, not us wrong. Letting the feed silently
+downgrade those would destroy the judgment that makes the file worth having.
+They're reported for review instead. De-escalations *are* applied when
+`source === "auto"`, i.e. when we're just following ESPN's own chain.
+
+**Touch a `pinned: true` player.** Permanent escape hatch for "I know better
+and don't want correcting every Wednesday."
+
+**Guess `impactScore` for an existing player.** Auto-added players get a
+conservative value from the position medians of the players already tracked,
+minus one — the tracked set skews toward stars, so a newcomer is more likely
+second-tier, and guessing low under-weights rather than over-weights, which
+is the safer direction to be wrong in given this feeds the prediction model.
+They're marked `source: "auto"` so they're visibly provisional.
+
+## The bootstrap
+
+On first run every existing player is stamped `curated` / now **without being
+changed**, so the disagreements already in the file survive and only reports
+filed after that can move anything. Re-running is idempotent.
+
+## The starter gate is load-bearing
+
+Auto-add is filtered to ESPN depth-chart `slot: 1` players. Without it, "any
+premium-position player listed out" pulled in **52** players in late August —
+camp bodies and practice-squad names — which would have doubled the file with
+noise and fed junk to the model. With it: 8.
+
+Athlete ids are parsed from the depth chart's `$ref` URLs rather than
+followed; resolving them would be hundreds of requests for names the injury
+feed already has.
+
+## New fields
+
+| Field | Meaning |
+|---|---|
+| `espnId` | join key to the ESPN feed. Required. |
+| `statusUpdatedAt` | when the status was last decided |
+| `source` | `"curated"` (a human) or `"auto"` (ESPN) |
+| `pinned` | never auto-apply |
+
+## What's left in the dashboard queue
+
+Only genuine judgment: de-escalations against a human-set status, pinned
+conflicts, and untracked non-starters worth a look. The mechanical work no
+longer waits on anyone.

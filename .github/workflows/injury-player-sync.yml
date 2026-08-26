@@ -1,0 +1,90 @@
+name: Blitz Odds - injury player sync
+
+# Keeps data/impact-players.json in step with ESPN without waiting on a
+# human, and keeps its two copies (data/ and the players-data seed inside
+# index.html) from drifting apart.
+#
+# WHAT IT DOES UNATTENDED:
+#   - resolves a missing espnId from the ESPN rosters (pure lookup, and its
+#     absence has silently broken the page twice - no espnId means a player
+#     never joins to the ESPN feed, with no error to notice)
+#   - applies an ESCALATION (player getting worse) when ESPN's report is
+#     newer than the last time our status was set
+#   - adds an untracked FIRST-STRING player at a premium position who's been
+#     ruled out
+#
+# WHAT IT DELIBERATELY WILL NOT DO:
+#   - de-escalate a human-set status. Measured on the real file, 8 of 13
+#     standing disagreements were a player carried as "out" whom ESPN still
+#     listed "questionable" - ESPN being behind, not us being wrong. Letting
+#     the feed silently downgrade those would throw away the judgment that
+#     makes this file worth having. They're reported for review instead.
+#   - touch a player marked `pinned: true`, ever.
+#   - guess impactScore for an existing player. Auto-added players get a
+#     conservative guess from the position medians of the players already
+#     tracked, minus one, and are marked `source: "auto"` so they're visibly
+#     provisional.
+#
+# THE STARTER GATE IS LOAD-BEARING. Without it, "any premium-position player
+# listed out" pulled in 52 players in late August - camp bodies and
+# practice-squad names - which would have doubled the file with noise and fed
+# junk into the prediction model. Filtered to depth-chart starters it's a
+# handful.
+#
+# Publishes straight to Blobs (no commit, no deploy) and commits the repo
+# copies only when they change, so the usual production-deploy cost only
+# applies when something real happened.
+#
+# Dispatched externally via cron-job.org, like every other job here:
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/injury-player-sync.yml/dispatches
+#   Body: {"ref":"main"}
+# Cadence: every 30 minutes is ample - this is the file-maintenance pass, not
+# the alerting one.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Report what would change, write nothing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blitz-odds-injury-player-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Sync tracked players with ESPN
+        env:
+          SITE_DATA_UPDATE_SECRET: ${{ secrets.SITE_DATA_UPDATE_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/injury-player-sync.mjs --dry-run
+          else
+            node scripts/injury-player-sync.mjs --publish
+          fi
+
+      - name: Commit if the tracked file changed
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          if git diff --quiet -- data/impact-players.json index.html; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "blitz-odds-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/impact-players.json index.html
+          git commit -m "Injury player sync: automated ESPN reconciliation"
+          git push

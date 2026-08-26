@@ -15984,40 +15984,17 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
   );
 }
 
-function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague, autoJoinCode, autoJoinCodeError, joinLinkError }) {
+function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague, autoJoinCode, autoJoinCodeError, joinLinkError, initialSubTab }) {
   const [copiedCode, setCopiedCode] = useState(null);
   const [pendingLeaveId, setPendingLeaveId] = useState(null);
   const [leavingId, setLeavingId] = useState(null);
   const [leaveErrorId, setLeaveErrorId] = useState(null);
   const [mobileTab, setMobileTab] = useState("mine");
-  const [subTab, setSubTab] = useState("mine");
+  const [subTab, setSubTab] = useState(initialSubTab || "mine");
 
   const signedIn = auth.status === "in";
   const myUserId = auth.user && auth.user.id;
 
-  // Pending join-request count for the Requests tab's pip. Declared up here,
-  // above every early return in this component, because the Rules of Hooks
-  // don't allow it beside the `if (league)` block where it's actually used.
-  // Only fires for a private league the caller owns; anything else has
-  // nothing to count.
-  const selectedLeague = selectedLeagueId ? (leagues || []).find((l) => l.id === selectedLeagueId) : null;
-  const countsRequests = !!(selectedLeague && selectedLeague.ownerId === myUserId && selectedLeague.visibility === "private");
-  useEffect(() => {
-    if (!countsRequests) { setPendingRequests(0); return; }
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await auth.authenticatedFetch(
-          `/.netlify/functions/league-requests?leagueId=${encodeURIComponent(selectedLeagueId)}`
-        );
-        const data = await res.json();
-        if (!cancelled && res.ok && data.ok) setPendingRequests((data.pending || []).length);
-      } catch (e) {
-        // A pip that can't be counted is simply absent.
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [selectedLeagueId, countsRequests]);
 
   // Keeps the mobile 3-tab bar (My Leagues/Search/Create) and the desktop
   // Search/Create subtab bar in sync so switching via one never leaves the
@@ -17518,14 +17495,16 @@ function LeagueRequestsPanel({ auth, league, onPendingChange }) {
   );
 }
 
-function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, onOpenLeagueRoute }) {
+function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, onOpenLeagueRoute }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   // /leagues/{id} opens straight into that league. Initial value only -
   // once someone navigates inside the tab, their clicks own this, not the
   // URL it was first loaded with.
   const [selectedLeagueId, setSelectedLeagueId] = useState(initialLeagueId || null);
   const [managingLeagueId, setManagingLeagueId] = useState(null);
-  const [subTab, setSubTab] = useState("week");
+  // "week" is the default inside a league (My Picks). initialLeagueSubTab
+  // lets the Home dashboard's pending badge open straight onto Requests.
+  const [subTab, setSubTab] = useState(initialLeagueSubTab || "week");
   const [week, setWeek] = useState(() => clampToRegularSeasonWeek(getDefaultWeek()));
   const [leavingLeagueId, setLeavingLeagueId] = useState(null);
   // Count for the Requests tab's pip. Fetched separately from the panel so
@@ -17537,6 +17516,29 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   const autoJoinAttemptedRef = useRef(false);
 
   const myUserId = auth.user && auth.user.id;
+  // Pending join-request count for the Requests tab's pip. Declared up here,
+  // above every early return in this component, because the Rules of Hooks
+  // don't allow it beside the `if (league)` block where it's actually used.
+  // Only fires for a private league the caller owns; anything else has
+  // nothing to count.
+  const selectedLeague = selectedLeagueId ? (leagues || []).find((l) => l.id === selectedLeagueId) : null;
+  const countsRequests = !!(selectedLeague && selectedLeague.ownerId === myUserId && selectedLeague.visibility === "private");
+  useEffect(() => {
+    if (!countsRequests) { setPendingRequests(0); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await auth.authenticatedFetch(
+          `/.netlify/functions/league-requests?leagueId=${encodeURIComponent(selectedLeagueId)}`
+        );
+        const data = await res.json();
+        if (!cancelled && res.ok && data.ok) setPendingRequests((data.pending || []).length);
+      } catch (e) {
+        // A pip that can't be counted is simply absent.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedLeagueId, countsRequests]);
 
   // Mirror the open league into the address bar so it's shareable and, more
   // to the point, so a last-call pick notification has somewhere to point.
@@ -17731,6 +17733,7 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
       autoJoinCode={pendingJoin && pendingJoin.type === "code" && autoJoinError ? pendingJoin.value : null}
       autoJoinCodeError={pendingJoin && pendingJoin.type === "code" ? autoJoinError : null}
       joinLinkError={pendingJoin && pendingJoin.type === "leagueId" ? autoJoinError : null}
+      initialSubTab={initialSubTab}
     />
   );
 }
@@ -19955,7 +19958,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
   // thing this page can say that no individual league page can.
   const outstanding = leagues
     .filter((l) => l.week && l.week.total > 0 && l.week.picked < l.week.total)
-    .map((l) => ({ name: l.name, left: l.week.total - l.week.picked }));
+    .map((l) => ({ leagueId: l.leagueId, name: l.name, left: l.week.total - l.week.picked }));
   const picksLeft = outstanding.reduce((n, o) => n + o.left, 0);
 
   // The model's picks for the week, for the rail. Client-side, same engine
@@ -20049,8 +20052,10 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
           <p>{leagues.length ? "Here's how you're doing across your leagues." : "Start a league and this is where you'll track it."}</p>
         </div>
         <div className="hd-greet-acts">
-          <button type="button" className="home-btn primary" onClick={onOpenLeagues}>Create League</button>
-          <button type="button" className="home-btn" onClick={onOpenLeagues}>Join League</button>
+          <button type="button" className="home-btn primary"
+            onClick={() => onOpenLeagues({ subTab: "create" })}>Create League</button>
+          <button type="button" className="home-btn"
+            onClick={() => onOpenLeagues({ subTab: "search" })}>Join League</button>
         </div>
       </div>
 
@@ -20064,7 +20069,10 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
               {outstanding.length > 2 ? ` and ${outstanding.length - 2} more` : ""}
             </span>
           </div>
-          <button type="button" className="home-btn primary" onClick={onOpenLeagues}>Make picks</button>
+          <button type="button" className="home-btn primary"
+            onClick={() => onOpenLeagues(outstanding.length === 1
+              ? { leagueId: outstanding[0].leagueId }
+              : undefined)}>Make picks</button>
         </div>
       )}
 
@@ -20142,7 +20150,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
             <>
               <div className="hd-sec-head">
                 <h3>My Leagues</h3>
-                <button type="button" className="hd-link" onClick={onOpenLeagues}>Manage</button>
+                <button type="button" className="hd-link" onClick={() => onOpenLeagues()}>Manage</button>
               </div>
               <div className="hd-leagues">
                 {leagues.map((l) => {
@@ -20165,7 +20173,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                               for days. */}
                           {l.pendingRequests > 0 && (
                             <button type="button" className="hd-req-badge"
-                              onClick={() => onOpenLeagues(l.leagueId)}
+                              onClick={() => onOpenLeagues({ leagueId: l.leagueId, leagueSubTab: "requests" })}
                               title={`${l.pendingRequests} join request${l.pendingRequests === 1 ? "" : "s"} waiting for you`}>
                               {l.pendingRequests} waiting
                             </button>
@@ -20230,7 +20238,8 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                         </div>
                       </div>
                       <div className="hd-row-cta">
-                        <button type="button" className="home-btn" onClick={() => onOpenLeagues(l.leagueId)}>View League</button>
+                        <button type="button" className="home-btn"
+                          onClick={() => onOpenLeagues({ leagueId: l.leagueId })}>View League</button>
                       </div>
                     </div>
                   );
@@ -20244,8 +20253,10 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
               <h4 style={{ margin: "0 0 6px", fontSize: "1.05rem", fontWeight: 800 }}>You're not in a league yet.</h4>
               <p>Create one and invite people, or join with a code someone sent you.</p>
               <div className="home-acts" style={{ justifyContent: "center" }}>
-                <button type="button" className="home-btn primary" onClick={onOpenLeagues}>Create a league</button>
-                <button type="button" className="home-btn" onClick={onOpenLeagues}>Join with a code</button>
+                <button type="button" className="home-btn primary"
+                  onClick={() => onOpenLeagues({ subTab: "create" })}>Create a league</button>
+                <button type="button" className="home-btn"
+                  onClick={() => onOpenLeagues({ subTab: "search" })}>Join with a code</button>
               </div>
             </div>
           ) : (
@@ -20256,8 +20267,10 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                 <p>Create a league or join with an invite code.</p>
               </div>
               <div className="acts">
-                <button type="button" className="home-btn" onClick={onOpenLeagues}>Join with Code</button>
-                <button type="button" className="home-btn primary" onClick={onOpenLeagues}>Create League</button>
+                <button type="button" className="home-btn"
+                  onClick={() => onOpenLeagues({ subTab: "search" })}>Join with Code</button>
+                <button type="button" className="home-btn primary"
+                  onClick={() => onOpenLeagues({ subTab: "create" })}>Create League</button>
               </div>
             </div>
           )}
@@ -21115,7 +21128,22 @@ function App() {
   // "All Leagues" text link. Bumping this key forces LeagueView to remount
   // (and its state to reset) any time the tab is (re)selected, so the tab
   // icon always acts like "go home" the way a mobile tab bar should.
-  function goToLeaguesTab() {
+  // The Home dashboard links straight at a specific league page - "Create
+  // League" should land on the create wizard, "View League" on that league,
+  // the pending badge on that league's Requests tab. Previously every one of
+  // these called goToLeaguesTab() with an argument it ignored, so they all
+  // dumped the user on the leagues landing page instead.
+  //
+  // The intent rides in state rather than props because tapping the tab
+  // bumps leagueTabResetKey, which remounts LeagueView; a prop would be
+  // re-read on that remount and re-apply a stale destination.
+  const [leagueIntent, setLeagueIntent] = useState(null);
+  function goToLeaguesTab(intent) {
+    setLeagueIntent(
+      typeof intent === "string" ? { leagueId: intent }
+        : (intent && typeof intent === "object") ? intent
+        : null
+    );
     setLeagueTabResetKey((k) => k + 1);
     setActiveTab("league");
   }
@@ -21520,7 +21548,9 @@ function App() {
           tz={resolvedTz}
           pendingJoin={pendingJoin}
           onConsumePendingJoin={clearPendingJoin}
-          initialLeagueId={initialLeagueId}
+          initialLeagueId={(leagueIntent && leagueIntent.leagueId) || initialLeagueId}
+          initialSubTab={leagueIntent && leagueIntent.subTab}
+          initialLeagueSubTab={leagueIntent && leagueIntent.leagueSubTab}
           onOpenLeagueRoute={syncLeagueRoute}
         />
       )}

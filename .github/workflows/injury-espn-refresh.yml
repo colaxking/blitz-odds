@@ -1,0 +1,58 @@
+name: Blitz Odds - ESPN injury mirror
+
+# Mirrors ESPN's league-wide injury feed into site-data under "espnInjuries",
+# for the second layer of the injury block on team and game pages.
+#
+# THIS IS NOT THE SOURCE OF TRUTH for a player's status.
+# data/impact-players.json is, and stays so. Measured the day this shipped:
+# of 71 tracked players, 13 disagreed with ESPN on status and 12 had no ESPN
+# record at all - eight of those carried as "out". If this feed wrote status,
+# the app would have been wrong about eight players that day. What it adds is
+# timing, a structured injury detail, and an estimated return date.
+#
+# Published payload is trimmed to the players impact-players.json tracks
+# (~22 KB, not the 8.8 MB raw feed): bandwidth is metered on a credit-based
+# plan, and the injury block only ever renders curated players.
+#
+# Dispatched externally via cron-job.org, same pattern as the other refresh
+# jobs - GitHub Actions' own `schedule:` cron is unreliable on low-traffic
+# repos.
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/injury-espn-refresh.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+# Cadence: every 15-30 minutes in season is plenty for the display layer.
+# (The Phase 4 alert diff will poll faster on its own tick; that one works
+# from the full feed server-side and doesn't go through here.)
+#
+# This job publishes straight to the blob store and commits NOTHING, so it
+# costs no production deploy however often it runs.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blitz-odds-injury-espn-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Fetch and publish ESPN injury mirror
+        env:
+          SITE_DATA_UPDATE_SECRET: ${{ secrets.SITE_DATA_UPDATE_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SITE_DATA_UPDATE_SECRET}" ]; then
+            echo "::error::SITE_DATA_UPDATE_SECRET repo secret is not set." >&2
+            exit 1
+          fi
+          node scripts/injury-espn-refresh.mjs

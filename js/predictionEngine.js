@@ -70,7 +70,7 @@
   /**
    * Apply injury adjustments for a team's list of impact players.
    * @param {{offRating:number, defRating:number}} ratings
-   * @param {Array<{name:string,position:string,impactScore:number,status:string}>} impactPlayers
+   * @param {Array<{name:string,position:string,impactScore:number,status:string,espnId?:string}>} impactPlayers
    * @returns {{offRating:number, defRating:number, adjustments:Array}}
    */
   function applyInjuryAdjustments(ratings, impactPlayers) {
@@ -96,6 +96,10 @@
       adjustments.push({
         player: p.name,
         position: p.position,
+        // Carried through so the card can join this adjustment to ESPN's
+        // injury feed. Joining on name would silently drop players - two
+        // different NFL players share a name often enough that it matters.
+        espnId: p.espnId || null,
         status: p.status,
         side: isDefensive ? "defense" : "offense",
         ratingDelta: -delta,

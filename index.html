@@ -589,13 +589,20 @@
      and the streak tile lines up with the leaderboard/games rail. The inner
      14px gap is the tiles' own rhythm and is deliberately tighter than the
      22px gutter that separates the two columns. */
-  .hd-stats { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
+  /* margin-top is on the grid itself, not inherited from .hd-week above it -
+     that bar only renders when picks are outstanding, so relying on its
+     margin left the tiles flush against the greeting's buttons. */
+  .hd-stats { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; margin-top: 18px; }
   .hd-stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-  .hd-tile { padding: 15px 16px 14px; position: relative; }
-  .hd-tile .home-eyebrow { display: block; margin-bottom: 8px; padding-right: 62px; }
+  /* Column + auto-margin footer so tiles sharing a row read as one band even
+     when one caption wraps to two lines and its neighbour's doesn't. */
+  .hd-tile { padding: 15px 16px 14px; position: relative; display: flex; flex-direction: column; }
+  .hd-tile .home-eyebrow { display: block; margin-bottom: 8px; }
+  /* Only the pager tile needs the top-right gutter reserved. */
+  .hd-tile.has-pager .home-eyebrow { padding-right: 62px; }
   .hd-val { display: flex; align-items: baseline; gap: 8px; font-size: 1.9rem; font-weight: 800; letter-spacing: -.02em; }
   .hd-val small { font-size: .88rem; font-weight: 700; color: var(--accent); }
-  .hd-foot { margin-top: 7px; font-size: .74rem; color: var(--text-dim); }
+  .hd-foot { margin-top: auto; padding-top: 7px; font-size: .74rem; color: var(--text-dim); }
   .hd-val.accent { color: var(--accent); }
   .hd-val.orange { color: var(--blitz-orange); }
   .hd-val.win { color: var(--win); }
@@ -690,7 +697,9 @@
     .hd-week > .home-btn { margin-left: 0; width: 100%; }
     /* Single column stack: the main group dissolves so all four tiles sit
        in one 2-up grid rather than three-then-one. */
-    .hd-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    /* align-items:start is for the desktop main+rail split; once all four
+       tiles share one grid they must stretch to their row's height. */
+    .hd-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; align-items: stretch; }
     .hd-stats-main { display: contents; }
     .hd-val { font-size: 1.5rem; }
     .hd-layout { display: flex; flex-direction: column; align-items: stretch; }
@@ -19157,7 +19166,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
           </div>
 
           {streakLeague && (
-            <div className="home-card hd-tile">
+            <div className={"home-card hd-tile" + (leagues.length > 1 ? " has-pager" : "")}>
               <span className="home-eyebrow">
                 {streakLeague.format === "survivor" ? "Weeks survived" : "Current streak"}
               </span>

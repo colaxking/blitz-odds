@@ -2251,6 +2251,57 @@
     font-weight: 700; color: var(--text-dim); cursor: pointer; user-select: none; background: none; border: none;
   }
   .league-subtab.active { background: var(--accent); color: #062018; }
+  .league-subtab-pip {
+    display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px;
+    margin-left: 6px; border-radius: 999px; background: var(--blitz-orange); color: #0b1220;
+    font-size: .64rem; font-weight: 800; vertical-align: middle;
+  }
+  [data-theme="light"] .league-subtab-pip { color: #fff; }
+  .league-subtab.active .league-subtab-pip { background: #062018; color: var(--accent); }
+  [data-theme="light"] .league-subtab.active .league-subtab-pip { background: #062018; color: var(--accent); }
+
+  /* Four tabs don't fit on one phone row - about 418px of content in a
+     358px bar. flex:1 shrank them and clipped the count pip off the
+     Requests tab; letting the row scroll instead just moved the pip
+     off-screen, which is no better for the one element that most needs to
+     be noticed. Two rows of two keeps every tab, and its pip, visible
+     without scrolling. Only applies when the fourth tab exists. */
+  @media (max-width: 640px) {
+    .league-subtabs.has-requests { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .league-subtabs.has-requests .league-subtab { flex: none; }
+  }
+
+  /* ---- owner join-request queue ---- */
+  .lgq-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; }
+  .lgq-eyebrow { font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  .lgq-head { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    flex-wrap: wrap; padding: 16px 20px 14px; border-bottom: 1px solid var(--card-border); }
+  .lgq-head p { margin: 6px 0 0; font-size: .8rem; color: var(--text-dim); }
+  .lgq-req { display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 14px 20px; border-bottom: 1px solid var(--card-border); }
+  .lgq-req:last-of-type { border-bottom: none; }
+  .lgq-req .who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .lgq-req .av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 1.05rem; background: var(--surface-2); border: 1px solid var(--card-border); flex-shrink: 0; }
+  .lgq-req b { display: block; font-size: .9rem; }
+  .lgq-req .when { font-size: .78rem; color: var(--text-dim); }
+  .lgq-req .acts { display: flex; gap: 8px; flex-shrink: 0; }
+  .lgq-req.settled { opacity: .55; }
+  .lgq-req .verdict { font-size: .8rem; color: var(--text-dim); }
+  .lgq-req .verdict.ok { color: var(--win); }
+  .lgq-sec { padding: 12px 20px 10px; border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border); }
+  .lgq-empty { padding: 34px 20px; text-align: center; }
+  .lgq-empty .big { font-size: 1.9rem; opacity: .4; display: block; margin-bottom: 10px; }
+  .lgq-empty p { margin: 0 0 6px; font-size: .9rem; font-weight: 700; }
+  .lgq-empty span { font-size: .82rem; color: var(--text-dim); }
+  .lgq-note { display: flex; gap: 10px; align-items: flex-start; padding: 14px 20px;
+    font-size: .82rem; line-height: 1.55; color: var(--text-dim); border-top: 1px solid var(--card-border); }
+  .lgq-note.warn { color: var(--warn); border-top: none; border-bottom: 1px solid var(--card-border); }
+  @media (max-width: 640px) {
+    .lgq-req { flex-direction: column; align-items: stretch; }
+    .lgq-req .acts .league-btn { flex: 1; }
+  }
 
   .picks-progress {
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
@@ -15949,6 +16000,30 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   const signedIn = auth.status === "in";
   const myUserId = auth.user && auth.user.id;
 
+  // Pending join-request count for the Requests tab's pip. Declared up here,
+  // above every early return in this component, because the Rules of Hooks
+  // don't allow it beside the `if (league)` block where it's actually used.
+  // Only fires for a private league the caller owns; anything else has
+  // nothing to count.
+  const selectedLeague = selectedLeagueId ? (leagues || []).find((l) => l.id === selectedLeagueId) : null;
+  const countsRequests = !!(selectedLeague && selectedLeague.ownerId === myUserId && selectedLeague.visibility === "private");
+  useEffect(() => {
+    if (!countsRequests) { setPendingRequests(0); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await auth.authenticatedFetch(
+          `/.netlify/functions/league-requests?leagueId=${encodeURIComponent(selectedLeagueId)}`
+        );
+        const data = await res.json();
+        if (!cancelled && res.ok && data.ok) setPendingRequests((data.pending || []).length);
+      } catch (e) {
+        // A pip that can't be counted is simply absent.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedLeagueId, countsRequests]);
+
   // Keeps the mobile 3-tab bar (My Leagues/Search/Create) and the desktop
   // Search/Create subtab bar in sync so switching via one never leaves the
   // other disagreeing (e.g. after a resize).
@@ -17272,6 +17347,182 @@ function LeaguePicksPanel({ auth, profile, league, week, tz }) {
 // icon on the landing page or "Manage" in the per-league header, and
 // "closing" any of them just returns to the landing page rather than a
 // modal, since the whole tab now behaves like a small nested nav.
+
+/* ---- Owner's join-request queue ------------------------------------------
+ * Fourth league subtab, shown only to the owner of a private league - a
+ * public league has nothing to approve, and a member has nothing to see.
+ *
+ * Approving writes membership server-side (league-requests.mts), including a
+ * capacity re-check, so the disabled state here agrees with the endpoint
+ * rather than being the only guard. Declining is final for re-requesting but
+ * doesn't block an invite code, which is what the footnote is for: both of
+ * those will otherwise surprise an owner.
+ */
+function LeagueRequestsPanel({ auth, league, onPendingChange }) {
+  const [state, setState] = useState({ status: "loading", pending: [], handled: [] });
+  const [busyId, setBusyId] = useState(null);
+  const [bulk, setBulk] = useState(false);
+  const [error, setError] = useState(null);
+  const [memberCount, setMemberCount] = useState(league.memberCount || 0);
+
+  const isFull = typeof league.maxMembers === "number" && memberCount >= league.maxMembers;
+
+  async function load() {
+    try {
+      const res = await auth.authenticatedFetch(
+        `/.netlify/functions/league-requests?leagueId=${encodeURIComponent(league.id)}`
+      );
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't load join requests");
+      setState({ status: "ready", pending: data.pending || [], handled: data.handled || [] });
+      if (onPendingChange) onPendingChange((data.pending || []).length);
+    } catch (err) {
+      setState({ status: "error", pending: [], handled: [] });
+      setError(err.message || "Couldn't load join requests");
+    }
+  }
+  useEffect(() => { load(); }, [league.id]);
+
+  async function respond(request, action) {
+    if (busyId) return;
+    setBusyId(request.userId);
+    setError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId: league.id, userId: request.userId, action }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "That didn't go through");
+      // Move the row locally rather than refetching: the queue is small, and
+      // a refetch here would race the write that just happened.
+      setState((prev) => {
+        const pending = prev.pending.filter((r) => r.userId !== request.userId);
+        if (onPendingChange) onPendingChange(pending.length);
+        return {
+          status: "ready",
+          pending,
+          handled: [...prev.handled, { ...request, status: data.status, handledAt: new Date().toISOString() }],
+        };
+      });
+      if (data.status === "approved") {
+        const next = typeof data.memberCount === "number" ? data.memberCount : memberCount + 1;
+        setMemberCount(next);
+      }
+    } catch (err) {
+      setError(err.message || "That didn't go through");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function approveAll() {
+    if (bulk || isFull) return;
+    setBulk(true);
+    // Sequential, not Promise.all: every approval writes the same members
+    // doc, and Blobs set() is a full overwrite, so concurrent approvals
+    // would drop all but the last one.
+    for (const r of [...state.pending]) {
+      await respond(r, "approve");
+    }
+    setBulk(false);
+  }
+
+  if (state.status === "loading") return <p className="leagues-empty">Loading requests…</p>;
+
+  return (
+    <div className="lgq-card">
+      <div className="lgq-head">
+        <div>
+          <span className="lgq-eyebrow">Pending · {state.pending.length}</span>
+          <p>Nobody is added until you approve them.</p>
+        </div>
+        <button type="button" className="league-btn"
+          disabled={!state.pending.length || isFull || bulk}
+          onClick={approveAll}>
+          {bulk ? "Approving…" : "Approve all"}
+        </button>
+      </div>
+
+      {isFull && (
+        <div className="lgq-note warn">
+          <span aria-hidden="true">⚠️</span>
+          <span>
+            <b>This league is full — {memberCount} of {league.maxMembers} spots taken.</b>{" "}
+            Approving is blocked until someone leaves or you raise the player limit in league settings.
+          </span>
+        </div>
+      )}
+      {error && <p className="leagues-error" style={{ padding: "0 20px" }}>{error}</p>}
+
+      {state.pending.length === 0 ? (
+        <div className="lgq-empty">
+          <span className="big" aria-hidden="true">📭</span>
+          <p>No requests waiting.</p>
+          <span>
+            People who find this league in search will show up here. Anyone with your invite code
+            joins directly.
+          </span>
+        </div>
+      ) : (
+        state.pending.map((r) => (
+          <div className="lgq-req" key={r.userId}>
+            <div className="who">
+              <span className="av" aria-hidden="true">{r.avatar || "🏈"}</span>
+              <div>
+                <b>{r.displayName}</b>
+                <span className="when">Requested {timeAgo(r.requestedAt)}</span>
+              </div>
+            </div>
+            <div className="acts">
+              <button type="button" className="league-btn" disabled={busyId === r.userId}
+                onClick={() => respond(r, "decline")}>Decline</button>
+              <button type="button" className="league-btn league-btn-primary"
+                disabled={busyId === r.userId || isFull}
+                onClick={() => respond(r, "approve")}>
+                {busyId === r.userId ? "…" : "Approve"}
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+
+      {state.handled.length > 0 && (
+        <>
+          <div className="lgq-sec"><span className="lgq-eyebrow">Recently handled</span></div>
+          {state.handled.slice(-5).reverse().map((r) => (
+            <div className="lgq-req settled" key={r.userId + r.status}>
+              <div className="who">
+                <span className="av" aria-hidden="true">{r.avatar || "🏈"}</span>
+                <div>
+                  <b>{r.displayName}</b>
+                  <span className="when">
+                    {r.status === "approved" ? "Approved" : "Declined"}
+                    {r.handledAt ? ` ${timeAgo(r.handledAt)}` : ""}
+                    {r.status === "approved" ? " · now a member" : ""}
+                  </span>
+                </div>
+              </div>
+              <span className={"verdict" + (r.status === "approved" ? " ok" : "")}>
+                {r.status === "approved" ? "Approved" : "Declined"}
+              </span>
+            </div>
+          ))}
+        </>
+      )}
+
+      <div className="lgq-note">
+        <span aria-hidden="true">🔑</span>
+        <span>
+          Anyone you send the invite code to joins straight away — they don't appear here. A declined
+          request can't be re-sent, but an invite code still works if you change your mind.
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, onOpenLeagueRoute }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   // /leagues/{id} opens straight into that league. Initial value only -
@@ -17282,6 +17533,10 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   const [subTab, setSubTab] = useState("week");
   const [week, setWeek] = useState(() => clampToRegularSeasonWeek(getDefaultWeek()));
   const [leavingLeagueId, setLeavingLeagueId] = useState(null);
+  // Count for the Requests tab's pip. Fetched separately from the panel so
+  // the number shows on the tab without the owner having to open it - the
+  // whole point is that they notice.
+  const [pendingRequests, setPendingRequests] = useState(0);
   const [autoJoining, setAutoJoining] = useState(!!pendingJoin);
   const [autoJoinError, setAutoJoinError] = useState(null);
   const autoJoinAttemptedRef = useRef(false);
@@ -17429,14 +17684,27 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
             onLeave={() => handleLeave(league.id)}
             leaving={leavingLeagueId === league.id}
           />
-          <div className="league-subtabs">
+          <div className={"league-subtabs" + (isOwner && league.visibility === "private" ? " has-requests" : "")}>
             <button type="button" className={"league-subtab" + (subTab === "week" ? " active" : "")} onClick={() => setSubTab("week")}>My Picks</button>
             <button type="button" className={"league-subtab" + (subTab === "picks" ? " active" : "")} onClick={() => setSubTab("picks")}>League Picks</button>
             <button type="button" className={"league-subtab" + (subTab === "standings" ? " active" : "")} onClick={() => setSubTab("standings")}>Standings</button>
+            {/* Owner of a private league only: a public league has nothing to
+                approve and a member has nothing to see. */}
+            {isOwner && league.visibility === "private" && (
+              <button type="button"
+                className={"league-subtab" + (subTab === "requests" ? " active" : "")}
+                onClick={() => setSubTab("requests")}>
+                Requests
+                {pendingRequests > 0 && <span className="league-subtab-pip">{pendingRequests}</span>}
+              </button>
+            )}
           </div>
           {subTab === "week" && <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} />}
           {subTab === "picks" && <LeaguePicksPanel auth={auth} profile={profile} league={league} week={week} tz={tz} />}
           {subTab === "standings" && <LeagueStandingsPanel auth={auth} profile={profile} league={league} />}
+          {subTab === "requests" && isOwner && league.visibility === "private" && (
+            <LeagueRequestsPanel auth={auth} league={league} onPendingChange={(n) => setPendingRequests(n)} />
+          )}
         </div>
       </div>
     );

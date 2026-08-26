@@ -198,6 +198,25 @@ export default async (req: Request, _context: Context) => {
             })
           );
 
+          // Pending join requests, owner only. Counted here rather than left
+          // to the league page because an owner who doesn't open that league
+          // would never learn a request is waiting - the dashboard is the
+          // screen they actually land on. Skipped entirely for a league they
+          // don't own, so a member never pays for the read.
+          let pendingRequests: number | null = null;
+          if (league.ownerId === userId && league.visibility === "private") {
+            try {
+              const { blobs } = await leagueStore.list({ prefix: `request:${leagueId}:` });
+              const records = await Promise.all(
+                blobs.map((b: any) => leagueStore.get(b.key, { type: "json" }).catch(() => null))
+              );
+              pendingRequests = records.filter((r: any) => r && r.status === "pending").length;
+            } catch {
+              // A badge that can't be counted is left off rather than
+              // failing the dashboard.
+            }
+          }
+
           const survivorState: any = survivorRaw || {};
           const myS = survivorState[userId] || { alive: true, usedTeams: [], eliminatedWeek: null };
           const scoredWeeks = Object.keys(standings.weeks || {}).map(Number).filter(Number.isFinite);
@@ -228,6 +247,7 @@ export default async (req: Request, _context: Context) => {
             visibility: league.visibility,
             memberCount: members.length,
             isOwner: league.ownerId === userId,
+            pendingRequests,
             me: mine
               ? {
                   rank: mine.rank,

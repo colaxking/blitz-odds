@@ -141,6 +141,29 @@ export default async (req: Request, _context: Context) => {
       ]);
     }
 
+    // A decline is final as far as re-requesting goes, but it must not
+    // block an invite: an owner who changes their mind, or who declined the
+    // wrong row, sends the code and that has to work. It does - this whole
+    // function never consults the request store. What's left over is a stale
+    // request record that would keep showing "declined" in the owner's queue
+    // for someone now sitting in the members list, so settle it here.
+    if (inviteCode) {
+      try {
+        const reqKey = `request:${leagueId}:${userId}`;
+        const pastRequest: any = await leagueStore.get(reqKey, { type: "json" });
+        if (pastRequest && pastRequest.status !== "approved") {
+          await leagueStore.setJSON(reqKey, {
+            ...pastRequest,
+            status: "approved",
+            handledAt: now,
+            resolvedBy: "invite",
+          });
+        }
+      } catch {
+        // Bookkeeping only - never fail a successful join over it.
+      }
+    }
+
     // Merge-update the joiner's profile with the league id.
     const leagues = Array.isArray(profile.leagues) ? profile.leagues : [];
     if (!leagues.includes(leagueId)) leagues.push(leagueId);

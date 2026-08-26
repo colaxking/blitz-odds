@@ -793,6 +793,8 @@
   .lgx-set .t span { font-size: .78rem; line-height: 1.5; color: var(--text-dim); }
   .lgx-set .c { flex-shrink: 0; }
   .lgx-set select, .lgx-set input { min-width: 170px; }
+.league-btn-request { background: transparent; border-color: rgba(var(--blitz-orange-rgb), .5);
+    color: var(--blitz-orange); }
   .lgx-locked { font-size: .72rem; color: var(--text-dim); border: 1px dashed var(--card-border);
     border-radius: 8px; padding: 8px 11px; }
 
@@ -2130,6 +2132,7 @@
      full-width column of pick cards or form fields is harder to read,
      not easier. */
   .leagues-page-landing { max-width: 1000px; }
+
   /* Create and the browse redesign need the full measure, not the landing
      page's narrower column. */
   .leagues-page-wide { max-width: 1240px; margin: 18px auto 0; }
@@ -15326,7 +15329,7 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null); // null = not searched yet
   const [total, setTotal] = useState(0);
-  const [limit, setLimit] = useState(20);
+  const PAGE_SIZE = 20;
   const [searching, setSearching] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchError, setSearchError] = useState(null);
@@ -15335,21 +15338,34 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
   const [joinCode, setJoinCode] = useState(initialCode || "");
   const [joiningCode, setJoiningCode] = useState(false);
   const [joinCodeError, setJoinCodeError] = useState(initialError || null);
+  const [formatFilter, setFormatFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  // Per-league outcome of a join request, keyed by league id: "pending" once
+  // it's lodged, "member" if the server says they were already in. Kept
+  // local rather than folded into `results` so a re-search (which replaces
+  // results wholesale) doesn't lose the fact that they just asked.
+  const [requestState, setRequestState] = useState({});
+  const [requestingId, setRequestingId] = useState(null);
+  const [requestErrorId, setRequestErrorId] = useState(null);
+  const [requestError, setRequestError] = useState(null);
   const debounceRef = useRef(null);
 
-  async function runSearch(q, searchLimit, { silent } = {}) {
-    if (silent) setLoadingMore(true); else setSearching(true);
+  async function runSearch(q, offset, { append } = {}) {
+    if (append) setLoadingMore(true); else setSearching(true);
     setSearchError(null);
     try {
-      const res = await fetch(`/.netlify/functions/leagues-search?q=${encodeURIComponent(q)}&limit=${searchLimit}`);
+      const params = new URLSearchParams({ q, limit: String(PAGE_SIZE), offset: String(offset) });
+      if (formatFilter) params.set("format", formatFilter);
+      if (typeFilter) params.set("type", typeFilter);
+      const res = await fetch(`/.netlify/functions/leagues-search?${params.toString()}`);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Search failed");
-      setResults(data.leagues || []);
+      const page = data.leagues || [];
+      setResults((prev) => (append && prev ? [...prev, ...page] : page));
       setTotal(data.total || 0);
     } catch (err) {
       setSearchError(err.message || "Search failed");
-      setResults([]);
-      setTotal(0);
+      if (!append) { setResults([]); setTotal(0); }
     } finally {
       setSearching(false);
       setLoadingMore(false);
@@ -15362,16 +15378,18 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
     // keystroke doesn't fire a request. Typing resets the page size back
     // to 20 - a fresh search should start small, not carry over a "show
     // more" expansion from a previous query.
-    setLimit(20);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => runSearch(query.trim(), 20), query.trim() ? 300 : 0);
+    debounceRef.current = setTimeout(() => runSearch(query.trim(), 0), query.trim() ? 300 : 0);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query]);
+  }, [query, formatFilter, typeFilter]);
 
   function handleShowMore() {
-    const nextLimit = Math.min(limit + 20, 50);
-    setLimit(nextLimit);
-    runSearch(query.trim(), nextLimit, { silent: true });
+    // leagues-search caps limit at 50 per call, so the window grows by
+    // paging on offset and appending rather than asking for one ever-larger
+    // response. Kept as "show more" rather than numbered pages: results are
+    // sorted public-then-size, so someone scanning is scrolling, not
+    // jumping to page 6.
+    runSearch(query.trim(), results ? results.length : 0, { append: true });
   }
 
   async function handleJoinPublic(league) {
@@ -15393,6 +15411,29 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
       setSearchError(err.message || "Failed to join league");
     } finally {
       setJoiningId(null);
+    }
+  }
+
+  async function handleRequest(league) {
+    if (auth.status !== "in") { onRequestLogin(); return; }
+    if (requestingId) return;
+    setRequestingId(league.id);
+    setRequestErrorId(null);
+    setRequestError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-join-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId: league.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't send that request");
+      setRequestState((prev) => ({ ...prev, [league.id]: data.status }));
+    } catch (err) {
+      setRequestErrorId(league.id);
+      setRequestError(err.message || "Couldn't send that request");
+    } finally {
+      setRequestingId(null);
     }
   }
 
@@ -15419,94 +15460,154 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
     }
   }
 
-  // "Show more" only expands within the backend's existing limit param (max
-  // 50, see leagues-search.mts) - there's no cursor/index-backed pagination
-  // yet, so this can't page past 50 results. That's a separate follow-up
-  // (leagues-search.mts's own scale-note comment already flags it).
-  const canShowMore = results && results.length < total && limit < 50;
+  const canShowMore = results && results.length < total;
+  const formatLabel = (f) => (LEAGUE_FORMAT_OPTIONS.find((o) => o.value === f) || {}).label || f;
+  const shortLabel = (f) => (f === "ats" ? "ATS" : formatLabel(f));
+
+  function renderAction(l) {
+    if (l.full) {
+      return <button type="button" className="league-btn" disabled>League full</button>;
+    }
+    if (l.visibility === "public") {
+      return (
+        <button type="button" className="league-btn league-btn-primary"
+          disabled={joiningId === l.id}
+          onClick={() => handleJoinPublic(l)}>
+          {joiningId === l.id ? "Joining…" : "Join League"}
+        </button>
+      );
+    }
+    const state = requestState[l.id];
+    if (state === "pending") {
+      return <button type="button" className="league-btn" disabled>Requested ✓</button>;
+    }
+    if (state === "member") {
+      return <button type="button" className="league-btn" disabled>Already a member</button>;
+    }
+    return (
+      <button type="button" className="league-btn league-btn-request"
+        disabled={requestingId === l.id}
+        onClick={() => handleRequest(l)}>
+        {requestingId === l.id ? "Requesting…" : "Request to Join"}
+      </button>
+    );
+  }
 
   return (
     <>
-      <h2 className="leagues-page-section-title">Search Leagues</h2>
-      <p className="leagues-page-section-sub">Find a public league to join, or use an invite code for a private one.</p>
-      <div className="league-search-row">
-        <input
-          type="text"
-          className="league-input"
-          placeholder="Search league names…"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
+      {/* Invite code first: someone arriving with a code has a one-step job
+          and shouldn't have to scroll past a search they don't need. On a
+          phone this collapses onto the browse card below (see .lgx-code's
+          media query) rather than owning half the first screen. */}
+      <div className="lgx-card lgx-code">
+        <div className="lgx-code-left">
+          <span className="lgx-eyebrow" style={{ color: "var(--accent)" }}>Join with an invite code</span>
+          <p className="lgx-help" style={{ marginTop: 8 }}>
+            Enter the invite code provided by your league commissioner.
+          </p>
+          <form className="lgx-code-row" onSubmit={handleJoinByCode}>
+            <input className="league-input" placeholder="Enter invite code" maxLength={12}
+              value={joinCode} onChange={(e) => setJoinCode(e.target.value)} />
+            <button type="submit" className="league-btn league-btn-primary"
+              disabled={joiningCode || !joinCode.trim()}>
+              {joiningCode ? "Joining…" : "Join League →"}
+            </button>
+          </form>
+          <p className="lgx-help" style={{ margin: "10px 0 0" }}>The code is not case sensitive.</p>
+          {joinCodeError && <p className="leagues-error">{joinCodeError}</p>}
+        </div>
+        <div className="lgx-code-right">
+          <span className="env" aria-hidden="true">✉️</span>
+          <p>Ask your commissioner for the league invite code.</p>
+        </div>
       </div>
 
-      <form className="league-code-box" onSubmit={handleJoinByCode}>
-        <span className="league-code-box-label">🔑 Have a code?</span>
-        <input
-          type="text"
-          className="league-input league-input-code"
-          placeholder="CODE"
-          value={joinCode}
-          onChange={e => setJoinCode(e.target.value.toUpperCase())}
-          maxLength={6}
-        />
-        <button type="submit" className="league-btn league-btn-primary" disabled={joiningCode || !joinCode.trim()}>
-          {joiningCode ? "Joining…" : "Join"}
-        </button>
-      </form>
-      {joinCodeError && <p className="leagues-error">{joinCodeError}</p>}
-
-      <div className="league-results-divider">Public leagues</div>
-
-      {searching && results === null && <p className="leagues-empty">Loading…</p>}
-      {searchError && <p className="leagues-error">{searchError}</p>}
-      {results && results.length === 0 && !searchError && (
-        <p className="leagues-empty">
-          {query.trim() ? "No public leagues match that search." : "No public leagues yet - be the first to create one below."}
-        </p>
-      )}
-      {results && results.length > 0 && (
-        <>
-          <p className="league-results-count">Showing {results.length} of {total.toLocaleString()} public league{total === 1 ? "" : "s"}</p>
-          <div className="league-list">
-            {results.map(l => {
-              const iconUrl = LEAGUE_FORMAT_ICON_URLS[l.format];
-              return (
-                <div key={l.id} className="league-list-item">
-                  {iconUrl && (
-                    <div className="format-icon-badge">
-                      <img src={iconUrl} alt="" />
-                    </div>
-                  )}
-                  <div className="league-list-item-main">
-                    <span className="league-list-item-name">{l.name}</span>
-                    {l.description && <p className="league-search-item-desc">{l.description}</p>}
-                    <div className="league-search-item-tags">
-                      <span className="league-format-pill">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === l.format) || {}).label || l.format}</span>
-                      <span className="league-list-item-meta">
-                        {l.memberCount} member{l.memberCount === 1 ? "" : "s"}{l.maxMembers ? ` / ${l.maxMembers}` : ""} · {l.season}
-                      </span>
-                    </div>
-                    {joinErrorId === l.id && <p className="leagues-error">Couldn't join that league.</p>}
-                  </div>
-                  <button
-                    type="button"
-                    className="league-btn league-btn-primary"
-                    onClick={() => handleJoinPublic(l)}
-                    disabled={joiningId === l.id}
-                  >
-                    {joiningId === l.id ? "Joining…" : "Join"}
-                  </button>
-                </div>
-              );
-            })}
+      <div className="lgx-card lgx-browse" style={{ marginTop: 16 }}>
+        <div className="lgx-browse-head">
+          <div>
+            <span className="lgx-eyebrow" style={{ color: "var(--accent)" }}>Find a league</span>
+            <p className="lgx-help" style={{ margin: "6px 0 0" }}>
+              Search every league. Join a public one instantly, or ask to join a private one.
+            </p>
           </div>
-          {canShowMore && (
-            <button type="button" className="league-btn league-btn-block league-load-more" onClick={handleShowMore} disabled={loadingMore}>
-              {loadingMore ? "Loading…" : "Show more leagues"}
+          <div className="lgx-tools">
+            <span className="lgx-search">
+              <input className="league-input" placeholder="Search leagues…"
+                value={query} onChange={(e) => setQuery(e.target.value)} />
+              <span className="mag" aria-hidden="true">🔍</span>
+            </span>
+            <select className="league-input" value={formatFilter}
+              onChange={(e) => setFormatFilter(e.target.value)} aria-label="Filter by format">
+              <option value="">All formats</option>
+              {LEAGUE_FORMAT_OPTIONS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+            </select>
+            <select className="league-input" value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)} aria-label="Filter by type">
+              <option value="">All types</option>
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="lgx-th">
+          <span>League name</span><span>Game type</span><span>Type</span>
+          <span>Members</span><span>Owner</span><span style={{ textAlign: "right" }}>Action</span>
+        </div>
+
+        {searching && results === null && <p className="lgx-empty">Loading…</p>}
+        {searchError && <p className="leagues-error" style={{ padding: "0 20px" }}>{searchError}</p>}
+        {results && results.length === 0 && !searching && (
+          <p className="lgx-empty">
+            {query.trim() ? `No leagues match "${query.trim()}".` : "No leagues to show yet."}
+          </p>
+        )}
+
+        {results && results.map((l) => (
+          <div key={l.id} className="lgx-tr">
+            <div className="lgx-lg">
+              <img src={LEAGUE_FORMAT_ICON_URLS[l.format]} alt="" />
+              <div className="nm">
+                <b>{l.name}</b>
+                {l.description && <span>{l.description}</span>}
+              </div>
+            </div>
+            <div className="lgx-dcell"><span className="lgx-pill">{shortLabel(l.format)}</span></div>
+            <div className="lgx-dcell">
+              <span className={"lgx-vis" + (l.visibility === "public" ? " pub" : "")}>
+                {l.visibility === "public" ? "🌐 Public" : "🔒 Private"}
+              </span>
+            </div>
+            <div className={"lgx-dcell lgx-num" + (l.full ? " full" : "")}>
+              {l.memberCount}{l.maxMembers ? ` / ${l.maxMembers}` : ""}
+            </div>
+            <div className="lgx-dcell lgx-num lgx-dim">{l.ownerName || "—"}</div>
+            {/* Mobile only: the same four facts, inline, since the columns
+                above collapse to a single stacked cell under 860px. */}
+            <div className="lgx-mmeta">
+              <b style={{ color: "var(--text)" }}>{shortLabel(l.format)}</b>
+              <span className={"lgx-vis" + (l.visibility === "public" ? " pub" : "")}>
+                {l.visibility === "public" ? "🌐 Public" : "🔒 Private"}
+              </span>
+              <span>{l.memberCount}{l.maxMembers ? ` / ${l.maxMembers}` : ""} members</span>
+              {l.ownerName && <span>{l.ownerName}</span>}
+            </div>
+            <div style={{ textAlign: "right" }}>
+              {renderAction(l)}
+              {requestErrorId === l.id && <p className="leagues-error">{requestError}</p>}
+              {joinErrorId === l.id && <p className="leagues-error">Couldn't join that league.</p>}
+            </div>
+          </div>
+        ))}
+
+        {canShowMore && (
+          <div className="lgx-more">
+            <button type="button" className="league-btn" onClick={handleShowMore} disabled={loadingMore}>
+              {loadingMore ? "Loading…" : `Show more (${results.length} of ${total.toLocaleString()})`}
             </button>
-          )}
-        </>
-      )}
+          </div>
+        )}
+      </div>
     </>
   );
 }
@@ -15835,7 +15936,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   const [leavingId, setLeavingId] = useState(null);
   const [leaveErrorId, setLeaveErrorId] = useState(null);
   const [mobileTab, setMobileTab] = useState("mine");
-  const [subTab, setSubTab] = useState("search");
+  const [subTab, setSubTab] = useState("mine");
 
   const signedIn = auth.status === "in";
   const myUserId = auth.user && auth.user.id;
@@ -15849,7 +15950,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   }
   function selectSubTab(name) {
     setSubTab(name);
-    setMobileTab(name);
+    setMobileTab(name === "mine" ? "mine" : name);
   }
 
 
@@ -15899,11 +16000,39 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   // inside the content column that left roughly 400px for a four-up format
   // picker - every card wrapped to five lines. Breaking out also matches
   // what the flow is: a task you finish and leave, not a section you browse.
+  // Both Search and Create are full-width pages rather than panels in the
+  // landing grid. Search needs it as much as Create did: the browse table is
+  // six columns, and beside the My Leagues sidebar the name column collapsed
+  // to about 60px - every league rendered as "G..". Widening the whole
+  // landing page instead would have stretched My Leagues for no reason.
+  if (subTab === "search" && signedIn) {
+    return (
+      <div className="leagues-page leagues-page-wide">
+        <nav className="lgx-crumb" aria-label="Breadcrumb">
+          <button type="button" onClick={() => selectSubTab("mine")}>Leagues</button>
+          <span aria-hidden="true">›</span>
+          <span aria-current="page">Join League</span>
+        </nav>
+        <div>
+          <h1 className="lgx-title">Join a League</h1>
+          <p className="lgx-subtitle">Find a league to join or use an invite code from your commissioner.</p>
+        </div>
+        <LeagueSearchSection
+          auth={auth}
+          onRequestLogin={onRequestLogin}
+          onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
+          initialCode={autoJoinCode}
+          initialError={autoJoinCodeError}
+        />
+      </div>
+    );
+  }
+
   if (subTab === "create" && signedIn) {
     return (
       <div className="leagues-page leagues-page-wide">
         <nav className="lgx-crumb" aria-label="Breadcrumb">
-          <button type="button" onClick={() => selectSubTab("search")}>Leagues</button>
+          <button type="button" onClick={() => selectSubTab("mine")}>Leagues</button>
           <span aria-hidden="true">›</span>
           <span aria-current="page">Create League</span>
         </nav>

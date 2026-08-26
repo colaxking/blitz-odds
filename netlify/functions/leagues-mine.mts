@@ -83,6 +83,28 @@ export default async (req: Request, _context: Context) => {
       await Promise.all(leagueIds.map((id) => leagueStore.get(`league:${id}`, { type: "json" })))
     ).filter(Boolean);
 
+    // Pending join-request count, owner-of-a-private-league only. The
+    // leagues list is what "Manage" opens, so it has to show which leagues
+    // are actually waiting on the owner - otherwise the only way to find out
+    // is to open each one in turn. Scoped so a member never pays for the
+    // read, and mirrors what home-summary.mts already computes for the
+    // dashboard badge, using the same request:{leagueId}: prefix.
+    await Promise.all(
+      leagues.map(async (league: any) => {
+        if (league.ownerId !== userId || league.visibility !== "private") return;
+        try {
+          const { blobs } = await leagueStore.list({ prefix: `request:${league.id}:` });
+          const records = await Promise.all(
+            blobs.map((b: any) => leagueStore.get(b.key, { type: "json" }).catch(() => null))
+          );
+          league.pendingRequests = records.filter((r: any) => r && r.status === "pending").length;
+        } catch {
+          // A count that can't be read is left off rather than failing the
+          // whole list - the row still renders, just without the pill.
+        }
+      })
+    );
+
     return jsonResponse(200, { ok: true, leagues });
   } catch (err) {
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" });

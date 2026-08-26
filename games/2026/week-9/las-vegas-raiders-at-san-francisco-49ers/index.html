@@ -1993,6 +1993,22 @@
   .league-btn-primary { background: var(--accent); border-color: var(--accent); color: #062018; }
   .league-btn-primary:hover:not(:disabled) { filter: brightness(1.08); color: #062018; }
   .league-btn-block { width: 100%; }
+  /* Row-sized variant. The league list packs a name, meta line, this button
+     and the invite code onto one row, and the default 9px/16px padding
+     pushed the code onto its own line on a phone. */
+  .league-btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+  /* "N waiting" on an owned private league. Blitz orange rather than the
+     accent so it reads as an alert needing action, not another control -
+     the same colour the "Called it" badge uses for a Blitz signal. Itself a
+     button, since the only useful response to seeing it is to open the
+     queue. */
+  .league-list-waiting {
+    flex-shrink: 0; background: var(--blitz-orange); border: 1px solid var(--blitz-orange);
+    color: #241000; border-radius: 999px; padding: 4px 10px; font-size: 0.74rem;
+    font-weight: 800; cursor: pointer; white-space: nowrap; line-height: 1.2;
+  }
+  .league-list-waiting:hover { filter: brightness(1.08); }
 
   .league-form-create { display: flex; flex-direction: column; gap: 10px; }
   .league-format-picker { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
@@ -2004,12 +2020,6 @@
   .league-format-option.selected { background: rgba(var(--accent-rgb),0.14); border-color: var(--accent); color: var(--accent); }
   .league-format-hint { font-size: 0.78rem; color: var(--text-dim); margin: -2px 0 0; line-height: 1.4; }
 
-  .league-settings-gear {
-    flex-shrink: 0; background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
-    border-radius: 8px; width: 32px; height: 32px; font-size: 0.9rem; cursor: pointer; display: flex;
-    align-items: center; justify-content: center;
-  }
-  .league-settings-gear:hover { border-color: var(--accent); color: var(--accent); }
   .league-settings-form { display: flex; flex-direction: column; gap: 12px; }
   .league-settings-row { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); }
   .league-settings-row-checkbox { flex-direction: row; align-items: center; justify-content: space-between; }
@@ -15266,6 +15276,15 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
 
+  // Only the owner of a private league has a queue to review: a public
+  // league approves nobody, and a member has nothing to see. Same condition
+  // the Requests subtab and league-requests.mts both use, so the three agree.
+  // `visibility` (not league.visibility) so flipping the setting to Public
+  // and saving hides this immediately rather than after a refetch.
+  const myUserId = auth.user && auth.user.id;
+  const canReviewRequests = league.ownerId === myUserId && visibility === "private";
+  const [pendingRequests, setPendingRequests] = useState(league.pendingRequests || 0);
+
   const formatInfo = LEAGUE_FORMAT_OPTIONS.find(f => f.value === league.format);
 
   async function handleSave(e) {
@@ -15331,6 +15350,28 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
         <ChevronIcon direction="left" size={13} />
         <span>Back to League</span>
       </button>
+
+      {/* Join requests first, above League Settings. This screen is what
+          "Manage" opens from every entry point, and the queue is the only
+          part of it that's time-sensitive - somebody is waiting on it.
+          Underneath eight scoring fields it was invisible, which is why an
+          owner looking to approve someone had no way to find it from a
+          button literally labelled Manage. Reuses LeagueRequestsPanel
+          unchanged, so this is a second route to the same panel rather than
+          a move: the Requests subtab inside a league still works. */}
+      {canReviewRequests && (
+        <div className="settings-section">
+          <h3 className="settings-section-title">
+            Join Requests
+            {pendingRequests > 0 && <span className="league-subtab-pip">{pendingRequests}</span>}
+          </h3>
+          <LeagueRequestsPanel
+            auth={auth}
+            league={league}
+            onPendingChange={(n) => setPendingRequests(n)}
+          />
+        </div>
+      )}
 
       <div className="settings-section">
         <h3 className="settings-section-title">League Settings</h3>
@@ -16319,28 +16360,43 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
                             </span>
                           </span>
                         </button>
-                        {/* Gear + invite code travel together so they wrap as
-                            one unit and stay right-aligned on every row. */}
+                        {/* Manage + invite code travel together so they wrap
+                            as one unit and stay right-aligned on every row.
+                            The owner control is a labelled button rather than
+                            a bare ⚙: this list is where "Manage" on the Home
+                            dashboard lands, and an unlabelled glyph gave no
+                            hint that it was the way to reach league settings
+                            or the join-request queue. */}
                         <div className="league-list-item-actions">
                           {isOwner ? (
-                            <button
-                              type="button"
-                              className="league-settings-gear"
-                              onClick={() => onManageLeague(l.id)}
-                              title="League settings"
-                              aria-label="League settings"
-                            >
-                              ⚙
-                            </button>
+                            <>
+                              {l.pendingRequests > 0 && (
+                                <button
+                                  type="button"
+                                  className="league-list-waiting"
+                                  onClick={() => onManageLeague(l.id)}
+                                  title={`${l.pendingRequests} join request${l.pendingRequests === 1 ? "" : "s"} waiting for you`}
+                                >
+                                  {l.pendingRequests} waiting
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="league-btn league-btn-sm"
+                                onClick={() => onManageLeague(l.id)}
+                                title="League settings and join requests"
+                              >
+                                Manage
+                              </button>
+                            </>
                           ) : (
                             <button
                               type="button"
-                              className="league-settings-gear"
+                              className="league-btn league-btn-sm"
                               onClick={() => setPendingLeaveId(l.id)}
                               title="Leave league"
-                              aria-label="Leave league"
                             >
-                              🚪
+                              Leave
                             </button>
                           )}
                           <button
@@ -21374,10 +21430,16 @@ function App() {
   // re-read on that remount and re-apply a stale destination.
   const [leagueIntent, setLeagueIntent] = useState(null);
   function goToLeaguesTab(intent) {
+    // Normalises to an object even when called with nothing, because null
+    // means something different: "no in-app navigation has happened, so the
+    // URL the app was loaded with still decides." Collapsing the two let
+    // Home -> Manage fall back to initialLeagueId and drop the user inside
+    // whatever league was in the URL at mount, instead of on the list they
+    // asked for. An empty object is an explicit "the leagues list, please".
     setLeagueIntent(
       typeof intent === "string" ? { leagueId: intent }
         : (intent && typeof intent === "object") ? intent
-        : null
+        : {}
     );
     setLeagueTabResetKey((k) => k + 1);
     setActiveTab("league");
@@ -21783,8 +21845,8 @@ function App() {
           tz={resolvedTz}
           pendingJoin={pendingJoin}
           onConsumePendingJoin={clearPendingJoin}
-          initialLeagueId={(leagueIntent && leagueIntent.leagueId) || initialLeagueId}
-          initialSubTab={leagueIntent && leagueIntent.subTab}
+          initialLeagueId={leagueIntent ? (leagueIntent.leagueId || null) : initialLeagueId}
+          initialSubTab={leagueIntent ? (leagueIntent.subTab || null) : null}
           initialLeagueSubTab={leagueIntent ? (leagueIntent.leagueSubTab || null) : initialLeagueSubTabFromUrl}
           onOpenLeagueRoute={syncLeagueRoute}
           onGoHome={backToWeek}

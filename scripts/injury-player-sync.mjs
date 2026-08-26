@@ -225,6 +225,43 @@ async function writeBothCopies(doc) {
   await writeFile(INDEX_PATH, html.slice(0, m.index + m[1].length) + "\n" + json + "\n" + html.slice(m.index + m[1].length + m[2].length), "utf8");
 }
 
+/** The staging list behind the "Track player" button in analytics.html.
+ *
+ *  That button writes a new player straight into the live "players" blob so
+ *  the site reflects him within seconds - but the blob is the copy, not the
+ *  source. site-data-update.mts merges by iterating the INCOMING team array,
+ *  so a player who exists only in the blob is dropped the moment this script
+ *  publishes the repo's version over it. Absorbing the staging list here,
+ *  before anything else runs, is what stops that. */
+async function fetchPendingAdds() {
+  const secret = process.env.INJURY_REVIEW_SECRET;
+  if (!secret) {
+    log("INJURY_REVIEW_SECRET is not set - skipping the staged-adds check.");
+    return [];
+  }
+  const res = await fetch(`${SITE_BASE}/.netlify/functions/injury-player-add`, {
+    headers: { "x-injury-review-secret": secret },
+  });
+  if (!res.ok) throw new Error(`injury-player-add returned ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  return Array.isArray(data.pending) ? data.pending : [];
+}
+
+/** Only ever called after the repo copy is safely on disk. Clearing earlier
+ *  would drop a player into the gap between the two stores. */
+async function ackPendingAdds(espnIds) {
+  if (!espnIds.length) return;
+  const secret = process.env.INJURY_REVIEW_SECRET;
+  if (!secret) return;
+  const res = await fetch(`${SITE_BASE}/.netlify/functions/injury-player-add`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-injury-review-secret": secret },
+    body: JSON.stringify({ ack: espnIds }),
+  });
+  if (!res.ok) throw new Error(`injury-player-add ack returned ${res.status}: ${await res.text()}`);
+  log(`Cleared ${espnIds.length} staged add(s).`);
+}
+
 async function publish(doc) {
   const secret = process.env.SITE_DATA_UPDATE_SECRET;
   if (!secret) throw new Error("SITE_DATA_UPDATE_SECRET is not set");
@@ -246,6 +283,35 @@ async function main() {
   const doc = JSON.parse(await readFile(DATA_PATH, "utf8"));
   const teams = Object.keys(doc.players);
   const all = () => Object.entries(doc.players).flatMap(([t, ps]) => ps.map((p) => [t, p]));
+
+  // ---- 0. staged adds ----------------------------------------------------
+  // Runs first so a staged player is a normal tracked player by the time
+  // espnId resolution, status sync and validation see him.
+  const staged = { merged: [], alreadyThere: [], ack: [] };
+  const pending = await fetchPendingAdds();
+  if (pending.length) {
+    const known = new Set(all().map(([, p]) => String(p.espnId)));
+    const knownNames = new Set(all().map(([, p]) => norm(p.name)));
+    for (const entry of pending) {
+      const p = entry && entry.player;
+      if (!p || !p.name || !entry.team) continue;
+      staged.ack.push(String(p.espnId));
+      // A repeat means a previous run merged him but the ack didn't land.
+      // Re-adding would throw on the duplicate-espnId check below.
+      if ((p.espnId && known.has(String(p.espnId))) || knownNames.has(norm(p.name))) {
+        staged.alreadyThere.push(`${p.name} (${entry.team})`);
+        continue;
+      }
+      if (!Array.isArray(doc.players[entry.team])) {
+        log(`WARNING: staged add ${p.name} names team ${entry.team}, which the file doesn't carry - skipped.`);
+        continue;
+      }
+      doc.players[entry.team].push(p);
+      known.add(String(p.espnId));
+      knownNames.add(norm(p.name));
+      staged.merged.push(`${p.name} (${entry.team}, ${p.position}) impact ${p.impactScore}, ${p.status}`);
+    }
+  }
 
   const season = new Date().getUTCFullYear();
   const teamIds = new Map();
@@ -349,6 +415,8 @@ async function main() {
   log(`${total} tracked players.`);
   if (changes.bootstrapped) log(`Bootstrapped ${changes.bootstrapped} existing player(s) as curated-as-of-now (not changed).`);
   const section = (title, list) => { if (list.length) { log(title); list.forEach((l) => console.log("   " + l)); } };
+  section(`Merged ${staged.merged.length} player(s) staged from the review panel:`, staged.merged);
+  section(`${staged.alreadyThere.length} staged add(s) were already in the file:`, staged.alreadyThere);
   section(`Resolved ${changes.ids.length} missing espnId:`, changes.ids);
   section(`Auto-applied ${changes.applied.length} status change(s):`, changes.applied);
   section(`Auto-added ${changes.added.length} player(s):`, changes.added);
@@ -364,13 +432,17 @@ async function main() {
   if (dupes.length) throw new Error(`Duplicate espnId(s): ${[...new Set(dupes)].join(", ")}`);
   if (missing.length) log(`WARNING: ${missing.length} player(s) still without an espnId: ${missing.join(", ")}`);
 
-  const touched = changes.ids.length + changes.applied.length + changes.added.length + changes.bootstrapped;
+  const touched = changes.ids.length + changes.applied.length + changes.added.length
+    + changes.bootstrapped + staged.merged.length;
   if (!touched) { log("Nothing to change."); return; }
 
   if (dryRun) { log("Dry run - nothing written."); return; }
 
   await writeBothCopies(doc);
   log("Wrote data/impact-players.json and the index.html seed.");
+  // Only now is it safe to clear the staging list. Note this leaves the
+  // player on disk but not yet committed - the git push is still yours.
+  await ackPendingAdds(staged.ack);
   if (doPublish) await publish(doc);
 }
 

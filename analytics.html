@@ -224,8 +224,41 @@
   .ir-tag-new { color:#4fd1c5; background:rgba(79,209,197,.12); border:1px solid rgba(79,209,197,.32); }
   .ir-note { color:var(--dim); font-size:.78rem; margin-top:5px; line-height:1.45; }
   .ir-ours { font-size:.78rem; margin-top:4px; }
-  .ir-actions { margin-top:8px; }
+  .ir-actions { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .ir-empty { color:var(--dim); font-size:.85rem; padding:8px 2px; }
+
+  /* ---- Track player (adds to the curated file) ---- */
+  .ir-btn-track { border-color:rgba(79,209,197,.4); color:var(--accent); }
+  .ir-form { margin-top:10px; padding:12px; border-radius:8px;
+             border:1px dashed rgba(79,209,197,.34); background:rgba(79,209,197,.05); }
+  .ir-form[hidden], .ir-ok[hidden] { display:none; }
+  .ir-form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px 12px; }
+  .ir-field { display:flex; flex-direction:column; gap:4px; }
+  .ir-field label { font-size:.68rem; text-transform:uppercase; letter-spacing:.5px;
+                    color:var(--text-faint); font-weight:700; }
+  .ir-field input, .ir-field select, .ir-field textarea {
+    background:var(--bg); border:1px solid var(--card-border); color:var(--text);
+    border-radius:6px; padding:6px 8px; font-family:inherit; font-size:.82rem; width:100%;
+  }
+  .ir-field input:focus, .ir-field select:focus, .ir-field textarea:focus {
+    outline:none; border-color:var(--accent-dim);
+  }
+  .ir-field textarea { resize:vertical; min-height:46px; }
+  .ir-field-wide { grid-column:1 / -1; }
+  .ir-hint { font-size:.7rem; color:var(--text-faint); line-height:1.4; }
+  .ir-check { display:flex; align-items:center; gap:7px; font-size:.78rem; color:var(--dim); }
+  .ir-check input { width:auto; }
+  .ir-form-actions { margin-top:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .ir-impact-row { display:flex; align-items:center; gap:9px; max-width:340px; }
+  .ir-impact-row input[type=range] { flex:1; accent-color:var(--accent); }
+  .ir-impact-val { font-weight:700; font-variant-numeric:tabular-nums; min-width:1.4em; text-align:right; }
+  .ir-btn-primary { background:var(--accent-dim); border-color:var(--accent-dim); color:#fff; font-weight:600; }
+  .ir-btn-primary:hover { background:var(--accent); border-color:var(--accent); color:#06231f; }
+  .ir-btn-primary[disabled] { opacity:.55; cursor:default; }
+  .ir-ok { margin-top:9px; font-size:.78rem; color:var(--good); display:flex; gap:7px;
+           align-items:flex-start; line-height:1.45; }
+  .ir-ok-sub { color:var(--text-faint); }
+  .ir-err { margin-top:9px; font-size:.78rem; color:#ff8a80; line-height:1.45; }
 </style>
 </head>
 <body>
@@ -1051,9 +1084,13 @@
         (i.comment ? '<div class="ir-note">' + irEscape(i.comment) + "</div>" : "") +
         ours +
         '<div class="ir-actions">' +
+          (tracked ? "" :
+            '<button class="ir-btn-track" data-ir-open="' + irEscape(i.id) + '">Track player</button>') +
           '<button data-ir-id="' + irEscape(i.id) + '" data-ir-resolved="' + (i.resolved ? "0" : "1") + '">' +
             (i.resolved ? "Reopen" : "Mark done") + "</button>" +
         "</div>" +
+        '<div class="ir-ok" id="ir-ok-' + irEscape(i.id) + '" hidden></div>' +
+        (tracked ? "" : irFormHtml(i)) +
       "</div>";
     }).join("");
 
@@ -1062,6 +1099,129 @@
         irResolve(btn.getAttribute("data-ir-id"), btn.getAttribute("data-ir-resolved") === "1");
       });
     });
+    irWireForms(body);
+  }
+
+  /* ---- Track player -------------------------------------------------------
+   * Turns an untracked candidate into a real entry in the curated file.
+   * The row already carries everything ESPN knows, so the form opens
+   * prefilled and the only field that needs a decision is the impact score,
+   * which feeds the prediction model. */
+  var IR_ADD_ENDPOINT = "/.netlify/functions/injury-player-add";
+  // Position medians of the players already tracked, minus one - the same
+  // table injury-player-sync.mjs uses when it auto-adds someone. Guessing
+  // low under-weights a player rather than over-weighting him.
+  var IR_AUTO_IMPACT = { QB:6, RB:6, WR:6, TE:6, EDGE:7, DE:5, CB:6, LT:6, RT:5, OT:5, K:4 };
+  var IR_STATUSES = ["active", "questionable", "doubtful", "out", "ir"];
+
+  function irFormHtml(i) {
+    var id = irEscape(i.id);
+    var pos = String(i.position || "").toUpperCase();
+    var impact = IR_AUTO_IMPACT[pos] || 5;
+    // formatInjurySince in index.html wants YYYY-MM-DD or YYYY-MM.
+    var since = String(i.reportedAt || i.seenAt || "").slice(0, 10);
+    return '<div class="ir-form" id="ir-form-' + id + '" hidden>' +
+      '<div class="ir-form-grid">' +
+        '<div class="ir-field"><label for="ir-pos-' + id + '">Position</label>' +
+          '<input id="ir-pos-' + id + '" value="' + irEscape(pos) + '" /></div>' +
+        '<div class="ir-field"><label for="ir-st-' + id + '">Status</label>' +
+          '<select id="ir-st-' + id + '">' +
+            IR_STATUSES.map(function (o) {
+              return '<option' + (o === i.to ? " selected" : "") + ">" + o + "</option>";
+            }).join("") +
+          "</select></div>" +
+        '<div class="ir-field ir-field-wide"><label for="ir-imp-' + id + '">Impact score</label>' +
+          '<div class="ir-impact-row">' +
+            '<input type="range" min="1" max="10" step="1" value="' + impact + '" id="ir-imp-' + id + '" ' +
+              'data-ir-out="ir-impout-' + id + '" />' +
+            '<span class="ir-impact-val" id="ir-impout-' + id + '">' + impact + "</span>" +
+          "</div>" +
+          '<div class="ir-hint">Feeds the prediction model. Defaulted to the ' + irEscape(pos || "position") +
+            ' median of players you already track. Guess low if unsure.</div></div>' +
+        '<div class="ir-field"><label for="ir-ty-' + id + '">Injury type</label>' +
+          '<input id="ir-ty-' + id + '" value="' + irEscape(i.detail || "") + '" /></div>' +
+        '<div class="ir-field"><label for="ir-since-' + id + '">Injured since</label>' +
+          '<input id="ir-since-' + id + '" value="' + irEscape(since) + '" placeholder="2026-08-26" /></div>' +
+        '<div class="ir-field ir-field-wide"><label for="ir-note-' + id + '">Note</label>' +
+          '<textarea id="ir-note-' + id + '">' + irEscape(i.comment || "") + "</textarea></div>" +
+        '<div class="ir-field ir-field-wide"><label class="ir-check">' +
+          '<input type="checkbox" id="ir-pin-' + id + '" /> Pin \u2014 never let ESPN change this status' +
+        "</label></div>" +
+      "</div>" +
+      '<div class="ir-form-actions">' +
+        '<button class="ir-btn-primary" data-ir-add="' + id + '">Add to tracked players</button>' +
+        '<button data-ir-cancel="' + id + '">Cancel</button>' +
+      "</div>" +
+      '<div class="ir-err" id="ir-err-' + id + '" hidden></div>' +
+    "</div>";
+  }
+
+  function irWireForms(body) {
+    Array.prototype.forEach.call(body.querySelectorAll("[data-ir-open]"), function (b) {
+      b.addEventListener("click", function () {
+        var f = document.getElementById("ir-form-" + b.getAttribute("data-ir-open"));
+        if (f) { f.hidden = false; b.hidden = true; }
+      });
+    });
+    Array.prototype.forEach.call(body.querySelectorAll("[data-ir-cancel]"), function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-ir-cancel");
+        var f = document.getElementById("ir-form-" + id);
+        var open = body.querySelector('[data-ir-open="' + id + '"]');
+        if (f) f.hidden = true;
+        if (open) open.hidden = false;
+      });
+    });
+    Array.prototype.forEach.call(body.querySelectorAll("input[type=range][data-ir-out]"), function (r) {
+      r.addEventListener("input", function () {
+        document.getElementById(r.getAttribute("data-ir-out")).textContent = r.value;
+      });
+    });
+    Array.prototype.forEach.call(body.querySelectorAll("[data-ir-add]"), function (b) {
+      b.addEventListener("click", function () { irAddPlayer(b.getAttribute("data-ir-add"), b); });
+    });
+  }
+
+  function irAddPlayer(id, btn) {
+    var secret = irSecret(false);
+    if (!secret) return;
+    var val = function (p) { var el = document.getElementById("ir-" + p + "-" + id); return el ? el.value : ""; };
+    var err = document.getElementById("ir-err-" + id);
+    err.hidden = true;
+    btn.disabled = true;
+    btn.textContent = "Adding\u2026";
+
+    fetch(IR_ADD_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-injury-review-secret": secret },
+      body: JSON.stringify({
+        reviewId: id,
+        position: val("pos"),
+        status: val("st"),
+        impactScore: Number(val("imp")),
+        injuryType: val("ty"),
+        since: val("since"),
+        note: val("note"),
+        pinned: document.getElementById("ir-pin-" + id).checked
+      })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.d.ok) throw new Error(res.d.error || "Couldn't add the player.");
+        var ok = document.getElementById("ir-ok-" + id);
+        ok.innerHTML = "<span>\u2713</span><span>Added to tracked players and marked done." +
+          '<span class="ir-ok-sub"> Live on the site now \u2014 reaches the repo on the next sync run.</span></span>';
+        ok.hidden = false;
+        document.getElementById("ir-form-" + id).hidden = true;
+        // Leave the confirmation up for a beat before the list reshuffles.
+        window.setTimeout(function () { loadInjuryReview(false); }, 1600);
+      })
+      .catch(function (e) {
+        err.textContent = e.message;
+        err.hidden = false;
+        btn.disabled = false;
+        btn.textContent = "Add to tracked players";
+      });
   }
 
   function loadInjuryReview(force) {

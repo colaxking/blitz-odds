@@ -38,6 +38,7 @@ import { makeGameId } from "./lib/gameId.mts";
 
 const LEAGUE_STORE = "blitz-leagues";
 const SITE_DATA_STORE = "blitz-site-data";
+const PREDICTION_STORE = "blitz-predictions";
 const CURRENT_SEASON = 2026;
 
 // scoringEngine.js is a UMD module (module.exports for Node / window global
@@ -121,6 +122,26 @@ export default async (req: Request, _context: Context) => {
     };
   }
 
+  // The model's call on each game, frozen at that game's kickoff by
+  // scripts/prediction-snapshot.mjs. Read once and shared across every
+  // league, the same way weekResults is. Absent entries are normal - any
+  // week that ran before the snapshot job existed simply has no predictions,
+  // and follow rate is skipped for it rather than guessed at.
+  const predictionStore = getStore(PREDICTION_STORE, { consistency: "strong" });
+  const weekPredictions: Record<string, { predictedWinner: string }> = {};
+  await Promise.all(
+    weekGames.map(async (g) => {
+      const gameId = makeGameId(season, week, g.away, g.home);
+      try {
+        const p: any = await predictionStore.get(`pred:${season}:${week}:${gameId}`, { type: "json" });
+        if (p && p.predictedWinner) weekPredictions[gameId] = { predictedWinner: p.predictedWinner };
+      } catch {
+        // A missing or unreadable snapshot just means no follow-rate credit
+        // for that game; it must never fail the scoring run.
+      }
+    })
+  );
+
   const processedLeagues: string[] = [];
   const errors: Array<{ leagueId: string; error: string }> = [];
 
@@ -129,7 +150,7 @@ export default async (req: Request, _context: Context) => {
       for (const b of page.blobs) {
         const leagueId = b.key.slice("league:".length);
         try {
-          await processLeague(leagueStore, leagueId, season, week, weekGames, weekResults);
+          await processLeague(leagueStore, leagueId, season, week, weekGames, weekResults, weekPredictions);
           processedLeagues.push(leagueId);
         } catch (err) {
           errors.push({ leagueId, error: err instanceof Error ? err.message : "Unknown error" });
@@ -149,7 +170,8 @@ async function processLeague(
   season: number,
   week: number,
   weekGames: Array<{ away: string; home: string }>,
-  weekResults: Record<string, { winner: string | null; tie: boolean; final: boolean }>
+  weekResults: Record<string, { winner: string | null; tie: boolean; final: boolean }>,
+  weekPredictions: Record<string, { predictedWinner: string }>
 ) {
   const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
   if (!league || league.season !== season) return; // different season, or league vanished mid-scan
@@ -177,6 +199,38 @@ async function processLeague(
   // 1. Score every member's week.
   const weekScores = ScoringEngine.scoreWeek(league.format, league.scoringSettings, weekPicksDoc, weekResults);
 
+  // 1b. Blitz follow rate: of the picks a member made on games where the
+  // model's call was frozen, how many matched it. Graded here rather than in
+  // home-summary because every pick is already in memory at this point -
+  // computing it anywhere else would mean re-reading all of them.
+  //
+  // ATS is deliberately excluded. The model produces a straight-up winner,
+  // not a cover lean, and in an against-the-spread league the favoured team
+  // failing to cover is the normal case - so "you picked who the model
+  // liked" would answer a question nobody asked and read as agreement with
+  // a pick the model never made. prediction-snapshot.mjs freezes each game's
+  // odds alongside the prediction, so a real cover comparison can be added
+  // later without a gap in the historical record.
+  const followGraded = league.format !== "ats";
+  for (const userId of Object.keys(weekScores)) {
+    let followed = 0;
+    let followable = 0;
+    if (followGraded) {
+      const userPicks = weekPicksDoc[userId] || {};
+      for (const gameId of Object.keys(userPicks)) {
+        const predicted = weekPredictions[gameId];
+        // Only games with both a pick and a frozen prediction count toward
+        // the denominator - an unpicked game or an unsnapshotted one is
+        // absent from the measure entirely, not a miss.
+        if (!predicted) continue;
+        followable++;
+        if (userPicks[gameId]?.team === predicted.predictedWinner) followed++;
+      }
+    }
+    weekScores[userId].followed = followed;
+    weekScores[userId].followable = followable;
+  }
+
   await leagueStore.setJSON(`results:${leagueId}:${week}`, {
     week,
     results: weekResults,
@@ -190,14 +244,17 @@ async function processLeague(
   const standingsDoc: any = (await leagueStore.get(`standings:${leagueId}`, { type: "json" })) || { weeks: {} };
   standingsDoc.weeks[week] = weekScores;
 
-  const seasonTotals: Record<string, { points: number; correct: number; incorrect: number }> = {};
+  const seasonTotals: Record<string, { points: number; correct: number; incorrect: number; followed: number; followable: number }> = {};
   for (const wk of Object.keys(standingsDoc.weeks)) {
     const wkScores = standingsDoc.weeks[wk];
     for (const userId of Object.keys(wkScores)) {
-      const t = seasonTotals[userId] || (seasonTotals[userId] = { points: 0, correct: 0, incorrect: 0 });
+      const t = seasonTotals[userId] || (seasonTotals[userId] = { points: 0, correct: 0, incorrect: 0, followed: 0, followable: 0 });
       t.points += wkScores[userId].points;
       t.correct += wkScores[userId].correct;
       t.incorrect += wkScores[userId].incorrect;
+      // Older stored weeks predate follow grading and have neither field.
+      t.followed += wkScores[userId].followed || 0;
+      t.followable += wkScores[userId].followable || 0;
     }
   }
   standingsDoc.season = ScoringEngine.rankStandings(seasonTotals, league.tieBreaker);

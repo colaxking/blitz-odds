@@ -14,12 +14,16 @@ import ScoringEngine from "../../js/scoringEngine.js";
 // of which pays its own Identity round trip.
 //
 // What it does NOT return, deliberately:
-//   - followRate. Comparing a member's pick to the model's requires the
-//     model's pick, which only exists client-side (PredictionEngine in
-//     index.html). Returned as null so the tile can render a dash rather
-//     than a fabricated number; see the phase-5 note in the plan - the fix
-//     is to snapshot predictions at lock time, not to port the engine.
 //   - activity. There's no event log anywhere in the app to read one from.
+//
+// followRate is summed from followed/followable, which results-process
+// grades at scoring time against the kickoff-frozen model call (see
+// scripts/prediction-snapshot.mjs). It's null until at least one graded
+// game exists rather than 0%, because "you followed the model on none of
+// your picks" and "there's nothing to measure yet" are different claims and
+// only one of them is true in week one. ATS leagues contribute nothing to
+// either side of the ratio - the model gives a straight-up winner, not a
+// cover lean.
 //
 // Reads are strong-consistency throughout: this is the screen someone lands
 // on immediately after submitting a pick or joining a league, so an eventual
@@ -231,9 +235,12 @@ export default async (req: Request, _context: Context) => {
                   points: mine.points,
                   correct: mine.correct,
                   incorrect: mine.incorrect,
+                  // Absent on weeks scored before follow grading existed.
+                  followed: mine.followed || 0,
+                  followable: mine.followable || 0,
                   hasResults: true,
                 }
-              : { rank: null, rankDelta: null, points: 0, correct: 0, incorrect: 0, hasResults: false },
+              : { rank: null, rankDelta: null, points: 0, correct: 0, incorrect: 0, followed: 0, followable: 0, hasResults: false },
             streak,
             survivor:
               league.format === "survivor"
@@ -270,8 +277,14 @@ export default async (req: Request, _context: Context) => {
     const scoredLeagues = leagues.filter((l) => l.me.hasResults && l.me.rank != null);
     const correct = leagues.reduce((n, l) => n + (l.me.correct || 0), 0);
     const incorrect = leagues.reduce((n, l) => n + (l.me.incorrect || 0), 0);
+    const followed = leagues.reduce((n, l) => n + (l.me.followed || 0), 0);
+    const followable = leagues.reduce((n, l) => n + (l.me.followable || 0), 0);
     const totals = {
       leagueCount: leagues.length,
+      followed,
+      followable,
+      // null, not 0, when there's nothing graded yet - see the header note.
+      followRate: followable > 0 ? followed / followable : null,
       correct,
       incorrect,
       pickCount: correct + incorrect,
@@ -282,7 +295,7 @@ export default async (req: Request, _context: Context) => {
       rankedLeagueCount: scoredLeagues.length,
     };
 
-    return jsonResponse(200, { ok: true, week, leagues, totals, followRate: null }, CORS_HEADERS);
+    return jsonResponse(200, { ok: true, week, leagues, totals }, CORS_HEADERS);
   } catch (err) {
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" }, CORS_HEADERS);
   }

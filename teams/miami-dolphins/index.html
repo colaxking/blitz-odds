@@ -493,23 +493,31 @@
   .home-edge-head { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
   .home-edge-head img { height: 22px; width: auto; }
   .home-matchup { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 8px 0 14px; }
-  .home-mt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  /* Same winner treatment as the week view's game card - a green box around
+     the picked side - rather than this card's own orange pill, so a person
+     coming from Home to the games list sees one visual language. */
+  .home-mt {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 10px 6px; border-radius: 12px; border: 1px solid transparent;
+  }
+  .home-mt.pick { background: rgba(var(--win-rgb),0.07); border-color: rgba(var(--win-rgb),0.32); }
   .home-mt b { font-size: .84rem; }
-  .home-mt.pick b { color: var(--blitz-orange); }
   .home-at { font-size: .8rem; color: var(--text-dim); font-weight: 700; }
-  .home-pickflag {
-    font-size: .58rem; font-weight: 800; letter-spacing: .08em; color: var(--blitz-orange);
-    border: 1px solid rgba(253,127,1,.5); border-radius: 999px; padding: 2px 7px;
-  }
-  [data-theme="light"] .home-pickflag { border-color: rgba(179,89,0,.5); }
+  .home-pickflag { font-size: .6rem; font-weight: 800; letter-spacing: .05em; color: var(--win); text-transform: uppercase; }
   .home-combo {
-    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
-    padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 10px; background: var(--surface-2); border: 1px solid var(--card-border); overflow: hidden;
   }
-  .home-combo .left { display: flex; align-items: center; gap: 7px; font-size: .78rem; font-weight: 700; }
-  .home-combo .left img { width: 17px; height: 17px; }
-  .home-combo .mid { text-align: center; font-size: .78rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
-  .home-combo .right { font-size: .95rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .home-combo .hc-top { display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
+  .home-combo .hc-logo { height: 24px; width: auto; display: block; flex: 0 0 auto; }
+  .home-combo .hc-conf { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .home-combo .hc-conf-lbl { font-size: .72rem; color: var(--text-dim); }
+  .home-combo .hc-conf-pct { font-size: .95rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .home-combo .hc-odds {
+    border-top: 1px solid var(--card-border); padding: 7px 12px; text-align: center;
+    font-size: .74rem; color: var(--text-dim); font-variant-numeric: tabular-nums;
+  }
+  .home-combo .hc-odds b { color: var(--text); font-weight: 800; white-space: nowrap; }
+  .home-combo .hc-odds .dot { opacity: .5; margin: 0 6px; }
   .home-why-line { margin: 12px 0 0; font-size: .82rem; line-height: 1.55; color: var(--text-dim); }
   .home-why-line b { color: var(--text); }
 
@@ -1162,21 +1170,26 @@
   .final-call-badge.correct { color: var(--blitz-orange); }
   .final-call-badge.incorrect { color: var(--pill-bad-text); }
 
-  .combo-row {
-    display: flex; align-items: stretch; border: 1px solid var(--card-border, rgba(148,163,184,0.25));
-    border-radius: 10px; overflow: hidden; margin: 10px 0; background: var(--card-bg-2, rgba(148,163,184,0.05));
+  /* Two bands: the Blitz Edge lockup and the pick's confidence on top (one
+     left-aligned group), the sportsbook line underneath. The odds band uses
+     the same centered dot-separated treatment as the Home page's edge card
+     so the two surfaces read identically. */
+  .combo-block {
+    border: 1px solid var(--card-border, rgba(148,163,184,0.25)); border-radius: 10px; overflow: hidden;
+    margin: 10px 0; background: var(--card-bg-2, rgba(148,163,184,0.05));
   }
-  .combo-edge { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 8px 12px; background: rgba(var(--accent-rgb),0.12); }
-  .combo-edge-icon { height: 24px; width: auto; display: block; flex-shrink: 0; }
-  .combo-edge-label { font-size: 0.76rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
-  .combo-odds {
-    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-    padding: 8px 8px; font-size: 0.72rem; border-left: 1px solid var(--card-border); border-right: 1px solid var(--card-border);
+  .cb-edge { display: flex; align-items: center; gap: 12px; padding: 7px 12px; background: rgba(var(--accent-rgb),0.12); }
+  .cb-logo { height: 26px; width: auto; display: block; flex: 0 0 auto; }
+  .cb-conf { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; white-space: nowrap; }
+  .cb-conf-lbl { font-size: 0.72rem; color: var(--text-dim); }
+  .cb-conf-pct { font-size: 0.98rem; font-weight: 800; color: var(--win); font-variant-numeric: tabular-nums; }
+  .cb-odds {
+    border-top: 1px solid var(--card-border); padding: 7px 12px; text-align: center;
+    font-size: 0.74rem; color: var(--text-dim); font-variant-numeric: tabular-nums;
   }
-  .combo-odds b { font-weight: 800; }
-  .combo-odds span { font-size: 0.64rem; color: var(--text-dim); }
-  .combo-fav { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 0.8rem; font-weight: 800; color: var(--win); }
-  .combo-fav-pct { font-size: 0.94rem; }
+  .cb-odds b { color: var(--text); font-weight: 800; white-space: nowrap; }
+  .cb-odds .dot { opacity: 0.5; margin: 0 6px; }
+  .cb-odds-none { font-size: 0.72rem; font-weight: 600; }
 
   .gc-actions { display: flex; border-top: 1px solid var(--card-border); margin: 10px -14px -12px; }
   .gc-action {
@@ -12309,6 +12322,15 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   const historicalResult = context.getResult(game.away, game.home);
   const scoreInfo = resolveScore(live, historicalResult);
   const odds = getOdds(week, game.away, game.home, sportsbookId);
+  // The compact card shows only the favored side's moneyline - both sides
+  // would wrap on a phone, and Full Details already lists away/home in full.
+  const favoriteMoneyline = !odds
+    ? null
+    : odds.favorite === game.home
+      ? odds.moneylineHome
+      : odds.favorite === game.away
+        ? odds.moneylineAway
+        : null;
   const weather = getWeather(week, game.away, game.home);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
@@ -12454,23 +12476,31 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         </div>
       </div>
 
-      <div className="combo-row" data-tour="combo-row">
-        <div className="combo-edge">
-          <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="combo-edge-icon" />
-          <span className="combo-edge-label">{prediction.predictedWinner}</span>
+      <div className="combo-block" data-tour="combo-row">
+        <div className="cb-edge">
+          <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="cb-logo" />
+          <span className="cb-conf">
+            <TeamLogo teamId={prediction.predictedWinner} size={32} />
+            <span className="cb-conf-lbl">confidence at</span>
+            <span className="cb-conf-pct">{homeIsWinner ? homePct : awayPct}%</span>
+          </span>
         </div>
-        <div className="combo-odds">
+        <div className="cb-odds">
           {odds ? (
             <>
-              <div><b>{odds.favorite} {formatSpread(odds.spread)}</b> <span>Spread</span></div>
-              <div><b>{odds.overUnder}</b> <span>O/U</span></div>
+              <b>{odds.favorite} {formatSpread(odds.spread)}</b> Spread
+              <span className="dot">·</span>
+              <b>{odds.overUnder}</b> O/U
+              {favoriteMoneyline != null && (
+                <>
+                  <span className="dot">·</span>
+                  <b>{odds.favorite} {formatMoneyline(favoriteMoneyline)}</b> ML
+                </>
+              )}
             </>
           ) : (
-            <div><span>Odds not yet posted</span></div>
+            <span className="cb-odds-none">Odds not yet posted</span>
           )}
-        </div>
-        <div className="combo-fav">
-          <span className="combo-fav-pct">{homeIsWinner ? homePct : awayPct}%</span>
         </div>
       </div>
 
@@ -18781,6 +18811,14 @@ function americanToImpliedProbability(ml) {
 function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbookId, tz }) {
   const edge = useMemo(() => pickTopEdgeGame(week, sportsbookId), [week, sportsbookId]);
   const periodLabel = getPeriodLabel(week);
+  // Only the favored side's moneyline, matching the compact game card.
+  const edgeFavoriteMoneyline = !edge || !edge.odds || !edge.odds.favorite
+    ? null
+    : edge.odds.favorite === edge.home.id
+      ? edge.odds.moneylineHome
+      : edge.odds.favorite === edge.away.id
+        ? edge.odds.moneylineAway
+        : null;
 
   return (
     <div className="home-landing">
@@ -18815,34 +18853,51 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
         {edge && (
           <div className="home-card home-edge">
             <div className="home-edge-head">
-              <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" />
-              <span className="home-eyebrow" style={{ marginLeft: "auto" }}>{periodLabel} · top edge</span>
+              <span className="home-eyebrow">{periodLabel} · top edge</span>
             </div>
             <div className="home-matchup">
               <div className={"home-mt" + (!edge.homeIsPick ? " pick" : "")}>
                 <TeamLogo teamId={edge.away.id} size={46} />
                 <b>{edge.away.name}</b>
-                {!edge.homeIsPick && <span className="home-pickflag">PREDICTED</span>}
+                {!edge.homeIsPick && <span className="home-pickflag">Predicted Winner</span>}
               </div>
               <span className="home-at">@</span>
               <div className={"home-mt" + (edge.homeIsPick ? " pick" : "")}>
                 <TeamLogo teamId={edge.home.id} size={46} />
                 <b>{edge.home.name}</b>
-                {edge.homeIsPick && <span className="home-pickflag">PREDICTED</span>}
+                {edge.homeIsPick && <span className="home-pickflag">Predicted Winner</span>}
               </div>
             </div>
             <div className="home-combo">
-              <span className="left">
-                <img src="/branding/blitz-edge-icon.png" alt="" />
-                {(edge.homeIsPick ? edge.home : edge.away).name}
-              </span>
-              <span className="mid">
-                {edge.odds && edge.odds.favorite
-                  ? `${edge.odds.favorite} ${formatSpread(edge.odds.spread)}`
-                  : "Line not posted"}
-                {edge.odds && edge.odds.overUnder ? ` · O/U ${edge.odds.overUnder}` : ""}
-              </span>
-              <span className="right">{Math.round(edge.modelProb * 100)}%</span>
+              <div className="hc-top">
+                <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="hc-logo" />
+                <span className="hc-conf">
+                  <TeamLogo teamId={(edge.homeIsPick ? edge.home : edge.away).id} size={30} />
+                  <span className="hc-conf-lbl">confidence at</span>
+                  <span className="hc-conf-pct">{Math.round(edge.modelProb * 100)}%</span>
+                </span>
+              </div>
+              <div className="hc-odds">
+                {edge.odds && edge.odds.favorite ? (
+                  <>
+                    <b>{edge.odds.favorite} {formatSpread(edge.odds.spread)}</b> Spread
+                    {edge.odds.overUnder != null && (
+                      <>
+                        <span className="dot">·</span>
+                        <b>{edge.odds.overUnder}</b> O/U
+                      </>
+                    )}
+                    {edgeFavoriteMoneyline != null && (
+                      <>
+                        <span className="dot">·</span>
+                        <b>{edge.odds.favorite} {formatMoneyline(edgeFavoriteMoneyline)}</b> ML
+                      </>
+                    )}
+                  </>
+                ) : (
+                  "Line not posted"
+                )}
+              </div>
             </div>
             <p className="home-why-line">
               {edge.implied != null ? (

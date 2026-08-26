@@ -68,8 +68,13 @@ jobs:
       - name: Sync tracked players with ESPN
         env:
           SITE_DATA_UPDATE_SECRET: ${{ secrets.SITE_DATA_UPDATE_SECRET }}
+          INJURY_REVIEW_SECRET: ${{ secrets.INJURY_REVIEW_SECRET }}
         run: |
           set -euo pipefail
+          if [ -z "${INJURY_REVIEW_SECRET}" ]; then
+            echo "::error::INJURY_REVIEW_SECRET repo secret is not set. Without it this job cannot absorb players staged by the Track player button, and --publish would delete them from the live blob. Add it under Settings > Secrets and variables > Actions." >&2
+            exit 1
+          fi
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             node scripts/injury-player-sync.mjs --dry-run
           else

@@ -233,9 +233,19 @@ async function writeBothCopies(doc) {
  *  so a player who exists only in the blob is dropped the moment this script
  *  publishes the repo's version over it. Absorbing the staging list here,
  *  before anything else runs, is what stops that. */
-async function fetchPendingAdds() {
+async function fetchPendingAdds(doPublish) {
   const secret = process.env.INJURY_REVIEW_SECRET;
   if (!secret) {
+    // Skipping is only survivable when we're not about to overwrite the
+    // blob. With --publish it is actively destructive: site-data-update.mts
+    // merges by iterating the incoming team array, so publishing a repo copy
+    // that never absorbed the staged adds DELETES those players from the
+    // live blob. Fail rather than quietly throw away someone's work.
+    if (doPublish) {
+      throw new Error(
+        "INJURY_REVIEW_SECRET is not set, so staged adds can't be absorbed - and publishing without them " +
+        "would delete any player added from the review panel. Set the secret, or run without --publish.");
+    }
     log("INJURY_REVIEW_SECRET is not set - skipping the staged-adds check.");
     return [];
   }
@@ -288,7 +298,7 @@ async function main() {
   // Runs first so a staged player is a normal tracked player by the time
   // espnId resolution, status sync and validation see him.
   const staged = { merged: [], alreadyThere: [], ack: [] };
-  const pending = await fetchPendingAdds();
+  const pending = await fetchPendingAdds(doPublish);
   if (pending.length) {
     const known = new Set(all().map(([, p]) => String(p.espnId)));
     const knownNames = new Set(all().map(([, p]) => norm(p.name)));

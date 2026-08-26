@@ -727,6 +727,201 @@
   .hd-row-cols { display: contents; }
   @media (max-width: 860px) { .hd-row-cols { display: grid; } }
 
+
+  /* ==========================================================
+     League create wizard + join/browse redesign
+     ========================================================== */
+  .lgx-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 22px; align-items: start; }
+  .lgx-rail { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; }
+  .lgx-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; }
+  .lgx-head { padding: 14px 16px 10px; border-bottom: 1px solid var(--card-border); }
+  .lgx-eyebrow { font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); }
+  .lgx-label { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+  .lgx-help { font-size: .8rem; color: var(--text-dim); margin: 0 0 12px; }
+  .lgx-count { text-align: right; font-size: .72rem; color: var(--text-dim); margin-top: 5px; }
+  .lgx-body { padding: 22px; }
+  /* .league-input is sized for the old narrow form column; inside the
+     wizard the fields own their full width. .lgx-set keeps its own
+     min-width rule, which is why this is scoped rather than global. */
+  .lgx-body > .league-input, .lgx-body > .league-textarea,
+  .lgx-two .league-input { width: 100%; }
+  .lgx-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 18px 22px; border-top: 1px solid var(--card-border); }
+  .lgx-two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+
+  /* stepper */
+  .lgx-steps { display: flex; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--card-border); }
+  .lgx-step { display: flex; align-items: center; gap: 9px; white-space: nowrap; background: none;
+    border: none; padding: 0; font-family: inherit; color: inherit; }
+  .lgx-step[data-clickable="1"] { cursor: pointer; }
+  .lgx-step .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+    font-size: .78rem; font-weight: 800; background: var(--surface-2);
+    border: 1px solid var(--card-border); color: var(--text-dim); }
+  .lgx-step.on .n { background: var(--accent); border-color: var(--accent); color: #04121a; }
+  .lgx-step.done .n { background: transparent; border-color: var(--accent); color: var(--accent); }
+  .lgx-step .t { font-size: .86rem; font-weight: 700; color: var(--text-dim); }
+  .lgx-step.on .t { color: var(--text); }
+  .lgx-rule { flex: 1; height: 1px; background: var(--card-border); margin: 0 16px; min-width: 18px; }
+
+  /* format + privacy pickers */
+  .lgx-fmt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .lgx-fmt { position: relative; text-align: left; padding: 14px 14px 40px; border-radius: 12px;
+    cursor: pointer; background: var(--card-bg); border: 1px solid var(--card-border);
+    color: var(--text); font-family: inherit; }
+  .lgx-fmt:hover { border-color: rgba(var(--accent-rgb), .5); }
+  .lgx-fmt.sel { border-color: var(--accent); background: rgba(var(--accent-rgb), .07); }
+  .lgx-fmt img { width: 38px; height: 38px; object-fit: contain; margin-bottom: 8px; }
+  .lgx-fmt b { display: block; font-size: .9rem; margin-bottom: 4px; }
+  .lgx-fmt span { font-size: .76rem; line-height: 1.45; color: var(--text-dim); }
+  .lgx-fmt .tick { position: absolute; left: 14px; bottom: 12px; width: 20px; height: 20px;
+    border-radius: 50%; border: 1px solid var(--card-border); display: grid; place-items: center;
+    font-size: .7rem; color: transparent; }
+  .lgx-fmt.sel .tick { background: var(--accent); border-color: var(--accent); color: #04121a; }
+  .lgx-priv { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .lgx-priv button { text-align: left; padding: 14px; border-radius: 12px; cursor: pointer;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); font-family: inherit; }
+  .lgx-priv button.sel { border-color: var(--accent); background: rgba(var(--accent-rgb), .07); }
+  .lgx-priv b { display: flex; align-items: center; gap: 7px; font-size: .88rem; margin-bottom: 5px; }
+  .lgx-priv span { font-size: .76rem; line-height: 1.45; color: var(--text-dim); }
+
+  /* settings rows */
+  .lgx-set { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px;
+    padding: 14px 0; border-bottom: 1px solid var(--card-border); }
+  .lgx-set:last-child { border-bottom: none; }
+  .lgx-set .t b { display: block; font-size: .88rem; margin-bottom: 3px; }
+  .lgx-set .t span { font-size: .78rem; line-height: 1.5; color: var(--text-dim); }
+  .lgx-set .c { flex-shrink: 0; }
+  .lgx-set select, .lgx-set input { min-width: 170px; }
+  .lgx-locked { font-size: .72rem; color: var(--text-dim); border: 1px dashed var(--card-border);
+    border-radius: 8px; padding: 8px 11px; }
+
+  /* preview rail */
+  .lgx-pv { display: flex; align-items: center; gap: 14px; padding: 16px; }
+  .lgx-pv img { width: 62px; height: 62px; object-fit: contain; }
+  .lgx-pv-name { font-size: 1.1rem; font-weight: 800; margin: 0 0 6px; }
+  .lgx-pv-name.empty { color: var(--text-dim); }
+  .lgx-pill { display: inline-block; white-space: nowrap; font-size: .64rem; font-weight: 800;
+    letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px;
+    background: rgba(var(--accent-rgb), .14); color: var(--accent); }
+  .lgx-pv-meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: .76rem;
+    color: var(--text-dim); padding: 0 16px 14px; }
+  .lgx-about { padding: 16px; }
+  .lgx-about h4 { margin: 0 0 8px; font-size: .9rem; font-weight: 800; }
+  .lgx-about p { margin: 0 0 12px; font-size: .82rem; line-height: 1.55; color: var(--text-dim); }
+  .lgx-about ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .lgx-about li { display: flex; align-items: flex-start; gap: 9px; font-size: .82rem; color: var(--text-dim); }
+
+  /* invite step */
+  .lgx-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border-radius: 10px;
+    background: var(--surface-2); border: 1px solid var(--card-border); min-height: 46px; align-items: center; }
+  .lgx-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 999px; padding: 5px 10px; font-size: .8rem; }
+  .lgx-chip button { background: none; border: none; color: var(--text-dim); cursor: pointer;
+    font-size: .9rem; line-height: 1; padding: 0; font-family: inherit; }
+  .lgx-chips input { flex: 1; min-width: 150px; background: none; border: none; color: var(--text);
+    font-size: .85rem; outline: none; font-family: inherit; }
+  .lgx-sum { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .lgx-sum-cell { padding: 12px 14px; border-radius: 10px; background: var(--surface-2);
+    border: 1px solid var(--card-border); }
+  .lgx-sum-cell .lgx-eyebrow { display: block; margin-bottom: 5px; }
+  .lgx-sum-cell b { font-size: .92rem; }
+
+  /* join: code entry + browse */
+  .lgx-code { display: grid; grid-template-columns: minmax(0, 1fr) 260px; }
+  .lgx-code-left { padding: 20px; }
+  .lgx-code-right { padding: 20px; border-left: 1px solid var(--card-border); display: flex;
+    flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; }
+  .lgx-code-right .env { font-size: 2.4rem; opacity: .5; }
+  .lgx-code-right p { margin: 0; font-size: .78rem; color: var(--text-dim); line-height: 1.5; }
+  .lgx-code-row { display: flex; gap: 10px; margin-top: 4px; }
+  .lgx-code-row input { flex: 1; letter-spacing: .14em; text-transform: uppercase; }
+  .lgx-browse-head { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    flex-wrap: wrap; padding: 18px 20px 14px; border-bottom: 1px solid var(--card-border); }
+  .lgx-tools { display: flex; gap: 10px; margin-left: auto; }
+  .lgx-search { position: relative; }
+  .lgx-search input { padding-right: 34px; min-width: 210px; }
+  .lgx-search .mag { position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+    color: var(--text-dim); font-size: .85rem; pointer-events: none; }
+
+  .lgx-th, .lgx-tr { display: grid; grid-template-columns: minmax(0, 2.4fr) 112px 84px 86px 108px 138px;
+    align-items: center; gap: 14px; padding: 12px 20px; }
+  .lgx-th { font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--text-dim); border-bottom: 1px solid var(--card-border); }
+  .lgx-tr { border-bottom: 1px solid var(--card-border); }
+  .lgx-tr:last-child { border-bottom: none; }
+  .lgx-lg { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .lgx-lg img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
+  .lgx-lg .nm { min-width: 0; }
+  .lgx-lg .nm b { display: block; font-size: .92rem; font-weight: 800; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  .lgx-lg .nm span { display: block; font-size: .76rem; color: var(--text-dim); margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lgx-vis { display: inline-flex; align-items: center; gap: 5px; font-size: .76rem;
+    color: var(--text-dim); white-space: nowrap; }
+  .lgx-vis.pub { color: var(--win); }
+  .lgx-num { font-variant-numeric: tabular-nums; font-size: .88rem; }
+  .lgx-num.full { color: var(--out); font-weight: 700; }
+  .lgx-dim { color: var(--text-dim); }
+  .lgx-mmeta { display: none; }
+  .lgx-empty { padding: 26px 20px; text-align: center; color: var(--text-dim); font-size: .88rem; }
+  .lgx-more { display: flex; justify-content: center; padding: 16px; }
+
+  /* owner request queue */
+  .lgx-req { display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 14px 20px; border-bottom: 1px solid var(--card-border); }
+  .lgx-req:last-child { border-bottom: none; }
+  .lgx-req .who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .lgx-req .av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 1.1rem; background: var(--surface-2); border: 1px solid var(--card-border); flex-shrink: 0; }
+  .lgx-req b { display: block; font-size: .9rem; }
+  .lgx-req .when { font-size: .78rem; color: var(--text-dim); }
+  .lgx-req .acts { display: flex; gap: 8px; flex-shrink: 0; }
+  .lgx-req.settled { opacity: .55; }
+  .lgx-badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px;
+    border-radius: 999px; background: var(--blitz-orange); color: #0b1220; font-size: .66rem;
+    font-weight: 800; margin-left: 6px; }
+  [data-theme="light"] .lgx-badge { color: #fff; }
+
+  @media (max-width: 860px) {
+    .lgx-layout { grid-template-columns: 1fr; }
+    .lgx-rail { position: static; }
+    /* The rail explains what's directly above it on a phone - About, What's
+       next, How to join and the game-type glossary all restate a card the
+       reader has already passed. */
+    .lgx-rail .lgx-about, .lgx-rail .lgx-next { display: none; }
+    .lgx-two { grid-template-columns: 1fr; gap: 18px; }
+    .lgx-fmt-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .lgx-sum { grid-template-columns: 1fr; }
+    .lgx-steps { padding: 14px; }
+    .lgx-step .t { display: none; }
+    .lgx-rule { margin: 0 8px; }
+    .lgx-set { flex-direction: column; gap: 10px; }
+    .lgx-set .c, .lgx-set select, .lgx-set input { width: 100%; min-width: 0; }
+    /* Invite-code entry collapses onto the browse card instead of owning
+       half the first screen; the envelope panel is decoration and goes. */
+    .lgx-code { grid-template-columns: 1fr; border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+      border-bottom: none; }
+    .lgx-code-right { display: none; }
+    .lgx-code-left { padding: 14px 16px; }
+    .lgx-code-row { gap: 8px; margin-top: 8px; }
+    .lgx-code-row input { min-width: 0; }
+    .lgx-browse { margin-top: 0 !important; border-top-left-radius: 0; border-top-right-radius: 0; }
+    .lgx-browse-head { padding: 14px 16px 12px; }
+    .lgx-tools { margin-left: 0; width: 100%; flex-wrap: wrap; gap: 8px; }
+    .lgx-search { flex: 1 1 100%; }
+    .lgx-search input { min-width: 0; width: 100%; }
+    .lgx-tools select { flex: 1 1 0; min-width: 0; }
+    .lgx-th { display: none; }
+    .lgx-tr { grid-template-columns: 1fr; gap: 10px; padding: 14px 16px; }
+    .lgx-tr .lgx-dcell { display: none; }
+    .lgx-mmeta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+      font-size: .78rem; color: var(--text-dim); }
+    .lgx-tr .league-btn { width: 100%; }
+    .lgx-req { flex-direction: column; align-items: stretch; }
+    .lgx-req .acts .league-btn { flex: 1; }
+  }
+
   .tab-bar {
     display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border);
   }
@@ -1935,6 +2130,15 @@
      full-width column of pick cards or form fields is harder to read,
      not easier. */
   .leagues-page-landing { max-width: 1000px; }
+  /* Create and the browse redesign need the full measure, not the landing
+     page's narrower column. */
+  .leagues-page-wide { max-width: 1240px; margin: 18px auto 0; }
+  .lgx-crumb { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-dim); }
+  .lgx-crumb button { background: none; border: none; padding: 0; font-family: inherit;
+    font-size: inherit; color: var(--accent); cursor: pointer; }
+  .lgx-title { margin: 0 0 6px; font-size: 2rem; font-weight: 800; letter-spacing: -.02em; }
+  .lgx-subtitle { margin: 0; color: var(--text-dim); font-size: .9rem; }
+  @media (max-width: 860px) { .lgx-title { font-size: 1.5rem; } }
 
   @media (min-width: 860px) {
     .leagues-search-create-col .leagues-page-section { display: none; }
@@ -14847,9 +15051,47 @@ const LEAGUE_FORMAT_ICON_URLS = {
   ats: "/branding/format-badge-ats-icon.png",
 };
 
+// Both visibilities are listed in search now - the difference is who gets
+// in without asking. Descriptions are withheld for private leagues in
+// search results (see leagues-search.mts), so the copy doesn't promise
+// invisibility it no longer delivers.
 const LEAGUE_VISIBILITY_INFO = {
-  private: "Only visible to people you invite with a code. Won't show up in search.",
-  public: "Anyone can find and join it from the Search Leagues section - no code needed.",
+  private: "Listed in search, but nobody joins without your approval. An invite code skips the queue.",
+  public: "Listed in search and anyone can join instantly, no code needed.",
+};
+const LEAGUE_VISIBILITY_CARDS = [
+  { value: "private", icon: "\u{1F512}", label: "Private", blurb: "Listed in search, but you approve every join request." },
+  { value: "public", icon: "\u{1F310}", label: "Public", blurb: "Listed in search, anyone can join instantly." },
+];
+const LEAGUE_SIZE_OPTIONS = [
+  { value: "", label: "No limit" },
+  { value: "8", label: "8 players" },
+  { value: "10", label: "10 players" },
+  { value: "12", label: "12 players" },
+  { value: "16", label: "16 players" },
+  { value: "20", label: "20 players" },
+  { value: "30", label: "30 players" },
+  { value: "50", label: "50 players" },
+  { value: "100", label: "100 players" },
+];
+// Short blurb + the three scoring facts shown in the create wizard's rail.
+const LEAGUE_FORMAT_ABOUT = {
+  straight_up: {
+    blurb: "Pick the team you think will win each game, outright.",
+    rules: ["Earn 1 point for each correct pick", "Best record wins", "Tie games void by default"],
+  },
+  ats: {
+    blurb: "Pick the team you think will cover the point spread set by bookmakers.",
+    rules: ["Earn 1 point for each correct pick", "Best record wins", "Pushes void by default"],
+  },
+  survivor: {
+    blurb: "Pick one winner a week. Use a team once and you can't use it again.",
+    rules: ["One pick per week, no repeats", "A wrong pick eliminates you", "Last member standing wins"],
+  },
+  confidence: {
+    blurb: "Rank every game by how sure you are. Your best call is worth the most.",
+    rules: ["Points equal each pick's rank", "Highest total wins", "Each rank used once per week"],
+  },
 };
 
 const LEAGUE_TIE_HANDLING_OPTIONS = [
@@ -15269,14 +15511,325 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
   );
 }
 
-function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague, autoJoinCode, autoJoinCodeError, joinLinkError }) {
-  const [createName, setCreateName] = useState("");
-  const [createDescription, setCreateDescription] = useState("");
-  const [createFormat, setCreateFormat] = useState("straight_up");
-  const [createVisibility, setCreateVisibility] = useState("private");
-  const [createInviteEmails, setCreateInviteEmails] = useState("");
+
+/* ---- Create wizard -------------------------------------------------------
+ * Three steps over the same league-create.mts call the old single form made.
+ * Splitting it isn't decoration: format choice changes what the scoring
+ * settings even mean (confidence has ranks, survivor has elimination), so
+ * asking for those on the same screen as the format meant showing settings
+ * for a format the user hadn't picked yet.
+ *
+ * Only step 1 gates progress - a name is the one required field. Steps 2 and
+ * 3 have working defaults, so someone who wants a league in fifteen seconds
+ * can hit Next twice and be done.
+ */
+function LeagueCreateWizard({ auth, onCreated, onCancel }) {
+  const [step, setStep] = useState(1);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [format, setFormat] = useState("straight_up");
+  const [visibility, setVisibility] = useState("private");
+  const [maxMembers, setMaxMembers] = useState("20");
+  const [pointsPerCorrect, setPointsPerCorrect] = useState(1);
+  const [tieHandling, setTieHandling] = useState("void");
+  const [tieBreaker, setTieBreaker] = useState("");
+  const [uniqueConfidence, setUniqueConfidence] = useState(true);
+  const [survivorTieHandling, setSurvivorTieHandling] = useState("eliminate");
+  const [emails, setEmails] = useState([]);
+  const [emailDraft, setEmailDraft] = useState("");
   const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState(null);
+  const [error, setError] = useState(null);
+
+  const about = LEAGUE_FORMAT_ABOUT[format] || LEAGUE_FORMAT_ABOUT.straight_up;
+  const formatLabel = (LEAGUE_FORMAT_OPTIONS.find((f) => f.value === format) || {}).label || format;
+  const sizeLabel = (LEAGUE_SIZE_OPTIONS.find((o) => o.value === maxMembers) || {}).label || "No limit";
+  const canAdvance = !!name.trim();
+
+  function commitEmail() {
+    const v = emailDraft.trim().replace(/,$/, "");
+    if (!v) return;
+    // Reuses the same parser the old form's textarea used, so one paste of
+    // "a@b.com, c@d.com" becomes two chips rather than one invalid one.
+    const parsed = parseInviteEmails(v);
+    if (parsed.length) setEmails((prev) => Array.from(new Set([...prev, ...parsed])));
+    setEmailDraft("");
+  }
+
+  async function handleCreate() {
+    if (creating || !name.trim()) return;
+    setCreating(true);
+    setError(null);
+    try {
+      const scoringSettings = { pointsPerCorrect: Number(pointsPerCorrect) || 1, tieHandling };
+      if (format === "confidence") scoringSettings.uniqueConfidence = uniqueConfidence;
+      if (format === "survivor") scoringSettings.survivorTieHandling = survivorTieHandling;
+
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim(),
+          format,
+          visibility,
+          maxMembers: maxMembers ? Number(maxMembers) : undefined,
+          tieBreaker: tieBreaker || null,
+          scoringSettings,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to create league");
+
+      // Invites are best-effort: the league already exists by now, so a slow
+      // or failed Resend call must not read as creation having failed. The
+      // league's own Invite panel is there to retry.
+      if (emails.length) {
+        try {
+          await auth.authenticatedFetch("/.netlify/functions/league-invite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ leagueId: data.league.id, emails }),
+          });
+        } catch (e) {}
+      }
+      onCreated(data.league);
+    } catch (err) {
+      setError(err.message || "Failed to create league");
+      setStep(3);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  const STEP_LABELS = ["League Setup", "League Settings", "Invite & Create"];
+
+  return (
+    <div className="lgx-layout">
+      <div className="lgx-card">
+        <div className="lgx-steps">
+          {STEP_LABELS.map((label, i) => (
+            <React.Fragment key={label}>
+              {i > 0 && <span className="lgx-rule" />}
+              <button
+                type="button"
+                className={"lgx-step" + (step === i + 1 ? " on" : "") + (step > i + 1 ? " done" : "")}
+                data-clickable={step > i + 1 ? "1" : "0"}
+                onClick={() => { if (step > i + 1) setStep(i + 1); }}
+              >
+                <span className="n">{i + 1}</span>
+                <span className="t">{label}</span>
+              </button>
+            </React.Fragment>
+          ))}
+        </div>
+
+        {step === 1 && (
+          <div className="lgx-body">
+            <label className="lgx-label" htmlFor="lgx-name">League name</label>
+            <input id="lgx-name" className="league-input" maxLength={50} value={name}
+              placeholder="Enter a name for your league"
+              onChange={(e) => setName(e.target.value)} />
+            <div className="lgx-count">{name.length} / 50</div>
+
+            <label className="lgx-label" style={{ marginTop: 20 }}>Game type</label>
+            <p className="lgx-help">Choose the Pick'em game format for your league.</p>
+            <div className="lgx-fmt-grid">
+              {LEAGUE_FORMAT_OPTIONS.map((f) => (
+                <button key={f.value} type="button"
+                  className={"lgx-fmt" + (format === f.value ? " sel" : "")}
+                  onClick={() => setFormat(f.value)}>
+                  <img src={LEAGUE_FORMAT_ICON_URLS[f.value]} alt="" />
+                  <b>{f.label}</b>
+                  <span>{LEAGUE_FORMAT_ABOUT[f.value] ? LEAGUE_FORMAT_ABOUT[f.value].blurb : f.hint}</span>
+                  <span className="tick">✓</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="lgx-two" style={{ marginTop: 22 }}>
+              <div>
+                <label className="lgx-label">League privacy</label>
+                <p className="lgx-help">Who can join this league?</p>
+                <div className="lgx-priv">
+                  {LEAGUE_VISIBILITY_CARDS.map((o) => (
+                    <button key={o.value} type="button"
+                      className={visibility === o.value ? "sel" : ""}
+                      onClick={() => setVisibility(o.value)}>
+                      <b>{o.icon} {o.label}</b><span>{o.blurb}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="lgx-label" htmlFor="lgx-size">League size</label>
+                <p className="lgx-help">Set the maximum number of players.</p>
+                <select id="lgx-size" className="league-input" value={maxMembers}
+                  onChange={(e) => setMaxMembers(e.target.value)}>
+                  {LEAGUE_SIZE_OPTIONS.map((o) => <option key={o.label} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <label className="lgx-label" htmlFor="lgx-desc" style={{ marginTop: 20 }}>
+              League description (optional)
+            </label>
+            <textarea id="lgx-desc" className="league-textarea" rows={3} maxLength={280}
+              placeholder="Add a description for your league..."
+              value={description} onChange={(e) => setDescription(e.target.value)} />
+            <div className="lgx-count">{description.length} / 280</div>
+            {visibility === "private" && (
+              <p className="lgx-help" style={{ marginTop: 8 }}>
+                Private league descriptions aren't shown in search results — only to members.
+              </p>
+            )}
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="lgx-body">
+            <div className="lgx-set">
+              <div className="t"><b>Points per correct pick</b>
+                <span>Confidence leagues override this with each pick's rank.</span></div>
+              <div className="c">
+                <input className="league-input" type="number" min={1} step={1} value={pointsPerCorrect}
+                  disabled={format === "confidence"}
+                  onChange={(e) => setPointsPerCorrect(e.target.value)} />
+              </div>
+            </div>
+            <div className="lgx-set">
+              <div className="t"><b>If a game ends in a tie</b>
+                <span>Ties are rare, but the rule has to exist before one happens.</span></div>
+              <div className="c">
+                <select className="league-input" value={tieHandling} onChange={(e) => setTieHandling(e.target.value)}>
+                  {LEAGUE_TIE_HANDLING_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="lgx-set">
+              <div className="t"><b>Standings tiebreaker</b>
+                <span>Applied when two members finish on the same points.</span></div>
+              <div className="c">
+                <select className="league-input" value={tieBreaker} onChange={(e) => setTieBreaker(e.target.value)}>
+                  {LEAGUE_TIE_BREAKER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+            </div>
+            {format === "confidence" && (
+              <div className="lgx-set">
+                <div className="t"><b>Require unique confidence values</b>
+                  <span>Each rank can only be used once per week.</span></div>
+                <div className="c">
+                  <select className="league-input" value={uniqueConfidence ? "1" : "0"}
+                    onChange={(e) => setUniqueConfidence(e.target.value === "1")}>
+                    <option value="1">Required</option><option value="0">Allow duplicates</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            {format === "survivor" && (
+              <div className="lgx-set">
+                <div className="t"><b>If your team ties</b>
+                  <span>A tie is neither a win nor a loss — decide which it counts as.</span></div>
+                <div className="c">
+                  <select className="league-input" value={survivorTieHandling}
+                    onChange={(e) => setSurvivorTieHandling(e.target.value)}>
+                    <option value="eliminate">Eliminates you</option><option value="survive">You survive</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            <div className="lgx-set">
+              <div className="t"><b>Pick deadline</b><span>Each game locks at its own kickoff.</span></div>
+              <div className="c"><span className="lgx-locked">Per game · fixed</span></div>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="lgx-body">
+            <label className="lgx-label">Invite by email (optional)</label>
+            <p className="lgx-help">Each person gets a join link as soon as the league exists.</p>
+            <div className="lgx-chips" onClick={() => { const el = document.getElementById("lgx-email"); if (el) el.focus(); }}>
+              {emails.map((em) => (
+                <span className="lgx-chip" key={em}>
+                  {em}
+                  <button type="button" aria-label={"Remove " + em}
+                    onClick={() => setEmails((prev) => prev.filter((x) => x !== em))}>×</button>
+                </span>
+              ))}
+              <input id="lgx-email" value={emailDraft} placeholder="name@example.com, then Enter"
+                onChange={(e) => setEmailDraft(e.target.value)}
+                onBlur={commitEmail}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === ",") { e.preventDefault(); commitEmail(); }
+                  else if (e.key === "Backspace" && !emailDraft && emails.length) {
+                    setEmails((prev) => prev.slice(0, -1));
+                  }
+                }} />
+            </div>
+            <p className="lgx-help" style={{ marginTop: 10 }}>
+              You'll get an invite code too — anyone with it joins straight away, no approval needed.
+            </p>
+
+            <label className="lgx-label" style={{ marginTop: 22 }}>Summary</label>
+            <div className="lgx-sum">
+              <div className="lgx-sum-cell"><span className="lgx-eyebrow">Name</span><b>{name.trim() || "—"}</b></div>
+              <div className="lgx-sum-cell"><span className="lgx-eyebrow">Format</span><b>{formatLabel}</b></div>
+              <div className="lgx-sum-cell"><span className="lgx-eyebrow">Privacy</span>
+                <b>{visibility === "private" ? "Private" : "Public"}</b></div>
+              <div className="lgx-sum-cell"><span className="lgx-eyebrow">Size</span><b>{sizeLabel}</b></div>
+            </div>
+            {error && <p className="leagues-error" style={{ marginTop: 14 }}>{error}</p>}
+          </div>
+        )}
+
+        <div className="lgx-foot">
+          <button type="button" className="league-btn"
+            onClick={() => (step === 1 ? onCancel() : setStep(step - 1))}>
+            {step === 1 ? "Cancel" : "← Back"}
+          </button>
+          <button type="button" className="league-btn league-btn-primary"
+            disabled={!canAdvance || creating}
+            onClick={() => (step < 3 ? setStep(step + 1) : handleCreate())}>
+            {step === 1 ? "Next: League Settings →"
+              : step === 2 ? "Next: Invite & Create →"
+              : creating ? "Creating…" : "Create League"}
+          </button>
+        </div>
+      </div>
+
+      <div className="lgx-rail">
+        <div className="lgx-card">
+          <div className="lgx-head"><span className="lgx-eyebrow">League preview</span></div>
+          <div className="lgx-pv">
+            <img src={LEAGUE_FORMAT_ICON_URLS[format]} alt="" />
+            <div>
+              <p className={"lgx-pv-name" + (name.trim() ? "" : " empty")}>{name.trim() || "League Name"}</p>
+              <span className="lgx-pill">{formatLabel}</span>
+            </div>
+          </div>
+          <div className="lgx-pv-meta">
+            <span>{visibility === "private" ? "🔒 Private League" : "🌐 Public League"}</span>
+            <span>👥 {maxMembers ? `${maxMembers} Players Max` : "No player limit"}</span>
+            <span>Created by You</span>
+          </div>
+        </div>
+
+        <div className="lgx-card lgx-about">
+          <h4>About {formatLabel}</h4>
+          <p>{about.blurb}</p>
+          <ul>
+            {about.rules.map((r, i) => (
+              <li key={r}><span>{["✅", "🏆", "⚖️"][i] || "•"}</span>{r}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague, autoJoinCode, autoJoinCodeError, joinLinkError }) {
   const [copiedCode, setCopiedCode] = useState(null);
   const [pendingLeaveId, setPendingLeaveId] = useState(null);
   const [leavingId, setLeavingId] = useState(null);
@@ -15299,64 +15852,6 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
     setMobileTab(name);
   }
 
-  async function handleCreate(e) {
-    e.preventDefault();
-    if (!createName.trim() || creating) return;
-    setCreating(true);
-    setCreateError(null);
-    try {
-      const res = await auth.authenticatedFetch("/.netlify/functions/league-create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: createName.trim(),
-          description: createDescription.trim(),
-          format: createFormat,
-          visibility: createVisibility,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to create league");
-
-      // Invite emails, if any were entered, are best-effort: the league
-      // itself is already created at this point, so a slow or failed
-      // Resend call shouldn't hold up navigation or read as league
-      // creation having failed. Same "Invite by Email" panel is right
-      // there in the league view/settings to retry if something didn't
-      // go out.
-      const inviteEmails = parseInviteEmails(createInviteEmails);
-      if (inviteEmails.length) {
-        try {
-          await auth.authenticatedFetch("/.netlify/functions/league-invite", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ leagueId: data.league.id, emails: inviteEmails }),
-          });
-        } catch {
-          // Swallow - see comment above.
-        }
-      }
-
-      setCreateName("");
-      setCreateDescription("");
-      setCreateVisibility("private");
-      setCreateInviteEmails("");
-      // Reflect it in "My Leagues" immediately from the response rather
-      // than waiting on a refetch, then select straight into it. No
-      // reloadLeagues() call here on purpose - league-create's response is
-      // already the authoritative record, and a redundant reload that
-      // resolves later can race a still-propagating blob write and clobber
-      // this correct optimistic state with a list that's missing the
-      // league it just returned (see useMyLeagues' upsertLeague for the
-      // same reasoning applied to join/update/delete).
-      upsertLeague(data.league);
-      onSelectLeague(data.league.id);
-    } catch (err) {
-      setCreateError(err.message || "Failed to create league");
-    } finally {
-      setCreating(false);
-    }
-  }
 
   async function handleLeave(league) {
     if (leavingId) return;
@@ -15398,6 +15893,32 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   // the viewer is signed out, since that's the generic name for the
   // section rather than a claim about how many they have.
   const myLeaguesLabel = (signedIn && leagues && leagues.length === 1) ? "My League" : "My Leagues";
+
+  // Create is its own full-width page rather than a panel in the landing
+  // page's two-column grid. The wizard carries a 360px preview rail, and
+  // inside the content column that left roughly 400px for a four-up format
+  // picker - every card wrapped to five lines. Breaking out also matches
+  // what the flow is: a task you finish and leave, not a section you browse.
+  if (subTab === "create" && signedIn) {
+    return (
+      <div className="leagues-page leagues-page-wide">
+        <nav className="lgx-crumb" aria-label="Breadcrumb">
+          <button type="button" onClick={() => selectSubTab("search")}>Leagues</button>
+          <span aria-hidden="true">›</span>
+          <span aria-current="page">Create League</span>
+        </nav>
+        <div>
+          <h1 className="lgx-title">Create a New League</h1>
+          <p className="lgx-subtitle">Set up your league and invite friends to start competing.</p>
+        </div>
+        <LeagueCreateWizard
+          auth={auth}
+          onCancel={() => selectSubTab("search")}
+          onCreated={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="leagues-page leagues-page-landing">
@@ -15569,88 +16090,15 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
             />
           </div>
 
+          {/* Signed in, this subtab returns the full-width page above and
+              never reaches here. Signed out there's nothing to configure. */}
           <div className={"leagues-page-section" + (subTab === "create" ? " subtab-active" : "")}>
             <h2 className="leagues-page-section-title">Create a League</h2>
-            <p className="leagues-page-section-sub">Pick a format below to see how scoring works for that type.</p>
-            {!signedIn ? (
-              <div className="leagues-signed-out">
-                <p>Sign in to create a league.</p>
-                <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
-              </div>
-            ) : (
-              <form className="league-form-create" onSubmit={handleCreate}>
-                <input
-                  type="text"
-                  className="league-input"
-                  placeholder="League name"
-                  value={createName}
-                  onChange={e => setCreateName(e.target.value)}
-                  maxLength={50}
-                />
-                <textarea
-                  className="league-textarea"
-                  placeholder="Description (optional) - shown to members and, if public, in search"
-                  value={createDescription}
-                  onChange={e => setCreateDescription(e.target.value)}
-                  maxLength={280}
-                  rows={2}
-                />
-                <div className="league-format-picker">
-                  {LEAGUE_FORMAT_OPTIONS.map(f => (
-                    <button
-                      key={f.value}
-                      type="button"
-                      className={"league-format-option" + (createFormat === f.value ? " selected" : "")}
-                      onClick={() => setCreateFormat(f.value)}
-                    >
-                      <span className="fmt-icon-row">
-                        <span className="fmt-icon">
-                          <img src={LEAGUE_FORMAT_ICON_URLS[f.value]} alt="" />
-                        </span>
-                        {f.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                <p className="league-format-hint">{(LEAGUE_FORMAT_OPTIONS.find(f => f.value === createFormat) || {}).hint}</p>
-
-                <label className="league-settings-row" style={{ marginTop: 4 }}>
-                  <span>Who can join</span>
-                  <div className="league-visibility-picker">
-                    {LEAGUE_VISIBILITY_OPTIONS.map(o => (
-                      <button
-                        key={o.value}
-                        type="button"
-                        className={"league-visibility-option" + (createVisibility === o.value ? " selected" : "")}
-                        onClick={() => setCreateVisibility(o.value)}
-                      >
-                        {o.label}
-                      </button>
-                    ))}
-                  </div>
-                </label>
-                <p className="league-format-hint">{LEAGUE_VISIBILITY_INFO[createVisibility]}</p>
-
-                <label className="league-settings-row" style={{ marginTop: 4 }}>
-                  <span>Invite by email (optional)</span>
-                  <textarea
-                    className="league-textarea"
-                    placeholder="friend@email.com, another@email.com"
-                    value={createInviteEmails}
-                    onChange={e => setCreateInviteEmails(e.target.value)}
-                    rows={2}
-                  />
-                </label>
-                <p className="league-format-hint">
-                  Sent right after the league is created - you can also invite more people later from the league page.
-                </p>
-
-                <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={creating || !createName.trim()}>
-                  {creating ? "Creating…" : "Create League"}
-                </button>
-              </form>
-            )}
-            {createError && <p className="leagues-error">{createError}</p>}
+            <p className="leagues-page-section-sub">Name it, pick a format, send the link. Three steps.</p>
+            <div className="leagues-signed-out">
+              <p>Sign in to create a league.</p>
+              <button type="button" className="league-btn league-btn-primary" onClick={onRequestLogin}>Sign in</button>
+            </div>
           </div>
         </div>
       </div>

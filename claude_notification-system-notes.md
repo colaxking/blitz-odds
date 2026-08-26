@@ -460,3 +460,105 @@ due".
 reports what would have been sent without sending it. The plan appears in
 the **Netlify** function log — background functions return 202 immediately
 and the workflow never sees the body.
+
+
+---
+
+# Phase 3: live scoring
+
+A second dispatcher on a 90-second tick, watching games actually in
+progress. The 15-minute tick carries anything measured in hours — pick
+reminders, recaps, kickoff warnings. A touchdown is not that: by the time a
+15-minute tick notices a score, the next one has often already happened.
+
+```
+notif-live-dispatch.mts             synchronous front door (validates, then hands off)
+notif-live-dispatch-background.mts  the 90-second tick
+lib/livescores.mts                  ESPN scoreboard fetch + normalisation
+.github/workflows/notif-live-dispatch.yml
+```
+
+## Cost, and the two things that keep it down
+
+Every 90 seconds year-round is ~350,000 invocations a year, almost all of
+them to discover that it's Tuesday in March.
+
+1. **The cron job is restricted to game windows.** cron-job.org supports
+   day/hour restrictions; the workflow header lists the ones to set. That's
+   ~45 hours a week in season, about 1,800 ticks.
+2. **The function short-circuits.** The first thing it does is a schedule
+   check, and it returns after a single Blobs read if nothing is plausibly
+   in progress — before touching ESPN, the user list, or anything else. A
+   tick that fires outside a game costs almost nothing regardless.
+
+It also only loads the user list *after* something has changed, so a quiet
+tick mid-game doesn't enumerate users either.
+
+## Snapshots, and why first sighting is silent
+
+ESPN's scoreboard reports **state**, not events — so "did someone just
+score" is only answerable by diffing against what we saw last tick. Each
+game's last-seen state lives at `live:{season}:{week}:{gameId}`.
+
+A game seen for the first time records its state and alerts on **nothing**.
+Without that, starting the poller mid-game would fire an alert for a
+touchdown scored twenty minutes earlier — and on the first tick after a
+deploy, for every live game at once.
+
+The cost is real and accepted: if a snapshot is lost (a swept store, a
+storage blip) the next score for that game is swallowed. One missed alert
+beats a burst of stale ones.
+
+## Lead changes
+
+`scoring: "lead"` fires only when **the trailing team goes ahead**. A drop
+into a tie is not a lead change — otherwise a tie-then-retake fires twice
+for what a viewer experiences as one swing.
+
+## Finals now come from here, with the old path as backstop
+
+The live tick and the 15-minute tick both send final-score alerts, and they
+deliberately share a ledger key (`type: "final"`, event `gameId`). Whichever
+notices first wins; the other finds the key and stays quiet.
+
+In practice the live tick is first by a wide margin, since the
+history-driven path can only notice once `history` refreshes on its own
+schedule. That makes the Phase 1 route a backstop for a tick this one
+missed rather than dead code.
+
+## Play id, and ESPN's dead-ball gap
+
+Scoring alerts dedupe on `situation.lastPlay.id`. But `situation` is dropped
+from the payload during dead-ball moments — which is exactly when a score
+has just happened — so there's a fallback to the scoreline, unique per
+scoring event within a game barring an exact repeat.
+
+(Same family of quirk as `situation.possession` disappearing mid-drive,
+noted elsewhere in this repo.)
+
+## Quiet hours will silence the end of night games
+
+Default quiet hours are 23:00–07:00 local. A Sunday-night game running past
+11pm Eastern means its closing scores are suppressed for Eastern readers,
+and the same for Monday night.
+
+That's arguably correct — someone actually watching doesn't need a
+notification telling them what they just saw, and someone asleep doesn't
+want one either — but it's a real consequence rather than an oversight, and
+"Never" is available in the Alerts tab for anyone who disagrees.
+
+## Testing
+
+```bash
+node /tmp/live-test.mjs   # first-sighting silence, lead changes, finals, dedupe
+```
+
+Stub `fetch` for `site.api.espn.com` and swap the fake scoreboard between
+ticks — that's the whole harness. Worth covering when changing anything
+here: first sighting silent, a score firing, no change firing nothing,
+`"lead"` ignoring an extended lead but catching a takeover, a tie not
+counting, the final transition, dedupe on a repeated play, a non-followed
+game, and the off-season short-circuit.
+
+`force: true` polls even when the schedule says nothing is on, which is the
+only way to exercise this out of season.

@@ -165,8 +165,18 @@ export default async (req: Request, _context: Context) => {
           const gid = makeGameId(league.season, w, g.away, g.home);
           return leagueStore.get(`picks:${leagueId}:${w}:${userId}:${gid}`, { type: "json" });
         }));
-        const usedThisWeek = priorPicks.find((p) => p && p.team === team);
-        if (usedThisWeek) {
+        // Only ever one of these counts as the week's pick. The replacement
+        // delete() below has its own brief lag, so a prior week can
+        // transiently read back as holding both the pick that was replaced
+        // and the one that replaced it - and blocking on the superseded one
+        // would reject a team the user never actually spent. picks-mine.mts
+        // resolves this the same way when it builds usedTeams; the two have
+        // to agree, or the client greys out a different set of teams than
+        // the server will accept.
+        const found = priorPicks.filter((p) => p && p.team);
+        if (!found.length) continue;
+        const latest = found.reduce((a, b) => (a.updatedAt >= b.updatedAt ? a : b));
+        if (latest.team === team) {
           return jsonResponse(409, { ok: false, error: `You've already used ${team} in week ${w} - Survivor teams can only be used once per season` }, CORS_HEADERS);
         }
       }

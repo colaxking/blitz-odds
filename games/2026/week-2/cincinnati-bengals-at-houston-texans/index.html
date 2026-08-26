@@ -2318,6 +2318,14 @@
   .picks-progress-count .dim { color: var(--text-dim); font-weight: 600; font-size: 0.82rem; }
   .picks-progress-deadline { font-size: 0.72rem; color: var(--warn); margin: 2px 0 0; font-weight: 600; }
 
+  .survivor-rule-note {
+    display: flex; align-items: flex-start; gap: 8px;
+    background: rgba(var(--warn-rgb),0.08); border: 1px solid rgba(var(--warn-rgb),0.28);
+    border-radius: 10px; padding: 9px 12px; font-size: 0.74rem; color: var(--text-dim); line-height: 1.45;
+  }
+  .survivor-rule-note b { color: var(--text); font-weight: 700; }
+  .pickem-replace-hint { font-size: 0.66rem; color: var(--warn); font-weight: 700; margin: 0; }
+
   .pickem-game-card {
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 14px; display: flex; flex-direction: column; gap: 10px;
@@ -2950,7 +2958,7 @@
   <p><strong>Odds (DraftKings):</strong> HOU -2.5 · ML CIN +114 / HOU -135 · O/U 46.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Houston Texans</strong> - CIN 19% / HOU 81%</p>
+  <p>Predicted winner: <strong>Houston Texans</strong> - CIN 20% / HOU 80%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -2972,6 +2980,7 @@
 
   <h2>Injury report</h2>
   <ul>
+<li><strong>Jadeveon Clowney</strong> (HOU · DE) - questionable - Ankle</li>
 <li><strong>Shemar Stewart</strong> (CIN · DE) - out - Hyperextended knee (no ligament damage)</li>
 <li><strong>Jayden Higgins</strong> (HOU · WR) - out - Torn ACL - season-ending</li>
 <li><strong>Dylan Horton</strong> (HOU · DE) - out - Achilles</li>
@@ -4109,6 +4118,20 @@
         },
         "statusUpdatedAt": "2026-08-26T00:42Z",
         "source": "auto"
+      },
+      {
+        "name": "Jadeveon Clowney",
+        "position": "DE",
+        "espnId": "16734",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T19:41:06.432Z",
+        "source": "curated"
       }
     ],
     "BAL": [
@@ -4163,6 +4186,20 @@
           "note": "Suffered the injury during Wednesday's joint practice with the Vikings in Eagan, Minnesota, and was carted off in a full-leg brace; expected to miss the season. Was taking most first-team center reps in camp after Tyler Linderbaum's offseason move to the Raiders. Ethan Pocic and Jovaughn Gwyn are now the leading options to fill the void."
         },
         "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
+        "source": "curated"
+      },
+      {
+        "name": "Zay Flowers",
+        "position": "WR",
+        "espnId": "4429615",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": "Flowers isn't practicing Wednesday for the second day while he tends to an apparent undisclosed injury, Cordell Woodland of 105.7 The Fan Baltimore reports."
+        },
+        "statusUpdatedAt": "2026-08-26T19:40:27.971Z",
         "source": "curated"
       }
     ],
@@ -16606,10 +16643,18 @@ function LeagueHeader({ auth, league, week, onWeekChange, onOpenLeagues, isOwner
   );
 }
 
-function PicksProgressRing({ complete, total, week }) {
+// Survivor is the one format where "complete" isn't measured against the
+// number of games on the slate: you make exactly one pick a week, so
+// counting it out of 16 read as "0 of 16 complete, 16 remaining" on a week
+// that was in fact untouched, and "1 of 16" on a week that was finished.
+// Everything else still counts every game.
+function PicksProgressRing({ complete, total, week, format }) {
+  const isSurvivor = format === "survivor";
+  const shownTotal = isSurvivor ? 1 : total;
+  const shownComplete = isSurvivor ? Math.min(complete, 1) : complete;
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
-  const pct = total > 0 ? complete / total : 0;
+  const pct = shownTotal > 0 ? shownComplete / shownTotal : 0;
   const offset = circumference * (1 - pct);
   return (
     <div className="picks-progress">
@@ -16623,18 +16668,41 @@ function PicksProgressRing({ complete, total, week }) {
             strokeDashoffset={offset}
           ></circle>
         </svg>
-        <div className="picks-progress-ring-num">{complete}/{total}</div>
+        <div className="picks-progress-ring-num">{shownComplete}/{shownTotal}</div>
       </div>
       <div className="picks-progress-text">
-        <p className="picks-progress-title">NFL Pick'em — Week {week}</p>
-        <p className="picks-progress-count">{complete} <span className="dim">of {total} picks complete</span></p>
-        {complete < total && <p className="picks-progress-deadline">{total - complete} remaining</p>}
+        <p className="picks-progress-title">{isSurvivor ? "Survivor" : "NFL Pick'em"} — Week {week}</p>
+        <p className="picks-progress-count">
+          {shownComplete} <span className="dim">of {shownTotal} {shownTotal === 1 ? "pick" : "picks"} complete</span>
+        </p>
+        {shownComplete < shownTotal && (
+          <p className="picks-progress-deadline">
+            {isSurvivor ? "Pick one team to survive the week" : `${shownTotal - shownComplete} remaining`}
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence }) {
+// Survivor's two rules are easy to trip over precisely because they're
+// invisible until you break one: picking a second game silently replaces
+// the first, and a team is spent for the season once used. Both are
+// enforced server-side in picks-submit.mts either way - this just says so
+// up front rather than letting the replacement look like a bug.
+function SurvivorRuleNote() {
+  return (
+    <div className="survivor-rule-note">
+      <span aria-hidden="true">⚠️</span>
+      <span>
+        <b>One team per week.</b> Picking another game replaces your current pick,
+        and a team can only be used once all season.
+      </span>
+    </div>
+  );
+}
+
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   useEffect(() => {
@@ -16767,6 +16835,9 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
           </select>
         </div>
       )}
+      {replacesPick && !game.locked && (
+        <p className="pickem-replace-hint">Tapping here replaces your current pick</p>
+      )}
       {error && <div className="pickem-pick-error">{error}</div>}
     </div>
   );
@@ -16883,13 +16954,26 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
     return map;
   }, [data, predictions]);
 
+  const isSurvivor = data?.format === "survivor";
+
   async function submitPick(gameId, team, confidence) {
     setSavingGameId(gameId);
     setPickErrors(prev => ({ ...prev, [gameId]: null }));
     // Optimistic update so the tap feels instant; reconciled below.
+    // Survivor is one pick per week, and picks-submit.mts enforces that by
+    // deleting every other game's pick key for the week before writing the
+    // new one. The confirmed-pick merge below only ever touches the game
+    // that was tapped (on purpose - see the comment there), so without
+    // clearing the others here the previously picked game keeps its
+    // checkmark on screen even though the server has already dropped it,
+    // and the week looks like it holds several picks until a reload.
     setData(prev => prev && {
       ...prev,
-      games: prev.games.map(g => g.gameId === gameId ? { ...g, pick: { team, confidence } } : g),
+      games: prev.games.map(g => {
+        if (g.gameId === gameId) return { ...g, pick: { team, confidence } };
+        if (prev.format === "survivor" && g.pick) return { ...g, pick: null };
+        return g;
+      }),
     });
     try {
       const res = await auth.authenticatedFetch("/.netlify/functions/picks-submit", {
@@ -16906,7 +16990,14 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
       // update since it only ever touches this one game.
       setData(prev => {
         if (!prev) return prev;
-        const games = prev.games.map(g => g.gameId === gameId ? { ...g, pick: json.pick } : g);
+        const games = prev.games.map(g => {
+          if (g.gameId === gameId) return { ...g, pick: json.pick };
+          // Same one-pick-per-week rule as the optimistic update above -
+          // repeated here so a load() that resolved in between (and
+          // repainted the old pick) can't leave a second one behind.
+          if (prev.format === "survivor" && g.pick) return { ...g, pick: null };
+          return g;
+        });
         const picksComplete = games.filter(g =>
           g.pick && (prev.format !== "confidence" || typeof g.pick.confidence === "number")
         ).length;
@@ -16925,7 +17016,8 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
 
   return (
     <>
-      <PicksProgressRing complete={data.picksComplete} total={data.totalGames} week={week} />
+      <PicksProgressRing complete={data.picksComplete} total={data.totalGames} week={week} format={data.format} />
+      {isSurvivor && <SurvivorRuleNote />}
       {data.games.map(game => (
         <LeaguePickCard
           key={game.gameId}
@@ -16939,6 +17031,7 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
           tz={tz}
           prediction={predictions[game.gameId] || null}
           suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
+          replacesPick={isSurvivor && !game.pick && data.games.some(g => g.pick)}
         />
       ))}
       <div className="pickem-autosave-note"><span className="pickem-autosave-dot"></span> Picks save automatically</div>

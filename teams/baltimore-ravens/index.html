@@ -10171,8 +10171,11 @@ const TAB_BY_PATH = Object.entries(TAB_ROUTES).reduce((acc, [tab, path]) => {
 function buildTabPath(tab) {
   return TAB_ROUTES[tab] || "/";
 }
-function buildLeaguePath(leagueId) {
-  return `/leagues/${encodeURIComponent(leagueId)}`;
+function buildLeaguePath(leagueId, subTab) {
+  const base = `/leagues/${encodeURIComponent(leagueId)}`;
+  // "week" is the default subtab (My Picks) and stays implicit, so the plain
+  // /leagues/{id} form keeps meaning what it always did.
+  return subTab && subTab !== "week" ? `${base}/${subTab}` : base;
 }
 /** True for any path the tab bar owns, so the week view can tell "the URL is
  *  stale, I should reset it to /" from "the URL is a team/game page that
@@ -10245,10 +10248,18 @@ function parseLocationPath(pathname) {
     return { view: "week", tab: "league", join: { type: "code", value: joinMatch[1].toUpperCase() } };
   }
   // /leagues/{leagueId} - a specific league, which had no URL at all before
-  // this and is what a last-call pick alert needs to point at.
-  const leagueMatch = pathname.match(/^\/leagues\/([A-Za-z0-9_-]{1,64})\/?$/);
+  // this and is what a last-call pick alert needs to point at. An optional
+  // trailing segment names a subtab, so an email can point at the thing it's
+  // actually about ("Review request" -> the Requests queue) rather than
+  // dropping the owner on My Picks and leaving them to find it.
+  const leagueMatch = pathname.match(/^\/leagues\/([A-Za-z0-9_-]{1,64})(?:\/(requests|standings|picks))?\/?$/);
   if (leagueMatch) {
-    return { view: "week", tab: "league", leagueId: decodeURIComponent(leagueMatch[1]) };
+    return {
+      view: "week",
+      tab: "league",
+      leagueId: decodeURIComponent(leagueMatch[1]),
+      leagueSubTab: leagueMatch[2] || null,
+    };
   }
   const cleanPath = pathname.replace(/\/$/, "") || "/";
   if (TAB_BY_PATH[cleanPath]) return { view: "week", tab: TAB_BY_PATH[cleanPath] };
@@ -17707,14 +17718,31 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
     return () => { cancelled = true; };
   }, [selectedLeagueId, countsRequests]);
 
+  // A /leagues/{id}/requests link only means anything to the owner of a
+  // private league. Anyone else following one (a forwarded email, a league
+  // that has since been switched to public, an owner who handed the league
+  // over) would otherwise get the subtab strip with an empty body under it,
+  // because the Requests panel renders behind the same condition. Wait for
+  // the league itself to resolve before deciding, so this doesn't fire
+  // against a not-yet-loaded list.
+  useEffect(() => {
+    if (subTab === "requests" && selectedLeague && !countsRequests) setSubTab("week");
+  }, [subTab, selectedLeague, countsRequests]);
+
   // Mirror the open league into the address bar so it's shareable and, more
   // to the point, so a last-call pick notification has somewhere to point.
   // replaceState rather than push: moving between the list and a league is
   // a sub-navigation inside the tab, not something Back should replay one
   // step at a time.
+  //
+  // The subtab rides along so that arriving on /leagues/{id}/requests doesn't
+  // get normalised straight back to /leagues/{id}, which would drop the
+  // Requests queue on the next refresh or if the owner shared the link on.
   useEffect(() => {
-    if (typeof onOpenLeagueRoute === "function") onOpenLeagueRoute(selectedLeagueId);
-  }, [selectedLeagueId, onOpenLeagueRoute]);
+    if (typeof onOpenLeagueRoute === "function") {
+      onOpenLeagueRoute(selectedLeagueId, selectedLeagueId ? subTab : null);
+    }
+  }, [selectedLeagueId, subTab, onOpenLeagueRoute]);
 
   // The landing page is where people sit before opening a league, and the
   // week they'll land on is entirely predictable (the selected week, which
@@ -21261,15 +21289,50 @@ function App() {
     } catch (e) { return null; }
   });
 
+  // Which subtab that link meant. Two accepted forms, on purpose:
+  //   /leagues/{id}/requests   - the canonical one, matching the rest of the
+  //                              path-based routing
+  //   /leagues/{id}?panel=...  - what join-request emails sent before the
+  //                              path form existed. Nothing ever read it, so
+  //                              those links landed on My Picks. They're
+  //                              already in people's inboxes and can't be
+  //                              recalled, so they're honoured here rather
+  //                              than left broken.
+  //
+  // This applies only when nothing in-app has asked for a destination (see
+  // the LeagueView props below). Falling back to it with `||` whenever
+  // leagueIntent lacks a subtab would leak it: arriving on
+  // /leagues/A/requests and later opening league B from Home would drop B on
+  // Requests too, since that intent carries no leagueSubTab of its own.
+  const [initialLeagueSubTabFromUrl] = useState(() => {
+    const VALID = ["requests", "standings", "picks"];
+    try {
+      const route = parseLocationPath(window.location.pathname);
+      if (route && route.leagueSubTab) return route.leagueSubTab;
+      if (route && route.leagueId) {
+        const panel = new URL(window.location.href).searchParams.get("panel");
+        if (panel && VALID.includes(panel)) return panel;
+      }
+    } catch (e) {}
+    return null;
+  });
+
   // Called by LeagueView whenever the open league changes. Guarded on the
   // active tab so a background remount can't rewrite the URL out from under
   // whatever tab is actually showing.
-  const syncLeagueRoute = useCallback((leagueId) => {
+  const syncLeagueRoute = useCallback((leagueId, subTab) => {
     try {
       if (activeTab !== "league") return;
-      const desired = leagueId ? buildLeaguePath(leagueId) : buildTabPath("league");
-      if (window.location.pathname !== desired) {
-        window.history.replaceState(window.history.state, "", desired + window.location.search);
+      const desired = leagueId ? buildLeaguePath(leagueId, subTab) : buildTabPath("league");
+      // ?panel= has been consumed into the subtab by now (see
+      // initialLeagueSubTabFromUrl). Carrying it forward would leave a stale
+      // param pinned to the address bar for the rest of the session, and it
+      // would fight the path form on the next read.
+      const search = new URLSearchParams(window.location.search);
+      search.delete("panel");
+      const suffix = search.toString() ? `?${search.toString()}` : "";
+      if (window.location.pathname !== desired || window.location.search !== suffix) {
+        window.history.replaceState(window.history.state, "", desired + suffix);
       }
     } catch (e) {}
   }, [activeTab]);
@@ -21728,7 +21791,7 @@ function App() {
           onConsumePendingJoin={clearPendingJoin}
           initialLeagueId={(leagueIntent && leagueIntent.leagueId) || initialLeagueId}
           initialSubTab={leagueIntent && leagueIntent.subTab}
-          initialLeagueSubTab={leagueIntent && leagueIntent.leagueSubTab}
+          initialLeagueSubTab={leagueIntent ? (leagueIntent.leagueSubTab || null) : initialLeagueSubTabFromUrl}
           onOpenLeagueRoute={syncLeagueRoute}
           onGoHome={backToWeek}
         />

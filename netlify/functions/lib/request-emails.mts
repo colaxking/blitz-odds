@@ -32,7 +32,11 @@ import {
 // None of these are marketing, so none carry an unsubscribe footer - they're
 // transactional responses to something the recipient or their league did.
 
-const REQUESTS_URL = (leagueId: string) => `${SITE_URL}/leagues/${leagueId}?panel=requests`;
+// The subtab is a path segment, not a ?panel= query param. The query form
+// was never read by the app, so "Review request" dropped the owner on the
+// league's My Picks tab and left them to find the queue themselves. The app
+// still honours the old param for emails already delivered.
+const REQUESTS_URL = (leagueId: string) => `${SITE_URL}/leagues/${leagueId}/requests`;
 const LEAGUE_URL = (leagueId: string) => `${SITE_URL}/leagues/${leagueId}`;
 
 export interface JoinRequestEmailInput {

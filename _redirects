@@ -13,6 +13,12 @@ https://blitz-odds.netlify.app/*  https://blitz-odds.com/:splat  301!
 # client-side instead of getting a 404.
 /teams/*  /index.html  200
 /games/*  /index.html  200
+# /games itself (no trailing slash) is the week view's own route since the
+# Home tab took over "/". build-static-pages.mjs writes games/index.html, and
+# Netlify serves an existing file ahead of a non-forced rewrite, so this is
+# only the fallback for the moment between a routing deploy and the next
+# static-pages run.
+/games  /index.html  200
 
 # Notification / tab routes. These are all client-side (pushState) routes
 # handled by index.html's React router, so a direct hit, a shared link, or a

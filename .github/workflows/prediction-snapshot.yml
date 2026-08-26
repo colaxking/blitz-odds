@@ -1,0 +1,49 @@
+name: Blitz Odds - Prediction snapshot
+
+# Freezes the model's call on each game at that game's kickoff, so the Blitz
+# follow rate grades a member against the prediction they could actually see
+# when their pick locked. Append-only: predictions-update refuses to
+# overwrite an already-frozen game. See the header in
+# scripts/prediction-snapshot.mjs for the per-game (not per-week) rationale.
+#
+# Triggered externally, same pattern as the other jobs in this repo: GitHub
+# Actions' own `schedule:` cron is unreliable on low-traffic repos, so
+# cron-job.org calls GitHub's REST API to fire workflow_dispatch instead:
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/prediction-snapshot.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+#
+# Cadence matters more here than for the other jobs: each game is frozen on
+# whichever run lands inside FREEZE_LEAD_MIN (default 15) before its kickoff,
+# so the cadence sets how close to lock time the snapshot actually is. Every
+# 10 minutes through Thursday, Sunday and Monday is the intent; every run
+# outside a freeze window is a no-op.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blitz-odds-prediction-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Freeze predictions for games at kickoff
+        env:
+          PREDICTIONS_UPDATE_SECRET: ${{ secrets.PREDICTIONS_UPDATE_SECRET }}
+          # See hotpicks-snapshot.yml - ubuntu-latest runners have flaky IPv6
+          # egress to some hosts and Node's fetch tries IPv6 first.
+          NODE_OPTIONS: "--dns-result-order=ipv4first"
+        run: node scripts/prediction-snapshot.mjs

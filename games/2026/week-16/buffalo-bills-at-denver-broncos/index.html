@@ -159,6 +159,11 @@
     transition: background 0.15s, color 0.15s;
   }
   .app { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+  /* The Home tab is the only three-column screen in the app (main + rail),
+     and 1100px squeezes the rail to the point the leaderboard rows wrap.
+     Scoped to this tab rather than widened globally so the week view, team
+     pages, and game pages keep the measure they were designed at. */
+  .app.app-home { max-width: 1240px; }
   /* Grid (not absolute-position) so the icon cluster and the logo occupy
      separate tracks and can never overlap, no matter how wide either one
      gets on a given screen. Column 1 is a blank spacer that mirrors
@@ -454,6 +459,266 @@
      through to both, only the container's position/layout and row
      direction change via the media query below. Extra bottom padding on
      .app keeps page content clear of the fixed bar on mobile. */
+
+  /* ==========================================================
+     Home tab - signed-out landing
+     ========================================================== */
+  .home-hero {
+    display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    gap: 34px; align-items: center; margin: 26px 0 10px;
+  }
+  .home-hero h2.home-display {
+    margin: 12px 0 12px; font-size: 2.6rem; line-height: 1.08;
+    font-weight: 800; letter-spacing: -.03em;
+  }
+  .home-hero h2.home-display em { font-style: normal; color: var(--accent); }
+  .home-lede { margin: 0 0 22px; font-size: 1rem; line-height: 1.55; color: var(--text-dim); max-width: 46ch; }
+  .home-eyebrow {
+    font-size: .68rem; font-weight: 800; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-dim);
+  }
+  .home-acts { display: flex; gap: 11px; flex-wrap: wrap; }
+  .home-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    border-radius: 9px; border: 1px solid var(--card-border); background: var(--surface-2);
+    color: var(--text); font-family: inherit; font-size: .84rem; font-weight: 700;
+    padding: 10px 15px; cursor: pointer; white-space: nowrap; text-decoration: none;
+  }
+  .home-btn.primary { background: var(--accent); border-color: var(--accent); color: #04121a; }
+  .home-trust { margin-top: 16px; font-size: .78rem; color: var(--text-dim); display: flex; gap: 16px; flex-wrap: wrap; }
+  .home-trust span { display: inline-flex; align-items: center; gap: 6px; }
+
+  .home-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; }
+  .home-edge { padding: 16px 16px 14px; }
+  .home-edge-head { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+  .home-edge-head img { height: 22px; width: auto; }
+  .home-matchup { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 8px 0 14px; }
+  .home-mt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .home-mt b { font-size: .84rem; }
+  .home-mt.pick b { color: var(--blitz-orange); }
+  .home-at { font-size: .8rem; color: var(--text-dim); font-weight: 700; }
+  .home-pickflag {
+    font-size: .58rem; font-weight: 800; letter-spacing: .08em; color: var(--blitz-orange);
+    border: 1px solid rgba(253,127,1,.5); border-radius: 999px; padding: 2px 7px;
+  }
+  [data-theme="light"] .home-pickflag { border-color: rgba(179,89,0,.5); }
+  .home-combo {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--card-border);
+  }
+  .home-combo .left { display: flex; align-items: center; gap: 7px; font-size: .78rem; font-weight: 700; }
+  .home-combo .left img { width: 17px; height: 17px; }
+  .home-combo .mid { text-align: center; font-size: .78rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .home-combo .right { font-size: .95rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .home-why-line { margin: 12px 0 0; font-size: .82rem; line-height: 1.55; color: var(--text-dim); }
+  .home-why-line b { color: var(--text); }
+
+  .home-sec-head { display: flex; align-items: baseline; justify-content: space-between; margin: 38px 0 12px; }
+  .home-sec-head h3 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; }
+
+  .home-fmt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .home-fmt { padding: 16px 14px 15px; text-align: center; }
+  .home-fmt img { width: 66px; height: 66px; object-fit: contain; }
+  .home-fmt h4 { margin: 8px 0 4px; font-size: .92rem; font-weight: 800; }
+  .home-fmt p { margin: 0; font-size: .76rem; line-height: 1.5; color: var(--text-dim); }
+
+  /* Two cards today. The third ("bring the pool you already run") is built
+     but hidden behind HOME_IMPORT_PILLAR until pool import actually ships -
+     flip that flag and this grid to repeat(3, 1fr) together. */
+  .home-value { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .home-value.has-import { grid-template-columns: repeat(3, 1fr); }
+  .home-value-cell { padding: 16px; }
+  .home-value-cell h4 { margin: 0 0 5px; font-size: .9rem; font-weight: 800; }
+  .home-value-cell p { margin: 0; font-size: .8rem; line-height: 1.55; color: var(--text-dim); }
+  .home-tag {
+    display: inline-block; margin-bottom: 9px; font-size: .62rem; font-weight: 800; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent); border: 1px solid rgba(var(--accent-rgb), .4);
+    border-radius: 999px; padding: 3px 9px;
+  }
+  .home-close { text-align: center; padding: 26px 20px; margin-top: 22px; }
+  .home-close h3 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 800; }
+  .home-close p { margin: 0 0 16px; font-size: .86rem; color: var(--text-dim); }
+  .home-close .home-acts { justify-content: center; }
+
+  @media (max-width: 860px) {
+    /* The hero dissolves so the four formats can sit between the pitch and
+       the (tall) Blitz Edge card - a new visitor gets "here's how you'd
+       play" before the model demo, which scrolls badly at the top. */
+    .home-landing { display: flex; flex-direction: column; align-items: stretch; }
+    .home-hero { display: contents; }
+    .home-hero-copy { order: 1; }
+    .home-landing > .home-sec-head.fmt { order: 2; }
+    .home-landing > .home-fmt-grid { order: 3; }
+    .home-edge { order: 4; margin-top: 26px; }
+    .home-landing > .home-sec-head.why { order: 5; }
+    .home-landing > .home-value { order: 6; }
+    .home-landing > .home-close { order: 7; }
+    .home-hero h2.home-display { font-size: 1.85rem; }
+    .home-fmt-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .home-value, .home-value.has-import { grid-template-columns: 1fr; }
+  }
+
+
+  /* ==========================================================
+     Home tab - signed-in dashboard
+     ========================================================== */
+  .hd-greet { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin: 22px 0 0; }
+  .hd-greet h2 { margin: 0 0 4px; font-size: 1.85rem; font-weight: 800; letter-spacing: -.02em; }
+  .hd-greet p { margin: 0; color: var(--text-dim); font-size: .9rem; }
+  .hd-greet-acts { display: flex; gap: 10px; }
+
+  /* The one thing a home page owes you that a league page doesn't: what's
+     due, across every league at once, and when it locks. */
+  .hd-week {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    padding: 14px 18px; margin: 18px 0 20px; border-radius: 14px;
+    background: linear-gradient(90deg, rgba(253,127,1,.16), rgba(253,127,1,0) 55%), var(--card-bg);
+    border: 1px solid var(--card-border); border-left: 3px solid var(--blitz-orange);
+  }
+  [data-theme="light"] .hd-week {
+    background: linear-gradient(90deg, rgba(179,89,0,.12), rgba(179,89,0,0) 55%), var(--card-bg);
+  }
+  .hd-week-main { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .hd-week-title { font-size: 1rem; font-weight: 800; }
+  .hd-week-count { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--blitz-orange); font-size: 1rem; }
+  .hd-week-sub { font-size: .82rem; color: var(--text-dim); }
+  .hd-week > .home-btn { margin-left: auto; }
+
+  /* Same column structure as .hd-layout below (main + 340px rail, 22px
+     gutter), so the three record tiles span exactly the league table's width
+     and the streak tile lines up with the leaderboard/games rail. The inner
+     14px gap is the tiles' own rhythm and is deliberately tighter than the
+     22px gutter that separates the two columns. */
+  .hd-stats { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
+  .hd-stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .hd-tile { padding: 15px 16px 14px; position: relative; }
+  .hd-tile .home-eyebrow { display: block; margin-bottom: 8px; padding-right: 62px; }
+  .hd-val { display: flex; align-items: baseline; gap: 8px; font-size: 1.9rem; font-weight: 800; letter-spacing: -.02em; }
+  .hd-val small { font-size: .88rem; font-weight: 700; color: var(--accent); }
+  .hd-foot { margin-top: 7px; font-size: .74rem; color: var(--text-dim); }
+  .hd-val.accent { color: var(--accent); }
+  .hd-val.orange { color: var(--blitz-orange); }
+  .hd-val.win { color: var(--win); }
+  .hd-val.dim { color: var(--text-dim); }
+
+  /* Shown only when the member is in more than one league. Manual, not
+     auto-rotating: a tile that changes while you're reading it is worse
+     than one you have to tap. */
+  .hd-pager { display: inline-flex; align-items: center; gap: 2px; }
+  .hd-pager button {
+    width: 20px; height: 20px; border-radius: 5px; display: grid; place-items: center;
+    background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
+    cursor: pointer; font-size: .7rem; line-height: 1; padding: 0; font-family: inherit;
+  }
+  .hd-pager button:hover { color: var(--accent); border-color: rgba(var(--accent-rgb), .5); }
+  .hd-pager .of { font-size: .66rem; color: var(--text-dim); font-variant-numeric: tabular-nums; padding: 0 4px; }
+  .hd-tile .hd-pager { position: absolute; top: 12px; right: 12px; }
+
+  .hd-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; margin-top: 30px; }
+  .hd-sec-head { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 12px; }
+  .hd-sec-head h3 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; }
+  .hd-link { font-size: .74rem; font-weight: 700; color: var(--accent); background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; }
+
+  .hd-leagues { display: flex; flex-direction: column; gap: 12px; }
+  .hd-row {
+    display: grid; grid-template-columns: 70px minmax(150px, 1.4fr) repeat(3, minmax(84px, 1fr)) auto;
+    align-items: center; gap: 18px; padding: 14px 16px;
+  }
+  .hd-row-badge { width: 62px; height: 62px; object-fit: contain; }
+  .hd-row-name { font-size: 1rem; font-weight: 800; margin: 0 0 2px; }
+  .hd-row-fmt { font-size: .8rem; color: var(--text-dim); margin: 0 0 7px; }
+  .hd-row-meta { display: flex; gap: 12px; font-size: .74rem; color: var(--text-dim); }
+  .hd-col .home-eyebrow { display: block; margin-bottom: 5px; }
+  .hd-big { font-size: 1.28rem; font-weight: 800; letter-spacing: -.01em; }
+  .hd-big.accent { color: var(--accent); }
+  .hd-big.orange { color: var(--blitz-orange); }
+  .hd-big.win { color: var(--win); }
+  .hd-big.dim { color: var(--text-dim); }
+  .hd-small { margin-top: 4px; font-size: .74rem; color: var(--text-dim); }
+  .hd-delta { font-size: .74rem; font-weight: 700; }
+  .hd-delta.up { color: var(--win); }
+  .hd-delta.down { color: var(--out); }
+  .hd-prog { height: 5px; border-radius: 3px; background: var(--surface-2); margin-top: 7px; overflow: hidden; }
+  .hd-prog i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+
+  .hd-rail { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; }
+  .hd-rail-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 16px 10px; border-bottom: 1px solid var(--card-border); }
+  .hd-rail-league { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .hd-rail-league img { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+  .hd-rail-league b { font-size: .82rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hd-lb-row { display: grid; grid-template-columns: 20px 1fr auto auto; gap: 12px; align-items: center; padding: 9px 16px; font-size: .86rem; }
+  .hd-lb-row.me { background: rgba(var(--accent-rgb), .1); }
+  .hd-lb-row.me .hd-lb-name { color: var(--accent); font-weight: 800; }
+  .hd-lb-rank { color: var(--text-dim); font-weight: 700; }
+  .hd-lb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hd-lb-rec { font-variant-numeric: tabular-nums; color: var(--text-dim); }
+  .hd-lb-pct { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; min-width: 34px; text-align: right; }
+  .hd-lb-status { font-size: .8rem; font-weight: 700; }
+  .hd-lb-status.alive { color: var(--win); }
+  .hd-lb-status.out { color: var(--lose); }
+  .hd-rail-foot { padding: 10px 16px 14px; font-size: .72rem; color: var(--text-dim); }
+  .hd-game-row { display: flex; align-items: center; gap: 12px; padding: 11px 16px; }
+  .hd-game-row + .hd-game-row { border-top: 1px solid var(--card-border); }
+  .hd-gm { flex: 1; min-width: 0; }
+  .hd-gm-teams { font-size: .88rem; font-weight: 700; }
+  .hd-gm-time { font-size: .74rem; color: var(--text-dim); margin-top: 2px; }
+  .hd-chip { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--card-border); }
+  .hd-chip .lbl { font-size: .56rem; font-weight: 800; letter-spacing: .07em; color: var(--text-dim); line-height: 1.25; }
+  .hd-chip .pct { font-size: .84rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+  .hd-invite { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 18px 20px; margin-top: 16px; }
+  .hd-invite h4 { margin: 0 0 3px; font-size: 1rem; font-weight: 800; }
+  .hd-invite p { margin: 0; font-size: .84rem; color: var(--text-dim); }
+  .hd-invite .acts { margin-left: auto; display: flex; gap: 10px; }
+  .hd-empty { padding: 26px 20px; text-align: center; }
+  .hd-empty p { margin: 0 0 14px; color: var(--text-dim); font-size: .88rem; }
+
+  /* Mobile: the rail's three cards become segmented tabs, and the main
+     column dissolves so the rail can slot between the league list and the
+     invite CTA without duplicating markup. */
+  .hd-rail-tabs { display: none; gap: 6px; margin-bottom: 12px; }
+  .hd-rail-tabs button {
+    flex: 1; padding: 9px 6px; border-radius: 9px; font-size: .76rem; font-weight: 700; cursor: pointer;
+    background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim); font-family: inherit;
+  }
+  .hd-rail-tabs button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #04121a; }
+
+  @media (max-width: 860px) {
+    .hd-greet h2 { font-size: 1.4rem; }
+    .hd-greet-acts { width: 100%; }
+    .hd-greet-acts .home-btn { flex: 1; }
+    .hd-week > .home-btn { margin-left: 0; width: 100%; }
+    /* Single column stack: the main group dissolves so all four tiles sit
+       in one 2-up grid rather than three-then-one. */
+    .hd-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .hd-stats-main { display: contents; }
+    .hd-val { font-size: 1.5rem; }
+    .hd-layout { display: flex; flex-direction: column; align-items: stretch; }
+    .hd-main { display: contents; }
+    .hd-main > * { order: 1; }
+    .hd-rail-wrap { order: 2; margin-top: 20px; }
+    .hd-main > .hd-invite { order: 3; }
+    .hd-rail { position: static; }
+    .hd-rail-tabs { display: flex; }
+    .hd-rail > .home-card { display: none; }
+    .hd-rail > .home-card.rail-on { display: block; }
+    .hd-row {
+      grid-template-columns: 52px 1fr;
+      grid-template-areas: "badge name" "stats stats" "cta cta";
+      gap: 10px 12px;
+    }
+    .hd-row-badge { grid-area: badge; width: 48px; height: 48px; }
+    .hd-row-id { grid-area: name; }
+    .hd-row-cols { grid-area: stats; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .hd-row-cta { grid-area: cta; }
+    .hd-row-cta .home-btn { width: 100%; }
+    .hd-big { font-size: 1.05rem; }
+    .hd-invite .acts { margin-left: 0; width: 100%; }
+    .hd-invite .acts .home-btn { flex: 1; }
+  }
+  .hd-row-cols { display: contents; }
+  @media (max-width: 860px) { .hd-row-cols { display: grid; } }
+
   .tab-bar {
     display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border);
   }
@@ -9521,12 +9786,32 @@ function buildGamePath(week, awayAbbr, homeAbbr) {
  * match on path and cannot see a fragment. The old hashes still work (see
  * getInitialTab) since they're sitting in already-sent emails and bookmarks,
  * they just rewrite themselves to the path on arrival. */
-const TAB_ROUTES = {
-  games: "/",
-  picks: "/picks",
-  league: "/leagues",
-  news: "/news",
-};
+/* HOME_TAB_ENABLED moves the site root from the week view to the new Home
+ * tab (a signed-out landing page, or the cross-league dashboard once signed
+ * in) and gives the week view its own /games route, sitting above the
+ * per-game pages already at /games/{season}/{week}/{matchup}/.
+ *
+ * Flipping this to false restores the previous scheme exactly - games back
+ * at "/", no Home tab, no /games index - so the whole change can be reverted
+ * without touching routing logic. Every consumer reads ROOT_TAB rather than
+ * hardcoding "games", which is what makes that possible. */
+const HOME_TAB_ENABLED = true;
+const TAB_ROUTES = HOME_TAB_ENABLED
+  ? {
+      home: "/",
+      games: "/games",
+      picks: "/picks",
+      league: "/leagues",
+      news: "/news",
+    }
+  : {
+      games: "/",
+      picks: "/picks",
+      league: "/leagues",
+      news: "/news",
+    };
+/** Whichever tab owns "/" under the current flag. */
+const ROOT_TAB = Object.keys(TAB_ROUTES).find((t) => TAB_ROUTES[t] === "/") || "games";
 /* "archive" is deliberately absent. It looks like a tab in TabBar, but it's
  * an <a href> out to the separate static archive at /historical/ - there is
  * no activeTab === "archive" branch to render, so treating it as an in-app
@@ -9549,6 +9834,13 @@ function buildLeaguePath(leagueId) {
 function isTabPath(pathname) {
   const clean = pathname.replace(/\/$/, "") || "/";
   return clean !== "/" && (!!TAB_BY_PATH[clean] || /^\/leagues(\/|$)/.test(clean));
+}
+/** "/games" is a tab path, but "/games/2026/week-3/x-at-y" is a game page.
+ *  isTabPath already distinguishes them (TAB_BY_PATH is an exact-match
+ *  lookup), but the week view's URL correction needs the distinction stated
+ *  explicitly, since it now has a non-root path of its own to maintain. */
+function isRootPath(pathname) {
+  return (pathname.replace(/\/$/, "") || "/") === "/";
 }
 
 /* A stored notification can't use the canonical game URL. That URL encodes
@@ -9614,6 +9906,13 @@ function parseLocationPath(pathname) {
   }
   const cleanPath = pathname.replace(/\/$/, "") || "/";
   if (TAB_BY_PATH[cleanPath]) return { view: "week", tab: TAB_BY_PATH[cleanPath] };
+  // "/" is deliberately absent from TAB_BY_PATH (it's built by skipping the
+  // root entry, so the root can't shadow a deeper match above). Resolve it
+  // here instead, to whichever tab currently owns it.
+  // isRoot lets getInitialTab tell "the URL actually named this tab" from
+  // "the URL is just the root, which this tab happens to own" - a legacy
+  // "/#news" hash has to beat the second but not the first.
+  if (cleanPath === "/") return { view: "week", tab: ROOT_TAB, isRoot: true };
   return null;
 }
 
@@ -10182,9 +10481,14 @@ function gameToSportsEvent(game, seasonYear) {
 // was in the HTML at load time unless we update it client-side. This mirrors
 // that content into <title>, the description meta, and the OG/Twitter tags
 // so a team page reads (and shares) as that team's page, not the homepage.
+/* Mirrors the static <head> of index.html, which is the document served at
+ * "/" - i.e. the Home tab. The odds/predictions framing these used to carry
+ * moved to /games along with the week view (see TAB_PAGES in
+ * scripts/build-static-pages.mjs), so the two don't compete for the same
+ * terms with only one of them holding the content. */
 const DEFAULT_META = {
-  title: "NFL Odds & Predictions Today — Live Scores & Spreads | Blitz Odds",
-  description: "This week's NFL odds, live scores, and matchup predictions for every game. Compare spreads, moneylines, and win probabilities across sportsbooks, updated in real time."
+  title: "Free NFL Pick'em Leagues — Pools That Score Themselves | Blitz Odds",
+  description: "Run a free NFL pick'em pool with friends. Straight-up, confidence, survivor, and against-the-spread formats, each game backed by a model win probability and live sportsbook odds."
 };
 
 function setMetaTag(selector, attr, content) {
@@ -10211,7 +10515,15 @@ function applyDocumentMeta(title, description) {
  *  tab is open. */
 function useDocumentMeta(activeTab, view, teamId, week, game) {
   useEffect(() => {
-    if (activeTab === "league") {
+    if (activeTab === "home") {
+      // The Home tab's `view` is "week", so this has to come first or the
+      // week-view branch below would claim "/" and re-apply the odds title
+      // that now belongs to /games.
+      applyDocumentMeta(
+        "Free NFL Pick'em Leagues — Pools That Score Themselves | Blitz Odds",
+        "Run a free NFL pick'em pool with friends. Straight-up, confidence, survivor, and against-the-spread formats, each game backed by a model win probability and live sportsbook odds."
+      );
+    } else if (activeTab === "league") {
       applyDocumentMeta(
         "NFL Pick'em Leagues — Compete With Friends | Blitz Odds",
         "Create or join a free NFL pick'em league. Confidence, straight-up, survivor, and against-the-spread formats, with weekly picks and season-long standings tracked automatically."
@@ -18389,8 +18701,668 @@ function ChevronIcon({ direction = "down", size = 14 }) {
  *  archive lives on its own static pages (see /historical/index.html,
  *  generated by scripts/backfill-historical-season.mjs), not inside this
  *  SPA, so selecting it navigates there instead of swapping activeTab. */
+
+/* The third "why" card is written but not shown - pool import from Yahoo/
+ * ESPN/Sleeper/CBS doesn't exist yet, and the copy promised a live sync.
+ * Flip this to true (and .home-value gets .has-import) once it ships. */
+const HOME_IMPORT_PILLAR = false;
+
+const HOME_FORMAT_CARDS = [
+  { key: "straight_up", name: "Straight-Up", blurb: "Pick winners. One point each. The classic office pool." },
+  { key: "confidence", name: "Confidence", blurb: "Rank every game. Your best call is worth the most." },
+  { key: "survivor", name: "Survivor", blurb: "One team a week. Never twice. Lose once and you're out." },
+  { key: "ats", name: "Against the Spread", blurb: "Beat the number, not just the team. Lines auto-update." },
+];
+
+/** The week's single biggest disagreement between the model and the market:
+ *  the unstarted game with the largest gap between the model's win
+ *  probability for its pick and that side's implied probability from the
+ *  moneyline. Falls back to the model's most confident pick when no odds are
+ *  posted yet (early in a week, or preseason), and to null when there's no
+ *  usable game at all - the caller renders nothing rather than an empty card.
+ */
+function pickTopEdgeGame(week, sportsbookId) {
+  try {
+    const context = getWeekContext(week);
+    const games = getGamesForWeek(week);
+    let best = null;
+    for (const g of games) {
+      const home = context.getTeam(g.home);
+      const away = context.getTeam(g.away);
+      if (!home || !away) continue;
+      let prediction;
+      try {
+        prediction = PredictionEngine.predictMatchup({
+          homeTeam: home,
+          awayTeam: away,
+          homeImpactPlayers: context.getPlayers(g.home),
+          awayImpactPlayers: context.getPlayers(g.away),
+          weather: getWeather(week, g.away, g.home),
+          homeIsDomeTeam: isDomeTeam(home.id),
+          awayIsDomeTeam: isDomeTeam(away.id),
+        });
+      } catch (e) { continue; }
+      const homeIsPick = prediction.predictedWinner === home.id;
+      const modelProb = homeIsPick ? prediction.homeWinProbability : prediction.awayWinProbability;
+      const odds = getOdds(week, g.away, g.home, sportsbookId);
+      const ml = odds ? (homeIsPick ? odds.moneylineHome : odds.moneylineAway) : null;
+      const implied = americanToImpliedProbability(ml);
+      const edge = implied == null ? -1 : modelProb - implied;
+      const score = implied == null ? modelProb - 1 : edge;
+      if (!best || score > best.score) {
+        best = { game: g, home, away, prediction, odds, modelProb, implied, homeIsPick, score };
+      }
+    }
+    return best;
+  } catch (e) {
+    return null;
+  }
+}
+
+/** American moneyline -> implied win probability (with the vig still in it -
+ *  this is the number a bettor is actually being offered, which is the
+ *  honest thing to compare the model against on a marketing page). */
+function americanToImpliedProbability(ml) {
+  const n = Number(ml);
+  if (!Number.isFinite(n) || n === 0) return null;
+  return n > 0 ? 100 / (n + 100) : -n / (-n + 100);
+}
+
+/** Signed-out Home. This is the document Google gets for "/", so the real
+ *  <h1> carries the odds/predictions terms the site is about and the visible
+ *  display headline is an <h2> - the marketing line has no keyword surface
+ *  of its own. Same sr-only pattern LeagueView already uses. */
+function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbookId, tz }) {
+  const edge = useMemo(() => pickTopEdgeGame(week, sportsbookId), [week, sportsbookId]);
+  const periodLabel = getPeriodLabel(week);
+
+  return (
+    <div className="home-landing">
+      <div className="home-hero">
+        <div className="home-hero-copy">
+          <span className="home-eyebrow">NFL pick'em pools</span>
+          {/* One heading, not two: header.top already renders the page's
+              only <h1> ("Blitz Odds"). The marketing line carries no
+              keyword surface of its own, so the terms this page should
+              actually rank for ride along inside the same element rather
+              than in a competing sr-only <h1>. */}
+          <h2 className="home-display">
+            Run your pool. <em>Win it too.</em>
+            <span className="sr-only"> Free NFL pick'em leagues, odds and model predictions — {periodLabel}.</span>
+          </h2>
+          <p className="home-lede">
+            Blitz Odds gives every game a model win probability, then puts your whole pool on top of
+            it — straight-up, confidence, survivor, or against the spread. Set it up once and it
+            scores itself all season.
+          </p>
+          <div className="home-acts">
+            <button type="button" className="home-btn primary" onClick={onCreateLeague}>Create a free league</button>
+            <button type="button" className="home-btn" onClick={onOpenGames}>Browse this week's games</button>
+          </div>
+          <div className="home-trust">
+            <span>⚡ Odds from 5 sportsbooks</span>
+            <span>📊 Injury &amp; weather adjusted</span>
+            <span>🏆 Four pool formats</span>
+          </div>
+        </div>
+
+        {edge && (
+          <div className="home-card home-edge">
+            <div className="home-edge-head">
+              <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" />
+              <span className="home-eyebrow" style={{ marginLeft: "auto" }}>{periodLabel} · top edge</span>
+            </div>
+            <div className="home-matchup">
+              <div className={"home-mt" + (!edge.homeIsPick ? " pick" : "")}>
+                <TeamLogo teamId={edge.away.id} size={46} />
+                <b>{edge.away.name}</b>
+                {!edge.homeIsPick && <span className="home-pickflag">PREDICTED</span>}
+              </div>
+              <span className="home-at">@</span>
+              <div className={"home-mt" + (edge.homeIsPick ? " pick" : "")}>
+                <TeamLogo teamId={edge.home.id} size={46} />
+                <b>{edge.home.name}</b>
+                {edge.homeIsPick && <span className="home-pickflag">PREDICTED</span>}
+              </div>
+            </div>
+            <div className="home-combo">
+              <span className="left">
+                <img src="/branding/blitz-edge-icon.png" alt="" />
+                {(edge.homeIsPick ? edge.home : edge.away).name}
+              </span>
+              <span className="mid">
+                {edge.odds && edge.odds.favorite
+                  ? `${edge.odds.favorite} ${formatSpread(edge.odds.spread)}`
+                  : "Line not posted"}
+                {edge.odds && edge.odds.overUnder ? ` · O/U ${edge.odds.overUnder}` : ""}
+              </span>
+              <span className="right">{Math.round(edge.modelProb * 100)}%</span>
+            </div>
+            <p className="home-why-line">
+              {edge.implied != null ? (
+                <>
+                  The market prices {(edge.homeIsPick ? edge.home : edge.away).name} at{" "}
+                  <b>{Math.round(edge.implied * 100)}%</b>. The model has them at{" "}
+                  <b>{Math.round(edge.modelProb * 100)}%</b>.
+                </>
+              ) : (
+                <>
+                  The model's most confident call of {periodLabel}, at{" "}
+                  <b>{Math.round(edge.modelProb * 100)}%</b>. Lines for this one aren't posted yet.
+                </>
+              )}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="home-sec-head fmt"><h3>Play it however your pool plays</h3></div>
+      <div className="home-fmt-grid">
+        {HOME_FORMAT_CARDS.map((f) => (
+          <div key={f.key} className="home-card home-fmt">
+            <img src={LEAGUE_FORMAT_ICON_URLS[f.key]} alt="" />
+            <h4>{f.name}</h4>
+            <p>{f.blurb}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="home-sec-head why"><h3>Why Blitz Odds</h3></div>
+      <div className={"home-value" + (HOME_IMPORT_PILLAR ? " has-import" : "")}>
+        <div className="home-card home-value-cell">
+          <span className="home-tag">The model</span>
+          <h4>A number on every game</h4>
+          <p>
+            Blitz Edge grades each matchup on offense vs. defense, injuries, rest and weather, then
+            tells you where it disagrees with the sportsbook.
+          </p>
+        </div>
+        <div className="home-card home-value-cell">
+          <span className="home-tag">The pool</span>
+          <h4>Scoring that runs itself</h4>
+          <p>
+            Invite by email or link. Picks lock at kickoff, scores update live, standings settle on
+            their own. Four formats, one league page.
+          </p>
+        </div>
+        {HOME_IMPORT_PILLAR && (
+          <div className="home-card home-value-cell">
+            <span className="home-tag">The switch</span>
+            <h4>Bring the pool you already run</h4>
+            <p>
+              Import a pool from Yahoo, ESPN, Sleeper or CBS and the roster, format and standings
+              come with it. Nobody re-types 18 names or loses last season.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="home-card home-close">
+        <h3>Start a league in about a minute.</h3>
+        <p>Name it, pick a format, send the link. That's the whole setup.</p>
+        <div className="home-acts">
+          <button type="button" className="home-btn primary" onClick={onCreateLeague}>Create a free league</button>
+          <button type="button" className="home-btn" onClick={onJoinLeague}>Join with a code</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+/* One shared fetch of home-summary, cached at module scope so a tab switch
+ * away and back renders immediately rather than flashing a skeleton for
+ * data that hasn't changed. Keyed by week - switching weeks is a real
+ * change, switching tabs isn't. */
+let homeSummaryCache = { key: null, data: null };
+
+function useHomeSummary(auth, week) {
+  const key = String(week);
+  const [state, setState] = useState(() =>
+    homeSummaryCache.key === key ? { status: "ready", data: homeSummaryCache.data } : { status: "loading", data: null }
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    if (auth.status !== "in") { setState({ status: "ready", data: null }); return; }
+    if (homeSummaryCache.key !== key) setState({ status: "loading", data: null });
+    (async () => {
+      try {
+        const res = await auth.authenticatedFetch(`/.netlify/functions/home-summary?week=${encodeURIComponent(week)}`);
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load your leagues");
+        homeSummaryCache = { key, data: json };
+        if (!cancelled) setState({ status: "ready", data: json });
+      } catch (err) {
+        // A failed background refresh shouldn't blank a dashboard that's
+        // already on screen and still usable.
+        if (cancelled) return;
+        if (homeSummaryCache.key === key && homeSummaryCache.data) {
+          setState({ status: "ready", data: homeSummaryCache.data });
+        } else {
+          setState({ status: "error", data: null, error: err.message || "Failed to load your leagues" });
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [auth.status, auth.authenticatedFetch, key]);
+
+  return state;
+}
+
+const HOME_FORMAT_LABELS = {
+  straight_up: "Straight-Up",
+  confidence: "Confidence",
+  survivor: "Survivor",
+  ats: "Against the Spread (ATS)",
+};
+
+/** ‹ n/total › - rendered only past one league, since there's nothing to
+ *  page through at one and "1/1" is just noise. */
+function HomePager({ index, total, onStep, label }) {
+  if (total < 2) return null;
+  return (
+    <span className="hd-pager">
+      <button type="button" onClick={() => onStep(-1)} aria-label={`Previous ${label}`}>‹</button>
+      <span className="of">{index + 1}/{total}</span>
+      <button type="button" onClick={() => onStep(1)} aria-label={`Next ${label}`}>›</button>
+    </span>
+  );
+}
+
+/** The leaderboard rail. Each format keeps its own columns rather than
+ *  being forced into a shared shape: confidence has points and no win/loss
+ *  record, survivor has neither - it has alive/eliminated. Rendering a
+ *  survivor league as "0-0, 0%" would be actively wrong, not just empty. */
+function HomeLeaderboard({ league }) {
+  const rows = league.leaderboard || [];
+  const isSurvivor = league.format === "survivor";
+  const isConfidence = league.format === "confidence";
+  const foot = isSurvivor
+    ? `${league.memberCount} entered · ${league.survivor ? league.survivor.aliveCount : 0} still alive`
+    : isConfidence
+      ? "Confidence points"
+      : league.format === "ats" ? "Against the spread record" : "Straight-up record";
+
+  if (!rows.length) {
+    return <div className="hd-rail-foot">No results yet — standings appear once the first week is scored.</div>;
+  }
+  return (
+    <>
+      <div style={{ padding: "8px 0 2px" }}>
+        {rows.map((r) => {
+          const played = (r.correct || 0) + (r.incorrect || 0);
+          return (
+            <div key={r.userId} className={"hd-lb-row" + (r.isMe ? " me" : "")}>
+              <span className="hd-lb-rank">{r.rank}</span>
+              <span className="hd-lb-name">{r.displayName}</span>
+              {isSurvivor ? (
+                <>
+                  <span />
+                  <span className={"hd-lb-status " + (r.alive ? "alive" : "out")}>
+                    {r.alive ? "Alive" : (r.eliminatedWeek != null ? `Out · W${r.eliminatedWeek}` : "Out")}
+                  </span>
+                </>
+              ) : isConfidence ? (
+                <>
+                  <span />
+                  <span className="hd-lb-pct">{r.points}</span>
+                </>
+              ) : (
+                <>
+                  <span className="hd-lb-rec">{r.correct}-{r.incorrect}</span>
+                  <span className="hd-lb-pct">{played ? Math.round((r.correct / played) * 100) + "%" : "—"}</span>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="hd-rail-foot">{foot}</div>
+    </>
+  );
+}
+
+/** Signed-in Home: how you're doing across every league at once, and what's
+ *  still owed this week. Everything except the games rail comes from a
+ *  single home-summary call; the rail is the model's own picks, which are
+ *  computed client-side anyway. */
+function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, onOpenGames }) {
+  const summary = useHomeSummary(auth, week);
+  const [streakIdx, setStreakIdx] = useState(0);
+  const [boardIdx, setBoardIdx] = useState(0);
+  const [railTab, setRailTab] = useState(0);
+
+  const data = summary.data;
+  const leagues = (data && data.leagues) || [];
+  const totals = (data && data.totals) || null;
+  const periodLabel = getPeriodLabel(week);
+  const firstName = ((profile && profile.displayName) || "").split(" ")[0];
+
+  const step = (setter, len) => (dir) => setter((i) => (len ? (i + dir + len) % len : 0));
+  const streakLeague = leagues[Math.min(streakIdx, Math.max(leagues.length - 1, 0))] || null;
+  const boardLeague = leagues[Math.min(boardIdx, Math.max(leagues.length - 1, 0))] || null;
+
+  // What's still owed this week, across every league at once - the one
+  // thing this page can say that no individual league page can.
+  const outstanding = leagues
+    .filter((l) => l.week && l.week.total > 0 && l.week.picked < l.week.total)
+    .map((l) => ({ name: l.name, left: l.week.total - l.week.picked }));
+  const picksLeft = outstanding.reduce((n, o) => n + o.left, 0);
+
+  // The model's picks for the week, for the rail. Client-side, same engine
+  // the game cards use - no server round trip.
+  const railGames = useMemo(() => {
+    try {
+      const context = getWeekContext(week);
+      const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+      const now = Date.now();
+      return getGamesForWeek(week)
+        // Upcoming only. A game that already kicked off isn't something the
+        // rail can usefully offer a pick on, and the week view is where a
+        // live or final score belongs.
+        .filter((g) => {
+          const ms = gameKickoffUtcMs(g.date, g.time, seasonYear);
+          return ms == null || ms > now;
+        })
+        .slice(0, 3)
+        .map((g) => {
+          const home = context.getTeam(g.home);
+          const away = context.getTeam(g.away);
+          if (!home || !away) return null;
+          const prediction = PredictionEngine.predictMatchup({
+            homeTeam: home, awayTeam: away,
+            homeImpactPlayers: context.getPlayers(g.home),
+            awayImpactPlayers: context.getPlayers(g.away),
+            weather: getWeather(week, g.away, g.home),
+            homeIsDomeTeam: isDomeTeam(home.id), awayIsDomeTeam: isDomeTeam(away.id),
+          });
+          const homeIsPick = prediction.predictedWinner === home.id;
+          return {
+            key: `${g.away}-${g.home}`, away: g.away, home: g.home,
+            // Returns { date, time } - both parts, not a single string.
+            when: formatGameDateTimeInZone(g.date, g.time, seasonYear, tz),
+            pickId: homeIsPick ? home.id : away.id,
+            pct: Math.round((homeIsPick ? prediction.homeWinProbability : prediction.awayWinProbability) * 100),
+          };
+        })
+        .filter(Boolean);
+    } catch (e) { return []; }
+  }, [week, tz]);
+
+  if (summary.status === "loading") {
+    return <p className="muted" style={{ marginTop: 28 }}>Loading your leagues…</p>;
+  }
+  if (summary.status === "error") {
+    return <p className="muted" style={{ marginTop: 28 }}>Couldn't load your leagues: {summary.error}</p>;
+  }
+
+  const railCards = [
+    boardLeague && (
+      <div className="home-card rail-on" key="board">
+        <div className="hd-rail-head">
+          <span className="hd-rail-league">
+            <img src={LEAGUE_FORMAT_ICON_URLS[boardLeague.format]} alt="" />
+            <b>{boardLeague.name}</b>
+          </span>
+          <HomePager index={boardIdx} total={leagues.length} onStep={step(setBoardIdx, leagues.length)} label="league" />
+        </div>
+        <HomeLeaderboard league={boardLeague} />
+      </div>
+    ),
+    railGames.length > 0 && (
+      <div className="home-card" key="games">
+        <div className="hd-rail-head">
+          <span className="home-eyebrow">{periodLabel} games</span>
+          <button type="button" className="hd-link" onClick={onOpenGames}>View all</button>
+        </div>
+        {railGames.map((g) => (
+          <div className="hd-game-row" key={g.key}>
+            <div className="hd-gm">
+              <div className="hd-gm-teams">{g.away} @ {g.home}</div>
+              <div className="hd-gm-time">{g.when.date}{g.when.time ? ` · ${g.when.time}` : ""}</div>
+            </div>
+            <span className="hd-chip">
+              <TeamLogo teamId={g.pickId} size={26} />
+              <span className="lbl">BLITZ<br />PICK</span>
+              <span className="pct">{g.pct}%</span>
+            </span>
+          </div>
+        ))}
+      </div>
+    ),
+  ].filter(Boolean);
+
+  return (
+    <div>
+      <div className="hd-greet">
+        <div>
+          <h2>{firstName ? `Welcome back, ${firstName}!` : "Welcome back!"}</h2>
+          <p>{leagues.length ? "Here's how you're doing across your leagues." : "Start a league and this is where you'll track it."}</p>
+        </div>
+        <div className="hd-greet-acts">
+          <button type="button" className="home-btn primary" onClick={onOpenLeagues}>Create League</button>
+          <button type="button" className="home-btn" onClick={onOpenLeagues}>Join League</button>
+        </div>
+      </div>
+
+      {picksLeft > 0 && (
+        <div className="hd-week">
+          <div className="hd-week-main">
+            <span className="hd-week-title">{periodLabel} picks</span>
+            <span className="hd-week-count">{picksLeft} left</span>
+            <span className="hd-week-sub">
+              Across {outstanding.slice(0, 2).map((o) => o.name).join(", ")}
+              {outstanding.length > 2 ? ` and ${outstanding.length - 2} more` : ""}
+            </span>
+          </div>
+          <button type="button" className="home-btn primary" onClick={onOpenLeagues}>Make picks</button>
+        </div>
+      )}
+
+      {leagues.length > 0 && (
+        <div className="hd-stats">
+          <div className="hd-stats-main">
+          <div className="home-card hd-tile">
+            <span className="home-eyebrow">Overall record</span>
+            <div className="hd-val">
+              {totals.pickCount ? `${totals.correct}-${totals.incorrect}` : "—"}
+              {totals.winPct != null && <small>{Math.round(totals.winPct * 100)}%</small>}
+            </div>
+            <div className="hd-foot">{totals.pickCount ? `${totals.pickCount} picks this season` : "No picks scored yet"}</div>
+          </div>
+
+          <div className="home-card hd-tile">
+            <span className="home-eyebrow">League rank (avg)</span>
+            <div className={"hd-val " + (totals.avgRank != null ? "orange" : "dim")}>
+              {totals.avgRank != null ? `#${totals.avgRank.toFixed(1)}` : "—"}
+            </div>
+            <div className="hd-foot">
+              {totals.avgRank != null
+                ? `Across ${totals.rankedLeagueCount} ${totals.rankedLeagueCount === 1 ? "league" : "leagues"}`
+                : "Ranks appear once a week is scored"}
+            </div>
+          </div>
+
+          <div className="home-card hd-tile">
+            <span className="home-eyebrow">Blitz follow rate</span>
+            <div className="hd-val dim">—</div>
+            <div className="hd-foot">Coming soon</div>
+          </div>
+          </div>
+
+          {streakLeague && (
+            <div className="home-card hd-tile">
+              <span className="home-eyebrow">
+                {streakLeague.format === "survivor" ? "Weeks survived" : "Current streak"}
+              </span>
+              <HomePager index={streakIdx} total={leagues.length} onStep={step(setStreakIdx, leagues.length)} label="league" />
+              {streakLeague.format === "survivor" ? (
+                <>
+                  <div className={"hd-val " + (streakLeague.survivor && streakLeague.survivor.alive ? "win" : "dim")}>
+                    {streakLeague.survivor ? streakLeague.survivor.weeksSurvived : 0}
+                  </div>
+                  <div className="hd-foot">
+                    {streakLeague.name} · {streakLeague.survivor && streakLeague.survivor.alive ? "still alive" : "eliminated"}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={"hd-val " + (streakLeague.streak.current > 0 ? "win" : "dim")}>
+                    {streakLeague.streak.current > 0 ? `W${streakLeague.streak.current}` : "—"}
+                  </div>
+                  <div className="hd-foot">
+                    {streakLeague.name}
+                    {streakLeague.streak.best > 0 ? ` · best W${streakLeague.streak.best}` : " · no winning weeks yet"}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="hd-layout">
+        <div className="hd-main">
+          {leagues.length > 0 && (
+            <>
+              <div className="hd-sec-head">
+                <h3>My Leagues</h3>
+                <button type="button" className="hd-link" onClick={onOpenLeagues}>Manage</button>
+              </div>
+              <div className="hd-leagues">
+                {leagues.map((l) => {
+                  const played = (l.me.correct || 0) + (l.me.incorrect || 0);
+                  const isSurvivor = l.format === "survivor";
+                  const isConfidence = l.format === "confidence";
+                  return (
+                    <div className="home-card hd-row" key={l.leagueId}>
+                      <img className="hd-row-badge" src={LEAGUE_FORMAT_ICON_URLS[l.format]} alt="" />
+                      <div className="hd-row-id">
+                        <p className="hd-row-name">{l.name}</p>
+                        <p className="hd-row-fmt">{HOME_FORMAT_LABELS[l.format] || l.format}</p>
+                        <div className="hd-row-meta">
+                          <span>{l.memberCount} {l.memberCount === 1 ? "member" : "members"}</span>
+                          <span>{l.visibility === "public" ? "Public" : "Private"}</span>
+                        </div>
+                      </div>
+                      <div className="hd-row-cols">
+                        <div className="hd-col">
+                          <span className="home-eyebrow">{isSurvivor ? "Status" : "Your rank"}</span>
+                          {isSurvivor ? (
+                            <div className={"hd-big " + (l.survivor && l.survivor.alive ? "win" : "dim")}>
+                              {l.survivor && l.survivor.alive ? "Alive" : "Out"}
+                            </div>
+                          ) : (
+                            <div className={"hd-big " + (l.me.rank === 1 ? "orange" : l.me.rank ? "accent" : "dim")}>
+                              {l.me.rank ? `#${l.me.rank}` : "—"}
+                              {l.me.rankDelta ? (
+                                <span className={"hd-delta " + (l.me.rankDelta > 0 ? "up" : "down")}>
+                                  {l.me.rankDelta > 0 ? ` ↑${l.me.rankDelta}` : ` ↓${Math.abs(l.me.rankDelta)}`}
+                                </span>
+                              ) : null}
+                            </div>
+                          )}
+                          <div className="hd-small">
+                            {isSurvivor
+                              ? `${l.survivor ? l.survivor.weeksSurvived : 0} weeks survived`
+                              : `Out of ${l.memberCount}`}
+                          </div>
+                        </div>
+                        <div className="hd-col">
+                          <span className="home-eyebrow">
+                            {isSurvivor ? "Still alive" : isConfidence ? "Points" : "Your record"}
+                          </span>
+                          {isSurvivor ? (
+                            <>
+                              <div className="hd-big">
+                                {l.survivor ? l.survivor.aliveCount : 0} / {l.memberCount}
+                              </div>
+                              <div className="hd-small">still in the pool</div>
+                            </>
+                          ) : (
+                            <>
+                              <div className={"hd-big " + (played || isConfidence ? "" : "dim")}>
+                                {isConfidence ? l.me.points : (played ? `${l.me.correct}-${l.me.incorrect}` : "—")}
+                              </div>
+                              <div className="hd-small">
+                                {isConfidence ? "this season" : (played ? `${Math.round((l.me.correct / played) * 100)}%` : "Not scored yet")}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <div className="hd-col">
+                          <span className="home-eyebrow">This week</span>
+                          <div className={"hd-big " + (l.week ? "" : "dim")}>
+                            {l.week ? `${l.week.picked} / ${l.week.total}` : "—"}
+                          </div>
+                          {l.week && l.week.total > 0 && (
+                            <div className="hd-prog">
+                              <i style={{ width: `${Math.round((l.week.picked / l.week.total) * 100)}%` }} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="hd-row-cta">
+                        <button type="button" className="home-btn" onClick={() => onOpenLeagues(l.leagueId)}>View League</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {leagues.length === 0 ? (
+            <div className="home-card hd-empty">
+              <h4 style={{ margin: "0 0 6px", fontSize: "1.05rem", fontWeight: 800 }}>You're not in a league yet.</h4>
+              <p>Create one and invite people, or join with a code someone sent you.</p>
+              <div className="home-acts" style={{ justifyContent: "center" }}>
+                <button type="button" className="home-btn primary" onClick={onOpenLeagues}>Create a league</button>
+                <button type="button" className="home-btn" onClick={onOpenLeagues}>Join with a code</button>
+              </div>
+            </div>
+          ) : (
+            <div className="home-card hd-invite">
+              <span style={{ fontSize: "1.7rem" }}>👥</span>
+              <div>
+                <h4>Play with more people.</h4>
+                <p>Create a league or join with an invite code.</p>
+              </div>
+              <div className="acts">
+                <button type="button" className="home-btn" onClick={onOpenLeagues}>Join with Code</button>
+                <button type="button" className="home-btn primary" onClick={onOpenLeagues}>Create League</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {railCards.length > 0 && (
+          <div className="hd-rail-wrap">
+            {railCards.length > 1 && (
+              <div className="hd-rail-tabs" role="group" aria-label="Sections">
+                <button type="button" aria-pressed={railTab === 0} onClick={() => setRailTab(0)}>Leaderboard</button>
+                <button type="button" aria-pressed={railTab === 1} onClick={() => setRailTab(1)}>Games</button>
+              </div>
+            )}
+            <div className="hd-rail">
+              {railCards.map((card, i) =>
+                React.cloneElement(card, {
+                  className: "home-card" + (i === railTab ? " rail-on" : ""),
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function TabBar({ activeTab, onSelectTab, leaguesEnabled }) {
   const tabs = [
+    ...(HOME_TAB_ENABLED ? [{ id: "home", label: "Home", icon: "\u{1F3E0}" }] : []),
     { id: "games", label: "Games", icon: "\u{1F3C8}" },
     { id: "picks", label: "Hot Picks", icon: "\u{1F525}" },
     ...(leaguesEnabled ? [{ id: "league", label: "League", icon: "\u{1F3C6}" }] : []),
@@ -19107,13 +20079,19 @@ function getInitialTab(leaguesEnabled) {
   if (leaguesEnabled && getInitialLeagueJoin()) return "league";
   try {
     const route = parseLocationPath(window.location.pathname);
-    if (route && route.tab && (route.tab !== "league" || leaguesEnabled)) return route.tab;
+    if (route && route.tab && !route.isRoot && (route.tab !== "league" || leaguesEnabled)) return route.tab;
+    // Team and game pages carry a `view` but no `tab` - they live under the
+    // Games tab, which used to be the fallback below and no longer is. Without
+    // this, a direct hit or crawl of /teams/{slug} or /games/{season}/... would
+    // open the Home tab and the route sync effect would then rewrite the URL
+    // to "/", losing the page entirely.
+    if (route && (route.view === "team" || route.view === "game")) return "games";
   } catch (e) {}
   try {
     const hash = (window.location.hash || "").replace(/^#/, "");
     if (TAB_IDS.includes(hash) && (hash !== "league" || leaguesEnabled)) return hash;
   } catch (e) {}
-  return "games";
+  return ROOT_TAB;
 }
 
 function App() {
@@ -19252,16 +20230,28 @@ function App() {
         // flattened back to /leagues every time this effect runs.
         if (activeTab === "league" && /^\/leagues\/[^/]+\/?$/.test(window.location.pathname)) return;
         const desired = buildTabPath(activeTab);
-        if (window.location.pathname !== desired || window.location.hash) write(desired);
+        const clean = window.location.pathname.replace(/\/$/, "") || "/";
+        const want = desired.replace(/\/$/, "") || "/";
+        if (clean !== want || window.location.hash) write(desired);
         return;
       }
 
-      // activeTab === "games": the path belongs to whatever view is up. Only
-      // correct the case where the week view is showing but the URL still
-      // says a tab (or still carries a legacy hash).
-      if (view === "week" && (isTabPath(window.location.pathname) || window.location.hash)) {
-        write("/");
+      // activeTab === "games": the path belongs to whatever view is up
+      // (/teams/... and /games/{season}/... are maintained by selectTeam and
+      // selectGame). Only correct the case where the week view is showing but
+      // the URL is stale - another tab's path, the bare root, or a legacy
+      // hash. Under HOME_TAB_ENABLED the week view's own home is /games, not
+      // "/", so the root now counts as stale here where it previously was
+      // the destination.
+      if (view !== "week") return;
+      const desired = buildTabPath("games");
+      const clean = window.location.pathname.replace(/\/$/, "") || "/";
+      const want = desired.replace(/\/$/, "") || "/";
+      if (clean === want) {
+        if (window.location.hash) write(desired);
+        return;
       }
+      if (isTabPath(clean) || isRootPath(clean)) write(desired);
     } catch (e) {}
   }, [activeTab, view]);
 
@@ -19458,18 +20448,27 @@ function App() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
+  // The wordmark. Always lands on whatever tab owns "/" - the week view
+  // before HOME_TAB_ENABLED, the Home tab after - so clicking the logo keeps
+  // meaning "take me to the front page" without this needing to know which
+  // one that is. The route sync effect writes the URL; this only pushes when
+  // the tab isn't changing (same value into setActiveTab means no re-render,
+  // so the effect wouldn't fire).
   function backToWeek() {
     setView("week");
     setSelectedGame(null);
-    setActiveTab("games");
-    if (window.location.pathname !== "/") window.history.pushState({ view: "week" }, "", "/");
+    const already = activeTab === ROOT_TAB;
+    setActiveTab(ROOT_TAB);
+    if (already && window.location.pathname !== "/") {
+      window.history.pushState({ view: "week", tab: ROOT_TAB }, "", "/");
+    }
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
   const periods = getSelectablePeriods();
 
   return (
-    <div className="app">
+    <div className={"app" + (activeTab === "home" ? " app-home" : "")}>
       <header className="top">
         <div className="header-right-cluster">
           <AccountButton
@@ -19488,6 +20487,29 @@ function App() {
       </header>
 
       <TabBar activeTab={activeTab} onSelectTab={selectTab} leaguesEnabled={LEAGUES_UI_ENABLED} />
+
+      {activeTab === "home" && HOME_TAB_ENABLED && (
+        auth.status === "in" ? (
+          <HomeDashboard
+            auth={auth}
+            profile={profile}
+            week={selectedWeek}
+            sportsbookId={sportsbookId}
+            tz={resolvedTz}
+            onOpenLeagues={goToLeaguesTab}
+            onOpenGames={() => selectTab("games")}
+          />
+        ) : (
+          <HomeLanding
+            week={selectedWeek}
+            sportsbookId={sportsbookId}
+            tz={resolvedTz}
+            onOpenGames={() => selectTab("games")}
+            onCreateLeague={() => { goToLeaguesTab(); auth.openSignup(); }}
+            onJoinLeague={() => { goToLeaguesTab(); auth.openSignup(); }}
+          />
+        )
+      )}
 
       {activeTab === "games" && (
         <>

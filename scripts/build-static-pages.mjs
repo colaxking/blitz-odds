@@ -598,6 +598,18 @@ async function buildTeamPage(template, data, team) {
  * there's nothing stable to bake in. The value is the metadata and the 200. */
 const TAB_PAGES = [
   {
+    // The week view's own route since HOME_TAB_ENABLED moved "/" to the Home
+    // tab. Sits directly above the per-game pages this script already writes
+    // to games/{season}/{week-slug}/{matchup}/, so this is that directory's
+    // index rather than a new namespace. Netlify serves an existing file in
+    // preference to the non-forced `/games/* /index.html 200` rewrite, which
+    // is the same precedence the game pages themselves already rely on.
+    dir: "games",
+    canonicalPath: "/games",
+    title: "NFL Odds, Spreads & Model Predictions This Week | Blitz Odds",
+    description: "Every NFL game this week with live odds from five sportsbooks, model win probabilities, injury and weather adjustments, and the reasoning behind each pick.",
+  },
+  {
     dir: "picks",
     canonicalPath: "/picks",
     title: "Hot Picks - This Week's Best NFL Bets | Blitz Odds",

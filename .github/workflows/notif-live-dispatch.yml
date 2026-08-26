@@ -1,0 +1,120 @@
+name: Blitz Odds - live scoring dispatch
+
+# Pokes notif-live-dispatch-background.mts, which polls ESPN for games
+# currently in progress and alerts on scoring plays and final whistles. Like
+# every other workflow here, it's a doorbell rather than a timer.
+#
+# WHY EVERY 90 SECONDS, AND ONLY DURING GAMES. The 15-minute tick carries
+# anything measured in hours - pick reminders, recaps, kickoff warnings. A
+# touchdown is not that: by the time a 15-minute tick notices a score, the
+# next one has often already happened.
+#
+# Running every 90 seconds year-round would be roughly 350,000 invocations a
+# year, the overwhelming majority of them to discover that it's Tuesday in
+# March. So the cron-job.org job is RESTRICTED TO GAME WINDOWS. cron-job.org
+# supports day-of-week and hour restrictions; set them to (US Eastern):
+#
+#   Thursday   19:00 - 00:00
+#   Friday     00:00 - 01:00      (Thursday-night overrun)
+#   Saturday   12:00 - 00:00      (late-season Saturday games)
+#   Sunday     09:00 - 00:00      (includes the 9:30am London kickoffs)
+#   Monday     00:00 - 01:00      (Sunday-night overrun) and 19:00 - 00:00
+#   Tuesday    00:00 - 01:00      (Monday-night overrun)
+#
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/notif-live-dispatch.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+#
+# That's roughly 45 hours a week in season, about 1,800 ticks - against
+# 350,000 for an unrestricted job. Belt and braces: the function itself
+# checks the schedule first and returns after a single Blobs read if nothing
+# is plausibly in progress, so a tick that fires outside a game costs
+# almost nothing anyway.
+#
+# SAFE TO DOUBLE-FIRE. Every alert writes an event ledger key before sending
+# and checks it first (see eventLedgerKey in lib/notif.mts), so a duplicated
+# trigger produces no duplicate notification.
+#
+# FIRST SIGHTING IS SILENT BY DESIGN. Alerts come from a diff against the
+# previous tick's snapshot. A game seen for the first time records its state
+# and alerts on nothing - otherwise starting this mid-game would fire for a
+# touchdown scored twenty minutes earlier.
+#
+# DRY RUN. Run manually from the Actions tab with dry_run = true to see what
+# would be sent. Use force = true to poll even when the schedule says
+# nothing is on, which is the only way to exercise it out of season.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Compute the plan but send nothing"
+        type: boolean
+        default: false
+      force:
+        description: "Poll even if no game looks to be in progress"
+        type: boolean
+        default: false
+      user_id:
+        description: "Limit to a single Netlify Identity user id (for testing)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+# Overlapping runs would poll the same games and race on the same snapshot
+# keys. The ledger makes a duplicate harmless, but a race could still let
+# two ticks both read the pre-score snapshot and both decide a play is new.
+# Serialized instead.
+concurrency:
+  group: blitz-odds-notif-live-dispatch
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger live scoring dispatch
+        env:
+          NOTIF_DISPATCH_SECRET: ${{ secrets.NOTIF_DISPATCH_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          FORCE: ${{ inputs.force }}
+          USER_ID: ${{ inputs.user_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NOTIF_DISPATCH_SECRET}" ]; then
+            echo "NOTIF_DISPATCH_SECRET is not set in repository secrets." >&2
+            exit 1
+          fi
+
+          BODY="{\"dryRun\":${DRY_RUN:-false},\"force\":${FORCE:-false}"
+          if [ -n "${USER_ID}" ]; then BODY="${BODY},\"userId\":\"${USER_ID}\""; fi
+          BODY="${BODY}}"
+
+          echo "POSTing: ${BODY}"
+
+          # The SYNCHRONOUS endpoint, not the -background one: Netlify
+          # answers a background function 202 before the handler runs, so
+          # posting straight to it would report success even with a wrong
+          # secret or missing VAPID keys.
+          STATUS=$(curl -sS -o /tmp/resp.txt -w "%{http_code}" \
+            --max-time 30 \
+            -X POST "https://blitz-odds.com/.netlify/functions/notif-live-dispatch" \
+            -H "Content-Type: application/json" \
+            -H "x-notif-dispatch-secret: ${NOTIF_DISPATCH_SECRET}" \
+            -d "${BODY}")
+
+          echo "HTTP ${STATUS}"
+          cat /tmp/resp.txt || true
+          echo
+
+          case "${STATUS}" in
+            200) echo "Configuration OK, dispatch handed off. Per-game results are in the notif-live-dispatch-background function log." ;;
+            401) echo "Rejected: NOTIF_DISPATCH_SECRET here doesn't match the site's env var." >&2; exit 1 ;;
+            500) echo "Site is missing a required env var - see the response body above." >&2; exit 1 ;;
+            502) echo "Handoff to the background function failed - see the response body above." >&2; exit 1 ;;
+            *)   echo "Unexpected status ${STATUS}." >&2; exit 1 ;;
+          esac

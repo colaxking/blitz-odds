@@ -1546,8 +1546,6 @@
   .impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
   .impact-active { background: rgba(159,176,201,0.1); color: var(--text-dim); border: 1px solid var(--card-border); }
   .game-page { max-width: 720px; margin: 0 auto; }
-  .game-page-back { display: inline-flex; align-items: center; gap: 5px; color: var(--text-dim); font-size: 0.8rem; font-weight: 600; text-decoration: none; margin-bottom: 14px; }
-  .game-page-back:hover { color: var(--text); }
 
   /* Shared section chrome for the sportsbook-compare and head-to-head blocks
      on the per-game page. Reuses .section-title/.table-scroll/.linescore-table/
@@ -2160,9 +2158,31 @@
   /* Create and the browse redesign need the full measure, not the landing
      page's narrower column. */
   .leagues-page-wide { max-width: 1240px; margin: 18px auto 0; }
+  /* The league detail view (header, subtabs, picks, standings) - the one
+     screen in here that's a dashboard rather than a form. The base
+     .leagues-page is 640px pinned left (`margin: 18px auto 0 0`), which on a
+     1280px display left more than half the window empty and squeezed the
+     standings and league-picks tables into a column narrower than their
+     content. Forms keep the narrow measure on purpose: a settings field set
+     at 1240px is worse, not better. */
+  .leagues-page-league { max-width: 1240px; margin: 18px auto 0; }
   .lgx-crumb { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-dim); }
   .lgx-crumb button { background: none; border: none; padding: 0; font-family: inherit;
     font-size: inherit; color: var(--accent); cursor: pointer; }
+  .lgx-crumb button:hover { text-decoration: underline; }
+  /* Breadcrumb on a pointer, single back button on a phone. A trail is both
+     too wide and too small a tap target on a narrow screen, and the pill is
+     exactly the one-step-back behaviour these screens had before. Only one
+     of the pair is ever rendered visible. */
+  .crumb-back { display: none; align-self: flex-start; }
+  /* The game page laid this spacing on the old back link itself; .league-view
+     and .controls-row supply their own gap, so scope it to .game-page rather
+     than putting a margin on every crumb. */
+  .game-page > .crumb-nav, .game-page > .crumb-back { margin-bottom: 14px; }
+  @media (max-width: 860px) {
+    .crumb-nav { display: none; }
+    .crumb-back { display: inline-flex; }
+  }
   .lgx-title { margin: 0 0 6px; font-size: 2rem; font-weight: 800; letter-spacing: -.02em; }
   .lgx-subtitle { margin: 0; color: var(--text-dim); font-size: .9rem; }
   @media (max-width: 860px) { .lgx-title { font-size: 1.5rem; } }
@@ -2344,6 +2364,16 @@
   }
   .survivor-rule-note b { color: var(--text); font-weight: 700; }
   .pickem-replace-hint { font-size: 0.66rem; color: var(--warn); font-weight: 700; margin: 0; }
+
+  /* Games fill the width instead of stacking one per row. auto-fill with a
+     320px floor gives three columns at 1240px, two around 1000px, and one
+     below 860px, without needing a breakpoint per step. align-items:start
+     stops a short card being stretched to match a taller neighbour (an ats
+     card has no confidence row; a confidence card does). */
+  .pickem-grid {
+    display: grid; gap: 12px; align-items: start;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
 
   .pickem-game-card {
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
@@ -11970,6 +12000,48 @@ function BrandWordmark({ height, className }) {
   );
 }
 
+/** Breadcrumb trail, and on narrow screens a single back button.
+ *
+ *  Every screen that can be navigated away from used to roll its own
+ *  affordance - three different styles across four screens, all of them
+ *  going exactly one step back. This is the .lgx-crumb trail the Create /
+ *  Join League pages already used, generalised so all of them share it.
+ *
+ *  `trail` is the ancestors, each { label, onClick }, and `current` is the
+ *  page itself (not a link). On desktop every ancestor is clickable, so
+ *  Manage -> Leagues is one tap rather than two. Below 860px the trail
+ *  would be both too wide and too small to hit, so CSS hides it and shows
+ *  the last ancestor as the familiar pill button instead - which is exactly
+ *  the single-step behaviour these screens had before. */
+function Breadcrumb({ trail, current, backTourId }) {
+  const steps = (trail || []).filter(Boolean);
+  const back = steps.length ? steps[steps.length - 1] : null;
+  return (
+    <>
+      <nav className="lgx-crumb crumb-nav" aria-label="Breadcrumb">
+        {steps.map((s, i) => (
+          <React.Fragment key={`${s.label}-${i}`}>
+            <button type="button" onClick={s.onClick}>{s.label}</button>
+            <span aria-hidden="true">›</span>
+          </React.Fragment>
+        ))}
+        <span aria-current="page">{current}</span>
+      </nav>
+      {/* Kept mounted (not conditionally rendered) even on desktop, where CSS
+          hides it: the tutorial tour navigates by
+          document.querySelector('[data-tour="team-back"]').click(), which
+          still fires on a display:none button but not on one that isn't in
+          the DOM at all. */}
+      {back && (
+        <button className="back-btn crumb-back" data-tour={backTourId} onClick={back.onClick}>
+          <ChevronIcon direction="left" size={13} />
+          <span>Back to {back.label}</span>
+        </button>
+      )}
+    </>
+  );
+}
+
 /** Team crest — a static badge image (custom-designed, non-trademarked
  *  artwork: football texture + team abbreviation, not an NFL/team logo)
  *  served locally from /team-badges/{TEAM}.png, transparent PNG with no
@@ -13648,7 +13720,7 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr }) {
  *  out of sync with what the week view shows for the same matchup.
  *  hideFullMatchupLink suppresses GameCard's own "Full matchup ->" link,
  *  since we're already on that page. */
-function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, sportsbookId, tz, auth, onOpenLeagues }) {
+function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, onGoHome, sportsbookId, tz, auth, onOpenLeagues }) {
   const game = useMemo(
     () => getGamesForWeek(week).find(g => g.away === awayAbbr && g.home === homeAbbr),
     [week, awayAbbr, homeAbbr]
@@ -13660,13 +13732,14 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
 
   return (
     <div className="game-page">
-      <a
-        href="/"
-        className="game-page-back"
-        onClick={(e) => { e.preventDefault(); onBack(); }}
-      >
-        &larr; Back to {getPeriodLabel(week)}
-      </a>
+      <Breadcrumb
+        trail={[
+          { label: "Home", onClick: () => (onGoHome ? onGoHome() : onBack()) },
+          { label: "Games", onClick: onBack },
+          { label: getPeriodLabel(week), onClick: onBack },
+        ]}
+        current={`${awayAbbr} @ ${homeAbbr}`}
+      />
       {game ? (
         <>
           <GameCard
@@ -15346,10 +15419,10 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
 
   return (
     <>
-      <button className="back-btn" onClick={onClose}>
-        <ChevronIcon direction="left" size={13} />
-        <span>Back to League</span>
-      </button>
+      <Breadcrumb
+        trail={[{ label: league.name, onClick: onClose }]}
+        current="Manage"
+      />
 
       {/* Join requests first, above League Settings. This screen is what
           "Manage" opens from every entry point, and the queue is the only
@@ -17153,22 +17226,24 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
     <>
       <PicksProgressRing complete={data.picksComplete} total={data.totalGames} week={week} format={data.format} />
       {isSurvivor && <SurvivorRuleNote />}
-      {data.games.map(game => (
-        <LeaguePickCard
-          key={game.gameId}
-          game={game}
-          format={data.format}
-          maxConfidence={data.totalGames}
-          usedTeams={data.usedTeams}
-          onPick={submitPick}
-          saving={savingGameId === game.gameId}
-          error={pickErrors[game.gameId]}
-          tz={tz}
-          prediction={predictions[game.gameId] || null}
-          suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
-          replacesPick={isSurvivor && !game.pick && data.games.some(g => g.pick)}
-        />
-      ))}
+      <div className="pickem-grid">
+        {data.games.map(game => (
+          <LeaguePickCard
+            key={game.gameId}
+            game={game}
+            format={data.format}
+            maxConfidence={data.totalGames}
+            usedTeams={data.usedTeams}
+            onPick={submitPick}
+            saving={savingGameId === game.gameId}
+            error={pickErrors[game.gameId]}
+            tz={tz}
+            prediction={predictions[game.gameId] || null}
+            suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
+            replacesPick={isSurvivor && !game.pick && data.games.some(g => g.pick)}
+          />
+        ))}
+      </div>
       <div className="pickem-autosave-note"><span className="pickem-autosave-dot"></span> Picks save automatically</div>
     </>
   );
@@ -17910,17 +17985,19 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   if (league) {
     const isOwner = league.ownerId === myUserId;
     return (
-      <div className="leagues-page">
+      <div className="leagues-page leagues-page-league">
         <div className="league-view">
           {/* Home, not the leagues landing page: with the League tab gone,
               people arrive at a league from the Home dashboard, so that's
               where "back" should return them. Clearing selectedLeagueId
-              first keeps the fallback (no onGoHome passed) behaving the way
-              this button always did. */}
-          <button className="back-btn" onClick={() => { setSelectedLeagueId(null); if (typeof onGoHome === "function") onGoHome(); }}>
-            <ChevronIcon direction="left" size={13} />
-            <span>Back to Home</span>
-          </button>
+              first keeps the narrow-screen button behaving the way this
+              always did. */}
+          <Breadcrumb
+            trail={[
+              { label: "Home", onClick: () => { setSelectedLeagueId(null); if (typeof onGoHome === "function") onGoHome(); } },
+            ]}
+            current={league.name}
+          />
           <LeagueHeader
             auth={auth}
             league={league}
@@ -19305,7 +19382,7 @@ function TeamNewsPanel({ teamId }) {
   );
 }
 
-function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, sportsbookId, tz, focus }) {
+function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSelectTeam, sportsbookId, tz, focus }) {
   const team = baseTeam(teamId);
   if (!team) return <p>Unknown team.</p>;
   const injuryReport = [...(PLAYERS_DATA.players[teamId] || [])]
@@ -19465,10 +19542,14 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
   return (
     <div>
       <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
-        <button className="back-btn" data-tour="team-back" onClick={onBack}>
-          <ChevronIcon direction="left" size={13} />
-          <span>Back to week view</span>
-        </button>
+        <Breadcrumb
+          trail={[
+            { label: "Home", onClick: onGoHome || onBack },
+            { label: "Games", onClick: onBack },
+          ]}
+          current={team.name}
+          backTourId="team-back"
+        />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Team:</span>
           <TeamSwitcher teamId={teamId} favorites={favorites} onSelectTeam={onSelectTeam} onToggleFavorite={onToggleFavorite} />
@@ -21715,6 +21796,20 @@ function App() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
+  /** The Home tab, for the first crumb in a breadcrumb trail. Distinct from
+   *  backToWeek, which returns to the week view under the Games tab - with
+   *  the Home tab enabled those are two different destinations, and a trail
+   *  reading "Home › Games › ..." has to honour both. Falls back to
+   *  backToWeek when Games owns "/" (HOME_TAB_ENABLED false), where the two
+   *  genuinely are the same place. */
+  function goHomeTab() {
+    if (!HOME_TAB_ENABLED) { backToWeek(); return; }
+    setView("week");
+    setSelectedGame(null);
+    setActiveTab("home");
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
   const periods = getSelectablePeriods();
 
   return (
@@ -21819,13 +21914,14 @@ function App() {
               onToggleFavorite={toggleFavorite}
               onSelectTeam={selectTeam}
               onBack={backToWeek}
+              onGoHome={goHomeTab}
               sportsbookId={sportsbookId}
               tz={resolvedTz}
               auth={auth}
               onOpenLeagues={goToLeaguesTab}
             />
           ) : (
-            <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} focus={teamFocus} />
+            <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onGoHome={goHomeTab} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} focus={teamFocus} />
           )}
         </>
       )}

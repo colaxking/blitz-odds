@@ -7,6 +7,7 @@ import {
 } from "./lib/notif.mts";
 import { buildReminderEmail, buildRecapEmail, type RecapLeague, type RecapHighlight } from "./lib/notif-emails.mts";
 import { FORMAT_LABELS } from "./lib/email-shell.mts";
+import { followsGame, deliverAlert, inLeadWindow, minutesUntil, lastCallSlots, type AlertUser } from "./lib/alerts.mts";
 
 // @ts-ignore - plain JS UMD module, no type declarations
 import ScoringEngine from "../../js/scoringEngine.js";
@@ -19,7 +20,7 @@ import ScoringEngine from "../../js/scoringEngine.js";
 //
 // POST /.netlify/functions/notif-dispatch-background
 // Header: x-notif-dispatch-secret
-// Body (all optional): { now?: ISO string, dryRun?: boolean, only?: "reminder"|"recap", userId?: string }
+// Body (all optional): { now?: ISO string, dryRun?: boolean, only?: "reminder"|"recap"|"push", userId?: string }
 //   -> { ok, at, reminder: {...}, recap: {...} }
 //
 // A background function (the -background filename suffix is what Netlify
@@ -51,6 +52,20 @@ const REMINDER_CUTOFF_MS = 3 * 60 * 60 * 1000;
 /** Tuesday recap send hour, local to the reader. */
 const RECAP_LOCAL_HOUR = 9;
 
+/* Push alert timing. These are *minimum* leads, not exact ones: the tick is
+ * 15 minutes, so an alert lands somewhere between the lead and the lead plus
+ * one tick. Copy states the real remaining minutes rather than these numbers
+ * (see inLeadWindow in lib/alerts.mts). */
+const KICKOFF_LEAD_MIN = 10;
+const LAST_CALL_LEAD_MIN = 90;
+/** Rough elapsed time from kickoff to a final whistle, used only to date a
+ *  result the history doc doesn't timestamp. */
+const APPROX_GAME_MS = 3.25 * 60 * 60 * 1000;
+/** How long after a game's estimated end a final-score alert is still worth
+ *  sending. Also the guard that stops an empty ledger - a first deploy, or a
+ *  swept week - from firing an alert for every completed game at once. */
+const FINAL_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+
 function jsonResponse(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
     status,
@@ -69,6 +84,29 @@ export function firstKickoffOf(season: number, games: ScheduleGame[]): Date | nu
     if (!earliest || k.getTime() < earliest.getTime()) earliest = k;
   }
   return earliest;
+}
+
+/**
+ * The week containing the next kickoff from `now` - i.e. the week that still
+ * has games left to lock, which is not the same question as "which week
+ * hasn't started". A week is current from before its Thursday opener right
+ * through to its Monday night game.
+ */
+export function weekOfNextKickoff(
+  weeks: Array<{ week: number; games: ScheduleGame[] }>,
+  now: Date
+): { week: number; games: ScheduleGame[]; kickoff: Date } | null {
+  let best: { week: number; games: ScheduleGame[]; kickoff: Date } | null = null;
+  for (const w of weeks) {
+    for (const g of w.games || []) {
+      const k = parseKickoffUTC(CURRENT_SEASON, g.date, g.time);
+      if (!k || k.getTime() <= now.getTime()) continue;
+      if (!best || k.getTime() < best.kickoff.getTime()) {
+        best = { week: w.week, games: w.games || [], kickoff: k };
+      }
+    }
+  }
+  return best;
 }
 
 function gameWithKickoff(season: number, games: ScheduleGame[], at: Date): ScheduleGame | null {
@@ -142,7 +180,15 @@ export default async (req: Request, _context: Context) => {
   const oddsStore = getStore(ODDS_STORE);
   const userStore = getStore(USER_STORE, { consistency: "strong" });
 
-  const report: any = { ok: true, at: now.toISOString(), dryRun, reminder: { sent: [], skipped: 0 }, recap: { sent: [], skipped: 0 }, errors: [] };
+  const report: any = {
+    ok: true, at: now.toISOString(), dryRun,
+    reminder: { sent: [], skipped: 0 },
+    recap: { sent: [], skipped: 0 },
+    kickoff: { sent: 0, outcomes: {}, games: [] },
+    final: { sent: 0, outcomes: {}, games: [] },
+    lastCall: { sent: 0, outcomes: {} },
+    errors: [],
+  };
 
   try {
     const schedule: any = await siteDataStore.get("schedule", { type: "json" });
@@ -234,7 +280,7 @@ export default async (req: Request, _context: Context) => {
     // =======================================================================
     // PICK REMINDER
     // =======================================================================
-    if (reminderWeek && only !== "recap") {
+    if (reminderWeek && (!only || only === "reminder")) {
       const rw = reminderWeek;
       const tooLate = now.getTime() >= rw.kickoff.getTime() - REMINDER_CUTOFF_MS;
 
@@ -296,7 +342,7 @@ export default async (req: Request, _context: Context) => {
     // =======================================================================
     // WEEKLY RECAP
     // =======================================================================
-    if (recapWeekNum !== null && only !== "reminder") {
+    if (recapWeekNum !== null && (!only || only === "recap")) {
       const rw = recapWeekNum;
       const weekGames = (weeks.find((w) => w.week === rw)?.games || []) as ScheduleGame[];
 
@@ -340,6 +386,240 @@ export default async (req: Request, _context: Context) => {
           report.recap.sent.push({ userId: u.userId, leagues: built ? built.leagues.length : 0, subject: email.subject });
         } catch (err) {
           report.errors.push({ userId: u.userId, stage: "recap", error: err instanceof Error ? err.message : "unknown" });
+        }
+      }
+    }
+
+    // =======================================================================
+    // PUSH: KICKOFF, FINAL SCORE, LAST CALL  (Phase 1)
+    // =======================================================================
+    // All three run off data already in Blobs - the schedule for kickoff
+    // times, the history doc for final scores - so none of them polls
+    // anything. That's the whole reason this phase comes before live
+    // scoring: it finds out whether people keep alerts switched on before
+    // any money is spent on a 90-second poller.
+    //
+    // Candidate games are worked out FIRST, then per-user follow status.
+    // The reverse - asking every user about every game - would be hundreds
+    // of Blobs reads a tick to discover that one game is starting.
+
+    const tally = (bucket: any, outcome: string) => {
+      bucket.outcomes[outcome] = (bucket.outcomes[outcome] || 0) + 1;
+      if (outcome === "sent") bucket.sent++;
+    };
+
+    if (!only || only === "push") {
+      // ---- Which games are candidates right now? -------------------------
+      const kickoffCandidates: Array<{ week: number; game: ScheduleGame; kickoff: Date }> = [];
+      const finalCandidates: Array<{ week: number; game: ScheduleGame; kickoff: Date; away: number; home: number }> = [];
+
+      let historyDoc: any = null;
+      try {
+        historyDoc = await siteDataStore.get("history", { type: "json" });
+      } catch { /* finals degrade to "none this tick" rather than failing the pass */ }
+
+      for (const w of weeks) {
+        for (const g of (w.games || []) as ScheduleGame[]) {
+          const kickoff = parseKickoffUTC(CURRENT_SEASON, g.date, g.time);
+          if (!kickoff) continue;   // flexed/TBD placeholder
+
+          // Kickoff: one tick-wide window, positioned so exactly one tick can
+          // land in it. See inLeadWindow - a fixed "10 minutes before" can't
+          // be honoured on a 15-minute tick, so the copy states the real
+          // remaining time instead of a number that would usually be wrong.
+          if (inLeadWindow(now, kickoff, KICKOFF_LEAD_MIN)) {
+            kickoffCandidates.push({ week: w.week, game: g, kickoff });
+          }
+
+          // Final: the history doc is refreshed on its own schedule, so a
+          // game can appear final at any tick after it ends. The recency
+          // guard is what stops a first run (empty ledger) from firing an
+          // alert for every completed game of the season at once - only
+          // games that plausibly ended in the last few hours qualify.
+          const endedApprox = kickoff.getTime() + APPROX_GAME_MS;
+          const age = now.getTime() - endedApprox;
+          if (age < 0 || age > FINAL_MAX_AGE_MS) continue;
+
+          const weekHistory = (historyDoc?.weeks || []).find((h: any) => h.week === w.week);
+          const result = weekHistory?.results?.[`${g.away}-${g.home}`];
+          if (result?.final && typeof result.awayScore === "number" && typeof result.homeScore === "number") {
+            finalCandidates.push({ week: w.week, game: g, kickoff, away: result.awayScore, home: result.homeScore });
+          }
+        }
+      }
+
+      report.kickoff.games = kickoffCandidates.map((c) => `${c.game.away}@${c.game.home}`);
+      report.final.games = finalCandidates.map((c) => `${c.game.away}@${c.game.home}`);
+
+      // ---- Kickoff --------------------------------------------------------
+      for (const c of kickoffCandidates) {
+        const gameId = makeGameId(CURRENT_SEASON, c.week, c.game.away, c.game.home);
+        let line: string | undefined;
+        try {
+          const oddsDoc: any = await oddsStore.get("odds", { type: "json" });
+          const og = oddsDoc?.weeks?.[String(c.week)]?.games?.[`${c.game.away}-${c.game.home}`];
+          if (og && typeof og.spread === "number" && og.favorite) {
+            line = `${og.favorite} ${og.spread}${typeof og.overUnder === "number" ? ` · O/U ${og.overUnder}` : ""}`;
+          }
+        } catch { /* the line is decoration; a missing one shortens the copy */ }
+
+        for (const u of users) {
+          try {
+            const prefs = await getPrefs(u.userId);
+            if (!prefs.push.kickoff) { tally(report.kickoff, "off"); continue; }
+            if (!(await followsGame(u, prefs, CURRENT_SEASON, c.week, c.game, { leagueStore }))) {
+              tally(report.kickoff, "not-followed"); continue;
+            }
+            const mins = minutesUntil(now, c.kickoff);
+            const outcome = await deliverAlert({
+              user: u, prefs, type: "kick", event: gameId,
+              season: CURRENT_SEASON, week: c.week,
+              capability: "alerts.kickoff", now, dryRun,
+              payload: {
+                title: `${nameOf(c.game.away)} at ${nameOf(c.game.home)}`,
+                body: line
+                  ? `Kicks off in ${mins} minutes. ${line}`
+                  : `Kicks off in ${mins} minutes.`,
+                url: `/g/${gameId}`,
+                collapseKey: `game:${gameId}`,
+                data: { kind: "kickoff", gameId },
+              },
+            });
+            tally(report.kickoff, outcome);
+          } catch (err) {
+            report.errors.push({ userId: u.userId, stage: "kickoff", error: err instanceof Error ? err.message : "unknown" });
+          }
+        }
+      }
+
+      // ---- Final score ----------------------------------------------------
+      for (const c of finalCandidates) {
+        const gameId = makeGameId(CURRENT_SEASON, c.week, c.game.away, c.game.home);
+        const tie = c.away === c.home;
+        const winner = tie ? null : (c.away > c.home ? c.game.away : c.game.home);
+        const title = tie
+          ? `Final: ${c.game.away} ${c.away}, ${c.game.home} ${c.home} (tie)`
+          : `Final: ${nameOf(winner as string)} win`;
+        const scoreLine = `${c.game.away} ${c.away}, ${c.game.home} ${c.home}`;
+
+        for (const u of users) {
+          try {
+            const prefs = await getPrefs(u.userId);
+            if (!prefs.push.final) { tally(report.final, "off"); continue; }
+            if (!(await followsGame(u, prefs, CURRENT_SEASON, c.week, c.game, { leagueStore }))) {
+              tally(report.final, "not-followed"); continue;
+            }
+
+            // If they picked this game, say whether it came in. Read once per
+            // user per game rather than per league-per-game: the first league
+            // with a pick answers it.
+            let pickNote = "";
+            for (const leagueId of u.leagues) {
+              try {
+                const pick: any = await leagueStore.get(`picks:${leagueId}:${c.week}:${u.userId}:${gameId}`, { type: "json" });
+                if (pick?.team) {
+                  pickNote = tie ? " Your pick pushed." : pick.team === winner ? " Your pick came in." : " Your pick missed.";
+                  break;
+                }
+              } catch { /* no pick note rather than no alert */ }
+            }
+
+            const outcome = await deliverAlert({
+              user: u, prefs, type: "final", event: gameId,
+              season: CURRENT_SEASON, week: c.week,
+              capability: "alerts.final", now, dryRun,
+              payload: {
+                title,
+                body: `${scoreLine}.${pickNote}`,
+                url: `/g/${gameId}`,
+                collapseKey: `game:${gameId}`,
+                data: { kind: "final", gameId },
+              },
+            });
+            tally(report.final, outcome);
+          } catch (err) {
+            report.errors.push({ userId: u.userId, stage: "final", error: err instanceof Error ? err.message : "unknown" });
+          }
+        }
+      }
+
+      // ---- Last call ------------------------------------------------------
+      // Picks lock per game at that game's own kickoff, so a week isn't one
+      // deadline - Week 6 of 2026 has fourteen games across seven of them,
+      // with seven games locking together at Sunday 1:00 PM against a single
+      // Thursday opener. Nudging every slot would be seven pushes a week on
+      // top of the evening-before email. Nudging only the first leaves the
+      // real hole: someone who picks the Thursday game and forgets the rest
+      // gets no warning before half the slate locks on Sunday afternoon.
+      //
+      // lastCallSlots picks the two that matter - first kickoff, and the
+      // biggest block. The second usually doesn't fire, because most people
+      // have picked by Sunday morning; it's there for the stragglers, who
+      // are exactly who a last call is for.
+      // NOT gated on reminderWeek. That's "the earliest week whose FIRST
+      // kickoff hasn't happened yet", so it goes null the moment the
+      // Thursday game starts - which would make the Sunday anchor slot
+      // unreachable by construction, silently, for the entire season. Last
+      // call needs the week that still has games to lock, not the week that
+      // hasn't started.
+      const lastCallWeek = weekOfNextKickoff(weeks, now);
+      if (lastCallWeek) {
+        const rw = lastCallWeek;
+        const slots = lastCallSlots(CURRENT_SEASON, rw.games)
+          .filter((s) => inLeadWindow(now, s.at, LAST_CALL_LEAD_MIN));
+
+        for (const slot of slots) {
+          const slotGameIds = new Set(slot.games.map((g) => makeGameId(CURRENT_SEASON, rw.week, g.away, g.home)));
+          // Survivor locks at the week's OWN first kickoff, which after
+          // Thursday is no longer the next one coming up.
+          const weekFirstKickoff = firstKickoffOf(CURRENT_SEASON, rw.games);
+          const isFirstSlot = !!weekFirstKickoff && slot.at.getTime() === weekFirstKickoff.getTime();
+          const mins = minutesUntil(now, slot.at);
+
+          for (const u of users) {
+            if (!u.leagues.length) { tally(report.lastCall, "no-leagues"); continue; }
+            try {
+              const prefs = await getPrefs(u.userId);
+              if (!prefs.push.lastCall) { tally(report.lastCall, "off"); continue; }
+
+              const open = await openGamesFor(u, CURRENT_SEASON, rw.week, rw.games, { loadLeague, loadMembers, loadSurvivor, leagueStore });
+
+              // Only what's locking at THIS slot justifies waking someone.
+              // Survivor has no per-game slot, and stops being pickable at
+              // the week's first kickoff, so it counts against that one.
+              let lockingNow = 0;
+              for (const gid of open.openGameIds) if (slotGameIds.has(gid)) lockingNow++;
+              if (isFirstSlot && open.survivorOpen) lockingNow++;
+              if (lockingNow === 0) { tally(report.lastCall, "nothing-locking"); continue; }
+
+              const laterOpen = open.openGameIds.size + (open.survivorOpen ? 1 : 0) - lockingNow;
+              const noun = lockingNow === 1 ? "game locks" : "games lock";
+              const tail = laterOpen > 0
+                ? ` ${laterOpen} more open after that.`
+                : " That's the last of them this week.";
+
+              const outcome = await deliverAlert({
+                user: u, prefs, type: "lastcall", event: slot.id,
+                season: CURRENT_SEASON, week: rw.week,
+                capability: "alerts.last-call", now, dryRun,
+                // The one alert allowed through quiet hours: a pick deadline
+                // slept through is worse than being woken for it.
+                pierceQuietHours: true,
+                payload: {
+                  title: `${lockingNow} ${noun} in ${mins} minutes`,
+                  body: (open.leagueNames.length === 1
+                    ? `Still unpicked in ${open.leagueNames[0]}.`
+                    : `Still unpicked across ${open.leagueNames.length} leagues.`) + tail,
+                  url: "/leagues",
+                  collapseKey: `lastcall:${CURRENT_SEASON}:${rw.week}`,
+                  data: { kind: "last-call", week: rw.week, slot: slot.id },
+                },
+              });
+              tally(report.lastCall, outcome);
+            } catch (err) {
+              report.errors.push({ userId: u.userId, stage: "lastCall", error: err instanceof Error ? err.message : "unknown" });
+            }
+          }
         }
       }
     }
@@ -393,6 +673,65 @@ async function openLeaguesFor(
   }
 
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// Last call: which specific games are still unpicked
+// ---------------------------------------------------------------------------
+
+/**
+ * Same league-eligibility rules as openLeaguesFor, but resolved down to
+ * individual games rather than a per-league count.
+ *
+ * The count is what the reminder email needs ("3 games open in Sunday
+ * Funday"); the last-call push needs to know *which* games, because it has
+ * to distinguish "about to lock right now" from "open but not until
+ * Sunday". Saying "14 games still open" 90 minutes before a Thursday opener
+ * is true and useless - thirteen of them have three more days.
+ */
+async function openGamesFor(
+  u: { userId: string; leagues: string[] },
+  season: number,
+  week: number,
+  games: ScheduleGame[],
+  io: any
+): Promise<{ openGameIds: Set<string>; survivorOpen: boolean; leagueNames: string[] }> {
+  const openGameIds = new Set<string>();
+  const leagueNames: string[] = [];
+  let survivorOpen = false;
+
+  for (const leagueId of u.leagues) {
+    const league = await io.loadLeague(leagueId);
+    if (!league || league.locked || league.season !== season) continue;
+
+    const members = await io.loadMembers(leagueId);
+    if (!members?.members?.some((m: any) => m.userId === u.userId)) continue;
+
+    // Survivor is one pick for the whole week rather than one per game, so
+    // it can't be attributed to a slot. It's treated as locking at the
+    // week's first kickoff, which is when it actually stops being pickable.
+    if (league.format === "survivor") {
+      const state = await io.loadSurvivor(leagueId);
+      if (state?.[u.userId]?.alive === false) continue;
+      const anyPick = await Promise.all(
+        games.map((g) => io.leagueStore.get(`picks:${leagueId}:${week}:${u.userId}:${makeGameId(season, week, g.away, g.home)}`, { type: "json" }))
+      );
+      if (!anyPick.some(Boolean)) { survivorOpen = true; leagueNames.push(league.name); }
+      continue;
+    }
+
+    let anyOpen = false;
+    await Promise.all(
+      games.map(async (g) => {
+        const gid = makeGameId(season, week, g.away, g.home);
+        const pick = await io.leagueStore.get(`picks:${leagueId}:${week}:${u.userId}:${gid}`, { type: "json" });
+        if (!pick) { openGameIds.add(gid); anyOpen = true; }
+      })
+    );
+    if (anyOpen) leagueNames.push(league.name);
+  }
+
+  return { openGameIds, survivorOpen, leagueNames };
 }
 
 // ---------------------------------------------------------------------------

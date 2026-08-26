@@ -13484,7 +13484,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
           <div className="notif-row-body">
             <p className="notif-row-name">Kickoff</p>
             <p className="notif-row-desc">A heads-up before a game you're following starts.</p>
-            <span className="notif-when">10 minutes before</span>
+            <span className="notif-when">Shortly before kickoff</span>
           </div>
           <NotifSwitch checked={prefs.push.kickoff} disabled={!pushLive || saving} label="Kickoff alerts" onToggle={() => togglePush("kickoff")} />
         </div>
@@ -13601,8 +13601,8 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
         <div className="notif-row">
           <div className="notif-row-body">
             <p className="notif-row-name">Last call <span className="notif-channel-tag push">Push</span></p>
-            <p className="notif-row-desc">One final nudge if a game is about to start and your pick still isn't in.</p>
-            <span className="notif-when">90 minutes before kickoff</span>
+            <p className="notif-row-desc">One final nudge before the week's first kickoff if your picks still aren't in.</p>
+            <span className="notif-when">About 90 minutes before kickoff</span>
           </div>
           <NotifSwitch checked={prefs.push.lastCall} disabled={!pushLive || saving} label="Last call push" onToggle={() => togglePush("lastCall")} />
         </div>

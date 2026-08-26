@@ -140,10 +140,8 @@ there.
 - **Highlights are confidence-only.** In straight-up and ATS every pick is
   worth the same, so "best call" would just be an arbitrary correct pick.
   Omitted rather than faked.
-- **Web push is built (Phase 0), but nothing sends over it yet.** The
-  channel works end to end — subscribe, store, send, prune — and the only
-  thing that currently pushes is the "Send a test" button in Settings →
-  Alerts. Alert types land in Phase 1.
+- **Push carries three alert types (Phase 1):** kickoff, final score, and
+  last call. Scoring and injury alerts are Phase 3 and 4.
 
 ## Deliverability notes
 
@@ -328,3 +326,94 @@ prefs shape: bundle `lib/notif.mts` with `@netlify/blobs` left external and
 resolved to an in-memory stub, then assert that a record written before
 `push` existed still comes back with its stored email settings intact and a
 fully populated `push` block.
+
+
+---
+
+# Phase 1 alerts: kickoff, final score, last call
+
+Three push alert types, all riding the existing 15-minute dispatcher. None
+of them polls anything — kickoff times come from the `schedule` blob and
+final scores from `history`, both already in Blobs for other reasons. That's
+deliberate: this phase finds out whether people keep alerts switched on
+before any money goes into a 90-second poller.
+
+`lib/alerts.mts` holds what every push alert shares — scope resolution,
+quiet hours, the ledger check, the entitlement check — so adding a type is
+writing the message and the trigger, not re-deriving the gating.
+
+## Timing on a 15-minute tick
+
+"10 minutes before kickoff" cannot be delivered at 10 minutes before. The
+tick lands where it lands, so `inLeadWindow` accepts a range and the copy
+states the **real** remaining minutes computed at send: "Kicks off in 18
+minutes". The Alerts tab says "Shortly before kickoff" rather than a fixed
+number for the same reason.
+
+The window is one tick wide **plus a margin**, because cron-job.org doesn't
+fire on the exact minute. A window of exactly 15 would let two drifted ticks
+straddle it and leave nobody inside — a silently missed alert. With the
+margin an overlap is possible instead, which the event ledger makes
+harmless. A duplicate the ledger swallows is a far better failure than a
+kickoff alert that never fires.
+
+| Alert | Lead | Effective range |
+|---|---|---|
+| Kickoff | 10 min | fires ~10–28 min before |
+| Last call | 90 min | fires ~90–108 min before |
+
+## Candidate games first, users second
+
+Every pass works out which games are in play *before* asking who follows
+them. Scope `"picks"` costs a Blobs read per league per game, so asking
+every user about all sixteen games would be hundreds of reads a tick to
+discover that one game is starting. Narrowed to the one or two candidate
+games, it's a handful.
+
+## Final scores, and the empty-ledger hazard
+
+`history` carries no timestamp for when a result landed, so "did this just
+go final" is estimated: kickoff + ~3¼ hours, and only games whose estimated
+end is within the last 6 hours qualify.
+
+That recency guard is doing more work than it looks like. The ledger is what
+normally prevents repeats — but on a **first deploy, or the first tick after
+a week is swept**, the ledger is empty. Without the guard, every completed
+game in the schedule would fire at once. Anything that changes how finals
+are detected needs to keep an equivalent bound.
+
+## Last call is once a week, not once a slate
+
+It fires ahead of the week's first kickoff, when picks start locking — not
+before Thursday *and* Sunday *and* Monday. The evening-before email already
+covers the week; this is the final safety net, and a net that fires three
+times a week is nagging. Per-slate nudges want the 90-second tick anyway, so
+they're a Phase 3 question.
+
+It is also **the only alert allowed through quiet hours**. A pick deadline
+you slept through is worse than being woken for it.
+
+## Testing
+
+The dispatcher is a plain exported function, so it can be driven directly
+against stubbed Blobs and a stubbed `web-push`:
+
+```bash
+node /tmp/phase1-test.mjs      # windows, scope, quiet hours, dedupe, finals
+node /tmp/phase1-regress.mjs   # only= filter and dryRun routing
+```
+
+Bundle with `--external:@netlify/blobs --external:@netlify/functions
+--external:web-push` and resolve those three to in-memory stubs at runtime
+rather than aliasing them into the bundle — an aliased stub gets its own
+module instance and the test writes to a Map the bundle never reads, which
+produces convincing but meaningless passes.
+
+Worth re-running on any change to the timing constants, since a window that
+no tick can land inside fails silently and looks exactly like "nobody was
+due".
+
+`only` accepts `"reminder"`, `"recap"`, or `"push"`, and `dryRun: true`
+reports what would have been sent without sending it. The plan appears in
+the **Netlify** function log — background functions return 202 immediately
+and the workflow never sees the body.

@@ -17766,9 +17766,14 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
     return (
       <div className="leagues-page">
         <div className="league-view">
-          <button className="back-btn" onClick={() => setSelectedLeagueId(null)}>
+          {/* Home, not the leagues landing page: with the League tab gone,
+              people arrive at a league from the Home dashboard, so that's
+              where "back" should return them. Clearing selectedLeagueId
+              first keeps the fallback (no onGoHome passed) behaving the way
+              this button always did. */}
+          <button className="back-btn" onClick={() => { setSelectedLeagueId(null); if (typeof onGoHome === "function") onGoHome(); }}>
             <ChevronIcon direction="left" size={13} />
-            <span>Back to Leagues</span>
+            <span>Back to Home</span>
           </button>
           <LeagueHeader
             auth={auth}

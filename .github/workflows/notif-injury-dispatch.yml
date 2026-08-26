@@ -1,0 +1,110 @@
+name: Blitz Odds - injury dispatch
+
+# Pokes notif-injury-dispatch-background.mts, which diffs ESPN's league
+# injury feed against its own previous snapshot, alerts favourite-team
+# followers about tracked players who moved, and queues everything else for
+# review in the analytics dashboard.
+#
+# THE RULE THIS DEPENDS ON: it diffs ESPN against ITSELF, never against
+# data/impact-players.json. The two sources disagree constantly and always
+# have - 13 of 71 tracked players the day this was written - and those
+# disagreements are standing drift, not events. Diffing against the curated
+# file would fire a dozen alerts on the first tick for nothing at all.
+#
+# ESPN IS NOT THE SOURCE OF TRUTH. Nothing in that function writes a
+# player's status. Alerts say what ESPN now lists, attributed to ESPN;
+# impact-players.json still drives what the app shows and what the model
+# consumes. On the day this shipped, 12 tracked players had no ESPN record
+# at all - eight of them carried as "out" - so a feed-driven status would
+# have been wrong about eight players immediately.
+#
+# Dispatched externally via cron-job.org, same pattern as every other job
+# here (GitHub's own `schedule:` cron is unreliable on low-traffic repos):
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/notif-injury-dispatch.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+#
+# CADENCE. Every 2-5 minutes on game days and during Wednesday-Friday
+# practice-report windows; every 15 otherwise. Injury news clusters hard
+# around those windows and is nearly silent between them. Each tick is one
+# ESPN fetch plus one snapshot read/write, so this is cheap even at the
+# fast end - the feed is ~375 KB gzipped and the snapshot is a single blob
+# rather than 800 keys.
+#
+# FIRST RUN IS SILENT BY DESIGN. With no previous snapshot every record
+# looks new; the first tick records the world and alerts on nothing. Firing
+# 800 alerts because a blob went missing is not a recoverable mistake.
+#
+# DRY RUN. Run manually from the Actions tab with dry_run = true to see the
+# changes, alerts and queue items it would produce without sending or
+# writing anything - including without advancing the snapshot, so it can be
+# run repeatedly.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Compute changes but send nothing and write nothing"
+        type: boolean
+        default: false
+      user_id:
+        description: "Limit alerts to a single Netlify Identity user id (for testing)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+# Two overlapping runs would both read the pre-change snapshot and both
+# decide the same transition is new. The event ledger would stop the second
+# alert, but the review queue has no such guard.
+concurrency:
+  group: blitz-odds-notif-injury-dispatch
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger injury dispatch
+        env:
+          NOTIF_DISPATCH_SECRET: ${{ secrets.NOTIF_DISPATCH_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          USER_ID: ${{ inputs.user_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NOTIF_DISPATCH_SECRET}" ]; then
+            echo "NOTIF_DISPATCH_SECRET is not set in repository secrets." >&2
+            exit 1
+          fi
+
+          BODY="{\"dryRun\":${DRY_RUN:-false}"
+          if [ -n "${USER_ID}" ]; then BODY="${BODY},\"userId\":\"${USER_ID}\""; fi
+          BODY="${BODY}}"
+
+          echo "POSTing: ${BODY}"
+
+          # The SYNCHRONOUS endpoint, not the -background one: Netlify
+          # answers a background function 202 before the handler runs, so
+          # posting straight to it would report success even with a wrong
+          # secret or missing VAPID keys.
+          STATUS=$(curl -sS -o /tmp/resp.txt -w "%{http_code}" \
+            --max-time 30 \
+            -X POST "https://blitz-odds.com/.netlify/functions/notif-injury-dispatch" \
+            -H "Content-Type: application/json" \
+            -H "x-notif-dispatch-secret: ${NOTIF_DISPATCH_SECRET}" \
+            -d "${BODY}")
+
+          echo "HTTP ${STATUS}"
+          cat /tmp/resp.txt || true
+          echo
+
+          case "${STATUS}" in
+            200) echo "Configuration OK, dispatch handed off. Changes and queue items are in the notif-injury-dispatch-background function log." ;;
+            401) echo "Rejected: NOTIF_DISPATCH_SECRET here doesn't match the site's env var." >&2; exit 1 ;;
+            500) echo "Site is missing a required env var - see the response body above." >&2; exit 1 ;;
+            502) echo "Handoff to the background function failed - see the response body above." >&2; exit 1 ;;
+            *)   echo "Unexpected status ${STATUS}." >&2; exit 1 ;;
+          esac

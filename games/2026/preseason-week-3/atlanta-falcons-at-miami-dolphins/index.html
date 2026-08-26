@@ -1009,7 +1009,49 @@
   .gradation-legend-label { font-weight: 600; color: var(--text); margin-right: 2px; }
   .gradation-legend .rank-pill { margin-left: 0; }
   .impact-note {
-    font-size: 0.72rem; border-radius: 8px; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;
+    font-size: 0.72rem; border-radius: 8px; padding: 6px 10px;
+    display: flex; flex-direction: column; gap: 5px; align-items: stretch;
+  }
+  /* The curated line. Was the whole of .impact-note before the ESPN layer
+     was added underneath it; the flex row moved here so a second, sourced
+     line can sit below without disturbing it. */
+  .impact-head { display: flex; gap: 6px; align-items: flex-start; }
+
+  /* The ESPN layer. Deliberately quieter than the line above - it's the wire
+     report, not the analysis. Only rendered when it carries something the
+     curated line doesn't: a disagreement, a return date, or the fact that
+     ESPN has no record at all. Agreement with nothing to add renders no
+     second line, which is most rows. */
+  .injury-source {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px;
+    font-size: 0.68rem; line-height: 1.45; padding-top: 5px;
+    border-top: 1px dashed currentColor; opacity: 0.85; width: 100%;
+  }
+  .injury-source-tag {
+    font-weight: 750; letter-spacing: 0.3px; text-transform: uppercase; font-size: 0.6rem;
+    padding: 1px 6px; border-radius: 999px; white-space: nowrap;
+    color: var(--edge-b); background: rgba(122,184,255,0.14); border: 1px solid rgba(122,184,255,0.3);
+  }
+  html[data-theme="light"] .injury-source-tag { background: rgba(29,111,201,0.1); border-color: rgba(29,111,201,0.3); }
+  .injury-source-time { color: var(--text-dim); font-size: 0.64rem; }
+  .injury-source-body { flex: 1 1 auto; min-width: 0; }
+  .injury-return { color: var(--text-dim); }
+  /* Agreement collapses to one line; a return date rides inline on it rather
+     than earning a second row of its own. */
+  .injury-return-inline { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+  .injury-none-note { font-size: 0.64rem; color: var(--text-dim); font-style: italic; }
+  /* Brand orange, not loss-red: a disagreement between two sources is a
+     signal, not a bad outcome. */
+  .injury-disagree {
+    font-weight: 700; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.3px;
+    padding: 1px 6px; border-radius: 999px; white-space: nowrap;
+    color: var(--blitz-orange); background: rgba(253,127,1,0.14); border: 1px solid rgba(253,127,1,0.35);
+  }
+  html[data-theme="light"] .injury-disagree { background: rgba(179,89,0,0.1); border-color: rgba(179,89,0,0.35); }
+  .injury-fresh {
+    font-weight: 700; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.3px;
+    padding: 1px 6px; border-radius: 999px; white-space: nowrap;
+    color: var(--win); background: rgba(var(--win-rgb),0.14); border: 1px solid rgba(var(--win-rgb),0.35);
   }
   .impact-out { background: rgba(var(--out-rgb),0.12); color: var(--pill-out-text); border: 1px solid rgba(var(--out-rgb),0.3); }
   .impact-questionable { background: rgba(var(--warn-rgb),0.12); color: var(--pill-questionable-text); border: 1px solid rgba(var(--warn-rgb),0.3); }
@@ -3094,7 +3136,8 @@
     }
   ]
 }</script>
-<script type="application/json" id="players-data">{
+<script type="application/json" id="players-data">
+{
   "isDemoData": false,
   "disclaimer": "Injury statuses reflect training camp/preseason reports as of Aug. 23, 2026 (evening update). Christian McCaffrey (SF) returned to full practice and is back to active. Added Raiders RB Ashton Jeanty (questionable) after he was helped off Sunday's practice with an apparent right knee injury of undisclosed severity - the team has not yet released details. Refreshed Malik Nabers' (NYG) note with HC John Harbaugh's Aug. 23 comment that he could come out of his non-contact jersey this week. All other currently out/questionable situations re-checked against fresh nfl.com/injuries headlines, insider (Schefter/Rapoport/Pelissero) searches, and a roster-moves scan - no other status changes found since the afternoon update. Pre-season camp/PUP-list information, not an official in-season practice-participation report - verify and update once real weekly injury reports are available.",
   "players": {
@@ -3102,6 +3145,7 @@
       {
         "name": "Drake Maye",
         "position": "QB",
+        "espnId": "4431452",
         "impactScore": 9,
         "status": "active"
       }
@@ -3110,12 +3154,14 @@
       {
         "name": "Sam Darnold",
         "position": "QB",
+        "espnId": "3912547",
         "impactScore": 8,
         "status": "active"
       },
       {
         "name": "Nick Emmanwori",
         "position": "S",
+        "espnId": "4869523",
         "impactScore": 7,
         "status": "active",
         "injury": {
@@ -3130,12 +3176,14 @@
       {
         "name": "Brock Purdy",
         "position": "QB",
+        "espnId": "4361741",
         "impactScore": 8,
         "status": "active"
       },
       {
         "name": "Christian McCaffrey",
         "position": "RB",
+        "espnId": "3117251",
         "impactScore": 9,
         "status": "active",
         "injury": {
@@ -3148,6 +3196,7 @@
       {
         "name": "George Kittle",
         "position": "TE",
+        "espnId": "3040151",
         "impactScore": 7,
         "status": "out",
         "injury": {
@@ -3159,6 +3208,7 @@
       {
         "name": "Ricky Pearsall",
         "position": "WR",
+        "espnId": "4428209",
         "impactScore": 7,
         "status": "out",
         "injury": {
@@ -3170,6 +3220,7 @@
       {
         "name": "Mike Evans",
         "position": "WR",
+        "espnId": "16737",
         "impactScore": 8,
         "status": "questionable",
         "injury": {
@@ -3181,6 +3232,7 @@
       {
         "name": "Nick Bosa",
         "position": "Edge",
+        "espnId": "4040605",
         "impactScore": 9,
         "status": "out",
         "injury": {
@@ -3194,12 +3246,14 @@
       {
         "name": "Matthew Stafford",
         "position": "QB",
+        "espnId": "12483",
         "impactScore": 8,
         "status": "active"
       },
       {
         "name": "Myles Garrett",
         "position": "Edge",
+        "espnId": "3122132",
         "impactScore": 8,
         "status": "active"
       }
@@ -3208,12 +3262,14 @@
       {
         "name": "Caleb Williams",
         "position": "QB",
+        "espnId": "4431611",
         "impactScore": 7,
         "status": "active"
       },
       {
         "name": "Coby Bryant",
         "position": "S",
+        "espnId": "4239094",
         "impactScore": 6,
         "status": "out",
         "injury": {
@@ -3225,6 +3281,7 @@
       {
         "name": "Kyler Gordon",
         "position": "CB",
+        "espnId": "4361093",
         "impactScore": 6,
         "status": "out",
         "injury": {
@@ -3236,6 +3293,7 @@
       {
         "name": "Luther Burden III",
         "position": "WR",
+        "espnId": "4685278",
         "impactScore": 6,
         "status": "out",
         "injury": {
@@ -3247,6 +3305,7 @@
       {
         "name": "Kyle Monangai",
         "position": "RB",
+        "espnId": "4608686",
         "impactScore": 6,
         "status": "out",
         "injury": {
@@ -3260,12 +3319,14 @@
       {
         "name": "Bryce Young",
         "position": "QB",
+        "espnId": "4685720",
         "impactScore": 6,
         "status": "active"
       },
       {
         "name": "Ikem Ekwonu",
         "position": "OT",
+        "espnId": "4427132",
         "impactScore": 6,
         "status": "out",
         "injury": {
@@ -3277,6 +3338,7 @@
       {
         "name": "Nic Scourton",
         "position": "OLB",
+        "espnId": "4833355",
         "impactScore": 5,
         "status": "out",
         "injury": {
@@ -3288,6 +3350,7 @@
       {
         "name": "Taylor Moton",
         "position": "RT",
+        "espnId": "2973051",
         "impactScore": 6,
         "status": "out",
         "injury": {
@@ -3299,6 +3362,7 @@
       {
         "name": "Chuba Hubbard",
         "position": "RB",
+        "espnId": "4241416",
         "impactScore": 7,
         "status": "questionable",
         "injury": {
@@ -3312,6 +3376,7 @@
       {
         "name": "Baker Mayfield",
         "position": "QB",
+        "espnId": "3052587",
         "impactScore": 7,
         "status": "active"
       }
@@ -3320,12 +3385,14 @@
       {
         "name": "Joe Burrow",
         "position": "QB",
+        "espnId": "3915511",
         "impactScore": 9,
         "status": "active"
       },
       {
         "name": "Shemar Stewart",
         "position": "DE",
+        "espnId": "4685562",
         "impactScore": 6,
         "status": "out",
         "injury": {
@@ -3339,12 +3406,14 @@
       {
         "name": "Tyler Shough",
         "position": "QB",
+        "espnId": "4360689",
         "impactScore": 5,
         "status": "active"
       },
       {
         "name": "Alvin Kamara",
         "position": "RB",
+        "espnId": "3054850",
         "impactScore": 7,
         "status": "out",
         "injury": {
@@ -3358,12 +3427,14 @@
       {
         "name": "Jared Goff",
         "position": "QB",
+        "espnId": "3046779",
         "impactScore": 8,
         "status": "active"
       },
       {
         "name": "Sam LaPorta",
         "position": "TE",
+        "espnId": "4430027",
         "impactScore": 7,
         "status": "questionable",
         "injury": {
@@ -3377,6 +3448,7 @@
       {
         "name": "Josh Allen",
         "position": "QB",
+        "espnId": "3918298",
         "impactScore": 10,
         "status": "active"
       }
@@ -3385,12 +3457,14 @@
       {
         "name": "C.J. Stroud",
         "position": "QB",
+        "espnId": "4432577",
         "impactScore": 8,
         "status": "active"
       },
       {
         "name": "Jayden Higgins",
         "position": "WR",
+        "espnId": "4877706",
         "impactScore": 7,
         "status": "out",
         "injury": {
@@ -3404,12 +3478,14 @@
       {
         "name": "Lamar Jackson",
         "position": "QB",
+        "espnId": "3916387",
         "impactScore": 10,
         "status": "active"
       },
       {
         "name": "Nate Wiggins",
         "position": "CB",
+        "espnId": "4601278",
         "impactScore": 7,
         "status": "active",
         "injury": {
@@ -3422,6 +3498,7 @@
       {
         "name": "Marlon Humphrey",
         "position": "CB",
+        "espnId": "3126356",
         "impactScore": 7,
         "status": "active",
         "injury": {
@@ -3434,6 +3511,7 @@
       {
         "name": "Danny Pinter",
         "position": "C",
+        "espnId": "3915470",
         "impactScore": 4,
         "status": "out",
         "injury": {
@@ -3447,12 +3525,14 @@
       {
         "name": "Daniel Jones",
         "position": "QB",
+        "espnId": "3917792",
         "impactScore": 6,
         "status": "active"
       },
       {
         "name": "Tyler Warren",
         "position": "TE",
+        "espnId": "4431459",
         "impactScore": 7,
         "status": "questionable",
         "injury": {
@@ -3466,6 +3546,7 @@
       {
         "name": "Jeremiah Owusu-Koramoah",
         "position": "LB",
+        "espnId": "4258599",
         "impactScore": 7,
         "status": "out",
         "injury": {
@@ -3479,6 +3560,7 @@
       {
         "name": "Trevor Lawrence",
         "position": "QB",
+        "espnId": "4360310",
         "impactScore": 7,
         "status": "active"
       }
@@ -3487,12 +3569,14 @@
       {
         "name": "Tua Tagovailoa",
         "position": "QB",
+        "espnId": "4241479",
         "impactScore": 7,
         "status": "active"
       },
       {
         "name": "Michael Penix Jr.",
         "position": "QB",
+        "espnId": "4360423",
         "impactScore": 7,
         "status": "questionable",
         "injury": {
@@ -3504,6 +3588,7 @@
       {
         "name": "Jalon Walker",
         "position": "Edge",
+        "espnId": "4685597",
         "impactScore": 6,
         "status": "out",
         "injury": {
@@ -3517,12 +3602,14 @@
       {
         "name": "Aaron Rodgers",
         "position": "QB",
+        "espnId": "8439",
         "impactScore": 7,
         "status": "active"
       },
       {
         "name": "Jalen Ramsey",
         "position": "CB",
+        "espnId": "3045373",
         "impactScore": 8,
         "status": "out",
         "injury": {
@@ -3536,6 +3623,7 @@
       {
         "name": "Geno Smith",
         "position": "QB",
+        "espnId": "15864",
         "impactScore": 6,
         "status": "active"
       }
@@ -3544,6 +3632,7 @@
       {
         "name": "Cam Ward",
         "position": "QB",
+        "espnId": "4688380",
         "impactScore": 6,
         "status": "active"
       }
@@ -3552,12 +3641,14 @@
       {
         "name": "Jacoby Brissett",
         "position": "QB",
+        "espnId": "2578570",
         "impactScore": 5,
         "status": "active"
       },
       {
         "name": "Jeremiyah Love",
         "position": "RB",
+        "espnId": "4870808",
         "impactScore": 7,
         "status": "questionable",
         "injury": {
@@ -3571,12 +3662,14 @@
       {
         "name": "Justin Herbert",
         "position": "QB",
+        "espnId": "4038941",
         "impactScore": 9,
         "status": "active"
       },
       {
         "name": "Rashawn Slater",
         "position": "LT",
+        "espnId": "4242283",
         "impactScore": 8,
         "status": "questionable",
         "injury": {
@@ -3588,6 +3681,7 @@
       {
         "name": "Tyler Biadasz",
         "position": "C",
+        "espnId": "4035788",
         "impactScore": 5,
         "status": "out",
         "injury": {
@@ -3601,6 +3695,7 @@
       {
         "name": "Malik Willis",
         "position": "QB",
+        "espnId": "4242512",
         "impactScore": 5,
         "status": "active"
       }
@@ -3609,12 +3704,14 @@
       {
         "name": "Kirk Cousins",
         "position": "QB",
+        "espnId": "14880",
         "impactScore": 6,
         "status": "active"
       },
       {
         "name": "Ashton Jeanty",
         "position": "RB",
+        "espnId": "4890973",
         "impactScore": 7,
         "status": "questionable",
         "injury": {
@@ -3628,12 +3725,14 @@
       {
         "name": "Jordan Love",
         "position": "QB",
+        "espnId": "4036378",
         "impactScore": 7,
         "status": "active"
       },
       {
         "name": "Micah Parsons",
         "position": "Edge",
+        "espnId": "4361423",
         "impactScore": 9,
         "status": "out",
         "injury": {
@@ -3645,12 +3744,14 @@
       {
         "name": "Josh Jacobs",
         "position": "RB",
+        "espnId": "4047365",
         "impactScore": 7,
         "status": "active"
       },
       {
         "name": "Jayden Reed",
         "position": "WR",
+        "espnId": "4362249",
         "impactScore": 7,
         "status": "questionable",
         "injury": {
@@ -3664,12 +3765,14 @@
       {
         "name": "Kyler Murray",
         "position": "QB",
+        "espnId": "3917315",
         "impactScore": 7,
         "status": "active"
       },
       {
         "name": "Justin Jefferson",
         "position": "WR",
+        "espnId": "4262921",
         "impactScore": 8,
         "status": "active",
         "injury": {
@@ -3684,12 +3787,14 @@
       {
         "name": "Jayden Daniels",
         "position": "QB",
+        "espnId": "4426348",
         "impactScore": 8,
         "status": "active"
       },
       {
         "name": "Laremy Tunsil",
         "position": "LT",
+        "espnId": "3051890",
         "impactScore": 7,
         "status": "out",
         "injury": {
@@ -3703,12 +3808,14 @@
       {
         "name": "Jalen Hurts",
         "position": "QB",
+        "espnId": "4040715",
         "impactScore": 7,
         "status": "active"
       },
       {
         "name": "Jonathan Greenard",
         "position": "Edge",
+        "espnId": "3916409",
         "impactScore": 7,
         "status": "out",
         "injury": {
@@ -3720,6 +3827,7 @@
       {
         "name": "DeVonta Smith",
         "position": "WR",
+        "espnId": "4241478",
         "impactScore": 7,
         "status": "questionable",
         "injury": {
@@ -3733,6 +3841,7 @@
       {
         "name": "Dak Prescott",
         "position": "QB",
+        "espnId": "2577417",
         "impactScore": 7,
         "status": "active"
       }
@@ -3741,12 +3850,14 @@
       {
         "name": "Jaxson Dart",
         "position": "QB",
+        "espnId": "4689114",
         "impactScore": 6,
         "status": "active"
       },
       {
         "name": "Malik Nabers",
         "position": "WR",
+        "espnId": "4595348",
         "impactScore": 8,
         "status": "questionable",
         "injury": {
@@ -3760,6 +3871,7 @@
       {
         "name": "Bo Nix",
         "position": "QB",
+        "espnId": "4426338",
         "impactScore": 7,
         "status": "active"
       }
@@ -3768,6 +3880,7 @@
       {
         "name": "Patrick Mahomes",
         "position": "QB",
+        "espnId": "3139477",
         "impactScore": 10,
         "status": "active",
         "injury": {
@@ -3780,6 +3893,7 @@
       {
         "name": "Justin Fields",
         "position": "QB",
+        "espnId": "4362887",
         "impactScore": 6,
         "status": "active"
       }
@@ -9067,6 +9181,26 @@ function saveFavorites(list) {
 // always reads through this mutable binding rather than TEAMS_DATA directly.
 let LIVE_TEAMS_LIST = TEAMS_DATA.teams;
 
+/* ESPN's league injury feed, mirrored into site-data by
+ * scripts/injury-espn-refresh.mjs and trimmed to the players
+ * impact-players.json actually tracks (~22 KB rather than the 8.8 MB raw
+ * feed - bandwidth is metered, and the injury block renders curated players
+ * and nothing else, so a record for an untracked player has no one to show
+ * it).
+ *
+ * It is NEVER the source of truth for a status. PLAYERS_DATA is, and stays
+ * so: measured against ESPN on the day this shipped, 13 of 71 tracked
+ * players disagreed and 12 had no ESPN record at all - eight of those
+ * carried as "out". What this adds is a report timestamp, a structured
+ * injury detail, and an estimated return date, none of which the curated
+ * file has a field for. Empty until the first publish, which renders as
+ * "no second line" rather than as an error. */
+let ESPN_INJURIES = { players: {} };
+function espnInjuryFor(player) {
+  if (!player || !player.espnId) return null;
+  return (ESPN_INJURIES.players && ESPN_INJURIES.players[player.espnId]) || null;
+}
+
 function baseTeam(id) {
   return LIVE_TEAMS_LIST.find(t => t.id === id);
 }
@@ -9442,6 +9576,10 @@ function useLiveSiteData() {
         }
         if (fresh.playoffs && Array.isArray(fresh.playoffs.rounds)) {
           PLAYOFFS_DATA = fresh.playoffs;
+          changed = true;
+        }
+        if (fresh.espnInjuries && typeof fresh.espnInjuries.players === "object") {
+          ESPN_INJURIES = fresh.espnInjuries;
           changed = true;
         }
         if (changed) forceRerender(n => n + 1);
@@ -11269,6 +11407,109 @@ const STATUS_ORDER = { active: 0, questionable: 1, out: 2 };
  *  date string, set by the weekly-update pipeline whenever a status
  *  transitions to "active"); if that field hasn't been backfilled yet, the
  *  player is shown until it is, rather than hidden. */
+/* How recently an ESPN report has to have landed to count as "new". Matches
+ * the window a fast injury alert would have fired in, so someone tapping
+ * through from a notification sees the thing they were told about flagged. */
+const INJURY_FRESH_MS = 6 * 60 * 60 * 1000;
+
+function relativeInjuryTime(iso) {
+  if (!iso) return null;
+  const t = Date.parse(iso);
+  if (isNaN(t)) return null;
+  const mins = Math.round((Date.now() - t) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function formatReturnDate(iso) {
+  if (!iso) return null;
+  const t = Date.parse(iso);
+  if (isNaN(t)) return null;
+  return new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+/** ESPN's structured detail as one phrase: "Achilles, right, surgery".
+ *  `type` keeps ESPN's casing because it's usually a proper noun (Achilles,
+ *  ACL); side and detail are lowercased so they read as prose rather than
+ *  shouting mid-sentence. "Not Specified" appears in any of the three and
+ *  means "we don't know", so it's dropped rather than printed - otherwise
+ *  the line reads "Undisclosed, not specified". Returns null when nothing
+ *  survives, so the caller can omit the phrase entirely. */
+function espnDetailPhrase(e) {
+  const clean = (v) => (v && v !== "Not Specified" ? v : null);
+  const parts = [clean(e.type), clean(e.side), clean(e.detail)]
+    .filter(Boolean)
+    .map((v, i) => (i === 0 ? v : String(v).toLowerCase()));
+  return parts.length ? parts.join(", ") : null;
+}
+
+/**
+ * The ESPN layer under a curated injury line. Returns null when there's
+ * nothing worth a second row - which is the common case, and the point:
+ * restating "questionable" as "Questionable" is noise, so agreement with
+ * nothing to add renders no line at all.
+ *
+ * It renders when ESPN genuinely adds something:
+ *   - they disagree (13 of 71 tracked players, the day this shipped)
+ *   - they agree but ESPN has an estimated return date, which the curated
+ *     file has no field for (16 more). That one rides INLINE on the
+ *     existing line via injuryReturnInline(), not here.
+ *   - ESPN has no record at all (12), worth saying rather than leaving a
+ *     silent gap - it's also the ceiling on fast alerts for that player.
+ */
+function InjurySourceLine({ player }) {
+  const e = espnInjuryFor(player);
+
+  if (!player.espnId) return null;   // not yet backfilled; say nothing
+  if (!e) {
+    return (
+      <div className="injury-source">
+        <span className="injury-source-tag">ESPN</span>
+        <span className="injury-source-body injury-none-note">Not on the league injury report.</span>
+      </div>
+    );
+  }
+
+  const agrees = e.state === player.status;
+  const when = relativeInjuryTime(e.date);
+  const fresh = e.date && (Date.now() - Date.parse(e.date)) < INJURY_FRESH_MS;
+  const detail = espnDetailPhrase(e);
+  const ret = formatReturnDate(e.returnDate);
+
+  // Agreement with no return date has nothing to say. The return date is
+  // shown inline on the line above instead of here.
+  if (agrees && !fresh) return null;
+
+  return (
+    <div className="injury-source">
+      <span className="injury-source-tag">ESPN</span>
+      {when && <span className="injury-source-time">{when}</span>}
+      <span className="injury-source-body">
+        {agrees
+          ? <React.Fragment>Report updated{detail ? ` — ${detail}` : ""}.</React.Fragment>
+          : <React.Fragment>Lists him <strong>{e.status}</strong>{detail ? ` — ${detail}` : ""}.</React.Fragment>}
+        {ret && !agrees ? <span className="injury-return"> Est. return {ret}.</span> : null}
+      </span>
+      {!agrees && <span className="injury-disagree">Differs</span>}
+      {fresh && <span className="injury-fresh">New</span>}
+    </div>
+  );
+}
+
+/** The estimated return date, for the curated line itself. Only when the two
+ *  sources agree - when they disagree the date belongs with ESPN's status on
+ *  the second line, attributed, rather than appearing to be our claim. */
+function InjuryReturnInline({ player }) {
+  const e = espnInjuryFor(player);
+  if (!e || e.state !== player.status) return null;
+  const ret = formatReturnDate(e.returnDate);
+  if (!ret) return null;
+  return <span className="injury-return-inline"> · back ~{ret}</span>;
+}
+
 const ACTIVE_VISIBILITY_DAYS = 7;
 function isVisibleInInjuryReport(p) {
   if (p.status !== "active") return true;
@@ -11742,12 +11983,16 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
               <div className="sec-label">Injury Report</div>
               {sortedAdjustments.map((a, i) => (
                 <div key={i} className={"impact-note impact-" + a.status} data-tour={i === 0 ? "injury-notes" : undefined}>
-                  <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
-                  <span>
-                    <strong>{a.player}</strong> ({a.teamId} · {a.position}) is <strong>{a.status}</strong>
-                    {a.injury && a.injury.type ? " — " + a.injury.type : ""}
-                    <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury, teamId: a.teamId, teamName: a.teamName }} />
-                  </span>
+                  <div className="impact-head">
+                    <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
+                    <span>
+                      <strong>{a.player}</strong> ({a.teamId} · {a.position}) is <strong>{a.status}</strong>
+                      {a.injury && a.injury.type ? " — " + a.injury.type : ""}
+                      <InjuryReturnInline player={{ espnId: a.espnId, status: a.status }} />
+                      <InjuryInfoButton player={{ name: a.player, position: a.position, status: a.status, injury: a.injury, teamId: a.teamId, teamName: a.teamName }} />
+                    </span>
+                  </div>
+                  <InjurySourceLine player={{ espnId: a.espnId, status: a.status }} />
                 </div>
               ))}
             </div>
@@ -17485,11 +17730,15 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onSelectTeam, s
           <div className="injury-list">
             {injuryReport.map((p, i) => (
               <div key={i} className={"impact-note impact-" + p.status}>
-                <span>{p.status === "out" ? "⛔" : p.status === "questionable" ? "⚠️" : "✅"}</span>
-                <span>
-                  <strong>{p.name}</strong> ({p.position}) — <strong>{p.status}</strong>
-                  <InjuryInfoButton player={p} />
-                </span>
+                <div className="impact-head">
+                  <span>{p.status === "out" ? "⛔" : p.status === "questionable" ? "⚠️" : "✅"}</span>
+                  <span>
+                    <strong>{p.name}</strong> ({p.position}) — <strong>{p.status}</strong>
+                    <InjuryReturnInline player={p} />
+                    <InjuryInfoButton player={p} />
+                  </span>
+                </div>
+                <InjurySourceLine player={p} />
               </div>
             ))}
           </div>

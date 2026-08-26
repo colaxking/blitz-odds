@@ -14,7 +14,12 @@ import { getStore } from "@netlify/blobs";
 // to the already-running odds pipeline.
 
 const STORE_NAME = "blitz-site-data";
-const VALID_KEYS = new Set(["teams", "players", "schedule", "history", "preseason", "playoffs"]);
+// "espnInjuries" is the mirror of ESPN's league-wide injury feed. It is
+// NEVER the source of truth for a player's status - data/impact-players.json
+// ("players") is, and stays so. This is the second, sourced layer the injury
+// block renders underneath the curated one, plus what the poller diffs to
+// decide an alert is warranted.
+const VALID_KEYS = new Set(["teams", "players", "schedule", "history", "preseason", "playoffs", "espnInjuries"]);
 
 // Defensive safety net for the "players" key. The weekly-update task is
 // supposed to fetch-before-merge itself (see site-data-current.mts), but

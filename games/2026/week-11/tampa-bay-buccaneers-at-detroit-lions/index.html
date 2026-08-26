@@ -584,7 +584,13 @@
   .hd-week-sub { font-size: .82rem; color: var(--text-dim); }
   .hd-week > .home-btn { margin-left: auto; }
 
-  .hd-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  /* Same column structure as .hd-layout below (main + 340px rail, 22px
+     gutter), so the three record tiles span exactly the league table's width
+     and the streak tile lines up with the leaderboard/games rail. The inner
+     14px gap is the tiles' own rhythm and is deliberately tighter than the
+     22px gutter that separates the two columns. */
+  .hd-stats { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
+  .hd-stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .hd-tile { padding: 15px 16px 14px; position: relative; }
   .hd-tile .home-eyebrow { display: block; margin-bottom: 8px; padding-right: 62px; }
   .hd-val { display: flex; align-items: baseline; gap: 8px; font-size: 1.9rem; font-weight: 800; letter-spacing: -.02em; }
@@ -682,7 +688,10 @@
     .hd-greet-acts { width: 100%; }
     .hd-greet-acts .home-btn { flex: 1; }
     .hd-week > .home-btn { margin-left: 0; width: 100%; }
+    /* Single column stack: the main group dissolves so all four tiles sit
+       in one 2-up grid rather than three-then-one. */
     .hd-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .hd-stats-main { display: contents; }
     .hd-val { font-size: 1.5rem; }
     .hd-layout { display: flex; flex-direction: column; align-items: stretch; }
     .hd-main { display: contents; }
@@ -19154,6 +19163,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
 
       {leagues.length > 0 && (
         <div className="hd-stats">
+          <div className="hd-stats-main">
           <div className="home-card hd-tile">
             <span className="home-eyebrow">Overall record</span>
             <div className="hd-val">
@@ -19179,6 +19189,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
             <span className="home-eyebrow">Blitz follow rate</span>
             <div className="hd-val dim">—</div>
             <div className="hd-foot">Coming soon</div>
+          </div>
           </div>
 
           {streakLeague && (

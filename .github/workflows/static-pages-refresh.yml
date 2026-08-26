@@ -18,6 +18,20 @@ name: Blitz Odds - static pages refresh
 #   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
 #            Accept: application/vnd.github+json, Content-Type: application/json
 #   Body: {"ref":"main"}
+# COST NOTE. Every commit this job makes is a push to main, and every push
+# to main is a Netlify production deploy - 15 credits on a credit-based
+# plan. The `git diff --quiet` guard below is therefore the thing standing
+# between "the data changed" and "we paid to redeploy."
+#
+# That guard used to be defeated by the sitemap: build-static-pages.mjs
+# stamped today's date as <lastmod> on all ~350 regenerated URLs regardless
+# of whether anything changed, so the moment the date rolled over the file
+# differed and this job committed - a deploy a day for a timestamp. Fixed:
+# lastmod is now preserved for pages whose content is byte-identical, and
+# the script logs whether it wrote anything at all. A run that finds no
+# real change now leaves the tree clean and this job exits without
+# committing.
+#
 # Suggested cadence: every 2-3 hours is plenty - the underlying data (odds,
 # injuries, results) doesn't change faster than that, and each run rewrites
 # every page regardless of whether it changed (see build-static-pages.mjs

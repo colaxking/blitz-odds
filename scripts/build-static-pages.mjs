@@ -36,6 +36,38 @@ import path from "node:path";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+/**
+ * Writes `html` to `outPath`, and reports whether it actually differed from
+ * what was already there.
+ *
+ * The "changed?" answer is the point. Every run regenerates all ~350 pages,
+ * and before this the sitemap stamped today's date on all of them
+ * regardless - so the moment the date rolled over, sitemap.xml differed
+ * even when not a single page had. static-pages-refresh saw the diff,
+ * committed, pushed, and Netlify ran a production deploy: 15 credits a day
+ * for a timestamp, on a plan with 1,000 credits a month.
+ *
+ * It's also just wrong as SEO. lastmod is supposed to mean "this page
+ * changed"; a sitemap claiming 353 pages changed every single day teaches
+ * crawlers to ignore the field.
+ *
+ * Skipping the write when content matches is a small bonus - git compares
+ * content, not mtime, so it wasn't causing the churn - but there's no
+ * reason to rewrite 350 identical files either.
+ */
+async function writeIfChanged(outPath, html) {
+  let existing = null;
+  try {
+    existing = await readFile(outPath, "utf8");
+  } catch {
+    // New file - falls through to the write below.
+  }
+  if (existing === html) return false;
+  await mkdir(path.dirname(outPath), { recursive: true });
+  await writeFile(outPath, html, "utf8");
+  return true;
+}
+
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const SITE_BASE = "https://blitz-odds.com";
 
@@ -346,9 +378,8 @@ async function buildGamePage(template, data, period, game) {
   );
 
   const outPath = path.join(REPO_ROOT, "games", String(data.seasonYear), weekSlug, `${slugify(away.name)}-at-${slugify(home.name)}`, "index.html");
-  await mkdir(path.dirname(outPath), { recursive: true });
-  await writeFile(outPath, html, "utf8");
-  return canonicalPath;
+  const changed = await writeIfChanged(outPath, html);
+  return { path: canonicalPath, changed };
 }
 
 /** One schedule row for a given team/week/game - opponent, date, real result
@@ -552,9 +583,8 @@ async function buildTeamPage(template, data, team) {
   );
 
   const outPath = path.join(REPO_ROOT, "teams", slug, "index.html");
-  await mkdir(path.dirname(outPath), { recursive: true });
-  await writeFile(outPath, html, "utf8");
-  return canonicalPath;
+  const changed = await writeIfChanged(outPath, html);
+  return { path: canonicalPath, changed };
 }
 
 /* The tab routes. These were hash fragments ("/#news") until the URL-scheme
@@ -590,15 +620,19 @@ const TAB_PAGES = [
 async function buildTabPage(template, page) {
   const html = applyMeta(template, page);
   const outPath = path.join(REPO_ROOT, page.dir, "index.html");
-  await mkdir(path.dirname(outPath), { recursive: true });
-  await writeFile(outPath, html, "utf8");
-  return page.canonicalPath;
+  const changed = await writeIfChanged(outPath, html);
+  return { path: page.canonicalPath, changed };
 }
 
 /** Paths that once had a prerendered page and no longer should. */
 const RETIRED_PATHS = ["/archive"];
 
-async function updateSitemap(teamPaths, gamePaths, tabPaths = []) {
+/**
+ * @param entries  [{ path, changed }] for every page regenerated this run.
+ *                 `changed` decides whether the URL gets today's lastmod or
+ *                 keeps the one it already had.
+ */
+async function updateSitemap(entries) {
   const sitemapPath = path.join(REPO_ROOT, "sitemap.xml");
   const xml = await readFile(sitemapPath, "utf8");
   const today = new Date().toISOString().slice(0, 10);
@@ -648,6 +682,10 @@ async function updateSitemap(teamPaths, gamePaths, tabPaths = []) {
   const header = [];
   const kept = [];
   const seen = new Set();
+  // Prior lastmod per URL, captured before the strip loop throws those
+  // entries away. A page that didn't change this run keeps the date it
+  // already had rather than being restamped with today's.
+  const previousLastmod = new Map();
   let inUrlSet = false;
 
   for (const line of xml.split("\n")) {
@@ -659,6 +697,8 @@ async function updateSitemap(teamPaths, gamePaths, tabPaths = []) {
     }
     inUrlSet = true;
     const loc = m[1];
+    const priorDate = line.match(/<lastmod>([^<]*)<\/lastmod>/);
+    if (priorDate) previousLastmod.set(loc, priorDate[1]);
     if (isTeamOrGame(loc)) continue;      // regenerated below
     if (seen.has(loc)) continue;          // de-dupe anything already accumulated
     seen.add(loc);
@@ -666,16 +706,26 @@ async function updateSitemap(teamPaths, gamePaths, tabPaths = []) {
   }
 
   const fresh = [];
-  for (const p of [...tabPaths, ...teamPaths, ...gamePaths]) {
-    const loc = `${SITE_BASE}${p}`;
+  let restamped = 0;
+  for (const entry of entries) {
+    const loc = `${SITE_BASE}${entry.path}`;
     if (seen.has(loc)) continue;
     seen.add(loc);
-    fresh.push(`  <url><loc>${loc}</loc><lastmod>${today}</lastmod></url>`);
+    // Today only if the page really changed. Otherwise carry the existing
+    // date forward - and fall back to today only for a URL that has never
+    // been in the sitemap before, where there's nothing to carry.
+    const lastmod = entry.changed ? today : (previousLastmod.get(loc) || today);
+    if (entry.changed) restamped++;
+    fresh.push(`  <url><loc>${loc}</loc><lastmod>${lastmod}</lastmod></url>`);
   }
 
-  const out = [...header, ...kept, ...fresh, "</urlset>", ""].join("\n");
-  await writeFile(sitemapPath, out, "utf8");
-  return { kept: kept.length, fresh: fresh.length };
+  const body = [...header, ...kept, ...fresh, "</urlset>", ""].join("\n");
+  // Skip the write when the file is byte-identical. This is the whole point
+  // of the exercise: static-pages-refresh commits on any diff, and a commit
+  // is a push, which is a production deploy.
+  const changed = body !== xml;
+  if (changed) await writeFile(sitemapPath, body, "utf8");
+  return { kept: kept.length, fresh: fresh.length, restamped, changed };
 }
 
 async function main() {
@@ -684,33 +734,40 @@ async function main() {
   const template = await readFile(path.join(REPO_ROOT, "index.html"), "utf8");
 
   log(`Building ${data.teams.length} team pages...`);
-  const teamPaths = [];
+  const teamEntries = [];
   for (const team of data.teams) {
-    const p = await buildTeamPage(template, data, team);
-    teamPaths.push(p);
+    teamEntries.push(await buildTeamPage(template, data, team));
   }
 
   log("Building game pages...");
   const periods = getPeriods(data);
-  const gamePaths = [];
+  const gameEntries = [];
   for (const period of periods) {
     for (const game of period.games) {
-      const p = await buildGamePage(template, data, period, game);
-      if (p) gamePaths.push(p);
+      const entry = await buildGamePage(template, data, period, game);
+      if (entry) gameEntries.push(entry);
     }
   }
 
   log(`Building ${TAB_PAGES.length} tab pages...`);
-  const tabPaths = [];
+  const tabEntries = [];
   for (const page of TAB_PAGES) {
-    tabPaths.push(await buildTabPage(template, page));
+    tabEntries.push(await buildTabPage(template, page));
   }
 
-  log("Updating sitemap...");
-  const sitemap = await updateSitemap(teamPaths, gamePaths, tabPaths);
+  const entries = [...tabEntries, ...teamEntries, ...gameEntries];
+  const changedCount = entries.filter((e) => e.changed).length;
 
-  log(`Done. Wrote ${teamPaths.length} team pages, ${gamePaths.length} game pages, ${tabPaths.length} tab pages.`);
-  log(`Sitemap: ${sitemap.kept} kept + ${sitemap.fresh} regenerated = ${sitemap.kept + sitemap.fresh} URLs.`);
+  log("Updating sitemap...");
+  const sitemap = await updateSitemap(entries);
+
+  log(`Done. ${entries.length} pages checked, ${changedCount} rewritten (${entries.length - changedCount} unchanged).`);
+  log(`Sitemap: ${sitemap.kept} kept + ${sitemap.fresh} regenerated = ${sitemap.kept + sitemap.fresh} URLs, ${sitemap.restamped} restamped.`);
+  // The line the workflow's git-diff guard cares about: nothing written
+  // means nothing to commit, which means no production deploy.
+  log(sitemap.changed || changedCount > 0
+    ? "Changes on disk - static-pages-refresh will commit."
+    : "No changes on disk - static-pages-refresh will skip the commit (no deploy).");
 }
 
 main().catch((err) => {

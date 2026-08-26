@@ -634,8 +634,13 @@
   }
   .hd-row-badge { width: 62px; height: 62px; object-fit: contain; }
   .hd-row-name { font-size: 1rem; font-weight: 800; margin: 0 0 2px; }
+  .hd-req-badge { font-family: inherit; font-size: .64rem; font-weight: 800; letter-spacing: .06em;
+    text-transform: uppercase; padding: 3px 8px; border-radius: 999px; cursor: pointer;
+    background: rgba(var(--blitz-orange-rgb), .16); color: var(--blitz-orange);
+    border: 1px solid rgba(var(--blitz-orange-rgb), .45); }
+  .hd-req-badge:hover { background: rgba(var(--blitz-orange-rgb), .26); }
   .hd-row-fmt { font-size: .8rem; color: var(--text-dim); margin: 0 0 7px; }
-  .hd-row-meta { display: flex; gap: 12px; font-size: .74rem; color: var(--text-dim); }
+  .hd-row-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: .74rem; color: var(--text-dim); }
   .hd-col .home-eyebrow { display: block; margin-bottom: 5px; }
   .hd-big { font-size: 1.28rem; font-weight: 800; letter-spacing: -.01em; }
   .hd-big.accent { color: var(--accent); }
@@ -19887,6 +19892,18 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                         <div className="hd-row-meta">
                           <span>{l.memberCount} {l.memberCount === 1 ? "member" : "members"}</span>
                           <span>{l.visibility === "public" ? "Public" : "Private"}</span>
+                          {/* Owner-only, and only when something is actually
+                              waiting. The dashboard is the screen an owner
+                              lands on, so it's where a pending request has to
+                              surface - they may not open the league itself
+                              for days. */}
+                          {l.pendingRequests > 0 && (
+                            <button type="button" className="hd-req-badge"
+                              onClick={() => onOpenLeagues(l.leagueId)}
+                              title={`${l.pendingRequests} join request${l.pendingRequests === 1 ? "" : "s"} waiting for you`}>
+                              {l.pendingRequests} waiting
+                            </button>
+                          )}
                         </div>
                       </div>
                       <div className="hd-row-cols">

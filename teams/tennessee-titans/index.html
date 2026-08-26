@@ -3025,7 +3025,7 @@
       <tr><td>Week 4</td><td>@ Baltimore Ravens</td><td>Sun, Oct 4 1:00 PM ET</td><td>Model predicts Baltimore Ravens to win (39%)</td><td>Not played yet</td></tr>
       <tr><td>Week 5</td><td>vs Houston Texans</td><td>Sun, Oct 11 1:00 PM ET</td><td>Model predicts Houston Texans to win (26%)</td><td>Not played yet</td></tr>
       <tr><td>Week 6</td><td>@ Indianapolis Colts</td><td>Sun, Oct 18 1:00 PM ET</td><td>Model predicts Indianapolis Colts to win (30%)</td><td>Not played yet</td></tr>
-      <tr><td>Week 7</td><td>vs Cleveland Browns</td><td>Sun, Oct 25 1:00 PM ET</td><td>Model predicts Cleveland Browns to win (45%)</td><td>Not played yet</td></tr>
+      <tr><td>Week 7</td><td>vs Cleveland Browns</td><td>Sun, Oct 25 1:00 PM ET</td><td>Model predicts Cleveland Browns to win (48%)</td><td>Not played yet</td></tr>
       <tr><td>Week 8</td><td>@ Cincinnati Bengals</td><td>Sun, Nov 1 1:00 PM ET</td><td>Model predicts Tennessee Titans to win (50%)</td><td>Not played yet</td></tr>
       <tr><td>Week 9</td><td colspan="4">Bye week</td></tr>
       <tr><td>Week 10</td><td>vs Jacksonville Jaguars</td><td>Sun, Nov 15 1:00 PM ET</td><td>Model predicts Jacksonville Jaguars to win (17%)</td><td>Not played yet</td></tr>
@@ -4343,6 +4343,20 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Brenden Bates",
+        "position": "TE",
+        "espnId": "4362603",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T23:00:45.818Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -20481,9 +20495,15 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
         <div className="hd-main">
           {leagues.length > 0 && (
             <>
+              {/* No "Manage" link here on purpose: it landed on the leagues
+                  landing page, which is the same list of leagues this section
+                  already is, only to be clicked a second time. Every route it
+                  offered still exists and is now one hop shorter - View League
+                  -> Manage in the league header for settings and delete, the
+                  "N waiting" pill straight to the join-request queue, and the
+                  Create/Join buttons above for the search and create tabs. */}
               <div className="hd-sec-head">
                 <h3>My Leagues</h3>
-                <button type="button" className="hd-link" onClick={() => onOpenLeagues()}>Manage</button>
               </div>
               <div className="hd-leagues">
                 {leagues.map((l) => {

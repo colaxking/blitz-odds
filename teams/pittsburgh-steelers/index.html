@@ -3022,11 +3022,11 @@
       <tr><td>Week 1</td><td>vs Atlanta Falcons</td><td>Sun, Sep 13 1:00 PM ET</td><td>Model predicts Atlanta Falcons to win (26%)</td><td>Not played yet</td></tr>
       <tr><td>Week 2</td><td>@ New England Patriots</td><td>Sun, Sep 20 1:00 PM ET</td><td>Model predicts New England Patriots to win (5%)</td><td>Not played yet</td></tr>
       <tr><td>Week 3</td><td>vs Cincinnati Bengals</td><td>Sun, Sep 27 1:00 PM ET</td><td>Model predicts Cincinnati Bengals to win (47%)</td><td>Not played yet</td></tr>
-      <tr><td>Week 4</td><td>@ Cleveland Browns</td><td>Thu, Oct 1 8:15 PM ET</td><td>Model predicts Cleveland Browns to win (33%)</td><td>Not played yet</td></tr>
+      <tr><td>Week 4</td><td>@ Cleveland Browns</td><td>Thu, Oct 1 8:15 PM ET</td><td>Model predicts Cleveland Browns to win (36%)</td><td>Not played yet</td></tr>
       <tr><td>Week 5</td><td>vs Indianapolis Colts</td><td>Sun, Oct 11 1:00 PM ET</td><td>Model predicts Indianapolis Colts to win (28%)</td><td>Not played yet</td></tr>
       <tr><td>Week 6</td><td>@ Tampa Bay Buccaneers</td><td>Sun, Oct 18 1:00 PM ET</td><td>Model predicts Tampa Bay Buccaneers to win (23%)</td><td>Not played yet</td></tr>
       <tr><td>Week 7</td><td>@ New Orleans Saints</td><td>Sun, Oct 25 9:30 AM ET</td><td>Model predicts New Orleans Saints to win (22%)</td><td>Not played yet</td></tr>
-      <tr><td>Week 8</td><td>vs Cleveland Browns</td><td>Sun, Nov 1 1:00 PM ET</td><td>Model predicts Cleveland Browns to win (37%)</td><td>Not played yet</td></tr>
+      <tr><td>Week 8</td><td>vs Cleveland Browns</td><td>Sun, Nov 1 1:00 PM ET</td><td>Model predicts Cleveland Browns to win (40%)</td><td>Not played yet</td></tr>
       <tr><td>Week 9</td><td colspan="4">Bye week</td></tr>
       <tr><td>Week 10</td><td>@ Cincinnati Bengals</td><td>Sun, Nov 15 8:20 PM ET</td><td>Model predicts Cincinnati Bengals to win (42%)</td><td>Not played yet</td></tr>
       <tr><td>Week 11</td><td>@ Philadelphia Eagles</td><td>Sun, Nov 22 4:25 PM ET</td><td>Model predicts Philadelphia Eagles to win (37%)</td><td>Not played yet</td></tr>
@@ -4347,6 +4347,20 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Brenden Bates",
+        "position": "TE",
+        "espnId": "4362603",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T23:00:45.818Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -20485,9 +20499,15 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
         <div className="hd-main">
           {leagues.length > 0 && (
             <>
+              {/* No "Manage" link here on purpose: it landed on the leagues
+                  landing page, which is the same list of leagues this section
+                  already is, only to be clicked a second time. Every route it
+                  offered still exists and is now one hop shorter - View League
+                  -> Manage in the league header for settings and delete, the
+                  "N waiting" pill straight to the join-request queue, and the
+                  Create/Join buttons above for the search and create tabs. */}
               <div className="hd-sec-head">
                 <h3>My Leagues</h3>
-                <button type="button" className="hd-link" onClick={() => onOpenLeagues()}>Manage</button>
               </div>
               <div className="hd-leagues">
                 {leagues.map((l) => {

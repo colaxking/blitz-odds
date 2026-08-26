@@ -3007,7 +3007,7 @@
   <p><strong>Odds (DraftKings):</strong> CIN -4.5 · ML CIN -218 / CLE +180 · O/U 45.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Cleveland Browns</strong> - CIN 38% / CLE 62%</p>
+  <p>Predicted winner: <strong>Cleveland Browns</strong> - CIN 41% / CLE 59%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -3029,6 +3029,7 @@
 
   <h2>Injury report</h2>
   <ul>
+<li><strong>Brenden Bates</strong> (CLE · TE) - questionable - Undisclosed</li>
 <li><strong>Shemar Stewart</strong> (CIN · DE) - out - Hyperextended knee (no ligament damage)</li>
 <li><strong>Jeremiah Owusu-Koramoah</strong> (CLE · LB) - out - Chronic neck injury</li>
 <li><strong>Alex Wright</strong> (CLE · DE) - out - Achilles</li>
@@ -4339,6 +4340,20 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Brenden Bates",
+        "position": "TE",
+        "espnId": "4362603",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T23:00:45.818Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -20477,9 +20492,15 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
         <div className="hd-main">
           {leagues.length > 0 && (
             <>
+              {/* No "Manage" link here on purpose: it landed on the leagues
+                  landing page, which is the same list of leagues this section
+                  already is, only to be clicked a second time. Every route it
+                  offered still exists and is now one hop shorter - View League
+                  -> Manage in the league header for settings and delete, the
+                  "N waiting" pill straight to the join-request queue, and the
+                  Create/Join buttons above for the search and create tabs. */}
               <div className="hd-sec-head">
                 <h3>My Leagues</h3>
-                <button type="button" className="hd-link" onClick={() => onOpenLeagues()}>Manage</button>
               </div>
               <div className="hd-leagues">
                 {leagues.map((l) => {

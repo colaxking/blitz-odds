@@ -3017,7 +3017,7 @@
     <thead><tr><th>Week</th><th>Opponent</th><th>Date</th><th>Prediction</th><th>Result</th></tr></thead>
     <tbody>
       <tr><td>Preseason Week 1</td><td>vs Carolina Panthers</td><td>Sat, Aug 15 1:00 PM ET</td><td>Model predicts Buffalo Bills to win (94%)</td><td>CAR 14 - 29 BUF (W, prediction correct)</td></tr>
-      <tr><td>Preseason Week 2</td><td>@ Cleveland Browns</td><td>Sat, Aug 22 1:00 PM ET</td><td>Model predicts Buffalo Bills to win (85%)</td><td>BUF 31 - 7 CLE (W, prediction correct)</td></tr>
+      <tr><td>Preseason Week 2</td><td>@ Cleveland Browns</td><td>Sat, Aug 22 1:00 PM ET</td><td>Model predicts Buffalo Bills to win (87%)</td><td>BUF 31 - 7 CLE (W, prediction correct)</td></tr>
       <tr><td>Preseason Week 3</td><td>vs Pittsburgh Steelers</td><td>Thu, Aug 27 7:00 PM ET</td><td>Model predicts Buffalo Bills to win (93%)</td><td>Not played yet</td></tr>
       <tr><td>Week 1</td><td>@ Houston Texans</td><td>Sun, Sep 13 1:00 PM ET</td><td>Model predicts Buffalo Bills to win (71%)</td><td>Not played yet</td></tr>
       <tr><td>Week 2</td><td>vs Detroit Lions</td><td>Thu, Sep 17 8:15 PM ET</td><td>Model predicts Buffalo Bills to win (68%)</td><td>Not played yet</td></tr>
@@ -4343,6 +4343,20 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Brenden Bates",
+        "position": "TE",
+        "espnId": "4362603",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T23:00:45.818Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -20481,9 +20495,15 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
         <div className="hd-main">
           {leagues.length > 0 && (
             <>
+              {/* No "Manage" link here on purpose: it landed on the leagues
+                  landing page, which is the same list of leagues this section
+                  already is, only to be clicked a second time. Every route it
+                  offered still exists and is now one hop shorter - View League
+                  -> Manage in the league header for settings and delete, the
+                  "N waiting" pill straight to the join-request queue, and the
+                  Create/Join buttons above for the search and create tabs. */}
               <div className="hd-sec-head">
                 <h3>My Leagues</h3>
-                <button type="button" className="hd-link" onClick={() => onOpenLeagues()}>Manage</button>
               </div>
               <div className="hd-leagues">
                 {leagues.map((l) => {

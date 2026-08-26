@@ -3031,12 +3031,12 @@
       <tr><td>Week 10</td><td>vs Pittsburgh Steelers</td><td>Sun, Nov 15 8:20 PM ET</td><td>Model predicts Cincinnati Bengals to win (58%)</td><td>Not played yet</td></tr>
       <tr><td>Week 11</td><td>@ Washington Commanders</td><td>Mon, Nov 23 8:15 PM ET</td><td>Model predicts Cincinnati Bengals to win (51%)</td><td>Not played yet</td></tr>
       <tr><td>Week 12</td><td>vs New Orleans Saints</td><td>Sun, Nov 29 1:00 PM ET</td><td>Model predicts New Orleans Saints to win (30%)</td><td>Not played yet</td></tr>
-      <tr><td>Week 13</td><td>@ Cleveland Browns</td><td>Sun, Dec 6 1:00 PM ET</td><td>Model predicts Cleveland Browns to win (38%)</td><td>Not played yet</td></tr>
+      <tr><td>Week 13</td><td>@ Cleveland Browns</td><td>Sun, Dec 6 1:00 PM ET</td><td>Model predicts Cleveland Browns to win (41%)</td><td>Not played yet</td></tr>
       <tr><td>Week 14</td><td>vs Kansas City Chiefs</td><td>Sun, Dec 13 4:25 PM ET</td><td>Model predicts Kansas City Chiefs to win (22%)</td><td>Not played yet</td></tr>
       <tr><td>Week 15</td><td>@ Carolina Panthers</td><td>Sun, Dec 20 1:00 PM ET</td><td>Model predicts Cincinnati Bengals to win (56%)</td><td>Not played yet</td></tr>
       <tr><td>Week 16</td><td>@ Indianapolis Colts</td><td>Mon, Dec 28 8:15 PM ET</td><td>Model predicts Indianapolis Colts to win (28%)</td><td>Not played yet</td></tr>
       <tr><td>Week 17</td><td>vs Baltimore Ravens</td><td>Thu, Dec 31 8:15 PM ET</td><td>Model predicts Baltimore Ravens to win (41%)</td><td>Not played yet</td></tr>
-      <tr><td>Week 18</td><td>vs Cleveland Browns</td><td>Sun, Jan 10 TBD</td><td>Model predicts Cleveland Browns to win (43%)</td><td>Not played yet</td></tr>
+      <tr><td>Week 18</td><td>vs Cleveland Browns</td><td>Sun, Jan 10 TBD</td><td>Model predicts Cleveland Browns to win (46%)</td><td>Not played yet</td></tr>
     </tbody>
   </table>
 
@@ -4346,6 +4346,20 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Brenden Bates",
+        "position": "TE",
+        "espnId": "4362603",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T23:00:45.818Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -20484,9 +20498,15 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
         <div className="hd-main">
           {leagues.length > 0 && (
             <>
+              {/* No "Manage" link here on purpose: it landed on the leagues
+                  landing page, which is the same list of leagues this section
+                  already is, only to be clicked a second time. Every route it
+                  offered still exists and is now one hop shorter - View League
+                  -> Manage in the league header for settings and delete, the
+                  "N waiting" pill straight to the join-request queue, and the
+                  Create/Join buttons above for the search and create tabs. */}
               <div className="hd-sec-head">
                 <h3>My Leagues</h3>
-                <button type="button" className="hd-link" onClick={() => onOpenLeagues()}>Manage</button>
               </div>
               <div className="hd-leagues">
                 {leagues.map((l) => {

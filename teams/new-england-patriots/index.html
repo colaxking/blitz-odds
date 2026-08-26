@@ -3018,7 +3018,7 @@
     <tbody>
       <tr><td>Preseason Week 1</td><td>vs Indianapolis Colts</td><td>Thu, Aug 13 7:30 PM ET</td><td>Model predicts New England Patriots to win (86%)</td><td>IND 13 - 13 NE (L, prediction missed)</td></tr>
       <tr><td>Preseason Week 2</td><td>vs Philadelphia Eagles</td><td>Sat, Aug 22 7:00 PM ET</td><td>Model predicts New England Patriots to win (92%)</td><td>PHI 21 - 24 NE (W, prediction correct)</td></tr>
-      <tr><td>Preseason Week 3</td><td>@ Cleveland Browns</td><td>Thu, Aug 27 8:00 PM ET</td><td>Model predicts New England Patriots to win (89%)</td><td>Not played yet</td></tr>
+      <tr><td>Preseason Week 3</td><td>@ Cleveland Browns</td><td>Thu, Aug 27 8:00 PM ET</td><td>Model predicts New England Patriots to win (90%)</td><td>Not played yet</td></tr>
       <tr><td>Week 1</td><td>@ Seattle Seahawks</td><td>Wed, Sep 9 8:20 PM ET</td><td>Model predicts New England Patriots to win (52%)</td><td>Not played yet</td></tr>
       <tr><td>Week 2</td><td>vs Pittsburgh Steelers</td><td>Sun, Sep 20 1:00 PM ET</td><td>Model predicts New England Patriots to win (95%)</td><td>Not played yet</td></tr>
       <tr><td>Week 3</td><td>@ Jacksonville Jaguars</td><td>Sun, Sep 27 1:00 PM ET</td><td>Model predicts New England Patriots to win (67%)</td><td>Not played yet</td></tr>
@@ -4343,6 +4343,20 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Brenden Bates",
+        "position": "TE",
+        "espnId": "4362603",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T23:00:45.818Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -20481,9 +20495,15 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
         <div className="hd-main">
           {leagues.length > 0 && (
             <>
+              {/* No "Manage" link here on purpose: it landed on the leagues
+                  landing page, which is the same list of leagues this section
+                  already is, only to be clicked a second time. Every route it
+                  offered still exists and is now one hop shorter - View League
+                  -> Manage in the league header for settings and delete, the
+                  "N waiting" pill straight to the join-request queue, and the
+                  Create/Join buttons above for the search and create tabs. */}
               <div className="hd-sec-head">
                 <h3>My Leagues</h3>
-                <button type="button" className="hd-link" onClick={() => onOpenLeagues()}>Manage</button>
               </div>
               <div className="hd-leagues">
                 {leagues.map((l) => {

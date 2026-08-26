@@ -3007,7 +3007,7 @@
   <p><strong>Odds (DraftKings):</strong> IND -2.5 · ML IND -135 / CLE +114 · O/U 43.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Indianapolis Colts</strong> - IND 58% / CLE 42%</p>
+  <p>Predicted winner: <strong>Indianapolis Colts</strong> - IND 62% / CLE 38%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -3030,6 +3030,7 @@
   <h2>Injury report</h2>
   <ul>
 <li><strong>Tyler Warren</strong> (IND · TE) - questionable - Groin injury</li>
+<li><strong>Brenden Bates</strong> (CLE · TE) - questionable - Undisclosed</li>
 <li><strong>Alec Pierce</strong> (IND · WR) - out - Ankle</li>
 <li><strong>Jeremiah Owusu-Koramoah</strong> (CLE · LB) - out - Chronic neck injury</li>
 <li><strong>Alex Wright</strong> (CLE · DE) - out - Achilles</li>
@@ -4340,6 +4341,20 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Brenden Bates",
+        "position": "TE",
+        "espnId": "4362603",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T23:00:45.818Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -20478,9 +20493,15 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
         <div className="hd-main">
           {leagues.length > 0 && (
             <>
+              {/* No "Manage" link here on purpose: it landed on the leagues
+                  landing page, which is the same list of leagues this section
+                  already is, only to be clicked a second time. Every route it
+                  offered still exists and is now one hop shorter - View League
+                  -> Manage in the league header for settings and delete, the
+                  "N waiting" pill straight to the join-request queue, and the
+                  Create/Join buttons above for the search and create tabs. */}
               <div className="hd-sec-head">
                 <h3>My Leagues</h3>
-                <button type="button" className="hd-link" onClick={() => onOpenLeagues()}>Manage</button>
               </div>
               <div className="hd-leagues">
                 {leagues.map((l) => {

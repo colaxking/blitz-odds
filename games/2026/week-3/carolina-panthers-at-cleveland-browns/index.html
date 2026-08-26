@@ -3007,7 +3007,7 @@
   <p><strong>Odds (DraftKings):</strong> CAR -1.5 · ML CAR -125 / CLE +105 · O/U 39.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Cleveland Browns</strong> - CAR 30% / CLE 70%</p>
+  <p>Predicted winner: <strong>Cleveland Browns</strong> - CAR 33% / CLE 67%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -3030,6 +3030,7 @@
   <h2>Injury report</h2>
   <ul>
 <li><strong>Chuba Hubbard</strong> (CAR · RB) - questionable - Hamstring strain</li>
+<li><strong>Brenden Bates</strong> (CLE · TE) - questionable - Undisclosed</li>
 <li><strong>Ikem Ekwonu</strong> (CAR · OT) - out - Ruptured patellar tendon (right knee) - surgically repaired</li>
 <li><strong>Nic Scourton</strong> (CAR · OLB) - out - Torn ACL</li>
 <li><strong>Taylor Moton</strong> (CAR · RT) - out - Blood clot in lung</li>
@@ -4342,6 +4343,20 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Brenden Bates",
+        "position": "TE",
+        "espnId": "4362603",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-08-26T23:00:45.818Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -20480,9 +20495,15 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
         <div className="hd-main">
           {leagues.length > 0 && (
             <>
+              {/* No "Manage" link here on purpose: it landed on the leagues
+                  landing page, which is the same list of leagues this section
+                  already is, only to be clicked a second time. Every route it
+                  offered still exists and is now one hop shorter - View League
+                  -> Manage in the league header for settings and delete, the
+                  "N waiting" pill straight to the join-request queue, and the
+                  Create/Join buttons above for the search and create tabs. */}
               <div className="hd-sec-head">
                 <h3>My Leagues</h3>
-                <button type="button" className="hd-link" onClick={() => onOpenLeagues()}>Manage</button>
               </div>
               <div className="hd-leagues">
                 {leagues.map((l) => {

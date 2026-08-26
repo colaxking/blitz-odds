@@ -16022,7 +16022,7 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
   );
 }
 
-function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague, autoJoinCode, autoJoinCodeError, joinLinkError, initialSubTab }) {
+function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague, autoJoinCode, autoJoinCodeError, joinLinkError, initialSubTab, onGoHome }) {
   const [copiedCode, setCopiedCode] = useState(null);
   const [pendingLeaveId, setPendingLeaveId] = useState(null);
   const [leavingId, setLeavingId] = useState(null);
@@ -16044,6 +16044,16 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   function selectSubTab(name) {
     setSubTab(name);
     setMobileTab(name === "mine" ? "mine" : name);
+  }
+
+  // Create and Join are full-width pages reached from the Home dashboard,
+  // so their breadcrumb leads back there rather than to the leagues landing
+  // page - which, with the League tab gone, isn't where the user came from.
+  // Falls back to the landing page if no handler was passed, so the crumb is
+  // never a dead button.
+  function goHome() {
+    if (typeof onGoHome === "function") onGoHome();
+    else selectSubTab("mine");
   }
 
 
@@ -16102,7 +16112,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
     return (
       <div className="leagues-page leagues-page-wide">
         <nav className="lgx-crumb" aria-label="Breadcrumb">
-          <button type="button" onClick={() => selectSubTab("mine")}>Leagues</button>
+          <button type="button" onClick={goHome}>Home</button>
           <span aria-hidden="true">›</span>
           <span aria-current="page">Join League</span>
         </nav>
@@ -16125,7 +16135,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
     return (
       <div className="leagues-page leagues-page-wide">
         <nav className="lgx-crumb" aria-label="Breadcrumb">
-          <button type="button" onClick={() => selectSubTab("mine")}>Leagues</button>
+          <button type="button" onClick={goHome}>Home</button>
           <span aria-hidden="true">›</span>
           <span aria-current="page">Create League</span>
         </nav>
@@ -17589,7 +17599,7 @@ function LeagueRequestsPanel({ auth, league, onPendingChange }) {
   );
 }
 
-function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, onOpenLeagueRoute }) {
+function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, onOpenLeagueRoute, onGoHome }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   // /leagues/{id} opens straight into that league. Initial value only -
   // once someone navigates inside the tab, their clicks own this, not the
@@ -17761,9 +17771,14 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
     return (
       <div className="leagues-page">
         <div className="league-view">
-          <button className="back-btn" onClick={() => setSelectedLeagueId(null)}>
+          {/* Home, not the leagues landing page: with the League tab gone,
+              people arrive at a league from the Home dashboard, so that's
+              where "back" should return them. Clearing selectedLeagueId
+              first keeps the fallback (no onGoHome passed) behaving the way
+              this button always did. */}
+          <button className="back-btn" onClick={() => { setSelectedLeagueId(null); if (typeof onGoHome === "function") onGoHome(); }}>
             <ChevronIcon direction="left" size={13} />
-            <span>Back to Leagues</span>
+            <span>Back to Home</span>
           </button>
           <LeagueHeader
             auth={auth}
@@ -17828,6 +17843,7 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
       autoJoinCodeError={pendingJoin && pendingJoin.type === "code" ? autoJoinError : null}
       joinLinkError={pendingJoin && pendingJoin.type === "leagueId" ? autoJoinError : null}
       initialSubTab={initialSubTab}
+      onGoHome={onGoHome}
     />
   );
 }
@@ -20392,12 +20408,17 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
   );
 }
 
-function TabBar({ activeTab, onSelectTab, leaguesEnabled }) {
+/* No League tab. Leagues are reached from the Home dashboard (My Leagues,
+ * Create League, Join League), the account menu, and the /leagues route -
+ * all of which still work. The tab itself was redundant with the Home
+ * dashboard once that landed, and it cost a slot in a bar that has to fit
+ * on a phone. LEAGUES_UI_ENABLED still gates the tab's *route*, so nothing
+ * about linking to /leagues changed. */
+function TabBar({ activeTab, onSelectTab }) {
   const tabs = [
     ...(HOME_TAB_ENABLED ? [{ id: "home", label: "Home", icon: "\u{1F3E0}" }] : []),
     { id: "games", label: "Games", icon: "\u{1F3C8}" },
     { id: "picks", label: "Hot Picks", icon: "\u{1F525}" },
-    ...(leaguesEnabled ? [{ id: "league", label: "League", icon: "\u{1F3C6}" }] : []),
     { id: "news", label: "News", icon: "\u{1F4F0}" },
     { id: "archive", label: "Archive", icon: "\u{1F5C2}\u{FE0F}", href: "/historical/index.html" },
   ];
@@ -21533,7 +21554,7 @@ function App() {
         </div>
       </header>
 
-      <TabBar activeTab={activeTab} onSelectTab={selectTab} leaguesEnabled={LEAGUES_UI_ENABLED} />
+      <TabBar activeTab={activeTab} onSelectTab={selectTab} />
 
       {activeTab === "home" && HOME_TAB_ENABLED && (
         auth.status === "in" ? (
@@ -21646,6 +21667,7 @@ function App() {
           initialSubTab={leagueIntent && leagueIntent.subTab}
           initialLeagueSubTab={leagueIntent && leagueIntent.leagueSubTab}
           onOpenLeagueRoute={syncLeagueRoute}
+          onGoHome={backToWeek}
         />
       )}
 

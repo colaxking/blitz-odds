@@ -228,7 +228,17 @@
   .ir-empty { color:var(--dim); font-size:.85rem; padding:8px 2px; }
 
   /* ---- Track player (adds to the curated file) ---- */
-  .ir-btn-track { border-color:rgba(79,209,197,.4); color:var(--accent); }
+  /* This panel styles its own buttons. Nothing else on the page does, so
+     they render as native light-grey chrome - fine against a light page,
+     but this card is dark and an accent-coloured label on native grey is
+     unreadable. */
+  #injuryReviewCard button {
+    background:var(--card-bg); border:1px solid var(--card-border); color:var(--text);
+    font-family:inherit; font-size:.78rem; padding:5px 11px; border-radius:7px; cursor:pointer;
+  }
+  #injuryReviewCard button:hover { border-color:var(--accent-dim); }
+  #injuryReviewCard button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .ir-btn-track { border-color:rgba(79,209,197,.45) !important; color:var(--accent) !important; }
   .ir-form { margin-top:10px; padding:12px; border-radius:8px;
              border:1px dashed rgba(79,209,197,.34); background:rgba(79,209,197,.05); }
   .ir-form[hidden], .ir-ok[hidden] { display:none; }
@@ -252,8 +262,10 @@
   .ir-impact-row { display:flex; align-items:center; gap:9px; max-width:340px; }
   .ir-impact-row input[type=range] { flex:1; accent-color:var(--accent); }
   .ir-impact-val { font-weight:700; font-variant-numeric:tabular-nums; min-width:1.4em; text-align:right; }
-  .ir-btn-primary { background:var(--accent-dim); border-color:var(--accent-dim); color:#fff; font-weight:600; }
-  .ir-btn-primary:hover { background:var(--accent); border-color:var(--accent); color:#06231f; }
+  .ir-btn-primary { background:var(--accent-dim) !important; border-color:var(--accent-dim) !important;
+                    color:#fff !important; font-weight:600; }
+  .ir-btn-primary:hover { background:var(--accent) !important; border-color:var(--accent) !important;
+                          color:#06231f !important; }
   .ir-btn-primary[disabled] { opacity:.55; cursor:default; }
   .ir-ok { margin-top:9px; font-size:.78rem; color:var(--good); display:flex; gap:7px;
            align-items:flex-start; line-height:1.45; }

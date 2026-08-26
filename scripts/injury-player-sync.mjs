@@ -252,7 +252,17 @@ async function fetchPendingAdds(doPublish) {
   const res = await fetch(`${SITE_BASE}/.netlify/functions/injury-player-add`, {
     headers: { "x-injury-review-secret": secret },
   });
-  if (!res.ok) throw new Error(`injury-player-add returned ${res.status}: ${await res.text()}`);
+  // A 404 means the endpoint isn't in production yet - which also means no
+  // button exists to have staged anything, so there's nothing to lose by
+  // continuing. Every other failure (401, 5xx) means staged players may
+  // exist but can't be read, and publishing over them would delete them, so
+  // those still stop the run. Don't let a missing endpoint block espnId
+  // resolution and status sync, which are this job's actual work.
+  if (res.status === 404) {
+    log("injury-player-add isn't deployed yet - no staged adds to absorb.");
+    return [];
+  }
+  if (!res.ok) throw new Error(`injury-player-add returned ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
   return Array.isArray(data.pending) ? data.pending : [];
 }

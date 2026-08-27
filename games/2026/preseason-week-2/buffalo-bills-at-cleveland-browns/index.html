@@ -1428,11 +1428,23 @@
        model's line, the market's, and the edge between them are the reason
        to read the row at all. */
     .pbp-row .pbp-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; grid-column: 2 / -1; grid-row: 2; }
-    .pbp-row .pbp-meta .pbp-cell-sub { display: inline; margin-left: 6px; }
+    /* The confidence and straight-up rows wrap their cells in a div so they
+       stay one grid child on desktop; without this it stays a block here and
+       the line and the O/U stack onto two rows for no reason. */
+    .pbp-row .pbp-meta > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+    .pbp-row .pbp-meta .pbp-cell-sub { display: inline; margin: 0; }
     .pbp-row .pbp-why { grid-column: 2 / -1; grid-row: 3; }
     .pbp-mob-k { display: inline; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); font-weight: 800; margin-right: 3px; }
     .pbp-big { font-size: 1rem; }
     .pbp-big small { font-size: 0.5rem; }
+    /* The panel note is useful but it was eating four lines before any data
+       showed up. */
+    .pbp-panel-head { padding: 11px 14px; gap: 4px; }
+    .pbp-panel-note { font-size: 0.72rem; line-height: 1.4; }
+    .pbp-fmt-tab { padding: 8px 12px; }
+    .pbp-fmt-tab span { font-size: 0.64rem; }
+    .pbp-gate { padding: 14px; gap: 12px; }
+    .pbp-node { width: 76px; }
   }
 
   /* ---- what changed ---- */
@@ -1552,9 +1564,27 @@
   .pbc-chip b { color: var(--text); font-weight: 700; }
 
   @media (max-width: 760px) {
-    .pbc-card { grid-template-columns: 1fr; gap: 10px; }
-    .pbc-verdict-strip { gap: 16px; }
+    .pbc-card { grid-template-columns: 1fr; gap: 10px; padding: 13px 14px; }
+    /* Numbers first, explanation second. The three counts are the summary;
+       reading six lines of prose to reach them is the wrong order on a
+       phone, where the prose filled most of the first screen. */
+    .pbc-verdict-strip { gap: 10px 16px; padding: 14px; }
+    .pbc-verdict-strip .lead { order: 2; flex-basis: 100%; font-size: 0.8rem; }
+    .pbc-stat { order: 1; flex: 1; }
     .pbc-stat .n { font-size: 1.2rem; }
+    /* The axis was sized for a desktop column and left a lot of empty
+       vertical space once the card went single-column. */
+    .pbc-axis { height: 76px; }
+    .pbc-axis-rail, .pbc-axis-move { top: 36px; }
+    .pbc-axis-move { top: 35px; }
+    .pbc-mark.is-model { top: 10px; }
+    .pbc-mark.is-open, .pbc-mark.is-now { top: 30px; }
+    .pbc-mark.is-low i { height: 30px; }
+    .pbc-who-line { font-size: 0.86rem; }
+    /* The three chips wrap to two rows at phone width. Left alone: the
+       labels are too wide to fit one row at 360px, and shrinking the text
+       enough to try still wrapped while making the counts harder to read. */
+    .pbc-filters { gap: 6px; }
   }
 
   /* ---- section heads / empty ---- */

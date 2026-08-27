@@ -14537,13 +14537,23 @@ function PlaybookSurvivorSheet({ week, sheet, onSubmit, submitting, result }) {
         </span>
       </div>
 
-      {heldBack && (
+      {/* The plan front-loads (see computeSurvivorPath's objective), so most
+          weeks its pick simply is the best team available and there's no
+          tension to explain. Saying so plainly beats manufacturing a
+          rationalisation for a decision that didn't involve a trade-off. */}
+      {heldBack ? (
         <div className="pb-why">
           <div className="h">Why {now.team}, and not {heldBack.team}</div>
           <b>{heldBack.team} is the plan's Week {heldBack.week} pick.</b> They're the better team this
           week ({Math.round(thisWeekProbs[heldBack.team].prob * 100)}% against {now.team}'s {nowPct}%), but
           they're worth {Math.round(heldBack.prob * 100)}% in Week {heldBack.week} and nothing else on the
           board covers that week as well. Spending them now is what costs pools the season.
+        </div>
+      ) : (
+        <div className="pb-why">
+          <div className="h">Why {now.team}</div>
+          <b>They're the safest team on the board this week at {nowPct}%</b>, and the plan doesn't need
+          them later — every week after this one is covered by someone else. No reason to save them.
         </div>
       )}
 
@@ -18596,32 +18606,47 @@ function computeSurvivorGuidance(week, usedTeams) {
 
 // ---- Survivor path planner ------------------------------------------------
 // computeSurvivorGuidance() above answers "what should I spend this week?"
-// by charging each team for the best week it still has left. That's the
-// right answer to that question, but it only ever looks one week ahead of
-// the decision, and it re-derives the same opportunity costs from scratch
-// every week without ever committing to a plan.
+// by charging each team for the best week it still has left. That's a
+// one-step lookahead: it can't see that some *other* team may cover that
+// future week just as well. This plans the whole remaining season at once -
+// every week assigned a team, each team spendable exactly once.
 //
-// This answers the bigger question: given that each team can be spent
-// exactly once, what does the whole rest of the season look like? That's an
-// assignment problem - weeks on one side, teams on the other, each cell
-// worth that team's win probability in that week - and the thing being
-// maximised is the probability of surviving every remaining week at once,
-// i.e. the product of the chosen cells.
+// WHAT IS BEING MAXIMISED, AND WHY IT ISN'T THE OBVIOUS THING.
+// The obvious objective is the probability of surviving every remaining
+// week: the product of the chosen weeks' win probabilities. That is the
+// right objective for "run the whole table", and it is the wrong one for a
+// survivor pool. A pool ends when one entry is left, so the thing worth
+// maximising is how long you last relative to everyone else, not the ~2%
+// chance of going 18-for-18. Optimising the product also produces visibly
+// bad advice: it will spend a 70% team this week to save a 92% team for a
+// Week 17 slot worth 93%, trading 22 points today for one point in a week
+// you reach maybe one time in fifty.
 //
-// NOT SOLVED OPTIMALLY, ON PURPOSE. The exact answer is a maximum-weight
-// bipartite matching (Hungarian, O(n^3)); this is a greedy seed followed by
-// local improvement, which is a few dozen lines instead of a few hundred
-// and runs in the main thread without anyone noticing. Greedy alone is
-// meaningfully worse than optimal on this shape of data, so the improvement
-// passes are doing real work, not decoration - but a plan this produces is
-// "very good", not "provably best", and the wording in the UI is careful
+// So the objective here is expected weeks survived:
+//
+//     E[weeks] = SUM over k of P(survive weeks 1..k)
+//              = SUM over k of ( PRODUCT over i<=k of p_i )
+//
+// which is a sum of prefix products. This front-loads safe teams
+// automatically, because an early probability multiplies into every later
+// term, while a Week 17 probability is discounted by the ~2% chance of ever
+// getting there. No arbitrary discount factor is needed - the survival
+// curve is the discount.
+//
+// THE COST OF THAT CHOICE. The product objective is separable, so it's a
+// maximum-weight bipartite matching solvable exactly. A sum of prefix
+// products is not: the value of a cell depends on everything assigned
+// before it, so week order matters and the clean assignment formulation is
+// gone. This is therefore a heuristic - two seeds, then local improvement
+// against the real objective, keeping whichever is better. It produces a
+// very good plan, not a provably optimal one, and the UI copy is careful
 // not to claim otherwise.
 //
-// Working in log space rather than multiplying probabilities directly:
-// sixteen weeks of ~0.75 multiplies out to around 0.01, which is fine in a
-// float but makes the comparisons between two candidate plans a contest
-// between very small numbers. Adding logs keeps the arithmetic in a sane
-// range and turns "maximise the product" into "maximise the sum".
+// Greedy is a much stronger baseline under this objective than under the
+// product (taking the best team available each week is already roughly
+// front-loading), but it still fails in a specific, common way: it will
+// spend the only team that covers a near-future week, and the local search
+// is what catches that.
 const survivorPathCache = new Map();
 
 function computeSurvivorPath(startWeek, usedTeams) {
@@ -18635,95 +18660,134 @@ function computeSurvivorPath(startWeek, usedTeams) {
   for (let w = startWeek; w <= lastWeek; w++) weeks.push(w);
 
   // prob[week][team]. A team missing from a week's map is on bye (or the
-  // schedule doesn't have that week yet) and simply can't be assigned there.
+  // schedule doesn't cover that week yet) and can't be assigned there.
   const probByWeek = {};
   weeks.forEach((w) => { probByWeek[w] = survivorWeekProbabilities(w); });
-
-  const cells = [];
-  weeks.forEach((w) => {
-    const map = probByWeek[w];
-    Object.keys(map).forEach((team) => {
-      if (usedSet.has(team)) return;
-      cells.push({ week: w, team: team, prob: map[team].prob });
-    });
-  });
-  if (!cells.length) {
-    const empty = { weeks: [], survivalToEnd: null, note: "no-teams" };
-    survivorPathCache.set(cacheKey, empty);
-    return empty;
-  }
-
-  // Seed: take the highest-probability cell anywhere on the board, then the
-  // next one whose week and team are both still free, and so on. Better
-  // than filling weeks in chronological order, which spends the best teams
-  // early and leaves the late weeks with whatever is left.
-  cells.sort((a, b) => b.prob - a.prob);
-  const teamByWeek = {};
-  const weekByTeam = {};
-  cells.forEach((c) => {
-    if (teamByWeek[c.week] || weekByTeam[c.team]) return;
-    teamByWeek[c.week] = c.team;
-    weekByTeam[c.team] = c.week;
-  });
 
   const probAt = (w, team) => {
     const entry = probByWeek[w] && probByWeek[w][team];
     return entry ? entry.prob : null;
   };
-  // log(0) is -Infinity, which would poison a comparison; no real
-  // probability here is ever 0, but a missing cell must be unusable rather
-  // than merely bad.
-  const score = (pr) => (pr == null || pr <= 0 ? -Infinity : Math.log(pr));
 
-  const assignedWeeks = weeks.filter((w) => teamByWeek[w]);
   const allTeams = Object.keys(
     weeks.reduce((acc, w) => { Object.keys(probByWeek[w]).forEach((t) => { acc[t] = 1; }); return acc; }, {})
   ).filter((t) => !usedSet.has(t));
 
-  // Local improvement, run to a fixed point (capped, so a pathological
-  // cycle can't hang the tab).
-  for (let pass = 0; pass < 6; pass++) {
-    let improved = false;
-
-    // 1-opt: swap a week's team for one no week is using. Freeing a team can
-    // only ever help a later pass, so any strict gain here is a real gain.
-    for (const w of assignedWeeks) {
-      const current = teamByWeek[w];
-      const currentScore = score(probAt(w, current));
-      for (const t of allTeams) {
-        if (weekByTeam[t]) continue;
-        const cand = score(probAt(w, t));
-        if (cand > currentScore + 1e-12) {
-          delete weekByTeam[current];
-          teamByWeek[w] = t;
-          weekByTeam[t] = w;
-          improved = true;
-          break;
-        }
-      }
-    }
-
-    // 2-opt: trade two weeks' teams with each other. This is the move that
-    // fixes greedy's characteristic mistake - a team grabbed early for a
-    // good-but-not-great week when it was the only real answer to a later
-    // one.
-    for (let i = 0; i < assignedWeeks.length; i++) {
-      for (let j = i + 1; j < assignedWeeks.length; j++) {
-        const w1 = assignedWeeks[i], w2 = assignedWeeks[j];
-        const t1 = teamByWeek[w1], t2 = teamByWeek[w2];
-        if (!t1 || !t2) continue;
-        const before = score(probAt(w1, t1)) + score(probAt(w2, t2));
-        const after = score(probAt(w1, t2)) + score(probAt(w2, t1));
-        if (after > before + 1e-12) {
-          teamByWeek[w1] = t2; teamByWeek[w2] = t1;
-          weekByTeam[t2] = w1; weekByTeam[t1] = w2;
-          improved = true;
-        }
-      }
-    }
-
-    if (!improved) break;
+  if (!allTeams.length) {
+    const empty = { weeks: [], survivalToEnd: null, expectedWeeks: 0, evenOddsWeek: null };
+    survivorPathCache.set(cacheKey, empty);
+    return empty;
   }
+
+  /** Expected weeks survived for an assignment: the sum of the running
+   *  survival probability across the plan, in week order. */
+  function objective(teamByWeek) {
+    let running = 1;
+    let total = 0;
+    for (const w of weeks) {
+      const team = teamByWeek[w];
+      if (!team) continue;
+      const pr = probAt(w, team);
+      if (pr == null || pr <= 0) continue;
+      running *= pr;
+      total += running;
+    }
+    return total;
+  }
+
+  /** Chronological greedy: best team still available, week by week. A
+   *  strong seed under this objective precisely because it front-loads. */
+  function seedChronological() {
+    const byWeek = {};
+    const taken = new Set();
+    for (const w of weeks) {
+      let bestTeam = null, bestProb = -1;
+      for (const t of Object.keys(probByWeek[w])) {
+        if (usedSet.has(t) || taken.has(t)) continue;
+        const pr = probByWeek[w][t].prob;
+        if (pr > bestProb) { bestProb = pr; bestTeam = t; }
+      }
+      if (bestTeam) { byWeek[w] = bestTeam; taken.add(bestTeam); }
+    }
+    return byWeek;
+  }
+
+  /** Global greedy: highest-probability cell anywhere, then the next whose
+   *  week and team are both still free. Weaker here than chronological (it
+   *  scatters good teams into late weeks that barely matter) but it can win
+   *  on a schedule with a lopsided early slate, so it's worth the few
+   *  microseconds to try both.  */
+  function seedGlobal() {
+    const cells = [];
+    weeks.forEach((w) => {
+      Object.keys(probByWeek[w]).forEach((t) => {
+        if (usedSet.has(t)) return;
+        cells.push({ week: w, team: t, prob: probByWeek[w][t].prob });
+      });
+    });
+    cells.sort((a, b) => b.prob - a.prob);
+    const byWeek = {};
+    const taken = new Set();
+    cells.forEach((c) => {
+      if (byWeek[c.week] || taken.has(c.team)) return;
+      byWeek[c.week] = c.team;
+      taken.add(c.team);
+    });
+    return byWeek;
+  }
+
+  /** 1-opt then 2-opt, both scored against the real objective rather than a
+   *  per-cell proxy - with prefix products a move that looks locally worse
+   *  can improve the whole plan, and vice versa. Capped so a pathological
+   *  cycle can't hang the tab. */
+  function improve(byWeek) {
+    let current = { ...byWeek };
+    let currentScore = objective(current);
+    const assigned = () => weeks.filter((w) => current[w]);
+
+    for (let pass = 0; pass < 6; pass++) {
+      let improved = false;
+
+      // Swap a week's team for one no week is using.
+      for (const w of assigned()) {
+        const inUse = new Set(Object.values(current));
+        for (const t of allTeams) {
+          if (inUse.has(t)) continue;
+          if (probAt(w, t) == null) continue;
+          const trial = { ...current, [w]: t };
+          const score = objective(trial);
+          if (score > currentScore + 1e-12) {
+            current = trial; currentScore = score; improved = true; break;
+          }
+        }
+      }
+
+      // Trade two weeks' teams. This is the move that catches greedy's
+      // characteristic mistake: spending the one team that covers a
+      // near-future week well.
+      const list = assigned();
+      for (let i = 0; i < list.length; i++) {
+        for (let j = i + 1; j < list.length; j++) {
+          const w1 = list[i], w2 = list[j];
+          const t1 = current[w1], t2 = current[w2];
+          if (!t1 || !t2) continue;
+          if (probAt(w1, t2) == null || probAt(w2, t1) == null) continue;
+          const trial = { ...current, [w1]: t2, [w2]: t1 };
+          const score = objective(trial);
+          if (score > currentScore + 1e-12) {
+            current = trial; currentScore = score; improved = true;
+          }
+        }
+      }
+
+      if (!improved) break;
+    }
+    return { assignment: current, score: currentScore };
+  }
+
+  const a = improve(seedChronological());
+  const b = improve(seedGlobal());
+  const teamByWeek = (a.score >= b.score ? a : b).assignment;
 
   let cumulative = 1;
   const rows = weeks
@@ -18739,8 +18803,8 @@ function computeSurvivorPath(startWeek, usedTeams) {
         isHome: entry.isHome,
         prob: entry.prob,
         // Probability of still being alive *after* this week, having
-        // followed the plan from startWeek. This is what makes the plan a
-        // forecast rather than a list.
+        // followed the plan from startWeek. This is the number the plan is
+        // actually built to maximise the sum of.
         survival: cumulative,
       };
     });
@@ -18748,13 +18812,9 @@ function computeSurvivorPath(startWeek, usedTeams) {
   const result = {
     weeks: rows,
     survivalToEnd: rows.length ? rows[rows.length - 1].survival : null,
-    // E[weeks survived] = sum over k of P(survive at least k weeks), which
-    // is just the sum of the running survival numbers. Reads far better
-    // than the probability of running the whole table, which is a
-    // discouraging (and largely irrelevant) number in any real pool.
+    // The objective itself: E[weeks survived] = sum of P(alive after week k).
     expectedWeeks: rows.reduce((sum, r) => sum + r.survival, 0),
-    // The last week the plan is still more likely than not to reach. The
-    // honest headline for a survivor pool: nobody survives on expectation.
+    // The last week the plan is still more likely than not to reach.
     evenOddsWeek: (rows.find((r) => r.survival < 0.5) || {}).week || null,
   };
   survivorPathCache.set(cacheKey, result);

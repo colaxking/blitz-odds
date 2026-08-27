@@ -261,6 +261,10 @@
       <div class="label">Unique visitors</div>
       <div class="value" id="kpiVisitors">—</div>
     </div>
+    <div class="kpi" id="kpiBookCompareCard">
+      <div class="label">Book comparisons opened</div>
+      <div class="value" id="kpiBookCompare">—</div>
+    </div>
     <div class="kpi" id="kpiFavTeamCard">
       <div class="label">Top favorite</div>
       <div class="value" id="kpiFavTeam">—</div>
@@ -324,6 +328,22 @@
     <div class="card">
       <h2>Box scores opened by team</h2>
       <div class="bar-list" id="boxscoreTeamList"></div>
+    </div>
+    <div class="card">
+      <h2>Playbook screens opened</h2>
+      <div class="bar-list" id="playbookSubtabList"></div>
+    </div>
+    <div class="card">
+      <h2>Pool format picked on the preview</h2>
+      <div class="bar-list" id="playbookFormatList"></div>
+    </div>
+    <div class="card">
+      <h2>Gate CTA clicks</h2>
+      <div class="bar-list" id="gateCtaList"></div>
+    </div>
+    <div class="card">
+      <h2>Gate CTA by surface</h2>
+      <div class="bar-list" id="gateSurfaceList"></div>
     </div>
     <div class="card">
       <h2>Top pages viewed</h2>
@@ -554,6 +574,22 @@
       var display = labels[k] || k;
       out[display] = dist[k];
       newsPlacementLabelToRaw[display] = k;
+    });
+    return out;
+  }
+
+  // "signin" is the preview's sign-in wall, "pro" the subscription gate on
+  // What Changed and Betting Angles. Different asks, so they're reported
+  // apart rather than as one conversion number.
+  var gateSurfaceLabelToRaw = {};
+  function gateSurfaceBarData(dist) {
+    var labels = { signin: "Sign-in wall", pro: "Pro gate" };
+    var out = {};
+    gateSurfaceLabelToRaw = {};
+    Object.keys(dist || {}).forEach(function (k) {
+      var display = labels[k] || k;
+      out[display] = dist[k];
+      gateSurfaceLabelToRaw[display] = k;
     });
     return out;
   }
@@ -861,6 +897,7 @@
   function render(data) {
     document.getElementById("kpiPageviews").textContent = fmtNum(data.totalPageviews);
     document.getElementById("kpiVisitors").textContent = fmtNum(data.uniqueVisitors);
+    document.getElementById("kpiBookCompare").textContent = fmtNum(data.bookCompareOpens || 0);
     document.getElementById("kpiFavTeam").textContent = data.topFavoriteTeam || "—";
     document.getElementById("kpiTopLoc").textContent = data.topLocation || "—";
     document.getElementById("kpiTeamPageViews").textContent = fmtNum(data.teamPageViews || 0);
@@ -888,6 +925,12 @@
       return teamOriginLabelToRaw[label] || label;
     });
     renderBarList("boxscoreTeamList", data.boxscoreClicksByTeam, "No box score clicks yet", "boxscoreTeam");
+    renderBarList("playbookSubtabList", data.playbookSubtabViews, "No Playbook activity yet", "playbookSubtab");
+    renderBarList("playbookFormatList", data.playbookFormatViews, "No format switches yet", "playbookFormat");
+    renderBarList("gateCtaList", data.gateCtaClicks, "No gate clicks yet", "gateCta");
+    renderBarList("gateSurfaceList", gateSurfaceBarData(data.gateCtaBySurface), "No gate clicks yet", "gateSurface", function (label) {
+      return gateSurfaceLabelToRaw[label] || label;
+    });
     renderBarList("pageviewsByPathList", data.pageviewsByPath, "No pageview data yet", "pathname");
     renderBarList("referrerList", data.referrerBreakdown, "No referrer data yet", "referrer");
     renderBarList("themeList", themeBarData(data.themeDistribution), "No preference data yet", "theme", function (label) {

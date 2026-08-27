@@ -199,6 +199,11 @@ function emptySummary(now: number, range: Range) {
     newsClicksByPlacement: {} as Record<string, number>,
     teamClicksByOrigin: {} as Record<string, number>,
     boxscoreClicksByTeam: {} as Record<string, number>,
+    playbookSubtabViews: {} as Record<string, number>,
+    playbookFormatViews: {} as Record<string, number>,
+    gateCtaClicks: {} as Record<string, number>,
+    gateCtaBySurface: {} as Record<string, number>,
+    bookCompareOpens: 0,
     historyPageviews: 0,
     historyGameClicksByTeam: {} as Record<string, number>,
     historyClicksByType: {} as Record<string, number>,
@@ -378,6 +383,34 @@ export default async (req: Request, _context: Context) => {
     // --- newsClicksByPlacement: ticker (week view) vs. Team News panel
     // (per-team page) - two separate surfaces, same event type ---
     const newsClicksByPlacement = sortedCounts(newsClicks, (r) => r.placement);
+
+    // --- Playbook: which of the four sub-screens people open. The redesign
+    // split one tab into four and this is the only measure of whether that
+    // was worth doing ---
+    const playbookSubtabViews = sortedCounts(
+      validRecords.filter((r) => r.type === "playbook_subtab"),
+      (r) => r.subtab
+    );
+
+    // --- playbookFormatViews: which pool format visitors pick on the
+    // signed-out preview. The only signal about a visitor's format before
+    // they have an account and a league to read it from ---
+    const playbookFormatViews = sortedCounts(
+      validRecords.filter((r) => r.type === "playbook_format"),
+      (r) => r.format
+    );
+
+    // --- gateCtaClicks / gateCtaBySurface: the conversion event for the
+    // gated surfaces. Split by surface because the sign-in wall on the
+    // preview and the Pro gate on What Changed / Betting Angles are asking
+    // for different things and will not convert at the same rate ---
+    const gateCtas = validRecords.filter((r) => r.type === "gate_cta");
+    const gateCtaClicks = sortedCounts(gateCtas, (r) => r.action);
+    const gateCtaBySurface = sortedCounts(gateCtas, (r) => r.surface);
+
+    // --- bookCompareOpens: how often anyone opens the per-book price
+    // comparison. Worth knowing before any affiliate work is wired to it ---
+    const bookCompareOpens = validRecords.filter((r) => r.type === "book_compare").length;
 
     // --- teamClicksByOrigin: game-card click vs. the favorites-bar
     // quick-nav chip - how much the favorites shortcut actually gets used ---
@@ -588,6 +621,11 @@ export default async (req: Request, _context: Context) => {
       newsClicksByPlacement,
       teamClicksByOrigin,
       boxscoreClicksByTeam,
+      playbookSubtabViews,
+      playbookFormatViews,
+      gateCtaClicks,
+      gateCtaBySurface,
+      bookCompareOpens,
       historyPageviews,
       historyGameClicksByTeam,
       historyClicksByType,

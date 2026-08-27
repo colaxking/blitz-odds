@@ -32,6 +32,13 @@ const VALID_TYPES = new Set([
   "history_week_select",
   "history_game_click",
   "history_team_game_click",
+  // Playbook. The tab has four sub-screens and a paywall gate, none of which
+  // were observable before - gate_cta in particular is the conversion event
+  // for every gated surface.
+  "playbook_subtab",
+  "playbook_format",
+  "gate_cta",
+  "book_compare",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -151,7 +158,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, referrerHost, nav, filter, value } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, referrerHost, nav, filter, value, subtab, format, action, surface } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -210,6 +217,21 @@ export default async (req: Request, context: Context) => {
     if (type === "boxscore_click") {
       if (away) record.away = String(away).slice(0, 64);
       if (home) record.home = String(home).slice(0, 64);
+    }
+
+    if (type === "playbook_subtab" && subtab) {
+      record.subtab = String(subtab).slice(0, 64);
+    }
+
+    if (type === "playbook_format" && format) {
+      record.format = String(format).slice(0, 64);
+    }
+
+    if (type === "gate_cta") {
+      if (action) record.action = String(action).slice(0, 64);
+      // "signin" is the preview's sign-in wall, "pro" the subscription gate.
+      // Kept apart because they convert on different things.
+      if (surface === "signin" || surface === "pro") record.surface = surface;
     }
 
     // Historical archive events (see js/analytics.js header comment for

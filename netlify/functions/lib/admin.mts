@@ -156,13 +156,49 @@ export async function identityAdminFetch(
   path: string,
   init: RequestInit = {}
 ): Promise<Response> {
-  const base = `${new URL(req.url).origin}/.netlify/identity`;
+  const origin = new URL(req.url).origin;
+
+  // The v1 proxy first. It is the only caller here that can hold a real
+  // Identity SERVICE token (see identity-admin-proxy.js), and it is the only
+  // thing that works for the FIRST admin: GoTrue's /admin routes require the
+  // admin role, so bootstrapping with the caller's own token is circular -
+  // it 401s until the role exists, and the role is what we came to grant.
+  const proxySecret = process.env.INTERNAL_PROXY_SECRET;
+  if (proxySecret) {
+    try {
+      const res = await fetch(`${origin}/.netlify/functions/identity-admin-proxy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-internal-proxy-secret": proxySecret },
+        body: JSON.stringify({
+          path,
+          method: init.method || "GET",
+          body: init.body ? JSON.parse(init.body as string) : undefined,
+        }),
+      });
+      if (res.ok) {
+        const envelope: any = await res.json();
+        if (envelope.ok) {
+          cachedSource = "proxy";
+          return new Response(envelope.body, {
+            status: envelope.status,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+      }
+      // Proxy unavailable or misconfigured - fall through to the token chain
+      // below rather than failing outright, so an operator who has set
+      // IDENTITY_ADMIN_TOKEN by hand is unaffected.
+    } catch {
+      /* fall through */
+    }
+  }
+
   const candidates = adminTokenCandidates(req, context);
   if (!candidates.length) throw new Error("No Identity admin token available");
 
   let last: Response | null = null;
   for (const candidate of candidates) {
-    const res = await fetch(`${base}${path}`, {
+    const res = await fetch(`${origin}/.netlify/identity${path}`, {
       ...init,
       headers: {
         "Content-Type": "application/json",

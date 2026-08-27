@@ -425,20 +425,47 @@
   }
   .cmd-fav-btn:hover { transform: scale(1.12); }
   .cmd-fav-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .cmd-legend-toggle {
-    flex-shrink: 0; display: flex; align-items: center; gap: 5px; background: none;
-    border: 1px solid var(--card-border); border-radius: 999px; color: var(--text-dim);
-    font-size: 0.72rem; font-weight: 700; padding: 5px 10px; cursor: pointer; transition: border-color 0.15s, color 0.15s;
-    margin-left: auto;
+  /* Game type picker: what the reader's own pool scores, which is what the
+     Blitz Edge row on every card below reads through. Accent-tinted rather
+     than the outline treatment the legend toggle used, because unlike that
+     toggle it holds state worth noticing at a glance. */
+  .cmd-gametype { position: relative; flex-shrink: 0; margin-left: auto; }
+  .gametype-trigger {
+    display: flex; align-items: center; gap: 6px; background: rgba(var(--accent-rgb),0.10);
+    border: 1px solid rgba(var(--accent-rgb),0.45); border-radius: 999px; color: var(--accent);
+    font-size: 0.72rem; font-weight: 700; padding: 5px 10px; cursor: pointer; white-space: nowrap;
+    transition: background 0.15s;
   }
-  .cmd-legend-toggle:hover, .cmd-legend-toggle.open { border-color: var(--accent); color: var(--accent); }
+  .gametype-trigger:hover { background: rgba(var(--accent-rgb),0.18); }
+  .gametype-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .gametype-trigger .week-nav-chevron { color: inherit; }
+  .gametype-icon { height: 13px; width: auto; display: block; flex: 0 0 auto; }
+  .gametype-label-short { display: none; }
+  .gametype-panel {
+    position: absolute; top: calc(100% + 10px); right: 0;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35); padding: 8px; min-width: 232px; z-index: 30;
+  }
+  .gametype-group-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim);
+    font-weight: 700; padding: 4px 12px 6px;
+  }
+  .gametype-item {
+    display: block; width: 100%; background: none; border: none; color: var(--text); text-align: left;
+    padding: 9px 12px; border-radius: 8px; cursor: pointer; transition: background 0.12s;
+  }
+  .gametype-item:hover { background: rgba(var(--accent-rgb),0.08); }
+  .gametype-item.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); }
+  .gametype-item-name { font-size: 0.86rem; font-weight: 700; display: block; }
+  .gametype-item-desc { font-size: 0.7rem; color: var(--text-dim); display: block; margin-top: 2px; }
+  .gametype-item.active .gametype-item-desc { color: rgba(var(--accent-rgb),0.85); }
   @media (max-width: 720px) {
     .cmd-bar { padding: 6px 8px; gap: 6px; }
     .week-nav-trigger { font-size: 0.74rem; padding: 4px 4px; gap: 4px; }
-    .cmd-legend-toggle {
-      padding: 0; width: 26px; height: 26px; justify-content: center; border-radius: 50%;
-    }
-    .cmd-legend-toggle .cmd-legend-label { display: none; }
+  }
+  @media (max-width: 480px) {
+    .gametype-label-full { display: none; }
+    .gametype-label-short { display: inline; }
   }
 
   .favorites-bar {
@@ -1403,7 +1430,19 @@
   .cb-logo { height: 26px; width: auto; display: block; flex: 0 0 auto; }
   .cb-conf { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; white-space: nowrap; }
   .cb-conf-lbl { font-size: 0.72rem; color: var(--text-dim); }
+  .cb-conf-team { font-size: 0.82rem; font-weight: 800; color: var(--text); }
   .cb-conf-pct { font-size: 0.98rem; font-weight: 800; color: var(--win); font-variant-numeric: tabular-nums; }
+  /* A muted read (no ats edge, no line posted, a survivor team worth
+     holding) is the model declining to recommend - it keeps the row's
+     shape but drops the brand mark and the win-green, so a glance down a
+     week of cards separates calls from non-calls. */
+  .cb-edge.is-muted { background: rgba(148,163,184,0.08); }
+  .cb-conf-pct.is-muted { color: var(--text-dim); }
+  .cb-dash { color: var(--text-dim); font-size: 1rem; line-height: 1; flex: 0 0 auto; }
+  .cb-note {
+    border-top: 1px dashed var(--card-border); padding: 6px 12px; text-align: center;
+    font-size: 0.68rem; color: var(--text-dim); line-height: 1.45;
+  }
   .cb-odds {
     border-top: 1px solid var(--card-border); padding: 7px 12px; text-align: center;
     font-size: 0.74rem; color: var(--text-dim); font-variant-numeric: tabular-nums;
@@ -1513,10 +1552,13 @@
     border-color: rgba(var(--out-rgb),0.65); font-weight: 700;
   }
   .rank-bad-significant { background: var(--out); color: var(--pill-bad-fill-text); border-color: var(--out); font-weight: 800; }
+  /* Now lives inside a card's Full Details panel, directly under the pills
+     it explains, so the top margin (and no bottom one) is what separates it
+     from the stat table above. */
   .gradation-legend {
     display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 0.68rem;
     color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border);
-    border-radius: 8px; padding: 8px 12px; margin-bottom: 14px;
+    border-radius: 8px; padding: 8px 12px; margin-top: 10px;
   }
   .gradation-legend-group { display: flex; align-items: center; gap: 6px; }
   .gradation-legend-label { font-weight: 600; color: var(--text); margin-right: 2px; }
@@ -10394,6 +10436,24 @@ const LEAGUES_UI_ENABLED = true;
 const DEFAULT_SPORTSBOOK_ID = "draftkings";
 const SPORTSBOOK_STORAGE_KEY = "blitz-odds-sportsbook";
 
+// The Games tab's game-type selector. Deliberately the same four formats a
+// league can be run in, because the whole point of the control is to make
+// the Games tab answer the question the reader's own pool actually asks -
+// a straight-up player wants a winner, an ats player wants a side of the
+// line, and the two reads routinely disagree. The ids match league
+// `format` values 1:1 so both surfaces run through computeBlitzEdge().
+const GAME_TYPE_STORAGE_KEY = "blitz-odds-game-type";
+const DEFAULT_GAME_TYPE = "straight_up";
+// `short` is what a phone-width command bar shows. Only ats actually needs
+// shortening - "SU"/"Surv" would save a few pixels the bar doesn't need and
+// cost the reader the word.
+const GAME_TYPES = [
+  { id: "straight_up", label: "Straight Up", short: "Straight Up", desc: "Just pick the winner" },
+  { id: "confidence", label: "Confidence", short: "Confidence", desc: "Rank picks by points" },
+  { id: "ats", label: "Against the Spread", short: "ATS", desc: "Pick a side of the line" },
+  { id: "survivor", label: "Survivor", short: "Survivor", desc: "One team a week, no repeats" },
+];
+
 // iOS Safari doesn't reliably honor `body { overflow: hidden }` as a scroll
 // lock - the page can still rubber-band scroll behind an open modal, and
 // when the style is removed the browser's viewport metrics can end up out
@@ -13173,7 +13233,7 @@ function AddToLeagueSheet({ game, away, home, week, auth, onClose }) {
   );
 }
 
-function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGame, context, live, week, sportsbookId, tz, hideFullMatchupLink, auth, onOpenLeagues }) {
+function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGame, context, live, week, sportsbookId, tz, hideFullMatchupLink, auth, onOpenLeagues, gameType, gameTypeContext }) {
   const home = context.getTeam(game.home);
   const away = context.getTeam(game.away);
   if (!home || !away) return null;
@@ -13211,8 +13271,6 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   }), [game.home, game.away, context.isHistorical, home, away, homePlayers, awayPlayers, weather]);
 
   const homeIsWinner = prediction.predictedWinner === home.id;
-  const homePct = (prediction.homeWinProbability * 100).toFixed(0);
-  const awayPct = (prediction.awayWinProbability * 100).toFixed(0);
   const allAdjustments = [
     ...prediction.homeAdjustments.map(a => ({ ...a, teamId: home.id, teamName: home.name })),
     ...prediction.awayAdjustments.map(a => ({ ...a, teamId: away.id, teamName: away.name }))
@@ -13232,6 +13290,26 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   );
   const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
   const rationale = buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket });
+
+  // The combo row's recommendation, read through whichever game type the
+  // command bar is set to. Same computeBlitzEdge() a league pick card runs,
+  // so the Games tab and a league of that format never disagree.
+  const activeGameType = gameType || DEFAULT_GAME_TYPE;
+  const blitzEdge = computeBlitzEdge({
+    format: activeGameType,
+    game: {
+      home: game.home,
+      away: game.away,
+      spread: odds ? odds.spread : null,
+      favorite: odds ? odds.favorite : null,
+    },
+    prediction,
+    maxConfidence: gameTypeContext?.confidence?.max,
+    suggestedConfidence: gameTypeContext?.confidence?.byGame?.[`${game.away}-${game.home}`],
+    survivor: gameTypeContext?.survivor
+      ? survivorCandidateForGame(gameTypeContext.survivor, game.away, game.home)
+      : null,
+  });
 
   let actualWinnerId = null;
   let predictionCorrect = null;
@@ -13341,14 +13419,22 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
       </div>
 
       <div className="combo-block" data-tour="combo-row">
-        <div className="cb-edge">
-          <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="cb-logo" />
-          <span className="cb-conf">
-            <TeamLogo teamId={prediction.predictedWinner} size={32} />
-            <span className="cb-conf-lbl">confidence at</span>
-            <span className="cb-conf-pct">{homeIsWinner ? homePct : awayPct}%</span>
-          </span>
-        </div>
+        {blitzEdge && (
+          <>
+            <div className={"cb-edge" + (blitzEdge.muted ? " is-muted" : "")}>
+              {blitzEdge.muted
+                ? <span className="cb-dash" aria-hidden="true">—</span>
+                : <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="cb-logo" />}
+              <span className="cb-conf">
+                {blitzEdge.teamId && <TeamLogo teamId={blitzEdge.teamId} size={32} />}
+                {blitzEdge.teamLabel && <span className="cb-conf-team">{blitzEdge.teamLabel}</span>}
+                {blitzEdge.noEdgeLabel && <span className="cb-conf-team">No edge</span>}
+                <span className={"cb-conf-pct" + (blitzEdge.muted ? " is-muted" : "")}>{blitzEdge.value}</span>
+              </span>
+            </div>
+            {blitzEdge.note && <div className="cb-note">{blitzEdge.note}</div>}
+          </>
+        )}
         <div className="cb-odds">
           {odds ? (
             <>
@@ -13463,6 +13549,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
                 <div>Pass <DiffPill offRank={home.stats.offense.rankPass} defRank={away.stats.defense.rankPass} offTeamId={home.id} /></div>
               </div>
             </div>
+            {/* The gradation key used to sit under the week's command bar,
+                permanently taking up a row above the schedule to explain
+                pills most readers never scrolled to. It belongs next to the
+                pills it decodes instead. */}
+            <GradationLegend />
           </div>
 
           {sortedAdjustments.length > 0 && (
@@ -13612,12 +13703,63 @@ function GradationLegend() {
   );
 }
 
-function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGame, sportsbookId, tz, auth, onOpenLeagues }) {
+const confidenceGuidanceCache = new Map();
+
+/** Confidence-format only: a 1..N points ranking for the whole week, least
+ *  lopsided game first, matching what LeagueWeekPanel suggests inside a
+ *  league. Reuses survivorWeekProbabilities()'s cached per-week predictions
+ *  rather than re-running PredictionEngine over all 16 games. */
+function computeConfidenceGuidance(week) {
+  if (confidenceGuidanceCache.has(week)) return confidenceGuidanceCache.get(week);
+  const probs = survivorWeekProbabilities(week);
+  const ranked = getGamesForWeek(week)
+    .map(g => ({
+      key: `${g.away}-${g.home}`,
+      gap: probs[g.home] ? Math.abs(probs[g.home].prob - 0.5) : null,
+    }))
+    .filter(r => r.gap != null)
+    .sort((a, b) => a.gap - b.gap);
+  const byGame = {};
+  ranked.forEach((r, i) => { byGame[r.key] = i + 1; });
+  const guidance = { max: ranked.length, byGame };
+  confidenceGuidanceCache.set(week, guidance);
+  return guidance;
+}
+
+/** Week-wide context the selected game type needs, computed once per week
+ *  instead of once per card. Straight-up and ats are per-game reads and
+ *  need nothing here. Survivor on the Games tab ranks against the full
+ *  slate (no used-team list exists outside a league), so it answers "best
+ *  spend available this week" rather than "best spend still left to you". */
+function buildGameTypeContext(week, gameType) {
+  if (gameType === "confidence") return { confidence: computeConfidenceGuidance(week) };
+  if (gameType === "survivor") return { survivor: computeSurvivorGuidance(week, []) };
+  return null;
+}
+
+/** The better of a game's two teams as a survivor play, plus whether it's
+ *  the whole week's best spend - same shape LeagueWeekPanel.survivorFor()
+ *  hands BlitzEdgeRow. */
+function survivorCandidateForGame(guidance, awayId, homeId) {
+  if (!guidance) return null;
+  const options = [awayId, homeId]
+    .map(teamId => guidance.byTeam[teamId])
+    .filter(Boolean)
+    .sort((a, b) => a.rank - b.rank);
+  const candidate = options[0] || null;
+  return {
+    candidate,
+    isWeekBest: !!(candidate && guidance.best && candidate.team === guidance.best.team),
+  };
+}
+
+function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGame, sportsbookId, tz, auth, onOpenLeagues, gameType }) {
   const scheduledGames = getGamesForWeek(week);
   const liveMap = useLiveScores(week);
   const context = getWeekContext(week);
   const games = useMemo(() => sortGamesForDisplay(scheduledGames, favorites, liveMap, context), [scheduledGames, favorites, liveMap, context]);
   const byeTeams = useMemo(() => getByeTeams(week), [week]);
+  const gameTypeContext = useMemo(() => buildGameTypeContext(week, gameType), [week, gameType]);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   useSportsEventJsonLd(games, seasonYear);
   if (!games.length) return <p>No schedule data for this week yet.</p>;
@@ -13663,6 +13805,8 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             tz={tz}
             auth={auth}
             onOpenLeagues={onOpenLeagues}
+            gameType={gameType}
+            gameTypeContext={gameTypeContext}
           />
         ))}
       </div>
@@ -14199,7 +14343,7 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr }) {
  *  out of sync with what the week view shows for the same matchup.
  *  hideFullMatchupLink suppresses GameCard's own "Full matchup ->" link,
  *  since we're already on that page. */
-function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, onGoHome, sportsbookId, tz, auth, onOpenLeagues }) {
+function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, onGoHome, sportsbookId, tz, auth, onOpenLeagues, gameType }) {
   const game = useMemo(
     () => getGamesForWeek(week).find(g => g.away === awayAbbr && g.home === homeAbbr),
     [week, awayAbbr, homeAbbr]
@@ -14207,6 +14351,10 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
   const liveMap = useLiveScores(week);
   const context = getWeekContext(week);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  // This page has no command bar of its own, so it inherits whatever game
+  // type the Games tab is set to rather than silently reverting to
+  // straight-up when a reader taps through from the week view.
+  const gameTypeContext = useMemo(() => buildGameTypeContext(week, gameType), [week, gameType]);
   useSportsEventJsonLd(game ? [game] : [], seasonYear);
 
   return (
@@ -14233,6 +14381,8 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
             tz={tz}
             auth={auth}
             onOpenLeagues={onOpenLeagues}
+            gameType={gameType}
+            gameTypeContext={gameTypeContext}
             hideFullMatchupLink
           />
           <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} />
@@ -17583,9 +17733,21 @@ function formatModelLine(margin) {
 /** The Blitz Edge recommendation, tailored to what the pool format actually
  *  scores. Straight-up wants a winner, confidence wants a points ranking,
  *  ats wants a projected line against the market's, and survivor wants a
- *  season-long spend decision - one shared row, four different reads. */
-function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfidence, survivor }) {
-  let team = null;
+ *  season-long spend decision - one call, four different reads.
+ *
+ *  Pure so that both surfaces that show this recommendation run the same
+ *  logic: the league pick panel (BlitzEdgeRow, below) and the Games tab's
+ *  game-type selector (GameCard's combo row). Returns null when there is
+ *  nothing to say, or { teamId, teamLabel, value, note, muted, noEdgeLabel }
+ *  where teamId is the bare abbreviation (for a crest) and teamLabel is the
+ *  display string, which for ats carries the line too ("BUF -2.5").
+ *
+ *  `game` needs { home, away, spread, favorite }; spread is signed from the
+ *  favorite's side, the same convention getOdds() and the league feed both
+ *  use. */
+function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedConfidence, survivor }) {
+  let teamId = null;
+  let teamLabel = null;
   let value = null;
   let note = null;
   let muted = false;
@@ -17596,12 +17758,14 @@ function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfid
 
   if (format === "straight_up") {
     if (!prediction) return null;
-    team = prediction.predictedWinner;
+    teamId = prediction.predictedWinner;
+    teamLabel = teamId;
     value = `${Math.round(prediction.confidence * 100)}% to win`;
 
   } else if (format === "confidence") {
     if (!prediction) return null;
-    team = prediction.predictedWinner;
+    teamId = prediction.predictedWinner;
+    teamLabel = teamId;
     const lopsidedRank = suggestedConfidence ? maxConfidence - suggestedConfidence + 1 : null;
     value = suggestedConfidence ? `${suggestedConfidence} of ${maxConfidence} pts` : `${Math.round(prediction.confidence * 100)}% to win`;
     note = `${Math.round(prediction.confidence * 100)}% to win` + (lopsidedRank ? ` — ${ordinalSuffix(lopsidedRank)} most lopsided game this week.` : ".");
@@ -17620,7 +17784,6 @@ function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfid
       const modelLine = `${modelFavorite} ${formatModelLine(-Math.abs(modelMargin))}`;
       if (gap < ATS_MIN_EDGE_POINTS) {
         muted = true;
-        team = null;
         noEdgeLabel = true;
         value = `${Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, game.home) * 100)}%`;
         note = `Model line ${modelLine} vs. market ${game.favorite} ${formatModelLine(game.spread)}. No edge either way.`;
@@ -17630,7 +17793,8 @@ function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfid
         // favorite can be the wrong ats side.
         const pick = modelMargin > marketHomeMargin ? game.home : game.away;
         const pickSpread = pick === game.favorite ? game.spread : -game.spread;
-        team = `${pick} ${formatModelLine(pickSpread)}`;
+        teamId = pick;
+        teamLabel = `${pick} ${formatModelLine(pickSpread)}`;
         value = `${Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, pick) * 100)}% to cover`;
         note = `Model line ${modelLine} — ${gap.toFixed(1)} pts of value on ${pick === game.favorite ? "the favorite" : "the underdog"}.`;
       }
@@ -17644,7 +17808,8 @@ function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfid
       value = "Both teams used";
       note = "You've already spent both of these teams this season.";
     } else {
-      team = candidate.team;
+      teamId = candidate.team;
+      teamLabel = teamId;
       const thisWeekPct = Math.round(candidate.thisWeek * 100);
       const holdWorthIt = candidate.bestFutureWeek && candidate.bestFuture - candidate.thisWeek > 0.03;
       if (isWeekBest) {
@@ -17662,19 +17827,26 @@ function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfid
     }
   }
 
-  if (!team && !value) return null;
+  if (!teamLabel && !value) return null;
+  return { teamId, teamLabel, value, note, muted, noEdgeLabel };
+}
+
+/** The league pick panel's one-line rendering of computeBlitzEdge(). */
+function BlitzEdgeRow(props) {
+  const edge = computeBlitzEdge(props);
+  if (!edge) return null;
 
   return (
-    <div className={"pickem-edge-row" + (muted ? " is-muted" : "")}>
+    <div className={"pickem-edge-row" + (edge.muted ? " is-muted" : "")}>
       <div className="pickem-edge-main">
-        {muted
+        {edge.muted
           ? <span className="pickem-edge-dash" aria-hidden="true">—</span>
           : <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="pickem-edge-icon" />}
-        {team && <span className="pickem-edge-team">{team}</span>}
-        {noEdgeLabel && <span className="pickem-edge-team">No edge</span>}
-        <span className="pickem-edge-value">{value}</span>
+        {edge.teamLabel && <span className="pickem-edge-team">{edge.teamLabel}</span>}
+        {edge.noEdgeLabel && <span className="pickem-edge-team">No edge</span>}
+        <span className="pickem-edge-value">{edge.value}</span>
       </div>
-      {note && <div className="pickem-edge-note">{note}</div>}
+      {edge.note && <div className="pickem-edge-note">{edge.note}</div>}
     </div>
   );
 }
@@ -23095,6 +23267,88 @@ function useSportsbookManager() {
   return [bookId, setBookId];
 }
 
+function useGameTypeManager() {
+  const [gameType, setGameType] = useState(() => {
+    try {
+      const saved = localStorage.getItem(GAME_TYPE_STORAGE_KEY);
+      return GAME_TYPES.some(t => t.id === saved) ? saved : DEFAULT_GAME_TYPE;
+    } catch (e) {
+      return DEFAULT_GAME_TYPE;
+    }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(GAME_TYPE_STORAGE_KEY, gameType); } catch (e) {}
+  }, [gameType]);
+
+  return [gameType, setGameType];
+}
+
+/** Sits at the right of the week command bar and decides which read every
+ *  card's Blitz Edge row shows. Carries the brand mark rather than a plain
+ *  caret because the thing it changes is the Blitz Edge recommendation, not
+ *  the schedule. Label abbreviates on a phone so the bar never wraps. */
+function GameTypePicker({ gameType, setGameType }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+  const current = GAME_TYPES.find(t => t.id === gameType) || GAME_TYPES[0];
+
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  return (
+    <div className="cmd-gametype" ref={containerRef}>
+      <button
+        type="button"
+        className="gametype-trigger"
+        data-tour="game-type"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={"Game type: " + current.label}
+      >
+        <img src="/branding/blitz-edge-icon.png" alt="" className="gametype-icon" />
+        <span className="gametype-label-full">{current.label}</span>
+        <span className="gametype-label-short">{current.short}</span>
+        <span className={"week-nav-chevron" + (open ? " open" : "")}>
+          <ChevronIcon direction="down" size={11} />
+        </span>
+      </button>
+
+      {open && (
+        <div className="gametype-panel" role="listbox">
+          <div className="gametype-group-label">Game type</div>
+          {GAME_TYPES.map(t => (
+            <button
+              key={t.id}
+              type="button"
+              role="option"
+              aria-selected={t.id === gameType}
+              className={"gametype-item" + (t.id === gameType ? " active" : "")}
+              onClick={() => { setGameType(t.id); setOpen(false); }}
+            >
+              <span className="gametype-item-name">{t.label}</span>
+              <span className="gametype-item-desc">{t.desc}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SportsbookPicker({ bookId, setBookId }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -23351,6 +23605,7 @@ function App() {
   const auth = useAuth();
   const [themeMode, setThemeMode] = useThemeManager();
   const [sportsbookId, setSportsbookId] = useSportsbookManager();
+  const [gameType, setGameType] = useGameTypeManager();
   const [tzId, setTzId, resolvedTz] = useTimezoneManager();
   const [view, setView] = useState(() => (getInitialRoute() || {}).view || "week");
   const [selectedWeek, setSelectedWeek] = useState(() => {
@@ -23377,7 +23632,6 @@ function App() {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
-  const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
   const [leagueTabResetKey, setLeagueTabResetKey] = useState(0);
 
@@ -23892,26 +24146,15 @@ function App() {
                     </div>
                   </>
                 )}
-                <button
-                  type="button"
-                  className={"cmd-legend-toggle" + (showLegend ? " open" : "")}
-                  onClick={() => setShowLegend((v) => !v)}
-                  aria-expanded={showLegend}
-                >
-                  <span className="cmd-legend-label">Legend</span>
-                  <span className={"week-nav-chevron" + (showLegend ? " open" : "")}>
-                    <ChevronIcon direction="down" size={11} />
-                  </span>
-                </button>
+                <GameTypePicker gameType={gameType} setGameType={setGameType} />
               </div>
-              {showLegend && <GradationLegend />}
             </>
           )}
 
           {view !== "week" && <FavoritesBar favorites={favorites} onSelect={selectTeam} />}
 
           {view === "week" ? (
-            <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} onSelectGame={selectGame} sportsbookId={sportsbookId} tz={resolvedTz} auth={auth} onOpenLeagues={goToLeaguesTab} />
+            <WeekView week={selectedWeek} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectTeam={selectTeam} onSelectGame={selectGame} sportsbookId={sportsbookId} tz={resolvedTz} auth={auth} onOpenLeagues={goToLeaguesTab} gameType={gameType} />
           ) : view === "game" && selectedGame ? (
             <GameView
               week={selectedGame.week}
@@ -23926,6 +24169,7 @@ function App() {
               tz={resolvedTz}
               auth={auth}
               onOpenLeagues={goToLeaguesTab}
+              gameType={gameType}
             />
           ) : (
             <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onGoHome={goHomeTab} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} focus={teamFocus} />

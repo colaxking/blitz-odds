@@ -21597,6 +21597,33 @@ function App() {
     loginPromptedForJoinRef.current = true;
     auth.openLogin();
   }, [pendingJoin, auth.status]);
+
+  /* Signing out used to leave you standing on whatever page you were on,
+   * which for most of the pages worth being on is a page that only exists
+   * for a signed-in user: the Home dashboard, /picks, a league's standings.
+   * Those re-render into their signed-out state in place, so the result is
+   * an empty-looking screen at a URL like /leagues/{id} that reads as
+   * something breaking rather than as a sign-out.
+   *
+   * Only an "in" -> "out" transition counts. Arriving signed-out is the
+   * common case and must not redirect - it would fight getInitialTab and
+   * bounce anyone opening a shared /games or /news link straight to Home.
+   * The initial status is "loading", so a first paint can't look like a
+   * sign-out either.
+   *
+   * leagueIntent is reset alongside so a later tap on Leagues lands on the
+   * list. Left alone it stays null, which means "no in-app navigation has
+   * happened, so the URL decides" - and the URL at mount may still name the
+   * league they just signed out of.
+   */
+  const prevAuthStatusRef = useRef(auth.status);
+  useEffect(() => {
+    const wasSignedIn = prevAuthStatusRef.current === "in";
+    prevAuthStatusRef.current = auth.status;
+    if (!wasSignedIn || auth.status !== "out") return;
+    setLeagueIntent({});
+    goHomeTab();
+  }, [auth.status]);
   const [showTour, setShowTour] = useState(false);
   const tourAutoOfferedRef = useRef(false);
 

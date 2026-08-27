@@ -23863,7 +23863,26 @@ function App() {
   // effects layer server persistence on top once someone's signed in,
   // without changing how those hooks work when they're not.
   const settingsLoadedForUserRef = useRef(null);
-  const skipNextSettingsSaveRef = useRef(false);
+  // Nothing may be pushed to the account until the load below has settled.
+  // Previously this was a one-shot "skip the next save" flag, which had two
+  // failure modes that both ended in lost favorites:
+  //   1. The flag was only armed *after* the load's `await` resolved, but
+  //      the save effect ran in the same effect pass as the load - so on any
+  //      sign-in where the GET took longer than the 600ms debounce (routine,
+  //      since user-profile.mts does its own round trip to GoTrue before it
+  //      even reads the blob), the save won the race and POSTed this
+  //      device's state over the account's. On a browser with no local
+  //      favorites yet - fresh device, cleared storage, Safari having
+  //      evicted localStorage - that wrote favorites: [] and wiped them.
+  //   2. If the fetched settings happened to change no state (an older
+  //      profile with no settings.favorites, or values identical to local),
+  //      the save effect never re-ran, so the flag stayed armed and silently
+  //      swallowed the user's *next* real change instead.
+  // The gate + last-synced comparison below replaces it: no POST can precede
+  // the load, and a POST is skipped only when its payload genuinely matches
+  // what we last loaded or saved, however many renders later that is.
+  const [settingsHydrated, setSettingsHydrated] = useState(false);
+  const lastSyncedSettingsRef = useRef(null);
 
   // On sign-in, fetch this user's saved settings and apply them over
   // whatever's currently on this device - "same setting every time they
@@ -23874,22 +23893,65 @@ function App() {
     settingsLoadedForUserRef.current = auth.user.id;
     let cancelled = false;
     (async () => {
+      // Whatever this device had before the account's settings landed. Used
+      // only for the empty-server case below.
+      const localFavorites = favorites;
       try {
         const res = await auth.authenticatedFetch("/.netlify/functions/user-profile");
         if (!res.ok || cancelled) return;
         const profile = await res.json();
-        if (!cancelled) setProfile(profile);
-        const s = profile && profile.settings;
-        if (!s || cancelled) return;
-        skipNextSettingsSaveRef.current = true;
-        if (s.themeMode === "light" || s.themeMode === "dark" || s.themeMode === "system") setThemeMode(s.themeMode);
-        if (typeof s.sportsbookId === "string") setSportsbookId(s.sportsbookId);
-        if (typeof s.tzId === "string") setTzId(s.tzId);
-        if (Array.isArray(s.favorites)) setFavorites(s.favorites);
+        if (cancelled) return;
+        setProfile(profile);
+        const s = (profile && profile.settings) || {};
+        const nextThemeMode = (s.themeMode === "light" || s.themeMode === "dark" || s.themeMode === "system") ? s.themeMode : themeMode;
+        const nextSportsbookId = typeof s.sportsbookId === "string" ? s.sportsbookId : sportsbookId;
+        const nextTzId = typeof s.tzId === "string" ? s.tzId : tzId;
+        // The account wins, with one exception: if the account has no
+        // favorites at all and this device does, keep the device's rather
+        // than clearing them. That covers starring teams signed out and then
+        // creating an account - without it those picks vanish on first login.
+        const serverFavorites = Array.isArray(s.favorites) ? s.favorites : null;
+        const nextFavorites = (serverFavorites && serverFavorites.length) ? serverFavorites
+          : (serverFavorites && localFavorites.length) ? localFavorites
+          : (serverFavorites || localFavorites);
+        setThemeMode(nextThemeMode);
+        setSportsbookId(nextSportsbookId);
+        setTzId(nextTzId);
+        setFavorites(nextFavorites);
         if (s.tutorialSeen) saveTutorialSeen(); // mirror the account's flag onto this device too
+        // Seed the comparison with what the account now holds, so a pure
+        // load never generates a POST - but a genuine change after it always
+        // does, unlike the old one-shot flag. Note this records the
+        // *server's* favorites, not nextFavorites: in the kept-local case
+        // above they differ, and the difference is exactly what makes the
+        // save effect push those local favorites up to the account.
+        lastSyncedSettingsRef.current = JSON.stringify({
+          themeMode: nextThemeMode,
+          sportsbookId: nextSportsbookId,
+          tzId: nextTzId,
+          favorites: serverFavorites || nextFavorites,
+        });
       } catch (e) {
         // Offline or a transient function error - keep whatever's on this
-        // device rather than blocking the app on a failed fetch.
+        // device rather than blocking the app on a failed fetch. Seed the
+        // comparison from local state so we don't immediately push a
+        // possibly-stale device snapshot over the account we failed to read;
+        // only a deliberate change from here on will POST.
+        if (!cancelled) {
+          lastSyncedSettingsRef.current = JSON.stringify({ themeMode, sportsbookId, tzId, favorites });
+        }
+      } finally {
+        if (!cancelled) {
+          // Every path out of the try above must leave a baseline behind -
+          // including the early `return` on a non-OK response, which would
+          // otherwise unblock the save effect with nothing to compare
+          // against and push this device's state over an account we never
+          // successfully read.
+          if (lastSyncedSettingsRef.current === null) {
+            lastSyncedSettingsRef.current = JSON.stringify({ themeMode, sportsbookId, tzId, favorites });
+          }
+          setSettingsHydrated(true);
+        }
       }
     })();
     return () => { cancelled = true; };
@@ -23898,6 +23960,8 @@ function App() {
   useEffect(() => {
     if (auth.status === "out") {
       settingsLoadedForUserRef.current = null;
+      lastSyncedSettingsRef.current = null;
+      setSettingsHydrated(false);
       setProfile(null);
     }
   }, [auth.status]);
@@ -23905,23 +23969,26 @@ function App() {
   // Push local setting changes back to the account so they follow the user
   // to their next login/device. Debounced since favorites in particular can
   // change several times in quick succession (toggling a few teams).
-  // Skipped once right after the load effect above applies server settings,
-  // so we don't immediately POST back the exact values we just fetched.
   useEffect(() => {
     if (auth.status !== "in") return;
-    if (skipNextSettingsSaveRef.current) {
-      skipNextSettingsSaveRef.current = false;
-      return;
-    }
+    // Never write before we've read - see the comment on settingsHydrated.
+    if (!settingsHydrated) return;
+    const payload = JSON.stringify({ themeMode, sportsbookId, tzId, favorites });
+    if (payload === lastSyncedSettingsRef.current) return;
     const timer = setTimeout(() => {
+      lastSyncedSettingsRef.current = payload;
       auth.authenticatedFetch("/.netlify/functions/user-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settings: { themeMode, sportsbookId, tzId, favorites } }),
-      }).catch(() => {});
+      }).catch(() => {
+        // Let the next change retry this - don't leave lastSynced claiming
+        // the account holds something the POST never delivered.
+        if (lastSyncedSettingsRef.current === payload) lastSyncedSettingsRef.current = null;
+      });
     }, 600);
     return () => clearTimeout(timer);
-  }, [themeMode, sportsbookId, tzId, favorites, auth.status]);
+  }, [themeMode, sportsbookId, tzId, favorites, auth.status, settingsHydrated]);
 
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change

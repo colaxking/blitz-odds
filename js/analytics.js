@@ -19,6 +19,11 @@
  *    Chart / News) is opened, via `.team-tab-btn`
  *  - "roster_side" whenever the Offense/Defense/Special Teams side toggle
  *    inside the depth chart is clicked, via `.roster-side-tab-btn`
+ *  - "boxscore_click" whenever the box score modal is opened, from either
+ *    the "View Full Box Score" button inside a card's Full Details panel
+ *    (`.view-boxscore-link`) or a tappable score (`.score-link-btn`, still
+ *    used on the picks/results and team schedule views), with `source`
+ *    distinguishing the two
  *  - "player_view" whenever a player's name is clicked to open their detail
  *    modal, from either the depth chart (`.depth-player-name-btn`) or the
  *    full roster table (`.roster-player-name-btn`)
@@ -422,7 +427,17 @@
           return;
         }
 
-        var boxScoreEl = target.closest(".score-link-btn");
+        // Two entry points open the same BoxScoreModal, so both fire the same
+        // event type and are told apart by `source`:
+        //  - ".score-link-btn" (GameScoreLink) - tapping the score itself.
+        //    The GameCard redesign REMOVED this from the game card; it now
+        //    only survives on the picks/results view and the team schedule.
+        //  - ".view-boxscore-link" (ShortBoxScore) - the "View Full Box
+        //    Score" button inside a card's Full Details panel, which is the
+        //    only path to a box score from a game card since the redesign.
+        // Missing the second selector is why game-card box score opens
+        // stopped being counted at all after that change shipped.
+        var boxScoreEl = target.closest(".score-link-btn, .view-boxscore-link");
         if (boxScoreEl) {
           sendEvent({
             type: "boxscore_click",
@@ -431,6 +446,7 @@
             away: boxScoreEl.getAttribute("data-away") || undefined,
             home: boxScoreEl.getAttribute("data-home") || undefined,
             week: boxScoreEl.getAttribute("data-week") || getCurrentWeekLabel(),
+            source: boxScoreEl.getAttribute("data-boxscore-source") || "unknown",
           });
           return;
         }

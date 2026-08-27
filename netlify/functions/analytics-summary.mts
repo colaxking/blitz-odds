@@ -199,6 +199,7 @@ function emptySummary(now: number, range: Range) {
     newsClicksByPlacement: {} as Record<string, number>,
     teamClicksByOrigin: {} as Record<string, number>,
     boxscoreClicksByTeam: {} as Record<string, number>,
+    boxscoreClicksBySource: {} as Record<string, number>,
     playbookSubtabViews: {} as Record<string, number>,
     playbookFormatViews: {} as Record<string, number>,
     gateCtaClicks: {} as Record<string, number>,
@@ -431,6 +432,15 @@ export default async (req: Request, _context: Context) => {
       boxscoreClicksByTeam[team] = count;
     }
 
+    // --- boxscoreClicksBySource: which entry point opened the box score.
+    // "full_details" is the "View Full Box Score" button inside a game
+    // card's Full Details panel - the only path from a game card since the
+    // redesign. "score_tap" is the older tappable score, which now only
+    // exists on the picks/results and team schedule views. Events recorded
+    // before the tracking fix landed have no `source` and fall into
+    // "unknown", so a lingering "unknown" bar is historical data, not a bug. ---
+    const boxscoreClicksBySource = sortedCounts(boxscoreClicks, (r) => r.source);
+
     // --- historical archive: pageviews on /historical/ pages, click
     // breakdown by which archive interaction fired, and which teams'
     // historical games actually get clicked into. `page` for these pages
@@ -621,6 +631,7 @@ export default async (req: Request, _context: Context) => {
       newsClicksByPlacement,
       teamClicksByOrigin,
       boxscoreClicksByTeam,
+      boxscoreClicksBySource,
       playbookSubtabViews,
       playbookFormatViews,
       gateCtaClicks,

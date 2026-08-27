@@ -330,6 +330,10 @@
       <div class="bar-list" id="boxscoreTeamList"></div>
     </div>
     <div class="card">
+      <h2>Box scores opened by entry point</h2>
+      <div class="bar-list" id="boxscoreSourceList"></div>
+    </div>
+    <div class="card">
       <h2>Playbook screens opened</h2>
       <div class="bar-list" id="playbookSubtabList"></div>
     </div>
@@ -925,6 +929,11 @@
       return teamOriginLabelToRaw[label] || label;
     });
     renderBarList("boxscoreTeamList", data.boxscoreClicksByTeam, "No box score clicks yet", "boxscoreTeam");
+    // No `dimension` argument on purpose: drill-down requires a matching
+    // VALID_DIMENSIONS entry in analytics-sessions.mts backed by an
+    // addIndex(...) call in track.mts, and this tile isn't worth a new
+    // per-event blob index. Counts only, not clickable.
+    renderBarList("boxscoreSourceList", data.boxscoreClicksBySource, "No box score clicks yet");
     renderBarList("playbookSubtabList", data.playbookSubtabViews, "No Playbook activity yet", "playbookSubtab");
     renderBarList("playbookFormatList", data.playbookFormatViews, "No format switches yet", "playbookFormat");
     renderBarList("gateCtaList", data.gateCtaClicks, "No gate clicks yet", "gateCta");

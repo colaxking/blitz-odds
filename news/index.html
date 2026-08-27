@@ -2275,7 +2275,9 @@
     color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border);
     border-radius: 8px; padding: 8px 12px; margin-top: 10px;
   }
-  .gradation-legend-group { display: flex; align-items: center; gap: 6px; }
+  /* flex-wrap so the label + rank pills reflow on a narrow card instead of
+     overflowing the legend box (the parent already wraps; the groups didn't). */
+  .gradation-legend-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
   .gradation-legend-label { font-weight: 600; color: var(--text); margin-right: 2px; }
   .gradation-legend .rank-pill { margin-left: 0; }
   .impact-note {
@@ -2371,7 +2373,9 @@
     background: none; border: none; color: var(--text); font-size: 0.8rem; cursor: pointer; text-align: left;
   }
   .h2h-date { color: var(--text-dim); font-size: 0.7rem; white-space: nowrap; }
-  .h2h-matchup { flex: 1; font-weight: 600; }
+  /* min-width:0 lets this shrink below its longest word instead of forcing
+     the row wider than .h2h-row, which clips (that parent is overflow:hidden). */
+  .h2h-matchup { flex: 1; min-width: 0; font-weight: 600; }
   .h2h-winner { color: var(--win); font-weight: 800; }
   .h2h-toggle { color: var(--accent); font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
   .h2h-boxscore { padding: 4px 12px 14px; border-top: 1px dashed var(--card-border); }
@@ -2380,6 +2384,17 @@
     display: inline-block; margin-top: 10px; color: var(--accent); font-size: 0.72rem; font-weight: 700; text-decoration: none;
   }
   .h2h-fullpage-link:hover { text-decoration: underline; }
+  /* Below ~360px the three columns (nowrap date + matchup + nowrap toggle)
+     can't fit on one line inside a card's Full Details panel: the matchup
+     collapsed into a 5-line stack and "Box score ▼" was clipped by the
+     row's overflow:hidden. Stack instead - matchup on its own line, date
+     and toggle sharing the line below it. */
+  @media (max-width: 360px) {
+    .h2h-row-header { flex-wrap: wrap; gap: 4px 10px; }
+    .h2h-matchup { flex: 1 0 100%; order: 0; }
+    .h2h-date { order: 1; }
+    .h2h-toggle { order: 2; margin-left: auto; }
+  }
   .injury-report { margin-bottom: 18px; }
   .injury-report-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
   .injury-list { display: flex; flex-direction: column; gap: 6px; }
@@ -12661,6 +12676,7 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children, fallback
         data-away={awayAbbr}
         data-home={homeAbbr}
         data-week={week}
+        data-boxscore-source="score_tap"
       >
         {children}
         <svg className="boxscore-hint-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
@@ -13763,7 +13779,15 @@ function ShortBoxScore({ week, awayAbbr, homeAbbr, awayId, homeId }) {
           ))}
         </div>
       )}
-      <button type="button" className="view-boxscore-link" onClick={() => setShowFull(true)}>
+      <button
+        type="button"
+        className="view-boxscore-link"
+        onClick={() => setShowFull(true)}
+        data-away={awayAbbr}
+        data-home={homeAbbr}
+        data-week={week}
+        data-boxscore-source="full_details"
+      >
         View Full Box Score →
       </button>
       {showFull && <BoxScoreModal week={week} awayAbbr={awayAbbr} homeAbbr={homeAbbr} onClose={() => setShowFull(false)} />}

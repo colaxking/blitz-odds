@@ -2178,6 +2178,11 @@
 
   .full-details-panel { padding-top: 12px; display: flex; flex-direction: column; gap: 14px; }
   .full-details-panel .sec-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
+  .sec-label-format {
+    display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px;
+    background: rgba(var(--accent-rgb),0.14); color: var(--accent); font-size: 0.62rem; font-weight: 800;
+    letter-spacing: 0.3px; vertical-align: 1px;
+  }
   .edge-detail { background: rgba(var(--accent-rgb),0.06); border: 1px solid rgba(var(--accent-rgb),0.25); border-radius: 10px; padding: 12px; }
   .edge-detail-logo { height: 30px; width: auto; display: block; margin: 0 0 10px; }
   .edge-detail p { margin: 0; font-size: 0.8rem; line-height: 1.5; color: var(--text); }
@@ -4138,7 +4143,7 @@
       <tr><td>Week 6</td><td colspan="4">Bye week</td></tr>
       <tr><td>Week 7</td><td>@ New York Jets</td><td>Sun, Oct 25 1:00 PM ET</td><td>Model predicts Miami Dolphins to win (61%)</td><td>Not played yet</td></tr>
       <tr><td>Week 8</td><td>vs New England Patriots</td><td>Sun, Nov 1 4:25 PM ET</td><td>Model predicts New England Patriots to win (12%)</td><td>Not played yet</td></tr>
-      <tr><td>Week 9</td><td>vs Detroit Lions</td><td>Sun, Nov 8 1:00 PM ET</td><td>Model predicts Detroit Lions to win (26%)</td><td>Not played yet</td></tr>
+      <tr><td>Week 9</td><td>vs Detroit Lions</td><td>Sun, Nov 8 1:00 PM ET</td><td>Model predicts Detroit Lions to win (31%)</td><td>Not played yet</td></tr>
       <tr><td>Week 10</td><td>@ Indianapolis Colts</td><td>Sun, Nov 15 1:00 PM ET</td><td>Model predicts Indianapolis Colts to win (35%)</td><td>Not played yet</td></tr>
       <tr><td>Week 11</td><td>@ Buffalo Bills</td><td>Sun, Nov 22 1:00 PM ET</td><td>Model predicts Buffalo Bills to win (13%)</td><td>Not played yet</td></tr>
       <tr><td>Week 12</td><td>vs New York Jets</td><td>Sun, Nov 29 1:00 PM ET</td><td>Model predicts Miami Dolphins to win (66%)</td><td>Not played yet</td></tr>
@@ -5260,6 +5265,19 @@
         "espnId": "4430027",
         "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
         "source": "curated"
+      },
+      {
+        "name": "Payton Turner",
+        "position": "DE",
+        "espnId": "4240269",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Back",
+          "note": "ir"
+        },
+        "statusUpdatedAt": "2026-08-27T23:06Z",
+        "source": "auto"
       }
     ],
     "BUF": [
@@ -12581,17 +12599,45 @@ async function fetchLiveScores(week) {
 // a retry.
 const boxScoreCache = new Map();
 
+// The scoreboard leg below is identical for every game in a week - it only
+// exists to resolve ESPN's numeric event id and to pick up the live
+// situation the summary endpoint doesn't carry. A live game's short box
+// score polls on the same 30s cadence as the score itself, so several
+// expanded cards (plus an open BoxScoreModal, which polls too) would each
+// fire their own near-identical scoreboard request every cycle. Sharing
+// the in-flight/just-resolved promise per week collapses those into one.
+// The window is deliberately far shorter than LIVE_POLL_MS so a reused
+// scoreboard is never more stale than a single poll's worth of clock.
+const SCOREBOARD_SHARE_MS = 8000;
+const scoreboardShareCache = new Map(); // week -> { at, promise }
+
+function fetchWeekScoreboard(week) {
+  const cached = scoreboardShareCache.get(week);
+  if (cached && Date.now() - cached.at < SCOREBOARD_SHARE_MS) return cached.promise;
+  const params = getEspnParams(week);
+  if (!params) return Promise.reject(new Error("No ESPN schedule data for this week yet."));
+  const url = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?year=2026&seasontype=${params.seasontype}&week=${params.week}`;
+  const promise = fetch(url).then(res => {
+    if (!res.ok) throw new Error("ESPN scoreboard request failed: " + res.status);
+    return res.json();
+  });
+  scoreboardShareCache.set(week, { at: Date.now(), promise });
+  // A failed scoreboard must not be handed to the next caller for the rest
+  // of the share window - evict so a transient blip costs one poll, not
+  // eight seconds of guaranteed failures.
+  promise.catch(() => {
+    const current = scoreboardShareCache.get(week);
+    if (current && current.promise === promise) scoreboardShareCache.delete(week);
+  });
+  return promise;
+}
+
 async function fetchBoxScore(week, awayAbbr, homeAbbr, forceRefresh) {
   const cacheKey = `${week}-${awayAbbr}-${homeAbbr}`;
   if (!forceRefresh && boxScoreCache.has(cacheKey)) return boxScoreCache.get(cacheKey);
 
   const promise = (async () => {
-    const params = getEspnParams(week);
-    if (!params) throw new Error("No ESPN schedule data for this week yet.");
-    const scoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?year=2026&seasontype=${params.seasontype}&week=${params.week}`;
-    const scoreboardRes = await fetch(scoreboardUrl);
-    if (!scoreboardRes.ok) throw new Error("ESPN scoreboard request failed: " + scoreboardRes.status);
-    const scoreboardData = await scoreboardRes.json();
+    const scoreboardData = await fetchWeekScoreboard(week);
     let eventId = null;
     let scoreboardComp = null;
     for (const event of scoreboardData.events || []) {
@@ -13516,17 +13562,42 @@ function describeEdge(e) {
  * market. Every input comes from this game's own data, so the text is
  * different for every card.
  */
-function buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket }) {
+/** The Blitz Edge write-up inside a card's Full Details panel.
+ *
+ *  Reads through whichever game type the command bar is set to, because the
+ *  *recommendation* changes per format even though the underlying
+ *  prediction doesn't: straight up wants a winner, confidence wants a
+ *  points weight, ats wants a side of the line (which is routinely the team
+ *  the model expects to lose), and survivor wants a team worth spending
+ *  this week. A lone win-probability paragraph is only correct for straight
+ *  up and is actively misleading for the other three - it was telling an
+ *  ats reader the favorite was a 68% play when the model's own line said
+ *  take the dog.
+ *
+ *  The opening is built from the same `blitzEdge` object the compact card's
+ *  combo row renders (via computeBlitzEdge's `detail` bag), so the
+ *  paragraph can't contradict the one-liner sitting a few pixels above it.
+ *  Everything after the opening is shared across formats: matchup edges,
+ *  home field, weather, injuries all explain the prediction, which every
+ *  format is built on top of.
+ */
+function buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket, format, blitzEdge }) {
   const winner = homeIsWinner ? home : away;
   const loser = homeIsWinner ? away : home;
   const loserAdjustments = homeIsWinner ? prediction.awayAdjustments : prediction.homeAdjustments;
   const confidencePct = Math.round(prediction.confidence * 100);
+  const activeFormat = format || DEFAULT_GAME_TYPE;
 
   const winningEdges = computeCategoryEdges(away, home)
     .filter((e) => e.favoredTeamId === winner.id)
     .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
 
-  const sentences = [`The model gives ${winner.name} a ${confidencePct}% chance to win this one.`];
+  const sentences = buildFormatLead({
+    format: activeFormat,
+    blitzEdge,
+    winner,
+    confidencePct,
+  });
 
   if (winningEdges.length) {
     const top = winningEdges.slice(0, 2).map(describeEdge);
@@ -13569,11 +13640,92 @@ function buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgree
     }
   }
 
-  if (odds && modelAgreesWithMarket === false) {
+  // Redundant in ats mode: the opening there already compares the model's
+  // own line against the market's number, which is a sharper statement of
+  // the same disagreement than "the sportsbook favorite disagrees."
+  if (odds && modelAgreesWithMarket === false && activeFormat !== "ats") {
     sentences.push(`Note: the sportsbook favorite (${odds.favorite}) disagrees with this pick.`);
   }
 
   return sentences.join(" ");
+}
+
+/** The opening sentence(s) of a Blitz Edge write-up, phrased for the pool
+ *  format the reader is actually playing. Returns an array so a format can
+ *  spend two sentences where it needs to (ats and survivor both want a
+ *  straight-up aside, since the recommended side isn't always the team the
+ *  model expects to win). Falls back to the straight-up phrasing whenever
+ *  the format's guidance isn't available - a missing survivor board or an
+ *  unpriced game shouldn't leave the panel empty. */
+function buildFormatLead({ format, blitzEdge, winner, confidencePct }) {
+  const straightUp = `the model takes ${winner.name} at ${confidencePct}%`;
+  const straightUpSentence = `The model gives ${winner.name} a ${confidencePct}% chance to win this one.`;
+  const d = (blitzEdge && blitzEdge.detail) || {};
+  // "a 80% chance" reads as a typo. Only the 8s and the bare 11/18 need
+  // "an" among the percentages this ever prints.
+  const article = (n) => (/^(8|11$|18$)/.test(String(n)) ? "an" : "a");
+
+  if (format === "confidence") {
+    if (d.suggestedConfidence && d.maxConfidence) {
+      const rank = d.lopsidedRank ? `, the ${ordinalSuffix(d.lopsidedRank)} most lopsided game on this week's slate` : "";
+      return [`In a confidence pool this one is worth ${d.suggestedConfidence} of ${d.maxConfidence} points on ${winner.name}, who the model gives ${article(confidencePct)} ${confidencePct}% chance to win${rank}.`];
+    }
+    return [straightUpSentence, `Confidence weights aren't ranked for this week yet, so weigh it against the rest of your slate yourself.`];
+  }
+
+  if (format === "ats") {
+    if (d.noLine) {
+      return [`There's nothing to grade against the spread yet — no market line is posted for this game. Straight up, ${straightUp}.`];
+    }
+    if (blitzEdge && blitzEdge.noEdgeLabel) {
+      const gap = blitzEdge.edgePoints != null ? `${blitzEdge.edgePoints.toFixed(1)} points` : "less than a field goal";
+      return [`Against the spread this is a pass: the model's own line (${d.modelLine}) lands within ${gap} of the market's ${d.marketLine}, so neither side is worth taking. Straight up, ${straightUp}.`];
+    }
+    if (blitzEdge && blitzEdge.teamLabel) {
+      const value = blitzEdge.edgePoints != null
+        ? ` — ${blitzEdge.edgePoints.toFixed(1)} points of value on ${d.pickIsFavorite ? "the favorite" : "the underdog"}, with the model's line at ${d.modelLine} against the market's ${d.marketLine}`
+        : "";
+      return [
+        `Against the spread the model likes ${blitzEdge.teamLabel}, ${article(blitzEdge.coverPct)} ${blitzEdge.coverPct}% chance to cover${value}.`,
+        `Straight up it still takes ${winner.name} at ${confidencePct}%.`,
+      ];
+    }
+    return [straightUpSentence];
+  }
+
+  if (format === "survivor") {
+    if (d.bothTeamsUsed) {
+      return [`This game is off the survivor board — both teams are already spent. Straight up, ${straightUp}.`];
+    }
+    if (blitzEdge && blitzEdge.teamId) {
+      const pick = blitzEdge.teamId;
+      // Same four-way split computeBlitzEdge's own note makes, so the two
+      // never give opposite advice about spending the team: a week-best
+      // play is never described as one to hold, even when it does project
+      // slightly better later.
+      let lead;
+      if (d.isWeekBest) {
+        lead = d.holdWorthIt
+          ? `For survivor, ${pick} is the best play on the board this week at ${d.thisWeekPct}% to win — nothing else available is a better spend.`
+          : `For survivor, ${pick} is the best play on the board this week at ${d.thisWeekPct}% to win, with no better spot left on their schedule.`;
+      } else {
+        lead = d.holdWorthIt && d.bestFutureWeek
+          ? `For survivor, ${pick} ranks #${d.rank} among the teams still available to you at ${d.thisWeekPct}% to win — they project at ${d.bestFuturePct}% in Week ${d.bestFutureWeek}, so they're worth holding.`
+          : `For survivor, ${pick} ranks #${d.rank} among the teams still available to you, at ${d.thisWeekPct}% to win.`;
+      }
+      // The survivor board picks from whichever of the two teams is still
+      // available, so the candidate can be the side the model expects to
+      // lose. Say so rather than letting the paragraph below - which
+      // explains why the *other* team is favored - read as support for it.
+      const contrarian = pick !== winner.id
+        ? ` The model expects ${winner.name} to win this game, so ${pick} is a risk here, not a value.`
+        : "";
+      return [lead + contrarian];
+    }
+    return [straightUpSentence];
+  }
+
+  return [straightUpSentence];
 }
 
 /** Human-readable description of one weather rating adjustment, for buildRationale(). */
@@ -13785,35 +13937,53 @@ function isVisibleInInjuryReport(p) {
  *  the user discovering the score is tappable. One-shot fetch (no live
  *  polling) since this is just a glance - the full modal already polls live
  *  games itself once opened. */
-function ShortBoxScore({ week, awayAbbr, homeAbbr, awayId, homeId }) {
+function ShortBoxScore({ week, awayAbbr, homeAbbr, awayId, homeId, live }) {
   const [state, setState] = useState({ status: "loading", stats: null });
   const [showFull, setShowFull] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    let timer = null;
     setState({ status: "loading", stats: null });
-    fetchBoxScore(week, awayAbbr, homeAbbr, false)
-      .then(data => {
-        if (cancelled) return;
-        const boxTeams = (data.boxscore && data.boxscore.teams) || [];
-        const findTeam = abbr => boxTeams.find(t => (ESPN_ABBR_FIX[t.team.abbreviation] || t.team.abbreviation) === abbr);
-        const homeBox = findTeam(homeAbbr);
-        const awayBox = findTeam(awayAbbr);
-        if (!homeBox || !awayBox) { setState({ status: "empty", stats: null }); return; }
-        const statVal = (teamBox, key) => {
-          const s = teamBox.statistics.find(s => s.name === key);
-          return s ? s.displayValue : "—";
-        };
-        const stats = BOXSCORE_KEY_STATS.slice(0, 3).map(stat => ({
-          label: stat.label,
-          away: statVal(awayBox, stat.key),
-          home: statVal(homeBox, stat.key),
-        }));
-        setState({ status: "ready", stats });
-      })
-      .catch(() => { if (!cancelled) setState({ status: "error", stats: null }); });
-    return () => { cancelled = true; };
-  }, [week, awayAbbr, homeAbbr]);
+
+    function load(force) {
+      fetchBoxScore(week, awayAbbr, homeAbbr, force)
+        .then(data => {
+          if (cancelled) return;
+          const boxTeams = (data.boxscore && data.boxscore.teams) || [];
+          const findTeam = abbr => boxTeams.find(t => (ESPN_ABBR_FIX[t.team.abbreviation] || t.team.abbreviation) === abbr);
+          const homeBox = findTeam(homeAbbr);
+          const awayBox = findTeam(awayAbbr);
+          if (!homeBox || !awayBox) { setState({ status: "empty", stats: null }); return; }
+          const statVal = (teamBox, key) => {
+            const s = teamBox.statistics.find(s => s.name === key);
+            return s ? s.displayValue : "—";
+          };
+          const stats = BOXSCORE_KEY_STATS.slice(0, 3).map(stat => ({
+            label: stat.label,
+            away: statVal(awayBox, stat.key),
+            home: statVal(homeBox, stat.key),
+          }));
+          setState({ status: "ready", stats });
+        })
+        // A failed *poll* keeps whatever numbers are already on screen
+        // rather than replacing a good box score with an error line - the
+        // next tick will catch up. Only a failed first load shows the error.
+        .catch(() => {
+          if (cancelled) return;
+          setState(prev => (prev.status === "ready" ? prev : { status: "error", stats: null }));
+        });
+    }
+
+    load(false);
+    // Inline on a live card these numbers sit right under a ticking clock,
+    // so a one-shot fetch would visibly freeze while the score above it
+    // moved. Same cadence as the live score poll itself; forceRefresh
+    // because fetchBoxScore deliberately doesn't cache in-progress games.
+    if (live) timer = setInterval(() => load(true), LIVE_POLL_MS);
+
+    return () => { cancelled = true; if (timer) clearInterval(timer); };
+  }, [week, awayAbbr, homeAbbr, live]);
 
   return (
     <div className="short-boxscore" data-tour="short-boxscore">
@@ -14039,7 +14209,6 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
     (a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
   );
   const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
-  const rationale = buildRationale({ away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket });
 
   // The combo row's recommendation, read through whichever game type the
   // command bar is set to. Same computeBlitzEdge() a league pick card runs,
@@ -14059,6 +14228,16 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
     survivor: gameTypeContext?.survivor
       ? survivorCandidateForGame(gameTypeContext.survivor, game.away, game.home)
       : null,
+  });
+
+  // Built after blitzEdge, and from it: the Full Details write-up is the
+  // long form of the combo row's one-liner, so switching the command bar's
+  // game type has to move both together (an ats reader was previously being
+  // handed a straight-up paragraph under an ats recommendation).
+  const rationale = buildRationale({
+    away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket,
+    format: activeGameType,
+    blitzEdge,
   });
 
   let actualWinnerId = null;
@@ -14224,6 +14403,26 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
 
       {fullDetailsOpen && (
         <div className="full-details-panel" data-tour="full-details-panel">
+          {/* First section in the panel, ahead of the betting lines: for a
+              game in progress this is the thing being expanded *for*, and
+              it used to sit below the write-up, the team comparison and the
+              injury report - nowhere near the live clock it describes.
+              `live` puts it on the same 30s poll as the score above, so an
+              open panel doesn't freeze while the game moves. */}
+          {(isLive || isFinal) && (
+            <div>
+              <div className="sec-label">Box Score</div>
+              <ShortBoxScore
+                week={week}
+                awayAbbr={game.away}
+                homeAbbr={game.home}
+                awayId={away.id}
+                homeId={home.id}
+                live={isLive}
+              />
+            </div>
+          )}
+
           <div>
             <div className="sec-label">Betting Lines</div>
             <div className="odds-row" data-tour="betting-lines">
@@ -14251,7 +14450,17 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           </div>
 
           <div>
-            <div className="sec-label">Blitz Edge</div>
+            {/* The format is named in the label because the paragraph below
+                changes with it - without it, a reader who flipped the
+                command bar to ATS has no way to tell whether the write-up
+                followed. `short` rather than `label` so "Against the
+                Spread" doesn't wrap this small uppercase line. */}
+            <div className="sec-label">
+              Blitz Edge
+              <span className="sec-label-format">
+                {(GAME_TYPES.find(t => t.id === activeGameType) || GAME_TYPES[0]).short}
+              </span>
+            </div>
             <div className="edge-detail" data-tour="blitz-verdict">
               <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="edge-detail-logo" />
               <p>{rationale}</p>
@@ -14337,13 +14546,6 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
               no outer label). */}
           {!hideFullMatchupLink && (
             <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} />
-          )}
-
-          {(isLive || isFinal) && (
-            <div>
-              <div className="sec-label">Box Score</div>
-              <ShortBoxScore week={week} awayAbbr={game.away} homeAbbr={game.home} awayId={away.id} homeId={home.id} />
-            </div>
           )}
 
           {!hideFullMatchupLink && (
@@ -20486,6 +20688,13 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
   // or a spent survivor team isn't the model declining to call it, it's
   // there being nothing to call yet.
   let noEdgeLabel = false;
+  // Everything the format-specific paragraph in a card's Full Details panel
+  // needs to restate this recommendation in prose (see buildRationale).
+  // Kept as separate fields rather than having the write-up parse `note`
+  // back apart, so the wording of the one-liner isn't load-bearing - but
+  // sourced from the same computation, so the two can never disagree about
+  // which side is recommended or by how much.
+  const detail = {};
 
   if (format === "straight_up") {
     if (!prediction) return null;
@@ -20498,6 +20707,9 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
     teamId = prediction.predictedWinner;
     teamLabel = teamId;
     const lopsidedRank = suggestedConfidence ? maxConfidence - suggestedConfidence + 1 : null;
+    detail.suggestedConfidence = suggestedConfidence || null;
+    detail.maxConfidence = maxConfidence || null;
+    detail.lopsidedRank = lopsidedRank;
     value = suggestedConfidence ? `${suggestedConfidence} of ${maxConfidence} pts` : `${Math.round(prediction.confidence * 100)}% to win`;
     note = `${Math.round(prediction.confidence * 100)}% to win` + (lopsidedRank ? ` — ${ordinalSuffix(lopsidedRank)} most lopsided game this week.` : ".");
 
@@ -20505,6 +20717,7 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
     if (!prediction) return null;
     if (typeof game.spread !== "number" || !game.favorite) {
       muted = true;
+      detail.noLine = true;
       value = "Line not posted";
       note = "No market line to compare the model against yet.";
     } else {
@@ -20513,6 +20726,8 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
       const marketHomeMargin = game.favorite === game.home ? -game.spread : game.spread;
       const gap = Math.abs(modelMargin - marketHomeMargin);
       const modelLine = `${modelFavorite} ${formatModelLine(-Math.abs(modelMargin))}`;
+      detail.modelLine = modelLine;
+      detail.marketLine = `${game.favorite} ${formatModelLine(game.spread)}`;
       if (gap < ATS_MIN_EDGE_POINTS) {
         muted = true;
         noEdgeLabel = true;
@@ -20528,6 +20743,7 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
         const pickSpread = pick === game.favorite ? game.spread : -game.spread;
         teamId = pick;
         teamLabel = `${pick} ${formatModelLine(pickSpread)}`;
+        detail.pickIsFavorite = pick === game.favorite;
         edgePoints = gap;
         coverPct = Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, pick) * 100);
         value = `${coverPct}% to cover`;
@@ -20540,6 +20756,7 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
     const { candidate, isWeekBest } = survivor;
     if (!candidate) {
       muted = true;
+      detail.bothTeamsUsed = true;
       value = "Both teams used";
       note = "You've already spent both of these teams this season.";
     } else {
@@ -20547,6 +20764,12 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
       teamLabel = teamId;
       const thisWeekPct = Math.round(candidate.thisWeek * 100);
       const holdWorthIt = candidate.bestFutureWeek && candidate.bestFuture - candidate.thisWeek > 0.03;
+      detail.thisWeekPct = thisWeekPct;
+      detail.rank = candidate.rank;
+      detail.isWeekBest = isWeekBest;
+      detail.holdWorthIt = !!holdWorthIt;
+      detail.bestFuturePct = candidate.bestFutureWeek ? Math.round(candidate.bestFuture * 100) : null;
+      detail.bestFutureWeek = candidate.bestFutureWeek || null;
       if (isWeekBest) {
         value = "Best value";
         note = holdWorthIt
@@ -20563,7 +20786,7 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
   }
 
   if (!teamLabel && !value) return null;
-  return { teamId, teamLabel, value, note, muted, noEdgeLabel, edgePoints, coverPct };
+  return { teamId, teamLabel, value, note, muted, noEdgeLabel, edgePoints, coverPct, format, detail };
 }
 
 /** The league pick panel's one-line rendering of computeBlitzEdge(). */

@@ -217,6 +217,14 @@ export default async (req: Request, context: Context) => {
     if (type === "boxscore_click") {
       if (away) record.away = String(away).slice(0, 64);
       if (home) record.home = String(home).slice(0, 64);
+      // js/analytics.js has always sent `source` for this event and
+      // analytics-summary.mts has always grouped by it, but it was never
+      // stored here - so boxscoreClicksBySource counted nothing and the
+      // dashboard's panel sat empty. Values today: "full_details" (the
+      // "View Full Box Score" button inside a game card's Full Details
+      // panel) and "score_tap" (the tappable score still on the
+      // picks/results and team schedule views).
+      if (source) record.source = String(source).slice(0, 32);
     }
 
     if (type === "playbook_subtab" && subtab) {

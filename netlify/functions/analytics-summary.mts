@@ -437,8 +437,10 @@ export default async (req: Request, _context: Context) => {
     // card's Full Details panel - the only path from a game card since the
     // redesign. "score_tap" is the older tappable score, which now only
     // exists on the picks/results and team schedule views. Events recorded
-    // before the tracking fix landed have no `source` and fall into
-    // "unknown", so a lingering "unknown" bar is historical data, not a bug. ---
+    // before track.mts started persisting `source` have none and fall into
+    // "unknown", so a lingering "unknown" bar is historical data, not a
+    // bug - but note that's every event up to that fix, not just the ones
+    // predating the client-side tracking fix. ---
     const boxscoreClicksBySource = sortedCounts(boxscoreClicks, (r) => r.source);
 
     // --- historical archive: pageviews on /historical/ pages, click

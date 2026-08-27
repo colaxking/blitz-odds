@@ -24334,19 +24334,25 @@ function App() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
-  // The wordmark. Always lands on whatever tab owns "/" - the week view
-  // before HOME_TAB_ENABLED, the Home tab after - so clicking the logo keeps
-  // meaning "take me to the front page" without this needing to know which
-  // one that is. The route sync effect writes the URL; this only pushes when
-  // the tab isn't changing (same value into setActiveTab means no re-render,
-  // so the effect wouldn't fire).
+  // Back out of a team or game page to the week view it was opened from.
+  // This used to target ROOT_TAB, which is "home" once HOME_TAB_ENABLED - so
+  // every caller that means "back to Games" (the back chevron, the "Games"
+  // breadcrumb crumb, GameView's onBack) was landing people on the Home tab
+  // instead. The front-page behaviour ROOT_TAB gave is what goHomeTab is for,
+  // and the wordmark now calls that.
+  //
+  // The route sync effect writes the URL when the tab changes; it can't help
+  // here, because coming back from /teams/... the tab is already "games" and
+  // the effect declines to overwrite a path it doesn't recognise as stale.
+  // Hence the explicit push.
   function backToWeek() {
     setView("week");
     setSelectedGame(null);
-    const already = activeTab === ROOT_TAB;
-    setActiveTab(ROOT_TAB);
-    if (already && window.location.pathname !== "/") {
-      stampAndPush({ view: "week", tab: ROOT_TAB }, "/");
+    const already = activeTab === "games";
+    setActiveTab("games");
+    const path = buildTabPath("games");
+    if (already && window.location.pathname !== path) {
+      stampAndPush({ view: "week", tab: "games" }, path);
     }
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
@@ -24449,7 +24455,7 @@ function App() {
                 <ChevronIcon direction="left" size={17} />
               </button>
             ) : (
-              <button type="button" className="hdr-mark" onClick={backToWeek} aria-label="Blitz Odds home">
+              <button type="button" className="hdr-mark" onClick={goHomeTab} aria-label="Blitz Odds home">
                 <BrandWordmark height={21} className="brand-logo-mini" />
               </button>
             )}
@@ -24476,7 +24482,7 @@ function App() {
             />
           </div>
         </div>
-        <div className="brand-row" onClick={backToWeek}>
+        <div className="brand-row" onClick={goHomeTab}>
           <BrandWordmark height={76} className="brand-logo" />
           <h1 className="sr-only">Blitz Odds</h1>
         </div>
@@ -24586,7 +24592,7 @@ function App() {
           initialSubTab={leagueIntent ? (leagueIntent.subTab || null) : null}
           initialLeagueSubTab={leagueIntent ? (leagueIntent.leagueSubTab || null) : initialLeagueSubTabFromUrl}
           onOpenLeagueRoute={syncLeagueRoute}
-          onGoHome={backToWeek}
+          onGoHome={goHomeTab}
         />
       )}
 

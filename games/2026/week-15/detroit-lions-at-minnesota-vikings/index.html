@@ -21134,11 +21134,42 @@ function TabBar({ activeTab, onSelectTab }) {
 
 const ADMIN_ROLE = "admin";
 
+/**
+ * Two sources, because neither alone is sufficient.
+ *
+ * The role on app_metadata.roles is readable straight off the Identity user,
+ * so it renders the menu item immediately with no network call - that's the
+ * steady state for every admin after the first.
+ *
+ * The first admin is the exception. ADMIN_SEED_EMAIL is a server-side
+ * environment variable that grants access without the role being present on
+ * the record, and the browser has no way to see it. Without the whoami probe
+ * the seed account is authorised by every endpoint and shown the menu item by
+ * none of them, which locks the one person who is supposed to bootstrap the
+ * console out of it.
+ *
+ * The probe runs once per sign-in and only when the local check already came
+ * back false, so the common case costs nothing.
+ */
 function useIsAdmin(auth) {
-  return useMemo(() => {
+  const localRole = useMemo(() => {
     const roles = auth && auth.user && auth.user.app_metadata && auth.user.app_metadata.roles;
     return Array.isArray(roles) && roles.indexOf(ADMIN_ROLE) !== -1;
   }, [auth && auth.user]);
+
+  const [probed, setProbed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (localRole || !auth || auth.status !== "in") { setProbed(false); return; }
+    auth.authenticatedFetch("/.netlify/functions/admin-whoami")
+      .then(res => res.json())
+      .then(body => { if (!cancelled && body && body.isAdmin) setProbed(true); })
+      .catch(() => { /* not an admin, or offline - either way, no menu item */ });
+    return () => { cancelled = true; };
+  }, [auth, auth && auth.status, localRole]);
+
+  return localRole || probed;
 }
 
 /** Every admin call goes through here so a 403 produces one consistent

@@ -1494,6 +1494,7 @@
   .pbc-filt:hover:not(:disabled) { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
   .pbc-filt.active { background: rgba(var(--accent-rgb),0.14); color: var(--accent); border-color: var(--accent); }
   .pbc-filt .c { font-size: 0.9rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+  .pbc-lbl-short { display: none; }
   .pbc-filt:disabled { opacity: 0.45; cursor: default; }
   .pbc-filt.is-zero .c { color: var(--pill-good-text); }
 
@@ -1581,10 +1582,13 @@
     .pbc-mark.is-open, .pbc-mark.is-now { top: 30px; }
     .pbc-mark.is-low i { height: 30px; }
     .pbc-who-line { font-size: 0.86rem; }
-    /* The three chips wrap to two rows at phone width. Left alone: the
-       labels are too wide to fit one row at 360px, and shrinking the text
-       enough to try still wrapped while making the counts harder to read. */
-    .pbc-filters { gap: 6px; }
+    /* All three chips on one row, using the short labels - the full ones
+       don't fit at 360px and shrinking the type enough to force it made the
+       counts hard to read without actually fitting. */
+    .pbc-filters { gap: 6px; flex-wrap: nowrap; }
+    .pbc-filt { flex: 1 1 0; min-width: 0; justify-content: center; padding: 8px 6px; gap: 6px; }
+    .pbc-lbl-full { display: none; }
+    .pbc-lbl-short { display: inline; }
   }
 
   /* ---- section heads / empty ---- */
@@ -1681,6 +1685,16 @@
   }
   .bet-card-matchup img { flex-shrink: 0; }
   .bet-reason { font-size: 0.78rem; color: var(--text-dim); line-height: 1.45; }
+
+  @media (max-width: 760px) {
+    /* The tag sits inline, so a wider one ("MONEYLINE") pushed that card's
+       body further right than its neighbour's ("TOTAL") and the cards read
+       as misaligned. It also squeezed the matchup line into wrapping. On a
+       phone the tag goes on its own line, so every card's content starts at
+       the same edge and the matchup gets the full width. */
+    .bet-card-main { flex-direction: column; gap: 8px; }
+    .bet-tag { align-self: flex-start; margin-top: 0; }
+  }
 
   /* Hot Picks - Track Record panel */
   .track-record-panel {
@@ -15191,13 +15205,16 @@ function PlaybookChanges({ week, sportsbookId }) {
     const changedPrice = moves.filter((m) => ["grow", "shrink"].includes(classifyLineMove(m).key));
     const quiet = moves.filter((m) => classifyLineMove(m).key === "none");
     return [
-      { id: "pick", label: "Changed a pick", list: changedPick,
+      // Short labels for phone width - the full ones are wider than a 360px
+      // viewport can fit on one row, and wrapping to two reads as a broken
+      // grid.
+      { id: "pick", label: "Changed a pick", short: "Picks", list: changedPick,
         note: "These moved a game onto, off, or across one of your sheets.",
         empty: "No line moved far enough to change a pick this week — the sheet is the one the model built when the lines went up." },
-      { id: "price", label: "Changed the price", list: changedPrice,
+      { id: "price", label: "Changed the price", short: "Price", list: changedPrice,
         note: "Same call as before, at a better or worse number.",
         empty: "No play's edge moved materially this week." },
-      { id: "none", label: "No effect", list: quiet,
+      { id: "none", label: "No effect", short: "No effect", list: quiet,
         note: "Here so you can see the market is active, not so you have to read them.",
         empty: "Every line that moved changed something." },
     ];
@@ -15246,7 +15263,9 @@ function PlaybookChanges({ week, sportsbookId }) {
             onClick={() => setActive(g.id)}
             aria-pressed={g.id === activeId}
           >
-            {g.label} <span className="c">{g.list.length}</span>
+            <span className="pbc-lbl-full">{g.label}</span>
+            <span className="pbc-lbl-short">{g.short}</span>
+            <span className="c">{g.list.length}</span>
           </button>
         ))}
       </div>

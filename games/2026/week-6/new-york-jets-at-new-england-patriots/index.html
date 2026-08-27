@@ -1453,6 +1453,110 @@
   .pb-chg-affects b { color: var(--accent); font-weight: 800; }
   .pb-arrow { color: var(--text-dim); margin: 0 3px; }
 
+
+  /* ---- What Changed ----
+     The old version rendered every line move as the same sentence, so a move
+     that flipped a pick looked identical to one that changed nothing. These
+     styles exist to make the consequence the thing you read first. */
+  .pbc-verdict-strip {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 16px; display: flex; gap: 26px; flex-wrap: wrap; align-items: center;
+  }
+  .pbc-verdict-strip .lead { flex: 1; min-width: 260px; font-size: 0.86rem; line-height: 1.5; color: var(--text-dim); }
+  .pbc-verdict-strip .lead b { color: var(--text); font-weight: 800; }
+  .pbc-stat { text-align: center; }
+  .pbc-stat .n { font-size: 1.45rem; font-weight: 850; line-height: 1.1; display: block; font-variant-numeric: tabular-nums; }
+  .pbc-stat .l { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); font-weight: 800; }
+  .pbc-stat.is-warn .n { color: var(--warn); }
+  .pbc-stat.is-good .n { color: var(--pill-good-text); }
+
+  /* Filter chips rather than plain tabs: the counts are the point. A week
+     where nothing changed a pick is the most useful answer this tab gives,
+     and a bare tab would hide that behind a tap. */
+  .pbc-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .pbc-filt {
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-dim);
+    border-radius: 10px; padding: 8px 14px; font-family: inherit; font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; display: flex; align-items: baseline; gap: 8px;
+  }
+  .pbc-filt:hover:not(:disabled) { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
+  .pbc-filt.active { background: rgba(var(--accent-rgb),0.14); color: var(--accent); border-color: var(--accent); }
+  .pbc-filt .c { font-size: 0.9rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+  .pbc-filt:disabled { opacity: 0.45; cursor: default; }
+  .pbc-filt.is-zero .c { color: var(--pill-good-text); }
+
+  .pbc-empty {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 22px 18px; text-align: center; font-size: 0.84rem; color: var(--text-dim);
+  }
+
+  .pbc-card {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 10px; display: grid; gap: 14px; align-items: center;
+    grid-template-columns: minmax(150px,190px) minmax(240px,1fr) minmax(210px,300px);
+  }
+  .pbc-who { min-width: 0; }
+  .pbc-who-line { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 0.9rem; flex-wrap: wrap; }
+  .pbc-who-line .at { color: var(--text-dim); font-weight: 600; }
+  .pbc-who-sub { font-size: 0.68rem; color: var(--text-dim); margin-top: 3px; }
+
+  /* One axis carrying the model's number, the opening line and the current
+     one, so "did the market come to us or move away" is readable at a glance.
+     Model sits above the rail and the two market marks below, which keeps
+     their labels apart when the market lands on top of the model. */
+  .pbc-axis { position: relative; height: 92px; }
+  .pbc-axis-cap { position: absolute; top: 0; left: 0; font-size: 0.6rem; color: var(--text-dim); font-weight: 700; }
+  .pbc-axis-rail { position: absolute; left: 0; right: 0; top: 42px; height: 2px; background: var(--card-border); }
+  .pbc-axis-move { position: absolute; top: 41px; height: 4px; border-radius: 2px; }
+  .pbc-axis-move.is-toward { background: rgba(var(--out-rgb),0.55); }
+  .pbc-axis-move.is-away { background: rgba(var(--win-rgb),0.55); }
+  .pbc-mark { position: absolute; transform: translateX(-50%); text-align: center; }
+  .pbc-mark i { display: block; width: 2px; background: var(--text-dim); border-radius: 1px; margin: 0 auto; }
+  .pbc-mark span { display: block; font-size: 0.55rem; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; color: var(--text-dim); }
+  .pbc-mark.is-model { top: 14px; }
+  .pbc-mark.is-model span { color: var(--accent); margin-bottom: 2px; }
+  .pbc-mark.is-model i { height: 16px; background: var(--accent); width: 3px; }
+  .pbc-mark.is-open, .pbc-mark.is-now { top: 36px; }
+  .pbc-mark.is-open i, .pbc-mark.is-now i { height: 14px; }
+  .pbc-mark.is-open span, .pbc-mark.is-now span { margin-top: 3px; }
+  .pbc-mark.is-now i { background: var(--text); }
+  .pbc-mark.is-now span { color: var(--text); }
+  .pbc-mark.is-open i { background: var(--lose); }
+  /* Dropping the tick here would float the label back up to roughly where
+     the normal one sits, so the crowded mark keeps a longer tick instead. */
+  .pbc-mark.is-low i { height: 32px; opacity: 0.5; }
+
+  .pbc-verdict { min-width: 0; }
+  .pbc-vtag {
+    display: inline-block; border-radius: 999px; font-size: 0.62rem; font-weight: 850;
+    padding: 2px 9px; border: 1px solid; letter-spacing: 0.02em; margin-bottom: 5px;
+  }
+  .pbc-vtag.is-join, .pbc-vtag.is-grow { color: var(--pill-good-text); border-color: rgba(var(--win-rgb),0.4); background: rgba(var(--win-rgb),0.13); }
+  .pbc-vtag.is-drop { color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.4); background: rgba(var(--out-rgb),0.13); }
+  .pbc-vtag.is-shrink { color: var(--warn); border-color: rgba(var(--warn-rgb),0.4); background: rgba(var(--warn-rgb),0.13); }
+  .pbc-vtag.is-none { color: var(--text-dim); border-color: var(--card-border); background: var(--surface-2); }
+  .pbc-vtext { font-size: 0.76rem; color: var(--text-dim); line-height: 1.45; }
+  .pbc-vtext b { color: var(--text); font-weight: 750; }
+
+  .pbc-quiet {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 12px 16px; font-size: 0.78rem; color: var(--text-dim);
+  }
+  .pbc-quiet b { color: var(--text); font-weight: 750; }
+  .pbc-quiet-list { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .pbc-chip {
+    display: flex; align-items: center; gap: 5px; background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 999px; padding: 3px 10px 3px 5px;
+    font-size: 0.7rem; color: var(--text-dim);
+  }
+  .pbc-chip b { color: var(--text); font-weight: 700; }
+
+  @media (max-width: 760px) {
+    .pbc-card { grid-template-columns: 1fr; gap: 10px; }
+    .pbc-verdict-strip { gap: 16px; }
+    .pbc-stat .n { font-size: 1.2rem; }
+  }
+
   /* ---- section heads / empty ---- */
   .pb-section-h { margin: 22px 0 10px; }
   .pb-section-h h3 { font-size: 0.98rem; font-weight: 820; margin: 0; }
@@ -14846,16 +14950,142 @@ function PlaybookSheetCard({ league, sheetState, week, sportsbookId, auth, onOpe
   );
 }
 
+/** Home-margin convention: positive means the home team is favoured. Both
+ *  the model's number and a market line have to be converted to it before
+ *  they can be compared, since a posted spread is quoted from whichever
+ *  side happens to be favourite - without this a game flipping favorites
+ *  reads as an enormous move in the wrong direction. */
+function changeHomeMargin(line, home) {
+  if (!line || line.spread == null || !line.favorite) return null;
+  return line.favorite === home ? -line.spread : line.spread;
+}
+
+/** What a line move actually did, which is the only reason an entry earns a
+ *  place in this tab. A move that shifts a number without changing a call is
+ *  not the same event as one that puts a game on the sheet, and the old
+ *  version rendered both as the same sentence. */
+function classifyLineMove(item) {
+  const before = item.beforeTeam;
+  const after = item.afterTeam;
+  if (!before && after) {
+    return {
+      key: "join", tag: "Now a play",
+      text: <>The market moved off the model's number until the gap cleared {ATS_MIN_EDGE_POINTS} points.{" "}
+        <b>{item.afterLabel}</b> is on the spread sheet at <b>{item.afterCover}% to cover</b>.</>,
+    };
+  }
+  if (before && !after) {
+    return {
+      key: "drop", tag: "Off the sheet",
+      text: <>The market came to the model — the gap closed from <b>{item.beforeEdge?.toFixed(1)} pts</b> to{" "}
+        <b>{item.afterEdge?.toFixed(1)}</b>, under the {ATS_MIN_EDGE_POINTS}-point threshold.{" "}
+        <b>{before}</b> is no longer a play.</>,
+    };
+  }
+  if (before && after && before !== after) {
+    return {
+      key: "join", tag: "Side flipped",
+      text: <>The line crossed the model's number. The play switched from <b>{before}</b> to <b>{item.afterLabel}</b>.</>,
+    };
+  }
+  if (before && after && item.afterEdge > item.beforeEdge) {
+    return {
+      key: "grow", tag: "Edge grew",
+      text: <>Still <b>{item.afterLabel}</b>, but better — the gap widened from <b>{item.beforeEdge?.toFixed(1)}</b> to{" "}
+        <b>{item.afterEdge?.toFixed(1)} pts</b>, now <b>{item.afterCover}% to cover</b>.</>,
+    };
+  }
+  if (before && after) {
+    return {
+      key: "shrink", tag: "Edge shrank",
+      text: <>Still <b>{item.afterLabel}</b>, but thinner — the gap narrowed from <b>{item.beforeEdge?.toFixed(1)}</b> to{" "}
+        <b>{item.afterEdge?.toFixed(1)} pts</b>.</>,
+    };
+  }
+  return {
+    key: "none", tag: "No effect",
+    text: <>The line moved but stayed inside the {ATS_MIN_EDGE_POINTS}-point band, so nothing changed on any sheet.</>,
+  };
+}
+
+/** One axis carrying the model's number, the opening line and the current
+ *  one. The bar between open and now is coloured by whether the market moved
+ *  toward the model (the edge is closing) or away from it (the play got
+ *  better) - which is the interesting question and the one a row of text
+ *  can't answer at a glance. */
+function ChangeAxis({ item }) {
+  const model = item.modelMargin;
+  const open = item.openMargin;
+  const now = item.nowMargin;
+  const lo = Math.min(model, open, now) - 2.5;
+  const hi = Math.max(model, open, now) + 2.5;
+  const span = hi - lo || 1;
+  const pos = (v) => ((v - lo) / span) * 100;
+  const toward = Math.abs(now - model) < Math.abs(open - model);
+  const a = Math.min(pos(open), pos(now));
+  const b = Math.max(pos(open), pos(now));
+  // When the two market marks land close together their labels overlap, so
+  // the opening one drops to a second row on a longer tick.
+  const crowded = Math.abs(pos(open) - pos(now)) < 20;
+
+  return (
+    <div className="pbc-axis">
+      <div className="pbc-axis-cap">{toward ? "Market moved toward the model" : "Market moved away from the model"}</div>
+      <div className="pbc-axis-rail" />
+      <div className={"pbc-axis-move " + (toward ? "is-toward" : "is-away")} style={{ left: `${a}%`, width: `${b - a}%` }} />
+      <div className="pbc-mark is-model" style={{ left: `${pos(model)}%` }}>
+        <span>MODEL {formatModelLine(model)}</span><i />
+      </div>
+      <div className={"pbc-mark is-open" + (crowded ? " is-low" : "")} style={{ left: `${pos(open)}%` }}>
+        <i /><span>OPEN {item.open.favorite} {previewLine(item.open.spread)}</span>
+      </div>
+      <div className="pbc-mark is-now" style={{ left: `${pos(now)}%` }}>
+        <i /><span>NOW {item.now.favorite} {previewLine(item.now.spread)}</span>
+      </div>
+    </div>
+  );
+}
+
+function ChangeCard({ item }) {
+  const c = classifyLineMove(item);
+  return (
+    <div className="pbc-card">
+      <div className="pbc-who">
+        <div className="pbc-who-line">
+          <TeamLogo teamId={item.away} size={20} /> {item.away}
+          <span className="at">@</span>
+          <TeamLogo teamId={item.home} size={20} /> {item.home}
+        </div>
+        <div className="pbc-who-sub">Moved {Math.abs(item.moved).toFixed(1)} pts since it opened</div>
+      </div>
+      <ChangeAxis item={item} />
+      <div className="pbc-verdict">
+        <span className={"pbc-vtag is-" + c.key}>{c.tag}</span>
+        <div className="pbc-vtext">{c.text}</div>
+      </div>
+    </div>
+  );
+}
+
 /** Line movement since each game's first posted number, read from the same
- *  odds-history document odds-refresh.mjs appends to. Deliberately not a
- *  generic "everything that happened" feed: an entry earns its place only
- *  by having moved a number that changes a pick, and each one says which
- *  sheet it changed. Injuries aren't here yet - there's no historical
- *  injury feed to diff against on the client, so that arrives with the
- *  snapshot work rather than being faked from the current roster. */
-function PlaybookChanges({ week, sportsbookId, leagues }) {
+ *  odds-history document odds-refresh.mjs appends to.
+ *
+ *  Deliberately not a feed of everything that happened: an entry earns its
+ *  place by having moved a number that changes a pick, and the groups are
+ *  ordered so the consequential ones are what you land on. The counts sit on
+ *  the filters rather than behind them, because a week where nothing changed
+ *  a pick is the most useful answer this tab gives and shouldn't cost a tap
+ *  to discover.
+ *
+ *  Injuries aren't here. impact-players.json carries statusUpdatedAt, but on
+ *  a normal sync run the great majority of players share a single timestamp -
+ *  it records when the feed was written, not when a player's status actually
+ *  changed. Diffing against it would mean claiming things changed that only
+ *  got re-synced, so real injury changes wait for weekly snapshots. */
+function PlaybookChanges({ week, sportsbookId }) {
   const [history, setHistory] = useState(null);
   const [status, setStatus] = useState("loading");
+  const [active, setActive] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -14870,99 +15100,139 @@ function PlaybookChanges({ week, sportsbookId, leagues }) {
     return () => { cancelled = true; };
   }, []);
 
-  const changes = useMemo(() => {
+  const moves = useMemo(() => {
     if (!history) return [];
     const predictions = playbookPredictions(week);
-    const hasAts = (leagues || []).some((l) => l.format === "ats");
     const out = [];
 
     getGamesForWeek(week).forEach((g) => {
       const key = `${g.away}-${g.home}`;
       const snaps = history[key];
       if (!Array.isArray(snaps) || snaps.length < 2) return;
-      const first = snaps[0];
-      const last = snaps[snaps.length - 1];
-      if (first.spread == null || last.spread == null || !first.favorite || !last.favorite) return;
+      const prediction = predictions[key];
+      if (!prediction) return;
 
-      // Spreads are stored relative to each snapshot's own favorite, so
-      // they have to be normalised to a common side before they can be
-      // compared - otherwise a game flipping favorites reads as a huge
-      // move in the wrong direction.
-      const firstHomeMargin = first.favorite === g.home ? -first.spread : first.spread;
-      const lastHomeMargin = last.favorite === g.home ? -last.spread : last.spread;
-      const moved = Math.round((lastHomeMargin - firstHomeMargin) * 10) / 10;
+      const open = snaps[0];
+      const now = snaps[snaps.length - 1];
+      const openMargin = changeHomeMargin(open, g.home);
+      const nowMargin = changeHomeMargin(now, g.home);
+      if (openMargin == null || nowMargin == null) return;
+
+      const moved = Math.round((nowMargin - openMargin) * 10) / 10;
       if (Math.abs(moved) < 0.5) return;
 
-      let affects = null;
-      if (hasAts) {
-        const prediction = predictions[key];
-        if (prediction) {
-          const before = computeBlitzEdge({
-            format: "ats",
-            game: { home: g.home, away: g.away, spread: first.spread, favorite: first.favorite },
-            prediction,
-          });
-          const after = computeBlitzEdge({
-            format: "ats",
-            game: { home: g.home, away: g.away, spread: last.spread, favorite: last.favorite },
-            prediction,
-          });
-          const wasOn = !!(before && before.teamId);
-          const isOn = !!(after && after.teamId);
-          if (!wasOn && isOn) affects = { text: `now on your ATS sheet — ${after.teamLabel}`, key: "on" };
-          else if (wasOn && !isOn) affects = { text: `dropped off your ATS sheet`, key: "off" };
-          else if (wasOn && isOn && before.teamId !== after.teamId) affects = { text: `your ATS side flipped to ${after.teamLabel}`, key: "flip" };
-        }
-      }
+      const edgeAt = (line) => computeBlitzEdge({
+        format: "ats",
+        game: { home: g.home, away: g.away, spread: line.spread, favorite: line.favorite },
+        prediction,
+      });
+      const before = edgeAt(open);
+      const after = edgeAt(now);
 
       out.push({
         key,
         away: g.away,
         home: g.home,
-        favorite: last.favorite,
-        fromText: `${first.favorite} ${formatModelLine(first.spread)}`,
-        toText: `${last.favorite} ${formatModelLine(last.spread)}`,
-        moved: Math.abs(moved),
-        asOf: last.asOf || null,
-        affects,
+        modelMargin: prediction.predictedMargin,
+        open, now, openMargin, nowMargin, moved,
+        beforeTeam: before ? before.teamId : null,
+        beforeEdge: before ? before.edgePoints : null,
+        afterTeam: after ? after.teamId : null,
+        afterEdge: after ? after.edgePoints : null,
+        afterCover: after ? after.coverPct : null,
+        afterLabel: after ? after.teamLabel : null,
       });
     });
 
-    // Biggest movers first, and anything that actually changed a sheet
-    // ahead of anything that only moved a number.
-    return out.sort((a, b) => (b.affects ? 1 : 0) - (a.affects ? 1 : 0) || b.moved - a.moved).slice(0, 12);
-  }, [history, week, leagues]);
+    return out.sort((a, b) => Math.abs(b.moved) - Math.abs(a.moved));
+  }, [history, week]);
+
+  const groups = useMemo(() => {
+    const changedPick = moves.filter((m) => ["join", "drop"].includes(classifyLineMove(m).key));
+    const changedPrice = moves.filter((m) => ["grow", "shrink"].includes(classifyLineMove(m).key));
+    const quiet = moves.filter((m) => classifyLineMove(m).key === "none");
+    return [
+      { id: "pick", label: "Changed a pick", list: changedPick,
+        note: "These moved a game onto, off, or across one of your sheets.",
+        empty: "No line moved far enough to change a pick this week — the sheet is the one the model built when the lines went up." },
+      { id: "price", label: "Changed the price", list: changedPrice,
+        note: "Same call as before, at a better or worse number.",
+        empty: "No play's edge moved materially this week." },
+      { id: "none", label: "No effect", list: quiet,
+        note: "Here so you can see the market is active, not so you have to read them.",
+        empty: "Every line that moved changed something." },
+    ];
+  }, [moves]);
+
+  // Land on the first group with something in it, so the default view is
+  // never an empty panel.
+  const activeId = active || (groups.find((g) => g.list.length) || groups[0]).id;
+  const group = groups.find((g) => g.id === activeId) || groups[0];
+
+  const movedOurWay = moves.filter((m) => Math.abs(m.nowMargin - m.modelMargin) > Math.abs(m.openMargin - m.modelMargin)).length;
+  const changedPickCount = groups[0].list.length;
 
   if (status === "loading") return <p className="pb-note">Checking for line movement…</p>;
   if (status === "error") return <p className="pb-note">Couldn't load line history right now.</p>;
-  if (!changes.length) {
+  if (!moves.length) {
     return (
       <p className="pb-note">
         No line has moved more than half a point since this week's numbers were posted. When one does — and
-        especially when it changes a pick on one of your sheets — it shows up here.
+        especially when it changes a pick — it shows up here.
       </p>
     );
   }
 
   return (
-    <div>
-      {changes.map((c) => (
-        <div key={c.key} className="pb-chg">
-          <span className={"pb-chg-icon " + (c.affects ? "pb-ci-new" : "pb-ci-line")}>{c.affects ? "🎯" : "📉"}</span>
-          <div className="pb-chg-body">
-            <div className="pb-chg-title">
-              <span>{c.away} @ {c.home}</span>
-              {c.asOf && <span className="pb-chg-when">{new Date(c.asOf).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
-            </div>
-            <div className="pb-chg-text">
-              <b>{c.fromText}</b><span className="pb-arrow">→</span><b>{c.toText}</b> — a {c.moved.toFixed(1)}-point move
-              since the line was posted.
-            </div>
-            {c.affects && <div className="pb-chg-affects">This game <b>{c.affects.text}</b></div>}
+    <>
+      <div className="pbc-verdict-strip">
+        <div className="lead">
+          <b>{changedPickCount} of {moves.length} line moves changed a pick this week.</b>{" "}
+          The rest either shifted an edge without changing the call, or drifted inside the band the model
+          already ignores. Where the market moved away from the model's number, the play got better; where it
+          came toward it, the edge is closing.
+        </div>
+        <div className="pbc-stat is-warn"><span className="n">{changedPickCount}</span><span className="l">Changed a pick</span></div>
+        <div className="pbc-stat"><span className="n">{moves.length}</span><span className="l">Lines moved</span></div>
+        <div className="pbc-stat is-good"><span className="n">{movedOurWay}</span><span className="l">Moved our way</span></div>
+      </div>
+
+      <div className="pbc-filters">
+        {groups.map((g) => (
+          <button
+            key={g.id}
+            type="button"
+            className={"pbc-filt" + (g.id === activeId ? " active" : "") + (g.list.length === 0 ? " is-zero" : "")}
+            disabled={g.list.length === 0}
+            onClick={() => setActive(g.id)}
+            aria-pressed={g.id === activeId}
+          >
+            {g.label} <span className="c">{g.list.length}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="pb-section-h"><h3>{group.label}</h3><p>{group.note}</p></div>
+
+      {group.list.length === 0 ? (
+        <div className="pbc-empty">{group.empty}</div>
+      ) : group.id === "none" ? (
+        <div className="pbc-quiet">
+          <b>{group.list.length} {group.list.length === 1 ? "game" : "games"}</b> drifted without crossing the
+          model's {ATS_MIN_EDGE_POINTS}-point threshold.
+          <div className="pbc-quiet-list">
+            {group.list.map((m) => (
+              <span key={m.key} className="pbc-chip">
+                <TeamLogo teamId={m.away} size={16} />
+                <b>{m.away}@{m.home}</b> {m.moved > 0 ? "+" : ""}{m.moved.toFixed(1)}
+              </span>
+            ))}
           </div>
         </div>
-      ))}
-    </div>
+      ) : (
+        group.list.map((m) => <ChangeCard key={m.key} item={m} />)
+      )}
+    </>
   );
 }
 
@@ -15506,7 +15776,7 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
         </>
       )}
 
-      {activeSubTab === "changed" && <PlaybookChanges week={week} sportsbookId={sportsbookId} leagues={leagues} />}
+      {activeSubTab === "changed" && <PlaybookChanges week={week} sportsbookId={sportsbookId} />}
 
       {activeSubTab === "record" && <TrackRecordPanel />}
     </div>

@@ -127,8 +127,12 @@ export default async (req: Request, _context: Context) => {
       return jsonResponse(400, { ok: false, error: `status must be one of: ${[...VALID_STATUS].join(", ")}` });
     }
 
+    // Validated per-branch below: a NEW player must be given a score, but an
+    // update to someone already tracked inherits the one they have, so an
+    // admin flipping a status isn't forced to re-assert an unrelated number.
+    const scoreProvided = body.impactScore !== undefined && body.impactScore !== null && body.impactScore !== "";
     const impactScore = Number(body.impactScore);
-    if (!Number.isInteger(impactScore) || impactScore < 1 || impactScore > 10) {
+    if (scoreProvided && (!Number.isInteger(impactScore) || impactScore < 1 || impactScore > 10)) {
       return jsonResponse(400, { ok: false, error: "impactScore must be a whole number from 1 to 10" });
     }
 
@@ -150,8 +154,75 @@ export default async (req: Request, _context: Context) => {
     const dupe = flat.find((p) =>
       (item.espnId && p.espnId && String(p.espnId) === String(item.espnId)) ||
       (p.name && item.name && String(p.name).toLowerCase() === String(item.name).toLowerCase()));
+    const now0 = new Date().toISOString();
+
+    // WAS A 409. This endpoint originally only ever created players, so a name
+    // already in the curated file was an error. That left the common case with
+    // no home at all: most queue items are "tracked-change" rows about players
+    // who ARE in the file, and the whole point of reviewing one is to move the
+    // status the file records. Refusing that made the queue read-only for
+    // everything except brand new names.
+    //
+    // So an existing player is now an update rather than a conflict. It writes
+    // the same two places a create does - the live "players" blob so the site
+    // reflects it within seconds, and "pending-adds" so the next sync run
+    // folds it into the repo copy (see the header note on why one without the
+    // other silently loses the change).
     if (dupe) {
-      return jsonResponse(409, { ok: false, error: `${dupe.name} is already tracked`, player: dupe });
+      const dupeTeam = Object.keys(doc.players).find((t: string) =>
+        (doc.players[t] || []).some((p: any) => p === dupe)) || team;
+
+      const nextScore = scoreProvided ? impactScore : Number(dupe.impactScore);
+      if (!Number.isInteger(nextScore) || nextScore < 1 || nextScore > 10) {
+        return jsonResponse(400, {
+          ok: false,
+          error: `${dupe.name} has no impact score on file - provide one from 1 to 10`,
+        });
+      }
+
+      const upIntoInjury = String(body.injuryType || dupe.injury?.type || item.detail || "").trim() || "Undisclosed";
+      const upSince = cleanSince(body.since)
+        || dupe.injury?.since
+        || (item.reportedAt ? String(item.reportedAt).slice(0, 10) : null);
+      const upNote = String(body.note || "").trim() || dupe.injury?.note || null;
+
+      dupe.status = status;
+      dupe.impactScore = nextScore;
+      dupe.injury = status === "active" ? null : { type: upIntoInjury, since: upSince, note: upNote };
+      // Same reasoning as a create: stamped now and marked curated so the sync
+      // script treats this as a human decision and only an ESPN report filed
+      // AFTER this moment can move it.
+      dupe.statusUpdatedAt = now0;
+      dupe.source = "curated";
+      if (body.pinned === true) dupe.pinned = true;
+
+      doc.updatedAt = now0;
+      await store.setJSON("players", doc);
+
+      const pendingUp = await readPending(store);
+      pendingUp.push({ team: dupeTeam, player: dupe, stagedAt: now0, reviewId: String(body.reviewId) });
+      await store.setJSON(PENDING_KEY, pendingUp);
+
+      try {
+        item.resolved = true;
+        item.resolvedAt = now0;
+        await notif.setJSON(reviewKey, item);
+      } catch {
+        /* the status change is what matters; a stuck queue row is cosmetic */
+      }
+
+      await audit(
+        actor,
+        "injury.status",
+        `set ${dupe.name} (${dupeTeam}) to ${status}`,
+        { target: String(dupe.espnId || dupe.name || ""), meta: { team: dupeTeam, status, updated: true } }
+      );
+
+      return jsonResponse(200, { ok: true, team: dupeTeam, player: dupe, updated: true, pendingCount: pendingUp.length });
+    }
+
+    if (!scoreProvided) {
+      return jsonResponse(400, { ok: false, error: "impactScore is required when adding a new player" });
     }
 
     const now = new Date().toISOString();

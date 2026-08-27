@@ -3280,6 +3280,15 @@
   .admin-inj-warn { font-size: .7rem; color: var(--warn); font-weight: 700; margin-top: 7px; }
   .admin-inj-act { display: flex; gap: 6px; margin-top: 10px; align-items: stretch; }
   .admin-inj-act select { flex: 1 1 auto; min-width: 0; }
+  /* Scoped past the shared .admin-field input rule (width:100%), same
+     specificity trap the confidence box hit. */
+  .admin-inj-act .admin-inj-score {
+    flex: 0 0 56px; width: 56px; padding: 8px 6px; text-align: center;
+    background: var(--surface-2); border: 1px solid var(--card-border);
+    color: var(--text); font-family: inherit; font-size: .82rem; font-weight: 800;
+    border-radius: 8px;
+  }
+  .admin-inj-score-hint { font-size: .68rem; color: var(--text-dim); margin-top: 7px; line-height: 1.4; }
   .admin-st {
     font-size: .64rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
     padding: 3px 7px; border-radius: 5px; white-space: nowrap;
@@ -21882,6 +21891,10 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [choice, setChoice] = useState({});
+  const [scores, setScores] = useState({});
+  // espnId (and lowercased name) -> the curated record, so a queue row can show
+  // the impact score already on file instead of asking for it again.
+  const [tracked, setTracked] = useState({});
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -21900,15 +21913,53 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
 
   useEffect(() => { load(); }, [load]);
 
+  // The curated player list, read from the same public endpoint the app uses.
+  // A miss here is not fatal - it just means a tracked player's existing score
+  // isn't prefilled and has to be typed.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/.netlify/functions/site-data-current")
+      .then(res => res.json())
+      .then(body => {
+        if (cancelled) return;
+        const byKey = {};
+        const teams = (body && body.players && body.players.players) || (body && body.players) || {};
+        Object.keys(teams).forEach(team => {
+          (teams[team] || []).forEach(p => {
+            if (p.espnId) byKey["id:" + p.espnId] = p;
+            if (p.name) byKey["name:" + String(p.name).toLowerCase()] = p;
+          });
+        });
+        setTracked(byKey);
+      })
+      .catch(() => { /* prefill is a convenience, not a requirement */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  function curatedFor(item) {
+    return (item.espnId && tracked["id:" + item.espnId])
+      || (item.name && tracked["name:" + String(item.name).toLowerCase()])
+      || null;
+  }
+
   async function resolve(item, applied) {
     setBusy(true);
     setError(null);
     try {
       if (applied) {
+        const known = curatedFor(item);
+        const score = scores[item.id] !== undefined && scores[item.id] !== ""
+          ? Number(scores[item.id])
+          : (known ? known.impactScore : undefined);
         await adminCall(auth, "/.netlify/functions/injury-player-add", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reviewId: item.id, status: choice[item.id] || item.to, position: item.position }),
+          body: JSON.stringify({
+            reviewId: item.id,
+            status: choice[item.id] || item.to,
+            position: item.position,
+            impactScore: score,
+          }),
         });
       }
       await adminCall(auth, "/.netlify/functions/injury-review", {
@@ -21940,6 +21991,11 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
 
       {(items || []).map(item => {
         const downgrade = STATUS_RANK[item.to] < STATUS_RANK[item.ours || item.from];
+        const known = curatedFor(item);
+        const scoreValue = scores[item.id] !== undefined
+          ? scores[item.id]
+          : (known && known.impactScore !== undefined ? String(known.impactScore) : "");
+        const scoreOk = scoreValue !== "" && Number(scoreValue) >= 1 && Number(scoreValue) <= 10;
         return (
           <div key={item.id} className={"admin-inj" + (downgrade ? " downgrade" : "")}>
             <div className="admin-inj-top">
@@ -21971,12 +22027,35 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
                   <option key={s} value={s}>{s}</option>
                 )}
               </select>
-              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => resolve(item, true)}>
+              <input
+                className="admin-inj-score"
+                type="text"
+                inputMode="numeric"
+                placeholder="1-10"
+                aria-label="Impact score"
+                value={scoreValue}
+                disabled={busy}
+                onChange={e => {
+                  const v = e.target.value.replace(/[^0-9]/g, "").slice(0, 2);
+                  setScores(sc => Object.assign({}, sc, { [item.id]: v }));
+                }}
+              />
+              <button
+                type="button"
+                className="admin-btn admin-btn-sm"
+                disabled={busy || !scoreOk}
+                onClick={() => resolve(item, true)}
+              >
                 Apply
               </button>
               <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => resolve(item, false)}>
                 Ignore
               </button>
+            </div>
+            <div className="admin-inj-score-hint">
+              {known
+                ? "Impact " + known.impactScore + " on file — change it here if this injury shifts how much he matters."
+                : "New to the tracked list, so he needs an impact score: 1 is a depth piece, 10 moves the line on his own."}
             </div>
           </div>
         );

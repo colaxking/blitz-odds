@@ -11,7 +11,14 @@
   gtag('config', 'G-1KHS0JK39B');
 </script>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to a real
+     value on a notched/home-indicator iPhone. Without it every env() in the
+     stylesheet silently evaluates to 0, so the tab bar's bottom padding, the
+     Add to League sheet's, and the injury sheet's were all no-ops. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<!-- Tints the browser chrome (and the standalone status bar on iOS 16.4+) to
+     match the app. Kept in sync with the resolved theme by useThemeManager. -->
+<meta name="theme-color" content="#0b1220" />
 <title>Carolina Panthers at Green Bay Packers — Odds, Injuries &amp; Prediction | Blitz Odds</title>
 <meta name="description" content="Carolina Panthers @ Green Bay Packers: live odds, injury report, team rankings comparison, and win probability for this matchup." />
 <link rel="canonical" href="https://blitz-odds.com/games/2026/week-8/carolina-panthers-at-green-bay-packers/" />
@@ -75,6 +82,8 @@
         : mode;
       if (resolved === "light") {
         document.documentElement.setAttribute("data-theme", "light");
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.setAttribute("content", "#dbe2ec");
       }
     } catch (e) {}
   })();
@@ -151,6 +160,15 @@
     --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6b80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   }
   * { box-sizing: border-box; }
+  /* Kills the grey/blue flash iOS and Android paint over any tapped control,
+     and the 300ms double-tap-to-zoom delay that makes buttons feel laggy.
+     Applied to controls only - text still selects normally. */
+  button, a, [role="button"], summary, label, select {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  /* Nav chrome shouldn't be long-press selectable. */
+  .tab-bar, .cmd-bar, .week-nav, header.top { -webkit-user-select: none; user-select: none; }
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -201,6 +219,97 @@
   @media (max-width: 380px) {
     .brand-logo-img { height: 49px !important; }
     .header-right-cluster { gap: 6px; }
+  }
+
+  /* ---------- Compact sticky header (mobile only) ----------
+     Above 720px .hdr-bar dissolves into header.top's grid and nothing here
+     applies, so the desktop header is byte-for-byte what it was. */
+  .hdr-bar { display: contents; }
+  .hdr-lead, .hdr-center { display: none; }
+
+  @media (max-width: 720px) {
+    /* header.top steps out of the way so .hdr-bar sticks against .app - a
+       52px-tall parent would let it scroll straight off. */
+    header.top { display: contents; }
+    .hdr-bar {
+      display: grid; grid-template-columns: 82px minmax(0, 1fr) 82px; align-items: center;
+      position: sticky; top: 0; z-index: 450;
+      height: 52px; margin: -20px -16px 6px; padding: 0 8px;
+      background: var(--card-bg);
+      background: color-mix(in srgb, var(--bg) 72%, transparent);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+    /* The hairline only earns its keep once there's content behind the bar. */
+    .hdr-bar.is-scrolled { border-bottom-color: var(--card-border); }
+    .hdr-lead { display: flex; align-items: center; grid-column: 1; }
+    .hdr-center { display: flex; align-items: center; justify-content: center; grid-column: 2; min-width: 0; }
+    .header-right-cluster { grid-column: 3; grid-row: 1; justify-self: end; padding-top: 0; }
+
+    .hdr-mark, .hdr-back {
+      display: flex; align-items: center; background: none; border: none;
+      padding: 0; cursor: pointer; color: var(--text); font: inherit;
+    }
+    .hdr-mark { padding-left: 4px; }
+    .hdr-back {
+      width: 40px; height: 40px; justify-content: center; margin-left: -6px;
+      border-radius: 999px; transition: background 0.12s;
+    }
+    .hdr-back:active { background: rgba(var(--accent-rgb),0.14); color: var(--accent); }
+    .brand-logo-mini .brand-logo-img { height: 21px !important; }
+
+    .hdr-title {
+      display: flex; flex-direction: column; align-items: center;
+      font-size: 0.95rem; font-weight: 700; line-height: 1.15;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+    }
+    .hdr-sub { font-size: 0.64rem; font-weight: 600; color: var(--text-dim); letter-spacing: 0.3px; }
+
+    /* Home keeps the full wordmark below the bar; it fades and shrinks into
+       the small one as you scroll (see the scroll effect in App). */
+    .brand-row { display: none; }
+    .app-home .brand-row {
+      display: flex; grid-column: auto; margin: 2px 0 10px;
+      transform-origin: top center; will-change: transform, opacity;
+    }
+    .app { padding-top: 20px; }
+
+    /* One week control, not two: the header pill owns it on mobile, so the
+       command bar's own picker steps aside. */
+    .cmd-bar .week-nav, .cmd-bar .cmd-divider { display: none; }
+    .cmd-favs::before {
+      content: "Favourites"; font-size: 0.68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim);
+      flex-shrink: 0; margin-right: 2px;
+    }
+    .cmd-bar-bare { background: none; border: none; padding: 4px 0; margin: 12px 0 4px; }
+    /* The header carries the back affordance now. Kept in the DOM, not
+       unmounted - the tour navigates by clicking it. */
+    .back-btn.crumb-back { display: none; }
+  }
+
+  /* The header pill: a raised control with a chevron. Plain centred text
+     with a caret didn't read as tappable in review. */
+  .hdr-week { position: relative; display: flex; align-items: center; max-width: 100%; min-width: 0; }
+  .hdr-week-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 999px;
+    color: var(--text); font-family: inherit; font-size: 0.84rem; font-weight: 700;
+    padding: 8px 13px 8px 15px; cursor: pointer; white-space: nowrap;
+    transition: transform 0.1s ease, border-color 0.15s;
+  }
+  .hdr-week-pill .week-nav-chevron { color: var(--accent); flex-shrink: 0; }
+  .hdr-week-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hdr-week-pill { max-width: 100%; min-width: 0; }
+  .hdr-week-pill:active { transform: scale(0.95); border-color: var(--accent); }
+  .hdr-week-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* Anchored to the pill and centred under it, and above the sticky bar's
+     own z-index so it can't render behind the blur. */
+  .week-nav-panel-hdr {
+    top: calc(100% + 8px); left: 50%; right: auto; transform: translateX(-50%);
+    z-index: 460; max-height: 60vh; max-height: 60dvh;
   }
 
   .account-menu { position: relative; flex-shrink: 0; }
@@ -991,7 +1100,14 @@
     .app { padding-bottom: 96px; }
     .tab-bar {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
-      background: var(--card-bg); border-bottom: none; border-top: 1px solid var(--card-border);
+      /* Translucent + blurred rather than an opaque fill, so the list reads as
+         continuing underneath the bar. The solid card-bg is the fallback for
+         browsers without backdrop-filter (they just get today's look). */
+      background: var(--card-bg);
+      background: color-mix(in srgb, var(--card-bg) 74%, transparent);
+      -webkit-backdrop-filter: saturate(180%) blur(22px);
+      backdrop-filter: saturate(180%) blur(22px);
+      border-bottom: none; border-top: 1px solid var(--card-border);
       /* Extra bottom padding (beyond the safe-area inset) keeps the tap
          targets clear of iOS's edge-swipe gesture zone - without it, taps
          near the bottom of the bar can land on whatever's behind it. */
@@ -1000,7 +1116,11 @@
     .tab-btn {
       flex: 1; flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.64rem;
       min-height: 48px;
+      /* Touch has no hover, so :hover above never fires on a phone and every
+         tap felt inert. A brief scale is the feedback instead. */
+      transition: transform 0.1s ease;
     }
+    .tab-btn:active { transform: scale(0.9); }
     .tab-btn.active::after { content: none; }
     .tab-icon { width: 24px; height: 24px; font-size: 12px; background: none; border-color: transparent; }
     .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: transparent; }
@@ -1510,6 +1630,7 @@
      the league list is long, so the CTA row below always stays on screen. */
   .add-to-league-list {
     flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;
   }
   .add-to-league-item {
@@ -1685,7 +1806,7 @@
     display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
   }
   .injury-modal {
-    position: relative; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto;
+    position: relative; width: 100%; max-width: 420px; max-height: 85vh; max-height: 85dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
     padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
   }
@@ -1759,7 +1880,7 @@
     display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
   }
   .settings-modal {
-    position: relative; width: 100%; max-width: 440px; max-height: 88vh; overflow-y: auto;
+    position: relative; width: 100%; max-width: 440px; max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
     padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
   }
@@ -2719,7 +2840,7 @@
     display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
   }
   .boxscore-modal {
-    position: relative; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto;
+    position: relative; width: 100%; max-width: 480px; max-height: 85vh; max-height: 85dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
     padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
   }
@@ -2848,7 +2969,8 @@
   .tour-spotlight-ring.is-settling { opacity: 0.4; }
   .tour-callout {
     position: fixed; z-index: 2001; width: 300px; max-width: calc(100vw - 32px);
-    max-height: calc(100vh - 32px); overflow-y: auto;
+    max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
+    overflow-y: auto; overscroll-behavior: contain;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 16px 16px 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); pointer-events: auto;
     transition: top 0.25s ease, left 0.25s ease, opacity 0.2s ease;
@@ -3262,7 +3384,7 @@
     display: flex; align-items: flex-end; justify-content: center;
   }
   .admin-sheet {
-    width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+    width: 100%; max-width: 460px; max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 14px 14px 0 0;
   }
@@ -22927,6 +23049,100 @@ function WeekNavItem({ period, active, hasResults, onClick }) {
   );
 }
 
+/** The grouped period list. Rendered by two triggers: WeekNav's pill in the
+ *  command bar (desktop) and HeaderWeekPill in the sticky header (mobile).
+ *  `className` lets each caller position it under its own trigger. */
+function WeekNavPanel({ periods, selectedWeek, onPick, className }) {
+  const preseason = periods.filter(p => p.week < 1);
+  const regular = periods.filter(p => p.week >= 1 && p.week <= 18);
+  const playoffs = periods.filter(p => p.week > 18);
+  const panelRef = useRef(null);
+
+  // Open centred on the current period rather than at Hall of Fame Game -
+  // week 14 is otherwise a long scroll away every time.
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const active = el.querySelector(".week-nav-item.active");
+    if (active) el.scrollTop = Math.max(0, active.offsetTop - el.clientHeight / 2 + active.offsetHeight);
+  }, []);
+
+  const group = (label, list) => (
+    <>
+      {list.length > 0 && <div className="week-nav-group-label">{label}</div>}
+      {list.map(p => (
+        <WeekNavItem
+          key={p.week}
+          period={p}
+          active={p.week === selectedWeek}
+          hasResults={!!getHistorySnapshot(p.week)}
+          onClick={() => onPick(p.week)}
+        />
+      ))}
+    </>
+  );
+
+  return (
+    <div className={"week-nav-panel" + (className ? " " + className : "")} role="listbox" ref={panelRef}>
+      {group("Preseason", preseason)}
+      {group("Regular season", regular)}
+      {group("Playoffs", playoffs)}
+    </div>
+  );
+}
+
+/** Mobile-only week control: the header title *is* the picker. A plain
+ *  centred label with a caret didn't read as tappable, so it's a raised pill
+ *  with a chevron instead. Hidden above 720px, where WeekNav in the command
+ *  bar is still on screen and the header is the centred wordmark. */
+function HeaderWeekPill({ periods, selectedWeek, onSelectWeek }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = periods.find(p => p.week === selectedWeek) || periods[0];
+
+  useEffect(() => {
+    if (!open) return;
+    function onOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    function onKey(e) { if (e.key === "Escape") setOpen(false); }
+    document.addEventListener("mousedown", onOutside);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onOutside);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="hdr-week" ref={ref}>
+      <button
+        type="button"
+        className="hdr-week-pill"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        {/* "Preseason Week 3" overruns the centre column on a 390px phone once
+            the account avatar is in the right slot; the list itself keeps the
+            full label. */}
+        <span className="hdr-week-label">
+          {current ? current.label.replace(/^Preseason Week /, "Preseason Wk ") : "Select week"}
+        </span>
+        <span className={"week-nav-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={11} /></span>
+      </button>
+      {open && (
+        <WeekNavPanel
+          periods={periods}
+          selectedWeek={selectedWeek}
+          onPick={(w) => { onSelectWeek(w); setOpen(false); }}
+          className="week-nav-panel-hdr"
+        />
+      )}
+    </div>
+  );
+}
+
 function WeekNav({ periods, selectedWeek, onSelectWeek }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -22981,40 +23197,7 @@ function WeekNav({ periods, selectedWeek, onSelectWeek }) {
         <ChevronIcon direction="right" />
       </button>
 
-      {open && (
-        <div className="week-nav-panel" role="listbox">
-          {preseason.length > 0 && <div className="week-nav-group-label">Preseason</div>}
-          {preseason.map(p => (
-            <WeekNavItem
-              key={p.week}
-              period={p}
-              active={p.week === selectedWeek}
-              hasResults={!!getHistorySnapshot(p.week)}
-              onClick={() => pick(p.week)}
-            />
-          ))}
-          <div className="week-nav-group-label">Regular season</div>
-          {regular.map(p => (
-            <WeekNavItem
-              key={p.week}
-              period={p}
-              active={p.week === selectedWeek}
-              hasResults={!!getHistorySnapshot(p.week)}
-              onClick={() => pick(p.week)}
-            />
-          ))}
-          {playoffs.length > 0 && <div className="week-nav-group-label">Playoffs</div>}
-          {playoffs.map(p => (
-            <WeekNavItem
-              key={p.week}
-              period={p}
-              active={p.week === selectedWeek}
-              hasResults={!!getHistorySnapshot(p.week)}
-              onClick={() => pick(p.week)}
-            />
-          ))}
-        </div>
-      )}
+      {open && <WeekNavPanel periods={periods} selectedWeek={selectedWeek} onPick={pick} />}
     </div>
   );
 }
@@ -23234,6 +23417,11 @@ function useThemeManager() {
     } else {
       document.documentElement.removeAttribute("data-theme");
     }
+    // Keep the browser/status-bar tint in step with the theme. The inline
+    // bootstrap in <head> sets the initial value before first paint; this
+    // handles every change after that.
+    const tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.setAttribute("content", resolved === "light" ? "#dbe2ec" : "#0b1220");
   }, [resolved]);
 
   useEffect(() => {
@@ -23784,6 +23972,14 @@ function App() {
       goToLeaguesTab();
       return;
     }
+    // Re-tapping the tab you're already on returns you to the top of it,
+    // the way a native tab bar does. Also pops back out of a team or game
+    // page to the week view, since that's the tab's own root.
+    if (tab === activeTab) {
+      if (tab === "games" && view !== "week") { backToWeek(); return; }
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      return;
+    }
     setActiveTab(tab);
   }
 
@@ -23806,7 +24002,7 @@ function App() {
       const write = (path) => {
         const url = path + window.location.search;
         if (first) window.history.replaceState(window.history.state, "", url);
-        else window.history.pushState({ tab: activeTab }, "", url);
+        else stampAndPush({ tab: activeTab }, url);
       };
 
       if (activeTab !== "games") {
@@ -24022,7 +24218,20 @@ function App() {
         setView("week");
         setActiveTab("games");
       }
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      // Restore where this entry was left. The scroll has to happen after the
+      // state updates above have painted, or the page is still the old view's
+      // height and the browser clamps the offset. Two rAFs is the cheapest
+      // reliable "after the next paint".
+      const st = window.history.state;
+      const key = st && st.__k ? st.__k : "k0";
+      historyKeyRef.current = key;
+      const y = scrollPositionsRef.current.get(key);
+      const target = typeof y === "number" ? y : 0;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: target, left: 0, behavior: "auto" });
+        });
+      });
     }
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -24076,6 +24285,26 @@ function App() {
     setShowTour(true);
   }
 
+  /* Back should return the reader to the row they tapped, not the top of a
+     30-game list. Browsers only restore scroll for real page loads, so an SPA
+     has to keep the positions itself: stamp each history entry with an id,
+     record scrollY against that id whenever we push away from it, and read it
+     back on popstate. Ids live in memory only - a hard reload starts a fresh
+     map, which matches what the browser would do anyway. */
+  const scrollPositionsRef = useRef(new Map());
+  const historyKeyRef = useRef("k0");
+  const historyKeySeqRef = useRef(0);
+
+  /** Records where we are, mints an id for the entry we're about to create,
+   *  and pushes it. */
+  function stampAndPush(state, path) {
+    scrollPositionsRef.current.set(historyKeyRef.current, window.scrollY);
+    historyKeySeqRef.current += 1;
+    const key = "k" + historyKeySeqRef.current;
+    historyKeyRef.current = key;
+    window.history.pushState({ ...state, __k: key }, "", path);
+  }
+
   function selectTeam(teamId) {
     setSelectedTeamId(teamId);
     setSelectedGame(null);
@@ -24083,7 +24312,7 @@ function App() {
     setView("team");
     setActiveTab("games");
     const path = buildTeamPath(teamId);
-    if (window.location.pathname !== path) window.history.pushState({ view: "team", teamId }, "", path);
+    if (window.location.pathname !== path) stampAndPush({ view: "team", teamId }, path);
     // Switching views doesn't remount the page - without this, clicking a
     // team while scrolled partway down a long week/schedule list lands on
     // the new view still scrolled to that same position instead of its top.
@@ -24095,7 +24324,7 @@ function App() {
     setView("game");
     setActiveTab("games");
     const path = buildGamePath(week, awayAbbr, homeAbbr);
-    if (window.location.pathname !== path) window.history.pushState({ view: "game", week, awayAbbr, homeAbbr }, "", path);
+    if (window.location.pathname !== path) stampAndPush({ view: "game", week, awayAbbr, homeAbbr }, path);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
@@ -24111,7 +24340,7 @@ function App() {
     const already = activeTab === ROOT_TAB;
     setActiveTab(ROOT_TAB);
     if (already && window.location.pathname !== "/") {
-      window.history.pushState({ view: "week", tab: ROOT_TAB }, "", "/");
+      stampAndPush({ view: "week", tab: ROOT_TAB }, "/");
     }
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
@@ -24132,19 +24361,114 @@ function App() {
 
   const periods = getSelectablePeriods();
 
+  /* Drives the two scroll-linked bits of the compact header: the hairline
+     under the bar, and (on Home) the full wordmark shrinking into the small
+     one. Written straight to style rather than through state so it doesn't
+     re-render the app on every scroll frame. */
+  useEffect(() => {
+    let frame = 0;
+    function apply() {
+      frame = 0;
+      const bar = document.querySelector(".hdr-bar");
+      if (bar) bar.classList.toggle("is-scrolled", window.scrollY > 4);
+      const brand = document.querySelector(".app-home .brand-row");
+      const mark = document.querySelector(".hdr-mark");
+      if (brand) {
+        const p = Math.min(1, window.scrollY / 70);
+        brand.style.opacity = String(1 - p);
+        brand.style.transform = `scale(${1 - p * 0.22}) translateY(${-p * 14}px)`;
+        brand.style.pointerEvents = p > 0.9 ? "none" : "";
+        // Hand off: the small mark only appears as the big one leaves.
+        if (mark) mark.style.opacity = String(p);
+      } else if (mark) {
+        mark.style.opacity = "";
+      }
+    }
+    function onScroll() {
+      if (!frame) frame = requestAnimationFrame(apply);
+    }
+    apply();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [activeTab, view]);
+
+  /* What the compact mobile bar shows. The week view gets the week picker;
+     everything else gets a label naming where you are, since the wordmark no
+     longer tells you and the tall header that used to is gone. */
+  const showWeekPill = activeTab === "games" && view === "week";
+  const headerTitle = (() => {
+    if (activeTab === "games" && view === "team") {
+      const t = baseTeam(selectedTeamId);
+      return { title: t ? t.name : selectedTeamId, sub: "Team" };
+    }
+    if (activeTab === "games" && view === "game" && selectedGame) {
+      return {
+        title: `${selectedGame.awayAbbr} @ ${selectedGame.homeAbbr}`,
+        sub: getPeriodLabel(selectedGame.week),
+      };
+    }
+    // Home renders the full wordmark below the bar, so a "Blitz Odds" title
+    // in the bar as well would say it twice.
+    if (activeTab === "home") return { title: null, sub: null };
+    if (activeTab === "picks") return { title: "Hot Picks", sub: getPeriodLabel(selectedWeek) };
+    if (activeTab === "news") return { title: "News", sub: null };
+    if (activeTab === "league") return { title: "Leagues", sub: null };
+    return { title: "Blitz Odds", sub: null };
+  })();
+
+  /* The bar's left slot carries a back chevron on any drilled-in view and the
+     small wordmark otherwise. The in-content Breadcrumb back pill still
+     exists (CSS hides it on mobile) because the tour clicks it by selector. */
+  const mobileBack = (activeTab === "games" && view !== "week")
+    ? { label: "Back", onClick: backToWeek }
+    : null;
+
   return (
     <div className={"app" + (activeTab === "home" ? " app-home" : "")}>
+      {/* One markup, two layouts. Above 720px `header.top` is the grid it has
+          always been (spacer / centred wordmark / account cluster) and
+          `.hdr-bar` is display:contents so its children land straight in that
+          grid. Below 720px the inversion runs the other way: `header.top`
+          goes display:contents and `.hdr-bar` becomes a real sticky 52px bar,
+          which also lets it stick against `.app` rather than against a
+          52px-tall header it would immediately scroll out of. */}
       <header className="top">
-        <div className="header-right-cluster">
-          <AccountButton
-            auth={auth}
-            profile={profile}
-            onOpenLeagues={goToLeaguesTab}
-            onOpenSettings={() => setShowSettings(true)}
-            onOpenHowItWorks={() => setShowHowItWorks(true)}
-            onReplayTour={replayTour}
-            onOpenAdmin={() => setShowAdmin(true)}
-          />
+        <div className="hdr-bar">
+          <div className="hdr-lead">
+            {mobileBack ? (
+              <button type="button" className="hdr-back" onClick={mobileBack.onClick} aria-label={mobileBack.label}>
+                <ChevronIcon direction="left" size={17} />
+              </button>
+            ) : (
+              <button type="button" className="hdr-mark" onClick={backToWeek} aria-label="Blitz Odds home">
+                <BrandWordmark height={21} className="brand-logo-mini" />
+              </button>
+            )}
+          </div>
+          <div className="hdr-center">
+            {showWeekPill
+              ? <HeaderWeekPill periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
+              : (
+                <span className="hdr-title">
+                  {headerTitle.title || ""}
+                  {headerTitle.sub && <span className="hdr-sub">{headerTitle.sub}</span>}
+                </span>
+              )}
+          </div>
+          <div className="header-right-cluster">
+            <AccountButton
+              auth={auth}
+              profile={profile}
+              onOpenLeagues={goToLeaguesTab}
+              onOpenSettings={() => setShowSettings(true)}
+              onOpenHowItWorks={() => setShowHowItWorks(true)}
+              onReplayTour={replayTour}
+              onOpenAdmin={() => setShowAdmin(true)}
+            />
+          </div>
         </div>
         <div className="brand-row" onClick={backToWeek}>
           <BrandWordmark height={76} className="brand-logo" />
@@ -24181,7 +24505,7 @@ function App() {
         <>
           {view === "week" && (
             <>
-              <div className="cmd-bar">
+              <div className={"cmd-bar" + (favorites.length > 0 ? "" : " cmd-bar-bare")}>
                 <WeekNav periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
                 {favorites.length > 0 && (
                   <>

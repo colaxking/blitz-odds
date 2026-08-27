@@ -2036,6 +2036,7 @@
   .league-format-hint { font-size: 0.78rem; color: var(--text-dim); margin: -2px 0 0; line-height: 1.4; }
 
   .league-settings-form { display: flex; flex-direction: column; gap: 12px; }
+
   .league-settings-row { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); }
   .league-settings-row-checkbox { flex-direction: row; align-items: center; justify-content: space-between; }
   .league-settings-row-checkbox input { width: 18px; height: 18px; accent-color: var(--accent); }
@@ -2183,6 +2184,49 @@
      content. Forms keep the narrow measure on purpose: a settings field set
      at 1240px is worse, not better. */
   .leagues-page-league { max-width: 1240px; margin: 18px auto 0; }
+
+  /* ---- Manage League: full-width two-column layout ---------------------
+     The base .leagues-page is 640px pinned left, which is right for the
+     create/join forms but wrong here: half of this screen is a join queue
+     somebody is waiting on plus an invite box, so it's as much a dashboard
+     as a form - the same argument .leagues-page-league already makes for
+     the league detail view, at the same measure. */
+  .leagues-page-manage { max-width: 1240px; margin: 18px auto 0; }
+  .lgx-manage { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 18px; align-items: start; }
+  /* Sticky so the pending queue stays in view while the owner scrolls the
+     scoring fields - it's the time-sensitive half of the screen and the
+     reason most people tap Manage at all. */
+  .lgx-manage-rail { display: flex; flex-direction: column; gap: 18px; position: sticky; top: 16px; }
+  .lgx-manage-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  /* Danger Zone is its own card rather than a section inside the settings
+     card purely so the stacked order below can put it last - sharing a card
+     with the settings form would strand Invite Members underneath a Delete
+     League button. */
+  .lgx-manage-danger .league-danger-zone { border-top: none; padding-top: 0; }
+  /* Two-up fields rather than one input stretched across the column:
+     "Points per correct pick" is a number between 1 and 10, and a 530px box
+     for it is wasted width, not used width. Only the fields whose content
+     actually uses the measure (name, description, format, the checkbox
+     rows, the submit button) span both tracks. */
+  .league-settings-form-grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px 16px; align-items: start;
+  }
+  .league-settings-form-grid > .lgx-span-2,
+  .league-settings-form-grid > .league-settings-row-checkbox { grid-column: 1 / -1; }
+  @media (max-width: 900px) {
+    .leagues-page-manage { max-width: 640px; margin: 18px auto 0 0; }
+    .lgx-manage { grid-template-columns: 1fr; }
+    .league-settings-form-grid { grid-template-columns: 1fr; }
+    /* The rail dissolves so its cards become grid items in their own right.
+       That's what keeps the stacked order what it is today - queue,
+       settings, invites - instead of dragging invites above the settings
+       just because it shares a column with the queue on desktop. */
+    .lgx-manage-rail, .lgx-manage-main { display: contents; }
+    .lgx-manage-requests { order: -1; }
+    .lgx-manage-invite { order: 1; }
+    .lgx-manage-danger { order: 2; }
+  }
   .lgx-crumb { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-dim); }
   .lgx-crumb button { background: none; border: none; padding: 0; font-family: inherit;
     font-size: inherit; color: var(--accent); cursor: pointer; }
@@ -15398,7 +15442,7 @@ const LEAGUE_TIE_BREAKER_OPTIONS = [
 // server-side too (this UI just doesn't render the gear for non-owners).
 // format is deliberately never shown as editable - see
 // league-settings-update.mts's header for why.
-function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
+function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted, onGoHome }) {
   const [name, setName] = useState(league.name || "");
   const [description, setDescription] = useState(league.description || "");
   const [visibility, setVisibility] = useState(LEAGUE_VISIBILITY_OPTIONS.some(o => o.value === league.visibility) ? league.visibility : "private");
@@ -15489,45 +15533,40 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
 
   return (
     <>
+      {/* Full trail, at page level above the cards, matching the league
+          detail view. This used to read "Test › Manage" from inside the
+          card, which made it look like a heading rather than navigation and
+          left no way back to Home in one hop. */}
       <Breadcrumb
-        trail={[{ label: league.name, onClick: onClose }]}
+        trail={[
+          { label: "Home", onClick: () => { onClose(); if (typeof onGoHome === "function") onGoHome(); } },
+          { label: league.name, onClick: onClose },
+        ]}
         current="Manage"
       />
 
-      {/* Join requests first, above League Settings. This screen is what
-          "Manage" opens from every entry point, and the queue is the only
-          part of it that's time-sensitive - somebody is waiting on it.
-          Underneath eight scoring fields it was invisible, which is why an
-          owner looking to approve someone had no way to find it from a
-          button literally labelled Manage. Reuses LeagueRequestsPanel
-          unchanged, so this is a second route to the same panel rather than
-          a move: the Requests subtab inside a league still works. */}
-      {canReviewRequests && (
-        <div className="settings-section">
-          <h3 className="settings-section-title">
-            Join Requests
-            {pendingRequests > 0 && <span className="league-subtab-pip">{pendingRequests}</span>}
-          </h3>
-          <LeagueRequestsPanel
-            auth={auth}
-            league={league}
-            onPendingChange={(n) => setPendingRequests(n)}
-          />
-        </div>
-      )}
-
-      <div className="settings-section">
+      {/* Settings on the left, the two things that involve other people on
+          the right. Join Requests stays first in DOM order so it's also
+          first once the columns stack (see .lgx-manage-rail's
+          display:contents at the breakpoint) - the queue is the only
+          time-sensitive part of this screen and must not end up buried
+          under eight scoring fields, which is the bug that put it at the
+          top in the first place. */}
+      <div className="lgx-manage">
+        <div className="lgx-manage-main">
+          <div className="leagues-page-section">
+          <div className="settings-section">
         <h3 className="settings-section-title">League Settings</h3>
-        <form className="league-settings-form" onSubmit={handleSave}>
-          <label className="league-settings-row">
+        <form className="league-settings-form league-settings-form-grid" onSubmit={handleSave}>
+          <label className="league-settings-row lgx-span-2">
             <span>Name</span>
             <input type="text" className="league-input" value={name} onChange={e => setName(e.target.value)} maxLength={50} />
           </label>
-          <label className="league-settings-row">
+          <label className="league-settings-row lgx-span-2">
             <span>Description</span>
             <input type="text" className="league-input" value={description} onChange={e => setDescription(e.target.value)} maxLength={280} placeholder="Optional" />
           </label>
-          <div className="league-settings-row">
+          <div className="league-settings-row lgx-span-2">
             <span>Format</span>
             <span className="league-format-pill league-format-pill-locked" title="Format can't be changed after a league is created">
               {formatInfo ? formatInfo.label : league.format} 🔒
@@ -15580,19 +15619,16 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
               </label>
             </>
           )}
-          <button type="submit" className="league-btn league-btn-primary league-btn-block" disabled={saving || !name.trim()}>
+          <button type="submit" className="league-btn league-btn-primary league-btn-block lgx-span-2" disabled={saving || !name.trim()}>
             {saving ? "Saving…" : saved ? "Saved!" : "Save Settings"}
           </button>
         </form>
-        {saveError && <p className="leagues-error">{saveError}</p>}
-      </div>
+            {saveError && <p className="leagues-error">{saveError}</p>}
+          </div>
+          </div>
 
-      <div className="settings-section">
-        <h3 className="settings-section-title">Invite Members</h3>
-        <LeagueInvitePanel auth={auth} league={league} showClose={false} />
-      </div>
-
-      <div className="settings-section league-danger-zone">
+          <div className="leagues-page-section lgx-manage-danger">
+          <div className="settings-section league-danger-zone">
         <h3 className="settings-section-title">Danger Zone</h3>
         {!confirmingDelete ? (
           <button type="button" className="league-btn league-btn-danger" onClick={() => setConfirmingDelete(true)}>
@@ -15625,6 +15661,37 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted }) {
             {deleteError && <p className="leagues-error">{deleteError}</p>}
           </div>
         )}
+          </div>
+          </div>
+        </div>
+
+        <div className="lgx-manage-rail">
+          {/* Reuses LeagueRequestsPanel and LeagueInvitePanel unchanged - this
+              is a second route to the same panels, not a move, so the
+              Requests subtab inside a league still works. */}
+          {canReviewRequests && (
+            <div className="leagues-page-section lgx-manage-requests">
+              <div className="settings-section" style={{ marginBottom: 0 }}>
+                <h3 className="settings-section-title">
+                  Join Requests
+                  {pendingRequests > 0 && <span className="league-subtab-pip">{pendingRequests}</span>}
+                </h3>
+                <LeagueRequestsPanel
+                  auth={auth}
+                  league={league}
+                  onPendingChange={(n) => setPendingRequests(n)}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="leagues-page-section lgx-manage-invite">
+            <div className="settings-section" style={{ marginBottom: 0 }}>
+              <h3 className="settings-section-title">Invite Members</h3>
+              <LeagueInvitePanel auth={auth} league={league} showClose={false} />
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
@@ -18056,16 +18123,15 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   const managingLeague = managingLeagueId ? (leagues || []).find(l => l.id === managingLeagueId) : null;
   if (managingLeagueId && managingLeague) {
     return (
-      <div className="leagues-page">
-        <div className="leagues-page-section">
-          <LeagueSettingsPanel
-            auth={auth}
-            league={managingLeague}
-            onClose={() => setManagingLeagueId(null)}
-            onUpdated={(updated) => upsertLeague(updated)}
-            onDeleted={(deletedId) => { removeLeague(deletedId); setManagingLeagueId(null); setSelectedLeagueId(null); }}
-          />
-        </div>
+      <div className="leagues-page leagues-page-manage">
+        <LeagueSettingsPanel
+          auth={auth}
+          league={managingLeague}
+          onClose={() => setManagingLeagueId(null)}
+          onUpdated={(updated) => upsertLeague(updated)}
+          onDeleted={(deletedId) => { removeLeague(deletedId); setManagingLeagueId(null); setSelectedLeagueId(null); }}
+          onGoHome={onGoHome}
+        />
       </div>
     );
   }

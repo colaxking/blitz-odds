@@ -22333,27 +22333,30 @@ function AccountButton({ auth, profile, onOpenLeagues, onOpenSettings, onOpenHow
       {open && (
         <div className="account-dropdown">
           <div className="account-dropdown-name">{name}</div>
-          <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
-            How this works
-          </button>
-          {!TOUR_DISABLED_PENDING_REDESIGN && (
-            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
-              Replay tutorial
-            </button>
-          )}
-          <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenSettings(); }}>
-            Settings
-          </button>
-          {LEAGUES_UI_ENABLED && (
-            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenLeagues(); }}>
-              My Leagues
-            </button>
-          )}
-          {isAdmin && (
-            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenAdmin(); }}>
-              Admin
-            </button>
-          )}
+          {/* Alphabetical, with Sign out pinned last. Sorting here rather than
+              hand-ordering the JSX means a new entry lands in the right place
+              by existing, and can't drift out of order later. Items the user
+              isn't entitled to are filtered before the sort, so the list never
+              has a gap where a hidden entry would have been. */}
+          {[
+            { label: "Admin", show: isAdmin, run: onOpenAdmin },
+            { label: "How this works", show: true, run: onOpenHowItWorks },
+            { label: "My Leagues", show: LEAGUES_UI_ENABLED, run: onOpenLeagues },
+            { label: "Replay tutorial", show: !TOUR_DISABLED_PENDING_REDESIGN, run: onReplayTour },
+            { label: "Settings", show: true, run: onOpenSettings },
+          ]
+            .filter(entry => entry.show)
+            .sort((a, b) => a.label.localeCompare(b.label))
+            .map(entry => (
+              <button
+                key={entry.label}
+                type="button"
+                className="account-dropdown-item"
+                onClick={() => { setOpen(false); entry.run(); }}
+              >
+                {entry.label}
+              </button>
+            ))}
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); auth.logout(); }}>
             Sign out
           </button>

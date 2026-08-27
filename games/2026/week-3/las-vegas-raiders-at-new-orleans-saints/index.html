@@ -2369,32 +2369,35 @@
   .h2h-list { display: flex; flex-direction: column; gap: 8px; }
   .h2h-row { border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; }
   .h2h-row-header {
-    width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-    background: none; border: none; color: var(--text); font-size: 0.8rem; cursor: pointer; text-align: left;
+    width: 100%; display: block; padding: 9px 12px 10px;
+    background: none; border: none; color: var(--text); cursor: pointer; text-align: left;
+    font-family: inherit;
   }
-  .h2h-date { color: var(--text-dim); font-size: 0.7rem; white-space: nowrap; }
-  /* min-width:0 lets this shrink below its longest word instead of forcing
-     the row wider than .h2h-row, which clips (that parent is overflow:hidden). */
-  .h2h-matchup { flex: 1; min-width: 0; font-weight: 600; }
+  /* Line 1: context on the left, the box score affordance pinned right.
+     Line 2 (.h2h-matchup) then gets the full row width to itself, which is
+     what the old three-column layout couldn't give it - the matchup was
+     squeezed between a nowrap date and a nowrap toggle and wrapped into a
+     multi-line stack on a phone. */
+  .h2h-caption-row {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    margin-bottom: 3px;
+  }
+  .h2h-caption {
+    min-width: 0; color: var(--text-dim); font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .h2h-matchup { min-width: 0; font-size: 0.88rem; font-weight: 700; }
+  .h2h-at { color: var(--text-dim); font-weight: 600; margin: 0 3px; }
   .h2h-winner { color: var(--win); font-weight: 800; }
-  .h2h-toggle { color: var(--accent); font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+  .h2h-toggle {
+    flex: none; color: var(--accent); font-size: 0.7rem; font-weight: 700; white-space: nowrap;
+  }
   .h2h-boxscore { padding: 4px 12px 14px; border-top: 1px dashed var(--card-border); }
   .h2h-teamstats { margin-top: 14px; }
   .h2h-fullpage-link {
     display: inline-block; margin-top: 10px; color: var(--accent); font-size: 0.72rem; font-weight: 700; text-decoration: none;
   }
   .h2h-fullpage-link:hover { text-decoration: underline; }
-  /* Below ~360px the three columns (nowrap date + matchup + nowrap toggle)
-     can't fit on one line inside a card's Full Details panel: the matchup
-     collapsed into a 5-line stack and "Box score ▼" was clipped by the
-     row's overflow:hidden. Stack instead - matchup on its own line, date
-     and toggle sharing the line below it. */
-  @media (max-width: 360px) {
-    .h2h-row-header { flex-wrap: wrap; gap: 4px 10px; }
-    .h2h-matchup { flex: 1 0 100%; order: 0; }
-    .h2h-date { order: 1; }
-    .h2h-toggle { order: 2; margin-left: auto; }
-  }
   .injury-report { margin-bottom: 18px; }
   .injury-report-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
   .injury-list { display: flex; flex-direction: column; gap: 6px; }
@@ -16695,15 +16698,26 @@ function H2HRow({ game }) {
 
   return (
     <div className="h2h-row">
-      <button type="button" className="h2h-row-header" onClick={handleToggle} aria-expanded={expanded}>
-        <span className="h2h-date">{game.date}</span>
+      <button
+        type="button"
+        className="h2h-row-header"
+        onClick={handleToggle}
+        aria-expanded={expanded}
+        data-away={game.awayAbbr}
+        data-home={game.homeAbbr}
+        data-year={game.year}
+      >
+        <span className="h2h-caption-row">
+          <span className="h2h-caption">
+            {game.roundLabel ? game.roundLabel + " " + game.year : game.year} · {game.date}
+          </span>
+          <span className="h2h-toggle">{expanded ? "Hide box score ▲" : "Box score ▼"}</span>
+        </span>
         <span className="h2h-matchup">
           <span className={winner === game.awayAbbr ? "h2h-winner" : undefined}>{game.awayAbbr} {game.awayScore}</span>
-          {" @ "}
+          <span className="h2h-at">@</span>
           <span className={winner === game.homeAbbr ? "h2h-winner" : undefined}>{game.homeAbbr} {game.homeScore}</span>
-          {game.roundLabel && <span className="h2h-round"> · {game.roundLabel} {game.year}</span>}
         </span>
-        <span className="h2h-toggle">{expanded ? "Hide box score ▲" : "Box score ▼"}</span>
       </button>
       {expanded && (
         <div className="h2h-boxscore">

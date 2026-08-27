@@ -24220,6 +24220,9 @@ function App() {
       const st = window.history.state;
       const key = st && st.__k ? st.__k : "k0";
       historyKeyRef.current = key;
+      const depth = st && typeof st.__d === "number" ? st.__d : 0;
+      historyDepthRef.current = depth;
+      setHistoryDepth(depth);
       const y = scrollPositionsRef.current.get(key);
       const target = typeof y === "number" ? y : 0;
       requestAnimationFrame(() => {
@@ -24289,6 +24292,13 @@ function App() {
   const scrollPositionsRef = useRef(new Map());
   const historyKeyRef = useRef("k0");
   const historyKeySeqRef = useRef(0);
+  /* How many in-app pushes deep the current entry is, so the back chevron can
+     tell "there's a screen behind this one" from "this is where they landed".
+     Stamped into history state, which survives a reload on the same entry. */
+  const historyDepthRef = useRef(
+    (window.history.state && typeof window.history.state.__d === "number") ? window.history.state.__d : 0
+  );
+  const [historyDepth, setHistoryDepth] = useState(historyDepthRef.current);
 
   /** Records where we are, mints an id for the entry we're about to create,
    *  and pushes it. */
@@ -24297,7 +24307,9 @@ function App() {
     historyKeySeqRef.current += 1;
     const key = "k" + historyKeySeqRef.current;
     historyKeyRef.current = key;
-    window.history.pushState({ ...state, __k: key }, "", path);
+    historyDepthRef.current += 1;
+    setHistoryDepth(historyDepthRef.current);
+    window.history.pushState({ ...state, __k: key, __d: historyDepthRef.current }, "", path);
   }
 
   function selectTeam(teamId) {
@@ -24422,9 +24434,21 @@ function App() {
 
   /* The bar's left slot carries a back chevron on any drilled-in view and the
      small wordmark otherwise. The in-content Breadcrumb back pill still
-     exists (CSS hides it on mobile) because the tour clicks it by selector. */
+     exists (CSS hides it on mobile) because the tour clicks it by selector.
+     
+     It pops one level rather than jumping to the week view, so opening a team
+     from a game page and backing out returns to that game rather than skipping
+     it. When there's nothing behind this entry - someone landed straight on
+     /teams/... from search or a shared link - there's no in-app screen to pop
+     to, so it falls back to the week view. */
   const mobileBack = (activeTab === "games" && view !== "week")
-    ? { label: "Back", onClick: backToWeek }
+    ? {
+        label: "Back",
+        onClick: () => {
+          if (historyDepth > 0) window.history.back();
+          else backToWeek();
+        },
+      }
     : null;
 
   return (

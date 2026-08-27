@@ -1308,6 +1308,133 @@
   .pb-foot-msg.is-error { color: var(--pill-bad-text); }
   .pb-foot-msg.is-ok { color: var(--pill-good-text); }
 
+
+  /* ---- Playbook preview (signed out, or signed in with no leagues) ----
+     A working preview of the real sheets rather than a plain list, because
+     this is the acquisition surface: a straight-up list of teams and
+     percentages is something the Games tab already does better, and shows
+     nothing of what the tab is actually for. */
+  .pbp-fmt-tabs { display: flex; gap: 6px; margin: 18px 0 4px; flex-wrap: wrap; }
+  .pbp-fmt-tab {
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-dim);
+    border-radius: 10px; padding: 9px 15px; font-family: inherit; font-size: 0.82rem;
+    font-weight: 700; cursor: pointer; text-align: left;
+  }
+  .pbp-fmt-tab b { display: block; font-size: 0.82rem; font-weight: 800; }
+  .pbp-fmt-tab span { display: block; font-size: 0.68rem; font-weight: 600; opacity: 0.8; margin-top: 1px; }
+  .pbp-fmt-tab:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
+  .pbp-fmt-tab.active { background: rgba(var(--accent-rgb),0.14); color: var(--accent); border-color: var(--accent); }
+
+  .pbp-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; margin-top: 14px; }
+  .pbp-panel-head { display: flex; align-items: baseline; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--card-border); flex-wrap: wrap; }
+  .pbp-panel-title { font-weight: 800; font-size: 0.95rem; }
+  .pbp-panel-note { font-size: 0.75rem; color: var(--text-dim); }
+  .pbp-panel-note b { color: var(--text); font-weight: 700; }
+
+  .pbp-thead {
+    display: grid; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--card-border);
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--text-dim); font-weight: 800; background: var(--surface-2);
+  }
+  .pbp-row { display: grid; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--card-border); align-items: center; }
+  .pbp-row:last-child { border-bottom: 0; }
+  .pbp-thead.is-su,   .pbp-row.is-su   { grid-template-columns: 34px minmax(190px,1.5fr) 128px 1fr 92px; }
+  .pbp-thead.is-conf, .pbp-row.is-conf { grid-template-columns: 46px minmax(190px,1.4fr) 116px 1fr 84px; }
+  .pbp-thead.is-ats,  .pbp-row.is-ats  { grid-template-columns: 34px minmax(180px,1.3fr) 104px 104px 76px 1fr 84px; }
+  .pbp-num-col { text-align: right; }
+
+  .pbp-rank { font-size: 0.78rem; font-weight: 800; color: var(--text-dim); text-align: center; }
+  .pbp-pts { text-align: center; }
+  .pbp-pts b { font-size: 1.05rem; font-weight: 850; color: var(--blitz-orange); display: block; line-height: 1.1; }
+  .pbp-pts span { font-size: 0.5rem; color: var(--text-dim); font-weight: 800; letter-spacing: 0.05em; }
+
+  .pbp-match { min-width: 0; }
+  .pbp-match-line { display: flex; align-items: center; gap: 7px; font-weight: 750; font-size: 0.9rem; }
+  .pbp-match-line .pick { font-weight: 850; }
+  .pbp-match-line .vs { color: var(--text-dim); font-weight: 600; font-size: 0.82rem; }
+  .pbp-when { font-size: 0.68rem; color: var(--text-dim); margin-top: 3px; }
+  .pbp-when .net { color: var(--edge-b); font-weight: 700; }
+
+  .pbp-cell-label { font-size: 0.82rem; font-weight: 750; }
+  .pbp-cell-sub { font-size: 0.67rem; color: var(--text-dim); margin-top: 2px; }
+  .pbp-big { font-size: 1.05rem; font-weight: 850; text-align: right; font-variant-numeric: tabular-nums; }
+  .pbp-big small { display: block; font-size: 0.52rem; color: var(--text-dim); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 1px; }
+
+  .pbp-why { font-size: 0.74rem; color: var(--text-dim); line-height: 1.4; min-width: 0; }
+  .pbp-why b { color: var(--text); font-weight: 700; }
+  .pbp-why.is-none { opacity: 0.5; }
+  .pbp-tag { display: inline-block; border-radius: 999px; font-size: 0.6rem; font-weight: 800; padding: 1px 7px; border: 1px solid; white-space: nowrap; }
+  .pbp-tag-out { color: var(--pill-bad-text); border-color: rgba(var(--out-rgb),0.4); background: rgba(var(--out-rgb),0.12); }
+  .pbp-tag-q { color: var(--pill-questionable-text); border-color: rgba(var(--warn-rgb),0.4); background: rgba(var(--warn-rgb),0.12); }
+  .pbp-tag-edge { color: var(--pill-good-text); border-color: rgba(var(--win-rgb),0.35); background: rgba(var(--win-rgb),0.12); }
+
+  /* The wrapper exists only so these cells can reflow together on a phone;
+     on desktop they stay independent grid children. */
+  .pbp-meta { display: contents; }
+  .pbp-mob-k { display: none; }
+
+  /* Locked rows: the same blurred-peek treatment the survivor path uses, so
+     the sheet visibly keeps going instead of hitting a wall. Rendered from
+     the real next rows, not placeholder bars - the silhouette of a 13-point
+     game or another edge pill is part of what's being previewed. Masked so
+     it fades out rather than ending on a hard edge. */
+  .pbp-peek {
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
+    pointer-events: none; user-select: none;
+  }
+  .pbp-peek .pbp-row { filter: blur(4px); opacity: 0.5; }
+
+  .pbp-gate {
+    padding: 18px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    background: var(--surface-2); border-top: 1px solid var(--card-border);
+  }
+  .pbp-gate-main { flex: 1; min-width: 240px; }
+  .pbp-gate-title { font-weight: 800; font-size: 0.9rem; }
+  .pbp-gate-sub { font-size: 0.76rem; color: var(--text-dim); margin-top: 3px; }
+  .pbp-gate-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* survivor path in the preview */
+  .pbp-path-wrap { padding: 16px; }
+  .pbp-path-scroll { overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+  .pbp-path { display: flex; align-items: flex-end; min-width: min-content; }
+  .pbp-node { flex: none; width: 84px; text-align: center; position: relative; padding-bottom: 22px; }
+  .pbp-node .wk { font-size: 0.55rem; color: var(--text-dim); font-weight: 800; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .pbp-node .crest { position: relative; z-index: 1; display: flex; justify-content: center; }
+  .pbp-node .p { font-size: 0.66rem; color: var(--text-dim); font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .pbp-node .opp { font-size: 0.6rem; color: var(--lose); margin-top: 1px; }
+  .pbp-node::before { content: ""; position: absolute; left: -50%; right: 50%; top: 32px; height: 2px; background: var(--warn); opacity: 0.3; }
+  .pbp-node:first-child::before { display: none; }
+  .pbp-node.is-later .crest { opacity: 0.8; }
+  .pbp-node.is-later::before { background: var(--lose); opacity: 0.3; }
+  .pbp-node .surv { position: absolute; left: 10px; right: 10px; bottom: 6px; height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+  .pbp-node .surv i { display: block; height: 100%; background: var(--warn); opacity: 0.8; }
+  .pbp-node.is-now .wk { color: var(--warn); }
+  .pbp-node.is-now .p { color: var(--text); font-weight: 850; font-size: 0.74rem; }
+  .pbp-node.is-locked .crest { filter: blur(5px); opacity: 0.35; }
+  .pbp-node.is-locked .p, .pbp-node.is-locked .opp { filter: blur(4px); opacity: 0.4; }
+  .pbp-path-foot { font-size: 0.76rem; color: var(--text-dim); padding: 6px 16px 2px; }
+  .pbp-path-foot b { color: var(--text); font-weight: 750; }
+
+  @media (max-width: 760px) {
+    .pbp-thead { display: none; }
+    .pbp-row.is-su, .pbp-row.is-conf, .pbp-row.is-ats {
+      grid-template-columns: 38px minmax(0,1fr) auto; row-gap: 6px; column-gap: 10px; padding: 12px 14px;
+    }
+    .pbp-row .pbp-rank, .pbp-row .pbp-pts { grid-column: 1; grid-row: 1; }
+    .pbp-row .pbp-match { grid-column: 2; grid-row: 1; }
+    .pbp-row .pbp-big { grid-column: 3; grid-row: 1; }
+    /* The numbers reflow onto their own line rather than being hidden - the
+       model's line, the market's, and the edge between them are the reason
+       to read the row at all. */
+    .pbp-row .pbp-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; grid-column: 2 / -1; grid-row: 2; }
+    .pbp-row .pbp-meta .pbp-cell-sub { display: inline; margin-left: 6px; }
+    .pbp-row .pbp-why { grid-column: 2 / -1; grid-row: 3; }
+    .pbp-mob-k { display: inline; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); font-weight: 800; margin-right: 3px; }
+    .pbp-big { font-size: 1rem; }
+    .pbp-big small { font-size: 0.5rem; }
+  }
+
   /* ---- what changed ---- */
   .pb-chg { display: flex; gap: 11px; padding: 13px 14px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 9px; }
   .pb-chg-icon { width: 30px; height: 30px; flex: none; border-radius: 8px; display: grid; place-items: center; font-size: 0.85rem; }
@@ -14478,9 +14605,14 @@ function PlaybookSurvivorSheet({ week, sheet, onSubmit, submitting, result }) {
   const now = plan.length && plan[0].week === week ? plan[0] : null;
 
   if (!now) {
+    // Two different reasons the plan has nothing for this week, and they
+    // need different sentences: it's preseason (the plan starts at Week 1),
+    // or every team playing has genuinely been spent.
     return (
       <p className="pb-note" style={{ padding: "14px" }}>
-        No team left to spend this week — every team playing has already been used.
+        {week < 1
+          ? "Survivor picks start in Week 1 — there's no preseason round to plan for."
+          : "No team left to spend this week — every team playing has already been used."}
       </p>
     );
   }
@@ -14837,70 +14969,380 @@ function PlaybookChanges({ week, sportsbookId, leagues }) {
   );
 }
 
-/** Signed out, or signed in with no leagues. A sheet needs a pool to be a
- *  sheet, so rather than inventing a format the reader never chose, this
- *  says what the tab is for and shows the model's plain straight-up read on
- *  the week underneath - which is the one thing that's true regardless of
- *  format. */
-function PlaybookNoLeagues({ week, auth, onOpenLeagues, onSelectGame }) {
-  const rows = useMemo(() => {
-    const predictions = playbookPredictions(week);
-    return getGamesForWeek(week)
-      .map((g) => {
-        const prediction = predictions[`${g.away}-${g.home}`];
-        if (!prediction) return null;
-        return {
-          key: `${g.away}-${g.home}`,
-          away: g.away,
-          home: g.home,
-          team: prediction.predictedWinner,
-          pct: Math.round(prediction.confidence * 100),
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => b.pct - a.pct);
-  }, [week]);
+/** How much of a sheet someone without an account sees. One number, one
+ *  gate, three states: signed out shows this many rows, signed in shows the
+ *  whole sheet, and when a paid tier lands the same gate moves to whatever
+ *  the free tier keeps. Nothing about the mechanism changes then - only who
+ *  clears it. */
+const PLAYBOOK_PREVIEW_ROWS = 5;
+/** Blurred rows rendered past the limit. Three is enough to show the sheet
+ *  continues; the full remainder would be a wall of noise and would push the
+ *  call to action off a phone screen. The gate still counts the real total. */
+const PLAYBOOK_PEEK_ROWS = 3;
+
+const PLAYBOOK_PREVIEW_FORMATS = [
+  { id: "confidence", label: "Confidence", desc: "Rank picks by points" },
+  { id: "straight_up", label: "Straight Up", desc: "Just pick the winner" },
+  { id: "ats", label: "Against the Spread", desc: "Pick a side of the line" },
+  { id: "survivor", label: "Survivor", desc: "One team a week, no repeats" },
+];
+
+/** One row's worth of everything the preview shows, for every game in the
+ *  week. Built once and read by whichever format tab is open, since all four
+ *  are views onto the same underlying per-game numbers. */
+function buildPreviewRows(week, sportsbookId, tz) {
+  const predictions = playbookPredictions(week);
+  const guidance = computeConfidenceGuidance(week);
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+
+  return getGamesForWeek(week)
+    .map((g) => {
+      const prediction = predictions[`${g.away}-${g.home}`];
+      if (!prediction) return null;
+      const odds = getOdds(week, g.away, g.home, sportsbookId);
+      const ats = computeBlitzEdge({
+        format: "ats",
+        game: {
+          home: g.home, away: g.away,
+          spread: odds ? odds.spread : null,
+          favorite: odds ? odds.favorite : null,
+        },
+        prediction,
+      });
+      // The single biggest injury the model is reacting to, either side.
+      // This is the "why" the old board had no version of: "ARI 66%" is a
+      // number, "Weaver out, worth 4.8 rating points off their offense" is
+      // a reason.
+      const injury = [
+        ...prediction.homeAdjustments.map((a) => ({ ...a, team: g.home })),
+        ...prediction.awayAdjustments.map((a) => ({ ...a, team: g.away })),
+      ]
+        .filter((a) => a.player)
+        .sort((a, b) => Math.abs(b.ratingDelta) - Math.abs(a.ratingDelta))[0] || null;
+
+      return {
+        key: `${g.away}-${g.home}`,
+        away: g.away,
+        home: g.home,
+        when: formatGameDateTimeInZone(g.date, g.time, seasonYear, tz),
+        network: g.network || null,
+        pick: prediction.predictedWinner,
+        winPct: Math.round(prediction.confidence * 100),
+        modelMargin: prediction.predictedMargin,
+        points: guidance.byGame[`${g.away}-${g.home}`] || null,
+        odds: odds || null,
+        atsTeam: ats ? ats.teamId : null,
+        atsCover: ats ? ats.coverPct : null,
+        atsEdge: ats ? ats.edgePoints : null,
+        atsMuted: ats ? ats.muted : true,
+        injury: injury
+          ? {
+              player: injury.player,
+              status: injury.status,
+              team: injury.team,
+              side: injury.side,
+              delta: Math.round(Math.abs(injury.ratingDelta) * 10) / 10,
+            }
+          : null,
+      };
+    })
+    .filter(Boolean);
+}
+
+/** Spread as the side being backed sees it, "PK" at zero. */
+function previewLine(n) {
+  if (n == null) return null;
+  if (n === 0) return "PK";
+  return formatModelLine(n);
+}
+
+function PreviewMatch({ row, team, line }) {
+  const opp = team === row.home ? row.away : row.home;
+  return (
+    <div className="pbp-match">
+      <div className="pbp-match-line">
+        <TeamLogo teamId={team} size={20} />
+        <span className="pick">{team}{line ? ` ${line}` : ""}</span>
+        <span className="vs">{team === row.home ? "vs" : "at"} {opp}</span>
+      </div>
+      <div className="pbp-when">
+        {row.when.date}{row.when.time ? ` · ${row.when.time}` : ""}
+        {row.network && <> · <span className="net">{row.network}</span></>}
+      </div>
+    </div>
+  );
+}
+
+function PreviewWhy({ row }) {
+  if (!row.injury) return <span className="pbp-why is-none">No injury of consequence.</span>;
+  const i = row.injury;
+  return (
+    <span className="pbp-why">
+      <span className={"pbp-tag " + (i.status === "out" ? "pbp-tag-out" : "pbp-tag-q")}>
+        {i.team} {String(i.status).toUpperCase()}
+      </span>{" "}
+      <b>{i.player}</b> — worth {i.delta} rating pts off their {i.side}.
+    </span>
+  );
+}
+
+function PreviewGate({ remaining, noun, onCreate, onSignIn }) {
+  return (
+    <div className="pbp-gate">
+      <div className="pbp-gate-main">
+        <div className="pbp-gate-title">{remaining} more {noun} in this week's sheet</div>
+        <div className="pbp-gate-sub">
+          Sign in to see the full sheet — and submit it to your league in one tap. Free, no card.
+        </div>
+      </div>
+      <div className="pbp-gate-actions">
+        <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={onCreate}>Create a free account</button>
+        <button type="button" className="pb-btn pb-btn-ghost" onClick={onSignIn}>Sign in</button>
+      </div>
+    </div>
+  );
+}
+
+function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccount }) {
+  const [format, setFormat] = useState(() => {
+    // Seeded from the Games tab's game-type preference when there is one, so
+    // someone who has already told the app they play ats doesn't land on a
+    // confidence ladder.
+    try {
+      const saved = localStorage.getItem(GAME_TYPE_STORAGE_KEY);
+      return PLAYBOOK_PREVIEW_FORMATS.some((f) => f.id === saved) ? saved : "confidence";
+    } catch (e) {
+      return "confidence";
+    }
+  });
+
+  const rows = useMemo(() => buildPreviewRows(week, sportsbookId, tz), [week, sportsbookId, tz]);
+  const path = useMemo(() => computeSurvivorPath(week, []), [week]);
+
+  const openSignup = () => { auth && auth.openSignup && auth.openSignup(); };
+  const openLogin = () => { auth && auth.openLogin && auth.openLogin(); };
+
+  function splitForGate(list) {
+    if (hasAccount) return { shown: list, peek: [], remaining: 0 };
+    return {
+      shown: list.slice(0, PLAYBOOK_PREVIEW_ROWS),
+      peek: list.slice(PLAYBOOK_PREVIEW_ROWS, PLAYBOOK_PREVIEW_ROWS + PLAYBOOK_PEEK_ROWS),
+      remaining: Math.max(0, list.length - PLAYBOOK_PREVIEW_ROWS),
+    };
+  }
+
+  const confidenceRow = (r) => (
+    <div key={r.key} className="pbp-row is-conf">
+      <div className="pbp-pts"><b>{r.points}</b><span>PTS</span></div>
+      <PreviewMatch row={r} team={r.pick} />
+      <div className="pbp-meta">
+        <div>
+          <div className="pbp-cell-label">
+            {r.odds && r.odds.favorite ? `${r.odds.favorite} ${previewLine(r.odds.spread)}` : "No line yet"}
+          </div>
+          {r.odds && r.odds.overUnder != null && <div className="pbp-cell-sub">O/U {r.odds.overUnder}</div>}
+        </div>
+      </div>
+      <PreviewWhy row={r} />
+      <div className="pbp-big">{r.winPct}%<small>to win</small></div>
+    </div>
+  );
+
+  const straightUpRow = (r, i) => (
+    <div key={r.key} className="pbp-row is-su">
+      <div className="pbp-rank">{i + 1}</div>
+      <PreviewMatch row={r} team={r.pick} />
+      <div className="pbp-meta">
+        <div>
+          <div className="pbp-cell-label">{r.pick} by {Math.abs(r.modelMargin).toFixed(1)}</div>
+          <div className="pbp-cell-sub">
+            {r.odds && r.odds.favorite ? `Market ${r.odds.favorite} ${previewLine(r.odds.spread)}` : "No line yet"}
+          </div>
+        </div>
+      </div>
+      <PreviewWhy row={r} />
+      <div className="pbp-big">{r.winPct}%<small>to win</small></div>
+    </div>
+  );
+
+  const atsRow = (r, i) => {
+    const side = r.atsTeam === (r.odds && r.odds.favorite) ? r.odds.spread : -r.odds.spread;
+    return (
+      <div key={r.key} className="pbp-row is-ats">
+        <div className="pbp-rank">{i + 1}</div>
+        <PreviewMatch row={r} team={r.atsTeam} line={previewLine(side)} />
+        <div className="pbp-meta">
+          <div className="pbp-cell-label">
+            <span className="pbp-mob-k">Model</span> {r.pick} {formatModelLine(-Math.abs(r.modelMargin))}
+          </div>
+          <div className="pbp-cell-label" style={{ color: "var(--text-dim)" }}>
+            <span className="pbp-mob-k">Market</span> {r.odds.favorite} {previewLine(r.odds.spread)}
+          </div>
+          <span className="pbp-tag pbp-tag-edge">{r.atsEdge.toFixed(1)} pts</span>
+        </div>
+        <PreviewWhy row={r} />
+        <div className="pbp-big">{r.atsCover}%<small>to cover</small></div>
+      </div>
+    );
+  };
+
+  let panel = null;
+
+  if (format === "confidence") {
+    const list = rows.filter((r) => r.points).slice().sort((a, b) => b.points - a.points);
+    const { shown, peek, remaining } = splitForGate(list);
+    panel = (
+      <div className="pbp-panel">
+        <div className="pbp-panel-head">
+          <span className="pbp-panel-title">Confidence ladder</span>
+          <span className="pbp-panel-note">
+            All {list.length} games ranked {list.length} down to 1. Assign the most points to the game the model is surest about.
+          </span>
+        </div>
+        <div className="pbp-thead is-conf"><span>Pts</span><span>Pick</span><span>Market</span><span>What's driving it</span><span className="pbp-num-col">Model</span></div>
+        {shown.map(confidenceRow)}
+        {peek.length > 0 && <div className="pbp-peek">{peek.map(confidenceRow)}</div>}
+        {remaining > 0 && <PreviewGate remaining={remaining} noun="games" onCreate={openSignup} onSignIn={openLogin} />}
+      </div>
+    );
+  } else if (format === "straight_up") {
+    const list = rows.slice().sort((a, b) => b.winPct - a.winPct);
+    const { shown, peek, remaining } = splitForGate(list);
+    panel = (
+      <div className="pbp-panel">
+        <div className="pbp-panel-head">
+          <span className="pbp-panel-title">Straight up</span>
+          <span className="pbp-panel-note">Every game, most confident first — with the market's line beside the model's own number.</span>
+        </div>
+        <div className="pbp-thead is-su"><span></span><span>Pick</span><span>Model line</span><span>What's driving it</span><span className="pbp-num-col">Model</span></div>
+        {shown.map(straightUpRow)}
+        {peek.length > 0 && <div className="pbp-peek">{peek.map((r, i) => straightUpRow(r, i + PLAYBOOK_PREVIEW_ROWS))}</div>}
+        {remaining > 0 && <PreviewGate remaining={remaining} noun="games" onCreate={openSignup} onSignIn={openLogin} />}
+      </div>
+    );
+  } else if (format === "ats") {
+    const plays = rows.filter((r) => !r.atsMuted && r.atsTeam && r.odds).sort((a, b) => (b.atsEdge || 0) - (a.atsEdge || 0));
+    const passed = rows.length - plays.length;
+    const { shown, peek, remaining } = splitForGate(plays);
+    panel = (
+      <div className="pbp-panel">
+        <div className="pbp-panel-head">
+          <span className="pbp-panel-title">Spread plays</span>
+          <span className="pbp-panel-note">
+            Only games where the model's own line is <b>{ATS_MIN_EDGE_POINTS}+ points</b> off the market's.
+            {passed > 0 && <> The other {passed} are priced right and the model won't call them.</>}
+          </span>
+        </div>
+        {plays.length === 0 ? (
+          <p className="pb-note" style={{ padding: "14px 16px" }}>
+            No game this week clears {ATS_MIN_EDGE_POINTS} points of value between the model's line and the market's.
+          </p>
+        ) : (
+          <>
+            <div className="pbp-thead is-ats"><span></span><span>Play</span><span>Model line</span><span>Market</span><span>Edge</span><span>What's driving it</span><span className="pbp-num-col">Cover</span></div>
+            {shown.map(atsRow)}
+            {peek.length > 0 && <div className="pbp-peek">{peek.map((r, i) => atsRow(r, i + PLAYBOOK_PREVIEW_ROWS))}</div>}
+            {remaining > 0 && <PreviewGate remaining={remaining} noun="plays" onCreate={openSignup} onSignIn={openLogin} />}
+          </>
+        )}
+      </div>
+    );
+  } else {
+    const plan = (path && path.weeks) || [];
+    const visible = hasAccount ? plan.length : PLAYBOOK_PREVIEW_ROWS;
+    panel = (
+      <div className="pbp-panel">
+        <div className="pbp-panel-head">
+          <span className="pbp-panel-title">Survivor path</span>
+          <span className="pbp-panel-note">
+            {week < 1
+              ? "Survivor runs in the regular season, so this is the route from Week 1 — every week planned at once, so a team is spent where it's worth the most."
+              : "Not just this week — every remaining week planned at once, so a team is spent where it's worth the most."}
+          </span>
+        </div>
+        {plan.length === 0 ? (
+          <p className="pb-note" style={{ padding: "14px 16px" }}>No survivor plan for this week yet.</p>
+        ) : (
+          <>
+            <div className="pbp-path-wrap">
+              <div className="pbp-path-scroll">
+                <div className="pbp-path">
+                  {plan.slice(0, hasAccount ? plan.length : PLAYBOOK_PREVIEW_ROWS + PLAYBOOK_PEEK_ROWS).map((n, i) => (
+                    <div key={n.week} className={"pbp-node " + (i === 0 ? "is-now" : "is-later") + (i >= visible ? " is-locked" : "")}>
+                      <div className="wk">WK {n.week}</div>
+                      <div className="crest"><TeamLogo teamId={n.team} size={i === 0 ? 34 : 24} /></div>
+                      <div className="p">{Math.round(n.prob * 100)}%</div>
+                      <div className="opp">{n.isHome ? "vs" : "at"} {n.opponent}</div>
+                      <div className="surv"><i style={{ width: `${Math.max(3, Math.round(n.survival * 100))}%` }} /></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="pbp-path-foot">
+                The bar under each week is the chance you're still alive at that point. This plan lasts{" "}
+                <b>{path.expectedWeeks ? path.expectedWeeks.toFixed(1) : "—"} weeks</b> on average, and you're more
+                likely than not to still be alive
+                {path.evenOddsWeek ? <> through <b>Week {path.evenOddsWeek - 1}</b></> : <> all the way to the end</>}.
+              </div>
+            </div>
+            {!hasAccount && (
+              <div className="pbp-gate">
+                <div className="pbp-gate-main">
+                  <div className="pbp-gate-title">Your route through Week {clampToRegularSeasonWeek(18)}</div>
+                  <div className="pbp-gate-sub">
+                    Sign in to see every week planned out, which teams are being saved and why, and how the plan
+                    re-plans after a loss.
+                  </div>
+                </div>
+                <div className="pbp-gate-actions">
+                  <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={openSignup}>Create a free account</button>
+                  <button type="button" className="pb-btn pb-btn-ghost" onClick={openLogin}>Sign in</button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="pb-empty">
-        <h3>Your Playbook needs a pool</h3>
-        <p>
-          Playbook builds a finished pick sheet for every league you're in — a full confidence ladder, ranked
-          spread plays, or a survivor spend planned around the rest of the season. Join a league and it starts
-          building.
-        </p>
-        <div className="pb-empty-actions">
-          <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={() => onOpenLeagues({ subTab: "create" })}>
-            Create a league
-          </button>
-          <button type="button" className="pb-btn pb-btn-ghost" onClick={() => onOpenLeagues({ subTab: "join" })}>
-            Join a league
-          </button>
+      {/* Someone signed in with no leagues has an account already, so the
+          pitch is a pool rather than a sign-up. */}
+      {hasAccount ? (
+        <div className="pbp-panel" style={{ marginTop: 18 }}>
+          <div className="pbp-gate" style={{ borderTop: 0 }}>
+            <div className="pbp-gate-main">
+              <div className="pbp-gate-title">Your Playbook needs a pool</div>
+              <div className="pbp-gate-sub">
+                Join a league and these sheets get built for your pool's format automatically, and submit in one tap.
+              </div>
+            </div>
+            <div className="pbp-gate-actions">
+              <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={() => onOpenLeagues({ subTab: "create" })}>Create a league</button>
+              <button type="button" className="pb-btn pb-btn-ghost" onClick={() => onOpenLeagues({ subTab: "join" })}>Join a league</button>
+            </div>
+          </div>
         </div>
+      ) : null}
+
+      <div className="pbp-fmt-tabs">
+        {PLAYBOOK_PREVIEW_FORMATS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            className={"pbp-fmt-tab" + (format === f.id ? " active" : "")}
+            onClick={() => setFormat(f.id)}
+            aria-pressed={format === f.id}
+          >
+            <b>{f.label}</b>
+            <span>{f.desc}</span>
+          </button>
+        ))}
       </div>
 
-      <div className="pb-section-h">
-        <h3>This week's board</h3>
-        <p>The model's straight-up read on all {rows.length} games. Change format on the Games tab.</p>
-      </div>
-      <div className="pb-sheet">
-        <div>
-          {rows.map((r, i) => (
-            <div key={r.key} className={"pb-row" + (i < 3 ? " is-top" : "")}>
-              <div className="pb-pts" style={{ width: 22, fontSize: "0.75rem", color: "var(--text-dim)" }}>{i + 1}</div>
-              <div className="pb-rowmain">
-                <div className="pb-pick">
-                  <TeamLogo teamId={r.team} size={20} />
-                  <span>{r.team}</span>
-                </div>
-                <div className="pb-sub">{r.team === r.home ? `vs ${r.away}` : `at ${r.home}`}</div>
-              </div>
-              <div className="pb-pct">{r.pct}%</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {panel}
     </>
   );
 }
@@ -15015,7 +15457,14 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
           {summary.status === "loading" && signedIn && <p className="pb-note">Loading your leagues…</p>}
           {summary.status === "error" && <p className="pb-note">Couldn't load your leagues: {summary.error}</p>}
           {(!signedIn || (summary.status === "ready" && !hasLeagues)) && (
-            <PlaybookNoLeagues week={week} auth={auth} onOpenLeagues={onOpenLeagues} onSelectGame={onSelectGame} />
+            <PlaybookPreview
+              week={week}
+              sportsbookId={sportsbookId}
+              tz={tz}
+              auth={auth}
+              onOpenLeagues={onOpenLeagues}
+              hasAccount={signedIn}
+            />
           )}
           {hasLeagues && leagues.map((l) => (
             <PlaybookSheetCard
@@ -18663,8 +19112,13 @@ function computeSurvivorPath(startWeek, usedTeams) {
 
   const usedSet = new Set(used);
   const lastWeek = clampToRegularSeasonWeek(18);
+  // Survivor is a regular-season format: pools don't run in preseason, and
+  // weeks below 1 are preseason rounds (see getPreseasonRound). Asked for a
+  // plan during preseason, the useful answer is the season-opening plan
+  // starting at Week 1, not a route through exhibition games.
+  const firstWeek = Math.max(startWeek, 1);
   const weeks = [];
-  for (let w = startWeek; w <= lastWeek; w++) weeks.push(w);
+  for (let w = firstWeek; w <= lastWeek; w++) weeks.push(w);
 
   // prob[week][team]. A team missing from a week's map is on bye (or the
   // schedule doesn't cover that week yet) and can't be assigned there.

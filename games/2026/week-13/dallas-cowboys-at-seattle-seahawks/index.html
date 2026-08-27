@@ -1386,9 +1386,18 @@
   }
   .pbp-peek .pbp-row { filter: blur(4px); opacity: 0.5; }
 
+  /* The gate floats at the top of the blurred region rather than sitting
+     below it. Underneath it the blur keeps going and fades out, so the
+     "there's more here" signal survives while the call to action is right
+     where the content stops being readable - no scrolling past the thing
+     you're being asked to unlock. min-height keeps the container taller than
+     the overlay when only a row or two is left to blur. */
+  .pbp-locked { position: relative; min-height: 128px; }
   .pbp-gate {
-    padding: 18px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-    background: var(--surface-2); border-top: 1px solid var(--card-border);
+    padding: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 12px;
+    position: absolute; top: 10px; left: 12px; right: 12px; z-index: 2;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.45);
   }
   .pbp-gate-main { flex: 1; min-width: 240px; }
   .pbp-gate-title { font-weight: 800; font-size: 0.9rem; }
@@ -1573,9 +1582,12 @@
   }
   .pbc-peek .pbc-card { filter: blur(4px); opacity: 0.5; }
 
+  .pbc-locked { position: relative; min-height: 132px; }
   .pbc-gate {
-    padding: 18px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
     background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 14px;
+    position: absolute; top: 10px; left: 0; right: 0; z-index: 2;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.45);
   }
   .pbc-gate-main { flex: 1; min-width: 240px; }
   .pbc-gate-title { font-weight: 800; font-size: 0.9rem; }
@@ -15324,6 +15336,8 @@ function PlaybookChanges({ week, sportsbookId, auth }) {
       ) : (
         <>
           {shown.map((m) => <ChangeCard key={m.key} item={m} />)}
+          {(peek.length > 0 || withheld > 0) && (
+          <div className="pbc-locked">
           {peek.length > 0 && (
             <div className="pbc-peek">
               {peek.map((m) => <ChangeCard key={m.key} item={m} />)}
@@ -15353,6 +15367,8 @@ function PlaybookChanges({ week, sportsbookId, auth }) {
                 </div>
               )}
             </div>
+          )}
+          </div>
           )}
         </>
       )}
@@ -15634,8 +15650,12 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
         </div>
         <div className="pbp-thead is-conf"><span>Pts</span><span>Pick</span><span>Market</span><span>What's driving it</span><span className="pbp-num-col">Model</span></div>
         {shown.map(confidenceRow)}
-        {peek.length > 0 && <div className="pbp-peek">{peek.map(confidenceRow)}</div>}
-        {remaining > 0 && <PreviewGate remaining={remaining} noun="games" onCreate={openSignup} onSignIn={openLogin} />}
+        {(peek.length > 0 || remaining > 0) && (
+          <div className="pbp-locked">
+            {peek.length > 0 && <div className="pbp-peek">{peek.map(confidenceRow)}</div>}
+            {remaining > 0 && <PreviewGate remaining={remaining} noun="games" onCreate={openSignup} onSignIn={openLogin} />}
+          </div>
+        )}
       </div>
     );
   } else if (format === "straight_up") {
@@ -15649,8 +15669,12 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
         </div>
         <div className="pbp-thead is-su"><span></span><span>Pick</span><span>Model line</span><span>What's driving it</span><span className="pbp-num-col">Model</span></div>
         {shown.map(straightUpRow)}
-        {peek.length > 0 && <div className="pbp-peek">{peek.map((r, i) => straightUpRow(r, i + PLAYBOOK_PREVIEW_ROWS))}</div>}
-        {remaining > 0 && <PreviewGate remaining={remaining} noun="games" onCreate={openSignup} onSignIn={openLogin} />}
+        {(peek.length > 0 || remaining > 0) && (
+          <div className="pbp-locked">
+            {peek.length > 0 && <div className="pbp-peek">{peek.map((r, i) => straightUpRow(r, i + PLAYBOOK_PREVIEW_ROWS))}</div>}
+            {remaining > 0 && <PreviewGate remaining={remaining} noun="games" onCreate={openSignup} onSignIn={openLogin} />}
+          </div>
+        )}
       </div>
     );
   } else if (format === "ats") {
@@ -15674,8 +15698,12 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
           <>
             <div className="pbp-thead is-ats"><span></span><span>Play</span><span>Model line</span><span>Market</span><span>Edge</span><span>What's driving it</span><span className="pbp-num-col">Cover</span></div>
             {shown.map(atsRow)}
-            {peek.length > 0 && <div className="pbp-peek">{peek.map((r, i) => atsRow(r, i + PLAYBOOK_PREVIEW_ROWS))}</div>}
-            {remaining > 0 && <PreviewGate remaining={remaining} noun="plays" onCreate={openSignup} onSignIn={openLogin} />}
+            {(peek.length > 0 || remaining > 0) && (
+              <div className="pbp-locked">
+                {peek.length > 0 && <div className="pbp-peek">{peek.map((r, i) => atsRow(r, i + PLAYBOOK_PREVIEW_ROWS))}</div>}
+                {remaining > 0 && <PreviewGate remaining={remaining} noun="plays" onCreate={openSignup} onSignIn={openLogin} />}
+              </div>
+            )}
           </>
         )}
       </div>

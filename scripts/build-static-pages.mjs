@@ -607,13 +607,19 @@ const TAB_PAGES = [
     dir: "games",
     canonicalPath: "/games",
     title: "NFL Odds, Spreads & Model Predictions This Week | Blitz Odds",
-    description: "Every NFL game this week with live odds from five sportsbooks, model win probabilities, injury and weather adjustments, and the reasoning behind each pick.",
+    description: "Every NFL game this week with live sportsbook odds, model win probabilities, injury and weather adjustments, and the reasoning behind each pick.",
   },
   {
+    // Retitled with the tab. This route used to be Hot Picks, a betting-market
+    // page, and the old metadata still described "this week's best bets" -
+    // which now names one of four sub-tabs, and the gated one at that. The
+    // tab's actual job is a finished pick sheet for a pool, so the metadata
+    // targets the audience the product is positioned for (pick'em players)
+    // rather than the betting keywords the old section chased.
     dir: "picks",
     canonicalPath: "/picks",
-    title: "Hot Picks - This Week's Best NFL Bets | Blitz Odds",
-    description: "The model's highest-confidence NFL picks for this week, with win probability, spread value, and the reasoning behind each one.",
+    title: "NFL Pick'em Playbook - Confidence, Survivor & ATS Sheets | Blitz Odds",
+    description: "A finished pick sheet for your pool every week: a full confidence ladder, ranked spread plays, and a survivor pick planned around the rest of the season - with the model's reasoning behind each one.",
   },
   {
     dir: "leagues",

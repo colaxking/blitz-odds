@@ -229,6 +229,27 @@
           var tab = tabEl && tabEl.textContent ? tabEl.textContent.trim() : null;
           return tab ? teamLabel + " \u2014 " + tab : teamLabel + " team page";
         }
+        // Everything below is a tab in the SPA shell rather than its own
+        // document. Without this branch every one of them - Home, Games,
+        // Playbook, News - fell through to the week label, so the dashboard
+        // could not tell them apart: opening the Playbook looked identical to
+        // sitting on the week view.
+        var activeTab = document.querySelector(".tab-btn.active");
+        var tabLabelEl = activeTab && activeTab.querySelector(".tab-label");
+        var tabLabel = tabLabelEl && tabLabelEl.textContent ? tabLabelEl.textContent.trim() : null;
+
+        if (tabLabel) {
+          // The Playbook's sub-tabs are four genuinely different screens, and
+          // which one people open is the whole question about the redesign,
+          // so the label carries it.
+          var subEl = document.querySelector(".hot-picks-subtab-btn.active");
+          var sub = subEl && subEl.textContent ? subEl.textContent.trim() : null;
+          if (sub) return tabLabel + " \u2014 " + sub;
+
+          var weekForTab = getCurrentWeekLabel();
+          return weekForTab ? tabLabel + " \u2014 " + weekForTab : tabLabel;
+        }
+
         var week = getCurrentWeekLabel();
         return week || null;
       } catch (e) {
@@ -455,6 +476,69 @@
             teamName: pvCtx.teamName || undefined,
             player: playerEl.textContent ? playerEl.textContent.trim() : undefined,
             source: depthPlayerEl ? "depth_chart" : "full_roster",
+          });
+          return;
+        }
+
+        // Playbook sub-tab pills. Which of the four screens people actually
+        // open is the question the redesign has to answer, and none of it was
+        // observable before.
+        var subTabEl = target.closest(".hot-picks-subtab-btn");
+        if (subTabEl) {
+          sendEvent({
+            type: "playbook_subtab",
+            visitorId: visitorId,
+            ts: Date.now(),
+            subtab: (subTabEl.textContent || "").trim() || "unknown",
+            page: getCurrentPageLabel(),
+          });
+          return;
+        }
+
+        // Format selector on the signed-out preview - tells us which pool
+        // format visitors care about before they ever create an account,
+        // which is the one piece of audience data nothing else captures.
+        var fmtEl = target.closest(".pbp-fmt-tab");
+        if (fmtEl) {
+          // The button holds both a full and a short label (one hidden by a
+          // media query), so reading the <b> wholesale concatenates them into
+          // "Against the SpreadSpread". Take the canonical one.
+          var fmtLabel = fmtEl.querySelector(".pbp-lbl-full") || fmtEl.querySelector("b");
+          sendEvent({
+            type: "playbook_format",
+            visitorId: visitorId,
+            ts: Date.now(),
+            format: ((fmtLabel && fmtLabel.textContent) || "").trim() || "unknown",
+            page: getCurrentPageLabel(),
+          });
+          return;
+        }
+
+        // The gate's call to action. This is the conversion event for every
+        // paywall surface - without it the blur is unmeasurable and there's
+        // no way to tell a working gate from one people ignore.
+        var gateEl = target.closest(".pbp-gate, .pbc-gate");
+        if (gateEl && target.closest("button")) {
+          sendEvent({
+            type: "gate_cta",
+            visitorId: visitorId,
+            ts: Date.now(),
+            action: (target.closest("button").textContent || "").trim() || "unknown",
+            surface: gateEl.className.indexOf("pbc-gate") !== -1 ? "pro" : "signin",
+            page: getCurrentPageLabel(),
+          });
+          return;
+        }
+
+        // Opening the per-book price comparison - the affiliate surface, so
+        // worth knowing whether anyone uses it before wiring money to it.
+        var booksEl = target.closest(".pba-books-toggle");
+        if (booksEl) {
+          sendEvent({
+            type: "book_compare",
+            visitorId: visitorId,
+            ts: Date.now(),
+            page: getCurrentPageLabel(),
           });
           return;
         }

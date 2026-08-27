@@ -16275,6 +16275,23 @@ function PlaybookAngles({ week, sportsbookId, tz, auth }) {
 
 function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeagues }) {
   const [activeSubTab, setActiveSubTab] = useState("week");
+
+  // gtag.js fires its automatic page_view once, at document load. This tab is
+  // reached through client-side state, so without a virtual pageview GA
+  // records everyone who opens the Playbook as still sitting on whichever
+  // page they landed on - the same gap the Leagues tab already works around.
+  // Fires per sub-tab because they're four different screens, and "which one
+  // do people actually use" is the question the redesign has to answer.
+  useEffect(() => {
+    if (typeof window.gtag !== "function") return;
+    const sub = { week: "This Week", changed: "What Changed", angles: "Betting Angles", record: "Track Record" }[activeSubTab] || activeSubTab;
+    const path = `${TAB_ROUTES.picks}/${activeSubTab}`;
+    window.gtag("event", "page_view", {
+      page_path: path,
+      page_title: `${PLAYBOOK_TAB_LABEL} — ${sub} | Blitz Odds`,
+      page_location: window.location.origin + path,
+    });
+  }, [activeSubTab]);
   const summary = useHomeSummary(auth, week);
   const leagues = (summary.data && summary.data.leagues) || [];
   const [sheets, reloadSheets] = usePlaybookSheets(auth, week, leagues);
@@ -21594,9 +21611,9 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   useEffect(() => {
     if (typeof window.gtag === "function") {
       window.gtag("event", "page_view", {
-        page_path: "/league",
+        page_path: "/leagues",
         page_title: "NFL Pick'em Leagues — Compete With Friends | Blitz Odds",
-        page_location: window.location.origin + "/#league",
+        page_location: window.location.origin + "/leagues",
       });
     }
   }, []);

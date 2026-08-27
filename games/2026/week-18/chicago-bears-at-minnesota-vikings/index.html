@@ -11,7 +11,14 @@
   gtag('config', 'G-1KHS0JK39B');
 </script>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to a real
+     value on a notched/home-indicator iPhone. Without it every env() in the
+     stylesheet silently evaluates to 0, so the tab bar's bottom padding, the
+     Add to League sheet's, and the injury sheet's were all no-ops. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<!-- Tints the browser chrome (and the standalone status bar on iOS 16.4+) to
+     match the app. Kept in sync with the resolved theme by useThemeManager. -->
+<meta name="theme-color" content="#0b1220" />
 <title>Chicago Bears at Minnesota Vikings — Odds, Injuries &amp; Prediction | Blitz Odds</title>
 <meta name="description" content="Chicago Bears @ Minnesota Vikings: live odds, injury report, team rankings comparison, and win probability for this matchup." />
 <link rel="canonical" href="https://blitz-odds.com/games/2026/week-18/chicago-bears-at-minnesota-vikings/" />
@@ -75,6 +82,8 @@
         : mode;
       if (resolved === "light") {
         document.documentElement.setAttribute("data-theme", "light");
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.setAttribute("content", "#dbe2ec");
       }
     } catch (e) {}
   })();
@@ -151,6 +160,15 @@
     --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6b80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   }
   * { box-sizing: border-box; }
+  /* Kills the grey/blue flash iOS and Android paint over any tapped control,
+     and the 300ms double-tap-to-zoom delay that makes buttons feel laggy.
+     Applied to controls only - text still selects normally. */
+  button, a, [role="button"], summary, label, select {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  /* Nav chrome shouldn't be long-press selectable. */
+  .tab-bar, .cmd-bar, .week-nav, header.top { -webkit-user-select: none; user-select: none; }
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -991,7 +1009,14 @@
     .app { padding-bottom: 96px; }
     .tab-bar {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
-      background: var(--card-bg); border-bottom: none; border-top: 1px solid var(--card-border);
+      /* Translucent + blurred rather than an opaque fill, so the list reads as
+         continuing underneath the bar. The solid card-bg is the fallback for
+         browsers without backdrop-filter (they just get today's look). */
+      background: var(--card-bg);
+      background: color-mix(in srgb, var(--card-bg) 74%, transparent);
+      -webkit-backdrop-filter: saturate(180%) blur(22px);
+      backdrop-filter: saturate(180%) blur(22px);
+      border-bottom: none; border-top: 1px solid var(--card-border);
       /* Extra bottom padding (beyond the safe-area inset) keeps the tap
          targets clear of iOS's edge-swipe gesture zone - without it, taps
          near the bottom of the bar can land on whatever's behind it. */
@@ -1000,7 +1025,11 @@
     .tab-btn {
       flex: 1; flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.64rem;
       min-height: 48px;
+      /* Touch has no hover, so :hover above never fires on a phone and every
+         tap felt inert. A brief scale is the feedback instead. */
+      transition: transform 0.1s ease;
     }
+    .tab-btn:active { transform: scale(0.9); }
     .tab-btn.active::after { content: none; }
     .tab-icon { width: 24px; height: 24px; font-size: 12px; background: none; border-color: transparent; }
     .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: transparent; }
@@ -1510,6 +1539,7 @@
      the league list is long, so the CTA row below always stays on screen. */
   .add-to-league-list {
     flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;
   }
   .add-to-league-item {
@@ -1685,7 +1715,7 @@
     display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
   }
   .injury-modal {
-    position: relative; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto;
+    position: relative; width: 100%; max-width: 420px; max-height: 85vh; max-height: 85dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
     padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
   }
@@ -1759,7 +1789,7 @@
     display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
   }
   .settings-modal {
-    position: relative; width: 100%; max-width: 440px; max-height: 88vh; overflow-y: auto;
+    position: relative; width: 100%; max-width: 440px; max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
     padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
   }
@@ -2719,7 +2749,7 @@
     display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
   }
   .boxscore-modal {
-    position: relative; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto;
+    position: relative; width: 100%; max-width: 480px; max-height: 85vh; max-height: 85dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
     padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
   }
@@ -2848,7 +2878,8 @@
   .tour-spotlight-ring.is-settling { opacity: 0.4; }
   .tour-callout {
     position: fixed; z-index: 2001; width: 300px; max-width: calc(100vw - 32px);
-    max-height: calc(100vh - 32px); overflow-y: auto;
+    max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
+    overflow-y: auto; overscroll-behavior: contain;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 16px 16px 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); pointer-events: auto;
     transition: top 0.25s ease, left 0.25s ease, opacity 0.2s ease;
@@ -3262,7 +3293,7 @@
     display: flex; align-items: flex-end; justify-content: center;
   }
   .admin-sheet {
-    width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+    width: 100%; max-width: 460px; max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 14px 14px 0 0;
   }
@@ -23232,6 +23263,11 @@ function useThemeManager() {
     } else {
       document.documentElement.removeAttribute("data-theme");
     }
+    // Keep the browser/status-bar tint in step with the theme. The inline
+    // bootstrap in <head> sets the initial value before first paint; this
+    // handles every change after that.
+    const tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.setAttribute("content", resolved === "light" ? "#dbe2ec" : "#0b1220");
   }, [resolved]);
 
   useEffect(() => {
@@ -23804,7 +23840,7 @@ function App() {
       const write = (path) => {
         const url = path + window.location.search;
         if (first) window.history.replaceState(window.history.state, "", url);
-        else window.history.pushState({ tab: activeTab }, "", url);
+        else stampAndPush({ tab: activeTab }, url);
       };
 
       if (activeTab !== "games") {
@@ -24020,7 +24056,20 @@ function App() {
         setView("week");
         setActiveTab("games");
       }
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      // Restore where this entry was left. The scroll has to happen after the
+      // state updates above have painted, or the page is still the old view's
+      // height and the browser clamps the offset. Two rAFs is the cheapest
+      // reliable "after the next paint".
+      const st = window.history.state;
+      const key = st && st.__k ? st.__k : "k0";
+      historyKeyRef.current = key;
+      const y = scrollPositionsRef.current.get(key);
+      const target = typeof y === "number" ? y : 0;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: target, left: 0, behavior: "auto" });
+        });
+      });
     }
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -24074,6 +24123,26 @@ function App() {
     setShowTour(true);
   }
 
+  /* Back should return the reader to the row they tapped, not the top of a
+     30-game list. Browsers only restore scroll for real page loads, so an SPA
+     has to keep the positions itself: stamp each history entry with an id,
+     record scrollY against that id whenever we push away from it, and read it
+     back on popstate. Ids live in memory only - a hard reload starts a fresh
+     map, which matches what the browser would do anyway. */
+  const scrollPositionsRef = useRef(new Map());
+  const historyKeyRef = useRef("k0");
+  const historyKeySeqRef = useRef(0);
+
+  /** Records where we are, mints an id for the entry we're about to create,
+   *  and pushes it. */
+  function stampAndPush(state, path) {
+    scrollPositionsRef.current.set(historyKeyRef.current, window.scrollY);
+    historyKeySeqRef.current += 1;
+    const key = "k" + historyKeySeqRef.current;
+    historyKeyRef.current = key;
+    window.history.pushState({ ...state, __k: key }, "", path);
+  }
+
   function selectTeam(teamId) {
     setSelectedTeamId(teamId);
     setSelectedGame(null);
@@ -24081,7 +24150,7 @@ function App() {
     setView("team");
     setActiveTab("games");
     const path = buildTeamPath(teamId);
-    if (window.location.pathname !== path) window.history.pushState({ view: "team", teamId }, "", path);
+    if (window.location.pathname !== path) stampAndPush({ view: "team", teamId }, path);
     // Switching views doesn't remount the page - without this, clicking a
     // team while scrolled partway down a long week/schedule list lands on
     // the new view still scrolled to that same position instead of its top.
@@ -24093,7 +24162,7 @@ function App() {
     setView("game");
     setActiveTab("games");
     const path = buildGamePath(week, awayAbbr, homeAbbr);
-    if (window.location.pathname !== path) window.history.pushState({ view: "game", week, awayAbbr, homeAbbr }, "", path);
+    if (window.location.pathname !== path) stampAndPush({ view: "game", week, awayAbbr, homeAbbr }, path);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
@@ -24109,7 +24178,7 @@ function App() {
     const already = activeTab === ROOT_TAB;
     setActiveTab(ROOT_TAB);
     if (already && window.location.pathname !== "/") {
-      window.history.pushState({ view: "week", tab: ROOT_TAB }, "", "/");
+      stampAndPush({ view: "week", tab: ROOT_TAB }, "/");
     }
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }

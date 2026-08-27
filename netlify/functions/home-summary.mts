@@ -218,7 +218,9 @@ export default async (req: Request, _context: Context) => {
           }
 
           const survivorState: any = survivorRaw || {};
-          const myS = survivorState[userId] || { alive: true, usedTeams: [], eliminatedWeek: null };
+          const myS = survivorState[userId] || { alive: true, usedTeams: [], eliminatedWeek: null, strikes: 0 };
+          // Defaults to 1 (classic) for leagues created before the setting existed.
+          const strikesAllowed = league.scoringSettings?.survivorStrikes ?? 1;
           const scoredWeeks = Object.keys(standings.weeks || {}).map(Number).filter(Number.isFinite);
 
           // How much of this week the caller has actually picked. One
@@ -267,6 +269,8 @@ export default async (req: Request, _context: Context) => {
                 ? {
                     alive: myS.alive !== false,
                     eliminatedWeek: myS.eliminatedWeek ?? null,
+                    strikes: myS.strikes || 0,
+                    strikesAllowed,
                     weeksSurvived: myS.alive === false && myS.eliminatedWeek != null
                       ? scoredWeeks.filter((w) => w < myS.eliminatedWeek).length
                       : scoredWeeks.length,
@@ -285,6 +289,8 @@ export default async (req: Request, _context: Context) => {
               isMe: r.userId === userId,
               alive: league.format === "survivor" ? survivorState[r.userId]?.alive !== false : null,
               eliminatedWeek: league.format === "survivor" ? (survivorState[r.userId]?.eliminatedWeek ?? null) : null,
+              strikes: league.format === "survivor" ? (survivorState[r.userId]?.strikes || 0) : null,
+              strikesAllowed: league.format === "survivor" ? strikesAllowed : null,
             })),
           };
         })

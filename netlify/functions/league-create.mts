@@ -42,6 +42,11 @@ function defaultScoringSettings(format: string) {
     uniqueConfidence: format === "confidence" ? true : undefined,
     survivorTieHandling: format === "survivor" ? "eliminate" : undefined, // "eliminate" | "survive"
     survivorShowEliminated: format === "survivor" ? true : undefined,
+    // How many losing picks it takes to be eliminated. 1 = classic Survivor.
+    // Chosen at creation and frozen once the season's first game kicks off
+    // (see league-settings-update.mts) - it changes who is already out, so
+    // it can't move under members mid-season.
+    survivorStrikes: format === "survivor" ? 1 : undefined,
     atsEnabled: false,
   };
 }
@@ -65,6 +70,9 @@ function sanitizeScoringSettings(format: string, incoming: any) {
     }
     if (typeof incoming.survivorShowEliminated === "boolean") {
       out.survivorShowEliminated = incoming.survivorShowEliminated;
+    }
+    if (typeof incoming.survivorStrikes === "number" && incoming.survivorStrikes >= 1 && incoming.survivorStrikes <= 4) {
+      out.survivorStrikes = Math.floor(incoming.survivorStrikes);
     }
   }
   return out;

@@ -1,6 +1,7 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
+import { isPastKickoff } from "./lib/kickoff.mts";
 
 // Updates the editable settings of a league the caller owns. Owner-only -
 // every other member gets a 403, same as they'd get from any other write
@@ -9,7 +10,18 @@ import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/aut
 // POST /.netlify/functions/league-settings-update
 // Body: { leagueId, name?, description?, visibility?, maxMembers?,
 //         tieBreaker?, scoringSettings?: { pointsPerCorrect?, tieHandling?,
-//         uniqueConfidence?, survivorTieHandling?, survivorShowEliminated? } }
+//         uniqueConfidence?, survivorTieHandling?, survivorShowEliminated?,
+//         survivorStrikes? } }
+//
+// survivorStrikes (how many losing picks eliminate you) is the one scoring
+// setting that FREEZES once the season's first game kicks off. Everything
+// else here is cosmetic or forward-looking, but this one retroactively
+// decides who is already eliminated - dropping it from 3 to 1 mid-season
+// would knock out members who were alive a second earlier. Attempting to
+// change it after kickoff rejects with a 409 rather than being silently
+// ignored, so a stale client fails loudly. Sending the value it already
+// has is a no-op and always allowed, so a form that posts the whole
+// settings object doesn't start failing in week 2.
 //
 // format is intentionally NOT accepted here, ever - a league's pick'em
 // format (straight_up/confidence/survivor/ats) defines what picks even
@@ -27,6 +39,33 @@ import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/aut
 // pointsPerCorrect doesn't reset uniqueConfidence back to its default.
 
 const LEAGUE_STORE = "blitz-leagues";
+const SITE_DATA_STORE = "blitz-site-data";
+
+/**
+ * True once the earliest game on the season's schedule has kicked off.
+ * Deliberately season-wide rather than per-league: a league created in
+ * week 6 is joining a season already in progress, so its strike rule is
+ * fixed at creation the same way a week 1 league's is fixed at kickoff.
+ * A missing or unreadable schedule returns false (fail open to editable) -
+ * the alternative would lock every league out of a setting because of a
+ * blob read failure.
+ */
+function seasonHasStarted(schedule: any, season: number): boolean {
+  const weeks: any[] = schedule?.weeks || [];
+  if (!weeks.length) return false;
+  let earliest: any = null;
+  for (const w of weeks) {
+    for (const g of w?.games || []) {
+      if (!g?.date || !g?.time) continue;
+      if (!earliest || (w.week ?? Infinity) < (earliest.week ?? Infinity)) {
+        earliest = { week: w.week, game: g };
+      }
+      break; // games within a week are already in kickoff order
+    }
+  }
+  if (!earliest) return false;
+  return isPastKickoff(season, earliest.game.date, earliest.game.time);
+}
 
 const VALID_VISIBILITY = new Set(["private", "public"]);
 const VALID_TIE_BREAKERS = new Set(["most_correct", "fewest_incorrect", null]);
@@ -50,6 +89,9 @@ function sanitizeScoringSettingsPatch(format: string, existing: any, incoming: a
     }
     if (typeof incoming.survivorShowEliminated === "boolean") {
       out.survivorShowEliminated = incoming.survivorShowEliminated;
+    }
+    if (typeof incoming.survivorStrikes === "number" && incoming.survivorStrikes >= 1 && incoming.survivorStrikes <= 4) {
+      out.survivorStrikes = Math.floor(incoming.survivorStrikes);
     }
   }
   return out;
@@ -126,6 +168,23 @@ export default async (req: Request, _context: Context) => {
       updated.tieBreaker = body.tieBreaker;
     }
     if (body.scoringSettings !== undefined) {
+      const incomingStrikes = body.scoringSettings?.survivorStrikes;
+      const currentStrikes = league.scoringSettings?.survivorStrikes ?? 1;
+      const wantsStrikeChange =
+        league.format === "survivor" &&
+        typeof incomingStrikes === "number" &&
+        Math.floor(incomingStrikes) !== currentStrikes;
+
+      if (wantsStrikeChange) {
+        const schedule: any = await getStore(SITE_DATA_STORE).get("schedule", { type: "json" });
+        if (seasonHasStarted(schedule, league.season)) {
+          return jsonResponse(409, {
+            ok: false,
+            error: "Losses before elimination is locked once the season's first game has started",
+          }, CORS_HEADERS);
+        }
+      }
+
       updated.scoringSettings = sanitizeScoringSettingsPatch(league.format, league.scoringSettings, body.scoringSettings);
     }
 

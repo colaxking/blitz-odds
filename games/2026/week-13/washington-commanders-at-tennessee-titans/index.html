@@ -676,6 +676,8 @@
   .hd-lb-status { font-size: .8rem; font-weight: 700; }
   .hd-lb-status.alive { color: var(--win); }
   .hd-lb-status.out { color: var(--lose); }
+  /* Alive but carrying a strike - only reachable past a 1-strike league. */
+  .hd-lb-status.warn { color: var(--warn); }
   .hd-rail-foot { padding: 10px 16px 14px; font-size: .72rem; color: var(--text-dim); }
   .hd-game-row { display: flex; align-items: center; gap: 12px; padding: 11px 16px; }
   .hd-game-row + .hd-game-row { border-top: 1px solid var(--card-border); }
@@ -2535,6 +2537,9 @@
   .league-standings-record { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .league-status-alive { color: var(--win); font-weight: 700; font-size: 0.72rem; }
   .league-status-eliminated { color: var(--out); font-weight: 700; font-size: 0.72rem; text-decoration: line-through; opacity: 0.7; }
+  /* Only reachable in a league with more than one strike allowed - a
+     member who has used a strike but isn't out yet. */
+  .league-status-warn { color: var(--warn); font-weight: 700; font-size: 0.72rem; }
 
   /* A member the scoring pass hasn't touched yet (new league, mid-season
      joiner, or just before the first Sunday finishes). They're real
@@ -5021,6 +5026,20 @@
         "activatedDate": "2026-07-29",
         "espnId": "4262921",
         "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
+        "source": "curated"
+      },
+      {
+        "name": "Dwight McGlothern Jr.",
+        "position": "CB",
+        "espnId": "4429128",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-26",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-27T04:38:17.519Z",
         "source": "curated"
       }
     ],
@@ -11060,6 +11079,27 @@ function getSelectablePeriods() {
   return periods;
 }
 
+/**
+ * True once the earliest regular-season game has kicked off. Mirrors
+ * seasonHasStarted() in league-settings-update.mts, which is the real
+ * enforcement - this only decides whether the UI offers the control or a
+ * locked pill, so a stale schedule blob shows the wrong affordance for a
+ * moment but can't let a change through.
+ */
+function seasonHasStarted() {
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  const weeks = (SCHEDULE_DATA && SCHEDULE_DATA.weeks) || [];
+  let earliest = null;
+  for (const w of weeks) {
+    const g = (w.games || [])[0];
+    if (!g) continue;
+    if (!earliest || w.week < earliest.week) earliest = { week: w.week, game: g };
+  }
+  if (!earliest) return false;
+  const ms = gameKickoffUtcMs(earliest.game.date, earliest.game.time, seasonYear);
+  return ms != null && Date.now() >= ms;
+}
+
 function getGamesForWeek(week) {
   if (week < 1) {
     const round = getPreseasonRound(week);
@@ -15766,6 +15806,11 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted, onGo
   const [uniqueConfidence, setUniqueConfidence] = useState(league.scoringSettings?.uniqueConfidence !== false);
   const [survivorTieHandling, setSurvivorTieHandling] = useState(league.scoringSettings?.survivorTieHandling || "eliminate");
   const [survivorShowEliminated, setSurvivorShowEliminated] = useState(league.scoringSettings?.survivorShowEliminated !== false);
+  const [survivorStrikes, setSurvivorStrikes] = useState(league.scoringSettings?.survivorStrikes ?? 1);
+  // Frozen after the season's first kickoff - it retroactively decides who
+  // is already out, so it can't move under members mid-season. Same rule
+  // the server enforces in league-settings-update.mts.
+  const strikesLocked = seasonHasStarted();
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -15799,6 +15844,7 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted, onGo
         tieHandling,
         ...(league.format === "confidence" ? { uniqueConfidence } : {}),
         ...(league.format === "survivor" ? { survivorTieHandling, survivorShowEliminated } : {}),
+        ...(league.format === "survivor" && !strikesLocked ? { survivorStrikes: Number(survivorStrikes) || 1 } : {}),
       };
       const res = await auth.authenticatedFetch("/.netlify/functions/league-settings-update", {
         method: "POST",
@@ -15919,6 +15965,24 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted, onGo
           )}
           {league.format === "survivor" && (
             <>
+              {strikesLocked ? (
+                <div className="league-settings-row">
+                  <span>Losses before elimination</span>
+                  <span className="league-format-pill league-format-pill-locked" title="Locked once the season's first game has started">
+                    {survivorStrikes} {survivorStrikes === 1 ? "loss" : "losses"} 🔒
+                  </span>
+                </div>
+              ) : (
+                <label className="league-settings-row">
+                  <span>Losses before elimination</span>
+                  <select className="league-input" value={survivorStrikes} onChange={e => setSurvivorStrikes(Number(e.target.value))}>
+                    <option value={1}>1 loss - classic</option>
+                    <option value={2}>2 losses - one mulligan</option>
+                    <option value={3}>3 losses</option>
+                    <option value={4}>4 losses</option>
+                  </select>
+                </label>
+              )}
               <label className="league-settings-row">
                 <span>On a tie</span>
                 <select className="league-input" value={survivorTieHandling} onChange={e => setSurvivorTieHandling(e.target.value)}>
@@ -16360,6 +16424,7 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
   const [tieBreaker, setTieBreaker] = useState("");
   const [uniqueConfidence, setUniqueConfidence] = useState(true);
   const [survivorTieHandling, setSurvivorTieHandling] = useState("eliminate");
+  const [survivorStrikes, setSurvivorStrikes] = useState(1);
   const [emails, setEmails] = useState([]);
   const [emailDraft, setEmailDraft] = useState("");
   const [creating, setCreating] = useState(false);
@@ -16387,7 +16452,10 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
     try {
       const scoringSettings = { pointsPerCorrect: Number(pointsPerCorrect) || 1, tieHandling };
       if (format === "confidence") scoringSettings.uniqueConfidence = uniqueConfidence;
-      if (format === "survivor") scoringSettings.survivorTieHandling = survivorTieHandling;
+      if (format === "survivor") {
+        scoringSettings.survivorTieHandling = survivorTieHandling;
+        scoringSettings.survivorStrikes = Number(survivorStrikes) || 1;
+      }
 
       const res = await auth.authenticatedFetch("/.netlify/functions/league-create", {
         method: "POST",
@@ -16547,6 +16615,21 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
                   <select className="league-input" value={uniqueConfidence ? "1" : "0"}
                     onChange={(e) => setUniqueConfidence(e.target.value === "1")}>
                     <option value="1">Required</option><option value="0">Allow duplicates</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            {format === "survivor" && (
+              <div className="lgx-set">
+                <div className="t"><b>Losses before elimination</b>
+                  <span>Locked once the season's first game starts.</span></div>
+                <div className="c">
+                  <select className="league-input" value={survivorStrikes}
+                    onChange={(e) => setSurvivorStrikes(Number(e.target.value))}>
+                    <option value={1}>1 loss - classic</option>
+                    <option value={2}>2 losses - one mulligan</option>
+                    <option value={3}>3 losses</option>
+                    <option value={4}>4 losses</option>
                   </select>
                 </div>
               </div>
@@ -17494,6 +17577,10 @@ function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfid
   let value = null;
   let note = null;
   let muted = false;
+  // Only the ats coin-flip case earns the words "No edge" - a missing line
+  // or a spent survivor team isn't the model declining to call it, it's
+  // there being nothing to call yet.
+  let noEdgeLabel = false;
 
   if (format === "straight_up") {
     if (!prediction) return null;
@@ -17522,6 +17609,7 @@ function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfid
       if (gap < ATS_MIN_EDGE_POINTS) {
         muted = true;
         team = null;
+        noEdgeLabel = true;
         value = `${Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, game.home) * 100)}%`;
         note = `Model line ${modelLine} vs. market ${game.favorite} ${formatModelLine(game.spread)}. No edge either way.`;
       } else {
@@ -17570,9 +17658,8 @@ function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfid
         {muted
           ? <span className="pickem-edge-dash" aria-hidden="true">—</span>
           : <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="pickem-edge-icon" />}
-        {team
-          ? <span className="pickem-edge-team">{team}</span>
-          : <span className="pickem-edge-team">No edge</span>}
+        {team && <span className="pickem-edge-team">{team}</span>}
+        {noEdgeLabel && <span className="pickem-edge-team">No edge</span>}
         <span className="pickem-edge-value">{value}</span>
       </div>
       {note && <div className="pickem-edge-note">{note}</div>}
@@ -17952,7 +18039,34 @@ function StandingsIdentity({ row }) {
  *  scrolling to look for yourself every single time. The full standings
  *  still list everyone including you (highlighted, as before); this is a
  *  shortcut, not a replacement. */
-function StandingsMeCard({ row, rankOf, total, format, survivorStatus }) {
+/**
+ * One place that turns a member's raw survivor state into a status label,
+ * shared by the standings table, the "me" card, and the home dashboard so a
+ * strike count can never read differently in two of them.
+ *
+ * strikesAllowed defaults to 1 (classic Survivor) for leagues created before
+ * the setting existed. Their state docs have no `strikes` field either, which
+ * reads as 0 - correct, since under the old rule a miss eliminated you
+ * outright and nothing ever accumulated.
+ */
+function survivorStatusLabel(state, strikesAllowed) {
+  const allowed = Number.isFinite(strikesAllowed) && strikesAllowed >= 1 ? Math.floor(strikesAllowed) : 1;
+  const strikes = (state && state.strikes) || 0;
+  if (state && state.alive === false) {
+    return { text: "Eliminated", className: "league-status-eliminated" };
+  }
+  // A one-strike league has nothing to count - you're alive or you're not.
+  if (allowed > 1 && strikes > 0) {
+    return {
+      text: `Alive \u00b7 ${strikes} strike${strikes === 1 ? "" : "s"}`,
+      className: strikes >= allowed - 1 ? "league-status-warn" : "league-status-alive",
+    };
+  }
+  return { text: "Alive", className: "league-status-alive" };
+}
+
+function StandingsMeCard({ row, rankOf, total, format, survivorStatus, survivorStrikes }) {
+  const survivorLabel = survivorStatusLabel(survivorStatus, survivorStrikes);
   const played = row.correct + row.incorrect;
   const winPct = played > 0 ? Math.round((row.correct / played) * 100) : null;
   return (
@@ -17972,9 +18086,7 @@ function StandingsMeCard({ row, rankOf, total, format, survivorStatus }) {
           <div className="standings-me-stat">
             <span className="standings-me-stat-label">Status</span>
             <span className="standings-me-stat-value">
-              <span className={survivorStatus && !survivorStatus.alive ? "league-status-eliminated" : "league-status-alive"}>
-                {survivorStatus && !survivorStatus.alive ? "Eliminated" : "Alive"}
-              </span>
+              <span className={survivorLabel.className}>{survivorLabel.text}</span>
             </span>
           </div>
         ) : (
@@ -18078,6 +18190,7 @@ function LeagueStandingsPanel({ auth, profile, league }) {
           total={rows.length}
           format={league.format}
           survivorStatus={survivor && survivor[meId]}
+          survivorStrikes={league.scoringSettings?.survivorStrikes}
         />
       )}
 
@@ -18109,6 +18222,7 @@ function LeagueStandingsPanel({ auth, profile, league }) {
             const played = row.correct + row.incorrect;
             const winPct = played > 0 ? Math.round((row.correct / played) * 100) : null;
             const survivorStatus = survivor && survivor[row.userId];
+            const rowLabel = survivorStatusLabel(survivorStatus, league.scoringSettings?.survivorStrikes);
             const dash = <span className="standings-dash">—</span>;
             return (
               <tr key={row.userId} className={(row.userId === meId ? "is-me" : "") + (row.hasResults ? "" : " is-unplayed")}>
@@ -18118,9 +18232,7 @@ function LeagueStandingsPanel({ auth, profile, league }) {
                 <td><StandingsIdentity row={row} /></td>
                 {isSurvivor && (
                   <td>
-                    <span className={survivorStatus && !survivorStatus.alive ? "league-status-eliminated" : "league-status-alive"}>
-                      {survivorStatus && !survivorStatus.alive ? "Eliminated" : "Alive"}
-                    </span>
+                    <span className={rowLabel.className}>{rowLabel.text}</span>
                   </td>
                 )}
                 <td className="league-standings-record">{row.hasResults ? `${row.correct}-${row.incorrect}` : dash}</td>
@@ -20875,6 +20987,18 @@ function useHomeSummary(auth, week) {
   return state;
 }
 
+/** Survivor's one-line state for a dashboard tile footer. Reads the
+ *  strike count only in leagues that allow more than one - "still alive"
+ *  is the whole story in a classic league. */
+function survivorFootnote(survivor) {
+  if (!survivor) return "eliminated";
+  if (!survivor.alive) return "eliminated";
+  if (survivor.strikes > 0) {
+    return `${survivor.strikesAllowed - survivor.strikes} ${survivor.strikesAllowed - survivor.strikes === 1 ? "strike" : "strikes"} left`;
+  }
+  return "still alive";
+}
+
 const HOME_FORMAT_LABELS = {
   straight_up: "Straight-Up",
   confidence: "Confidence",
@@ -20924,8 +21048,10 @@ function HomeLeaderboard({ league }) {
               {isSurvivor ? (
                 <>
                   <span />
-                  <span className={"hd-lb-status " + (r.alive ? "alive" : "out")}>
-                    {r.alive ? "Alive" : (r.eliminatedWeek != null ? `Out · W${r.eliminatedWeek}` : "Out")}
+                  <span className={"hd-lb-status " + (!r.alive ? "out" : (r.strikes > 0 ? "warn" : "alive"))}>
+                    {r.alive
+                      ? (r.strikes > 0 ? `Alive · ${r.strikes}` : "Alive")
+                      : (r.eliminatedWeek != null ? `Out · W${r.eliminatedWeek}` : "Out")}
                   </span>
                 </>
               ) : isConfidence ? (
@@ -21139,7 +21265,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                     {streakLeague.survivor ? streakLeague.survivor.weeksSurvived : 0}
                   </div>
                   <div className="hd-foot">
-                    {streakLeague.name} · {streakLeague.survivor && streakLeague.survivor.alive ? "still alive" : "eliminated"}
+                    {streakLeague.name} · {survivorFootnote(streakLeague.survivor)}
                   </div>
                 </>
               ) : (
@@ -21219,7 +21345,9 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                           )}
                           <div className="hd-small">
                             {isSurvivor
-                              ? `${l.survivor ? l.survivor.weeksSurvived : 0} weeks survived`
+                              ? (l.survivor && l.survivor.alive && l.survivor.strikes > 0
+                                  ? `${l.survivor.strikes} of ${l.survivor.strikesAllowed} strikes used`
+                                  : `${l.survivor ? l.survivor.weeksSurvived : 0} weeks survived`)
                               : `Out of ${l.memberCount}`}
                           </div>
                         </div>

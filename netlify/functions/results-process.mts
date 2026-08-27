@@ -267,7 +267,7 @@ async function processLeague(
     // Initialize any member not yet tracked (new joiners, or first week processed).
     for (const m of membersDoc?.members || []) {
       if (!survivorState[m.userId]) {
-        survivorState[m.userId] = { alive: true, usedTeams: [], eliminatedWeek: null };
+        survivorState[m.userId] = { alive: true, usedTeams: [], eliminatedWeek: null, strikes: 0 };
       }
     }
     survivorState = ScoringEngine.applySurvivorWeek(
@@ -275,7 +275,8 @@ async function processLeague(
       weekPicksDoc,
       weekResults,
       week,
-      league.scoringSettings?.survivorTieHandling
+      league.scoringSettings?.survivorTieHandling,
+      league.scoringSettings?.survivorStrikes
     );
     await leagueStore.setJSON(`survivor:${leagueId}`, survivorState);
   }

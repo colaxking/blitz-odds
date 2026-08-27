@@ -222,10 +222,21 @@
    * @param {"eliminate"|"survive"} tieHandling - Survivor's own tie rule,
    *   separate from scoringSettings.tieHandling used elsewhere, since a tied
    *   game is ambiguous for a knockout format specifically.
+   * @param {number} [strikesAllowed=1] - How many losing picks it takes to
+   *   eliminate a member. 1 is classic Survivor (first miss is fatal);
+   *   higher values give a cushion. A user's running `strikes` count is what
+   *   accumulates - `alive` still flips only when the count reaches the
+   *   limit, so every existing consumer of `alive`/`eliminatedWeek` keeps
+   *   working unchanged. State docs written before this setting existed have
+   *   no `strikes` field and read as 0, which is correct for them: they were
+   *   only ever eliminated on a miss under the old 1-strike rule.
    * @returns {Object} updated state (new object; does not mutate input)
    */
-  function applySurvivorWeek(state, weekPicks, weekResults, week, tieHandling) {
+  function applySurvivorWeek(state, weekPicks, weekResults, week, tieHandling, strikesAllowed) {
     tieHandling = tieHandling || "eliminate";
+    strikesAllowed = Number.isFinite(strikesAllowed) && strikesAllowed >= 1
+      ? Math.floor(strikesAllowed)
+      : 1;
     weekPicks = weekPicks || {};
     var next = {};
 
@@ -234,7 +245,7 @@
     });
 
     Object.keys(weekPicks).forEach(function (userId) {
-      var userState = next[userId] || { alive: true, usedTeams: [], eliminatedWeek: null };
+      var userState = next[userId] || { alive: true, usedTeams: [], eliminatedWeek: null, strikes: 0 };
       if (!next[userId]) next[userId] = userState;
       if (!userState.alive) return; // already out, no re-evaluation
 
@@ -265,8 +276,11 @@
       }
 
       if (!survived) {
-        userState.alive = false;
-        userState.eliminatedWeek = week;
+        userState.strikes = (userState.strikes || 0) + 1;
+        if (userState.strikes >= strikesAllowed) {
+          userState.alive = false;
+          userState.eliminatedWeek = week;
+        }
       }
     });
 

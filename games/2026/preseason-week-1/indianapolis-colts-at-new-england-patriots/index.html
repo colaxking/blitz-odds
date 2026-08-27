@@ -1563,6 +1563,25 @@
   .pbc-vtext { font-size: 0.76rem; color: var(--text-dim); line-height: 1.45; }
   .pbc-vtext b { color: var(--text); font-weight: 750; }
 
+  /* Same blurred-peek treatment the preview sheets use, so the report
+     visibly keeps going rather than stopping at a wall. Masked to fade out
+     so it reads as "continues" rather than "cut off". */
+  .pbc-peek {
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
+    pointer-events: none; user-select: none;
+  }
+  .pbc-peek .pbc-card { filter: blur(4px); opacity: 0.5; }
+
+  .pbc-gate {
+    padding: 18px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 14px;
+  }
+  .pbc-gate-main { flex: 1; min-width: 240px; }
+  .pbc-gate-title { font-weight: 800; font-size: 0.9rem; }
+  .pbc-gate-sub { font-size: 0.76rem; color: var(--text-dim); margin-top: 3px; }
+  .pbc-gate-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
   .pbc-quiet {
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
     padding: 12px 16px; font-size: 0.78rem; color: var(--text-dim);
@@ -1597,6 +1616,7 @@
     /* All three chips on one row, using the short labels - the full ones
        don't fit at 360px and shrinking the type enough to force it made the
        counts hard to read without actually fitting. */
+    .pbc-gate { padding: 14px; gap: 12px; }
     .pbc-filters { gap: 6px; flex-wrap: nowrap; }
     .pbc-filt { flex: 1 1 0; min-width: 0; justify-content: center; padding: 8px 6px; gap: 6px; }
     .pbc-lbl-full { display: none; }
@@ -15143,7 +15163,7 @@ function ChangeCard({ item }) {
  *  it records when the feed was written, not when a player's status actually
  *  changed. Diffing against it would mean claiming things changed that only
  *  got re-synced, so real injury changes wait for weekly snapshots. */
-function PlaybookChanges({ week, sportsbookId }) {
+function PlaybookChanges({ week, sportsbookId, auth }) {
   const [history, setHistory] = useState(null);
   const [status, setStatus] = useState("loading");
   const [active, setActive] = useState(null);
@@ -15236,6 +15256,16 @@ function PlaybookChanges({ week, sportsbookId }) {
   const movedOurWay = moves.filter((m) => Math.abs(m.nowMargin - m.modelMargin) > Math.abs(m.openMargin - m.modelMargin)).length;
   const changedPickCount = groups[0].list.length;
 
+  // Same shape as the preview's gate: a few real cards, a few more rendered
+  // blurred so the report visibly continues, then the count of what's held
+  // back. The blurred ones are the real next moves rather than placeholders,
+  // so the silhouette is honest.
+  const fullAccess = hasFullChangeReport(auth);
+  const signedIn = auth && auth.status === "in";
+  const shown = fullAccess ? group.list : group.list.slice(0, PLAYBOOK_CHANGES_FREE_CARDS);
+  const peek = fullAccess ? [] : group.list.slice(PLAYBOOK_CHANGES_FREE_CARDS, PLAYBOOK_CHANGES_FREE_CARDS + PLAYBOOK_CHANGES_PEEK_CARDS);
+  const withheld = fullAccess ? 0 : Math.max(0, group.list.length - PLAYBOOK_CHANGES_FREE_CARDS);
+
   if (status === "loading") return <p className="pb-note">Checking for line movement…</p>;
   if (status === "error") return <p className="pb-note">Couldn't load line history right now.</p>;
   if (!moves.length) {
@@ -15296,7 +15326,39 @@ function PlaybookChanges({ week, sportsbookId }) {
           </div>
         </div>
       ) : (
-        group.list.map((m) => <ChangeCard key={m.key} item={m} />)
+        <>
+          {shown.map((m) => <ChangeCard key={m.key} item={m} />)}
+          {peek.length > 0 && (
+            <div className="pbc-peek">
+              {peek.map((m) => <ChangeCard key={m.key} item={m} />)}
+            </div>
+          )}
+          {withheld > 0 && (
+            <div className="pbc-gate">
+              <div className="pbc-gate-main">
+                <div className="pbc-gate-title">
+                  {withheld} more {withheld === 1 ? "move" : "moves"} in this week's report
+                </div>
+                <div className="pbc-gate-sub">
+                  The full change report — every move, and an alert the moment one changes a pick before
+                  it locks — is coming to Blitz Pro.
+                </div>
+              </div>
+              {!signedIn && (
+                <div className="pbc-gate-actions">
+                  <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }}
+                    onClick={() => auth && auth.openSignup && auth.openSignup()}>
+                    Create a free account
+                  </button>
+                  <button type="button" className="pb-btn pb-btn-ghost"
+                    onClick={() => auth && auth.openLogin && auth.openLogin()}>
+                    Sign in
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </>
   );
@@ -15329,6 +15391,26 @@ const PLAYBOOK_PEEK_ROWS = 3;
  *  So: only the current week's pick is revealed - that's the actionable part,
  *  the equivalent of the other formats' top rows - and the rest of the route
  *  is blurred. */
+/** What Changed is a Pro feature in waiting, so its gate works differently
+ *  from the preview's. On This Week, signing in is what unlocks the sheet.
+ *  Here signing in changes nothing: everyone sees the summary counts and the
+ *  first couple of moves, and the rest is blurred, because the thing being
+ *  withheld is destined to sit behind a subscription rather than behind an
+ *  account.
+ *
+ *  hasFullChangeReport() is the whole switch. Today it is false for
+ *  everybody; when a paid tier exists it becomes an entitlements check (see
+ *  lib/entitlements.mts) and nothing else in this file has to change. */
+const PLAYBOOK_CHANGES_FREE_CARDS = 2;
+// Two rather than the preview's three: a change card is roughly twice the
+// height of a sheet row, so three of them put ~700px of blur between the last
+// readable card and the call to action on a phone.
+const PLAYBOOK_CHANGES_PEEK_CARDS = 2;
+function hasFullChangeReport(auth) {
+  // eslint-disable-next-line no-unused-vars
+  return false;
+}
+
 const PLAYBOOK_SURVIVOR_REVEALED_WEEKS = 1;
 /** Total nodes drawn in the preview rail, revealed plus blurred. */
 const PLAYBOOK_SURVIVOR_PREVIEW_WEEKS = 3;
@@ -15847,7 +15929,7 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
         </>
       )}
 
-      {activeSubTab === "changed" && <PlaybookChanges week={week} sportsbookId={sportsbookId} />}
+      {activeSubTab === "changed" && <PlaybookChanges week={week} sportsbookId={sportsbookId} auth={auth} />}
 
       {activeSubTab === "record" && <TrackRecordPanel />}
     </div>

@@ -14988,6 +14988,26 @@ const PLAYBOOK_PREVIEW_ROWS = 5;
  *  call to action off a phone screen. The gate still counts the real total. */
 const PLAYBOOK_PEEK_ROWS = 3;
 
+/** Survivor is measured in weeks, not rows, and its free allowance has to be
+ *  counted differently for two reasons.
+ *
+ *  First, the forward route IS the product here. The other three formats
+ *  rank this week's games, so showing the top five gives away a slice of one
+ *  week; survivor's rows are future weeks, so showing five gave away five
+ *  weeks of the plan - the exact thing the gate exists to protect.
+ *
+ *  Second, a row-count gate degrades as the season runs out. From Week 12
+ *  there were only two weeks left to blur, and from Week 14 there would have
+ *  been none at all: the gate would quietly disappear precisely when a
+ *  surviving player cares most.
+ *
+ *  So: only the current week's pick is revealed - that's the actionable part,
+ *  the equivalent of the other formats' top rows - and the rest of the route
+ *  is blurred. */
+const PLAYBOOK_SURVIVOR_REVEALED_WEEKS = 1;
+/** Total nodes drawn in the preview rail, revealed plus blurred. */
+const PLAYBOOK_SURVIVOR_PREVIEW_WEEKS = 3;
+
 const PLAYBOOK_PREVIEW_FORMATS = [
   { id: "confidence", label: "Confidence", desc: "Rank picks by points" },
   { id: "straight_up", label: "Straight Up", desc: "Just pick the winner" },
@@ -15257,7 +15277,8 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
     );
   } else {
     const plan = (path && path.weeks) || [];
-    const visible = hasAccount ? plan.length : PLAYBOOK_PREVIEW_ROWS;
+    const visible = hasAccount ? plan.length : PLAYBOOK_SURVIVOR_REVEALED_WEEKS;
+    const drawn = hasAccount ? plan.length : PLAYBOOK_SURVIVOR_PREVIEW_WEEKS;
     panel = (
       <div className="pbp-panel">
         <div className="pbp-panel-head">
@@ -15275,7 +15296,7 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
             <div className="pbp-path-wrap">
               <div className="pbp-path-scroll">
                 <div className="pbp-path">
-                  {plan.slice(0, hasAccount ? plan.length : PLAYBOOK_PREVIEW_ROWS + PLAYBOOK_PEEK_ROWS).map((n, i) => (
+                  {plan.slice(0, drawn).map((n, i) => (
                     <div key={n.week} className={"pbp-node " + (i === 0 ? "is-now" : "is-later") + (i >= visible ? " is-locked" : "")}>
                       <div className="wk">WK {n.week}</div>
                       <div className="crest"><TeamLogo teamId={n.team} size={i === 0 ? 34 : 24} /></div>
@@ -15293,10 +15314,16 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
                 {path.evenOddsWeek ? <> through <b>Week {path.evenOddsWeek - 1}</b></> : <> all the way to the end</>}.
               </div>
             </div>
-            {!hasAccount && (
+            {/* In the season's final week there is nothing left to withhold,
+                so asking someone to sign in to see it would be an empty
+                promise. */}
+            {!hasAccount && plan.length > PLAYBOOK_SURVIVOR_REVEALED_WEEKS && (
               <div className="pbp-gate">
                 <div className="pbp-gate-main">
-                  <div className="pbp-gate-title">Your route through Week {clampToRegularSeasonWeek(18)}</div>
+                  <div className="pbp-gate-title">
+                    {plan.length - PLAYBOOK_SURVIVOR_REVEALED_WEEKS} more {plan.length - PLAYBOOK_SURVIVOR_REVEALED_WEEKS === 1 ? "week" : "weeks"} planned,
+                    through Week {plan[plan.length - 1].week}
+                  </div>
                   <div className="pbp-gate-sub">
                     Sign in to see every week planned out, which teams are being saved and why, and how the plan
                     re-plans after a loss.

@@ -1129,7 +1129,220 @@
 
   .tab-placeholder { text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 40px 16px; }
 
-  /* Hot Picks tab */
+
+  /* ---------------------------------------------------------------------
+     Playbook tab (replaces the old Hot Picks layout; the .hot-picks-* and
+     .bet-card rules below are still used by the Betting Angles section and
+     the track record panel, so they stay).
+
+     NOTHING HERE IS position:fixed OR position:sticky. On a phone the tab
+     bar is a fixed bottom bar at z-index 500 (see .tab-bar's media query),
+     and a sticky "Submit sheet" CTA would sit underneath it - exactly the
+     bug 63a8128d4 had to fix on the Add to League sheet. Every submit
+     button in this tab stays in normal document flow. If a sticky CTA is
+     ever wanted here it has to clear z-index 500 and carry its own
+     env(safe-area-inset-bottom) padding.
+     --------------------------------------------------------------------- */
+  .pb-view { margin-top: 18px; }
+  .pb-eyebrow {
+    font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.11em;
+    color: var(--text-dim); font-weight: 800;
+  }
+  .pb-title { font-size: 1.55rem; font-weight: 850; margin: 5px 0 6px; letter-spacing: -0.02em; }
+  .pb-built { font-size: 0.79rem; color: var(--text-dim); margin: 0; }
+  .pb-built b { color: var(--text); font-weight: 700; }
+
+  .pb-standing {
+    display: flex; margin: 16px 0 4px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+    overflow: hidden;
+  }
+  .pb-standing div { flex: 1; padding: 11px 12px; border-left: 1px solid var(--card-border); }
+  .pb-standing div:first-child { border-left: 0; }
+  .pb-standing .n { font-size: 1.2rem; font-weight: 850; display: block; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .pb-standing .l { font-size: 0.64rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+  .pb-standing .warnish .n { color: var(--warn); }
+
+  /* ---- sheet card ---- */
+  .pb-sheet {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; margin-bottom: 14px; overflow: hidden;
+  }
+  .pb-sheet-head {
+    display: flex; align-items: center; gap: 10px; padding: 13px 14px; width: 100%;
+    background: none; border: 0; font-family: inherit; color: var(--text);
+    cursor: pointer; text-align: left;
+  }
+  .pb-fmt-badge {
+    width: 30px; height: 30px; flex: none; border-radius: 8px;
+    display: grid; place-items: center; font-size: 0.56rem; font-weight: 900;
+    border: 1px solid;
+  }
+  .pb-fmt-straight_up { background: rgba(var(--accent-rgb),0.13); border-color: rgba(var(--accent-rgb),0.4); color: var(--accent); }
+  .pb-fmt-confidence { background: rgba(var(--accent-rgb),0.13); border-color: rgba(var(--accent-rgb),0.4); color: var(--accent); }
+  .pb-fmt-ats { background: var(--surface-2); border-color: var(--edge-b); color: var(--edge-b); }
+  .pb-fmt-survivor { background: rgba(var(--warn-rgb),0.13); border-color: rgba(var(--warn-rgb),0.4); color: var(--warn); }
+  .pb-sheet-headmain { flex: 1; min-width: 0; }
+  .pb-sheet-name { display: block; font-weight: 800; font-size: 0.98rem; line-height: 1.2; }
+  .pb-sheet-meta { display: block; font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+  .pb-sheet-meta .dot { opacity: 0.5; margin: 0 5px; }
+  .pb-sheet-status { text-align: right; font-size: 0.7rem; font-weight: 700; flex: none; }
+  .pb-sheet-status .sub { font-weight: 600; opacity: 0.8; display: block; }
+  .pb-status-todo { color: var(--warn); }
+  .pb-status-done { color: var(--win); }
+  .pb-chev { color: var(--text-dim); transition: transform 0.18s; flex: none; margin-left: 8px; display: inline-flex; }
+  .pb-sheet.is-closed .pb-chev { transform: rotate(-90deg); }
+  .pb-sheet-body { border-top: 1px solid var(--card-border); }
+
+  /* ---- confidence ladder ---- */
+  .pb-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; border-bottom: 1px solid var(--card-border);
+  }
+  .pb-row:last-child { border-bottom: 0; }
+  .pb-row.is-locked { opacity: 0.5; }
+  .pb-pts { width: 34px; flex: none; text-align: center; font-size: 1rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+  .pb-pts small { display: block; font-size: 0.5rem; color: var(--text-dim); font-weight: 700; letter-spacing: 0.05em; margin-top: -3px; }
+  .pb-row.is-top .pb-pts { color: var(--blitz-orange); }
+  .pb-rowmain { flex: 1; min-width: 0; }
+  .pb-pick { display: flex; align-items: center; gap: 7px; font-weight: 750; font-size: 0.88rem; }
+  .pb-pick img { flex: none; }
+  .pb-sub { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+  .pb-pct { flex: none; font-size: 0.9rem; font-weight: 800; text-align: right; width: 46px; font-variant-numeric: tabular-nums; }
+  .pb-have {
+    font-size: 0.62rem; font-weight: 800; color: var(--win); letter-spacing: 0.04em;
+    border: 1px solid rgba(var(--win-rgb),0.35); background: rgba(var(--win-rgb),0.12);
+    border-radius: 999px; padding: 1px 7px; margin-left: 6px;
+  }
+  .pb-have.is-diff { color: var(--warn); border-color: rgba(var(--warn-rgb),0.35); background: rgba(var(--warn-rgb),0.12); }
+
+  /* ---- ats plays ---- */
+  .pb-play { display: flex; align-items: flex-start; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--card-border); }
+  .pb-play:last-child { border-bottom: 0; }
+  .pb-play-rank { width: 34px; flex: none; text-align: center; font-size: 0.7rem; font-weight: 800; color: var(--text-dim); padding-top: 3px; font-variant-numeric: tabular-nums; }
+  .pb-play-main { flex: 1; min-width: 0; }
+  .pb-play-pick { display: flex; align-items: center; gap: 7px; font-weight: 800; font-size: 0.9rem; }
+  .pb-play-note { font-size: 0.74rem; color: var(--text-dim); margin-top: 3px; line-height: 1.45; }
+  .pb-edge-pill {
+    display: inline-block; background: rgba(var(--win-rgb),0.14); color: var(--pill-good-text);
+    border: 1px solid rgba(var(--win-rgb),0.3); border-radius: 999px;
+    font-size: 0.63rem; font-weight: 800; padding: 1px 7px; margin-left: 6px; white-space: nowrap;
+  }
+  .pb-play-val { flex: none; text-align: right; width: 54px; }
+  .pb-play-val .n { font-size: 1rem; font-weight: 850; display: block; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .pb-play-val .l { font-size: 0.54rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  .pb-noedge { padding: 10px 14px; font-size: 0.74rem; color: var(--text-dim); display: flex; align-items: flex-start; gap: 8px; }
+  .pb-noedge .dash { color: var(--lose); font-weight: 800; }
+  .pb-noedge b { color: var(--text); font-weight: 700; }
+
+  /* ---- survivor ---- */
+  .pb-surv-lead { padding: 14px 14px 0; font-size: 0.8rem; color: var(--text-dim); }
+  .pb-surv-pick { display: flex; align-items: center; gap: 11px; padding: 12px 14px; }
+  .pb-surv-pick .who { flex: 1; min-width: 0; }
+  .pb-surv-pick .name { font-size: 1rem; font-weight: 850; }
+  .pb-surv-pick .vs { font-size: 0.74rem; color: var(--text-dim); margin-top: 2px; }
+  .pb-surv-pick .pct { font-size: 1.35rem; font-weight: 850; color: var(--warn); font-variant-numeric: tabular-nums; }
+  .pb-why {
+    margin: 0 14px 12px; padding: 11px 12px;
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 10px;
+    font-size: 0.79rem; line-height: 1.5;
+  }
+  .pb-why .h {
+    font-size: 0.61rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--warn); font-weight: 850; margin-bottom: 5px;
+  }
+  .pb-why b { font-weight: 750; }
+  .pb-holds { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 14px 14px; }
+  .pb-hold {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface-2); border: 1px dashed var(--card-border);
+    border-radius: 999px; padding: 4px 10px 4px 6px; font-size: 0.71rem; color: var(--text-dim);
+  }
+  .pb-hold b { color: var(--text); font-weight: 750; }
+
+
+  /* ---- survivor path (the season plan, not just this week) ----
+     Horizontally scrollable inside its own container so a 18-week plan
+     never drags the page sideways on a phone. */
+  .pb-path-scroll { overflow-x: auto; padding: 4px 14px 10px; -webkit-overflow-scrolling: touch; }
+  .pb-path { display: flex; align-items: flex-end; min-width: min-content; }
+  .pb-node { flex: none; width: 52px; text-align: center; position: relative; padding-bottom: 24px; }
+  .pb-node .wk { font-size: 0.55rem; color: var(--text-dim); font-weight: 800; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .pb-node .crest { position: relative; z-index: 1; display: flex; justify-content: center; }
+  .pb-node .pct { font-size: 0.62rem; color: var(--text-dim); font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  /* the rail joining consecutive weeks, drawn behind the crests */
+  .pb-node::before {
+    content: ""; position: absolute; left: -50%; right: 50%; top: 30px; height: 2px;
+    background: var(--warn); opacity: 0.32;
+  }
+  .pb-node:first-child::before { display: none; }
+  .pb-node.is-later::before { background: var(--lose); opacity: 0.32; }
+  .pb-node.is-later .crest { opacity: 0.78; }
+  /* running survival probability, decaying left to right */
+  .pb-node .surv { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+  .pb-node .surv i { display: block; height: 100%; background: var(--warn); opacity: 0.8; }
+  .pb-node.is-now { width: 66px; }
+  .pb-node.is-now .wk { color: var(--warn); }
+  .pb-node.is-now .pct { color: var(--text); font-weight: 800; font-size: 0.7rem; }
+  .pb-node.is-now .crest img { box-shadow: 0 0 0 3px rgba(var(--warn-rgb),0.18); border-radius: 50%; }
+  .pb-path-foot {
+    display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+    padding: 0 14px 12px; font-size: 0.74rem; color: var(--text-dim);
+  }
+  .pb-path-foot b { color: var(--text); font-weight: 750; }
+  /* ---- sheet footer ---- */
+  .pb-foot {
+    display: flex; gap: 8px; padding: 12px 14px; flex-wrap: wrap;
+    border-top: 1px solid var(--card-border); background: var(--surface-2);
+  }
+  .pb-btn {
+    appearance: none; font-family: inherit; cursor: pointer; border-radius: 10px;
+    font-size: 0.83rem; font-weight: 800; padding: 10px 14px; border: 1px solid transparent;
+  }
+  .pb-btn:disabled { opacity: 0.55; cursor: default; }
+  .pb-btn-primary { background: var(--accent); color: #05221f; flex: 1; min-width: 180px; }
+  .pb-btn-warn { background: var(--warn); color: #241500; flex: 1; min-width: 180px; }
+  .pb-btn-ghost { background: transparent; border-color: var(--card-border); color: var(--text-dim); }
+  .pb-btn-ghost:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
+  .pb-foot-msg { flex-basis: 100%; font-size: 0.74rem; margin: 2px 0 0; }
+  .pb-foot-msg.is-error { color: var(--pill-bad-text); }
+  .pb-foot-msg.is-ok { color: var(--pill-good-text); }
+
+  /* ---- what changed ---- */
+  .pb-chg { display: flex; gap: 11px; padding: 13px 14px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 9px; }
+  .pb-chg-icon { width: 30px; height: 30px; flex: none; border-radius: 8px; display: grid; place-items: center; font-size: 0.85rem; }
+  .pb-ci-line { background: var(--surface-2); border: 1px solid var(--edge-b); }
+  .pb-ci-new { background: rgba(var(--accent-rgb),0.13); border: 1px solid rgba(var(--accent-rgb),0.35); }
+  .pb-chg-body { flex: 1; min-width: 0; }
+  .pb-chg-title { font-weight: 780; font-size: 0.86rem; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .pb-chg-when { font-size: 0.63rem; color: var(--lose); font-weight: 700; margin-left: auto; flex: none; }
+  .pb-chg-text { font-size: 0.77rem; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+  .pb-chg-text b { color: var(--text); font-weight: 700; }
+  .pb-chg-affects {
+    margin-top: 7px; font-size: 0.68rem; font-weight: 750; display: inline-block;
+    background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 3px 9px; color: var(--text-dim);
+  }
+  .pb-chg-affects b { color: var(--accent); font-weight: 800; }
+  .pb-arrow { color: var(--text-dim); margin: 0 3px; }
+
+  /* ---- section heads / empty ---- */
+  .pb-section-h { margin: 22px 0 10px; }
+  .pb-section-h h3 { font-size: 0.98rem; font-weight: 820; margin: 0; }
+  .pb-section-h p { font-size: 0.74rem; color: var(--text-dim); margin: 2px 0 0; }
+  .pb-empty { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 26px 20px; text-align: center; }
+  .pb-empty h3 { margin: 0 0 6px; font-size: 1.05rem; font-weight: 820; }
+  .pb-empty p { margin: 0 auto 14px; font-size: 0.82rem; color: var(--text-dim); max-width: 380px; line-height: 1.5; }
+  .pb-empty-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .pb-note { font-size: 0.78rem; color: var(--text-dim); }
+
+  @media (max-width: 420px) {
+    .pb-title { font-size: 1.35rem; }
+    .pb-sheet-status { font-size: 0.66rem; }
+    .pb-standing .n { font-size: 1.05rem; }
+  }
+
+  /* Betting Angles + track record (formerly the whole Hot Picks tab) */
   .hot-picks-view { margin-top: 18px; }
   .hot-picks-title { font-size: 1.15rem; font-weight: 800; margin: 0 0 4px; }
   .hot-picks-sub { font-size: 0.82rem; color: var(--text-dim); margin: 0 0 20px; }
@@ -10548,6 +10761,15 @@ const SPORTSBOOK_STORAGE_KEY = "blitz-odds-sportsbook";
 // a straight-up player wants a winner, an ats player wants a side of the
 // line, and the two reads routinely disagree. The ids match league
 // `format` values 1:1 so both surfaces run through computeBlitzEdge().
+/* The Playbook tab's label and icon, as constants rather than literals in
+ * TabBar, because the name is still provisional - "Playbook" is a working
+ * title and renaming it should be a one-line change here, not a hunt
+ * through JSX. The route id stays "picks" either way: that's in TAB_ROUTES,
+ * in URLs, and in push-notification deep links, so it isn't a display
+ * string and must not be renamed with the label. */
+const PLAYBOOK_TAB_LABEL = "Playbook";
+const PLAYBOOK_TAB_ICON = "\u{1F4CB}";
+
 const GAME_TYPE_STORAGE_KEY = "blitz-odds-game-type";
 const DEFAULT_GAME_TYPE = "straight_up";
 // `short` is what a phone-width command bar shows. Only ats actually needs
@@ -13920,129 +14142,881 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   );
 }
 
-/** "Hot Picks" tab: this week's most confident model picks, plus the single
- *  best angle on each betting market (spread/moneyline/total), built via
- *  HotPicksEngine from the same per-game predictions GameCard already
- *  computes for the Games tab. Every explanation is grounded in that
- *  game's own numbers - see hotPicksEngine.js for how each pick and its
- *  reasoning are derived. */
-function HotPicksView({ week, sportsbookId, onSelectGame }) {
-  const [activeSubTab, setActiveSubTab] = useState("top");
-  const context = getWeekContext(week);
-  const scheduledGames = getGamesForWeek(week);
+/* =======================================================================
+ * PLAYBOOK TAB
+ *
+ * Replaces the old Hot Picks tab. The distinction that justifies the tab
+ * existing at all: the Games tab is a per-game browser, and its game-type
+ * dropdown swaps which model's read each card shows. It answers "what does
+ * the model think of this game, in my format?". It structurally cannot
+ * answer the questions this tab owns, all of which need the whole slate at
+ * once or the user's own leagues:
+ *
+ *   - cross-game ranking (a confidence ladder is 1..N *relative to each
+ *     other*; it cannot exist on a single card)
+ *   - a finished, submittable sheet rather than an opinion per game
+ *   - which format to even use - your leagues already answered that, so
+ *     there's no dropdown here on purpose
+ *   - what moved since you last looked
+ *
+ * Nothing here re-implements a model. Every number comes from the same
+ * functions the Games tab and league pick panels already run:
+ * computeConfidenceGuidance, computeSurvivorGuidance, computeBlitzEdge,
+ * PredictionEngine, HotPicksEngine. If a sheet and a league pick card ever
+ * disagree, that's a bug, not a design choice.
+ * ======================================================================= */
 
-  const hotPicksInput = scheduledGames.map((g) => {
+/** Full predictions for a week keyed "away-home". survivorWeekProbabilities()
+ *  caches win probabilities only; the ats sheet needs predictedMargin too,
+ *  so this holds the whole prediction object. Same per-week memo pattern and
+ *  the same inputs, so the two can never disagree about a game. */
+const playbookPredictionCache = new Map();
+function playbookPredictions(week) {
+  if (playbookPredictionCache.has(week)) return playbookPredictionCache.get(week);
+  const context = getWeekContext(week);
+  const map = {};
+  getGamesForWeek(week).forEach((g) => {
     const home = context.getTeam(g.home);
     const away = context.getTeam(g.away);
-    if (!home || !away) return null;
-    const homePlayers = context.getPlayers(g.home);
-    const awayPlayers = context.getPlayers(g.away);
-    const weather = getWeather(week, g.away, g.home);
-    const odds = getOdds(week, g.away, g.home, sportsbookId);
-    const prediction = PredictionEngine.predictMatchup({
+    if (!home || !away) return;
+    map[`${g.away}-${g.home}`] = PredictionEngine.predictMatchup({
       homeTeam: home,
       awayTeam: away,
-      homeImpactPlayers: homePlayers,
-      awayImpactPlayers: awayPlayers,
-      weather: weather,
+      homeImpactPlayers: context.getPlayers(g.home),
+      awayImpactPlayers: context.getPlayers(g.away),
+      weather: getWeather(week, g.away, g.home),
       homeIsDomeTeam: isDomeTeam(home.id),
-      awayIsDomeTeam: isDomeTeam(away.id)
+      awayIsDomeTeam: isDomeTeam(away.id),
     });
-    return { awayId: away.id, awayName: away.name, homeId: home.id, homeName: home.name, prediction, odds };
-  }).filter(Boolean);
+  });
+  playbookPredictionCache.set(week, map);
+  return map;
+}
 
-  if (!hotPicksInput.length) return <p>No schedule data for this week yet.</p>;
+const PLAYBOOK_FORMAT_SHORT = {
+  straight_up: "SU",
+  confidence: "CONF",
+  ats: "ATS",
+  survivor: "SURV",
+};
 
-  const hotPicks = HotPicksEngine.computeHotPicks(hotPicksInput);
-  const noMarketPicks = !hotPicks.spreadPicks.length && !hotPicks.moneylinePicks.length && !hotPicks.totalPicks.length;
+/** picks-mine for each of the caller's leagues, in parallel.
+ *
+ *  home-summary.mts exists specifically to avoid client fan-out, and this
+ *  is deliberately fanning out anyway - because what a sheet needs (this
+ *  week's per-game locked state, the caller's existing picks, and a
+ *  survivor league's used-team list) is exactly picks-mine's response and
+ *  nothing else returns it. The blast radius is the caller's own league
+ *  count, which is one to three for almost everyone. If that stops being
+ *  true, the fix is a batched endpoint, not a loop with a delay in it. */
+function usePlaybookSheets(auth, week, leagues) {
+  const [sheets, setSheets] = useState({});
+  const leagueKey = (leagues || []).map((l) => l.leagueId).join(",");
 
-  function goToGame(game) {
-    if (onSelectGame) onSelectGame(week, game.awayId, game.homeId);
+  const load = useCallback(async () => {
+    if (auth.status !== "in" || !leagues || !leagues.length) { setSheets({}); return; }
+    const entries = await Promise.all(
+      leagues.map(async (l) => {
+        try {
+          const res = await auth.authenticatedFetch(
+            `/.netlify/functions/picks-mine?leagueId=${encodeURIComponent(l.leagueId)}&week=${encodeURIComponent(week)}`
+          );
+          const json = await res.json();
+          if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load picks");
+          return [l.leagueId, { status: "ready", data: json }];
+        } catch (err) {
+          return [l.leagueId, { status: "error", error: err.message || "Failed to load picks" }];
+        }
+      })
+    );
+    setSheets(Object.fromEntries(entries));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.status, auth.authenticatedFetch, week, leagueKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => { if (!cancelled) await load(); })();
+    return () => { cancelled = true; };
+  }, [load]);
+
+  return [sheets, load];
+}
+
+/** The confidence ladder: every game the league is playing this week,
+ *  ranked N..1 by how lopsided the model thinks it is. Points come from
+ *  computeConfidenceGuidance - the identical suggestion LeagueWeekPanel
+ *  shows next to the points selector - so the sheet and the league's own
+ *  pick page can't hand out different numbers for the same game. */
+function buildConfidenceRows(week, games) {
+  const guidance = computeConfidenceGuidance(week);
+  const predictions = playbookPredictions(week);
+  return games
+    .map((g) => {
+      const prediction = predictions[`${g.away}-${g.home}`];
+      const points = guidance.byGame[`${g.away}-${g.home}`];
+      if (!prediction || !points) return null;
+      const edge = computeBlitzEdge({
+        format: "confidence",
+        game: { home: g.home, away: g.away },
+        prediction,
+        maxConfidence: guidance.max,
+        suggestedConfidence: points,
+      });
+      return {
+        gameId: g.gameId,
+        away: g.away,
+        home: g.home,
+        locked: g.locked,
+        existing: g.pick || null,
+        team: prediction.predictedWinner,
+        points,
+        pct: Math.round(prediction.confidence * 100),
+        note: edge ? edge.note : null,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.points - a.points);
+}
+
+/** ats plays, ranked by how far the model's own line sits from the market's.
+ *  computeBlitzEdge does the actual work (and owns the 2-point threshold);
+ *  this only sorts its output and separates the games it declined to call. */
+function buildAtsRows(week, games, sportsbookId) {
+  const predictions = playbookPredictions(week);
+  const rows = games
+    .map((g) => {
+      const prediction = predictions[`${g.away}-${g.home}`];
+      if (!prediction) return null;
+      const odds = getOdds(week, g.away, g.home, sportsbookId);
+      const edge = computeBlitzEdge({
+        format: "ats",
+        game: {
+          home: g.home,
+          away: g.away,
+          spread: odds ? odds.spread : null,
+          favorite: odds ? odds.favorite : null,
+        },
+        prediction,
+      });
+      if (!edge) return null;
+      return {
+        gameId: g.gameId,
+        away: g.away,
+        home: g.home,
+        locked: g.locked,
+        existing: g.pick || null,
+        team: edge.teamId,
+        label: edge.teamLabel,
+        value: edge.value,
+        note: edge.note,
+        muted: edge.muted,
+        edgePoints: edge.edgePoints ?? null,
+        coverPct: edge.coverPct ?? null,
+      };
+    })
+    .filter(Boolean);
+
+  return {
+    plays: rows.filter((r) => !r.muted && r.team).sort((a, b) => (b.edgePoints || 0) - (a.edgePoints || 0)),
+    passed: rows.filter((r) => r.muted || !r.team),
+  };
+}
+
+function PlaybookConfidenceSheet({ week, sheet, onSubmit, submitting, result }) {
+  const rows = useMemo(
+    () => buildConfidenceRows(week, (sheet.data && sheet.data.games) || []),
+    [week, sheet.data]
+  );
+  if (!rows.length) return <p className="pb-note" style={{ padding: "14px" }}>No games with a model read for this week yet.</p>;
+
+  const submittable = rows.filter((r) => !r.locked);
+
+  return (
+    <>
+      <div>
+        {rows.map((r, i) => (
+          <div key={r.gameId} className={"pb-row" + (i < 3 ? " is-top" : "") + (r.locked ? " is-locked" : "")}>
+            <div className="pb-pts">{r.points}<small>PTS</small></div>
+            <div className="pb-rowmain">
+              <div className="pb-pick">
+                <TeamLogo teamId={r.team} size={20} />
+                <span>{r.team}</span>
+                {r.existing && (
+                  <span className={"pb-have" + (r.existing.team !== r.team ? " is-diff" : "")}>
+                    {r.existing.team !== r.team
+                      ? `you have ${r.existing.team}`
+                      : `in at ${r.existing.confidence ?? "—"}`}
+                  </span>
+                )}
+              </div>
+              {/* Deliberately just the matchup. computeBlitzEdge's confidence
+                  note reads "86% to win - 1st most lopsided game this week",
+                  and both halves of that are already on screen: the win% is
+                  the column to the right, and "1st most lopsided" is this
+                  row's own position in a list sorted by exactly that. */}
+              <div className="pb-sub">
+                {r.team === r.home ? `vs ${r.away}` : `at ${r.home}`}
+                {r.locked ? " · locked" : ""}
+              </div>
+            </div>
+            <div className="pb-pct">{r.pct}%</div>
+          </div>
+        ))}
+      </div>
+      <div className="pb-foot">
+        <button
+          type="button"
+          className="pb-btn pb-btn-primary"
+          disabled={submitting || !submittable.length}
+          onClick={() => onSubmit(submittable.map((r) => ({ gameId: r.gameId, team: r.team, confidence: r.points })))}
+        >
+          {submitting ? "Submitting…" : `Submit all ${submittable.length} to ${sheet.leagueName}`}
+        </button>
+        <button type="button" className="pb-btn pb-btn-ghost" onClick={sheet.onOpenLeague}>Adjust in league</button>
+        {result && <p className={"pb-foot-msg " + (result.ok ? "is-ok" : "is-error")}>{result.message}</p>}
+      </div>
+    </>
+  );
+}
+
+function PlaybookAtsSheet({ week, sheet, sportsbookId, onSubmit, submitting, result }) {
+  const { plays, passed } = useMemo(
+    () => buildAtsRows(week, (sheet.data && sheet.data.games) || [], sportsbookId),
+    [week, sheet.data, sportsbookId]
+  );
+
+  const submittable = plays.filter((p) => !p.locked);
+
+  return (
+    <>
+      {plays.length === 0 ? (
+        <p className="pb-note" style={{ padding: "14px" }}>
+          No game this week clears {ATS_MIN_EDGE_POINTS} points of value between the model's line and the market's.
+          That's the model declining to call it, not a missing sheet.
+        </p>
+      ) : (
+        <div>
+          {plays.map((p, i) => (
+            <div key={p.gameId} className={"pb-play" + (p.locked ? " is-locked" : "")}>
+              <div className="pb-play-rank">{i + 1}</div>
+              <div className="pb-play-main">
+                <div className="pb-play-pick">
+                  <TeamLogo teamId={p.team} size={20} />
+                  <span>{p.label}</span>
+                  {p.existing && (
+                    <span className={"pb-have" + (p.existing.team !== p.team ? " is-diff" : "")}>
+                      {p.existing.team !== p.team ? `you have ${p.existing.team}` : "in"}
+                    </span>
+                  )}
+                </div>
+                <div className="pb-play-note">
+                  {p.note}
+                  {p.edgePoints != null && <span className="pb-edge-pill">{p.edgePoints.toFixed(1)} pts</span>}
+                </div>
+              </div>
+              <div className="pb-play-val">
+                <span className="n">{p.coverPct != null ? `${p.coverPct}%` : "—"}</span>
+                <span className="l">to cover</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {passed.length > 0 && (
+        <div className="pb-noedge">
+          <span className="dash">—</span>
+          <span>
+            <b>{passed.length} {passed.length === 1 ? "game" : "games"} passed on.</b>{" "}
+            Either no line is posted yet, or the market's number is already where the model would put it.
+          </span>
+        </div>
+      )}
+      <div className="pb-foot">
+        <button
+          type="button"
+          className="pb-btn pb-btn-primary"
+          disabled={submitting || !submittable.length}
+          onClick={() => onSubmit(submittable.map((p) => ({ gameId: p.gameId, team: p.team })))}
+        >
+          {submitting ? "Submitting…" : `Submit ${submittable.length} ${submittable.length === 1 ? "play" : "plays"} to ${sheet.leagueName}`}
+        </button>
+        <button type="button" className="pb-btn pb-btn-ghost" onClick={sheet.onOpenLeague}>Adjust in league</button>
+        {result && <p className={"pb-foot-msg " + (result.ok ? "is-ok" : "is-error")}>{result.message}</p>}
+      </div>
+    </>
+  );
+}
+
+/** Survivor. The whole remaining season as one plan, which is the thing a
+ *  game card structurally cannot show: computeSurvivorPath assigns every
+ *  remaining week a team, subject to each team being spendable once, and
+ *  reports the running probability of still being alive after each one.
+ *
+ *  The highlighted week-1 node is the same team computeSurvivorGuidance
+ *  now returns as `best` (the planner drives that too - see
+ *  SURVIVOR_PATH_DRIVES_PICK), so this sheet, the Games tab's Blitz Edge
+ *  row and the league pick card all name the same team. */
+function PlaybookSurvivorSheet({ week, sheet, onSubmit, submitting, result }) {
+  const usedTeams = (sheet.data && sheet.data.usedTeams) || [];
+  const usedKey = usedTeams.slice().sort().join(",");
+  const path = useMemo(
+    () => computeSurvivorPath(week, usedTeams),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [week, usedKey]
+  );
+
+  const games = (sheet.data && sheet.data.games) || [];
+  const existing = games.find((g) => g.pick) || null;
+  const plan = (path && path.weeks) || [];
+  const now = plan.length && plan[0].week === week ? plan[0] : null;
+
+  if (!now) {
+    return (
+      <p className="pb-note" style={{ padding: "14px" }}>
+        No team left to spend this week — every team playing has already been used.
+      </p>
+    );
+  }
+
+  const nowGame = games.find((g) => g.away === now.team || g.home === now.team) || null;
+  const nowPct = Math.round(now.prob * 100);
+
+  // The best team this week that the plan is deliberately saving for a
+  // later week - the "why not them?" the reader is actually thinking. Taken
+  // from the plan itself rather than recomputed, so the answer can't
+  // contradict the plan on screen next to it.
+  const thisWeekProbs = survivorWeekProbabilities(week);
+  const heldBack = plan
+    .slice(1)
+    .filter((r) => thisWeekProbs[r.team] && thisWeekProbs[r.team].prob > now.prob)
+    .sort((a, b) => thisWeekProbs[b.team].prob - thisWeekProbs[a.team].prob)[0] || null;
+
+  return (
+    <>
+      <p className="pb-surv-lead">
+        Every remaining week, planned at once — each team spent in the spot where it's worth the most.
+      </p>
+
+      <div className="pb-surv-pick">
+        <TeamLogo teamId={now.team} size={34} />
+        <div className="who">
+          <div className="name">{now.team}</div>
+          <div className="vs">
+            {nowGame ? (nowGame.home === now.team ? `vs ${nowGame.away}` : `at ${nowGame.home}`) : (now.isHome ? `vs ${now.opponent}` : `at ${now.opponent}`)}
+            {existing && (
+              <span className={"pb-have" + (existing.pick.team !== now.team ? " is-diff" : "")}>
+                {existing.pick.team !== now.team ? `you have ${existing.pick.team}` : "in"}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="pct">{nowPct}%</div>
+      </div>
+
+      <div className="pb-path-scroll">
+        <div className="pb-path">
+          {plan.map((r) => (
+            <div key={r.week} className={"pb-node" + (r.week === week ? " is-now" : " is-later")}>
+              <div className="wk">WK {r.week}</div>
+              <div className="crest"><TeamLogo teamId={r.team} size={r.week === week ? 40 : 24} /></div>
+              <div className="pct">{Math.round(r.prob * 100)}%</div>
+              <div className="surv" title={`${Math.round(r.survival * 100)}% still alive after Week ${r.week}`}>
+                <i style={{ width: `${Math.max(2, Math.round(r.survival * 100))}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="pb-path-foot">
+        <span>
+          The bar under each week is the chance you're still alive at that point.
+          This plan lasts <b>{path.expectedWeeks ? path.expectedWeeks.toFixed(1) : "—"} weeks</b> on average,
+          and you're more likely than not to still be alive
+          {path.evenOddsWeek ? <> through <b>Week {path.evenOddsWeek - 1}</b></> : <> all the way to the end</>}.
+        </span>
+      </div>
+
+      {heldBack && (
+        <div className="pb-why">
+          <div className="h">Why {now.team}, and not {heldBack.team}</div>
+          <b>{heldBack.team} is the plan's Week {heldBack.week} pick.</b> They're the better team this
+          week ({Math.round(thisWeekProbs[heldBack.team].prob * 100)}% against {now.team}'s {nowPct}%), but
+          they're worth {Math.round(heldBack.prob * 100)}% in Week {heldBack.week} and nothing else on the
+          board covers that week as well. Spending them now is what costs pools the season.
+        </div>
+      )}
+
+      <div className="pb-foot">
+        <button
+          type="button"
+          className="pb-btn pb-btn-warn"
+          disabled={submitting || !nowGame || nowGame.locked}
+          onClick={() => onSubmit([{ gameId: nowGame.gameId, team: now.team }])}
+        >
+          {submitting ? "Submitting…" : nowGame && nowGame.locked ? "Game already locked" : `Lock ${now.team} for Week ${week}`}
+        </button>
+        <button type="button" className="pb-btn pb-btn-ghost" onClick={sheet.onOpenLeague}>Pick someone else</button>
+        {result && <p className={"pb-foot-msg " + (result.ok ? "is-ok" : "is-error")}>{result.message}</p>}
+      </div>
+    </>
+  );
+}
+
+/** Straight-up leagues get the same ladder ordering as confidence (the
+ *  model's own ranking is the useful thing either way) without the points
+ *  column, since there's nothing to rank in this format. */
+function PlaybookStraightUpSheet({ week, sheet, onSubmit, submitting, result }) {
+  const rows = useMemo(
+    () => buildConfidenceRows(week, (sheet.data && sheet.data.games) || []),
+    [week, sheet.data]
+  );
+  if (!rows.length) return <p className="pb-note" style={{ padding: "14px" }}>No games with a model read for this week yet.</p>;
+  const submittable = rows.filter((r) => !r.locked);
+
+  return (
+    <>
+      <div>
+        {rows.map((r) => (
+          <div key={r.gameId} className={"pb-row" + (r.locked ? " is-locked" : "")}>
+            <div className="pb-pts" style={{ width: 22 }}>{""}</div>
+            <div className="pb-rowmain">
+              <div className="pb-pick">
+                <TeamLogo teamId={r.team} size={20} />
+                <span>{r.team}</span>
+                {r.existing && (
+                  <span className={"pb-have" + (r.existing.team !== r.team ? " is-diff" : "")}>
+                    {r.existing.team !== r.team ? `you have ${r.existing.team}` : "in"}
+                  </span>
+                )}
+              </div>
+              <div className="pb-sub">
+                {r.team === r.home ? `vs ${r.away}` : `at ${r.home}`}{r.locked ? " · locked" : ""}
+              </div>
+            </div>
+            <div className="pb-pct">{r.pct}%</div>
+          </div>
+        ))}
+      </div>
+      <div className="pb-foot">
+        <button
+          type="button"
+          className="pb-btn pb-btn-primary"
+          disabled={submitting || !submittable.length}
+          onClick={() => onSubmit(submittable.map((r) => ({ gameId: r.gameId, team: r.team })))}
+        >
+          {submitting ? "Submitting…" : `Submit all ${submittable.length} to ${sheet.leagueName}`}
+        </button>
+        <button type="button" className="pb-btn pb-btn-ghost" onClick={sheet.onOpenLeague}>Adjust in league</button>
+        {result && <p className={"pb-foot-msg " + (result.ok ? "is-ok" : "is-error")}>{result.message}</p>}
+      </div>
+    </>
+  );
+}
+
+function PlaybookSheetCard({ league, sheetState, week, sportsbookId, auth, onOpenLeague, onReload }) {
+  const [open, setOpen] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const progress = league.week || null;
+  const picked = progress ? progress.picked : 0;
+  const total = progress ? progress.total : 0;
+  const complete = total > 0 && picked >= total;
+
+  /** One POST per game, sequentially. picks-submit.mts takes a single pick
+   *  per call, and firing sixteen at once is both a thundering-herd on the
+   *  same league's blob keys and impossible to report on usefully when one
+   *  of them fails - a sequential loop can say exactly how far it got. */
+  async function submitAll(picks) {
+    if (!picks.length || submitting) return;
+    setSubmitting(true);
+    setResult(null);
+    let done = 0;
+    try {
+      for (const p of picks) {
+        const res = await auth.authenticatedFetch("/.netlify/functions/picks-submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leagueId: league.leagueId,
+            week,
+            gameId: p.gameId,
+            team: p.team,
+            ...(p.confidence != null ? { confidence: p.confidence } : {}),
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "Pick rejected");
+        done += 1;
+      }
+      setResult({ ok: true, message: `${done} ${done === 1 ? "pick" : "picks"} submitted to ${league.name}.` });
+    } catch (err) {
+      setResult({
+        ok: false,
+        message: done
+          ? `Submitted ${done} of ${picks.length}, then stopped: ${err.message}`
+          : `Couldn't submit: ${err.message}`,
+      });
+    } finally {
+      setSubmitting(false);
+      await onReload();
+    }
+  }
+
+  const sheet = {
+    data: sheetState && sheetState.data,
+    leagueName: league.name,
+    onOpenLeague: () => onOpenLeague(league.leagueId),
+  };
+
+  let body;
+  if (!sheetState) body = <p className="pb-note" style={{ padding: "14px" }}>Loading this week…</p>;
+  else if (sheetState.status === "error") body = <p className="pb-note" style={{ padding: "14px" }}>Couldn't load this sheet: {sheetState.error}</p>;
+  else if (league.format === "confidence") body = <PlaybookConfidenceSheet week={week} sheet={sheet} onSubmit={submitAll} submitting={submitting} result={result} />;
+  else if (league.format === "ats") body = <PlaybookAtsSheet week={week} sheet={sheet} sportsbookId={sportsbookId} onSubmit={submitAll} submitting={submitting} result={result} />;
+  else if (league.format === "survivor") body = <PlaybookSurvivorSheet week={week} sheet={sheet} onSubmit={submitAll} submitting={submitting} result={result} />;
+  else body = <PlaybookStraightUpSheet week={week} sheet={sheet} onSubmit={submitAll} submitting={submitting} result={result} />;
+
+  return (
+    <div className={"pb-sheet" + (open ? "" : " is-closed")}>
+      <button type="button" className="pb-sheet-head" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        <span className={"pb-fmt-badge pb-fmt-" + league.format}>{PLAYBOOK_FORMAT_SHORT[league.format] || "SU"}</span>
+        <span className="pb-sheet-headmain">
+          <span className="pb-sheet-name">{league.name}</span>
+          <span className="pb-sheet-meta">
+            {(LEAGUE_FORMAT_OPTIONS.find((f) => f.value === league.format) || {}).label || league.format}
+            <span className="dot">·</span>{league.memberCount} {league.memberCount === 1 ? "player" : "players"}
+            {league.me && league.me.rank != null && <><span className="dot">·</span>You're {ordinalSuffix(league.me.rank)}</>}
+          </span>
+        </span>
+        <span className={"pb-sheet-status " + (complete ? "pb-status-done" : "pb-status-todo")}>
+          {total > 0 ? `${picked} of ${total} in` : "Not picked"}
+        </span>
+        <span className="pb-chev"><ChevronIcon direction="down" size={12} /></span>
+      </button>
+      {open && <div className="pb-sheet-body">{body}</div>}
+    </div>
+  );
+}
+
+/** Line movement since each game's first posted number, read from the same
+ *  odds-history document odds-refresh.mjs appends to. Deliberately not a
+ *  generic "everything that happened" feed: an entry earns its place only
+ *  by having moved a number that changes a pick, and each one says which
+ *  sheet it changed. Injuries aren't here yet - there's no historical
+ *  injury feed to diff against on the client, so that arrives with the
+ *  snapshot work rather than being faked from the current roster. */
+function PlaybookChanges({ week, sportsbookId, leagues }) {
+  const [history, setHistory] = useState(null);
+  const [status, setStatus] = useState("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/.netlify/functions/odds-current?type=history", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((doc) => {
+        if (cancelled) return;
+        setHistory(doc && doc.games ? doc.games : {});
+        setStatus("ready");
+      })
+      .catch(() => { if (!cancelled) setStatus("error"); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const changes = useMemo(() => {
+    if (!history) return [];
+    const predictions = playbookPredictions(week);
+    const hasAts = (leagues || []).some((l) => l.format === "ats");
+    const out = [];
+
+    getGamesForWeek(week).forEach((g) => {
+      const key = `${g.away}-${g.home}`;
+      const snaps = history[key];
+      if (!Array.isArray(snaps) || snaps.length < 2) return;
+      const first = snaps[0];
+      const last = snaps[snaps.length - 1];
+      if (first.spread == null || last.spread == null || !first.favorite || !last.favorite) return;
+
+      // Spreads are stored relative to each snapshot's own favorite, so
+      // they have to be normalised to a common side before they can be
+      // compared - otherwise a game flipping favorites reads as a huge
+      // move in the wrong direction.
+      const firstHomeMargin = first.favorite === g.home ? -first.spread : first.spread;
+      const lastHomeMargin = last.favorite === g.home ? -last.spread : last.spread;
+      const moved = Math.round((lastHomeMargin - firstHomeMargin) * 10) / 10;
+      if (Math.abs(moved) < 0.5) return;
+
+      let affects = null;
+      if (hasAts) {
+        const prediction = predictions[key];
+        if (prediction) {
+          const before = computeBlitzEdge({
+            format: "ats",
+            game: { home: g.home, away: g.away, spread: first.spread, favorite: first.favorite },
+            prediction,
+          });
+          const after = computeBlitzEdge({
+            format: "ats",
+            game: { home: g.home, away: g.away, spread: last.spread, favorite: last.favorite },
+            prediction,
+          });
+          const wasOn = !!(before && before.teamId);
+          const isOn = !!(after && after.teamId);
+          if (!wasOn && isOn) affects = { text: `now on your ATS sheet — ${after.teamLabel}`, key: "on" };
+          else if (wasOn && !isOn) affects = { text: `dropped off your ATS sheet`, key: "off" };
+          else if (wasOn && isOn && before.teamId !== after.teamId) affects = { text: `your ATS side flipped to ${after.teamLabel}`, key: "flip" };
+        }
+      }
+
+      out.push({
+        key,
+        away: g.away,
+        home: g.home,
+        favorite: last.favorite,
+        fromText: `${first.favorite} ${formatModelLine(first.spread)}`,
+        toText: `${last.favorite} ${formatModelLine(last.spread)}`,
+        moved: Math.abs(moved),
+        asOf: last.asOf || null,
+        affects,
+      });
+    });
+
+    // Biggest movers first, and anything that actually changed a sheet
+    // ahead of anything that only moved a number.
+    return out.sort((a, b) => (b.affects ? 1 : 0) - (a.affects ? 1 : 0) || b.moved - a.moved).slice(0, 12);
+  }, [history, week, leagues]);
+
+  if (status === "loading") return <p className="pb-note">Checking for line movement…</p>;
+  if (status === "error") return <p className="pb-note">Couldn't load line history right now.</p>;
+  if (!changes.length) {
+    return (
+      <p className="pb-note">
+        No line has moved more than half a point since this week's numbers were posted. When one does — and
+        especially when it changes a pick on one of your sheets — it shows up here.
+      </p>
+    );
   }
 
   return (
-    <div className="hot-picks-view">
-      <div className="hot-picks-header">
-        <h2 className="hot-picks-title">This Week's Hot Picks</h2>
-        <p className="hot-picks-sub">
-          Top model picks, plus the sharpest angles on spread, moneyline, and total — powered by the Blitz Odds algorithm.
+    <div>
+      {changes.map((c) => (
+        <div key={c.key} className="pb-chg">
+          <span className={"pb-chg-icon " + (c.affects ? "pb-ci-new" : "pb-ci-line")}>{c.affects ? "🎯" : "📉"}</span>
+          <div className="pb-chg-body">
+            <div className="pb-chg-title">
+              <span>{c.away} @ {c.home}</span>
+              {c.asOf && <span className="pb-chg-when">{new Date(c.asOf).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
+            </div>
+            <div className="pb-chg-text">
+              <b>{c.fromText}</b><span className="pb-arrow">→</span><b>{c.toText}</b> — a {c.moved.toFixed(1)}-point move
+              since the line was posted.
+            </div>
+            {c.affects && <div className="pb-chg-affects">This game <b>{c.affects.text}</b></div>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Signed out, or signed in with no leagues. A sheet needs a pool to be a
+ *  sheet, so rather than inventing a format the reader never chose, this
+ *  says what the tab is for and shows the model's plain straight-up read on
+ *  the week underneath - which is the one thing that's true regardless of
+ *  format. */
+function PlaybookNoLeagues({ week, auth, onOpenLeagues, onSelectGame }) {
+  const rows = useMemo(() => {
+    const predictions = playbookPredictions(week);
+    return getGamesForWeek(week)
+      .map((g) => {
+        const prediction = predictions[`${g.away}-${g.home}`];
+        if (!prediction) return null;
+        return {
+          key: `${g.away}-${g.home}`,
+          away: g.away,
+          home: g.home,
+          team: prediction.predictedWinner,
+          pct: Math.round(prediction.confidence * 100),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.pct - a.pct);
+  }, [week]);
+
+  return (
+    <>
+      <div className="pb-empty">
+        <h3>Your Playbook needs a pool</h3>
+        <p>
+          Playbook builds a finished pick sheet for every league you're in — a full confidence ladder, ranked
+          spread plays, or a survivor spend planned around the rest of the season. Join a league and it starts
+          building.
         </p>
+        <div className="pb-empty-actions">
+          <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={() => onOpenLeagues({ subTab: "create" })}>
+            Create a league
+          </button>
+          <button type="button" className="pb-btn pb-btn-ghost" onClick={() => onOpenLeagues({ subTab: "join" })}>
+            Join a league
+          </button>
+        </div>
       </div>
 
-      <div className="hot-picks-subtabs">
-        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "top" ? " active" : "")} onClick={() => setActiveSubTab("top")}>
-          Top Picks
+      <div className="pb-section-h">
+        <h3>This week's board</h3>
+        <p>The model's straight-up read on all {rows.length} games. Change format on the Games tab.</p>
+      </div>
+      <div className="pb-sheet">
+        <div>
+          {rows.map((r, i) => (
+            <div key={r.key} className={"pb-row" + (i < 3 ? " is-top" : "")}>
+              <div className="pb-pts" style={{ width: 22, fontSize: "0.75rem", color: "var(--text-dim)" }}>{i + 1}</div>
+              <div className="pb-rowmain">
+                <div className="pb-pick">
+                  <TeamLogo teamId={r.team} size={20} />
+                  <span>{r.team}</span>
+                </div>
+                <div className="pb-sub">{r.team === r.home ? `vs ${r.away}` : `at ${r.home}`}</div>
+              </div>
+              <div className="pb-pct">{r.pct}%</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/** Betting angles: the market reads, which belong to nobody's league. Kept
+ *  from the old Hot Picks tab, demoted below the sheets because this app's
+ *  audience is pool players first - a spread/moneyline/total angle is a
+ *  bonus, not the reason someone opens the tab. */
+function PlaybookBettingAngles({ week, sportsbookId, onSelectGame }) {
+  const hotPicks = useMemo(() => {
+    const context = getWeekContext(week);
+    const input = getGamesForWeek(week)
+      .map((g) => {
+        const home = context.getTeam(g.home);
+        const away = context.getTeam(g.away);
+        if (!home || !away) return null;
+        return {
+          awayId: away.id, awayName: away.name, homeId: home.id, homeName: home.name,
+          prediction: playbookPredictions(week)[`${g.away}-${g.home}`],
+          odds: getOdds(week, g.away, g.home, sportsbookId),
+        };
+      })
+      .filter((g) => g && g.prediction);
+    return input.length ? HotPicksEngine.computeHotPicks(input) : null;
+  }, [week, sportsbookId]);
+
+  if (!hotPicks) return null;
+  const groups = [
+    { label: "Spread", tag: "SPREAD", cls: "bet-tag-accent", picks: hotPicks.spreadPicks.slice(0, 1) },
+    { label: "Moneyline", tag: "MONEYLINE", cls: "bet-tag-win", picks: hotPicks.moneylinePicks.slice(0, 1) },
+    { label: "Total", tag: "TOTAL", cls: "bet-tag-warn", picks: hotPicks.totalPicks.slice(0, 1) },
+  ].filter((g) => g.picks.length);
+
+  if (!groups.length) return null;
+
+  return (
+    <>
+      <div className="pb-section-h">
+        <h3>Betting angles</h3>
+        <p>Not tied to a league — the sharpest number on the board this week.</p>
+      </div>
+      <div className="hot-picks-market-groups">
+        {groups.map((g) => (
+          <div key={g.label} className="hot-picks-market-group">
+            <div className="hot-picks-market-label">{g.label}</div>
+            <div className="hot-picks-bets">
+              {g.picks.map((p, i) => (
+                <BetCard
+                  key={i}
+                  tagLabel={g.tag}
+                  tagClass={g.cls}
+                  pick={p}
+                  week={week}
+                  onClick={() => onSelectGame && onSelectGame(week, p.game.awayId, p.game.homeId)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeagues }) {
+  const [activeSubTab, setActiveSubTab] = useState("week");
+  const summary = useHomeSummary(auth, week);
+  const leagues = (summary.data && summary.data.leagues) || [];
+  const [sheets, reloadSheets] = usePlaybookSheets(auth, week, leagues);
+
+  const periodLabel = getPeriodLabel(week);
+  const signedIn = auth.status === "in";
+  const hasLeagues = signedIn && leagues.length > 0;
+
+  const outstanding = leagues.reduce(
+    (n, l) => n + (l.week && l.week.total > 0 ? Math.max(0, l.week.total - l.week.picked) : 0),
+    0
+  );
+
+  return (
+    <div className="pb-view">
+      <div className="pb-eyebrow">{periodLabel} · {(SCHEDULE_DATA && SCHEDULE_DATA.season) || ""} Season</div>
+      <h2 className="pb-title">Your Playbook</h2>
+      <p className="pb-built">
+        {hasLeagues
+          ? <>A finished sheet for every league you're in, built from the same model the game cards run.</>
+          : <>Finished pick sheets, built from the same model the game cards run.</>}
+      </p>
+
+      {hasLeagues && (
+        <div className="pb-standing">
+          <div><span className="n">{leagues.length}</span><span className="l">{leagues.length === 1 ? "Sheet" : "Sheets"} ready</span></div>
+          <div className={outstanding ? "warnish" : ""}><span className="n">{outstanding}</span><span className="l">Picks to submit</span></div>
+          <div><span className="n">{periodLabel}</span><span className="l">Slate</span></div>
+        </div>
+      )}
+
+      <div className="hot-picks-subtabs" style={{ marginTop: 20 }}>
+        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "week" ? " active" : "")} onClick={() => setActiveSubTab("week")}>
+          This Week
         </button>
-        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "bets" ? " active" : "")} onClick={() => setActiveSubTab("bets")}>
-          Best Bets
+        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "changed" ? " active" : "")} onClick={() => setActiveSubTab("changed")}>
+          What Changed
         </button>
         <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "record" ? " active" : "")} onClick={() => setActiveSubTab("record")}>
           Track Record
         </button>
       </div>
 
-      {activeSubTab === "top" && (
-        <div className="hot-picks-section">
-          <div className="hot-picks-list">
-            {hotPicks.topConfidence.map((p, i) => (
-              <button key={i} type="button" className="hot-pick-row" onClick={() => goToGame(p.game)}>
-                <div className="hot-pick-rank">{i + 1}</div>
-                <div className="hot-pick-main">
-                  <div className="hot-pick-teams">
-                    <TeamLogo teamId={p.game.awayId} size={20} />
-                    <span>{p.game.awayName} @ {p.game.homeName}</span>
-                    <TeamLogo teamId={p.game.homeId} size={20} />
-                  </div>
-                  <div className="hot-pick-summary">{p.summary}</div>
-                  <div className="hot-pick-advantage">{p.advantage}</div>
-                </div>
-                <div className="hot-pick-conf">{p.confidencePct}%</div>
-              </button>
-            ))}
-          </div>
-        </div>
+      {activeSubTab === "week" && (
+        <>
+          {summary.status === "loading" && signedIn && <p className="pb-note">Loading your leagues…</p>}
+          {summary.status === "error" && <p className="pb-note">Couldn't load your leagues: {summary.error}</p>}
+          {(!signedIn || (summary.status === "ready" && !hasLeagues)) && (
+            <PlaybookNoLeagues week={week} auth={auth} onOpenLeagues={onOpenLeagues} onSelectGame={onSelectGame} />
+          )}
+          {hasLeagues && leagues.map((l) => (
+            <PlaybookSheetCard
+              key={l.leagueId}
+              league={l}
+              sheetState={sheets[l.leagueId]}
+              week={week}
+              sportsbookId={sportsbookId}
+              auth={auth}
+              onOpenLeague={(leagueId) => onOpenLeagues({ leagueId, leagueSubTab: "picks" })}
+              onReload={reloadSheets}
+            />
+          ))}
+          <PlaybookBettingAngles week={week} sportsbookId={sportsbookId} onSelectGame={onSelectGame} />
+        </>
       )}
 
-      {activeSubTab === "bets" && (
-        <div className="hot-picks-section">
-          {noMarketPicks ? (
-            <p className="hot-picks-empty">No sportsbook lines posted yet this week — market picks will appear once lines go up.</p>
-          ) : (
-            <div className="hot-picks-market-groups">
-              {hotPicks.spreadPicks.length > 0 && (
-                <div className="hot-picks-market-group">
-                  <div className="hot-picks-market-label">Spread</div>
-                  <div className="hot-picks-bets">
-                    {hotPicks.spreadPicks.map((p, i) => (
-                      <BetCard key={i} tagLabel="SPREAD" tagClass="bet-tag-accent" pick={p} week={week} onClick={() => goToGame(p.game)} />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {hotPicks.moneylinePicks.length > 0 && (
-                <div className="hot-picks-market-group">
-                  <div className="hot-picks-market-label">Moneyline</div>
-                  <div className="hot-picks-bets">
-                    {hotPicks.moneylinePicks.map((p, i) => (
-                      <BetCard key={i} tagLabel="MONEYLINE" tagClass="bet-tag-win" pick={p} week={week} onClick={() => goToGame(p.game)} />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {hotPicks.totalPicks.length > 0 && (
-                <div className="hot-picks-market-group">
-                  <div className="hot-picks-market-label">Total</div>
-                  <div className="hot-picks-bets">
-                    {hotPicks.totalPicks.map((p, i) => (
-                      <BetCard key={i} tagLabel="TOTAL" tagClass="bet-tag-warn" pick={p} week={week} onClick={() => goToGame(p.game)} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      {activeSubTab === "changed" && <PlaybookChanges week={week} sportsbookId={sportsbookId} leagues={leagues} />}
 
       {activeSubTab === "record" && <TrackRecordPanel />}
     </div>
@@ -17512,6 +18486,10 @@ function clampToRegularSeasonWeek(week) {
 // worth less than a present one - you have to still be alive to use it,
 // and ratings drift over a season. A team already at its season peak this
 // week keeps its full probability and rises to the top.
+/* Whether the season-long path planner decides the week's survivor pick,
+ * or the older one-step-lookahead score does. Flip to false to restore the
+ * previous behaviour everywhere at once - nothing else needs touching. */
+const SURVIVOR_PATH_DRIVES_PICK = true;
 const SURVIVOR_FUTURE_PENALTY = 0.5;
 
 const survivorWeekProbCache = new Map();
@@ -17580,11 +18558,207 @@ function computeSurvivorGuidance(week, usedTeams) {
     })
     .sort((a, b) => b.score - a.score);
 
+  // Hand the week's answer to the path planner (see computeSurvivorPath).
+  //
+  // WHY THIS OVERRIDE EXISTS. The score above is a one-step lookahead: it
+  // charges a team for its own best remaining week, but it can't see that
+  // some *other* team may cover that week perfectly well. The planner
+  // solves the whole remaining season as an assignment problem and so
+  // doesn't make that mistake - on the 2026 schedule the two disagree on
+  // the week's pick roughly two times in three.
+  //
+  // The override is here, in the one function every surface already calls,
+  // rather than only in the Playbook tab. A survivor recommendation shows
+  // up in three places (the Games tab's Blitz Edge row, a league's pick
+  // card, and the Playbook sheet) and they must not disagree with each
+  // other - a reader seeing two different "best" teams on two screens has
+  // no way to tell which one the model actually meant.
+  //
+  // The chosen team is moved to rank 1 rather than just relabelled, so that
+  // computeBlitzEdge's "Best value" and its "Ranked #N of this week's
+  // available teams" note stay consistent with one another.
+  let ordered = rows;
+  if (SURVIVOR_PATH_DRIVES_PICK && rows.length) {
+    const path = computeSurvivorPath(week, used);
+    const head = path.weeks.length && path.weeks[0].week === week ? path.weeks[0].team : null;
+    if (head && rows.some((r) => r.team === head)) {
+      ordered = [rows.find((r) => r.team === head)].concat(rows.filter((r) => r.team !== head));
+    }
+  }
+
   const byTeam = {};
-  rows.forEach((row, i) => { byTeam[row.team] = { ...row, rank: i + 1 }; });
-  const guidance = { rows, byTeam, best: rows.length ? byTeam[rows[0].team] : null };
+  ordered.forEach((row, i) => { byTeam[row.team] = { ...row, rank: i + 1 }; });
+  const guidance = { rows: ordered, byTeam, best: ordered.length ? byTeam[ordered[0].team] : null };
   survivorGuidanceCache.set(cacheKey, guidance);
   return guidance;
+}
+
+
+// ---- Survivor path planner ------------------------------------------------
+// computeSurvivorGuidance() above answers "what should I spend this week?"
+// by charging each team for the best week it still has left. That's the
+// right answer to that question, but it only ever looks one week ahead of
+// the decision, and it re-derives the same opportunity costs from scratch
+// every week without ever committing to a plan.
+//
+// This answers the bigger question: given that each team can be spent
+// exactly once, what does the whole rest of the season look like? That's an
+// assignment problem - weeks on one side, teams on the other, each cell
+// worth that team's win probability in that week - and the thing being
+// maximised is the probability of surviving every remaining week at once,
+// i.e. the product of the chosen cells.
+//
+// NOT SOLVED OPTIMALLY, ON PURPOSE. The exact answer is a maximum-weight
+// bipartite matching (Hungarian, O(n^3)); this is a greedy seed followed by
+// local improvement, which is a few dozen lines instead of a few hundred
+// and runs in the main thread without anyone noticing. Greedy alone is
+// meaningfully worse than optimal on this shape of data, so the improvement
+// passes are doing real work, not decoration - but a plan this produces is
+// "very good", not "provably best", and the wording in the UI is careful
+// not to claim otherwise.
+//
+// Working in log space rather than multiplying probabilities directly:
+// sixteen weeks of ~0.75 multiplies out to around 0.01, which is fine in a
+// float but makes the comparisons between two candidate plans a contest
+// between very small numbers. Adding logs keeps the arithmetic in a sane
+// range and turns "maximise the product" into "maximise the sum".
+const survivorPathCache = new Map();
+
+function computeSurvivorPath(startWeek, usedTeams) {
+  const used = usedTeams || [];
+  const cacheKey = startWeek + "|" + used.slice().sort().join(",");
+  if (survivorPathCache.has(cacheKey)) return survivorPathCache.get(cacheKey);
+
+  const usedSet = new Set(used);
+  const lastWeek = clampToRegularSeasonWeek(18);
+  const weeks = [];
+  for (let w = startWeek; w <= lastWeek; w++) weeks.push(w);
+
+  // prob[week][team]. A team missing from a week's map is on bye (or the
+  // schedule doesn't have that week yet) and simply can't be assigned there.
+  const probByWeek = {};
+  weeks.forEach((w) => { probByWeek[w] = survivorWeekProbabilities(w); });
+
+  const cells = [];
+  weeks.forEach((w) => {
+    const map = probByWeek[w];
+    Object.keys(map).forEach((team) => {
+      if (usedSet.has(team)) return;
+      cells.push({ week: w, team: team, prob: map[team].prob });
+    });
+  });
+  if (!cells.length) {
+    const empty = { weeks: [], survivalToEnd: null, note: "no-teams" };
+    survivorPathCache.set(cacheKey, empty);
+    return empty;
+  }
+
+  // Seed: take the highest-probability cell anywhere on the board, then the
+  // next one whose week and team are both still free, and so on. Better
+  // than filling weeks in chronological order, which spends the best teams
+  // early and leaves the late weeks with whatever is left.
+  cells.sort((a, b) => b.prob - a.prob);
+  const teamByWeek = {};
+  const weekByTeam = {};
+  cells.forEach((c) => {
+    if (teamByWeek[c.week] || weekByTeam[c.team]) return;
+    teamByWeek[c.week] = c.team;
+    weekByTeam[c.team] = c.week;
+  });
+
+  const probAt = (w, team) => {
+    const entry = probByWeek[w] && probByWeek[w][team];
+    return entry ? entry.prob : null;
+  };
+  // log(0) is -Infinity, which would poison a comparison; no real
+  // probability here is ever 0, but a missing cell must be unusable rather
+  // than merely bad.
+  const score = (pr) => (pr == null || pr <= 0 ? -Infinity : Math.log(pr));
+
+  const assignedWeeks = weeks.filter((w) => teamByWeek[w]);
+  const allTeams = Object.keys(
+    weeks.reduce((acc, w) => { Object.keys(probByWeek[w]).forEach((t) => { acc[t] = 1; }); return acc; }, {})
+  ).filter((t) => !usedSet.has(t));
+
+  // Local improvement, run to a fixed point (capped, so a pathological
+  // cycle can't hang the tab).
+  for (let pass = 0; pass < 6; pass++) {
+    let improved = false;
+
+    // 1-opt: swap a week's team for one no week is using. Freeing a team can
+    // only ever help a later pass, so any strict gain here is a real gain.
+    for (const w of assignedWeeks) {
+      const current = teamByWeek[w];
+      const currentScore = score(probAt(w, current));
+      for (const t of allTeams) {
+        if (weekByTeam[t]) continue;
+        const cand = score(probAt(w, t));
+        if (cand > currentScore + 1e-12) {
+          delete weekByTeam[current];
+          teamByWeek[w] = t;
+          weekByTeam[t] = w;
+          improved = true;
+          break;
+        }
+      }
+    }
+
+    // 2-opt: trade two weeks' teams with each other. This is the move that
+    // fixes greedy's characteristic mistake - a team grabbed early for a
+    // good-but-not-great week when it was the only real answer to a later
+    // one.
+    for (let i = 0; i < assignedWeeks.length; i++) {
+      for (let j = i + 1; j < assignedWeeks.length; j++) {
+        const w1 = assignedWeeks[i], w2 = assignedWeeks[j];
+        const t1 = teamByWeek[w1], t2 = teamByWeek[w2];
+        if (!t1 || !t2) continue;
+        const before = score(probAt(w1, t1)) + score(probAt(w2, t2));
+        const after = score(probAt(w1, t2)) + score(probAt(w2, t1));
+        if (after > before + 1e-12) {
+          teamByWeek[w1] = t2; teamByWeek[w2] = t1;
+          weekByTeam[t2] = w1; weekByTeam[t1] = w2;
+          improved = true;
+        }
+      }
+    }
+
+    if (!improved) break;
+  }
+
+  let cumulative = 1;
+  const rows = weeks
+    .filter((w) => teamByWeek[w])
+    .map((w) => {
+      const team = teamByWeek[w];
+      const entry = probByWeek[w][team];
+      cumulative *= entry.prob;
+      return {
+        week: w,
+        team: team,
+        opponent: entry.opponent,
+        isHome: entry.isHome,
+        prob: entry.prob,
+        // Probability of still being alive *after* this week, having
+        // followed the plan from startWeek. This is what makes the plan a
+        // forecast rather than a list.
+        survival: cumulative,
+      };
+    });
+
+  const result = {
+    weeks: rows,
+    survivalToEnd: rows.length ? rows[rows.length - 1].survival : null,
+    // E[weeks survived] = sum over k of P(survive at least k weeks), which
+    // is just the sum of the running survival numbers. Reads far better
+    // than the probability of running the whole table, which is a
+    // discouraging (and largely irrelevant) number in any real pool.
+    expectedWeeks: rows.reduce((sum, r) => sum + r.survival, 0),
+    // The last week the plan is still more likely than not to reach. The
+    // honest headline for a survivor pool: nobody survives on expectation.
+    evenOddsWeek: (rows.find((r) => r.survival < 0.5) || {}).week || null,
+  };
+  survivorPathCache.set(cacheKey, result);
+  return result;
 }
 
 // Emails invitations to join this league via league-invite.mts. Any
@@ -17857,6 +19031,12 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
   let value = null;
   let note = null;
   let muted = false;
+  // Machine-readable versions of whatever this format put in `value`, for
+  // callers that need to rank or compare rather than print - the Playbook
+  // tab sorts a whole slate by them. Added rather than parsed back out of
+  // the display strings, which would make the wording load-bearing.
+  let edgePoints = null;
+  let coverPct = null;
   // Only the ats coin-flip case earns the words "No edge" - a missing line
   // or a spent survivor team isn't the model declining to call it, it's
   // there being nothing to call yet.
@@ -17891,7 +19071,9 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
       if (gap < ATS_MIN_EDGE_POINTS) {
         muted = true;
         noEdgeLabel = true;
-        value = `${Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, game.home) * 100)}%`;
+        edgePoints = gap;
+        coverPct = Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, game.home) * 100);
+        value = `${coverPct}%`;
         note = `Model line ${modelLine} vs. market ${game.favorite} ${formatModelLine(game.spread)}. No edge either way.`;
       } else {
         // Side the model likes is whichever one its own line beats the
@@ -17901,7 +19083,9 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
         const pickSpread = pick === game.favorite ? game.spread : -game.spread;
         teamId = pick;
         teamLabel = `${pick} ${formatModelLine(pickSpread)}`;
-        value = `${Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, pick) * 100)}% to cover`;
+        edgePoints = gap;
+        coverPct = Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, pick) * 100);
+        value = `${coverPct}% to cover`;
         note = `Model line ${modelLine} — ${gap.toFixed(1)} pts of value on ${pick === game.favorite ? "the favorite" : "the underdog"}.`;
       }
     }
@@ -17934,7 +19118,7 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
   }
 
   if (!teamLabel && !value) return null;
-  return { teamId, teamLabel, value, note, muted, noEdgeLabel };
+  return { teamId, teamLabel, value, note, muted, noEdgeLabel, edgePoints, coverPct };
 }
 
 /** The league pick panel's one-line rendering of computeBlitzEdge(). */
@@ -21746,7 +22930,7 @@ function TabBar({ activeTab, onSelectTab }) {
   const tabs = [
     ...(HOME_TAB_ENABLED ? [{ id: "home", label: "Home", icon: "\u{1F3E0}" }] : []),
     { id: "games", label: "Games", icon: "\u{1F3C8}" },
-    { id: "picks", label: "Hot Picks", icon: "\u{1F525}" },
+    { id: "picks", label: PLAYBOOK_TAB_LABEL, icon: PLAYBOOK_TAB_ICON },
     { id: "news", label: "News", icon: "\u{1F4F0}" },
     { id: "archive", label: "Archive", icon: "\u{1F5C2}\u{FE0F}", href: "/historical/index.html" },
   ];
@@ -24583,7 +25767,14 @@ function App() {
       )}
 
       {activeTab === "picks" && (
-        <HotPicksView week={selectedWeek} sportsbookId={sportsbookId} onSelectGame={selectGame} />
+        <PlaybookView
+          week={selectedWeek}
+          sportsbookId={sportsbookId}
+          tz={resolvedTz}
+          auth={auth}
+          onSelectGame={selectGame}
+          onOpenLeagues={goToLeaguesTab}
+        />
       )}
 
       {activeTab === "news" && <NewsView />}

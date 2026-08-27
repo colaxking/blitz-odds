@@ -1441,6 +1441,11 @@
        showed up. */
     .pbp-panel-head { padding: 11px 14px; gap: 4px; }
     .pbp-panel-note { font-size: 0.72rem; line-height: 1.4; }
+    /* The four type buttons are a wrapping flex row, so each sized to its
+       own text and the two rows broke at different points - "Confidence /
+       Straight Up" over "Against the Spread / Survivor" with nothing lining
+       up. An explicit two-column grid makes all four the same width. */
+    .pbp-fmt-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pbp-fmt-tab { padding: 8px 12px; }
     .pbp-fmt-tab span { font-size: 0.64rem; }
     .pbp-gate { padding: 14px; gap: 12px; }

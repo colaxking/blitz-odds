@@ -1438,13 +1438,22 @@
     font-family: inherit; font-size: 0.76rem; font-weight: 800; cursor: pointer; margin-top: 8px;
   }
 
+  /* z-index 1000/1001 puts this above the fixed mobile .tab-bar (z-index 500),
+     which otherwise covers the bottom ~80px of the sheet - i.e. exactly the
+     Cancel/Submit Pick row. Matches the other overlays (BoxScoreModal, the
+     injury modal, the settings modal), which all sit at 1000. */
   .add-to-league-sheet-backdrop {
-    position: fixed; inset: 0; background: rgba(4,8,16,0.55); z-index: 200;
+    position: fixed; inset: 0; background: rgba(4,8,16,0.55); z-index: 1000;
   }
   .add-to-league-sheet {
     position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 480px;
     background: var(--card-bg); border: 1px solid var(--card-border); border-bottom: none;
-    border-radius: 18px 18px 0 0; padding: 16px 18px 20px; z-index: 201; max-height: 85vh;
+    border-radius: 18px 18px 0 0; z-index: 1001; max-height: 85vh;
+    /* dvh tracks the collapsing mobile URL bar; the vh line above is the
+       fallback for browsers without it. Bottom padding clears the iOS home
+       indicator so Submit Pick isn't flush against the gesture zone. */
+    max-height: 85dvh;
+    padding: 16px 18px calc(20px + env(safe-area-inset-bottom, 0px));
     display: flex; flex-direction: column; overflow: hidden;
   }
   .add-to-league-sheet h3 { margin: 0 0 4px; font-size: 1rem; }
@@ -1456,7 +1465,12 @@
     border: 2px solid var(--card-border); border-radius: 12px; cursor: pointer; background: none; font-family: inherit;
   }
   .add-to-league-team-opt.selected { border-color: var(--accent); background: rgba(var(--accent-rgb),0.1); }
-  .add-to-league-list { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  /* flex: 1 1 auto + min-height: 0 makes this the piece that gives way when
+     the league list is long, so the CTA row below always stays on screen. */
+  .add-to-league-list {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;
+  }
   .add-to-league-item {
     display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--card-border);
     border-radius: 12px; cursor: pointer;

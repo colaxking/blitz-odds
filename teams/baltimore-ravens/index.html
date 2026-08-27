@@ -22073,33 +22073,62 @@ const STATUS_RANK = { active: 0, questionable: 1, doubtful: 2, out: 3, ir: 4 };
 
 /* ---------------- Activity ---------------- */
 
-function AdminActivityPanel({ auth }) {
+function AdminActivityPanel({ auth, users }) {
   const [entries, setEntries] = useState(null);
   const [error, setError] = useState(null);
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    adminCall(auth, "/.netlify/functions/admin-log?limit=150")
+    setEntries(null);
+    setError(null);
+    adminCall(auth, "/.netlify/functions/admin-log?limit=150" + (userId ? "&userId=" + encodeURIComponent(userId) : ""))
       .then(body => { if (!cancelled) setEntries(body.entries || []); })
       .catch(e => { if (!cancelled) setError(e.message); });
     return () => { cancelled = true; };
-  }, [auth]);
+  }, [auth, userId]);
 
-  if (error) return <AdminStatus error={error} />;
-  if (!entries) return <AdminStatus busy />;
-  if (!entries.length) return <p className="admin-empty">Nothing logged yet.</p>;
+  const person = (users || []).find(u => u.id === userId) || null;
 
   return (
     <React.Fragment>
-      <ul className="admin-log">
-        {entries.map(e => (
-          <li key={e.id}>
-            <time>{fmtAdminDate(e.at, true)}</time>
-            <span><span className="admin-log-who">{e.actorName}</span> {e.summary}</span>
-          </li>
-        ))}
-      </ul>
-      <p className="admin-hint">Every admin action is recorded here. The log can't be edited or cleared.</p>
+      <label className="admin-field">
+        <span>Show</span>
+        <select value={userId} onChange={e => setUserId(e.target.value)}>
+          <option value="">Everything</option>
+          {(users || []).map(u => (
+            <option key={u.id} value={u.id}>{u.name} — {u.email}</option>
+          ))}
+        </select>
+      </label>
+
+      {error && <AdminStatus error={error} />}
+      {!entries && !error && <AdminStatus busy />}
+
+      {entries && !entries.length && (
+        <p className="admin-empty">
+          {person
+            ? "Nothing has been done to " + person.name + "'s account."
+            : "Nothing logged yet."}
+        </p>
+      )}
+
+      {entries && entries.length > 0 && (
+        <ul className="admin-log">
+          {entries.map(e => (
+            <li key={e.id}>
+              <time>{fmtAdminDate(e.at, true)}</time>
+              <span><span className="admin-log-who">{e.actorName}</span> {e.summary}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <p className="admin-hint">
+        {person
+          ? "Both directions: anything " + person.name + " did as an admin, and anything another admin did to their account. This log covers admin actions only — it isn't a record of their picks or sign-ins, so an empty list means nobody has touched the account."
+          : "Every admin action is recorded here. The log can't be edited or cleared."}
+      </p>
     </React.Fragment>
   );
 }
@@ -22244,7 +22273,7 @@ function AdminConsole({ auth, onClose }) {
               </a>
             </div>
           )}
-          {tab === "log" && <AdminActivityPanel auth={auth} />}
+          {tab === "log" && <AdminActivityPanel auth={auth} users={data && data.users} />}
         </div>
 
         {toast && <div className="admin-toast">{toast}</div>}

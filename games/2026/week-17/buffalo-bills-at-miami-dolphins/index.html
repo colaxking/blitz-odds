@@ -1580,7 +1580,8 @@
     mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
     pointer-events: none; user-select: none;
   }
-  .pbc-peek .pbc-card { filter: blur(4px); opacity: 0.5; }
+  /* Covers both things this container wraps: change cards and angle rows. */
+  .pbc-peek .pbc-card, .pbc-peek .pba-row { filter: blur(4px); opacity: 0.5; }
 
   .pbc-locked { position: relative; min-height: 132px; }
   .pbc-gate {
@@ -1633,6 +1634,67 @@
     .pbc-filt { flex: 1 1 0; min-width: 0; justify-content: center; padding: 8px 6px; gap: 6px; }
     .pbc-lbl-full { display: none; }
     .pbc-lbl-short { display: inline; }
+  }
+
+  /* ---- Betting Angles ---- */
+  .pba-row { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+  .pba-row-main {
+    display: grid; gap: 14px; align-items: center; padding: 13px 16px;
+    grid-template-columns: 34px minmax(180px,1.1fr) minmax(150px,1fr) minmax(190px,1fr) 92px;
+  }
+  .pba-rank { text-align: center; font-size: 0.78rem; font-weight: 800; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .pba-pick { min-width: 0; }
+  .pba-pickline { display: flex; align-items: center; gap: 7px; font-weight: 850; font-size: 0.92rem; }
+  .pba-when { font-size: 0.68rem; color: var(--text-dim); margin-top: 3px; }
+  .pba-when .net { color: var(--edge-b); font-weight: 700; }
+  .pba-mid { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .pba-k { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); font-weight: 800; }
+  .pba-cl { font-size: 0.8rem; font-weight: 750; }
+  .pba-tag { display: inline-block; border-radius: 999px; font-size: 0.6rem; font-weight: 800; padding: 1px 7px; border: 1px solid; white-space: nowrap; }
+  .pba-tag-lean { color: var(--text-dim); border-color: var(--card-border); background: var(--surface-2); }
+
+  /* The model's probability against the one the price implies. The gap
+     between the two bars is the entire claim of a moneyline angle, so it gets
+     drawn rather than described. */
+  .pba-vbar { position: relative; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin-top: 5px; }
+  .pba-vbar i { position: absolute; left: 0; top: 0; bottom: 0; display: block; }
+  .pba-vbar i.mod { background: var(--accent); opacity: 0.5; }
+  .pba-vbar i.imp { background: var(--lose); opacity: 0.55; }
+  .pba-vlab { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--text-dim); margin-top: 4px; font-weight: 700; }
+
+  .pba-big { text-align: right; }
+  .pba-big .n { font-size: 1.05rem; font-weight: 850; display: block; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .pba-big .l { font-size: 0.54rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; }
+
+  .pba-books-toggle {
+    width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid var(--card-border);
+    color: var(--accent); font-family: inherit; font-size: 0.73rem; font-weight: 800; padding: 8px 16px; cursor: pointer;
+  }
+  .pba-books-toggle:hover { text-decoration: underline; }
+  .pba-books { border-top: 1px solid var(--card-border); padding: 8px 16px 12px; }
+  .pba-book { display: flex; align-items: center; justify-content: space-between; font-size: 0.77rem; color: var(--text-dim); padding: 4px 0; }
+  .pba-book.is-best { color: var(--pill-good-text); font-weight: 750; }
+  .pba-book .v { font-weight: 750; color: var(--text); font-variant-numeric: tabular-nums; }
+  .pba-book.is-best .v { color: var(--pill-good-text); }
+  .pba-best-tag {
+    font-size: 0.58rem; font-weight: 900; letter-spacing: 0.04em; color: var(--pill-good-text);
+    background: rgba(var(--win-rgb),0.15); padding: 1px 6px; border-radius: 5px; margin-left: 6px;
+  }
+  .pba-books-note { font-size: 0.68rem; color: var(--lose); margin-top: 8px; }
+
+  .pba-disclaimer {
+    font-size: 0.74rem; color: var(--text-dim); background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 12px 16px; margin-top: 18px;
+  }
+
+  @media (max-width: 760px) {
+    .pba-row-main { grid-template-columns: 34px minmax(0,1fr) auto; row-gap: 8px; column-gap: 10px; padding: 12px 14px; }
+    .pba-rank { grid-column: 1; grid-row: 1; }
+    .pba-pick { grid-column: 2; grid-row: 1; }
+    .pba-big { grid-column: 3; grid-row: 1; }
+    .pba-mid { grid-column: 2 / -1; grid-row: 2; flex-direction: row; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+    .pba-mid.pba-value { flex-direction: column; align-items: stretch; }
+    .pba-row .pbp-why { grid-column: 2 / -1; grid-row: 3; }
   }
 
   /* ---- section heads / empty ---- */
@@ -15268,7 +15330,7 @@ function PlaybookChanges({ week, sportsbookId, auth }) {
   // blurred so the report visibly continues, then the count of what's held
   // back. The blurred ones are the real next moves rather than placeholders,
   // so the silhouette is honest.
-  const fullAccess = hasFullChangeReport(auth);
+  const fullAccess = hasPlaybookPro(auth);
   const signedIn = auth && auth.status === "in";
   const shown = fullAccess ? group.list : group.list.slice(0, PLAYBOOK_CHANGES_FREE_CARDS);
   const peek = fullAccess ? [] : group.list.slice(PLAYBOOK_CHANGES_FREE_CARDS, PLAYBOOK_CHANGES_FREE_CARDS + PLAYBOOK_CHANGES_PEEK_CARDS);
@@ -15403,14 +15465,14 @@ const PLAYBOOK_PEEK_ROWS = 3;
  *  So: only the current week's pick is revealed - that's the actionable part,
  *  the equivalent of the other formats' top rows - and the rest of the route
  *  is blurred. */
-/** What Changed is a Pro feature in waiting, so its gate works differently
- *  from the preview's. On This Week, signing in is what unlocks the sheet.
- *  Here signing in changes nothing: everyone sees the summary counts and the
+/** What Changed and Betting Angles are Pro features in waiting, so their
+ *  gate works differently from the preview's. On This Week, signing in is
+ *  what unlocks the sheet. On those two, signing in changes nothing: everyone sees the summary counts and the
  *  first couple of moves, and the rest is blurred, because the thing being
  *  withheld is destined to sit behind a subscription rather than behind an
  *  account.
  *
- *  hasFullChangeReport() is the whole switch. Today it is false for
+ *  hasPlaybookPro() is the whole switch, shared by both. Today it is false for
  *  everybody; when a paid tier exists it becomes an entitlements check (see
  *  lib/entitlements.mts) and nothing else in this file has to change. */
 const PLAYBOOK_CHANGES_FREE_CARDS = 2;
@@ -15418,7 +15480,7 @@ const PLAYBOOK_CHANGES_FREE_CARDS = 2;
 // height of a sheet row, so three of them put ~700px of blur between the last
 // readable card and the call to action on a phone.
 const PLAYBOOK_CHANGES_PEEK_CARDS = 2;
-function hasFullChangeReport(auth) {
+function hasPlaybookPro(auth) {
   // eslint-disable-next-line no-unused-vars
   return false;
 }
@@ -15878,6 +15940,329 @@ function PlaybookBettingAngles({ week, sportsbookId, onSelectGame }) {
   );
 }
 
+/** The four sub-tabs across the top of the Playbook. Betting Angles is its
+ *  own pill rather than a section buried under This Week's sheets: it answers
+ *  a different question (where the market's number differs from the model's)
+ *  and it was competing for attention with the thing most readers came for. */
+const PLAYBOOK_ANGLE_MARKETS = [
+  { id: "spread", label: "Spread",
+    note: "Where the model's own line sits furthest from the market's number." },
+  { id: "moneyline", label: "Moneyline",
+    note: "Where the model's win probability is higher than the price implies — that gap is the value." },
+  { id: "total", label: "Totals",
+    note: "Offense-against-defense grade leans. There is no scoring model here, so these are directions, not projected scores." },
+];
+/** Angles are graded per market rather than as one list, so the free
+ *  allowance is per market too. */
+const PLAYBOOK_ANGLES_FREE = 2;
+const PLAYBOOK_ANGLES_PEEK = 2;
+
+/** American odds to the probability the price implies (vig included - the
+ *  same deliberately plain conversion HotPicksEngine uses, not a vig-adjusted
+ *  "fair" number). */
+function anglesImpliedPct(ml) {
+  const p = HotPicksEngine.impliedProbabilityFromMoneyline(ml);
+  return p == null ? null : Math.round(p * 100);
+}
+
+/** Real posted lines only.
+ *
+ *  getAllBookLines() pads its result to one row per book in SPORTSBOOKS,
+ *  filling the gaps with the default line and flagging them isReal:false so
+ *  the per-game page can label them "(est.)". That's fine for a reference
+ *  table; it is not fine for line shopping, where the whole claim is "here is
+ *  the best price and who has it". Two thirds of games this season have only
+ *  two books actually posted, so an unfiltered list would show several
+ *  identical made-up rows and then declare one of them the winner. */
+function anglesRealBooks(week, away, home) {
+  const rows = getAllBookLines(week, away, home);
+  return (rows || []).filter((r) => r.isReal);
+}
+
+function AngleBooks({ week, away, home, market, pickTeamId }) {
+  const [open, setOpen] = useState(false);
+  const books = useMemo(() => anglesRealBooks(week, away, home), [week, away, home]);
+  if (books.length < 2) return null;
+
+  const isHomePick = pickTeamId === home;
+  const valueOf = (b) => {
+    if (market === "moneyline") return isHomePick ? b.moneylineHome : b.moneylineAway;
+    if (market === "total") return b.overUnder;
+    return b.favorite === pickTeamId ? b.spread : -b.spread;
+  };
+  const textOf = (b) => {
+    const v = valueOf(b);
+    if (v == null) return "—";
+    if (market === "moneyline") return v > 0 ? `+${v}` : `${v}`;
+    if (market === "total") return `${v}`;
+    return previewLine(v);
+  };
+  // Best price for the side being backed: the biggest number, whether that's
+  // the longest moneyline or the most points.
+  const values = books.map(valueOf).filter((v) => v != null);
+  const best = values.length ? Math.max(...values) : null;
+
+  return (
+    <>
+      <button type="button" className="pba-books-toggle" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        {open ? "Hide" : "Compare"} {books.length} books
+      </button>
+      {open && (
+        <div className="pba-books">
+          {books.map((b) => {
+            const isBest = best != null && valueOf(b) === best;
+            return (
+              <div key={b.id} className={"pba-book" + (isBest ? " is-best" : "")}>
+                <span>{b.label}{isBest && <span className="pba-best-tag">BEST</span>}</span>
+                <span className="v">{textOf(b)}</span>
+              </div>
+            );
+          })}
+          <div className="pba-books-note">
+            Only books with a posted line for this game are listed. Always confirm the number at the book.
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function AngleRow({ pick, index, week, tz, market }) {
+  const g = pick.game;
+  const odds = pick.oddsRow;
+  const meta = pick.meta;
+
+  let mid = null;
+  let big = null;
+
+  if (market === "moneyline") {
+    const implied = anglesImpliedPct(pick.ml);
+    const gap = implied == null ? null : pick.confidencePct - implied;
+    mid = (
+      <div className="pba-mid pba-value">
+        <div className="pba-k">Model {pick.confidencePct}% · price implies {implied}%</div>
+        <div className="pba-vbar">
+          <i className="mod" style={{ width: `${pick.confidencePct}%` }} />
+          <i className="imp" style={{ width: `${implied}%` }} />
+        </div>
+        <div className="pba-vlab"><span>market {implied}%</span><span>model {pick.confidencePct}%</span></div>
+      </div>
+    );
+    big = <div className="pba-big"><span className="n">{gap > 0 ? "+" : ""}{gap}</span><span className="l">pts of value</span></div>;
+  } else if (market === "spread") {
+    const modelSide = -Math.abs(meta.modelMargin);
+    const edge = Math.abs(Math.abs(meta.modelMargin) - Math.abs(odds.spread));
+    mid = (
+      <div className="pba-mid">
+        <div><span className="pba-k">Model</span> <span className="pba-cl">{meta.modelFavorite} {previewLine(modelSide)}</span></div>
+        <div><span className="pba-k">Market</span> <span className="pba-cl" style={{ color: "var(--text-dim)" }}>{odds.favorite} {previewLine(odds.spread)}</span></div>
+      </div>
+    );
+    big = <div className="pba-big"><span className="n">{edge.toFixed(1)}</span><span className="l">pts edge</span></div>;
+  } else {
+    mid = (
+      <div className="pba-mid">
+        <div><span className="pba-k">Lean</span> <span className="pba-cl">{pick.pick}</span></div>
+        <div><span className="pba-tag pba-tag-lean">directional lean</span></div>
+      </div>
+    );
+    big = <div className="pba-big"><span className="n">{pick.pick.startsWith("Over") ? "OVER" : "UNDER"}</span><span className="l">grade lean</span></div>;
+  }
+
+  return (
+    <div className="pba-row">
+      <div className="pba-row-main">
+        <div className="pba-rank">{index + 1}</div>
+        <div className="pba-pick">
+          <div className="pba-pickline">
+            <TeamLogo teamId={pick.pickTeamId || g.awayId} size={20} />
+            <span>{market === "total" ? `${g.awayId} @ ${g.homeId}` : pick.shortPick}</span>
+          </div>
+          <div className="pba-when">
+            {meta.when.date}{meta.when.time ? ` · ${meta.when.time}` : ""}
+            {meta.network && <> · <span className="net">{meta.network}</span></>}
+          </div>
+        </div>
+        {mid}
+        <PreviewWhy row={{ injury: meta.injury }} />
+        {big}
+      </div>
+      <AngleBooks week={week} away={g.awayId} home={g.homeId} market={market} pickTeamId={pick.pickTeamId} />
+    </div>
+  );
+}
+
+function PlaybookAngles({ week, sportsbookId, tz, auth }) {
+  const [market, setMarket] = useState("moneyline");
+
+  const angles = useMemo(() => {
+    const context = getWeekContext(week);
+    const predictions = playbookPredictions(week);
+    const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+
+    const meta = {};
+    const input = getGamesForWeek(week).map((g) => {
+      const prediction = predictions[`${g.away}-${g.home}`];
+      const home = context.getTeam(g.home);
+      const away = context.getTeam(g.away);
+      if (!prediction || !home || !away) return null;
+      const odds = getOdds(week, g.away, g.home, sportsbookId);
+      const injury = [
+        ...prediction.homeAdjustments.map((a) => ({ ...a, team: g.home })),
+        ...prediction.awayAdjustments.map((a) => ({ ...a, team: g.away })),
+      ].filter((a) => a.player).sort((a, b) => Math.abs(b.ratingDelta) - Math.abs(a.ratingDelta))[0] || null;
+
+      meta[`${g.away}-${g.home}`] = {
+        when: formatGameDateTimeInZone(g.date, g.time, seasonYear, tz),
+        network: g.network || null,
+        modelMargin: prediction.predictedMargin,
+        modelFavorite: prediction.predictedMargin >= 0 ? g.home : g.away,
+        injury: injury ? {
+          player: injury.player, status: injury.status, team: injury.team,
+          side: injury.side, delta: Math.round(Math.abs(injury.ratingDelta) * 10) / 10,
+        } : null,
+      };
+
+      return {
+        awayId: g.away, awayName: away.name, homeId: g.home, homeName: home.name,
+        prediction, odds,
+      };
+    }).filter(Boolean);
+
+    if (!input.length) return null;
+    const hot = HotPicksEngine.computeHotPicks(input, 5);
+    const oddsOf = {};
+    input.forEach((g) => { oddsOf[`${g.awayId}-${g.homeId}`] = g.odds; });
+
+    // Decorate each engine pick with the row context this tab shows. The
+    // engine deliberately returns full team names for the email; the tab is
+    // dense, so it renders abbreviations.
+    const decorate = (p) => {
+      const key = `${p.game.awayId}-${p.game.homeId}`;
+      const odds = oddsOf[key];
+      const isHomePick = p.pickTeamId === p.game.homeId;
+      const ml = odds ? (isHomePick ? odds.moneylineHome : odds.moneylineAway) : null;
+      let shortPick = p.pickTeamId || "";
+      if (p.market === "spread" && odds) {
+        const side = odds.favorite === p.pickTeamId ? odds.spread : -odds.spread;
+        shortPick = `${p.pickTeamId} ${previewLine(side)}`;
+      } else if (p.market === "moneyline" && ml != null) {
+        shortPick = `${p.pickTeamId} ${ml > 0 ? `+${ml}` : ml}`;
+      }
+      return { ...p, key, oddsRow: odds, meta: meta[key], ml, shortPick };
+    };
+
+    return {
+      spread: hot.spreadPicks.map(decorate).filter((p) => p.oddsRow && p.meta),
+      moneyline: hot.moneylinePicks.map(decorate).filter((p) => p.oddsRow && p.meta),
+      total: hot.totalPicks.map(decorate).filter((p) => p.oddsRow && p.meta),
+    };
+  }, [week, sportsbookId, tz]);
+
+  if (!angles) return <p className="pb-note">No games with a model read for this week yet.</p>;
+
+  const lists = { spread: angles.spread, moneyline: angles.moneyline, total: angles.total };
+  const total = lists.spread.length + lists.moneyline.length + lists.total.length;
+  if (!total) {
+    return (
+      <p className="pb-note">
+        No lines are posted for this week yet, so there's nothing for the model to disagree with. Angles
+        appear once the books put numbers up.
+      </p>
+    );
+  }
+
+  const activeMarket = lists[market].length ? market : (PLAYBOOK_ANGLE_MARKETS.find((m) => lists[m.id].length) || {}).id;
+  const group = PLAYBOOK_ANGLE_MARKETS.find((m) => m.id === activeMarket) || PLAYBOOK_ANGLE_MARKETS[0];
+  const list = lists[activeMarket] || [];
+
+  const fullAccess = hasPlaybookPro(auth);
+  const signedIn = auth && auth.status === "in";
+  const shown = fullAccess ? list : list.slice(0, PLAYBOOK_ANGLES_FREE);
+  const peek = fullAccess ? [] : list.slice(PLAYBOOK_ANGLES_FREE, PLAYBOOK_ANGLES_FREE + PLAYBOOK_ANGLES_PEEK);
+  const withheld = fullAccess ? 0 : Math.max(0, list.length - PLAYBOOK_ANGLES_FREE);
+
+  const topMl = angles.moneyline[0];
+  const topGap = topMl && topMl.ml != null ? topMl.confidencePct - (anglesImpliedPct(topMl.ml) || 0) : null;
+
+  return (
+    <>
+      <div className="pbc-verdict-strip">
+        <div className="lead">
+          <b>Where the board disagrees with the model.</b>{" "}
+          These are market reads, not your pool's — the price on offer against the number the model would
+          set. Nothing here is a recommendation to bet.
+        </div>
+        {topGap != null && (
+          <div className="pbc-stat is-good"><span className="n">{topGap > 0 ? "+" : ""}{topGap}</span><span className="l">Best ML edge</span></div>
+        )}
+        <div className="pbc-stat"><span className="n">{lists.spread.length}</span><span className="l">Spread angles</span></div>
+        <div className="pbc-stat"><span className="n">{total}</span><span className="l">Angles total</span></div>
+      </div>
+
+      <div className="pbc-filters">
+        {PLAYBOOK_ANGLE_MARKETS.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            className={"pbc-filt" + (m.id === activeMarket ? " active" : "") + (lists[m.id].length === 0 ? " is-zero" : "")}
+            disabled={lists[m.id].length === 0}
+            onClick={() => setMarket(m.id)}
+            aria-pressed={m.id === activeMarket}
+          >
+            {m.label} <span className="c">{lists[m.id].length}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="pb-section-h"><h3>{group.label}</h3><p>{group.note}</p></div>
+
+      {shown.map((p, i) => <AngleRow key={p.key} pick={p} index={i} week={week} tz={tz} market={activeMarket} />)}
+
+      {(peek.length > 0 || withheld > 0) && (
+        <div className="pbc-locked">
+          {peek.length > 0 && (
+            <div className="pbc-peek">
+              {peek.map((p, i) => <AngleRow key={p.key} pick={p} index={i + PLAYBOOK_ANGLES_FREE} week={week} tz={tz} market={activeMarket} />)}
+            </div>
+          )}
+          {withheld > 0 && (
+            <div className="pbc-gate">
+              <div className="pbc-gate-main">
+                <div className="pbc-gate-title">
+                  {withheld} more {group.label.toLowerCase()} {withheld === 1 ? "angle" : "angles"} this week
+                </div>
+                <div className="pbc-gate-sub">
+                  Every angle across all three markets, with the best posted price at each book, is coming
+                  to Blitz Pro.
+                </div>
+              </div>
+              {!signedIn && (
+                <div className="pbc-gate-actions">
+                  <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }}
+                    onClick={() => auth && auth.openSignup && auth.openSignup()}>
+                    Create a free account
+                  </button>
+                  <button type="button" className="pb-btn pb-btn-ghost"
+                    onClick={() => auth && auth.openLogin && auth.openLogin()}>
+                    Sign in
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="pba-disclaimer">
+        Blitz Odds doesn't accept wagers and none of this is a recommendation to bet — it's where the model
+        and the market disagree. Confirm every number at the book, and only bet where it's legal and you
+        meet the minimum age.
+      </div>
+    </>
+  );
+}
+
 function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeagues }) {
   const [activeSubTab, setActiveSubTab] = useState("week");
   const summary = useHomeSummary(auth, week);
@@ -15918,6 +16303,9 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
         <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "changed" ? " active" : "")} onClick={() => setActiveSubTab("changed")}>
           What Changed
         </button>
+        <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "angles" ? " active" : "")} onClick={() => setActiveSubTab("angles")}>
+          Betting Angles
+        </button>
         <button type="button" className={"hot-picks-subtab-btn" + (activeSubTab === "record" ? " active" : "")} onClick={() => setActiveSubTab("record")}>
           Track Record
         </button>
@@ -15949,11 +16337,12 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
               onReload={reloadSheets}
             />
           ))}
-          <PlaybookBettingAngles week={week} sportsbookId={sportsbookId} onSelectGame={onSelectGame} />
         </>
       )}
 
       {activeSubTab === "changed" && <PlaybookChanges week={week} sportsbookId={sportsbookId} auth={auth} />}
+
+      {activeSubTab === "angles" && <PlaybookAngles week={week} sportsbookId={sportsbookId} tz={tz} auth={auth} />}
 
       {activeSubTab === "record" && <TrackRecordPanel />}
     </div>

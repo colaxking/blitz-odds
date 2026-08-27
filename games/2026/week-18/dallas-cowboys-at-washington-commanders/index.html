@@ -15768,7 +15768,7 @@ const TOUR_STEPS = [
   },
   {
     id: "tab-picks", tab: "games", target: "tab-picks",
-    title: "Hot Picks",
+    title: PLAYBOOK_TAB_LABEL,
     body: "Your ranked pick'em sheet for the week: the model's top 3 most confident picks, a favorite spread play, a value Money Line pick, and an Over/Under lean - all in one place.",
     onEnter: (ctx) => ctx.setActiveTab("picks"),
   },
@@ -25669,7 +25669,7 @@ function App() {
     // Home renders the full wordmark below the bar, so a "Blitz Odds" title
     // in the bar as well would say it twice.
     if (activeTab === "home") return { title: null, sub: null };
-    if (activeTab === "picks") return { title: "Hot Picks", sub: getPeriodLabel(selectedWeek) };
+    if (activeTab === "picks") return { title: PLAYBOOK_TAB_LABEL, sub: getPeriodLabel(selectedWeek) };
     if (activeTab === "news") return { title: "News", sub: null };
     if (activeTab === "league") return { title: "Leagues", sub: null };
     return { title: "Blitz Odds", sub: null };

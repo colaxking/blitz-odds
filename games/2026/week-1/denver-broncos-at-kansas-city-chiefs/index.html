@@ -1321,7 +1321,8 @@
     font-weight: 700; cursor: pointer; text-align: left;
   }
   .pbp-fmt-tab b { display: block; font-size: 0.82rem; font-weight: 800; }
-  .pbp-fmt-tab span { display: block; font-size: 0.68rem; font-weight: 600; opacity: 0.8; margin-top: 1px; }
+  .pbp-lbl-short { display: none; }
+  .pbp-fmt-tab > span { display: block; font-size: 0.68rem; font-weight: 600; opacity: 0.8; margin-top: 1px; }
   .pbp-fmt-tab:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
   .pbp-fmt-tab.active { background: rgba(var(--accent-rgb),0.14); color: var(--accent); border-color: var(--accent); }
 
@@ -1441,13 +1442,19 @@
        showed up. */
     .pbp-panel-head { padding: 11px 14px; gap: 4px; }
     .pbp-panel-note { font-size: 0.72rem; line-height: 1.4; }
-    /* The four type buttons are a wrapping flex row, so each sized to its
-       own text and the two rows broke at different points - "Confidence /
-       Straight Up" over "Against the Spread / Survivor" with nothing lining
-       up. An explicit two-column grid makes all four the same width. */
-    .pbp-fmt-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .pbp-fmt-tab { padding: 8px 12px; }
-    .pbp-fmt-tab span { font-size: 0.64rem; }
+    /* The four type buttons wrap into 2x2 on a phone, but as flex items each
+       sized to its own text, so "Against the Spread" was wider than
+       "Confidence" and the second column started at a different x on each
+       row. An explicit two-column grid makes all four the same width, and
+       grid-auto-rows keeps them the same height too - the survivor
+       description wraps to two lines at 360px and without it that row sat
+       taller than the one above. */
+    .pbp-fmt-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; grid-auto-rows: 1fr; }
+    .pbp-fmt-tab { padding: 8px 10px; }
+    .pbp-fmt-tab b { font-size: 0.78rem; }
+    .pbp-fmt-tab > span { font-size: 0.63rem; }
+    .pbp-lbl-full { display: none; }
+    .pbp-lbl-short { display: inline; }
     .pbp-gate { padding: 14px; gap: 12px; }
     .pbp-node { width: 76px; }
   }
@@ -15328,7 +15335,9 @@ const PLAYBOOK_SURVIVOR_PREVIEW_WEEKS = 3;
 const PLAYBOOK_PREVIEW_FORMATS = [
   { id: "confidence", label: "Confidence", desc: "Rank picks by points" },
   { id: "straight_up", label: "Straight Up", desc: "Just pick the winner" },
-  { id: "ats", label: "Against the Spread", desc: "Pick a side of the line" },
+  // `short` is used below the mobile breakpoint, where the full label
+  // wraps to a second line at 360px and makes its row taller than the other.
+  { id: "ats", label: "Against the Spread", short: "Spread", desc: "Pick a side of the line" },
   { id: "survivor", label: "Survivor", desc: "One team a week, no repeats" },
 ];
 
@@ -15688,7 +15697,10 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
             onClick={() => setFormat(f.id)}
             aria-pressed={format === f.id}
           >
-            <b>{f.label}</b>
+            <b>
+              <span className="pbp-lbl-full">{f.label}</span>
+              <span className="pbp-lbl-short">{f.short || f.label}</span>
+            </b>
             <span>{f.desc}</span>
           </button>
         ))}

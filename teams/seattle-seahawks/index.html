@@ -1206,8 +1206,16 @@
     display: flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 999px; padding: 4px 12px 4px 4px; font-size: 0.78rem;
   }
+  /* minmax(min(400px, 100%), 1fr) rather than minmax(400px, 1fr): a bare
+     400px track floor is a hard minimum that auto-fit cannot go below, so on
+     any viewport narrower than ~416px (iPhone SE through iPhone 15/16, i.e.
+     most phones) the grid forced the document wider than the screen and the
+     whole page scrolled sideways - dragging the fixed bottom tab bar with it
+     and pushing the last tab off-screen. Wrapping the floor in min() lets the
+     track collapse to the container width on narrow screens while keeping the
+     400px two-up breakpoint everywhere it actually fits. */
   .schedule-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 16px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 16px;
     align-items: start;
   }
   .game-card {
@@ -1939,6 +1947,15 @@
   .leagues-signed-out p { color: var(--text-dim); font-size: 0.9rem; margin: 0 0 14px; }
   .leagues-empty { color: var(--text-dim); font-size: 0.85rem; margin: 0; }
   .leagues-error { color: var(--out); font-size: 0.82rem; margin: 8px 0 0; }
+  .game-permalink {
+    display: inline-block; margin-top: 2px; color: var(--accent); font-size: 0.8rem;
+    font-weight: 600; text-decoration: none;
+  }
+  .game-permalink:hover { text-decoration: underline; }
+  .leagues-inline-link {
+    background: none; border: none; padding: 0; font: inherit; color: inherit;
+    text-decoration: underline; cursor: pointer;
+  }
   .leagues-join-link-error { margin: 0 0 4px; padding: 10px 12px; background: rgba(220, 80, 80, 0.08); border: 1px solid var(--out); border-radius: 8px; }
   .leagues-auto-join-status { text-align: center; padding: 40px 20px; color: var(--text-dim); }
 
@@ -12634,6 +12651,17 @@ function AddToLeagueSheet({ game, away, home, week, auth, onClose }) {
   const [statuses, setStatuses] = useState({});
   const [done, setDone] = useState(false);
 
+  // The sheet closed on a backdrop click but not on Escape, unlike every
+  // other overlay in the app (BoxScoreModal, the injury modal, the settings
+  // modal). Same listener shape they use. Escape is ignored mid-submit so a
+  // stray keypress can't tear the sheet down while picks are still in flight
+  // and leave the user unsure which leagues actually took the pick.
+  useEffect(() => {
+    function onKeyDown(e) { if (e.key === "Escape" && !saving) onClose(); }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose, saving]);
+
   function toggle(leagueId) {
     setChecked(prev => ({ ...prev, [leagueId]: !prev[leagueId] }));
   }
@@ -12845,8 +12873,12 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           {internationalGame && <span className="international-tag" title={game.note || "International Game"}><GlobeIcon /> International</span>}
           {/* Weather is skipped once a game goes live - the live strip below
               takes priority over the forecast, and by kickoff the forecast
-              isn't actionable information anymore anyway. */}
-          {!isLive && <WeatherPill weather={weather} />}
+              isn't actionable information anymore anyway. Final games are
+              skipped for the same reason plus a worse one: the weather blob
+              holds the *current* forecast for the venue, not a record of
+              conditions at kickoff, so a game finished days ago was showing
+              today's temperature as though it were that game's weather. */}
+          {!isLive && !isFinal && <WeatherPill weather={weather} />}
         </span>
         <span className="game-meta-right">
           {!isLive && game.network && <span className="game-network">{game.network}</span>}
@@ -13054,11 +13086,13 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
               HeadToHeadHistory) - only embedded here when this card is NOT already on
               that page (hideFullMatchupLink is how the caller signals that), so neither
               one renders twice for the same matchup. */}
+          {/* No wrapping sec-label here: SportsbookCompareSection renders its
+              own "Compare Sportsbooks" section-title inside the card, so an
+              outer label printed the heading twice, stacked. Past Matchups
+              below is already handled the same way (component-owned header,
+              no outer label). */}
           {!hideFullMatchupLink && (
-            <div>
-              <div className="sec-label">Compare Sportsbooks</div>
-              <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} />
-            </div>
+            <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} />
           )}
 
           {(isLive || isFinal) && (
@@ -13070,6 +13104,33 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
 
           {!hideFullMatchupLink && (
             <HeadToHeadHistory awayAbbr={game.away} homeAbbr={game.home} />
+          )}
+
+          {/* Permalink to the standalone per-game page. This is deliberately
+              not the old "Full matchup & odds history" link (dropped in
+              1f50bf5 once Compare Sportsbooks and Past Matchups moved inline,
+              which was right - it no longer leads anywhere with extra
+              content). The problem it leaves behind is structural rather than
+              a missing feature: build-static-pages.mjs generates ~320 game
+              pages and sitemap.xml lists every one, but with onSelectGame
+              unused inside GameCard nothing in the week view linked to any of
+              them, so they were orphaned - indexed, but reachable only from
+              Hot Picks' three rows. A real <a href> gives crawlers the
+              internal link and gives people a shareable URL for one matchup;
+              onSelectGame keeps the in-app navigation a pushState instead of
+              a full reload. */}
+          {!hideFullMatchupLink && onSelectGame && (
+            <a
+              className="game-permalink"
+              href={buildGamePath(week, game.away, game.home)}
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                e.preventDefault();
+                onSelectGame(week, game.away, game.home);
+              }}
+            >
+              Open this matchup's own page →
+            </a>
           )}
         </div>
       )}
@@ -16362,6 +16423,25 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
       {joinLinkError && (
         <p className="leagues-error leagues-join-link-error">
           That invite link didn't work: {joinLinkError}. Try searching for the league by name below instead.
+        </p>
+      )}
+
+      {/* An invite-code link (/join/{code}) that fails used to set
+          autoJoinCodeError and nothing else visible would happen: the error is
+          threaded into JoinLeaguePanel, but that panel only renders on the
+          Search/Join subtab, and a failed auto-join drops the user on the
+          default "My Leagues" view. So a mistyped or expired code silently
+          looked like a plain visit to the Leagues tab. Mirror the
+          joinLinkError banner above so the code path fails loudly too, and
+          point at the Join panel where the code is already prefilled for a
+          retry. */}
+      {autoJoinCodeError && (
+        <p className="leagues-error leagues-join-link-error">
+          That invite code{autoJoinCode ? ` (${autoJoinCode})` : ""} didn't work: {autoJoinCodeError}.{" "}
+          <button type="button" className="leagues-inline-link" onClick={() => selectSubTab("search")}>
+            Check the code and try again
+          </button>
+          , or search for the league by name.
         </p>
       )}
 

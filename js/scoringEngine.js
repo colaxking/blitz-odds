@@ -45,7 +45,15 @@
   function scorePick(format, scoringSettings, pick, result) {
     scoringSettings = scoringSettings || {};
     if (!result || !result.final) return { correct: null, points: 0 };
-    if (!pick || !pick.team) return { correct: false, points: 0 };
+    // A game the member never picked is ungradable, not a loss. scoreUserWeek
+    // iterates every game with a result (not the member's picks), so grading
+    // an absent pick as incorrect charged a member one loss for every game
+    // they skipped that week - which also made the behavior incoherent:
+    // results-process drops members with *zero* picks from weekPicksDoc
+    // entirely, so a fully-absent week cost nothing while a partially-picked
+    // one was punished. If "no pick counts as a loss" is ever wanted, it
+    // belongs in scoringSettings as a league option, not hardcoded here.
+    if (!pick || !pick.team) return { correct: null, points: 0 };
 
     if (format === "ats") return scoreAtsPick(scoringSettings, pick, result);
 
@@ -69,13 +77,20 @@
    *  knob straight_up/confidence use for game ties - "void" (default),
    *  "both_correct", or "incorrect". */
   function scoreAtsPick(scoringSettings, pick, result) {
-    if (typeof pick.spread !== "number") return { correct: false, points: 0 };
+    // Both of these are "we can't grade this", not "the member was wrong":
+    // a pick stored without a spread snapshot (e.g. written before
+    // picks-submit started requiring one) and a pick whose team doesn't
+    // appear in the result row at all (a data mismatch on our side) were
+    // both being recorded as losses against the member. Void them instead,
+    // consistent with the missing-score case just below - a scoring bug
+    // should show up as an ungraded game, not as a fabricated loss.
+    if (typeof pick.spread !== "number") return { correct: null, points: 0 };
     if (typeof result.homeScore !== "number" || typeof result.awayScore !== "number") {
       return { correct: null, points: 0 }; // final winner known, but no score margin to grade against yet
     }
     var pickIsHome = pick.team === result.home;
     var pickIsAway = pick.team === result.away;
-    if (!pickIsHome && !pickIsAway) return { correct: false, points: 0 };
+    if (!pickIsHome && !pickIsAway) return { correct: null, points: 0 };
 
     var margin = pickIsHome
       ? (result.homeScore - result.awayScore)

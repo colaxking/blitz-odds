@@ -19,11 +19,12 @@
  *    Chart / News) is opened, via `.team-tab-btn`
  *  - "roster_side" whenever the Offense/Defense/Special Teams side toggle
  *    inside the depth chart is clicked, via `.roster-side-tab-btn`
- *  - "boxscore_click" whenever the box score modal is opened, from either
- *    the "View Full Box Score" button inside a card's Full Details panel
- *    (`.view-boxscore-link`) or a tappable score (`.score-link-btn`, still
- *    used on the picks/results and team schedule views), with `source`
- *    distinguishing the two
+ *  - "boxscore_click" whenever box score content is opened, from the "View
+ *    Full Box Score" button inside a card's Full Details panel
+ *    (`.view-boxscore-link`), a tappable score (`.score-link-btn`, still
+ *    used on the picks/results and team schedule views), or a Past Matchups
+ *    row expanding its inline archive box score (`.h2h-row-header`), with
+ *    `source` distinguishing the three
  *  - "player_view" whenever a player's name is clicked to open their detail
  *    modal, from either the depth chart (`.depth-player-name-btn`) or the
  *    full roster table (`.roster-player-name-btn`)
@@ -448,6 +449,32 @@
             week: boxScoreEl.getAttribute("data-week") || getCurrentWeekLabel(),
             source: boxScoreEl.getAttribute("data-boxscore-source") || "unknown",
           });
+          return;
+        }
+
+        // Past Matchups rows in Full Details expand an inline box score
+        // lifted from that game's archive page - a third way into box score
+        // content, and previously untracked, so whether anyone opens a past
+        // meeting at all was unknowable. Same event type as above with its
+        // own `source`, rather than a new type, so it lands in the existing
+        // dashboard tiles. Only the expand is counted, not the collapse:
+        // this listener runs in the capture phase before React re-renders,
+        // so aria-expanded still holds the PRE-click state - "false" means
+        // this click is about to open the row. `week` is the past game's
+        // season/round, not the current week being browsed.
+        var h2hEl = target.closest(".h2h-row-header");
+        if (h2hEl) {
+          if (h2hEl.getAttribute("aria-expanded") !== "true") {
+            sendEvent({
+              type: "boxscore_click",
+              visitorId: visitorId,
+              ts: Date.now(),
+              away: h2hEl.getAttribute("data-away") || undefined,
+              home: h2hEl.getAttribute("data-home") || undefined,
+              week: h2hEl.getAttribute("data-year") || undefined,
+              source: "past_matchup",
+            });
+          }
           return;
         }
 

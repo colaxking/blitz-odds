@@ -2478,9 +2478,19 @@
   .pickem-team-spread { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
   .pickem-team-prob { font-size: 0.66rem; font-weight: 700; color: var(--text-dim); }
   .pickem-team-prob.is-favored { color: var(--win); }
-  .pickem-prob-bar-wrap { display: flex; align-items: center; gap: 6px; font-size: 0.62rem; color: var(--text-dim); }
-  .pickem-prob-bar { flex: 1; height: 4px; border-radius: 3px; background: var(--lose); overflow: hidden; display: flex; }
-  .pickem-prob-bar > div { height: 100%; }
+  .pickem-edge-row {
+    background: var(--surface-2); border-left: 3px solid var(--blitz-orange); border-radius: 0 8px 8px 0;
+    padding: 8px 10px; display: flex; flex-direction: column; gap: 5px;
+  }
+  .pickem-edge-row.is-muted { border-left-color: var(--lose); }
+  .pickem-edge-main { display: flex; align-items: center; gap: 8px; }
+  .pickem-edge-icon { width: 17px; height: 17px; object-fit: contain; flex-shrink: 0; }
+  .pickem-edge-dash { color: var(--text-dim); font-weight: 700; width: 17px; text-align: center; flex-shrink: 0; }
+  .pickem-edge-team { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+  .pickem-edge-value { margin-left: auto; font-size: 0.78rem; font-weight: 800; color: var(--blitz-orange); white-space: nowrap; }
+  .pickem-edge-row.is-muted .pickem-edge-team,
+  .pickem-edge-row.is-muted .pickem-edge-value { color: var(--text-dim); }
+  .pickem-edge-note { font-size: 0.68rem; color: var(--text-dim); line-height: 1.45; }
   .pickem-suggested-chip {
     display: inline-flex; align-items: center; gap: 4px; font-size: 0.64rem; font-weight: 700;
     color: var(--accent); background: rgba(var(--accent-rgb),0.12); border: 1px solid rgba(var(--accent-rgb),0.35);
@@ -17148,6 +17158,95 @@ function clampToRegularSeasonWeek(week) {
   return Math.min(max, Math.max(min, week));
 }
 
+// ---- Survivor scarcity model ----------------------------------------------
+// A survivor pick isn't "who wins this week" - it's "which team is worth
+// spending, given you can only use each one once all season." Burning a
+// team in a 70% spot when they have an 85% spot in six weeks is how pools
+// are lost, so the model scores every available team as this week's win
+// probability minus a penalty for how much better their best remaining
+// week looks:
+//
+//   score = thisWeek - SURVIVOR_FUTURE_PENALTY * max(0, bestFuture - thisWeek)
+//
+// The penalty is a half-weight rather than full because a future spot is
+// worth less than a present one - you have to still be alive to use it,
+// and ratings drift over a season. A team already at its season peak this
+// week keeps its full probability and rises to the top.
+const SURVIVOR_FUTURE_PENALTY = 0.5;
+
+const survivorWeekProbCache = new Map();
+const survivorGuidanceCache = new Map();
+
+/** Every team playing in `week`, mapped to their win probability and opponent. */
+function survivorWeekProbabilities(week) {
+  if (survivorWeekProbCache.has(week)) return survivorWeekProbCache.get(week);
+  const context = getWeekContext(week);
+  const map = {};
+  getGamesForWeek(week).forEach(g => {
+    const home = context.getTeam(g.home);
+    const away = context.getTeam(g.away);
+    if (!home || !away) return;
+    const prediction = PredictionEngine.predictMatchup({
+      homeTeam: home,
+      awayTeam: away,
+      homeImpactPlayers: context.getPlayers(g.home),
+      awayImpactPlayers: context.getPlayers(g.away),
+      weather: getWeather(week, g.away, g.home),
+      homeIsDomeTeam: isDomeTeam(home.id),
+      awayIsDomeTeam: isDomeTeam(away.id),
+    });
+    map[g.home] = { prob: prediction.homeWinProbability, opponent: g.away, isHome: true };
+    map[g.away] = { prob: prediction.awayWinProbability, opponent: g.home, isHome: false };
+  });
+  survivorWeekProbCache.set(week, map);
+  return map;
+}
+
+/** Ranks this week's available teams by survivor value. Teams in
+ *  `usedTeams` are dropped entirely - they aren't picks any more. */
+function computeSurvivorGuidance(week, usedTeams) {
+  const used = usedTeams || [];
+  const cacheKey = week + "|" + used.slice().sort().join(",");
+  if (survivorGuidanceCache.has(cacheKey)) return survivorGuidanceCache.get(cacheKey);
+
+  const usedSet = new Set(used);
+  const thisWeek = survivorWeekProbabilities(week);
+  const futureWeeks = [];
+  const lastWeek = clampToRegularSeasonWeek(18);
+  for (let w = week + 1; w <= lastWeek; w++) futureWeeks.push([w, survivorWeekProbabilities(w)]);
+
+  const rows = Object.keys(thisWeek)
+    .filter(teamId => !usedSet.has(teamId))
+    .map(teamId => {
+      const entry = thisWeek[teamId];
+      let bestFuture = 0;
+      let bestFutureWeek = null;
+      futureWeeks.forEach(([w, map]) => {
+        const future = map[teamId];
+        if (future && future.prob > bestFuture) {
+          bestFuture = future.prob;
+          bestFutureWeek = w;
+        }
+      });
+      const opportunityCost = Math.max(0, bestFuture - entry.prob);
+      return {
+        team: teamId,
+        opponent: entry.opponent,
+        thisWeek: entry.prob,
+        bestFuture: bestFuture,
+        bestFutureWeek: bestFutureWeek,
+        score: entry.prob - SURVIVOR_FUTURE_PENALTY * opportunityCost,
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const byTeam = {};
+  rows.forEach((row, i) => { byTeam[row.team] = { ...row, rank: i + 1 }; });
+  const guidance = { rows, byTeam, best: rows.length ? byTeam[rows[0].team] : null };
+  survivorGuidanceCache.set(cacheKey, guidance);
+  return guidance;
+}
+
 // Emails invitations to join this league via league-invite.mts. Any
 // member can open this (not owner-only - see league-invite.mts's header
 // for why), from the "Invite by Email" toggle in LeagueHeader. Splits on
@@ -17380,7 +17479,119 @@ function SurvivorRuleNote() {
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick }) {
+/** Below this much disagreement with the market (in points), an ats
+ *  recommendation is noise dressed up as a signal - the model and the book
+ *  are saying the same thing, so the card says so rather than inventing a
+ *  side. */
+const ATS_MIN_EDGE_POINTS = 2;
+
+function ordinalSuffix(n) {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  const suffix = { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th";
+  return `${n}${suffix}`;
+}
+
+function formatModelLine(margin) {
+  return margin > 0 ? `+${margin.toFixed(1)}` : margin.toFixed(1);
+}
+
+/** The Blitz Edge recommendation, tailored to what the pool format actually
+ *  scores. Straight-up wants a winner, confidence wants a points ranking,
+ *  ats wants a projected line against the market's, and survivor wants a
+ *  season-long spend decision - one shared row, four different reads. */
+function BlitzEdgeRow({ format, game, prediction, maxConfidence, suggestedConfidence, survivor }) {
+  let team = null;
+  let value = null;
+  let note = null;
+  let muted = false;
+
+  if (format === "straight_up") {
+    if (!prediction) return null;
+    team = prediction.predictedWinner;
+    value = `${Math.round(prediction.confidence * 100)}% to win`;
+
+  } else if (format === "confidence") {
+    if (!prediction) return null;
+    team = prediction.predictedWinner;
+    const lopsidedRank = suggestedConfidence ? maxConfidence - suggestedConfidence + 1 : null;
+    value = suggestedConfidence ? `${suggestedConfidence} of ${maxConfidence} pts` : `${Math.round(prediction.confidence * 100)}% to win`;
+    note = `${Math.round(prediction.confidence * 100)}% to win` + (lopsidedRank ? ` — ${ordinalSuffix(lopsidedRank)} most lopsided game this week.` : ".");
+
+  } else if (format === "ats") {
+    if (!prediction) return null;
+    if (typeof game.spread !== "number" || !game.favorite) {
+      muted = true;
+      value = "Line not posted";
+      note = "No market line to compare the model against yet.";
+    } else {
+      const modelMargin = prediction.predictedMargin;
+      const modelFavorite = modelMargin >= 0 ? game.home : game.away;
+      const marketHomeMargin = game.favorite === game.home ? -game.spread : game.spread;
+      const gap = Math.abs(modelMargin - marketHomeMargin);
+      const modelLine = `${modelFavorite} ${formatModelLine(-Math.abs(modelMargin))}`;
+      if (gap < ATS_MIN_EDGE_POINTS) {
+        muted = true;
+        team = null;
+        value = `${Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, game.home) * 100)}%`;
+        note = `Model line ${modelLine} vs. market ${game.favorite} ${formatModelLine(game.spread)}. No edge either way.`;
+      } else {
+        // Side the model likes is whichever one its own line beats the
+        // market's on - not simply the model's projected winner, since a
+        // favorite can be the wrong ats side.
+        const pick = modelMargin > marketHomeMargin ? game.home : game.away;
+        const pickSpread = pick === game.favorite ? game.spread : -game.spread;
+        team = `${pick} ${formatModelLine(pickSpread)}`;
+        value = `${Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, pick) * 100)}% to cover`;
+        note = `Model line ${modelLine} — ${gap.toFixed(1)} pts of value on ${pick === game.favorite ? "the favorite" : "the underdog"}.`;
+      }
+    }
+
+  } else if (format === "survivor") {
+    if (!survivor) return null;
+    const { candidate, isWeekBest } = survivor;
+    if (!candidate) {
+      muted = true;
+      value = "Both teams used";
+      note = "You've already spent both of these teams this season.";
+    } else {
+      team = candidate.team;
+      const thisWeekPct = Math.round(candidate.thisWeek * 100);
+      const holdWorthIt = candidate.bestFutureWeek && candidate.bestFuture - candidate.thisWeek > 0.03;
+      if (isWeekBest) {
+        value = "Best value";
+        note = holdWorthIt
+          ? `${thisWeekPct}% this week. Nothing else available is a better spend.`
+          : `${thisWeekPct}% this week, and no better spot left on their schedule.`;
+      } else {
+        muted = true;
+        value = `${thisWeekPct}%`;
+        note = holdWorthIt
+          ? `Ranked #${candidate.rank} this week — ${Math.round(candidate.bestFuture * 100)}% in Wk ${candidate.bestFutureWeek}, so hold them.`
+          : `Ranked #${candidate.rank} of this week's available teams.`;
+      }
+    }
+  }
+
+  if (!team && !value) return null;
+
+  return (
+    <div className={"pickem-edge-row" + (muted ? " is-muted" : "")}>
+      <div className="pickem-edge-main">
+        {muted
+          ? <span className="pickem-edge-dash" aria-hidden="true">—</span>
+          : <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="pickem-edge-icon" />}
+        {team
+          ? <span className="pickem-edge-team">{team}</span>
+          : <span className="pickem-edge-team">No edge</span>}
+        <span className="pickem-edge-value">{value}</span>
+      </div>
+      {note && <div className="pickem-edge-note">{note}</div>}
+    </div>
+  );
+}
+
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   useEffect(() => {
@@ -17404,20 +17615,11 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
     if (game.pick?.team) onPick(game.gameId, game.pick.team, suggestedConfidence);
   }
 
-  // Model win probabilities, shown for straight-up and confidence formats
-  // only - a raw win probability is the wrong signal for survivor (which
-  // needs season-long team scarcity, not just this week) and actively
-  // misleading for ats (a heavy favorite to win can still be a bad cover
-  // pick), so both are left out here rather than showing a number that
-  // would steer picks wrong. See predictionEngine.js for the model itself.
-  const showPrediction = !!prediction && (format === "straight_up" || format === "confidence");
-  const homePct = showPrediction ? Math.round(prediction.homeWinProbability * 100) : null;
-  const awayPct = showPrediction ? Math.round(prediction.awayWinProbability * 100) : null;
-
-  function probLabel(teamId) {
-    if (!showPrediction) return null;
-    return teamId === game.home ? homePct : awayPct;
-  }
+  // The model's read lives in one BlitzEdgeRow below the buttons rather
+  // than as a percentage on each team. A raw win probability means
+  // something different in each pool format - and in ats and survivor it
+  // means the wrong thing outright - so the row is built per format (see
+  // BlitzEdgeRow) instead of stamping the same number on every card.
 
   // ats: prefer the spread actually locked in on a saved pick (never moves
   // after submit) over the live line, which keeps drifting until kickoff.
@@ -17450,8 +17652,6 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
           const usedElsewhere = format === "survivor" && !selected && usedTeams?.includes(teamId);
           const disabled = (game.locked && !selected) || usedElsewhere;
           const spread = spreadLabel(teamId);
-          const prob = probLabel(teamId);
-          const isFavored = showPrediction && prediction.predictedWinner === teamId;
           return (
             <button
               key={teamId}
@@ -17465,22 +17665,19 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
               <TeamLogo teamId={teamId} size={40} />
               <div className="pickem-team-name">{teamId}</div>
               {spread && <div className="pickem-team-spread">{spread}</div>}
-              {prob !== null && <div className={"pickem-team-prob" + (isFavored ? " is-favored" : "")}>{prob}%</div>}
               {usedElsewhere && <div className="pickem-team-used-tag">Used</div>}
             </button>
           );
         })}
       </div>
-      {showPrediction && (
-        <div className="pickem-prob-bar-wrap">
-          <span>{game.away} {awayPct}%</span>
-          <div className="pickem-prob-bar">
-            <div style={{ width: awayPct + "%", background: "var(--lose)" }}></div>
-            <div style={{ width: homePct + "%", background: "var(--win)" }}></div>
-          </div>
-          <span>{game.home} {homePct}%</span>
-        </div>
-      )}
+      <BlitzEdgeRow
+        format={format}
+        game={game}
+        prediction={prediction}
+        maxConfidence={maxConfidence}
+        suggestedConfidence={suggestedConfidence}
+        survivor={survivor}
+      />
       {format === "confidence" && (
         <div className="pickem-confidence-row">
           <span className="pickem-confidence-label">
@@ -17632,6 +17829,32 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
     return map;
   }, [data, predictions]);
 
+  // Survivor only: rank every still-available team by season-long value,
+  // not just this week's win probability. Keyed off the used-team list as
+  // well as the week, since spending a team changes what's left to spend.
+  const usedKey = (data?.usedTeams || []).slice().sort().join(",");
+  const survivorGuidance = useMemo(() => {
+    if (!data || data.format !== "survivor") return null;
+    return computeSurvivorGuidance(week, data.usedTeams || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.format, week, usedKey]);
+
+  // Per game, the better of its two teams as a survivor play, plus whether
+  // that team is the whole week's best spend - so one card reads "Best
+  // value" and the rest explain where they sit relative to it.
+  function survivorFor(game) {
+    if (!survivorGuidance) return null;
+    const options = [game.away, game.home]
+      .map(teamId => survivorGuidance.byTeam[teamId])
+      .filter(Boolean)
+      .sort((a, b) => a.rank - b.rank);
+    const candidate = options[0] || null;
+    return {
+      candidate: candidate,
+      isWeekBest: !!(candidate && survivorGuidance.best && candidate.team === survivorGuidance.best.team),
+    };
+  }
+
   const isSurvivor = data?.format === "survivor";
 
   async function submitPick(gameId, team, confidence) {
@@ -17710,6 +17933,7 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
             tz={tz}
             prediction={predictions[game.gameId] || null}
             suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
+            survivor={isSurvivor ? survivorFor(game) : null}
             replacesPick={isSurvivor && !game.pick && data.games.some(g => g.pick)}
           />
         ))}

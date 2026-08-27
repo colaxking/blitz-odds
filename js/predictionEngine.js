@@ -202,6 +202,62 @@
     return 1 / (1 + Math.pow(10, -edge / scale));
   }
 
+  // ---- Margin / cover model -------------------------------------------------
+  // A win probability is the wrong currency for an against-the-spread pool:
+  // a team can be a heavy favorite to win and still a bad bet to cover. What
+  // an ats pick needs is a *margin* in points, which can be compared against
+  // the market's line.
+  //
+  // These three numbers come from an ordinary least-squares fit over the
+  // 2,772 regular-season games in data/historical-games-index.json (2015
+  // onward), scoring each with that season's team rankings from
+  // data/historical-team-rankings.json:
+  //
+  //   actual home margin ~= 0.409 * edge + 1.11   (residual SD 12.77 pts)
+  //
+  // The intercept is small residual home-field the rating bonus doesn't
+  // already capture. The SD is close to the ~13.5 the market itself prices
+  // NFL margins at, which is the sanity check that the fit isn't overfit.
+  //
+  // Caveat for whoever revisits this: the *margin* fit is validated, but the
+  // resulting cover percentages are NOT backtested against real closing
+  // lines - data/odds-history.json only covers the current season, so there
+  // are no historical spreads to score against. Treat the cover number as
+  // calibrated-by-construction, not proven.
+  var MARGIN_PER_EDGE = 0.409;
+  var MARGIN_INTERCEPT = 1.11;
+  var MARGIN_SD = 12.77;
+
+  /** Standard normal CDF (Abramowitz & Stegun 7.1.26 erf approximation). */
+  function normalCdf(z) {
+    var sign = z < 0 ? -1 : 1;
+    var x = Math.abs(z) / Math.SQRT2;
+    var t = 1 / (1 + 0.3275911 * x);
+    var y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return 0.5 * (1 + sign * y);
+  }
+
+  /** Rating-point edge -> expected home margin in points. */
+  function edgeToMargin(edge) {
+    return MARGIN_PER_EDGE * edge + MARGIN_INTERCEPT;
+  }
+
+  /**
+   * Probability that `teamId` covers its side of the posted line.
+   * @param {number} predictedHomeMargin - from predictMatchup().predictedMargin
+   * @param {string} homeTeamId
+   * @param {string} favorite - team the line favors
+   * @param {number} spreadForFavorite - stored relative to the favorite (negative), same as odds data
+   * @param {string} teamId - side being evaluated
+   */
+  function coverProbability(predictedHomeMargin, homeTeamId, favorite, spreadForFavorite, teamId) {
+    var marketHomeMargin = favorite === homeTeamId ? -spreadForFavorite : spreadForFavorite;
+    var isHome = teamId === homeTeamId;
+    var modelMargin = isHome ? predictedHomeMargin : -predictedHomeMargin;
+    var marketMargin = isHome ? marketHomeMargin : -marketHomeMargin;
+    return normalCdf((modelMargin - marketMargin) / MARGIN_SD);
+  }
+
   /**
    * Predict a single matchup.
    * @param {Object} params
@@ -246,6 +302,7 @@
       predictedWinner: winner,
       confidence: confidence,
       edge: edge,
+      predictedMargin: edgeToMargin(edge),
       homeRatings: homeAdj,
       awayRatings: awayAdj,
       homeAdjustments: homeAdj.adjustments,
@@ -259,6 +316,9 @@
     applyInjuryAdjustments: applyInjuryAdjustments,
     applyWeatherAdjustments: applyWeatherAdjustments,
     edgeToWinProbability: edgeToWinProbability,
+    edgeToMargin: edgeToMargin,
+    coverProbability: coverProbability,
+    normalCdf: normalCdf,
     predictMatchup: predictMatchup,
     constants: {
       NUM_TEAMS: NUM_TEAMS,
@@ -271,7 +331,10 @@
       WIND_MPH_THRESHOLD: WIND_MPH_THRESHOLD,
       WIND_MPH_SEVERE: WIND_MPH_SEVERE,
       PRECIP_CHANCE_THRESHOLD: PRECIP_CHANCE_THRESHOLD,
-      DOME_ACCLIMATION_PENALTY: DOME_ACCLIMATION_PENALTY
+      DOME_ACCLIMATION_PENALTY: DOME_ACCLIMATION_PENALTY,
+      MARGIN_PER_EDGE: MARGIN_PER_EDGE,
+      MARGIN_INTERCEPT: MARGIN_INTERCEPT,
+      MARGIN_SD: MARGIN_SD
     }
   };
 });

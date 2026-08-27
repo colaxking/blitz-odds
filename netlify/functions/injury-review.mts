@@ -1,5 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { notifStore } from "./lib/notif.mts";
+import { requireAdminOrSecret, audit } from "./lib/admin.mts";
 
 // The review queue behind the injury dispatcher: what ESPN saw move that
 // Dan hasn't reflected in data/impact-players.json yet.
@@ -8,13 +9,14 @@ import { notifStore } from "./lib/notif.mts";
 //   ?all=1 includes items already marked done.
 // POST /.netlify/functions/injury-review
 //   { id, resolved: true|false }                    -> { ok, item }
-// Both require: x-injury-review-secret
+// Auth: an admin Identity session, OR x-injury-review-secret (scripts).
 //
-// WHY A SECRET AND NOT IDENTITY AUTH. analytics.html is a plain static page
-// with no Identity widget on it, and there's no admin role in the user
-// model to check against - inventing one for this would be a bigger change
-// than the feature. A shared secret matches how every other write endpoint
-// in this repo is gated (site-data-update, results-process, notif-dispatch).
+// WHY BOTH A SECRET AND IDENTITY AUTH. This started secret-only: analytics.html
+// is a plain static page with no Identity widget, and at the time there was no
+// admin role in the user model to check against. There is one now (lib/admin.mts),
+// and the in-app Injuries tab uses it. The secret was not removed - the sync
+// script and the static page still need it, and so does every other write
+// endpoint in this repo (site-data-update, results-process, notif-dispatch).
 //
 // The GET is gated too. The contents aren't secret - it's public injury news
 // - but an open endpoint listing exactly which players the site's own data
@@ -26,7 +28,7 @@ import { notifStore } from "./lib/notif.mts";
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type, x-injury-review-secret",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-injury-review-secret",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -44,11 +46,15 @@ function jsonResponse(status: number, body: unknown) {
 export default async (req: Request, _context: Context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
 
-  const expected = process.env.INJURY_REVIEW_SECRET;
-  if (!expected) return jsonResponse(500, { ok: false, error: "INJURY_REVIEW_SECRET is not set on this site" });
-  const provided = req.headers.get("x-injury-review-secret");
-  if (!provided || provided !== expected) {
-    return jsonResponse(401, { ok: false, error: "Missing or invalid x-injury-review-secret header" });
+  // Two ways in, deliberately. The shared secret stays because
+  // injury-player-sync.mjs and analytics.html have no Identity session to
+  // present; the admin role is added alongside so the in-app Injuries tab
+  // works off a normal login. Whichever matched is carried forward as the
+  // actor, so an automated sync and a human approval are distinguishable in
+  // the audit log rather than both showing up as "the secret holder".
+  const actor = await requireAdminOrSecret(req, "x-injury-review-secret", process.env.INJURY_REVIEW_SECRET);
+  if (!actor) {
+    return jsonResponse(401, { ok: false, error: "Sign in as an admin, or send a valid x-injury-review-secret header" });
   }
 
   const store = notifStore();
@@ -105,6 +111,14 @@ export default async (req: Request, _context: Context) => {
       // recognisable as a repeat rather than looking brand new.
       item.resolved = body.resolved !== false;
       item.resolvedAt = item.resolved ? new Date().toISOString() : null;
+      await audit(
+        actor,
+        item.resolved ? "injury.resolve" : "injury.reopen",
+        item.resolved
+          ? `cleared ${item.name || item.espnId} (${item.team}) from the injury queue`
+          : `reopened ${item.name || item.espnId} (${item.team}) in the injury queue`,
+        { target: item.id, meta: { espnId: item.espnId, from: item.from, to: item.to } }
+      );
       await store.setJSON(key, item);
       return jsonResponse(200, { ok: true, item });
     }

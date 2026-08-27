@@ -1,6 +1,7 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { notifStore } from "./lib/notif.mts";
+import { requireAdminOrSecret, audit } from "./lib/admin.mts";
 
 // The write half of the injury review queue: turn an "untracked-candidate"
 // row in analytics.html into a real entry in the curated player list.
@@ -10,7 +11,7 @@ import { notifStore } from "./lib/notif.mts";
 //   { reviewId, position, status, impactScore, injuryType, since, note, pinned }
 //                                                  -> { ok, player, pending }
 //   { ack: [espnId, ...] }                         -> { ok, cleared, pending }
-// All require: x-injury-review-secret
+// Auth: an admin Identity session, OR x-injury-review-secret (scripts).
 //
 // WHY A STAGING KEY AND NOT JUST THE LIVE BLOB. data/impact-players.json in
 // git is the source of truth; the "players" blob is the live copy the site
@@ -33,7 +34,7 @@ const PENDING_KEY = "pending-adds";
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type, x-injury-review-secret",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-injury-review-secret",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -79,11 +80,15 @@ function cleanSince(raw: unknown): string | null {
 export default async (req: Request, _context: Context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
 
-  const expected = process.env.INJURY_REVIEW_SECRET;
-  if (!expected) return jsonResponse(500, { ok: false, error: "INJURY_REVIEW_SECRET is not set on this site" });
-  const provided = req.headers.get("x-injury-review-secret");
-  if (!provided || provided !== expected) {
-    return jsonResponse(401, { ok: false, error: "Missing or invalid x-injury-review-secret header" });
+  // Two ways in, deliberately. The shared secret stays because
+  // injury-player-sync.mjs and analytics.html have no Identity session to
+  // present; the admin role is added alongside so the in-app Injuries tab
+  // works off a normal login. Whichever matched is carried forward as the
+  // actor, so an automated sync and a human approval are distinguishable in
+  // the audit log rather than both showing up as "the secret holder".
+  const actor = await requireAdminOrSecret(req, "x-injury-review-secret", process.env.INJURY_REVIEW_SECRET);
+  if (!actor) {
+    return jsonResponse(401, { ok: false, error: "Sign in as an admin, or send a valid x-injury-review-secret header" });
   }
 
   const store = siteStore();
@@ -190,6 +195,13 @@ export default async (req: Request, _context: Context) => {
       // The add is the part that matters. A queue row that stays open is a
       // cosmetic problem the operator can clear by hand.
     }
+
+    await audit(
+      actor,
+      "injury.status",
+      `set ${(player as any).name || "a player"} (${team}) to ${(player as any).status}`,
+      { target: String((player as any).espnId || (player as any).name || ""), meta: { team, status: (player as any).status } }
+    );
 
     return jsonResponse(200, { ok: true, team, player, pendingCount: pending.length });
   } catch (err) {

@@ -3068,6 +3068,242 @@
   }
   .roster-side-tab-btn:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
   .roster-side-tab-btn.active { background: rgba(var(--accent-rgb),0.16); color: var(--accent); border-color: var(--accent); }
+
+  /* ==================== ADMIN CONSOLE ==================== */
+  .admin-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    background: var(--bg); overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-shell { max-width: 900px; margin: 0 auto; padding: 0 12px 80px; }
+
+  .admin-hd {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    border-bottom: 1px solid var(--card-border); padding: 12px 0 0;
+  }
+  .admin-hd-row { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; }
+  .admin-hd h2 { font-size: 1.02rem; margin: 0; font-weight: 800; letter-spacing: -.01em; }
+  .admin-badge {
+    font-size: .6rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--blitz-orange); border: 1px solid rgba(253,127,1,.45);
+    background: rgba(253,127,1,.1); padding: 3px 7px; border-radius: 5px;
+  }
+  .admin-close {
+    margin-left: auto; background: none; border: none; color: var(--text-dim);
+    font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 0 4px; font-family: inherit;
+  }
+  .admin-close:hover { color: var(--text); }
+
+  .admin-tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .admin-tabs::-webkit-scrollbar { display: none; }
+  .admin-tab {
+    flex: 0 0 auto; background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--text-dim); font-family: inherit; font-size: .8rem; font-weight: 700;
+    padding: 9px 12px; cursor: pointer; white-space: nowrap;
+  }
+  .admin-tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .admin-tab-dot {
+    display: inline-block; margin-left: 5px; min-width: 16px; height: 16px; line-height: 16px;
+    padding: 0 4px; border-radius: 8px; font-size: .6rem; font-weight: 800;
+    background: var(--out); color: #fff; vertical-align: 1px;
+  }
+  .admin-body { padding-top: 14px; }
+
+  .admin-search { margin-bottom: 10px; }
+  .admin-search input,
+  .admin-field input,
+  .admin-field select,
+  .admin-inline select,
+  .admin-inj-act select {
+    width: 100%; background: var(--surface-2); border: 1px solid var(--card-border);
+    color: var(--text); font-family: inherit; font-size: .85rem;
+    padding: 9px 10px; border-radius: 8px;
+  }
+  .admin-search input:focus, .admin-field input:focus,
+  .admin-field select:focus, .admin-inline select:focus { outline: none; border-color: var(--accent); }
+
+  .admin-field { display: block; margin-bottom: 10px; }
+  .admin-field > span {
+    display: block; font-size: .68rem; font-weight: 700; color: var(--text-dim);
+    margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .admin-filters { display: grid; gap: 8px; margin-bottom: 12px; }
+  @media (min-width: 620px) { .admin-filters { grid-template-columns: repeat(3, 1fr); } }
+
+  .admin-list { list-style: none; margin: 0 0 10px; padding: 0;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; }
+  .admin-list li + li { border-top: 1px solid var(--card-border); }
+  .admin-row {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    background: none; border: none; color: inherit; font-family: inherit;
+    padding: 11px 12px; cursor: pointer; text-align: left;
+  }
+  .admin-row:hover { background: var(--surface-2); }
+  .admin-av {
+    flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--surface-2); border: 1px solid var(--card-border);
+    display: grid; place-items: center; font-size: .74rem; font-weight: 800; color: var(--text-dim);
+  }
+  .admin-row-main { min-width: 0; flex: 1; }
+  .admin-row-title { font-size: .86rem; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .admin-row-sub { font-size: .72rem; color: var(--text-dim); display: block;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-row-meta { flex: 0 0 auto; font-size: .7rem; color: var(--text-dim); text-align: right; }
+  .admin-chev { flex: 0 0 auto; color: var(--text-dim); font-size: .95rem; }
+
+  .admin-pill {
+    font-size: .6rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+  }
+  .admin-pill-role { color: var(--blitz-orange); background: rgba(253,127,1,.14); border: 1px solid rgba(253,127,1,.4); }
+  .admin-pill-off { color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border); }
+
+  .admin-btn {
+    display: inline-block; background: var(--surface-2); border: 1px solid var(--card-border);
+    color: var(--text); font-family: inherit; font-size: .78rem; font-weight: 700;
+    padding: 8px 12px; border-radius: 8px; cursor: pointer; text-decoration: none; text-align: center;
+  }
+  .admin-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .admin-btn-sm { padding: 6px 9px; font-size: .72rem; }
+  .admin-btn-block { display: block; width: 100%; }
+  .admin-btn-warn { background: rgba(var(--warn-rgb),.12); border-color: rgba(var(--warn-rgb),.45); color: var(--warn); }
+  .admin-btn-warn:hover { border-color: var(--warn); color: var(--warn); }
+  .admin-btn-danger { background: rgba(var(--out-rgb),.12); border-color: rgba(var(--out-rgb),.5); color: var(--out); }
+  .admin-btn-danger:hover { border-color: var(--out); color: var(--out); }
+  .admin-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  .admin-sec { margin-bottom: 18px; }
+  .admin-sec h4 {
+    font-size: .68rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--text-dim); margin: 0 0 8px;
+  }
+  .admin-kv { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    font-size: .8rem; padding: 6px 0; }
+  .admin-kv + .admin-kv { border-top: 1px solid rgba(34,48,73,.6); }
+  .admin-toggle { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: .82rem; cursor: pointer; }
+  .admin-toggle input { width: 18px; height: 18px; accent-color: var(--accent); flex: 0 0 auto; }
+  .admin-inline { display: flex; gap: 6px; margin-top: 10px; align-items: stretch; }
+  .admin-inline select { flex: 1 1 auto; min-width: 0; }
+  .admin-hint { font-size: .72rem; color: var(--text-dim); line-height: 1.45; margin: 8px 0 0; }
+  .admin-empty { padding: 26px 14px; text-align: center; color: var(--text-dim); font-size: .82rem; }
+  .admin-note {
+    font-size: .74rem; color: var(--text-dim); line-height: 1.45; margin: 0 0 12px;
+    background: var(--surface-2); border-left: 2px solid var(--warn);
+    padding: 8px 10px; border-radius: 0 6px 6px 0;
+  }
+  .admin-zone { border: 1px solid rgba(var(--out-rgb),.35); background: rgba(var(--out-rgb),.06);
+    border-radius: 10px; padding: 12px; }
+  .admin-zone h4 { color: var(--out); }
+
+  .admin-status { font-size: .78rem; color: var(--text-dim); padding: 8px 0; }
+  .admin-status-bad { color: var(--out); font-weight: 700; }
+  .admin-status-ok { color: var(--win); font-weight: 700; }
+
+  /* ---- sheet ---- */
+  .admin-sheet-overlay {
+    position: fixed; inset: 0; z-index: 3100; background: rgba(2,6,14,.72);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .admin-sheet {
+    width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px 14px 0 0;
+  }
+  @media (min-width: 720px) {
+    .admin-sheet-overlay { align-items: center; }
+    .admin-sheet { border-radius: 14px; max-height: 84vh; }
+  }
+  .admin-sheet-hd {
+    position: sticky; top: 0; background: var(--card-bg); z-index: 2;
+    padding: 14px 14px 10px; border-bottom: 1px solid var(--card-border);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .admin-sheet-title { font-size: .95rem; font-weight: 800; }
+  .admin-sheet-close {
+    margin-left: auto; background: none; border: none; color: var(--text-dim);
+    font-size: 1.35rem; line-height: 1; cursor: pointer; padding: 0 4px; font-family: inherit;
+  }
+  .admin-sheet-bd { padding: 14px; }
+
+  /* ---- picks editor ---- */
+  .admin-picks { list-style: none; margin: 0; padding: 0;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px 10px 0 0; overflow: hidden; }
+  .admin-pick { padding: 11px 12px; }
+  .admin-pick + .admin-pick { border-top: 1px solid var(--card-border); }
+  .admin-pick-top { display: flex; align-items: baseline; gap: 8px; font-size: .82rem; }
+  .admin-pick-teams { font-weight: 700; }
+  .admin-pick-result { margin-left: auto; font-size: .72rem; color: var(--text-dim); }
+  .admin-pick-ctl { display: flex; align-items: stretch; gap: 6px; margin-top: 8px; }
+  .admin-seg {
+    flex: 1 1 0; min-width: 0; height: 36px; padding: 0 8px;
+    background: var(--surface-2); border: 1px solid var(--card-border);
+    color: var(--text-dim); font-family: inherit; font-size: .76rem; font-weight: 700;
+    border-radius: 7px; cursor: pointer;
+  }
+  .admin-seg[aria-pressed="true"] {
+    background: rgba(var(--accent-rgb),.14); border-color: rgba(var(--accent-rgb),.55); color: var(--accent);
+  }
+  .admin-pick.dirty .admin-seg[aria-pressed="true"] {
+    background: rgba(var(--warn-rgb),.14); border-color: rgba(var(--warn-rgb),.6); color: var(--warn);
+  }
+  /* Scoped past the shared .admin-field input rule, which sets width:100% and
+     would otherwise win on specificity and blow the row out. */
+  .admin-pick-ctl .admin-conf {
+    flex: 0 0 58px; width: 58px; height: 36px; padding: 0 6px;
+    background: var(--surface-2); border: 1px solid var(--card-border);
+    color: var(--text); font-family: inherit; font-size: .82rem; font-weight: 800;
+    text-align: center; border-radius: 7px;
+  }
+  .admin-conf-lbl {
+    flex: 0 0 auto; align-self: center; font-size: .62rem; font-weight: 800;
+    color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em;
+  }
+  .admin-pick-was { font-size: .68rem; color: var(--warn); margin-top: 5px; }
+  .admin-savebar {
+    display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-top: none;
+    border-radius: 0 0 10px 10px;
+  }
+  .admin-savebar-text { flex: 1; font-size: .72rem; color: var(--text-dim); }
+
+  /* ---- injuries ---- */
+  .admin-inj {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-left: 2px solid var(--out); border-radius: 8px; padding: 12px; margin-bottom: 8px;
+  }
+  .admin-inj.downgrade { border-left-color: var(--warn); }
+  .admin-inj-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .admin-inj-name { font-size: .88rem; font-weight: 800; }
+  .admin-inj-move { display: flex; align-items: center; gap: 8px; margin: 9px 0 4px; font-size: .78rem; }
+  .admin-inj-arrow { color: var(--text-dim); }
+  .admin-inj-src { font-size: .7rem; color: var(--text-dim); line-height: 1.45; }
+  .admin-inj-warn { font-size: .7rem; color: var(--warn); font-weight: 700; margin-top: 7px; }
+  .admin-inj-act { display: flex; gap: 6px; margin-top: 10px; align-items: stretch; }
+  .admin-inj-act select { flex: 1 1 auto; min-width: 0; }
+  .admin-st {
+    font-size: .64rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 5px; white-space: nowrap;
+  }
+  .admin-st.st-active { color: var(--win); background: rgba(var(--win-rgb),.12); border: 1px solid rgba(var(--win-rgb),.35); }
+  .admin-st.st-questionable { color: var(--star); background: rgba(245,197,24,.12); border: 1px solid rgba(245,197,24,.4); }
+  .admin-st.st-doubtful { color: var(--warn); background: rgba(var(--warn-rgb),.13); border: 1px solid rgba(var(--warn-rgb),.45); }
+  .admin-st.st-out, .admin-st.st-ir { color: var(--out); background: rgba(var(--out-rgb),.13); border: 1px solid rgba(var(--out-rgb),.4); }
+
+  /* ---- activity ---- */
+  .admin-log { list-style: none; margin: 0; padding: 0; font-size: .78rem;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; }
+  .admin-log li { padding: 10px 12px; display: flex; gap: 10px; }
+  .admin-log li + li { border-top: 1px solid var(--card-border); }
+  .admin-log time { flex: 0 0 auto; color: var(--text-dim); font-size: .7rem; width: 92px; }
+  .admin-log-who { color: var(--accent); font-weight: 700; }
+
+  .admin-toast {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+    background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text);
+    font-size: .8rem; font-weight: 600; padding: 10px 16px; border-radius: 999px;
+    z-index: 3200; max-width: 92vw; text-align: center;
+  }
+
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Houston Texans at Tennessee Titans","sport":"American Football","startDate":"2026-10-11T13:00:00-05:00","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","eventStatus":"https://schema.org/EventScheduled","homeTeam":{"@type":"SportsTeam","name":"Tennessee Titans"},"awayTeam":{"@type":"SportsTeam","name":"Houston Texans"},"url":"https://blitz-odds.com/games/2026/week-5/houston-texans-at-tennessee-titans/","location":{"@type":"Place","name":"Nissan Stadium"}}</script>
 </head>
@@ -20892,9 +21128,1021 @@ function TabBar({ activeTab, onSelectTab }) {
   );
 }
 
-function AccountButton({ auth, profile, onOpenLeagues, onOpenSettings, onOpenHowItWorks, onReplayTour }) {
+/* ==================== ADMIN CONSOLE ====================
+ * Role-gated site management. The role lives on the Identity user's
+ * app_metadata.roles (see netlify/functions/lib/admin.mts); every endpoint
+ * this component talks to re-checks it server-side, so hiding the menu item
+ * is a courtesy to non-admins rather than the actual protection.
+ */
+
+const ADMIN_ROLE = "admin";
+
+function useIsAdmin(auth) {
+  return useMemo(() => {
+    const roles = auth && auth.user && auth.user.app_metadata && auth.user.app_metadata.roles;
+    return Array.isArray(roles) && roles.indexOf(ADMIN_ROLE) !== -1;
+  }, [auth && auth.user]);
+}
+
+/** Every admin call goes through here so a 403 produces one consistent
+ *  message instead of each panel inventing its own. */
+async function adminCall(auth, path, options) {
+  const res = await auth.authenticatedFetch(path, options);
+  let body = null;
+  try { body = await res.json(); } catch (e) { /* non-JSON error page */ }
+  if (!res.ok || (body && body.ok === false)) {
+    throw new Error((body && body.error) || ("Request failed (" + res.status + ")"));
+  }
+  return body;
+}
+
+function AdminStatus({ busy, error, note }) {
+  if (error) return <div className="admin-status admin-status-bad">{error}</div>;
+  if (busy) return <div className="admin-status">Working…</div>;
+  if (note) return <div className="admin-status admin-status-ok">{note}</div>;
+  return null;
+}
+
+/* ---------------- Users ---------------- */
+
+function AdminUsersPanel({ auth, data, reload, onToast }) {
+  const [query, setQuery] = useState("");
+  const [openId, setOpenId] = useState(null);
+
+  const users = data.users || [];
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return users;
+    return users.filter(u =>
+      (u.name || "").toLowerCase().indexOf(q) !== -1 ||
+      (u.email || "").toLowerCase().indexOf(q) !== -1
+    );
+  }, [users, query]);
+
+  const open = users.find(u => u.id === openId) || null;
+
+  return (
+    <div>
+      <div className="admin-search">
+        <input
+          type="search"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Search name or email"
+          aria-label="Search people"
+        />
+      </div>
+
+      {!filtered.length && (
+        <p className="admin-empty">
+          {users.length ? "No one matches that. Try part of an email." : "No accounts yet."}
+        </p>
+      )}
+
+      <ul className="admin-list">
+        {filtered.map(u => (
+          <li key={u.id}>
+            <button type="button" className="admin-row" onClick={() => setOpenId(u.id)}>
+              <span className="admin-av">{(u.name || "?").charAt(0).toUpperCase()}</span>
+              <span className="admin-row-main">
+                <span className="admin-row-title">
+                  {u.name}
+                  {u.isAdmin && <span className="admin-pill admin-pill-role">Admin</span>}
+                  {!u.confirmed && <span className="admin-pill admin-pill-off">Unconfirmed</span>}
+                </span>
+                <span className="admin-row-sub">{u.email}</span>
+              </span>
+              <span className="admin-row-meta">
+                {u.leagues.length} league{u.leagues.length === 1 ? "" : "s"}
+              </span>
+              <span className="admin-chev">›</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {open && (
+        <AdminUserSheet
+          auth={auth}
+          user={open}
+          leagues={data.leagues || []}
+          actorId={data.actorId}
+          onClose={() => setOpenId(null)}
+          onChanged={reload}
+          onToast={onToast}
+        />
+      )}
+    </div>
+  );
+}
+
+function AdminUserSheet({ auth, user, leagues, actorId, onClose, onChanged, onToast }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [name, setName] = useState(user.name || "");
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [addLeagueId, setAddLeagueId] = useState("");
+
+  const prefs = user.prefs || null;
+  const push = (prefs && prefs.push) || null;
+  const isSelf = user.id === actorId;
+
+  const notIn = leagues.filter(l => !user.leagues.some(m => m.id === l.id));
+
+  useEffect(() => {
+    if (notIn.length && !notIn.some(l => l.id === addLeagueId)) setAddLeagueId(notIn[0].id);
+  }, [notIn.map(l => l.id).join(","), addLeagueId]);
+
+  async function run(fn, successMessage) {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+      if (successMessage) onToast(successMessage);
+      await onChanged();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const update = (action, value) =>
+    adminCall(auth, "/.netlify/functions/admin-user-update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id, action, value }),
+    });
+
+  const league = (action, leagueId, extra) =>
+    adminCall(auth, "/.netlify/functions/admin-league", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.assign({ leagueId, action, userId: user.id }, extra || {})),
+    });
+
+  return (
+    <AdminSheet title={user.name} subtitle={user.email} onClose={onClose}>
+      <AdminStatus busy={busy} error={error} />
+
+      <section className="admin-sec">
+        <h4>Account</h4>
+        <div className="admin-kv"><span>Joined</span><span>{fmtAdminDate(user.createdAt)}</span></div>
+        <div className="admin-kv"><span>Last seen</span><span>{fmtAdminDate(user.lastSeenAt)}</span></div>
+        <div className="admin-kv"><span>Email confirmed</span><span>{user.confirmed ? "Yes" : "No"}</span></div>
+        <div className="admin-kv"><span>Push notifications</span><span>{user.pushEnabled ? "On" : "Off"}</span></div>
+      </section>
+
+      <section className="admin-sec">
+        <h4>Access</h4>
+        <label className="admin-toggle">
+          <input
+            type="checkbox"
+            checked={user.isAdmin}
+            disabled={busy}
+            onChange={e => {
+              const grant = e.target.checked;
+              run(
+                () => update("set-admin", grant),
+                grant ? user.name + " is now a site admin" : "Admin access removed from " + user.name
+              );
+            }}
+          />
+          <span>Site admin — full access to this console</span>
+        </label>
+        {isSelf && (
+          <p className="admin-hint">
+            This is your own account. Removing your own admin access will close this console.
+          </p>
+        )}
+        <button
+          type="button"
+          className="admin-btn admin-btn-warn"
+          disabled={busy}
+          onClick={() => run(() => update("reset-password"), "Reset link sent to " + user.email)}
+        >
+          Send password reset
+        </button>
+        <p className="admin-hint">
+          They get the ordinary reset email. Their current password keeps working until they use it.
+        </p>
+      </section>
+
+      <section className="admin-sec">
+        <h4>Preferences</h4>
+        <label className="admin-field">
+          <span>Display name</span>
+          <input type="text" value={name} maxLength={60} onChange={e => setName(e.target.value)} />
+        </label>
+        <button
+          type="button"
+          className="admin-btn"
+          disabled={busy || !name.trim() || name.trim() === user.name}
+          onClick={() => run(() => update("set-name", name.trim()), "Name updated everywhere")}
+        >
+          Save name
+        </button>
+
+        {push ? (
+          <div className="admin-prefs">
+            {[
+              ["kickoff", "Kickoff reminders"],
+              ["final", "Final score alerts"],
+              ["lastCall", "Last-call warnings"],
+            ].map(([key, label]) => (
+              <label className="admin-toggle" key={key}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(push[key])}
+                  disabled={busy}
+                  onChange={e => {
+                    const patch = { push: {} };
+                    patch.push[key] = e.target.checked;
+                    run(() => update("set-prefs", patch), "Preferences saved");
+                  }}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+            <label className="admin-toggle">
+              <input
+                type="checkbox"
+                checked={push.injuries && push.injuries !== "off"}
+                disabled={busy}
+                onChange={e =>
+                  run(() => update("set-prefs", { push: { injuries: e.target.checked ? "key" : "off" } }), "Preferences saved")
+                }
+              />
+              <span>Injury alerts</span>
+            </label>
+          </div>
+        ) : (
+          <p className="admin-hint">They haven't opened notification settings yet, so there's nothing stored to change.</p>
+        )}
+      </section>
+
+      <section className="admin-sec">
+        <h4>Leagues</h4>
+        {user.leagues.length ? user.leagues.map(l => (
+          <div className="admin-kv" key={l.id}>
+            <span>{l.name}{l.role === "owner" && <span className="admin-pill admin-pill-off">Owner</span>}</span>
+            <button
+              type="button"
+              className="admin-btn admin-btn-sm admin-btn-danger"
+              disabled={busy}
+              onClick={() => run(() => league("remove-member", l.id), "Removed from " + l.name)}
+            >
+              Remove
+            </button>
+          </div>
+        )) : <p className="admin-hint">Not in any leagues.</p>}
+
+        {notIn.length > 0 && (
+          <div className="admin-inline">
+            <select value={addLeagueId} onChange={e => setAddLeagueId(e.target.value)} aria-label="League to add to">
+              {notIn.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+            </select>
+            <button
+              type="button"
+              className="admin-btn"
+              disabled={busy || !addLeagueId}
+              onClick={() => {
+                const target = notIn.find(l => l.id === addLeagueId);
+                run(() => league("add-member", addLeagueId), "Added to " + (target ? target.name : "league"));
+              }}
+            >
+              Add
+            </button>
+          </div>
+        )}
+        <p className="admin-hint">
+          Removing someone from a league keeps their picks, so adding them back restores their season.
+        </p>
+      </section>
+
+      <section className="admin-sec admin-zone">
+        <h4>Delete account</h4>
+        <p className="admin-hint">
+          Removes their login and everything attached to it — picks, league memberships, standings history.
+          This can't be undone.
+        </p>
+        {isSelf ? (
+          <p className="admin-hint">You can't delete your own account from here.</p>
+        ) : (
+          <React.Fragment>
+            <label className="admin-field">
+              <span>Type {user.email} to confirm</span>
+              <input
+                type="text"
+                value={confirmEmail}
+                onChange={e => setConfirmEmail(e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </label>
+            <button
+              type="button"
+              className="admin-btn admin-btn-danger admin-btn-block"
+              disabled={busy || confirmEmail.trim().toLowerCase() !== (user.email || "").toLowerCase()}
+              onClick={() =>
+                run(async () => {
+                  await adminCall(auth, "/.netlify/functions/admin-user-delete", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: user.id, confirmEmail: confirmEmail.trim() }),
+                  });
+                  onClose();
+                }, user.name + " deleted")
+              }
+            >
+              Delete permanently
+            </button>
+          </React.Fragment>
+        )}
+      </section>
+    </AdminSheet>
+  );
+}
+
+/* ---------------- Leagues ---------------- */
+
+function AdminLeaguesPanel({ auth, data, reload, onToast }) {
+  const [openId, setOpenId] = useState(null);
+  const leagues = data.leagues || [];
+  const open = leagues.find(l => l.id === openId) || null;
+
+  return (
+    <div>
+      {!leagues.length && <p className="admin-empty">No leagues yet.</p>}
+      <ul className="admin-list">
+        {leagues.map(l => (
+          <li key={l.id}>
+            <button type="button" className="admin-row" onClick={() => setOpenId(l.id)}>
+              <span className="admin-row-main">
+                <span className="admin-row-title">{l.name}</span>
+                <span className="admin-row-sub">
+                  {l.format} · {l.memberCount} member{l.memberCount === 1 ? "" : "s"}
+                </span>
+              </span>
+              <span className="admin-row-meta">
+                {l.scoredWeeks.length ? "Scored to wk " + l.scoredWeeks[l.scoredWeeks.length - 1] : "Not scored"}
+              </span>
+              <span className="admin-chev">›</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {open && (
+        <AdminLeagueSheet
+          auth={auth}
+          league={open}
+          users={data.users || []}
+          onClose={() => setOpenId(null)}
+          onChanged={reload}
+          onToast={onToast}
+        />
+      )}
+    </div>
+  );
+}
+
+function AdminLeagueSheet({ auth, league, users, onClose, onChanged, onToast }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [confirmName, setConfirmName] = useState("");
+  const [addUserId, setAddUserId] = useState("");
+
+  const members = users.filter(u => u.leagues.some(l => l.id === league.id));
+  const notMembers = users.filter(u => !u.leagues.some(l => l.id === league.id));
+
+  useEffect(() => {
+    if (notMembers.length && !notMembers.some(u => u.id === addUserId)) setAddUserId(notMembers[0].id);
+  }, [notMembers.map(u => u.id).join(","), addUserId]);
+
+  async function run(fn, successMessage) {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+      if (successMessage) onToast(successMessage);
+      await onChanged();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const call = (action, extra) =>
+    adminCall(auth, "/.netlify/functions/admin-league", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.assign({ leagueId: league.id, action }, extra || {})),
+    });
+
+  return (
+    <AdminSheet
+      title={league.name}
+      subtitle={league.format + " · " + league.memberCount + " members"}
+      onClose={onClose}
+    >
+      <AdminStatus busy={busy} error={error} />
+
+      <section className="admin-sec">
+        <h4>Members</h4>
+        {members.length ? members.map(u => (
+          <div className="admin-kv" key={u.id}>
+            <span>{u.name}<span className="admin-row-sub"> {u.email}</span></span>
+            <button
+              type="button"
+              className="admin-btn admin-btn-sm admin-btn-danger"
+              disabled={busy}
+              onClick={() => run(() => call("remove-member", { userId: u.id }), "Member removed")}
+            >
+              Remove
+            </button>
+          </div>
+        )) : <p className="admin-hint">No members yet.</p>}
+
+        {notMembers.length > 0 && (
+          <div className="admin-inline">
+            <select value={addUserId} onChange={e => setAddUserId(e.target.value)} aria-label="Person to add">
+              {notMembers.map(u => <option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}
+            </select>
+            <button
+              type="button"
+              className="admin-btn"
+              disabled={busy || !addUserId}
+              onClick={() => run(() => call("add-member", { userId: addUserId }), "Member added")}
+            >
+              Add
+            </button>
+          </div>
+        )}
+      </section>
+
+      <section className="admin-sec">
+        <h4>Scoring</h4>
+        <div className="admin-kv">
+          <span>Weeks scored</span>
+          <span>{league.scoredWeeks.length ? league.scoredWeeks.join(", ") : "None"}</span>
+        </div>
+        <button
+          type="button"
+          className="admin-btn admin-btn-warn"
+          disabled={busy}
+          onClick={() => run(async () => {
+            const r = await call("rebuild-standings");
+            onToast(r.weeksRescored.length
+              ? "Rebuilt weeks " + r.weeksRescored.join(", ")
+              : "No scored weeks to rebuild");
+          })}
+        >
+          Rebuild standings
+        </button>
+        <p className="admin-hint">
+          Recalculates every scored week from the picks on file. Use it if a leaderboard disagrees with itself.
+        </p>
+      </section>
+
+      <section className="admin-sec admin-zone">
+        <h4>Delete league</h4>
+        <p className="admin-hint">
+          Removes the league, its picks and its standings. Members keep their accounts.
+        </p>
+        <label className="admin-field">
+          <span>Type {league.name} to confirm</span>
+          <input type="text" value={confirmName} onChange={e => setConfirmName(e.target.value)} autoComplete="off" />
+        </label>
+        <button
+          type="button"
+          className="admin-btn admin-btn-danger admin-btn-block"
+          disabled={busy || confirmName.trim() !== league.name}
+          onClick={() => run(async () => {
+            await call("delete", { confirmName: confirmName.trim() });
+            onClose();
+          }, "League deleted")}
+        >
+          Delete league
+        </button>
+      </section>
+    </AdminSheet>
+  );
+}
+
+/* ---------------- Picks ---------------- */
+
+function AdminPicksPanel({ auth, data, onToast }) {
+  const leagues = data.leagues || [];
+  const users = data.users || [];
+
+  const [leagueId, setLeagueId] = useState(leagues.length ? leagues[0].id : "");
+  const [userId, setUserId] = useState("");
+  const [week, setWeek] = useState(1);
+  const [loaded, setLoaded] = useState(null);
+  const [draft, setDraft] = useState({});
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  const members = useMemo(
+    () => users.filter(u => u.leagues.some(l => l.id === leagueId)),
+    [users, leagueId]
+  );
+
+  useEffect(() => {
+    if (members.length && !members.some(m => m.id === userId)) setUserId(members[0].id);
+    if (!members.length) setUserId("");
+  }, [members.map(m => m.id).join(","), userId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!leagueId || !userId || !week) { setLoaded(null); return; }
+    setBusy(true);
+    setError(null);
+    adminCall(auth, "/.netlify/functions/admin-picks?leagueId=" + encodeURIComponent(leagueId) +
+      "&week=" + week + "&userId=" + encodeURIComponent(userId))
+      .then(body => {
+        if (cancelled) return;
+        setLoaded(body);
+        setDraft({});
+      })
+      .catch(e => { if (!cancelled) setError(e.message); })
+      .finally(() => { if (!cancelled) setBusy(false); });
+    return () => { cancelled = true; };
+  }, [auth, leagueId, userId, week]);
+
+  const isConfidence = loaded && loaded.league && loaded.league.format === "confidence";
+
+  function valueFor(gameId, field) {
+    if (draft[gameId] && draft[gameId][field] !== undefined) return draft[gameId][field];
+    const stored = loaded && loaded.picks[gameId];
+    return stored ? stored[field] : undefined;
+  }
+
+  function changed(gameId) {
+    const d = draft[gameId];
+    if (!d) return false;
+    const stored = (loaded && loaded.picks[gameId]) || {};
+    if (d.team !== undefined && d.team !== stored.team) return true;
+    if (d.confidence !== undefined && Number(d.confidence) !== Number(stored.confidence)) return true;
+    return false;
+  }
+
+  const dirtyIds = loaded ? (loaded.games || []).map(g => g.gameId).filter(changed) : [];
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    try {
+      const changes = dirtyIds.map(gameId => ({
+        gameId,
+        team: valueFor(gameId, "team"),
+        confidence: isConfidence ? valueFor(gameId, "confidence") : undefined,
+      }));
+      const body = await adminCall(auth, "/.netlify/functions/admin-picks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId, week, userId, changes }),
+      });
+      const rescored = body.rescore && body.rescore.weeksRescored && body.rescore.weeksRescored.length;
+      onToast(
+        body.saved + " pick" + (body.saved === 1 ? "" : "s") + " saved" +
+        (rescored ? " · week " + week + " rescored" : body.rescoreFailed ? " · rescore failed" : "")
+      );
+      const refreshed = await adminCall(auth, "/.netlify/functions/admin-picks?leagueId=" +
+        encodeURIComponent(leagueId) + "&week=" + week + "&userId=" + encodeURIComponent(userId));
+      setLoaded(refreshed);
+      setDraft({});
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="admin-filters">
+        <label className="admin-field">
+          <span>League</span>
+          <select value={leagueId} onChange={e => setLeagueId(e.target.value)}>
+            {leagues.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+          </select>
+        </label>
+        <label className="admin-field">
+          <span>Member</span>
+          <select value={userId} onChange={e => setUserId(e.target.value)} disabled={!members.length}>
+            {members.length
+              ? members.map(u => <option key={u.id} value={u.id}>{u.name}</option>)
+              : <option value="">No members</option>}
+          </select>
+        </label>
+        <label className="admin-field">
+          <span>Week</span>
+          <select value={week} onChange={e => setWeek(Number(e.target.value))}>
+            {Array.from({ length: 18 }, (_, i) => i + 1).map(w =>
+              <option key={w} value={w}>Week {w}</option>
+            )}
+          </select>
+        </label>
+      </div>
+
+      <AdminStatus busy={busy} error={error} />
+
+      {loaded && !loaded.games.length && <p className="admin-empty">No games scheduled for week {week}.</p>}
+
+      {loaded && loaded.games.length > 0 && (
+        <React.Fragment>
+          {!loaded.scored && (
+            <p className="admin-note">
+              This week hasn't been scored yet, so there are no standings to restore — the picks just save.
+            </p>
+          )}
+          <ul className="admin-picks">
+            {loaded.games.map(g => {
+              const team = valueFor(g.gameId, "team");
+              const isDirty = changed(g.gameId);
+              const stored = loaded.picks[g.gameId];
+              const result = loaded.results && loaded.results[g.gameId];
+              return (
+                <li key={g.gameId} className={isDirty ? "admin-pick dirty" : "admin-pick"}>
+                  <div className="admin-pick-top">
+                    <span className="admin-pick-teams">{g.away} @ {g.home}</span>
+                    {result && (
+                      <span className="admin-pick-result">
+                        {result.tie ? "Tie" : "Won: " + result.winner}
+                      </span>
+                    )}
+                  </div>
+                  <div className="admin-pick-ctl">
+                    {[g.away, g.home].map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        className="admin-seg"
+                        aria-pressed={team === t}
+                        disabled={busy}
+                        onClick={() => setDraft(d => Object.assign({}, d, {
+                          [g.gameId]: Object.assign({}, d[g.gameId], { team: t }),
+                        }))}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                    {isConfidence && (
+                      <React.Fragment>
+                        <input
+                          className="admin-conf"
+                          type="text"
+                          inputMode="numeric"
+                          aria-label="Confidence points"
+                          value={valueFor(g.gameId, "confidence") === undefined ? "" : valueFor(g.gameId, "confidence")}
+                          disabled={busy}
+                          onChange={e => {
+                            const v = e.target.value.replace(/[^0-9]/g, "");
+                            setDraft(d => Object.assign({}, d, {
+                              [g.gameId]: Object.assign({}, d[g.gameId], { confidence: v === "" ? "" : Number(v) }),
+                            }));
+                          }}
+                        />
+                        <span className="admin-conf-lbl">pts</span>
+                      </React.Fragment>
+                    )}
+                  </div>
+                  {isDirty && stored && (
+                    <div className="admin-pick-was">
+                      Was {stored.team}{isConfidence && stored.confidence !== undefined ? " · " + stored.confidence + " pts" : ""}
+                    </div>
+                  )}
+                  {isDirty && !stored && <div className="admin-pick-was">No pick was stored</div>}
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="admin-savebar">
+            <span className="admin-savebar-text">
+              {dirtyIds.length
+                ? dirtyIds.length + " change" + (dirtyIds.length === 1 ? "" : "s") +
+                  (loaded.scored ? " — standings will be rebuilt" : "")
+                : "No changes"}
+            </span>
+            <button type="button" className="admin-btn admin-btn-sm" disabled={!dirtyIds.length || busy} onClick={() => setDraft({})}>
+              Discard
+            </button>
+            <button type="button" className="admin-btn admin-btn-sm admin-btn-warn" disabled={!dirtyIds.length || busy} onClick={save}>
+              {loaded.scored ? "Save & rescore" : "Save"}
+            </button>
+          </div>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Injuries ---------------- */
+
+function AdminInjuriesPanel({ auth, onToast, onCount }) {
+  const [items, setItems] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [choice, setChoice] = useState({});
+
+  const load = useCallback(async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = await adminCall(auth, "/.netlify/functions/injury-review");
+      const list = body.items || [];
+      setItems(list);
+      onCount(list.length);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }, [auth, onCount]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function resolve(item, applied) {
+    setBusy(true);
+    setError(null);
+    try {
+      if (applied) {
+        await adminCall(auth, "/.netlify/functions/injury-player-add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reviewId: item.id, status: choice[item.id] || item.to, position: item.position }),
+        });
+      }
+      await adminCall(auth, "/.netlify/functions/injury-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, resolved: true }),
+      });
+      onToast(applied
+        ? (item.name || "Player") + " set to " + (choice[item.id] || item.to)
+        : "Ignored — " + (item.name || "player") + " unchanged");
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <AdminStatus busy={busy} error={error} />
+
+      <p className="admin-note">
+        ESPN spotted these. Nothing reaches the app or the prediction model until you apply it —
+        and the sync script won't downgrade a status you set by hand.
+      </p>
+
+      {items && !items.length && <p className="admin-empty">Queue is clear.</p>}
+
+      {(items || []).map(item => {
+        const downgrade = STATUS_RANK[item.to] < STATUS_RANK[item.ours || item.from];
+        return (
+          <div key={item.id} className={"admin-inj" + (downgrade ? " downgrade" : "")}>
+            <div className="admin-inj-top">
+              <span className="admin-inj-name">{item.name || item.espnId}</span>
+              <span className="admin-row-sub">{item.position || "?"} · {item.team}</span>
+              {item.kind === "untracked-candidate" && (
+                <span className="admin-pill admin-pill-off">Not tracked</span>
+              )}
+            </div>
+            <div className="admin-inj-move">
+              <span className={"admin-st st-" + (item.ours || item.from || "active")}>{item.ours || item.from || "—"}</span>
+              <span className="admin-inj-arrow">→</span>
+              <span className={"admin-st st-" + item.to}>{item.to}</span>
+            </div>
+            {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {downgrade && item.ours && (
+              <div className="admin-inj-warn">
+                Your curated status is {item.ours}. Applying this downgrades your own call.
+              </div>
+            )}
+            <div className="admin-inj-act">
+              <select
+                value={choice[item.id] || item.to}
+                disabled={busy}
+                onChange={e => setChoice(c => Object.assign({}, c, { [item.id]: e.target.value }))}
+                aria-label="Status to apply"
+              >
+                {["active", "questionable", "doubtful", "out", "ir"].map(s =>
+                  <option key={s} value={s}>{s}</option>
+                )}
+              </select>
+              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => resolve(item, true)}>
+                Apply
+              </button>
+              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => resolve(item, false)}>
+                Ignore
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const STATUS_RANK = { active: 0, questionable: 1, doubtful: 2, out: 3, ir: 4 };
+
+/* ---------------- Activity ---------------- */
+
+function AdminActivityPanel({ auth }) {
+  const [entries, setEntries] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    adminCall(auth, "/.netlify/functions/admin-log?limit=150")
+      .then(body => { if (!cancelled) setEntries(body.entries || []); })
+      .catch(e => { if (!cancelled) setError(e.message); });
+    return () => { cancelled = true; };
+  }, [auth]);
+
+  if (error) return <AdminStatus error={error} />;
+  if (!entries) return <AdminStatus busy />;
+  if (!entries.length) return <p className="admin-empty">Nothing logged yet.</p>;
+
+  return (
+    <React.Fragment>
+      <ul className="admin-log">
+        {entries.map(e => (
+          <li key={e.id}>
+            <time>{fmtAdminDate(e.at, true)}</time>
+            <span><span className="admin-log-who">{e.actorName}</span> {e.summary}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="admin-hint">Every admin action is recorded here. The log can't be edited or cleared.</p>
+    </React.Fragment>
+  );
+}
+
+/* ---------------- shell ---------------- */
+
+function fmtAdminDate(iso, withTime) {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "—";
+    return withTime
+      ? d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+      : d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  } catch (e) {
+    return "—";
+  }
+}
+
+function AdminSheet({ title, subtitle, onClose, children }) {
+  const overlayRef = useRef(null);
+  useEffect(() => {
+    function onKeyDown(e) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      className="admin-sheet-overlay"
+      ref={overlayRef}
+      onMouseDown={e => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="admin-sheet" role="dialog" aria-modal="true" aria-label={title}>
+        <div className="admin-sheet-hd">
+          <div>
+            <div className="admin-sheet-title">{title}</div>
+            {subtitle && <div className="admin-row-sub">{subtitle}</div>}
+          </div>
+          <button type="button" className="admin-sheet-close" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        <div className="admin-sheet-bd">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+const ADMIN_TABS = [
+  { id: "users", label: "Users" },
+  { id: "leagues", label: "Leagues" },
+  { id: "picks", label: "Picks" },
+  { id: "injuries", label: "Injuries" },
+  { id: "analytics", label: "Analytics" },
+  { id: "log", label: "Activity" },
+];
+
+function AdminConsole({ auth, onClose }) {
+  const [tab, setTab] = useState("users");
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [injuryCount, setInjuryCount] = useState(null);
+
+  const reload = useCallback(async () => {
+    try {
+      const body = await adminCall(auth, "/.netlify/functions/admin-users");
+      setData(body);
+      setError(null);
+    } catch (e) {
+      setError(e.message);
+    }
+  }, [auth]);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  useEffect(() => {
+    lockBodyScroll();
+    function onKeyDown(e) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      unlockBodyScroll();
+    };
+  }, [onClose]);
+
+  const showToast = useCallback(message => {
+    setToast(message);
+    window.setTimeout(() => setToast(t => (t === message ? null : t)), 2600);
+  }, []);
+
+  return ReactDOM.createPortal(
+    <div className="admin-overlay">
+      <div className="admin-shell" role="dialog" aria-modal="true" aria-label="Site management">
+        <header className="admin-hd">
+          <div className="admin-hd-row">
+            <span className="admin-badge">Admin</span>
+            <h2>Site management</h2>
+            <button type="button" className="admin-close" onClick={onClose} aria-label="Close">×</button>
+          </div>
+          <nav className="admin-tabs" role="tablist">
+            {ADMIN_TABS.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={tab === t.id}
+                className="admin-tab"
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+                {t.id === "injuries" && injuryCount > 0 && <span className="admin-tab-dot">{injuryCount}</span>}
+              </button>
+            ))}
+          </nav>
+        </header>
+
+        <div className="admin-body">
+          {error && <AdminStatus error={error} />}
+          {!data && !error && <AdminStatus busy />}
+
+          {data && tab === "users" && (
+            <AdminUsersPanel auth={auth} data={data} reload={reload} onToast={showToast} />
+          )}
+          {data && tab === "leagues" && (
+            <AdminLeaguesPanel auth={auth} data={data} reload={reload} onToast={showToast} />
+          )}
+          {data && tab === "picks" && (
+            <AdminPicksPanel auth={auth} data={data} onToast={showToast} />
+          )}
+          {tab === "injuries" && (
+            <AdminInjuriesPanel auth={auth} onToast={showToast} onCount={setInjuryCount} />
+          )}
+          {tab === "analytics" && (
+            <div className="admin-sec">
+              <h4>Traffic and usage</h4>
+              <p className="admin-hint">
+                The full analytics dashboard opens in its own tab. Your admin session covers the injury
+                queue there, so it no longer asks for a secret.
+              </p>
+              <a className="admin-btn admin-btn-block" href="/analytics.html" target="_blank" rel="noopener noreferrer">
+                Open analytics dashboard
+              </a>
+            </div>
+          )}
+          {tab === "log" && <AdminActivityPanel auth={auth} />}
+        </div>
+
+        {toast && <div className="admin-toast">{toast}</div>}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function AccountButton({ auth, profile, onOpenLeagues, onOpenSettings, onOpenHowItWorks, onReplayTour, onOpenAdmin }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  // Above the early returns on purpose: useIsAdmin wraps useMemo, and calling
+  // it after the loading/signed-out branches would change the hook order the
+  // moment auth resolves.
+  const isAdmin = useIsAdmin(auth);
 
   useEffect(() => {
     if (!open) return;
@@ -20981,6 +22229,11 @@ function AccountButton({ auth, profile, onOpenLeagues, onOpenSettings, onOpenHow
           {LEAGUES_UI_ENABLED && (
             <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenLeagues(); }}>
               My Leagues
+            </button>
+          )}
+          {isAdmin && (
+            <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenAdmin(); }}>
+              Admin
             </button>
           )}
           <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); auth.logout(); }}>
@@ -21620,6 +22873,7 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
   const [leagueTabResetKey, setLeagueTabResetKey] = useState(0);
@@ -22072,6 +23326,7 @@ function App() {
             onOpenSettings={() => setShowSettings(true)}
             onOpenHowItWorks={() => setShowHowItWorks(true)}
             onReplayTour={replayTour}
+            onOpenAdmin={() => setShowAdmin(true)}
           />
         </div>
         <div className="brand-row" onClick={backToWeek}>
@@ -22215,6 +23470,8 @@ function App() {
           {" "}<a href="/historical/index.html" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Historical results archive</a>
         </p>
       </footer>
+
+      {showAdmin && <AdminConsole auth={auth} onClose={() => setShowAdmin(false)} />}
 
       {showSettings && (
         <SettingsModal

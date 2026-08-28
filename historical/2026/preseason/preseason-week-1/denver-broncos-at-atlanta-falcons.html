@@ -210,6 +210,10 @@ header.top h1 a { text-decoration: none; color: inherit; }
   .week-select { flex: 1; min-width: 0; }
 }
 footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+footer.app-footer p { margin: 0 0 8px; }
+footer.app-footer p:last-child { margin-bottom: 0; }
+.footer-legal { border-top: 1px solid var(--card-border); padding-top: 10px; margin-top: 10px; font-size: 0.7rem; line-height: 1.5; }
+.footer-legal a { color: inherit; }
 
 /* Injury Report - mirrors live app's .injury-report/.impact-note markup
    and colors exactly, so this reads as the same feature as the live
@@ -514,7 +518,10 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
   
     </div>
   
-  <footer class="app-footer">Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</footer>
+  <footer class="app-footer">
+    <p>Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</p>
+    <p class="footer-legal">&copy; <span class="footer-year">2026</span> Blitz Odds. Not affiliated with or endorsed by the National Football League. Team names and marks are the property of their respective owners. <a href="/privacy/">Privacy</a></p>
+  </footer>
 </div>
 <script src="/js/analytics.js"></script>
 <script>(function () {
@@ -649,5 +656,12 @@ footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px
   }
 })();</script>
 
+<script>(function () {
+  try {
+    var y = String(new Date().getFullYear());
+    var nodes = document.querySelectorAll(".footer-year");
+    for (var i = 0; i < nodes.length; i++) nodes[i].textContent = y;
+  } catch (e) { /* leave the fallback year in place */ }
+})();</script>
 </body>
 </html>

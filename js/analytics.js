@@ -205,6 +205,13 @@
     // generator's copy changes.
     function getCurrentPageLabel() {
       try {
+        // Standalone static documents that aren't part of the SPA shell and
+        // have none of the structural markers the branches below look for.
+        // Without this they fall all the way through to a null label and get
+        // bucketed as "unknown" in the dashboard.
+        var path = (window.location.pathname || "").replace(/\/$/, "");
+        if (path === "/privacy" || path === "/privacy/index.html") return "Privacy Policy";
+
         var archiveBadge = document.querySelector(".archive-badge");
         if (archiveBadge) {
           var titleText = document.title || "";

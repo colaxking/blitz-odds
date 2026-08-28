@@ -3668,6 +3668,10 @@
   footer.app-footer p { margin: 0 0 10px; }
   footer.app-footer p:last-child { margin-bottom: 0; }
   .footer-gambling-notice { font-size: 0.74rem; line-height: 1.5; }
+  /* Copyright + NFL non-affiliation. Set apart from the source credits above
+     it with a hairline rule so it reads as the legal footer line rather than
+     another data-source sentence. */
+  .footer-legal { border-top: 1px solid var(--card-border); padding-top: 10px; font-size: 0.7rem; line-height: 1.5; }
 
   .team-view-header {
     display: flex; align-items: center; gap: 16px; background: var(--card-bg); border: 1px solid var(--card-border);
@@ -27983,19 +27987,21 @@ function App() {
 
       <footer className="app-footer">
         <p className="footer-gambling-notice">
-          Blitz Odds is for informational and entertainment purposes only and does not accept wagers. Betting
-          odds are shown for reference; always confirm lines with a licensed sportsbook before placing a bet, and
-          gamble only where it is legal and you meet the minimum age in your jurisdiction.
+          Blitz Odds is for informational and entertainment purposes only and does not accept wagers. Confirm all
+          lines with a licensed sportsbook before placing a bet, and bet only where it is legal and you meet the
+          minimum age in your jurisdiction.
           {" "}<strong>Gambling problem? Call or text 1-800-GAMBLER (1-800-426-2537), or visit</strong>
           {" "}<a href="https://www.ncpgambling.org" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>ncpgambling.org</a>.
         </p>
         <p>
-          Team stats source: The Football Database (footballdb.com). Schedule source: Pro-Football-Reference &amp;
-          NFL.com, 2026 season. Team logos from NFL.com. Live scores from ESPN's public scoreboard API. Betting
-          odds are real sportsbook lines refreshed weekly (upcoming weeks show "Odds not yet posted" until lines go
-          live). Impact player data and any weeks marked "sample" are illustrative/placeholder pending real
-          in-season reports and results.
+          Sources: The Football Database (team stats), Pro-Football-Reference and NFL.com (schedules),
+          SportsGameOdds (betting lines), ESPN (live scores and box scores), Open-Meteo (weather).
           {" "}<a href="/historical/index.html" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Historical results archive</a>
+        </p>
+        <p className="footer-legal">
+          &copy; {new Date().getFullYear()} Blitz Odds. Not affiliated with or endorsed by the National Football
+          League. Team names and marks are the property of their respective owners.
+          {" "}<a href="/privacy/" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
         </p>
       </footer>
 

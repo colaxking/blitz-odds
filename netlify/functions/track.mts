@@ -106,6 +106,7 @@ type SessionRecord = {
   theme?: string;
   sportsbookPref?: string;
   tzPref?: string;
+  host?: string;
   events: Record<string, unknown>[];
 };
 
@@ -158,7 +159,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, referrerHost, nav, filter, value, subtab, format, action, surface } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -304,6 +305,12 @@ export default async (req: Request, context: Context) => {
     if (type === "pageview") {
       if (typeof pathname === "string" && pathname) record.pathname = pathname.slice(0, 200);
       if (typeof referrerHost === "string" && referrerHost) record.referrerHost = referrerHost.slice(0, 128);
+      // Which host served this pageview - see js/analytics.js. Lets the
+      // dashboard scope itself to blitz-odds.com and leave deploy-preview
+      // and localhost traffic out. Events written before this shipped have
+      // no host at all; readers treat that as production rather than
+      // discarding all history (see PRODUCTION_HOSTS in analytics-summary).
+      if (typeof host === "string" && host) record.host = host.slice(0, 128);
     }
 
     const location = extractLocation(context);
@@ -338,6 +345,7 @@ export default async (req: Request, context: Context) => {
     if (record.theme) session.theme = record.theme as string;
     if (record.sportsbook) session.sportsbookPref = record.sportsbook as string;
     if (record.tzPref) session.tzPref = record.tzPref as string;
+    if (record.host) session.host = record.host as string;
     if (type === "pageview") session.pageviews = (session.pageviews || 0) + 1;
     if (!session.favoriteTeams) session.favoriteTeams = {};
     if (type === "favorite") {
@@ -382,6 +390,7 @@ export default async (req: Request, context: Context) => {
       addIndex("tzPref", record.tzPref as string | undefined);
       addIndex("pathname", record.pathname as string | undefined);
       addIndex("referrer", record.referrerHost as string | undefined);
+      addIndex("host", record.host as string | undefined);
     }
     if (type === "team_click") {
       addIndex("teamClick", record.team as string | undefined);

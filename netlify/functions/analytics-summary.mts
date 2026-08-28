@@ -10,6 +10,13 @@ const CORS_HEADERS: Record<string, string> = {
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
+// How long a precomputed summary stays servable before a request rescans.
+// 90s comfortably outlives the dashboard's 60s auto-refresh, so the common
+// case is a cache hit; the Refresh button bypasses it with ?fresh=1.
+const CACHE_TTL_MS = 90 * 1000;
+
+type CacheEnvelope = { computedAt: number; ranges: Record<string, unknown> };
+
 type Range = "24h" | "7d" | "30d" | "3m" | "6m" | "1y" | "all";
 const VALID_RANGES = new Set<Range>(["24h", "7d", "30d", "3m", "6m", "1y", "all"]);
 
@@ -82,6 +89,7 @@ type EventRecord = {
   value?: string;
   location?: LocationInfo;
   device?: string;
+  host?: string;
 };
 
 type SessionRecord = {
@@ -89,8 +97,92 @@ type SessionRecord = {
   theme?: string;
   sportsbookPref?: string;
   tzPref?: string;
+  host?: string;
+  firstSeen?: number;
+  lastSeen?: number;
+  pageviews?: number;
+  location?: Record<string, unknown>;
   events?: EventRecord[];
 };
+
+
+// ---------------------------------------------------------------------------
+// Traffic-source filtering
+// ---------------------------------------------------------------------------
+// Two independent filters, both applied at read time so nothing is lost at
+// ingest and the raw store stays inspectable.
+//
+// 1. HOST. `record.host` (added in track.mts) says which host actually served
+//    a pageview. Anything that isn't a production host is Dan browsing a
+//    deploy preview or localhost, not a real visit. Events written before the
+//    host field shipped have none; those are treated as production, because
+//    discarding all pre-existing history would be far more wrong than keeping
+//    a handful of old preview pageviews.
+//
+// 2. DATACENTER. Some cloud-region cities show an unmistakable crawler
+//    signature: every session is exactly one pageview, one event, and never
+//    returns. Verified against live data - Ashburn VA, The Dalles OR and
+//    Council Bluffs IA are 100% single-hit sessions.
+//
+//    Crucially this is NOT a plain city denylist. A real person can browse
+//    from a city that also hosts a cloud region, and at least one genuinely
+//    engaged visitor (60 pageviews, favorites, box scores, roster views, over
+//    six days) does exist in a city that looked suspicious on aggregates
+//    alone. So a session is only excluded when it is in a datacenter city
+//    AND shows the single-hit signature. Anyone who actually used the site is
+//    kept regardless of where they appear to be.
+const PRODUCTION_HOSTS = new Set(["blitz-odds.com"]);
+
+const DATACENTER_CITIES = new Set([
+  "Ashburn",         // AWS us-east-1
+  "The Dalles",      // Google us-west1
+  "Council Bluffs",  // Google us-central1
+  "Boardman",        // AWS us-west-2
+  "Columbus",        // AWS us-east-2
+  "Des Moines",      // Google
+  "Boydton",         // Azure East US 2
+  "Quincy",          // Azure West US 2
+  "Cheyenne",        // Microsoft/Google
+  "Papillion",       // Google
+  "Moncks Corner",   // Google us-east1
+]);
+
+export type SourceMode = "live" | "live-nodc" | "all";
+const VALID_SOURCES = new Set<SourceMode>(["live", "live-nodc", "all"]);
+
+function isProductionSession(s: SessionRecord): boolean {
+  // Session-level host is the last host this visitor was seen on. Absent =
+  // pre-dates the field = assume production.
+  if (!s.host) return true;
+  return PRODUCTION_HOSTS.has(s.host);
+}
+
+// Single-hit signature: one pageview, one event total, and first/last seen
+// within a couple of seconds - i.e. hit one page and never came back.
+function isSingleHit(s: SessionRecord): boolean {
+  const events = Array.isArray(s.events) ? s.events.length : 0;
+  const pv = s.pageviews || 0;
+  const span = (s.lastSeen || 0) - (s.firstSeen || 0);
+  return events <= 1 && pv <= 1 && span < 5000;
+}
+
+function sessionCity(s: SessionRecord): string | null {
+  const loc = (s.location || {}) as Record<string, unknown>;
+  return typeof loc.city === "string" ? loc.city : null;
+}
+
+function isDatacenterNoise(s: SessionRecord): boolean {
+  const city = sessionCity(s);
+  if (!city || !DATACENTER_CITIES.has(city)) return false;
+  return isSingleHit(s);
+}
+
+function sessionPassesSource(s: SessionRecord, mode: SourceMode): boolean {
+  if (mode === "all") return true;
+  if (!isProductionSession(s)) return false;
+  if (mode === "live-nodc" && isDatacenterNoise(s)) return false;
+  return true;
+}
 
 function jsonResponse(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -145,6 +237,22 @@ function buildZeroFilledMonthSeries(now: number, count: number): { bucket: strin
 // consumes. Records with no usable key are skipped rather than lumped into
 // "unknown", since an absent tab/side/player name means the click handler
 // couldn't find a value, not that the value legitimately was "unknown".
+// The dashboard renders the top 8 of any bar list, but pageviewsByPath alone
+// was shipping 3,750 entries - 312 KB of a 327 KB payload, 95% of it never
+// rendered. Everything is capped to a small head; TOP_N is above 8 so a
+// client-side filter or a future "show more" still has room.
+const TOP_N = 15;
+
+function capTop(obj: Record<string, number>, n = TOP_N): Record<string, number> {
+  const out: Record<string, number> = {};
+  let i = 0;
+  for (const k of Object.keys(obj)) {
+    if (i++ >= n) break;
+    out[k] = obj[k];
+  }
+  return out;
+}
+
 function sortedCounts(records: EventRecord[], keyFn: (r: EventRecord) => string | undefined): Record<string, number> {
   const map = new Map<string, number>();
   for (const r of records) {
@@ -237,9 +345,32 @@ export default async (req: Request, _context: Context) => {
   const url = new URL(req.url);
   const rangeParam = url.searchParams.get("range") || "30d";
   const range: Range = VALID_RANGES.has(rangeParam as Range) ? (rangeParam as Range) : "30d";
+  const sourceParam = url.searchParams.get("source") || "live";
+  const source: SourceMode = VALID_SOURCES.has(sourceParam as SourceMode) ? (sourceParam as SourceMode) : "live";
+  const noCache = url.searchParams.get("fresh") === "1";
 
   try {
     const store = getStore("blitz-analytics");
+
+    // ---- Cache read -----------------------------------------------------
+    // The full-store scan below costs 8-13s, and the dashboard fires it on
+    // load, on a 60s timer, on tab focus, and on every range switch. Serve a
+    // precomputed blob when one is fresh enough, and only fall through to a
+    // rescan when it isn't. `fresh=1` forces a rescan (the Refresh button).
+    const cacheKey = `summary:${source}`;
+    if (!noCache) {
+      try {
+        const cached = (await store.get(cacheKey, { type: "json" })) as CacheEnvelope | null;
+        if (cached && typeof cached.computedAt === "number" && cached.ranges) {
+          const age = now - cached.computedAt;
+          if (age < CACHE_TTL_MS && cached.ranges[range]) {
+            return jsonResponse(200, { ...cached.ranges[range], cached: true, computedAt: cached.computedAt, ageMs: age });
+          }
+        }
+      } catch {
+        /* cache miss or malformed envelope - fall through to a live scan */
+      }
+    }
 
     // Sessions are now the source of truth (see track.mts): one blob per
     // visitor instead of one per event, so this scan reads roughly
@@ -271,12 +402,20 @@ export default async (req: Request, _context: Context) => {
       return jsonResponse(200, emptySummary(now, range));
     }
 
+    // Drop whole sessions that don't match the requested traffic source
+    // before any aggregation runs, so a filtered-out visitor can't leak into
+    // unique-visitor counts, location tiles, or preference distributions.
+    const sourcedSessions = sessionRecords.filter(
+      (s): s is SessionRecord => !!s && typeof s === "object" && sessionPassesSource(s, source)
+    );
+    const excludedSessions = sessionRecords.length - sourcedSessions.length;
+
     // Flatten each session's capped event log back into a flat event stream,
     // decorated with the session's visitorId - everything below this point
     // is unchanged from the old per-event-blob model, since it only ever
     // operated on a flat EventRecord[] anyway.
     const allValidRecords: EventRecord[] = [];
-    for (const s of sessionRecords) {
+    for (const s of sourcedSessions) {
       if (!s || typeof s !== "object" || !Array.isArray(s.events)) continue;
       for (const ev of s.events) {
         if (ev && typeof ev === "object" && typeof ev.ts === "number") {
@@ -292,7 +431,15 @@ export default async (req: Request, _context: Context) => {
     // How many distinct months of data exist at all - used so "all" zero-fills
     // exactly as many months as there's history for, no more, no less.
     const monthsAvailable = new Set(allValidRecords.map((r) => monthBucketLabel(r.ts!))).size;
-    const { cutoff, granularity, bucketCount } = resolveRange(range, now, monthsAvailable);
+
+    // ---- Compute every range from this one scan -------------------------
+    // Reading and flattening the session blobs is the expensive part (8-13s);
+    // bucketing the already-in-memory events into a second, third or seventh
+    // window costs almost nothing by comparison. Computing all of them here
+    // means a range switch on the dashboard is a cache hit rather than
+    // another full scan.
+    function computeForRange(range: Range) {
+      const { cutoff, granularity, bucketCount } = resolveRange(range, now, monthsAvailable);
 
     // Every widget on the dashboard - KPIs, team clicks, favorites, cities,
     // and the chart - is scoped to this same window, so switching ranges
@@ -511,7 +658,7 @@ export default async (req: Request, _context: Context) => {
     // default instead of being absent). Only sessions that have visited
     // since this tracking shipped will have a value here; older sessions
     // are skipped rather than assumed to be on any particular default.
-    const sessionsInRange = sessionRecords.filter((s) => {
+    const sessionsInRange = sourcedSessions.filter((s) => {
       if (!Array.isArray(s.events)) return false;
       return s.events.some((ev) => typeof ev.ts === "number" && (cutoff === null || ev.ts >= cutoff));
     });
@@ -618,42 +765,62 @@ export default async (req: Request, _context: Context) => {
       .map(([label, v]) => ({ label, pageviews: v.pageviews, uniqueVisitors: v.visitors.size }))
       .sort((a, b) => b.uniqueVisitors - a.uniqueVisitors || b.pageviews - a.pageviews);
 
+      return {
+        range,
+        totalPageviews,
+        uniqueVisitors,
+        series: { granularity, points: seriesPoints },
+        teamClicksByTeam: capTop(teamClicksByTeam),
+        favoritesByTeam,
+        topFavoriteTeam,
+        rosterViewsByTeam,
+        depthChartSideViews,
+        topViewedPlayers: capTop(topViewedPlayers),
+        newsSourceClicks,
+        newsClicksByPlacement,
+        teamClicksByOrigin,
+        boxscoreClicksByTeam: capTop(boxscoreClicksByTeam),
+        boxscoreClicksBySource,
+        playbookSubtabViews,
+        playbookFormatViews,
+        gateCtaClicks,
+        gateCtaBySurface,
+        bookCompareOpens,
+        historyPageviews,
+        historyGameClicksByTeam,
+        historyClicksByType,
+        referrerBreakdown: capTop(referrerBreakdown),
+        pageviewsByPath: capTop(pageviewsByPath),
+        teamPageViews,
+        gamePageViews,
+        themeDistribution,
+        sportsbookDistribution,
+        tzPrefDistribution,
+        viewsByCountry: viewsByCountry.slice(0, TOP_N),
+        viewsByCity: viewsByCity.slice(0, TOP_N),
+        topLocation,
+        viewsByDevice,
+        lastUpdated: new Date(now).toISOString(),
+      };
+    }
+
+    const ranges: Record<string, unknown> = {};
+    for (const r of VALID_RANGES) ranges[r] = computeForRange(r);
+
+    // Best-effort cache write - a failure here must not fail the request.
+    try {
+      await store.setJSON(cacheKey, { computedAt: now, ranges } as CacheEnvelope);
+    } catch {
+      /* cache is an optimisation, not a requirement */
+    }
+
     return jsonResponse(200, {
-      range,
-      totalPageviews,
-      uniqueVisitors,
-      series: { granularity, points: seriesPoints },
-      teamClicksByTeam,
-      favoritesByTeam,
-      topFavoriteTeam,
-      rosterViewsByTeam,
-      depthChartSideViews,
-      topViewedPlayers,
-      newsSourceClicks,
-      newsClicksByPlacement,
-      teamClicksByOrigin,
-      boxscoreClicksByTeam,
-      boxscoreClicksBySource,
-      playbookSubtabViews,
-      playbookFormatViews,
-      gateCtaClicks,
-      gateCtaBySurface,
-      bookCompareOpens,
-      historyPageviews,
-      historyGameClicksByTeam,
-      historyClicksByType,
-      referrerBreakdown,
-      pageviewsByPath,
-      teamPageViews,
-      gamePageViews,
-      themeDistribution,
-      sportsbookDistribution,
-      tzPrefDistribution,
-      viewsByCountry,
-      viewsByCity,
-      topLocation,
-      viewsByDevice,
-      lastUpdated: new Date(now).toISOString(),
+      ...(ranges[range] as Record<string, unknown>),
+      cached: false,
+      computedAt: now,
+      ageMs: 0,
+      excludedSessions,
+      source,
     });
   } catch (err) {
     // On any unexpected failure, still return a well-formed zeroed structure

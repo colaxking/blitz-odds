@@ -302,6 +302,11 @@
           week: getCurrentWeekLabel(),
           page: getCurrentPageLabel(),
           pathname: window.location.pathname,
+          // Which host this pageview actually happened on. Without it a view
+          // on a Netlify deploy preview or localhost is indistinguishable
+          // from one on blitz-odds.com, so the dashboard can't scope itself
+          // to real traffic. Hostname only - never the full URL.
+          host: (window.location.hostname || "").replace(/^www\./, ""),
           referrerHost: getReferrerHost(),
           theme: readPreference(THEME_KEY, THEME_DEFAULT),
           sportsbook: readPreference(SPORTSBOOK_KEY, SPORTSBOOK_DEFAULT),

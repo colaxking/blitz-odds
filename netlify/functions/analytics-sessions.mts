@@ -37,6 +37,7 @@ const VALID_DIMENSIONS = new Set([
   "teamClickOrigin",
   "pathname",
   "referrer",
+  "host",
 ]);
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -63,6 +64,72 @@ function resolveCutoff(range: Range, now: number): number | null {
   }
 }
 
+// Mirrors analytics-summary.mts. Kept in sync deliberately: a drill-down
+// opened from a tile must apply the same traffic-source rules the tile did,
+// or the counts won't match the list.
+const PRODUCTION_HOSTS = new Set(["blitz-odds.com"]);
+const DATACENTER_CITIES = new Set([
+  "Ashburn", "The Dalles", "Council Bluffs", "Boardman", "Columbus",
+  "Des Moines", "Boydton", "Quincy", "Cheyenne", "Papillion", "Moncks Corner",
+]);
+type SourceMode = "live" | "live-nodc" | "all";
+const VALID_SOURCES = new Set<SourceMode>(["live", "live-nodc", "all"]);
+
+function isSingleHit(s: SessionRecord): boolean {
+  const events = Array.isArray(s.events) ? s.events.length : 0;
+  const span = (s.lastSeen || 0) - (s.firstSeen || 0);
+  return events <= 1 && (s.pageviews || 0) <= 1 && span < 5000;
+}
+function sessionPassesSource(s: SessionRecord, mode: SourceMode): boolean {
+  if (mode === "all") return true;
+  if (s.host && !PRODUCTION_HOSTS.has(s.host)) return false;
+  if (mode === "live-nodc") {
+    const city = (s.location || {}).city;
+    if (typeof city === "string" && DATACENTER_CITIES.has(city) && isSingleHit(s)) return false;
+  }
+  return true;
+}
+
+// A stored "session" is really a visitor's whole lifetime log, which can span
+// weeks. Splitting it on a gap of inactivity gives the thing people actually
+// mean by a session: one sitting. 30 minutes is the long-standing web
+// analytics convention.
+const VISIT_GAP_MS = 30 * 60 * 1000;
+
+function segmentVisits(events: Record<string, unknown>[]) {
+  const sorted = events
+    .filter((e) => e && typeof (e as any).ts === "number")
+    .slice()
+    .sort((a, b) => ((a as any).ts as number) - ((b as any).ts as number));
+  const visits: { start: number; end: number; durationMs: number; pageviews: number; entryPage: string | null; exitPage: string | null; events: Record<string, unknown>[] }[] = [];
+  let current: Record<string, unknown>[] = [];
+
+  const flush = () => {
+    if (!current.length) return;
+    const start = (current[0] as any).ts as number;
+    const end = (current[current.length - 1] as any).ts as number;
+    const pvs = current.filter((e) => (e as any).type === "pageview");
+    visits.push({
+      start,
+      end,
+      durationMs: end - start,
+      pageviews: pvs.length,
+      entryPage: pvs.length ? ((pvs[0] as any).pathname || (pvs[0] as any).page || null) : null,
+      exitPage: pvs.length ? ((pvs[pvs.length - 1] as any).pathname || (pvs[pvs.length - 1] as any).page || null) : null,
+      events: current,
+    });
+    current = [];
+  };
+
+  for (const ev of sorted) {
+    const ts = (ev as any).ts as number;
+    if (current.length && ts - ((current[current.length - 1] as any).ts as number) > VISIT_GAP_MS) flush();
+    current.push(ev);
+  }
+  flush();
+  return visits.reverse(); // most recent visit first
+}
+
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
 // Bounds worst-case work per request regardless of how large an index has
@@ -74,6 +141,7 @@ const MAX_SESSION_EVENTS_RETURNED = 300;
 
 type SessionRecord = {
   visitorId: string;
+  host?: string;
   firstSeen: number;
   lastSeen: number;
   device?: string;
@@ -110,6 +178,7 @@ function summarize(session: SessionRecord, requestedDimension?: string, requeste
     country: (loc.country as string) || null,
     pageviews: session.pageviews || 0,
     eventCount: Array.isArray(session.events) ? session.events.length : 0,
+    visitCount: Array.isArray(session.events) ? segmentVisits(session.events).length : 0,
     favoriteTeams: favTeams,
     // If this list was scoped to a favTeam filter, flag whether that team is
     // still currently favorited - the index can lag an unfavorite by up to a
@@ -140,9 +209,19 @@ export default async (req: Request, _context: Context) => {
       if (!session) return jsonResponse(404, { ok: false, error: "Session not found" });
 
       const events = Array.isArray(session.events) ? session.events.slice(-MAX_SESSION_EVENTS_RETURNED) : [];
+      const visits = segmentVisits(events);
       return jsonResponse(200, {
         ok: true,
-        session: { ...summarize(session), events: events.slice().sort((a: any, b: any) => (b.ts || 0) - (a.ts || 0)) },
+        session: {
+          ...summarize(session),
+          host: session.host || null,
+          // Flat, newest-first log kept for backwards compatibility; `visits`
+          // is what the redesigned panel actually renders.
+          events: events.slice().sort((a: any, b: any) => (b.ts || 0) - (a.ts || 0)),
+          visits,
+          visitCount: visits.length,
+          totalActiveMs: visits.reduce((n, v) => n + v.durationMs, 0),
+        },
       });
     } catch {
       return jsonResponse(404, { ok: false, error: "Session not found" });
@@ -155,6 +234,9 @@ export default async (req: Request, _context: Context) => {
   const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(url.searchParams.get("limit") || "", 10) || DEFAULT_LIMIT));
   const rangeParam = url.searchParams.get("range") || "30d";
   const range: Range = VALID_RANGES.has(rangeParam as Range) ? (rangeParam as Range) : "30d";
+  const sourceParam = url.searchParams.get("source") || "live";
+  const source: SourceMode = VALID_SOURCES.has(sourceParam as SourceMode) ? (sourceParam as SourceMode) : "live";
+  const sortParam = url.searchParams.get("sort") || "recent"; // recent | active
   const now = Date.now();
   const cutoff = resolveCutoff(range, now);
 
@@ -204,7 +286,11 @@ export default async (req: Request, _context: Context) => {
         if (seen.has(id)) continue;
         seen.add(id);
         uniqueIds.push(id);
-        if (uniqueIds.length >= limit) break outer;
+        // For an indexed dimension the keys are already most-recent-first, so
+        // the first `limit` unique ids ARE the answer. "all" has no such
+        // ordering, so it must gather a wider candidate pool and sort it
+        // afterwards - capped by MAX_INDEX_KEYS_SCANNED like everything else.
+        if (dimension !== "all" && uniqueIds.length >= limit) break outer;
       }
     }
 
@@ -218,15 +304,26 @@ export default async (req: Request, _context: Context) => {
           }
         })
       )
-    ).filter((s): s is SessionRecord => !!s);
+    ).filter((s): s is SessionRecord => !!s && sessionPassesSource(s, source));
 
     // "all" isn't index-ordered by recency the way a dimension prefix is
     // (session keys sort by visitorId, not by activity) and has no
     // per-entry timestamp to filter on the way idx: keys do, so scope it by
     // last activity instead, then sort explicitly.
+    // `dimension=all` has no recency-ordered index to read from - session
+    // keys sort by visitorId, so taking the first `limit` keys returned the
+    // same handful of visitors whose UUIDs happen to start with "0", every
+    // time, and then sorted only those by recency. To actually answer "the
+    // most recent visitors", the candidate set has to be collected first and
+    // sorted before it's cut down.
     if (dimension === "all") {
       if (cutoff !== null) sessions = sessions.filter((s) => (s.lastSeen || 0) >= cutoff);
-      sessions.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+      sessions.sort((a, b) =>
+        sortParam === "active"
+          ? (b.events?.length || 0) - (a.events?.length || 0) || (b.lastSeen || 0) - (a.lastSeen || 0)
+          : (b.lastSeen || 0) - (a.lastSeen || 0)
+      );
+      sessions = sessions.slice(0, limit);
     }
 
     return jsonResponse(200, {
@@ -234,6 +331,7 @@ export default async (req: Request, _context: Context) => {
       dimension,
       value: dimension === "all" ? null : value,
       range,
+      source,
       sessions: sessions.map((s) => summarize(s, dimension, value)),
       truncated, // true if MAX_INDEX_KEYS_SCANNED was hit before `limit` unique visitors were found
     });

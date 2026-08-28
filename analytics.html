@@ -26,208 +26,185 @@
     --text-faint: #556077;
     --live: #ff3b30;
     --good: #6be3a1;
+    --warn: #d9a02d;
+    --blitz-orange: #fd7f01;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0;
-    background: var(--bg);
-    color: var(--text);
+    background: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
   body { padding: 20px 16px 60px; }
-  .wrap { max-width: 1080px; margin: 0 auto; }
+  .wrap { max-width: 1140px; margin: 0 auto; }
 
-  header {
-    display: flex; align-items: baseline; justify-content: space-between;
-    flex-wrap: wrap; gap: 10px 16px;
-    margin-bottom: 22px;
-  }
-  header h1 {
-    font-size: 1.35rem; margin: 0; letter-spacing: -0.01em;
-  }
+  header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; margin-bottom: 18px; }
+  header h1 { font-size: 1.35rem; margin: 0; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
   header h1 span { color: var(--accent); }
-  header h1 { display: flex; align-items: center; gap: 10px; }
   .brand-mark-icon { flex-shrink: 0; }
-  .status-line {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 0.78rem; color: var(--text-dim);
-  }
-  .status-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--good);
-    box-shadow: 0 0 0 3px rgba(107,227,161,0.15);
-  }
-  .status-dot.stale { background: #d9a02d; box-shadow: 0 0 0 3px rgba(217,160,45,0.15); }
+  .status-line { display: flex; align-items: center; gap: 10px; font-size: 0.78rem; color: var(--text-dim); flex-wrap: wrap; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px rgba(107,227,161,0.15); }
+  .status-dot.stale { background: var(--warn); box-shadow: 0 0 0 3px rgba(217,160,45,0.15); }
   .status-dot.error { background: var(--live); box-shadow: 0 0 0 3px rgba(255,59,48,0.15); }
-  #refreshBtn {
-    background: var(--card-bg); border: 1px solid var(--card-border);
-    color: var(--text); font-family: inherit; font-size: 0.78rem;
-    padding: 5px 10px; border-radius: 7px; cursor: pointer;
+  .btn {
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
+    font-family: inherit; font-size: 0.78rem; padding: 5px 10px; border-radius: 7px; cursor: pointer;
   }
-  #refreshBtn:hover { border-color: var(--accent-dim); }
-  #refreshBtn:disabled { opacity: 0.5; cursor: default; }
+  .btn:hover { border-color: var(--accent-dim); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .back-link { display:inline-block; margin-bottom:10px; font-size:.78rem; font-weight:700; color:var(--text-dim); text-decoration:none; }
+  .back-link:hover, .back-link:focus-visible { color:var(--accent); }
 
-  .card-head-row {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px;
+  .global-range-row {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 10px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 14px;
   }
-  .card-head-row h2 { margin-bottom: 0 !important; }
+  .global-range-label { font-size: 0.78rem; font-weight: 600; }
+  .global-range-sub { display: block; font-size: 0.68rem; font-weight: 400; color: var(--text-faint); margin-top: 1px; }
   .range-pills { display: flex; gap: 4px; background: #0d1526; border-radius: 8px; padding: 3px; flex-wrap: wrap; }
   .range-pill {
-    background: none; border: none; color: var(--text-dim);
-    font-family: inherit; font-size: 0.72rem; font-weight: 600;
-    padding: 5px 10px; border-radius: 6px; cursor: pointer;
+    background: none; border: none; color: var(--text-dim); font-family: inherit;
+    font-size: 0.72rem; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer;
   }
   .range-pill:hover { color: var(--text); }
   .range-pill.active { background: var(--accent-dim); color: #fff; }
 
-  .global-range-row {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 8px 12px; margin-bottom: 18px;
-    background: var(--card-bg); border: 1px solid var(--card-border);
-    border-radius: 12px; padding: 10px 14px;
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
+  .kpi { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; }
+  .kpi .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 6px; }
+  .kpi .value { font-size: 1.55rem; font-weight: 650; letter-spacing: -0.01em; }
+  .kpi .sub { font-size: 0.7rem; color: var(--text-faint); margin-top: 3px; }
+  .kpi.clickable { cursor: pointer; }
+  .kpi.clickable:hover { border-color: var(--accent-dim); }
+
+  .section-nav {
+    position: sticky; top: 0; z-index: 20; display: flex; gap: 6px; flex-wrap: wrap;
+    background: rgba(11,18,32,0.92); backdrop-filter: blur(8px);
+    padding: 10px 0 12px; margin-bottom: 4px; border-bottom: 1px solid var(--card-border);
   }
-  .global-range-label {
-    font-size: 0.78rem; font-weight: 600; color: var(--text);
+  .section-nav a {
+    font-size: 0.72rem; font-weight: 600; color: var(--text-dim); text-decoration: none;
+    padding: 5px 10px; border-radius: 999px; border: 1px solid var(--card-border); background: var(--card-bg);
   }
-  .global-range-sub {
-    display: block; font-size: 0.68rem; font-weight: 400; color: var(--text-faint); margin-top: 1px;
+  .section-nav a:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+  .section { margin-top: 26px; scroll-margin-top: 60px; }
+  .section-head {
+    display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;
+    padding: 8px 0 10px; border-bottom: 1px solid var(--card-border); margin-bottom: 14px;
   }
-  .chart-hint { font-size: 0.72rem; color: var(--text-faint); }
+  .section-chevron { color: var(--text-faint); font-size: 0.7rem; transition: transform 0.15s; width: 10px; }
+  .section.collapsed .section-chevron { transform: rotate(-90deg); }
+  .section-title { font-size: 0.95rem; font-weight: 650; letter-spacing: -0.01em; }
+  .section-desc { font-size: 0.72rem; color: var(--text-faint); margin-left: 2px; }
+  .section-count { margin-left: auto; font-size: 0.68rem; color: var(--text-faint); border: 1px solid var(--card-border); border-radius: 999px; padding: 2px 8px; }
+  .section.collapsed .section-body { display: none; }
+
+  /* Masonry via CSS columns: tile heights vary a lot, and a grid row sizes to
+     its tallest member, which left large empty holes. */
+  .section-body { column-count: 3; column-gap: 14px; }
+  .section-body .card { break-inside: avoid; -webkit-column-break-inside: avoid; margin-bottom: 14px; display: inline-block; width: 100%; }
+  @media (max-width: 980px) { .section-body { column-count: 2; } }
+  @media (max-width: 680px) { .section-body { column-count: 1; } }
+
+  .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 0.82rem; margin: 0 0 4px; color: var(--text); font-weight: 650; }
+  .card .card-sub { font-size: 0.68rem; color: var(--text-faint); margin-bottom: 12px; line-height: 1.4; }
+  .chart-wrap { position: relative; height: 220px; }
   #pvChart { cursor: pointer; }
 
-  .kpi-row {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px; margin-bottom: 18px;
-  }
-  .kpi {
-    background: var(--card-bg); border: 1px solid var(--card-border);
-    border-radius: 12px; padding: 14px 16px;
-  }
-  .kpi .label {
-    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--text-dim); margin-bottom: 6px;
-  }
-  .kpi .value { font-size: 1.6rem; font-weight: 650; letter-spacing: -0.01em; }
-  .kpi .sub { font-size: 0.74rem; color: var(--text-faint); margin-top: 3px; }
-
-  .grid {
-    column-count: 3; column-gap: 14px;
-  }
-  .grid .card {
-    break-inside: avoid; -webkit-column-break-inside: avoid; margin-bottom: 14px;
-  }
-  @media (max-width: 900px) { .grid { column-count: 2; } }
-  @media (max-width: 620px) { .grid { column-count: 1; } }
-
-  .card {
-    background: var(--card-bg); border: 1px solid var(--card-border);
-    border-radius: 14px; padding: 16px; margin-bottom: 14px;
-  }
-  .grid .card { margin-bottom: 14px; }
-  .card h2 {
-    font-size: 0.85rem; margin: 0 0 12px; color: var(--text-dim);
-    font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
-  }
-  .chart-wrap { position: relative; height: 220px; }
-  .chart-wrap.short { height: 170px; }
-
-  .bar-list { display: flex; flex-direction: column; gap: 8px; }
-  .bar-row { display: grid; grid-template-columns: 90px 1fr 40px; align-items: center; gap: 8px; }
-  .bar-row .bname { font-size: 0.78rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-list { display: flex; flex-direction: column; gap: 9px; }
+  /* Label column sizes to content and WRAPS rather than truncating - a fixed
+     96px column was cutting off "Washington Commanders" and "Against the
+     Spread". */
+  .bar-row { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(52px, 1fr) 44px; align-items: center; gap: 9px; }
+  .bar-row .bname { font-size: 0.78rem; white-space: normal; line-height: 1.25; overflow-wrap: break-word; }
   .bar-track { background: #0d1526; border-radius: 5px; height: 9px; overflow: hidden; }
   .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-dim), var(--accent)); border-radius: 5px; }
-  .bar-row .bval { font-size: 0.76rem; color: var(--text-dim); text-align: right; }
+  .bar-row .bval { font-size: 0.76rem; color: var(--text-dim); text-align: right; font-variant-numeric: tabular-nums; }
+  .bar-row.clickable { cursor: pointer; }
+  .bar-row.clickable:hover .bname { color: var(--accent); }
+  .bar-row.clickable:hover .bar-fill { filter: brightness(1.15); }
+
+  /* Two-line variant for values that are long by nature (URL paths). */
+  .bar-list.long { gap: 12px; }
+  .bar-list.long .bar-row { display: block; }
+  .bar-list.long .bname { white-space: normal; font-size: 0.78rem; font-weight: 600; line-height: 1.35; }
+  .bar-list.long .bsub { font-size: 0.67rem; color: var(--text-faint); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-list.long .brow-bottom { display: grid; grid-template-columns: 1fr 44px; align-items: center; gap: 9px; margin-top: 6px; }
 
   table.loc-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-  table.loc-table th {
-    text-align: left; color: var(--text-faint); font-weight: 600;
-    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
-    padding: 0 8px 8px 0; border-bottom: 1px solid var(--card-border);
-  }
+  table.loc-table th { text-align: left; color: var(--text-faint); font-weight: 600; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 8px 8px 0; border-bottom: 1px solid var(--card-border); }
   table.loc-table td { padding: 7px 8px 7px 0; border-bottom: 1px solid #182238; }
   table.loc-table tr:last-child td { border-bottom: none; }
   table.loc-table td.num { text-align: right; color: var(--text-dim); }
+  table.loc-table tr.clickable { cursor: pointer; }
+  table.loc-table tr.clickable:hover td { color: var(--accent); }
+  .empty { color: var(--text-faint); font-size: 0.78rem; padding: 4px 0; }
 
-  .empty { color: var(--text-faint); font-size: 0.78rem; padding: 4px 0; text-align: left; }
-
-  /* Clickable drill-down affordances */
-  .bar-row.clickable, table.loc-table tr.clickable, .kpi.clickable {
-    cursor: pointer;
-  }
-  .bar-row.clickable:hover .bname,
-  table.loc-table tr.clickable:hover td,
-  .kpi.clickable:hover {
-    color: var(--accent);
-  }
-  .kpi.clickable:hover { border-color: var(--accent-dim); }
-  .bar-row.clickable:hover .bar-fill { filter: brightness(1.15); }
-
-  /* Drill-down panel */
-  #drillBackdrop {
-    position: fixed; inset: 0; background: rgba(4,8,16,0.6);
-    display: none; z-index: 40;
-  }
+  /* Visitor explorer panel */
+  #drillBackdrop { position: fixed; inset: 0; background: rgba(4,8,16,0.6); display: none; z-index: 40; }
   #drillBackdrop.open { display: block; }
   #drillPanel {
-    position: fixed; right: 0; top: 0; bottom: 0; width: 100%; max-width: 420px;
+    position: fixed; right: 0; top: 0; bottom: 0; width: 100%; max-width: 520px;
     background: var(--card-bg); border-left: 1px solid var(--card-border);
     z-index: 41; transform: translateX(100%); transition: transform 0.18s ease-out;
     display: flex; flex-direction: column;
   }
   #drillPanel.open { transform: translateX(0); }
-  .drill-head {
-    padding: 16px; border-bottom: 1px solid var(--card-border);
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
-  }
+  .drill-head { padding: 16px; border-bottom: 1px solid var(--card-border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .drill-title { font-size: 0.95rem; font-weight: 650; }
-  .drill-sub { font-size: 0.75rem; color: var(--text-dim); margin-top: 3px; }
-  .drill-close {
-    background: none; border: 1px solid var(--card-border); color: var(--text-dim);
-    width: 28px; height: 28px; border-radius: 7px; cursor: pointer; font-size: 0.9rem; flex-shrink: 0;
-  }
-  .drill-back {
-    background: none; border: none; color: var(--accent); font-family: inherit;
-    font-size: 0.78rem; cursor: pointer; padding: 0; margin-bottom: 10px;
-  }
+  .drill-sub { font-size: 0.74rem; color: var(--text-dim); margin-top: 3px; line-height: 1.5; }
+  .drill-close { background: none; border: 1px solid var(--card-border); color: var(--text-dim); width: 28px; height: 28px; border-radius: 7px; cursor: pointer; flex-shrink: 0; }
+  .drill-back { background: none; border: none; color: var(--accent); font-family: inherit; font-size: 0.78rem; cursor: pointer; padding: 0; margin-bottom: 12px; }
   .drill-body { padding: 14px 16px; overflow-y: auto; flex: 1; }
-  .session-row {
-    padding: 10px 0; border-bottom: 1px solid #182238; cursor: pointer;
-  }
-  .session-row:hover .session-id { color: var(--accent); }
-  .session-row:last-child { border-bottom: none; }
-  .session-id { font-size: 0.82rem; font-weight: 600; font-family: ui-monospace, monospace; }
-  .session-meta { font-size: 0.72rem; color: var(--text-dim); margin-top: 3px; }
-  .session-badge {
-    display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 1px 6px;
-    border-radius: 10px; margin-left: 6px; background: rgba(107,227,161,0.15); color: var(--good);
-  }
-  .session-badge.off { background: rgba(85,96,119,0.2); color: var(--text-faint); }
-  .timeline-item { padding: 8px 0; border-bottom: 1px solid #182238; font-size: 0.78rem; }
-  .timeline-item:last-child { border-bottom: none; }
-  .timeline-time { color: var(--text-faint); font-size: 0.68rem; margin-top: 2px; }
-  .drill-loadmore {
-    width: 100%; margin-top: 8px; background: none; border: 1px dashed var(--card-border);
-    color: var(--text-dim); font-family: inherit; font-size: 0.76rem; padding: 8px; border-radius: 8px; cursor: pointer;
-  }
+  .drill-sort { display: flex; gap: 4px; background: #0d1526; border-radius: 8px; padding: 3px; margin-bottom: 12px; }
+  .drill-sort button { flex: 1; background: none; border: none; color: var(--text-dim); font-family: inherit; font-size: 0.7rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+  .drill-sort button.active { background: var(--accent-dim); color: #fff; }
 
-  .back-link {
-    display:inline-block; margin-bottom:10px; font-size:.78rem; font-weight:700;
-    color:var(--dim); text-decoration:none;
-  }
-  .back-link:hover, .back-link:focus-visible { color:var(--accent); }
+  .session-row { padding: 11px 0; border-bottom: 1px solid #182238; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+  .session-row:last-child { border-bottom: none; }
+  .session-row:hover .session-id { color: var(--accent); }
+  .session-dev { font-size: 0.95rem; width: 20px; text-align: center; flex-shrink: 0; }
+  .session-id { font-size: 0.8rem; font-weight: 600; font-family: ui-monospace, monospace; }
+  .session-meta { font-size: 0.71rem; color: var(--text-dim); margin-top: 3px; }
+  .session-depth { margin-left: auto; text-align: right; flex-shrink: 0; }
+  .session-depth .n { font-size: 0.9rem; font-weight: 650; }
+  .session-depth .l { font-size: 0.62rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+  .session-badge { display: inline-block; font-size: 0.63rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; margin-left: 6px; background: rgba(107,227,161,0.15); color: var(--good); }
+  .session-badge.off, .session-badge.bounce { background: rgba(85,96,119,0.2); color: var(--text-faint); }
+
+  .vs-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  .vs-stat { background: #0d1526; border: 1px solid var(--card-border); border-radius: 9px; padding: 9px 10px; }
+  .vs-stat .n { font-size: 1.05rem; font-weight: 650; }
+  .vs-stat .l { font-size: 0.61rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+  .vs-prefs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .vs-chip { font-size: 0.68rem; color: var(--text-dim); background: #0d1526; border: 1px solid var(--card-border); border-radius: 999px; padding: 3px 9px; }
+
+  .visit { border: 1px solid var(--card-border); border-radius: 11px; margin-bottom: 10px; overflow: hidden; }
+  .visit-head { display: flex; align-items: center; gap: 9px; padding: 10px 12px; cursor: pointer; background: #0d1526; user-select: none; }
+  .visit-chevron { color: var(--text-faint); font-size: 0.65rem; transition: transform 0.15s; width: 9px; flex-shrink: 0; }
+  .visit.collapsed .visit-chevron { transform: rotate(-90deg); }
+  .visit.collapsed .visit-body { display: none; }
+  .visit-when { font-size: 0.78rem; font-weight: 600; }
+  .visit-facts { font-size: 0.68rem; color: var(--text-faint); margin-top: 2px; }
+  .visit-dur { margin-left: auto; font-size: 0.7rem; color: var(--text-dim); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .visit-body { padding: 4px 12px 10px; }
+
+  .tl-item { display: grid; grid-template-columns: 46px 1fr; gap: 8px; align-items: start; padding: 7px 0; border-bottom: 1px solid #182238; }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-off { font-size: 0.66rem; color: var(--text-faint); font-variant-numeric: tabular-nums; padding-top: 2px; }
+  .tl-label { font-size: 0.77rem; line-height: 1.4; }
+  .tl-detail { font-size: 0.68rem; color: var(--text-faint); margin-top: 1px; word-break: break-word; }
+  .tl-item.conversion .tl-label { color: var(--blitz-orange); font-weight: 600; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <!-- Reached from the Analytics tab of the admin console, which opens it in
+       a new tab - so "back" can't be history.back(). Plain link home. -->
+  <a class="back-link" href="/">&#8592; Back to Blitz Odds</a>
   <header>
-    <!-- This page is reached from the Analytics tab of the admin console, which
-         opens it in a new tab. So "back" cannot be history.back() - there is no
-         history to go back through on a fresh tab. It's a plain link home, and
-         the console is a modal over the app rather than its own route, so the
-         link lands on the app and the admin reopens the console from the
-         account menu. -->
-    <a class="back-link" href="/">&#8592; Back to Blitz Odds</a>
     <h1>
       <img class="brand-mark-icon" src="/branding/analytics-icon.png" width="30" height="30" alt="" aria-hidden="true" />
       Blitz <span>Odds</span> — Analytics
@@ -235,7 +212,8 @@
     <div class="status-line">
       <span class="status-dot" id="statusDot"></span>
       <span id="statusText">Loading…</span>
-      <button id="refreshBtn">Refresh</button>
+      <button class="btn" id="visitorsBtn">Visitors</button>
+      <button class="btn" id="refreshBtn">Refresh</button>
     </div>
   </header>
 
@@ -252,135 +230,51 @@
     </div>
   </div>
 
-  <div class="kpi-row">
-    <div class="kpi clickable" id="kpiPageviewsCard" data-dimension="all" data-value="" data-label="All visitors">
-      <div class="label">Total pageviews</div>
-      <div class="value" id="kpiPageviews">—</div>
+  <div class="global-range-row">
+    <div class="global-range-label">Traffic source <span class="global-range-sub" id="sourceSub">what counts as a real visit</span></div>
+    <div class="range-pills" id="sourcePills">
+      <button class="range-pill active" data-source="live">blitz-odds.com only</button>
+      <button class="range-pill" data-source="live-nodc">Exclude datacenters</button>
+      <button class="range-pill" data-source="all">Everything</button>
     </div>
-    <div class="kpi clickable" id="kpiVisitorsCard" data-dimension="all" data-value="" data-label="All visitors">
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi clickable" data-dimension="all" data-value="" data-label="All visitors">
       <div class="label">Unique visitors</div>
       <div class="value" id="kpiVisitors">—</div>
     </div>
-    <div class="kpi" id="kpiBookCompareCard">
-      <div class="label">Book comparisons opened</div>
-      <div class="value" id="kpiBookCompare">—</div>
-    </div>
-    <div class="kpi" id="kpiFavTeamCard">
-      <div class="label">Top favorite</div>
-      <div class="value" id="kpiFavTeam">—</div>
-    </div>
-    <div class="kpi" id="kpiTopLocCard">
-      <div class="label">Top location</div>
-      <div class="value" id="kpiTopLoc" style="font-size:1.05rem;">—</div>
+    <div class="kpi clickable" data-dimension="all" data-value="" data-label="All visitors">
+      <div class="label">Pageviews</div>
+      <div class="value" id="kpiPageviews">—</div>
     </div>
     <div class="kpi">
-      <div class="label">Team page views</div>
+      <div class="label">Pages / visitor</div>
+      <div class="value" id="kpiPagesPer">—</div>
+      <div class="sub" id="kpiPagesPerSub"></div>
+    </div>
+    <div class="kpi">
+      <div class="label">Team pages</div>
       <div class="value" id="kpiTeamPageViews">—</div>
     </div>
     <div class="kpi">
-      <div class="label">Game page views</div>
+      <div class="label">Game pages</div>
       <div class="value" id="kpiGamePageViews">—</div>
+    </div>
+    <div class="kpi" id="kpiTopLocCard">
+      <div class="label">Top location</div>
+      <div class="value" id="kpiTopLoc" style="font-size:1.02rem;">—</div>
     </div>
   </div>
 
-
   <div class="card">
-    <div class="card-head-row">
-      <h2 style="margin:0;">Pageviews</h2>
-      <div class="chart-hint">Tap a bar to see who visited then</div>
-    </div>
+    <h2>Pageviews over time</h2>
+    <div class="card-sub">Tap a bar to see who visited in that bucket</div>
     <div class="chart-wrap"><canvas id="pvChart"></canvas></div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <h2>Team clicks</h2>
-      <div class="bar-list" id="teamClicksList"></div>
-    </div>
-    <div class="card">
-      <h2>Favorited teams</h2>
-      <div class="bar-list" id="favTeamsList"></div>
-    </div>
-    <div class="card">
-      <h2>Roster views by team</h2>
-      <div class="bar-list" id="rosterViewsList"></div>
-    </div>
-    <div class="card">
-      <h2>Depth chart side views</h2>
-      <div class="bar-list" id="depthSideList"></div>
-    </div>
-    <div class="card">
-      <h2>Most viewed players</h2>
-      <div class="bar-list" id="topPlayersList"></div>
-    </div>
-    <div class="card">
-      <h2>News sources clicked</h2>
-      <div class="bar-list" id="newsSourceList"></div>
-    </div>
-    <div class="card">
-      <h2>News clicks by placement</h2>
-      <div class="bar-list" id="newsPlacementList"></div>
-    </div>
-    <div class="card">
-      <h2>Team clicks by origin</h2>
-      <div class="bar-list" id="teamOriginList"></div>
-    </div>
-    <div class="card">
-      <h2>Box scores opened by team</h2>
-      <div class="bar-list" id="boxscoreTeamList"></div>
-    </div>
-    <div class="card">
-      <h2>Box scores opened by entry point</h2>
-      <div class="bar-list" id="boxscoreSourceList"></div>
-    </div>
-    <div class="card">
-      <h2>Playbook screens opened</h2>
-      <div class="bar-list" id="playbookSubtabList"></div>
-    </div>
-    <div class="card">
-      <h2>Pool format picked on the preview</h2>
-      <div class="bar-list" id="playbookFormatList"></div>
-    </div>
-    <div class="card">
-      <h2>Gate CTA clicks</h2>
-      <div class="bar-list" id="gateCtaList"></div>
-    </div>
-    <div class="card">
-      <h2>Gate CTA by surface</h2>
-      <div class="bar-list" id="gateSurfaceList"></div>
-    </div>
-    <div class="card">
-      <h2>Top pages viewed</h2>
-      <div class="bar-list" id="pageviewsByPathList"></div>
-    </div>
-    <div class="card">
-      <h2>Referrers</h2>
-      <div class="bar-list" id="referrerList"></div>
-    </div>
-    <div class="card">
-      <h2>Theme</h2>
-      <div class="bar-list" id="themeList"></div>
-    </div>
-    <div class="card">
-      <h2>Sportsbook</h2>
-      <div class="bar-list" id="sportsbookList"></div>
-    </div>
-    <div class="card">
-      <h2>Time zone</h2>
-      <div class="bar-list" id="tzPrefList"></div>
-    </div>
-    <div class="card">
-      <h2>Top cities</h2>
-      <table class="loc-table" id="cityTable">
-        <thead><tr><th>City</th><th class="num">Visitors</th><th class="num">Views</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <div class="card">
-      <h2>Devices</h2>
-      <div class="bar-list" id="deviceList"></div>
-    </div>
-  </div>
+  <nav class="section-nav" id="sectionNav"></nav>
+  <div id="sections"></div>
 </div>
 
 <div id="drillBackdrop"></div>
@@ -401,36 +295,24 @@
   "use strict";
 
   var ENDPOINT = "/.netlify/functions/analytics-summary";
+  var SESSIONS_ENDPOINT = "/.netlify/functions/analytics-sessions";
   var REFRESH_MS = 60000;
 
-  var pvChart = null;
-  var refreshTimer = null;
-  var lastGoodFetch = null;
-  var currentRange = "30d";
-  var latestData = null;
+  var pvChart = null, lastGoodFetch = null, latestData = null;
+  var currentRange = "30d", currentSource = "live";
+  // Per range+source payload cache. The server computes every range from one
+  // scan, so switching ranges should never cost another round trip.
+  var payloadCache = {};
 
-  var gridColor = "rgba(255,255,255,0.05)";
-  var tickColor = "#556077";
+  var TEAM_ABBRS = {"ARI": "Arizona Cardinals", "ATL": "Atlanta Falcons", "BAL": "Baltimore Ravens", "BUF": "Buffalo Bills", "CAR": "Carolina Panthers", "CHI": "Chicago Bears", "CIN": "Cincinnati Bengals", "CLE": "Cleveland Browns", "DAL": "Dallas Cowboys", "DEN": "Denver Broncos", "DET": "Detroit Lions", "GB": "Green Bay Packers", "HOU": "Houston Texans", "IND": "Indianapolis Colts", "JAX": "Jacksonville Jaguars", "KC": "Kansas City Chiefs", "LV": "Las Vegas Raiders", "LAC": "Los Angeles Chargers", "LAR": "Los Angeles Rams", "MIA": "Miami Dolphins", "MIN": "Minnesota Vikings", "NE": "New England Patriots", "NO": "New Orleans Saints", "NYG": "New York Giants", "NYJ": "New York Jets", "PHI": "Philadelphia Eagles", "PIT": "Pittsburgh Steelers", "SF": "San Francisco 49ers", "SEA": "Seattle Seahawks", "TB": "Tampa Bay Buccaneers", "TEN": "Tennessee Titans", "WAS": "Washington Commanders", "SD": "San Diego Chargers", "OAK": "Oakland Raiders", "STL": "St. Louis Rams", "WSH": "Washington Commanders", "LA": "Los Angeles Rams"};
+  var TEAM_SLUGS = {"arizona-cardinals": "ARI", "atlanta-falcons": "ATL", "baltimore-ravens": "BAL", "buffalo-bills": "BUF", "carolina-panthers": "CAR", "chicago-bears": "CHI", "cincinnati-bengals": "CIN", "cleveland-browns": "CLE", "dallas-cowboys": "DAL", "denver-broncos": "DEN", "detroit-lions": "DET", "green-bay-packers": "GB", "houston-texans": "HOU", "indianapolis-colts": "IND", "jacksonville-jaguars": "JAX", "kansas-city-chiefs": "KC", "las-vegas-raiders": "LV", "los-angeles-chargers": "LAC", "los-angeles-rams": "LAR", "miami-dolphins": "MIA", "minnesota-vikings": "MIN", "new-england-patriots": "NE", "new-orleans-saints": "NO", "new-york-giants": "NYG", "new-york-jets": "NYJ", "philadelphia-eagles": "PHI", "pittsburgh-steelers": "PIT", "san-francisco-ers": "SF", "seattle-seahawks": "SEA", "tampa-bay-buccaneers": "TB", "tennessee-titans": "TEN", "washington-commanders": "WAS", "sd": "SD", "oak": "OAK", "stl": "STL", "wsh": "WSH", "la": "LA"};
+  var BOOK_NAMES = { draftkings: "DraftKings", fanduel: "FanDuel", betmgm: "BetMGM", caesars: "Caesars", espnbet: "ESPN BET", bet365: "bet365" };
 
-  function fmtNum(n) {
-    if (typeof n !== "number") return "0";
-    return n.toLocaleString("en-US");
-  }
-
-  function fmtDayLabel(bucket) {
-    var d = new Date(bucket + "T00:00:00Z");
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  }
-
-  function fmtHourLabel(bucket) {
-    var d = new Date(bucket);
-    return d.toLocaleTimeString("en-US", { hour: "numeric" });
-  }
-
-  function fmtMonthLabel(bucket) {
-    var d = new Date(bucket + "-01T00:00:00Z");
-    return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
-  }
+  function fmtNum(n) { return (typeof n === "number" ? n : 0).toLocaleString("en-US"); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function titleCase(s) { return String(s).charAt(0).toUpperCase() + String(s).slice(1); }
+  function omitUnknown(o) { var out = {}; Object.keys(o || {}).forEach(function (k) { if (k !== "unknown") out[k] = o[k]; }); return out; }
+  function relabel(o, map) { var out = {}; Object.keys(o || {}).forEach(function (k) { out[map[k] || titleCase(k)] = o[k]; }); return out; }
 
   function setStatus(state, text) {
     var dot = document.getElementById("statusDot");
@@ -438,582 +320,565 @@
     document.getElementById("statusText").textContent = text;
   }
 
-  function omitUnknown(obj) {
-    if (!obj) return obj;
-    var out = {};
-    Object.keys(obj).forEach(function (k) {
-      if (k !== "unknown") out[k] = obj[k];
+  // ---- Label prettifiers ------------------------------------------------
+  function teamAbbr(slug) { return TEAM_SLUGS[slug] || slug.toUpperCase().slice(0, 4); }
+  function titleSlug(s) { return String(s).split("-").map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(" "); }
+  function weekLabel(s) {
+    if (/^preseason-week-(\d+)$/.test(s)) return "Preseason Wk " + RegExp.$1;
+    if (/^week-(\d+)$/.test(s)) return "Wk " + RegExp.$1;
+    return titleSlug(s);
+  }
+  function matchupLabel(slug) {
+    var m = String(slug).replace(/\.html$/, "").split("-at-");
+    if (m.length !== 2) return titleSlug(String(slug).replace(/\.html$/, ""));
+    return teamAbbr(m[0]) + " @ " + teamAbbr(m[1]);
+  }
+  function prettyPath(path) {
+    var p = String(path);
+    var parts = p.replace(/^\/|\/$/g, "").split("/");
+    if (p === "/" || p === "") return { name: "Home — this week's games", sub: "/" };
+    if (p === "/picks") return { name: "My Picks", sub: p };
+    if (p === "/playbook") return { name: "Playbook", sub: p };
+    if (p === "/leagues") return { name: "Leagues", sub: p };
+    if (parts[0] === "teams" && parts[1]) return { name: titleSlug(parts[1]), sub: p };
+    if (parts[0] === "games" && parts.length >= 4) return { name: matchupLabel(parts[3]), sub: weekLabel(parts[2]) + " " + parts[1] + " · game page" };
+    if (parts[0] === "historical") {
+      if (parts[1] === "index.html" || parts.length === 1) return { name: "Historical archive — index", sub: p };
+      if (parts[1] === "teams" && parts[2]) return { name: titleSlug(parts[2]), sub: "archive team page" };
+      if (parts.length >= 5) return { name: matchupLabel(parts[4]), sub: parts[1] + " · " + weekLabel(parts[3]) + " · archive" };
+      return { name: "Historical archive", sub: p };
+    }
+    return { name: p, sub: "" };
+  }
+  // Returns an ARRAY: two paths can prettify to the same display name (a game
+  // page and its archive page both read "PIT @ BUF"), and an object would
+  // silently overwrite one count with the other. `raw` stays the untouched
+  // pathname, which is what the drill-down has to filter on.
+  function prettyPaths(dist) {
+    return Object.entries(dist || {}).map(function (e) {
+      var pp = prettyPath(e[0]);
+      return { name: pp.name, sub: pp.sub, value: e[1], raw: e[0] };
+    }).sort(function (a, b) { return b.value - a.value; });
+  }
+  function prettyReferrers(dist) {
+    var out = {}, previews = 0;
+    Object.keys(dist || {}).forEach(function (k) {
+      if (/--blitz-odds\.netlify\.app$/.test(k)) { previews += dist[k]; return; }
+      var name = k === "(direct)" ? "Direct / bookmark / app" : k === "(internal)" ? "Internal navigation" : k;
+      out[name] = (out[name] || 0) + dist[k];
     });
+    if (previews) out["Netlify deploy previews"] = previews;
+    return Object.entries(out).sort(function (a, b) { return b[1] - a[1]; })
+      .map(function (e) { return { name: e[0], sub: "", value: e[1], raw: e[0] }; });
+  }
+  // The store holds both "DEN" and "Denver Broncos" as separate keys for the
+  // same team, so a team's real total was split across two bars.
+  function normTeams(dist) {
+    var out = {}, raw = {};
+    Object.keys(dist || {}).forEach(function (k) {
+      if (k === "unknown") return;
+      var name = TEAM_ABBRS[k] || k;
+      out[name] = (out[name] || 0) + dist[k];
+      if (!raw[name]) raw[name] = k;
+    });
+    normTeams.raw = raw;
+    return Object.fromEntries(Object.entries(out).sort(function (a, b) { return b[1] - a[1]; }));
+  }
+  function bookNames(dist) {
+    var out = {};
+    Object.keys(dist || {}).forEach(function (k) { out[BOOK_NAMES[k] || titleCase(k)] = dist[k]; });
     return out;
   }
-
-  // `dimension` matches a VALID_DIMENSIONS entry in analytics-sessions.mts.
-  // When omitted, the tile isn't clickable (nothing to filter sessions by).
-  // `valueFn` maps a displayed label back to the raw filter value, for cases
-  // where display label != stored value (e.g. "Mobile" shown, "mobile" filtered).
-  function renderBarList(containerId, dataObj, emptyMsg, dimension, valueFn) {
-    var el = document.getElementById(containerId);
-    var entries = Object.entries(dataObj || {}).slice(0, 8);
-    if (entries.length === 0) {
-      el.innerHTML = '<div class="empty">' + emptyMsg + "</div>";
-      return;
-    }
-    var max = Math.max.apply(null, entries.map(function (e) { return e[1]; }));
-    el.innerHTML = entries
-      .map(function (e) {
-        var pct = max > 0 ? Math.max(4, Math.round((e[1] / max) * 100)) : 0;
-        var rawValue = dimension ? (valueFn ? valueFn(e[0]) : e[0]) : null;
-        var attrs = dimension
-          ? ' class="bar-row clickable" data-dimension="' + dimension + '" data-value="' + escapeHtml(rawValue) + '" data-label="' + escapeHtml(e[0]) + '"'
-          : ' class="bar-row"';
-        return (
-          "<div" + attrs + "><div class=\"bname\">" +
-          escapeHtml(e[0]) +
-          '</div><div class="bar-track"><div class="bar-fill" style="width:' +
-          pct +
-          '%"></div></div><div class="bval">' +
-          fmtNum(e[1]) +
-          "</div></div>"
-        );
-      })
-      .join("");
+  function shortCity(c) {
+    var city = c.city || "", region = c.region || "", country = c.country || "";
+    if (!city) return c.label || "Unknown";
+    var parts = [city];
+    if (region && region.toLowerCase().indexOf(city.toLowerCase()) === -1) parts.push(region);
+    if (country) parts.push(country);
+    return parts.join(", ");
+  }
+  function deviceObj(list) {
+    var o = {};
+    (list || []).forEach(function (d) { if (d.label !== "unknown") o[titleCase(d.label)] = d.uniqueVisitors; });
+    return o;
+  }
+  // Say when a tile is incomplete rather than silently dropping the blanks,
+  // which makes it look complete when it isn't.
+  function unknownNote(dist, base) {
+    var unknown = (dist || {}).unknown || 0;
+    if (!unknown) return base;
+    var total = Object.values(dist).reduce(function (a, b) { return a + b; }, 0);
+    return base + " · " + unknown + " of " + total + " missing a team (tracking gap)";
   }
 
-  function renderCityTable(cities) {
-    var tbody = document.querySelector("#cityTable tbody");
+  // ---- Rendering --------------------------------------------------------
+  function barListHtml(data, dim, opts) {
+    opts = opts || {};
+    var rows = Array.isArray(data) ? data.slice(0, 8)
+      : Object.entries(data || {}).slice(0, 8).map(function (e) { return { name: e[0], sub: "", value: e[1], raw: e[0] }; });
+    if (!rows.length) return '<div class="empty">' + esc(opts.empty || "Nothing in this range yet") + "</div>";
+    var max = Math.max.apply(null, rows.map(function (r) { return r.value; }));
+    var cls = opts.long ? "bar-list long" : "bar-list";
+    return '<div class="' + cls + '">' + rows.map(function (r) {
+      var pct = max > 0 ? Math.max(4, Math.round((r.value / max) * 100)) : 0;
+      var filterVal = opts.valueFn ? opts.valueFn(r.name, r) : (r.raw != null ? r.raw : r.name);
+      var attrs = dim
+        ? ' class="bar-row clickable" data-dimension="' + dim + '" data-value="' + esc(filterVal) + '" data-label="' + esc(r.name) + '"'
+        : ' class="bar-row"';
+      var bar = '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>';
+      var val = '<div class="bval">' + fmtNum(r.value) + "</div>";
+      if (opts.long) {
+        var sub = r.sub ? '<div class="bsub" title="' + esc(r.sub) + '">' + esc(r.sub) + "</div>" : "";
+        return "<div" + attrs + '><div class="bname">' + esc(r.name) + "</div>" + sub +
+          '<div class="brow-bottom">' + bar + val + "</div></div>";
+      }
+      return "<div" + attrs + '><div class="bname">' + esc(r.name) + "</div>" + bar + val + "</div>";
+    }).join("") + "</div>";
+  }
+
+  function cityTableHtml(cities) {
     var top = (cities || []).slice(0, 8);
-    if (top.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" class="empty">No location data yet</td></tr>';
-      return;
-    }
-    tbody.innerHTML = top
-      .map(function (c) {
-        var label = c.label || "Unknown";
-        return (
-          '<tr class="clickable" data-dimension="city" data-value="' +
-          escapeHtml(label) +
-          '" data-label="' +
-          escapeHtml(label) +
-          '"><td>' +
-          escapeHtml(label) +
-          '</td><td class="num">' +
-          fmtNum(c.uniqueVisitors) +
-          '</td><td class="num">' +
-          fmtNum(c.pageviews) +
-          "</td></tr>"
-        );
-      })
-      .join("");
+    if (!top.length) return '<div class="empty">No location data yet</div>';
+    return '<table class="loc-table"><thead><tr><th>City</th><th class="num">Visitors</th><th class="num">Views</th></tr></thead><tbody>' +
+      top.map(function (c) {
+        return '<tr class="clickable" data-dimension="city" data-value="' + esc(c.label) + '" data-label="' + esc(shortCity(c)) +
+          '"><td>' + esc(shortCity(c)) + '</td><td class="num">' + fmtNum(c.uniqueVisitors) +
+          '</td><td class="num">' + fmtNum(c.pageviews) + "</td></tr>";
+      }).join("") + "</tbody></table>";
   }
 
-  // viewsByDevice arrives pre-sorted (desc by uniqueVisitors) as
-  // [{label:"mobile", uniqueVisitors, pageviews}, ...]. renderBarList wants
-  // a plain {label: count} object, insertion-ordered - so this reshapes
-  // without re-sorting, then drops "unknown" and title-cases for display.
-  // Keeps a label->rawValue map since the index stores the lowercase value
-  // ("mobile") but the tile displays the title-cased one ("Mobile").
-  var deviceLabelToRaw = {};
-  function deviceBarData(list) {
-    var raw = {};
-    (list || []).forEach(function (d) {
-      raw[d.label] = d.uniqueVisitors;
-    });
-    var filtered = omitUnknown(raw);
-    var out = {};
-    deviceLabelToRaw = {};
-    Object.keys(filtered).forEach(function (k) {
-      var display = k.charAt(0).toUpperCase() + k.slice(1);
-      out[display] = filtered[k];
-      deviceLabelToRaw[display] = k;
-    });
-    return out;
+  function sectionsFor(d) {
+    return [
+      { id: "audience", title: "Audience", desc: "Who is showing up, on what, and from where", tiles: [
+        { title: "Devices", sub: "Unique visitors per device type", html: barListHtml(deviceObj(d.viewsByDevice), "device", { valueFn: function (l) { return l.toLowerCase(); } }) },
+        { title: "Referrers", sub: "Hostname only — never a full URL", html: barListHtml(prettyReferrers(d.referrerBreakdown), "referrer", { long: true }) },
+        { title: "Top cities", sub: "From Netlify edge geolocation", html: cityTableHtml(d.viewsByCity) },
+        { title: "Top pages", sub: "By pathname", html: barListHtml(prettyPaths(d.pageviewsByPath), "pathname", { long: true }) }
+      ]},
+      { id: "teams", title: "Teams & players", desc: "Which teams and players people dig into", tiles: [
+        { title: "Team clicks", sub: "Clicks through to a team page", html: barListHtml(normTeams(d.teamClicksByTeam), "teamClick", { valueFn: function (l) { return normTeams.raw[l] || l; } }) },
+        { title: "Favorited teams", sub: "Star-adds only, not net current state", html: barListHtml(normTeams(d.favoritesByTeam), "favTeam", { valueFn: function (l) { return normTeams.raw[l] || l; } }) },
+        { title: "Team clicks by origin", sub: "Game card vs. the favorites quick-nav", html: barListHtml(relabel(d.teamClicksByOrigin, { game_card: "Game card", favorites_bar: "Favorites bar" }), "teamClickOrigin", { valueFn: function (l) { return l === "Game card" ? "game_card" : l === "Favorites bar" ? "favorites_bar" : l; } }) },
+        { title: "Roster views by team", sub: unknownNote(d.rosterViewsByTeam, '"Roster & Depth Chart" tab opens'), html: barListHtml(normTeams(d.rosterViewsByTeam), "rosterTeam", { valueFn: function (l) { return normTeams.raw[l] || l; } }) },
+        { title: "Depth chart side", sub: "Offense / Defense / Special Teams", html: barListHtml(d.depthChartSideViews, "rosterSide") },
+        { title: "Most viewed players", sub: "From depth chart or full roster", html: barListHtml(d.topViewedPlayers, "player") }
+      ]},
+      { id: "games", title: "Games & box scores", desc: "Live and final game engagement", tiles: [
+        { title: "Box scores by team", sub: "Both teams credited per open", html: barListHtml(normTeams(d.boxscoreClicksByTeam), "boxscoreTeam", { valueFn: function (l) { return normTeams.raw[l] || l; } }) },
+        { title: "Box scores by entry point", sub: "Full Details button vs. tappable score", html: barListHtml(relabel(d.boxscoreClicksBySource, { full_details: "Full Details", score_tap: "Score tap", unknown: "Before tracking" })) }
+      ]},
+      { id: "content", title: "Content & archive", desc: "News ticker and the historical archive", tiles: [
+        { title: "News sources clicked", sub: "Which outlet's headlines land", html: barListHtml(d.newsSourceClicks, "newsSource") },
+        { title: "News by placement", sub: "Week-view ticker vs. Team News panel", html: barListHtml(relabel(d.newsClicksByPlacement, { ticker: "Ticker", team_news: "Team News" }), "newsPlacement", { valueFn: function (l) { return l === "Ticker" ? "ticker" : l === "Team News" ? "team_news" : l; } }) },
+        { title: "Archive interactions", sub: fmtNum(d.historyPageviews) + " archive pageviews in range", html: barListHtml(relabel(d.historyClicksByType, { history_nav_click: "Nav click", history_week_select: "Week select", history_game_click: "Game click", history_team_game_click: "Team game click" })) },
+        { title: "Archive games by team", sub: "Which teams' history gets clicked", html: barListHtml(normTeams(d.historyGameClicksByTeam)) }
+      ]},
+      { id: "conversion", title: "Conversion & product", desc: "Playbook, gates, and monetisation signals", tiles: [
+        { title: "Playbook screens", sub: "Which of the four sub-screens open", html: barListHtml(d.playbookSubtabViews) },
+        { title: "Pool format on preview", sub: "Format picked before signing up", html: barListHtml(d.playbookFormatViews) },
+        { title: "Gate CTA clicks", sub: "The conversion event", html: barListHtml(d.gateCtaClicks) },
+        { title: "Gate CTA by surface", sub: "Sign-in wall vs. Pro gate", html: barListHtml(relabel(d.gateCtaBySurface, { signin: "Sign-in wall", pro: "Pro gate" })) },
+        { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" }
+      ]},
+      { id: "prefs", title: "Preferences", desc: "What people are currently set to, not how often they changed it", tiles: [
+        { title: "Theme", sub: "Current setting per visitor", html: barListHtml(relabel(d.themeDistribution, {}), "theme", { valueFn: function (l) { return l.toLowerCase(); } }) },
+        { title: "Sportsbook", sub: "Preferred odds source", html: barListHtml(bookNames(d.sportsbookDistribution), "sportsbook", { valueFn: function (l) { return l.toLowerCase(); } }) },
+        { title: "Time zone", sub: "Auto (device) vs. an explicit pick", html: barListHtml(relabel(d.tzPrefDistribution, { auto: "Auto (device)" }), "tzPref", { valueFn: function (l) { return l === "Auto (device)" ? "auto" : l; } }) }
+      ]}
+    ];
   }
 
-  // themeDistribution/sportsbookDistribution/tzPrefDistribution arrive as
-  // {rawValue: uniqueVisitorCount} already sorted desc. Same label/raw-value
-  // split as deviceBarData, since the dashboard displays a friendlier label
-  // than the raw stored preference value.
-  var themeLabelToRaw = {};
-  function themeBarData(dist) {
-    var out = {};
-    themeLabelToRaw = {};
-    Object.keys(dist || {}).forEach(function (k) {
-      var display = k.charAt(0).toUpperCase() + k.slice(1);
-      out[display] = dist[k];
-      themeLabelToRaw[display] = k;
-    });
-    return out;
+  function renderSections(d) {
+    var secs = sectionsFor(d);
+    document.getElementById("sections").innerHTML = secs.map(function (s) {
+      var collapsed = localStorage.getItem("blitz-analytics-sec-" + s.id) === "1";
+      return '<section class="section' + (collapsed ? " collapsed" : "") + '" id="sec-' + s.id + '" data-sec="' + s.id + '">' +
+        '<div class="section-head"><span class="section-chevron">&#9660;</span>' +
+        '<div><div class="section-title">' + esc(s.title) + '</div><div class="section-desc">' + esc(s.desc) + "</div></div>" +
+        '<span class="section-count">' + s.tiles.length + " tiles</span></div>" +
+        '<div class="section-body">' + s.tiles.map(function (t) {
+          return '<div class="card"><h2>' + esc(t.title) + '</h2><div class="card-sub">' + esc(t.sub) + "</div>" + t.html + "</div>";
+        }).join("") + "</div></section>";
+    }).join("");
+    document.getElementById("sectionNav").innerHTML = secs.map(function (s) {
+      return '<a href="#sec-' + s.id + '">' + esc(s.title) + "</a>";
+    }).join("");
   }
 
-  var sportsbookLabelToRaw = {};
-  function sportsbookBarData(dist) {
-    var out = {};
-    sportsbookLabelToRaw = {};
-    Object.keys(dist || {}).forEach(function (k) {
-      var display = k.charAt(0).toUpperCase() + k.slice(1);
-      out[display] = dist[k];
-      sportsbookLabelToRaw[display] = k;
-    });
-    return out;
-  }
+  // ---- Chart ------------------------------------------------------------
+  function fmtDayLabel(b) { return new Date(b + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
+  function fmtHourLabel(b) { return new Date(b).toLocaleTimeString("en-US", { hour: "numeric" }); }
+  function fmtMonthLabel(b) { return new Date(b + "-01T00:00:00Z").toLocaleDateString("en-US", { month: "short", year: "2-digit" }); }
 
-  var tzPrefLabelToRaw = {};
-  function tzPrefBarData(dist) {
-    var out = {};
-    tzPrefLabelToRaw = {};
-    Object.keys(dist || {}).forEach(function (k) {
-      var display = k === "auto" ? "Auto (device)" : k;
-      out[display] = dist[k];
-      tzPrefLabelToRaw[display] = k;
-    });
-    return out;
-  }
-
-  var newsPlacementLabelToRaw = {};
-  function newsPlacementBarData(dist) {
-    var labels = { ticker: "Ticker", team_news: "Team News" };
-    var out = {};
-    newsPlacementLabelToRaw = {};
-    Object.keys(dist || {}).forEach(function (k) {
-      var display = labels[k] || k;
-      out[display] = dist[k];
-      newsPlacementLabelToRaw[display] = k;
-    });
-    return out;
-  }
-
-  // "signin" is the preview's sign-in wall, "pro" the subscription gate on
-  // What Changed and Betting Angles. Different asks, so they're reported
-  // apart rather than as one conversion number.
-  var gateSurfaceLabelToRaw = {};
-  function gateSurfaceBarData(dist) {
-    var labels = { signin: "Sign-in wall", pro: "Pro gate" };
-    var out = {};
-    gateSurfaceLabelToRaw = {};
-    Object.keys(dist || {}).forEach(function (k) {
-      var display = labels[k] || k;
-      out[display] = dist[k];
-      gateSurfaceLabelToRaw[display] = k;
-    });
-    return out;
-  }
-
-  var teamOriginLabelToRaw = {};
-  function teamOriginBarData(dist) {
-    var labels = { game_card: "Game card", favorites_bar: "Favorites bar" };
-    var out = {};
-    teamOriginLabelToRaw = {};
-    Object.keys(dist || {}).forEach(function (k) {
-      var display = labels[k] || k;
-      out[display] = dist[k];
-      teamOriginLabelToRaw[display] = k;
-    });
-    return out;
-  }
-
-  // ---------------------------------------------------------------------
-  // Drill-down panel: click any tile row (or a KPI) to see which visitors
-  // (anonymous per-browser ids, never a real identity) matched it, then
-  // click a visitor to see their full event timeline.
-  // ---------------------------------------------------------------------
-  var SESSIONS_ENDPOINT = "/.netlify/functions/analytics-sessions";
-  var backdrop = document.getElementById("drillBackdrop");
-  var panel = document.getElementById("drillPanel");
-  var drillTitle = document.getElementById("drillTitle");
-  var drillSub = document.getElementById("drillSub");
-  var drillBody = document.getElementById("drillBody");
-  var drillState = null; // { dimension, value, label }
-
-  function openDrill(dimension, value, label) {
-    drillState = { dimension: dimension, value: value, label: label };
-    drillTitle.textContent = label;
-    drillSub.textContent = "Loading visitors…";
-    drillBody.innerHTML = "";
-    backdrop.classList.add("open");
-    panel.classList.add("open");
-    fetchSessionList(dimension, value);
-  }
-
-  function closeDrill() {
-    backdrop.classList.remove("open");
-    panel.classList.remove("open");
-    drillState = null;
-  }
-  backdrop.addEventListener("click", closeDrill);
-  document.getElementById("drillClose").addEventListener("click", closeDrill);
-
-  function relTime(ts) {
-    if (!ts) return "";
-    var diff = Date.now() - ts;
-    var mins = Math.round(diff / 60000);
-    if (mins < 1) return "just now";
-    if (mins < 60) return mins + "m ago";
-    var hrs = Math.round(mins / 60);
-    if (hrs < 24) return hrs + "h ago";
-    var days = Math.round(hrs / 24);
-    return days + "d ago";
-  }
-
-  function rangeLabel(range) {
-    var labels = { "24h": "last 24 hours", "7d": "last 7 days", "30d": "last 30 days", "3m": "last 3 months", "6m": "last 6 months", "1y": "last year", "all": "all time" };
-    return labels[range] || range;
-  }
-
-  function sessionRowHtml(s, dimension) {
-    var loc = s.city || s.country || "Unknown location";
-    var device = s.device ? s.device.charAt(0).toUpperCase() + s.device.slice(1) : "Unknown device";
-    var badge = "";
-    if (dimension === "favTeam" && typeof s.activeForFilter === "boolean") {
-      badge = s.activeForFilter
-        ? '<span class="session-badge">currently favorited</span>'
-        : '<span class="session-badge off">unfavorited since</span>';
-    }
-    return (
-      '<div class="session-row" data-id="' + escapeHtml(s.id) + '">' +
-      '<div class="session-id">Visitor ' + escapeHtml(s.visitorId) + badge + "</div>" +
-      '<div class="session-meta">' +
-      escapeHtml(loc) + " · " + escapeHtml(device) + " · " +
-      fmtNum(s.pageviews) + " pageviews · last seen " + relTime(s.lastSeen) +
-      "</div></div>"
-    );
-  }
-
-  function fetchSessionList(dimension, value) {
-    var url = SESSIONS_ENDPOINT + "?dimension=" + encodeURIComponent(dimension) +
-      (dimension === "all" ? "" : "&value=" + encodeURIComponent(value)) +
-      "&limit=50&range=" + encodeURIComponent(currentRange);
-    fetch(url, { cache: "no-store" })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (!drillState || drillState.dimension !== dimension || drillState.value !== value) return;
-        var sessions = (data && data.sessions) || [];
-        if (sessions.length === 0) {
-          drillSub.textContent = "0 visitors";
-          drillBody.innerHTML = '<div class="empty">No matching visitors in the current data.</div>';
-          return;
-        }
-        drillSub.textContent = fmtNum(sessions.length) + " most recent visitor" + (sessions.length === 1 ? "" : "s") +
-          " · " + rangeLabel(currentRange) +
-          (data.truncated ? " (showing a capped subset — there may be more)" : "");
-        drillBody.innerHTML = sessions.map(function (s) { return sessionRowHtml(s, dimension); }).join("");
-      })
-      .catch(function () {
-        if (!drillState || drillState.dimension !== dimension || drillState.value !== value) return;
-        drillSub.textContent = "Couldn't load visitors";
-        drillBody.innerHTML = '<div class="empty">Something went wrong fetching this list.</div>';
-      });
-  }
-
-  function eventLineHtml(ev) {
-    var label;
-    switch (ev.type) {
-      case "pageview": label = ev.page ? "Viewed " + ev.page : "Viewed a page" + (ev.week ? " (" + ev.week + ")" : ""); break;
-      case "view_change": label = "Navigated to " + (ev.page || "another page"); break;
-      case "team_click": label = "Clicked team " + (ev.teamName || ev.team); break;
-      case "favorite": label = (ev.adding ? "Favorited " : "Unfavorited ") + (ev.teamName || ev.team); break;
-      case "team_tab": label = "Opened \"" + ev.tab + "\" tab" + (ev.team ? " (" + ev.team + ")" : ""); break;
-      case "roster_side": label = "Viewed " + ev.side + " depth chart" + (ev.team ? " (" + ev.team + ")" : ""); break;
-      case "player_view": label = "Viewed player " + ev.player + (ev.source ? " (" + ev.source.replace("_", " ") + ")" : ""); break;
-      default: label = ev.type || "Event";
-    }
-    var d = new Date(ev.ts);
-    return (
-      '<div class="timeline-item">' + escapeHtml(label) +
-      '<div class="timeline-time">' + d.toLocaleString() + "</div></div>"
-    );
-  }
-
-  function openSessionDetail(id) {
-    var backDimension = drillState ? drillState.dimension : "all";
-    var backValue = drillState ? drillState.value : null;
-    var backLabel = drillState ? drillState.label : "All visitors";
-
-    drillTitle.textContent = "Loading…";
-    drillSub.textContent = "";
-    drillBody.innerHTML = "";
-
-    fetch(SESSIONS_ENDPOINT + "?visitorId=" + encodeURIComponent(id), { cache: "no-store" })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (!data || !data.ok || !data.session) {
-          drillTitle.textContent = "Visitor";
-          drillBody.innerHTML = '<div class="empty">Couldn\'t load this visitor.</div>';
-          return;
-        }
-        var s = data.session;
-        drillTitle.textContent = "Visitor " + s.visitorId;
-        var prefBits = [];
-        if (s.theme) prefBits.push(s.theme.charAt(0).toUpperCase() + s.theme.slice(1) + " theme");
-        if (s.sportsbook) prefBits.push(s.sportsbook.charAt(0).toUpperCase() + s.sportsbook.slice(1));
-        if (s.tzPref) prefBits.push(s.tzPref === "auto" ? "Auto timezone" : s.tzPref);
-        drillSub.textContent = (s.city || "Unknown location") + " · " +
-          (s.device ? s.device.charAt(0).toUpperCase() + s.device.slice(1) : "Unknown device") +
-          " · first seen " + relTime(s.firstSeen) +
-          (prefBits.length ? " · " + prefBits.join(" · ") : "");
-
-        var backBtn = '<button class="drill-back" id="drillBackBtn">← Back to ' + escapeHtml(backLabel) + "</button>";
-        var timeline = (s.events || []).map(eventLineHtml).join("");
-        drillBody.innerHTML = backBtn + (timeline || '<div class="empty">No recorded events.</div>');
-
-        document.getElementById("drillBackBtn").addEventListener("click", function () {
-          openDrill(backDimension, backValue, backLabel);
-        });
-      })
-      .catch(function () {
-        drillBody.innerHTML = '<div class="empty">Something went wrong loading this visitor.</div>';
-      });
-  }
-
-  // Delegated click handling for every clickable tile row.
-  document.addEventListener("click", function (e) {
-    var kpi = e.target.closest(".kpi.clickable");
-    if (kpi) {
-      openDrill(kpi.getAttribute("data-dimension"), kpi.getAttribute("data-value") || "", kpi.getAttribute("data-label"));
-      return;
-    }
-    var row = e.target.closest(".bar-row.clickable, table.loc-table tr.clickable");
-    if (row) {
-      openDrill(row.getAttribute("data-dimension"), row.getAttribute("data-value"), row.getAttribute("data-label"));
-      return;
-    }
-    var sessionRow = e.target.closest(".session-row");
-    if (sessionRow) {
-      openSessionDetail(sessionRow.getAttribute("data-id"));
-    }
-  });
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
-
-  // The API now returns a single `series` shaped for whatever granularity
-  // the requested range calls for (hour/day/month), already bucketed and
-  // zero-filled server-side. The chart just needs to format labels and pick
-  // bar vs. line based on that granularity.
   function seriesToChartInput(series) {
     var points = (series && series.points) || [];
-    var granularity = (series && series.granularity) || "day";
-    var labelFn =
-      granularity === "hour"
-        ? function (p, i) { return i % 3 === 0 ? fmtHourLabel(p.bucket) : ""; }
-        : granularity === "month"
-        ? function (p) { return fmtMonthLabel(p.bucket); }
-        : function (p) { return fmtDayLabel(p.bucket); };
-    return {
-      type: granularity === "hour" ? "line" : "bar",
-      labels: points.map(labelFn),
-      values: points.map(function (p) { return p.count; }),
-    };
+    var g = (series && series.granularity) || "day";
+    var labelFn = g === "hour" ? function (p, i) { return i % 3 === 0 ? fmtHourLabel(p.bucket) : ""; }
+      : g === "month" ? function (p) { return fmtMonthLabel(p.bucket); }
+      : function (p) { return fmtDayLabel(p.bucket); };
+    return { type: g === "hour" ? "line" : "bar", labels: points.map(labelFn), values: points.map(function (p) { return p.count; }) };
   }
-
-  // Maps chart granularity -> the matching pvHour/pvDay/pvMonth index
-  // dimension written in track.mts, and formats a bucket string into a
-  // human title for the drill-down panel.
-  function pvDimensionForGranularity(granularity) {
-    return granularity === "hour" ? "pvHour" : granularity === "month" ? "pvMonth" : "pvDay";
+  function pvDimensionForGranularity(g) { return g === "hour" ? "pvHour" : g === "month" ? "pvMonth" : "pvDay"; }
+  function pvBucketTitle(b, g) {
+    if (g === "hour") return new Date(b).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
+    if (g === "month") return fmtMonthLabel(b);
+    return new Date(b + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   }
-  function pvBucketTitle(bucket, granularity) {
-    if (granularity === "hour") {
-      return new Date(bucket).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
-    }
-    if (granularity === "month") return fmtMonthLabel(bucket);
-    return new Date(bucket + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  }
-
   function handlePvChartClick(evt, elements) {
     if (!elements || !elements.length || !latestData) return;
-    var idx = elements[0].index;
-    var points = (latestData.series && latestData.series.points) || [];
-    var point = points[idx];
-    if (!point || !point.count) return; // nothing to drill into on an empty bucket
-    var granularity = latestData.series.granularity;
-    openDrill(pvDimensionForGranularity(granularity), point.bucket, "Visitors — " + pvBucketTitle(point.bucket, granularity));
+    var point = ((latestData.series && latestData.series.points) || [])[elements[0].index];
+    if (!point || !point.count) return;
+    var g = latestData.series.granularity;
+    openList(pvDimensionForGranularity(g), point.bucket, "Visitors — " + pvBucketTitle(point.bucket, g));
   }
-
   function renderPvChart(data) {
     var series = seriesToChartInput(data.series);
     var ctx = document.getElementById("pvChart").getContext("2d");
     var isLine = series.type === "line";
-
     var dataset = isLine
-      ? {
-          data: series.values,
-          borderColor: "#4fd1c5",
-          backgroundColor: "rgba(79,209,197,0.12)",
-          fill: true,
-          tension: 0.3,
-          pointRadius: 0,
-          borderWidth: 2,
-        }
-      : {
-          data: series.values,
-          backgroundColor: "#0f8f83",
-          borderRadius: 3,
-          maxBarThickness: 26,
-        };
-
+      ? { data: series.values, borderColor: "#4fd1c5", backgroundColor: "rgba(79,209,197,0.12)", fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2 }
+      : { data: series.values, backgroundColor: "#0f8f83", borderRadius: 3, maxBarThickness: 26 };
     if (pvChart && pvChart.config.type === series.type) {
       pvChart.data.labels = series.labels;
       pvChart.data.datasets[0] = dataset;
       pvChart.update("none");
       return;
     }
-    if (pvChart) {
-      pvChart.destroy();
-      pvChart = null;
-    }
+    if (pvChart) { pvChart.destroy(); pvChart = null; }
     pvChart = new Chart(ctx, {
       type: series.type,
       data: { labels: series.labels, datasets: [dataset] },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: handlePvChartClick,
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: series.values.length > 0 },
-        },
+        responsive: true, maintainAspectRatio: false, onClick: handlePvChartClick,
+        plugins: { legend: { display: false }, tooltip: { enabled: series.values.length > 0 } },
         scales: {
-          x: { grid: { display: false }, ticks: { color: tickColor, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
-          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, precision: 0, font: { size: 10 } } },
-        },
-      },
+          x: { grid: { display: false }, ticks: { color: "#556077", maxRotation: 0, autoSkip: true, font: { size: 10 } } },
+          y: { beginAtZero: true, grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#556077", precision: 0, font: { size: 10 } } }
+        }
+      }
     });
-  }
-
-  // Toggles a KPI card's clickability/data-* attrs based on whether it
-  // currently has a value to filter by (e.g. no top favorite team yet).
-  function setKpiClickable(cardId, dimension, value, label) {
-    var card = document.getElementById(cardId);
-    if (value) {
-      card.classList.add("clickable");
-      card.setAttribute("data-dimension", dimension);
-      card.setAttribute("data-value", value);
-      card.setAttribute("data-label", label);
-    } else {
-      card.classList.remove("clickable");
-      card.removeAttribute("data-dimension");
-    }
   }
 
   function render(data) {
-    document.getElementById("kpiPageviews").textContent = fmtNum(data.totalPageviews);
+    var pagesPer = data.uniqueVisitors ? data.totalPageviews / data.uniqueVisitors : 0;
     document.getElementById("kpiVisitors").textContent = fmtNum(data.uniqueVisitors);
-    document.getElementById("kpiBookCompare").textContent = fmtNum(data.bookCompareOpens || 0);
-    document.getElementById("kpiFavTeam").textContent = data.topFavoriteTeam || "—";
-    document.getElementById("kpiTopLoc").textContent = data.topLocation || "—";
+    document.getElementById("kpiPageviews").textContent = fmtNum(data.totalPageviews);
+    document.getElementById("kpiPagesPer").textContent = pagesPer.toFixed(2);
+    document.getElementById("kpiPagesPerSub").textContent = pagesPer < 1.2 && data.uniqueVisitors > 50 ? "mostly single-page visits" : "";
     document.getElementById("kpiTeamPageViews").textContent = fmtNum(data.teamPageViews || 0);
     document.getElementById("kpiGamePageViews").textContent = fmtNum(data.gamePageViews || 0);
-    setKpiClickable("kpiFavTeamCard", "favTeam", data.topFavoriteTeam, "Favorited " + data.topFavoriteTeam);
-    setKpiClickable("kpiTopLocCard", "city", data.topLocation, data.topLocation);
-
-    try {
-      if (window.Chart) {
-        renderPvChart(data);
-      }
-    } catch (e) {
-      /* chart rendering is best-effort; other sections should still work */
+    document.getElementById("kpiTopLoc").textContent = data.topLocation || "—";
+    var locCard = document.getElementById("kpiTopLocCard");
+    if (data.topLocation) {
+      locCard.classList.add("clickable");
+      locCard.setAttribute("data-dimension", "city");
+      locCard.setAttribute("data-value", data.topLocation);
+      locCard.setAttribute("data-label", data.topLocation);
+    } else {
+      locCard.classList.remove("clickable");
+      locCard.removeAttribute("data-dimension");
     }
-    renderBarList("teamClicksList", data.teamClicksByTeam, "No team clicks yet", "teamClick");
-    renderBarList("favTeamsList", omitUnknown(data.favoritesByTeam), "No favorites yet", "favTeam");
-    renderBarList("rosterViewsList", omitUnknown(data.rosterViewsByTeam), "No roster/depth chart views yet", "rosterTeam");
-    renderBarList("depthSideList", data.depthChartSideViews, "No depth chart activity yet", "rosterSide");
-    renderBarList("topPlayersList", data.topViewedPlayers, "No player lookups yet", "player");
-    renderBarList("newsSourceList", data.newsSourceClicks, "No news clicks yet", "newsSource");
-    renderBarList("newsPlacementList", newsPlacementBarData(data.newsClicksByPlacement), "No news clicks yet", "newsPlacement", function (label) {
-      return newsPlacementLabelToRaw[label] || label;
-    });
-    renderBarList("teamOriginList", teamOriginBarData(data.teamClicksByOrigin), "No team clicks yet", "teamClickOrigin", function (label) {
-      return teamOriginLabelToRaw[label] || label;
-    });
-    renderBarList("boxscoreTeamList", data.boxscoreClicksByTeam, "No box score clicks yet", "boxscoreTeam");
-    // No `dimension` argument on purpose: drill-down requires a matching
-    // VALID_DIMENSIONS entry in analytics-sessions.mts backed by an
-    // addIndex(...) call in track.mts, and this tile isn't worth a new
-    // per-event blob index. Counts only, not clickable.
-    renderBarList("boxscoreSourceList", data.boxscoreClicksBySource, "No box score clicks yet");
-    renderBarList("playbookSubtabList", data.playbookSubtabViews, "No Playbook activity yet", "playbookSubtab");
-    renderBarList("playbookFormatList", data.playbookFormatViews, "No format switches yet", "playbookFormat");
-    renderBarList("gateCtaList", data.gateCtaClicks, "No gate clicks yet", "gateCta");
-    renderBarList("gateSurfaceList", gateSurfaceBarData(data.gateCtaBySurface), "No gate clicks yet", "gateSurface", function (label) {
-      return gateSurfaceLabelToRaw[label] || label;
-    });
-    renderBarList("pageviewsByPathList", data.pageviewsByPath, "No pageview data yet", "pathname");
-    renderBarList("referrerList", data.referrerBreakdown, "No referrer data yet", "referrer");
-    renderBarList("themeList", themeBarData(data.themeDistribution), "No preference data yet", "theme", function (label) {
-      return themeLabelToRaw[label] || label.toLowerCase();
-    });
-    renderBarList("sportsbookList", sportsbookBarData(data.sportsbookDistribution), "No preference data yet", "sportsbook", function (label) {
-      return sportsbookLabelToRaw[label] || label.toLowerCase();
-    });
-    renderBarList("tzPrefList", tzPrefBarData(data.tzPrefDistribution), "No preference data yet", "tzPref", function (label) {
-      return tzPrefLabelToRaw[label] || label;
-    });
-    renderCityTable(data.viewsByCity);
-    renderBarList("deviceList", deviceBarData(data.viewsByDevice), "No device data yet", "device", function (label) {
-      return deviceLabelToRaw[label] || label.toLowerCase();
+    if (typeof data.excludedSessions === "number") {
+      document.getElementById("sourceSub").textContent =
+        data.excludedSessions > 0 ? fmtNum(data.excludedSessions) + " sessions excluded" : "what counts as a real visit";
+    }
+    try { if (window.Chart) renderPvChart(data); } catch (e) { /* charts are best-effort */ }
+    renderSections(data);
+  }
+
+  // ---- Visitor explorer -------------------------------------------------
+  var backdrop = document.getElementById("drillBackdrop");
+  var panel = document.getElementById("drillPanel");
+  var dTitle = document.getElementById("drillTitle");
+  var dSub = document.getElementById("drillSub");
+  var dBody = document.getElementById("drillBody");
+  var drillState = null, listSort = "recent";
+
+  function closeDrill() { backdrop.classList.remove("open"); panel.classList.remove("open"); drillState = null; }
+  backdrop.addEventListener("click", closeDrill);
+  document.getElementById("drillClose").addEventListener("click", closeDrill);
+  document.getElementById("visitorsBtn").addEventListener("click", function () { openList("all", "", "All visitors"); });
+
+  function relTime(ts) {
+    if (!ts) return "";
+    var mins = Math.round((Date.now() - ts) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + "m ago";
+    var hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + "h ago";
+    return Math.round(hrs / 24) + "d ago";
+  }
+  function fmtDur(ms) {
+    var s = Math.round((ms || 0) / 1000);
+    if (s < 60) return s + "s";
+    var m = Math.floor(s / 60);
+    if (m < 60) return m + "m " + String(s % 60).padStart(2, "0") + "s";
+    return Math.floor(m / 60) + "h " + (m % 60) + "m";
+  }
+  function offset(ms) {
+    var s = Math.round(ms / 1000);
+    return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  }
+  function rangeLabel(r) {
+    return ({ "24h": "last 24 hours", "7d": "last 7 days", "30d": "last 30 days", "3m": "last 3 months", "6m": "last 6 months", "1y": "last year", all: "all time" })[r] || r;
+  }
+  function devIcon(d) { return d === "mobile" ? "\uD83D\uDCF1" : d === "tablet" ? "\u25AD" : d === "desktop" ? "\uD83D\uDDA5" : "?"; }
+
+  function openList(dimension, value, label) {
+    drillState = { dimension: dimension, value: value, label: label };
+    dTitle.textContent = label;
+    dSub.textContent = "Loading visitors…";
+    dBody.innerHTML = "";
+    backdrop.classList.add("open");
+    panel.classList.add("open");
+
+    var url = SESSIONS_ENDPOINT + "?dimension=" + encodeURIComponent(dimension) +
+      (dimension === "all" ? "" : "&value=" + encodeURIComponent(value)) +
+      "&limit=50&range=" + encodeURIComponent(currentRange) +
+      "&source=" + encodeURIComponent(currentSource) +
+      "&sort=" + encodeURIComponent(listSort);
+
+    fetch(url, { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (data) {
+      if (!drillState || drillState.dimension !== dimension || drillState.value !== value) return;
+      var sessions = (data && data.sessions) || [];
+      var sortBar = dimension === "all"
+        ? '<div class="drill-sort"><button data-sort="recent"' + (listSort === "recent" ? ' class="active"' : "") + ">Most recent</button>" +
+          '<button data-sort="active"' + (listSort === "active" ? ' class="active"' : "") + ">Most active</button></div>"
+        : "";
+      if (!sessions.length) {
+        dSub.textContent = "0 visitors";
+        dBody.innerHTML = sortBar + '<div class="empty">No matching visitors in the current data.</div>';
+        return;
+      }
+      dSub.textContent = fmtNum(sessions.length) + " visitor" + (sessions.length === 1 ? "" : "s") + " · " + rangeLabel(currentRange) +
+        (data.truncated ? " (capped subset — there may be more)" : "");
+      dBody.innerHTML = sortBar + sessions.map(function (s) {
+        var badge = "";
+        if (dimension === "favTeam" && typeof s.activeForFilter === "boolean") {
+          badge = s.activeForFilter ? '<span class="session-badge">currently favorited</span>' : '<span class="session-badge off">unfavorited since</span>';
+        } else if (s.eventCount <= 1) {
+          badge = '<span class="session-badge bounce">bounced</span>';
+        }
+        return '<div class="session-row" data-id="' + esc(s.id) + '">' +
+          '<div class="session-dev">' + devIcon(s.device) + "</div>" +
+          '<div><div class="session-id">' + esc(s.visitorId) + badge + "</div>" +
+          '<div class="session-meta">' + esc(s.city || s.country || "Unknown location") +
+          " · " + fmtNum(s.visitCount || 0) + " visit" + (s.visitCount === 1 ? "" : "s") +
+          " · last seen " + relTime(s.lastSeen) + "</div></div>" +
+          '<div class="session-depth"><div class="n">' + fmtNum(s.eventCount) + '</div><div class="l">events</div></div></div>';
+      }).join("");
+    }).catch(function () {
+      if (!drillState) return;
+      dSub.textContent = "Couldn't load visitors";
+      dBody.innerHTML = '<div class="empty">Something went wrong fetching this list.</div>';
     });
   }
 
-  // Every widget on the page is scoped to `currentRange` server-side, so
-  // switching ranges re-fetches rather than re-slicing already-fetched data.
+  // Full label coverage for every type in track.mts's VALID_TYPES. The old
+  // panel only handled six of them and fell through to the raw type string
+  // for the rest.
+  function eventLabel(ev) {
+    var t = ev.type;
+    var team = ev.teamName || ev.team;
+    switch (t) {
+      case "pageview": return { label: "Viewed " + (ev.page || "a page"), detail: [ev.pathname, ev.referrerHost && ev.referrerHost !== "(internal)" ? "from " + ev.referrerHost : null].filter(Boolean).join(" · ") };
+      case "view_change": return { label: "Navigated to " + (ev.page || "another view"), detail: "in-app navigation" };
+      case "team_click": return { label: "Clicked team " + team, detail: ev.origin === "favorites_bar" ? "from favorites bar" : "from game card" };
+      case "favorite": return { label: (ev.adding ? "Favorited " : "Unfavorited ") + team, detail: "" };
+      case "team_tab": return { label: 'Opened "' + ev.tab + '" tab', detail: ev.team || "" };
+      case "roster_side": return { label: "Viewed " + ev.side + " depth chart", detail: ev.team || "" };
+      case "player_view": return { label: "Viewed player " + ev.player, detail: ev.source ? String(ev.source).replace(/_/g, " ") : "" };
+      case "news_click": return { label: "Clicked " + (ev.newsSource || "a") + " headline", detail: [ev.placement === "team_news" ? "Team News panel" : ev.placement === "ticker" ? "ticker" : null, ev.headline].filter(Boolean).join(" · ") };
+      case "boxscore_click": return { label: "Opened box score — " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: ev.source === "full_details" ? "from Full Details" : ev.source === "score_tap" ? "tapped the score" : "" };
+      case "playbook_subtab": return { label: 'Opened Playbook — "' + ev.subtab + '"', detail: "" };
+      case "playbook_format": return { label: "Switched pool format to " + ev.format, detail: "signed-out preview" };
+      case "gate_cta": return { label: "Clicked gate CTA — " + (ev.action || "unknown"), detail: ev.surface === "pro" ? "Pro gate" : ev.surface === "signin" ? "Sign-in wall" : "", conversion: true };
+      case "book_compare": return { label: "Opened sportsbook comparison", detail: "" };
+      case "history_nav_click": return { label: "Archive — " + (ev.nav === "team" ? "team" : "season") + " navigation", detail: ev.page || "" };
+      case "history_week_select": return { label: "Archive — filtered by " + (ev.filter || "week"), detail: ev.value || "" };
+      case "history_game_click": return { label: "Archive — opened " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: ev.page || "" };
+      case "history_team_game_click": return { label: "Archive team page — opened " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: ev.team || "" };
+      default: return { label: String(t || "Event"), detail: "" };
+    }
+  }
+
+  function openSessionDetail(id) {
+    var back = drillState || { dimension: "all", value: "", label: "All visitors" };
+    dTitle.textContent = "Loading…";
+    dSub.textContent = "";
+    dBody.innerHTML = "";
+
+    fetch(SESSIONS_ENDPOINT + "?visitorId=" + encodeURIComponent(id), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || !data.ok || !data.session) {
+          dTitle.textContent = "Visitor";
+          dBody.innerHTML = '<div class="empty">Couldn\'t load this visitor.</div>';
+          return;
+        }
+        var s = data.session;
+        dTitle.textContent = "Visitor " + s.visitorId;
+        dSub.textContent = (s.city || "Unknown location") + " · " + (s.device ? titleCase(s.device) : "Unknown device") +
+          " · first seen " + relTime(s.firstSeen);
+
+        var chips = [];
+        if (s.theme) chips.push(titleCase(s.theme) + " theme");
+        if (s.sportsbook) chips.push(BOOK_NAMES[s.sportsbook] || titleCase(s.sportsbook));
+        if (s.tzPref) chips.push(s.tzPref === "auto" ? "Auto timezone" : s.tzPref);
+        if (s.host) chips.push(s.host);
+        (s.favoriteTeams || []).forEach(function (t) { chips.push("\u2605 " + (TEAM_ABBRS[t] || t)); });
+
+        var visits = s.visits || [];
+        var html = '<button class="drill-back" id="drillBackBtn">&#8592; Back to ' + esc(back.label) + "</button>" +
+          '<div class="vs-summary">' +
+          '<div class="vs-stat"><div class="n">' + fmtNum(s.visitCount || visits.length) + '</div><div class="l">Visits</div></div>' +
+          '<div class="vs-stat"><div class="n">' + fmtNum(s.pageviews) + '</div><div class="l">Pages</div></div>' +
+          '<div class="vs-stat"><div class="n">' + fmtNum(s.eventCount) + '</div><div class="l">Events</div></div>' +
+          '<div class="vs-stat"><div class="n">' + fmtDur(s.totalActiveMs) + '</div><div class="l">Active</div></div></div>' +
+          (chips.length ? '<div class="vs-prefs">' + chips.map(function (c) { return '<span class="vs-chip">' + esc(c) + "</span>"; }).join("") + "</div>" : "");
+
+        html += visits.length ? visits.map(function (v, i) {
+          var evs = (v.events || []).slice().sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+          return '<div class="visit' + (i === 0 ? "" : " collapsed") + '">' +
+            '<div class="visit-head"><span class="visit-chevron">&#9660;</span><div>' +
+            '<div class="visit-when">' + esc(new Date(v.start).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) + "</div>" +
+            '<div class="visit-facts">' + fmtNum(v.pageviews) + " pages · " + fmtNum(evs.length) + " events" +
+            (v.entryPage ? " · entry " + esc(v.entryPage) : "") + "</div></div>" +
+            '<div class="visit-dur">' + fmtDur(v.durationMs) + "</div></div>" +
+            '<div class="visit-body">' + evs.map(function (e) {
+              var L = eventLabel(e);
+              return '<div class="tl-item' + (L.conversion ? " conversion" : "") + '">' +
+                '<div class="tl-off">+' + offset((e.ts || v.start) - v.start) + "</div><div>" +
+                '<div class="tl-label">' + esc(L.label) + "</div>" +
+                (L.detail ? '<div class="tl-detail">' + esc(L.detail) + "</div>" : "") + "</div></div>";
+            }).join("") + "</div></div>";
+        }).join("") : '<div class="empty">No recorded events.</div>';
+
+        dBody.innerHTML = html;
+        document.getElementById("drillBackBtn").addEventListener("click", function () {
+          openList(back.dimension, back.value, back.label);
+        });
+      })
+      .catch(function () { dBody.innerHTML = '<div class="empty">Something went wrong loading this visitor.</div>'; });
+  }
+
+  // ---- Delegated clicks -------------------------------------------------
+  document.addEventListener("click", function (e) {
+    var head = e.target.closest(".section-head");
+    if (head) {
+      var sec = head.parentElement;
+      sec.classList.toggle("collapsed");
+      localStorage.setItem("blitz-analytics-sec-" + sec.getAttribute("data-sec"), sec.classList.contains("collapsed") ? "1" : "0");
+      return;
+    }
+    var visitHead = e.target.closest(".visit-head");
+    if (visitHead) { visitHead.parentElement.classList.toggle("collapsed"); return; }
+    var sortBtn = e.target.closest(".drill-sort button");
+    if (sortBtn) {
+      listSort = sortBtn.getAttribute("data-sort");
+      if (drillState) openList(drillState.dimension, drillState.value, drillState.label);
+      return;
+    }
+    var kpi = e.target.closest(".kpi.clickable");
+    if (kpi) { openList(kpi.getAttribute("data-dimension"), kpi.getAttribute("data-value") || "", kpi.getAttribute("data-label")); return; }
+    var row = e.target.closest(".bar-row.clickable, table.loc-table tr.clickable");
+    if (row) { openList(row.getAttribute("data-dimension"), row.getAttribute("data-value"), row.getAttribute("data-label")); return; }
+    var sessionRow = e.target.closest(".session-row");
+    if (sessionRow) openSessionDetail(sessionRow.getAttribute("data-id"));
+  });
+
+  // ---- Fetch ------------------------------------------------------------
+  function cacheKey() { return currentRange + "|" + currentSource; }
+
+  // A zeroed payload with the same shape the API returns, so a failed fetch
+  // still renders the full page structure (sections, tiles, empty states)
+  // instead of leaving a blank screen under an error line. Also what you see
+  // if you open this file straight off disk, where the Netlify functions it
+  // depends on obviously aren't reachable.
+  function emptyPayload() {
+    return {
+      range: currentRange, totalPageviews: 0, uniqueVisitors: 0,
+      series: { granularity: "day", points: [] },
+      teamClicksByTeam: {}, favoritesByTeam: {}, topFavoriteTeam: null,
+      rosterViewsByTeam: {}, depthChartSideViews: {}, topViewedPlayers: {},
+      newsSourceClicks: {}, newsClicksByPlacement: {}, teamClicksByOrigin: {},
+      boxscoreClicksByTeam: {}, boxscoreClicksBySource: {},
+      playbookSubtabViews: {}, playbookFormatViews: {},
+      gateCtaClicks: {}, gateCtaBySurface: {}, bookCompareOpens: 0,
+      historyPageviews: 0, historyGameClicksByTeam: {}, historyClicksByType: {},
+      referrerBreakdown: {}, pageviewsByPath: {}, teamPageViews: 0, gamePageViews: 0,
+      themeDistribution: {}, sportsbookDistribution: {}, tzPrefDistribution: {},
+      viewsByCountry: [], viewsByCity: [], topLocation: null, viewsByDevice: [],
+    };
+  }
+
   function fetchAndRender(isManual) {
     var btn = document.getElementById("refreshBtn");
     if (isManual) btn.disabled = true;
-    setStatus(lastGoodFetch ? "stale" : "loading", "Refreshing…");
 
-    var url = ENDPOINT + "?range=" + encodeURIComponent(currentRange);
-    var requestRange = currentRange;
+    // Render whatever we already have for this range+source immediately, so
+    // a range switch is instant rather than a blank wait on the network.
+    var cached = payloadCache[cacheKey()];
+    if (cached) { latestData = cached; render(cached); }
+    setStatus(cached || lastGoodFetch ? "stale" : "loading", cached ? "Refreshing…" : "Loading…");
+
+    var url = ENDPOINT + "?range=" + encodeURIComponent(currentRange) +
+      "&source=" + encodeURIComponent(currentSource) + (isManual ? "&fresh=1" : "");
+    var reqKey = cacheKey();
 
     fetch(url, { cache: "no-store" })
-      .then(function (res) {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
+      .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
       .then(function (data) {
-        // If the user flipped ranges again while this request was in
-        // flight, drop the stale response instead of rendering it.
-        if (requestRange !== currentRange) return;
+        if (reqKey !== cacheKey()) return; // user switched while in flight
+        payloadCache[reqKey] = data;
         latestData = data;
         render(data);
         lastGoodFetch = new Date();
-        setStatus("ok", "Updated " + lastGoodFetch.toLocaleTimeString());
+        setStatus("ok", "Updated " + lastGoodFetch.toLocaleTimeString() + (data.cached ? " · cached" : ""));
       })
       .catch(function (err) {
-        if (requestRange !== currentRange) return;
-        setStatus("error", "Couldn't refresh (" + err.message + ")" + (lastGoodFetch ? " — showing last good data from " + lastGoodFetch.toLocaleTimeString() : ""));
+        if (reqKey !== cacheKey()) return;
+        var isFileUrl = window.location.protocol === "file:";
+        if (!latestData) render(emptyPayload());
+        setStatus("error", isFileUrl
+          ? "This page needs to run on blitz-odds.com — its data comes from Netlify Functions, which aren't reachable from a local file."
+          : "Couldn't refresh (" + err.message + ")" +
+            (lastGoodFetch ? " — showing last good data from " + lastGoodFetch.toLocaleTimeString() : ""));
       })
-      .finally(function () {
-        if (isManual) btn.disabled = false;
-      });
+      .finally(function () { if (isManual) btn.disabled = false; });
   }
 
-  document.getElementById("refreshBtn").addEventListener("click", function () {
-    fetchAndRender(true);
-  });
+  document.getElementById("refreshBtn").addEventListener("click", function () { fetchAndRender(true); });
 
   document.getElementById("rangePills").addEventListener("click", function (e) {
     var btn = e.target.closest(".range-pill");
     if (!btn || btn.classList.contains("active")) return;
-    document.querySelectorAll(".range-pill").forEach(function (p) { p.classList.remove("active"); });
+    document.querySelectorAll("#rangePills .range-pill").forEach(function (p) { p.classList.remove("active"); });
     btn.classList.add("active");
     currentRange = btn.getAttribute("data-range");
-    closeDrill(); // avoid showing a drill-down list scoped to the old range
+    closeDrill();
     fetchAndRender(false);
   });
 
+  document.getElementById("sourcePills").addEventListener("click", function (e) {
+    var btn = e.target.closest(".range-pill");
+    if (!btn || btn.classList.contains("active")) return;
+    document.querySelectorAll("#sourcePills .range-pill").forEach(function (p) { p.classList.remove("active"); });
+    btn.classList.add("active");
+    currentSource = btn.getAttribute("data-source");
+    closeDrill();
+    fetchAndRender(false);
+  });
+
+  // Only refetch on tab focus if what we're showing has actually gone stale.
   document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) fetchAndRender(false);
+    if (document.hidden) return;
+    if (lastGoodFetch && Date.now() - lastGoodFetch.getTime() < 30000) return;
+    fetchAndRender(false);
   });
 
   fetchAndRender(false);
-  refreshTimer = setInterval(function () {
-    if (!document.hidden) fetchAndRender(false);
-  }, REFRESH_MS);
-
-
+  setInterval(function () { if (!document.hidden) fetchAndRender(false); }, REFRESH_MS);
 })();
 </script>
 </body>

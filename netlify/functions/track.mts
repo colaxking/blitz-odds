@@ -24,6 +24,12 @@ const VALID_TYPES = new Set([
   "favorite",
   "team_tab",
   "roster_side",
+  // Team page redesign. The injury report is collapsed by default on mobile
+  // now and the mobile schedule's rows became links into the per-matchup
+  // pages - neither the open rate nor the click-through existed as an event
+  // before, and both are what decide whether those two calls were right.
+  "team_injury_toggle",
+  "team_schedule_game",
   "player_view",
   "news_click",
   "boxscore_click",
@@ -159,7 +165,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -182,10 +188,26 @@ export default async (req: Request, context: Context) => {
       type === "favorite" ||
       type === "team_tab" ||
       type === "roster_side" ||
-      type === "player_view"
+      type === "player_view" ||
+      type === "team_injury_toggle" ||
+      type === "team_schedule_game"
     ) {
       record.team = team ? String(team).slice(0, 64) : "unknown";
       if (teamName) record.teamName = String(teamName).slice(0, 128);
+    }
+
+    // Whether the reader was opening the collapsed injury panel or closing
+    // it. Only "open" is interesting as a rate, but storing both means the
+    // denominator is the toggle count rather than an assumption.
+    if (type === "team_injury_toggle") {
+      record.open = open === true;
+    }
+
+    // Which week's row was tapped. Kept as a number so the summary can tell
+    // preseason (negative) from regular-season rows without re-parsing.
+    if (type === "team_schedule_game") {
+      const weekNum = Number(week);
+      if (Number.isFinite(weekNum)) record.week = weekNum;
     }
 
     if (type === "team_click" && (origin === "game_card" || origin === "favorites_bar")) {
@@ -401,6 +423,13 @@ export default async (req: Request, context: Context) => {
       addIndex("rosterTeam", record.team as string | undefined);
     }
     if (type === "roster_side") addIndex("rosterSide", record.side as string | undefined);
+    // Only opens get indexed. Clicking the tile should list the people who
+    // went looking for the injury report, not everyone who touched the
+    // toggle - a close is the tail end of an open, not its own intent.
+    if (type === "team_injury_toggle" && record.open) {
+      addIndex("injuryOpenTeam", record.team as string | undefined);
+    }
+    if (type === "team_schedule_game") addIndex("schedGameTeam", record.team as string | undefined);
     if (type === "player_view") addIndex("player", record.player as string | undefined);
     if (type === "news_click") {
       addIndex("newsSource", record.newsSource as string | undefined);

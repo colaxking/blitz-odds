@@ -24,6 +24,8 @@ const VALID_DIMENSIONS = new Set([
   "favTeam",
   "rosterTeam",
   "rosterSide",
+  "injuryOpenTeam",
+  "schedGameTeam",
   "player",
   "pvHour",
   "pvDay",

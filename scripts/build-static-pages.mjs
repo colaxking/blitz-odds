@@ -414,12 +414,21 @@ function buildScheduleRow(data, period, teamId, game) {
     const actualWinnerId = result.homeScore > result.awayScore ? game.home : game.away;
     const teamWon = actualWinnerId === teamId;
     const correct = teamWon === teamWins;
-    resultText = `${game.away} ${result.awayScore} - ${result.homeScore} ${game.home} (${teamWon ? "W" : "L"}${correct ? ", prediction correct" : ", prediction missed"})`;
+    const teamScore = isHome ? result.homeScore : result.awayScore;
+    const oppScore = isHome ? result.awayScore : result.homeScore;
+    // Leads with this team's own result rather than the raw away-home line.
+    // Same reasoning as the app's mobile card: on a team page, "did they
+    // win" is the question, and "TEN 19 - 13 SF" makes the reader work it
+    // out. The full line still follows for anyone parsing the box score.
+    resultText = `${teamWon ? "W" : "L"} ${teamScore}-${oppScore} (${game.away} ${result.awayScore} - ${result.homeScore} ${game.home}${correct ? ", prediction correct" : ", prediction missed"})`;
   }
 
   const teamName = (findTeam(data.teams, teamId) || {}).name || teamId;
   const oppName = (opp || {}).name || oppId;
   const predictedWinnerName = teamWins ? teamName : oppName;
+
+  const awayName = (findTeam(data.teams, game.away) || {}).name || game.away;
+  const homeName = (findTeam(data.teams, game.home) || {}).name || game.home;
 
   return {
     label: period.label,
@@ -431,6 +440,11 @@ function buildScheduleRow(data, period, teamId, game) {
     predictedText: `Model predicts ${predictedWinnerName} to win`,
     winProbPct: teamWinProb,
     resultText,
+    // Every period getPeriods() yields also gets a page written for it by
+    // buildGamePage(), built from the same slugify(period.label), so these
+    // never point at a URL that doesn't exist.
+    gamePath: `/games/${data.seasonYear}/${slugify(period.label)}/${slugify(awayName)}-at-${slugify(homeName)}/`,
+    opponentPath: `/teams/${slugify(oppName)}/`,
   };
 }
 
@@ -451,8 +465,12 @@ function buildTeamSnapshotHtml(data, team) {
       return;
     }
     const row = buildScheduleRow(data, period, team.id, game);
+    // The snapshot listed 21 matchups and linked to none of them, so the
+    // per-game pages this same script writes were reachable only from the
+    // week view. Two links per row: the matchup's own page, and the
+    // opponent's team page.
     rows.push(
-      `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.location)} ${escapeHtml(row.opponent)}</td><td>${escapeHtml(row.date)}${row.time ? " " + escapeHtml(row.time) : ""}</td><td>${escapeHtml(row.predictedText)} (${row.winProbPct}%)</td><td>${escapeHtml(row.resultText)}</td></tr>`
+      `<tr><td><a href="${row.gamePath}">${escapeHtml(row.label)}</a></td><td>${escapeHtml(row.location)} <a href="${row.opponentPath}">${escapeHtml(row.opponent)}</a></td><td>${escapeHtml(row.date)}${row.time ? " " + escapeHtml(row.time) : ""}</td><td>${escapeHtml(row.predictedText)} (${row.winProbPct}%)</td><td>${escapeHtml(row.resultText)}</td></tr>`
     );
   });
 

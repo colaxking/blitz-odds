@@ -310,6 +310,10 @@ function emptySummary(now: number, range: Range) {
     topFavoriteTeam: null as string | null,
     rosterViewsByTeam: {} as Record<string, number>,
     depthChartSideViews: {} as Record<string, number>,
+    injuryPanelOpens: 0,
+    injuryPanelOpenRate: null as number | null,
+    injuryOpensByTeam: {} as Record<string, number>,
+    scheduleGameClicksByTeam: {} as Record<string, number>,
     topViewedPlayers: {} as Record<string, number>,
     newsSourceClicks: {} as Record<string, number>,
     newsClicksByPlacement: {} as Record<string, number>,
@@ -533,6 +537,30 @@ export default async (req: Request, _context: Context) => {
     // aggregated across all teams - which side of the ball people look at ---
     const rosterSideClicks = validRecords.filter((r) => r.type === "roster_side");
     const depthChartSideViews = sortedCounts(rosterSideClicks, (r) => r.side);
+
+    // --- injuryPanelOpens / injuryPanelOpenRate: the team page's injury
+    // report is collapsed by default on mobile. Opens is the raw count;
+    // the rate is opens as a share of all toggles, which is the number that
+    // says whether collapsing it hid something people wanted. A team page
+    // with no toggles at all yields null rather than 0, so "nobody opened
+    // it" and "nobody was there" don't read the same ---
+    const injuryToggles = validRecords.filter((r) => r.type === "team_injury_toggle");
+    const injuryPanelOpens = injuryToggles.filter((r) => r.open === true).length;
+    const injuryPanelOpenRate =
+      injuryToggles.length > 0 ? Math.round((injuryPanelOpens / injuryToggles.length) * 100) : null;
+    const injuryOpensByTeam = sortedCounts(
+      injuryToggles.filter((r) => r.open === true),
+      (r) => r.team
+    );
+
+    // --- scheduleGameClicksByTeam: taps on a row of the mobile team
+    // schedule, which now links to that matchup's own page. Those pages
+    // existed and were in the sitemap but nothing on a team page linked to
+    // them, so this is the measure of a new internal path ---
+    const scheduleGameClicksByTeam = sortedCounts(
+      validRecords.filter((r) => r.type === "team_schedule_game"),
+      (r) => r.team
+    );
 
     // --- topViewedPlayers: player-name clicks from either the depth chart
     // or the full roster table, aggregated by player across all teams ---
@@ -791,6 +819,10 @@ export default async (req: Request, _context: Context) => {
         topFavoriteTeam,
         rosterViewsByTeam,
         depthChartSideViews,
+        injuryPanelOpens,
+        injuryPanelOpenRate,
+        injuryOpensByTeam: capTop(injuryOpensByTeam),
+        scheduleGameClicksByTeam: capTop(scheduleGameClicksByTeam),
         topViewedPlayers: capTop(topViewedPlayers),
         newsSourceClicks,
         newsClicksByPlacement,

@@ -3790,6 +3790,197 @@
   .verdict-pill.correct { background: rgba(var(--win-rgb),0.18); color: var(--pill-good-text); }
   .verdict-pill.incorrect { background: rgba(var(--out-rgb),0.18); color: var(--pill-bad-text); }
 
+  /* ---- Team page hero ----------------------------------------------------
+     Replaces .team-view-header + .accuracy-summary (both kept above: the
+     week view still renders .accuracy-summary for a period). The team's
+     name is deliberately smaller here than the old 1.3rem <h2> - the sticky
+     app header and the team switcher directly above both already name the
+     team, so this is the third mention and doesn't need to shout. */
+  .team-hero {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+  }
+  .team-hero-top { display: flex; align-items: center; gap: 12px; }
+  .team-hero-id { min-width: 0; flex: 1; }
+  .team-hero-id h2 { margin: 0; font-size: 1.12rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.15; }
+  .team-hero-sub {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+    margin-top: 3px; font-size: 0.78rem; color: var(--text-dim);
+  }
+  .team-hero-sub strong { color: var(--text); font-weight: 700; }
+  .team-hero-sep { opacity: 0.5; }
+  .team-hero-next { margin-top: 2px; }
+
+  /* Off/Def ranks as a labelled grid. As a run-on line ("Off: Total #7 Rush
+     #24 Pass #5  Def: ...") it wrapped between a label and its own pill,
+     which is how "Pass" and "#25" ended up on different lines at 390px. */
+  .team-rank-grid {
+    display: grid; grid-template-columns: auto repeat(3, 1fr);
+    gap: 5px 8px; align-items: center; margin-top: 12px;
+    /* Capped rather than fluid: at 1100px the three rank columns spread so
+       far apart that the grid stopped reading as a table. It only ever holds
+       six pills, so it wants a table's width, not the card's. */
+    max-width: 340px;
+  }
+  .team-rank-grid .trg-head {
+    font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-dim); text-align: center;
+  }
+  .team-rank-grid .trg-side {
+    font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-dim); font-weight: 800;
+  }
+  .team-rank-grid .trg-cell { text-align: center; }
+
+  .team-hero-chips { display: flex; gap: 8px; margin-top: 12px; }
+  .team-hero-chip {
+    flex: 1 1 0; min-width: 0; background: var(--surface-2); border-radius: 10px;
+    padding: 7px 8px; text-align: center;
+  }
+  .team-hero-chip .thc-key {
+    display: block; font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* Three chips across a 320px screen leaves ~90px each, which clipped
+     "Blitz calls" to "Blitz cal...". Drop the letter-spacing and let the
+     label use both lines rather than lose a word. */
+  @media (max-width: 360px) {
+    .team-hero-chips { gap: 6px; }
+    .team-hero-chip { padding: 6px; }
+    .team-hero-chip .thc-key { white-space: normal; letter-spacing: 0.04em; }
+    .sched-list-hint { display: none; }
+  }
+  .team-hero-chip .thc-val { display: block; font-size: 0.9rem; font-weight: 800; margin-top: 2px; }
+
+  /* ---- Injury report, collapsed to a count summary -----------------------
+     The list is unbounded (one card per tracked player) and sat between the
+     header and the tabs, so on mobile the schedule started a full viewport
+     down. The summary row carries the same information a glance needs.
+     #team-injury-report stays on the wrapper so the /teams/{slug}/injuries
+     deep link from a push notification still scrolls here - TeamView opens
+     the panel in the same effect that does the scroll. */
+  .team-injuries {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; margin-bottom: 10px; overflow: hidden;
+  }
+  .team-injury-toggle {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    background: transparent; border: none; color: var(--text);
+    font: inherit; text-align: left; padding: 11px 14px; cursor: pointer;
+  }
+  .team-injury-toggle .tit-label {
+    font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase;
+    font-weight: 800; color: var(--text-dim); flex-shrink: 0;
+  }
+  .team-injury-toggle .tit-count {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.76rem; font-weight: 700; white-space: nowrap;
+  }
+  .team-injury-toggle .tit-count i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .team-injury-toggle .tit-count.is-out { color: var(--out); }
+  .team-injury-toggle .tit-count.is-out i { background: var(--out); }
+  .team-injury-toggle .tit-count.is-q { color: var(--warn); }
+  .team-injury-toggle .tit-count.is-q i { background: var(--warn); }
+  .team-injury-toggle .tit-count.is-ok { color: var(--text-dim); font-weight: 500; }
+  .team-injury-toggle .tit-counts { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; min-width: 0; }
+  .team-injury-toggle .tit-chevron { margin-left: auto; color: var(--text-dim); display: flex; flex: none; }
+  .team-injury-body { padding: 0 14px 12px; }
+  /* Under ~380px three counts plus the chevron is too much for one row -
+     let the counts wrap under the label rather than squeeze. */
+  /* Two rows rather than one under 380px: label and chevron on top, the
+     whole count group underneath. As a wrapping flex row the chevron ended
+     up mid-line, between the label and the counts. */
+  @media (max-width: 380px) {
+    .team-injury-toggle { display: grid; grid-template-columns: 1fr auto; row-gap: 5px; column-gap: 8px; }
+    .team-injury-toggle .tit-label { grid-column: 1; grid-row: 1; align-self: center; }
+    .team-injury-toggle .tit-chevron { grid-column: 2; grid-row: 1; margin-left: 0; justify-self: end; }
+    .team-injury-toggle .tit-counts { grid-column: 1 / -1; grid-row: 2; }
+  }
+
+  /* ---- Mobile schedule card ----------------------------------------------
+     Three lines, and the card itself is the link to the matchup's own page
+     (/games/{season}/{week}/{away}-at-{home}/) - which every one of these
+     rows has, and none of them linked to before. */
+  .sched-list-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    font-size: 0.66rem; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-dim); margin: 2px 2px 8px;
+  }
+  .sched-list-hint { text-align: right; }
+  .sched-section {
+    font-size: 0.64rem; letter-spacing: 0.09em; text-transform: uppercase;
+    font-weight: 800; color: var(--text-dim); margin: 14px 2px 7px;
+  }
+  .sched-section:first-of-type { margin-top: 0; }
+
+  .sched-card {
+    display: block; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 10px 12px; color: inherit; text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sched-card:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+  .sched-card.is-next { border-color: rgba(var(--accent-rgb), 0.55); box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.22); }
+  .sched-card.is-playoff { border-color: rgba(var(--demo-rgb), 0.4); }
+  .sched-card.is-live { border-color: var(--live); box-shadow: 0 0 0 1px rgba(var(--live-rgb), 0.3); }
+
+  .sched-meta {
+    display: flex; align-items: center; gap: 5px; min-width: 0;
+    font-size: 0.7rem; color: var(--text-dim); margin-bottom: 7px;
+  }
+  .sched-meta .sched-wk { font-weight: 800; color: var(--text); letter-spacing: 0.03em; flex: none; }
+  .sched-meta .sched-dot { opacity: 0.5; flex: none; }
+  .sched-meta .sched-when { flex: none; white-space: nowrap; }
+  /* The network is the only part of the meta line that can be long ("Prime
+     Video", "NFL Network"), so it's the only part allowed to truncate -
+     everything else keeps its full value and the row stays one line. */
+  .sched-meta .sched-net { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sched-meta-right { margin-left: auto; display: flex; align-items: center; gap: 5px; flex: none; }
+
+  .sched-main { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .sched-main .team-crest { flex: none; }
+  .sched-opp {
+    font-size: 0.95rem; font-weight: 700; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .sched-opp .sched-at { color: var(--text-dim); font-weight: 600; }
+  .sched-wl { margin-left: auto; flex: none; font-size: 0.98rem; font-weight: 800; }
+  .sched-wl.is-w { color: var(--win); }
+  .sched-wl.is-l { color: var(--out); }
+  .sched-live { margin-left: auto; flex: none; font-size: 0.76rem; }
+
+  .sched-line2 { display: flex; align-items: center; gap: 8px; margin-top: 7px; font-size: 0.75rem; }
+  .sched-edge {
+    display: inline-flex; align-items: center; gap: 5px; font-weight: 700;
+    padding: 3px 8px; border-radius: 999px; background: var(--surface-2); flex: none;
+  }
+  .sched-edge.is-w { color: var(--win); }
+  .sched-edge.is-l { color: var(--text-dim); }
+  .sched-edge .sched-pct { font-variant-numeric: tabular-nums; }
+  /* Brand orange for a correct call, matching the GameCard "Called it" badge
+     (round 15) - a right pick is a Blitz Edge signal, deliberately not the
+     same green as the actual-win colour on the row above it. */
+  .sched-call {
+    display: inline-flex; align-items: center; gap: 4px; flex: none;
+    font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+  }
+  .sched-call.is-yes { background: rgba(253, 127, 1, 0.14); color: var(--blitz-orange); }
+  .sched-call.is-no { background: rgba(var(--out-rgb), 0.12); color: var(--pill-bad-text); }
+  .sched-live-clock { display: flex; align-items: center; gap: 6px; flex: none; font-weight: 600; color: var(--text-dim); }
+  .sched-odds {
+    margin-left: auto; text-align: right; color: var(--text-dim);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+  .sched-book-note { font-style: italic; }
+  .sched-card .last-play { margin-top: 6px; }
+
+  .sched-bye {
+    display: flex; align-items: center; gap: 9px; padding: 9px 12px;
+    border: 1px dashed var(--card-border); border-radius: 12px;
+    color: var(--text-dim); font-size: 0.82rem;
+  }
+  .sched-bye .sched-wk { font-weight: 800; color: var(--text); letter-spacing: 0.03em; }
+
   /* Team tabs (Schedule / Roster & Depth Chart / News on mobile) */
   .team-tabs { display: flex; gap: 4px; margin: 18px 0 4px; border-bottom: 1px solid var(--card-border); flex-wrap: wrap; }
   .team-tab-btn {
@@ -3799,6 +3990,22 @@
   }
   .team-tab-btn:hover { color: var(--text); }
   .team-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* On mobile the strip pins under the 52px .hdr-bar so tab navigation stays
+     reachable from anywhere in a 20-game schedule, and scrolls sideways
+     rather than wrapping - at 320px "News" used to drop onto a second row,
+     below the active tab's underline. scroll-margin-top matches the header
+     so selectTab()'s scrollIntoView doesn't park the strip underneath it. */
+  @media (max-width: 720px) {
+    .team-tabs {
+      position: sticky; top: 52px; z-index: 20; scroll-margin-top: 52px;
+      margin: 12px 0 10px; padding: 4px 0;
+      flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+      background: var(--bg); -webkit-overflow-scrolling: touch;
+    }
+    .team-tabs::-webkit-scrollbar { display: none; }
+    .team-tab-btn { flex: none; white-space: nowrap; padding: 8px 12px; }
+  }
 
   /* Team view layout: main column + news column on desktop, stacked (with News as its own tab) on mobile */
   .team-view-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; margin-top: 16px; }
@@ -12376,6 +12583,19 @@ function shortPeriodLabel(week, label) {
   return label;
 }
 
+/* Even shorter than shortPeriodLabel, for the mobile schedule card's meta
+ * line, where the week label shares one row with the date, kickoff time and
+ * network. "Week 12" wrapping to a second line was what pushed that whole
+ * row into two lines on a 390px screen; "WK 12" fits. Playoff rounds keep
+ * their real names - there's no useful two-character form of "Wild Card",
+ * and there are at most four of those rows. */
+function compactPeriodLabel(week, label) {
+  if (week === -4) return "HOF";
+  if (week < 1) return `PRE ${week + 4}`;
+  if (week <= 18) return `WK ${week}`;
+  return label;
+}
+
 function getPeriodLabel(week) {
   if (week < 1) {
     const round = getPreseasonRound(week);
@@ -17157,7 +17377,14 @@ function FavoritesBar({ favorites, onSelect }) {
  * closes the panel; clicking its star toggles favorite status in place,
  * re-sorting it into/out of the Favorites group without closing the panel.
  */
-function TeamSwitcher({ teamId, favorites, onSelectTeam, onToggleFavorite }) {
+/* `compact` swaps the trigger's label from the current team's name to
+ * "Change team". On a phone the sticky header, this trigger and the hero
+ * below it all sat one under the other, so the team's name appeared three
+ * times in the first 250px before any content. The name stays in the hero
+ * (where it's the page's actual heading); this control keeps its job and
+ * loses the redundant label. aria-label already said "Switch team", so
+ * nothing is lost for a screen reader either. */
+function TeamSwitcher({ teamId, favorites, onSelectTeam, onToggleFavorite, compact }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const favIds = new Set(favorites);
@@ -17210,7 +17437,7 @@ function TeamSwitcher({ teamId, favorites, onSelectTeam, onToggleFavorite }) {
         aria-expanded={open}
         aria-label="Switch team"
       >
-        <span>{current ? current.name : teamId}</span>
+        <span>{compact ? "Change team" : (current ? current.name : teamId)}</span>
         <span className={"team-switcher-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
       </button>
       {open && (
@@ -23383,7 +23610,121 @@ function TeamNewsPanel({ teamId }) {
   );
 }
 
-function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSelectTeam, sportsbookId, tz, focus }) {
+/** One game on the mobile team schedule.
+ *
+ *  Replaces a six-line card (week/date row, opponent, "Predicted W (52%)",
+ *  an odds strip, a result line, and a repeated sportsbook name) with three:
+ *  meta, matchup + outcome, and one row pairing the model's read with the
+ *  line. The card is a real <a> to the matchup's own page rather than a div
+ *  with a tappable score inside it - same call the GameCard redesign made in
+ *  round 18, and it gives every one of these rows an internal link to a page
+ *  that already exists in the sitemap.
+ *
+ *  The headline change is `teamWon`: the old card printed "TEN 19 - 13 SF",
+ *  leaving the reader to work out which abbreviation was theirs and which
+ *  side of the dash it sat on. On a team page the first question is whether
+ *  this team won, so that's what the card leads with - and the model's
+ *  separate "was the pick right" verdict moves down a line and gets named,
+ *  because a bare ✗ next to a score reads as a loss. */
+function TeamScheduleCard({ row: r, teamId, isNext, sportsbookId, onSelectGame }) {
+  if (r.bye) {
+    return (
+      <div className="sched-bye">
+        <span className="sched-wk">{compactPeriodLabel(r.week, r.label)}</span>
+        <span>Bye week</span>
+      </div>
+    );
+  }
+
+  const live = r.actual && r.actual.isLive ? r.actual : null;
+  const final = r.actual && !r.actual.isLive ? r.actual : null;
+  const awayAbbr = r.isHome ? r.opp.id : teamId;
+  const homeAbbr = r.isHome ? teamId : r.opp.id;
+  const path = buildGamePath(r.week, awayAbbr, homeAbbr);
+
+  let teamScore = null, oppScore = null;
+  if (final) {
+    teamScore = r.isHome ? final.homeScore : final.awayScore;
+    oppScore = r.isHome ? final.awayScore : final.homeScore;
+  }
+
+  const oddsText = r.odds
+    ? `${r.odds.favorite} ${formatSpread(r.odds.spread)} · O/U ${r.odds.overUnder}`
+    : "Line not posted";
+
+  return (
+    <a
+      className={"sched-card" + (isNext ? " is-next" : "") + (r.isPlayoff ? " is-playoff" : "") + (live ? " is-live" : "")}
+      href={path}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        if (!onSelectGame) return;
+        e.preventDefault();
+        onSelectGame(r.week, awayAbbr, homeAbbr);
+      }}
+      data-team={teamId}
+      data-week={r.week}
+    >
+      <div className="sched-meta">
+        <span className="sched-wk">{compactPeriodLabel(r.week, r.label)}</span>
+        <span className="sched-dot">·</span>
+        <span className="sched-when">{r.date}{r.time ? ` ${r.time}` : ""}</span>
+        {r.network && <><span className="sched-dot">·</span><span className="sched-net">{r.network}</span></>}
+        <span className="sched-meta-right">
+          {r.international && <span className="international-tag" title={r.note || "International Game"}><GlobeIcon /> Intl</span>}
+          {!live && <WeatherPill weather={r.weather} />}
+        </span>
+      </div>
+
+      <div className="sched-main">
+        <TeamLogo teamId={r.opp.id} size={26} />
+        <span className="sched-opp"><span className="sched-at">{r.isHome ? "vs" : "@"}</span> {r.opp.name}</span>
+        {final && (
+          <span className={"sched-wl " + (final.teamWon ? "is-w" : "is-l")}>
+            {final.teamWon ? "W" : "L"} {teamScore}–{oppScore}
+          </span>
+        )}
+        {live && (
+          <span className="live-tag sched-live">
+            <span className="live-dot"></span>
+            <LiveScoreFlash awayScore={live.awayScore} homeScore={live.homeScore}>
+              {live.possession === "away" && <span className="poss-ball">🏈</span>}
+              {live.awayAbbr} {live.awayScore} – {live.homeScore} {live.homeAbbr}
+              {live.possession === "home" && <span className="poss-ball">🏈</span>}
+            </LiveScoreFlash>
+          </span>
+        )}
+      </div>
+
+      <div className="sched-line2">
+        {final ? (
+          <span className={"sched-call " + (final.correct ? "is-yes" : "is-no")}>
+            {final.correct ? "✓ Blitz called it" : "✗ Blitz missed"}
+          </span>
+        ) : live ? (
+          <span className="sched-live-clock">
+            {live.clockLabel}
+            {live.downDistanceText && (
+              <span className={"down-distance" + (live.isRedZone ? " is-redzone" : "")}>{live.downDistanceText}</span>
+            )}
+          </span>
+        ) : (
+          <span className={"sched-edge " + (r.teamWins ? "is-w" : "is-l")}>
+            {r.teamWins ? "Win" : "Loss"} <span className="sched-pct">{(r.confidence * 100).toFixed(0)}%</span>
+          </span>
+        )}
+        <span className="sched-odds">
+          {oddsText}
+          {r.odds && r.odds.isFallback && <span className="sched-book-note"> · {r.odds.sportsbook}</span>}
+        </span>
+      </div>
+
+      {live && live.lastPlay && <div className="last-play">{live.lastPlay}</div>}
+    </a>
+  );
+}
+
+function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSelectTeam, onSelectGame, sportsbookId, tz, focus }) {
   const team = baseTeam(teamId);
   if (!team) return <p>Unknown team.</p>;
   const injuryReport = [...(PLAYERS_DATA.players[teamId] || [])]
@@ -23391,6 +23732,14 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSel
     .sort((a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3));
   const isMobile = useIsMobile(860);
   const [activeTab, setActiveTab] = useState("schedule");
+  // The injury report is unbounded - it grows one card per tracked player,
+  // and on a mobile screen that pushed the schedule (the reason most people
+  // open a team page) a full viewport below the fold. Collapsed to a one-line
+  // count summary on mobile; desktop has the room, so it stays open there.
+  // Arriving from an injury notification (focus === "injuries") always opens
+  // it, since that's the thing the reader was sent here to see.
+  const [injuriesOpen, setInjuriesOpen] = useState(() => !isMobile || focus === "injuries");
+  const tabsRef = useRef(null);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   // Only the chronologically "current" period can have a game in progress
   // right now, so that's the only week worth polling ESPN for here - same
@@ -23408,6 +23757,7 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSel
   useEffect(() => {
     if (focus !== "injuries" || injuryFocusDoneRef.current) return;
     injuryFocusDoneRef.current = true;
+    setInjuriesOpen(true);
     const timer = setTimeout(() => {
       const el = document.getElementById("team-injury-report");
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -23415,16 +23765,36 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSel
     return () => clearTimeout(timer);
   }, [focus]);
 
+  /* `label` is what the tab renders; `analyticsLabel` is the stable name the
+   * event stream has always used for this tab. They diverge on mobile, where
+   * "Roster & Depth Chart" is wide enough to wrap the whole strip onto two
+   * lines under 360px - the visible text shortens to "Roster", but the event
+   * keeps reporting the long name so the depth-chart KPI in
+   * analytics-summary.mts stays continuous across this change. */
   const tabs = isMobile
     ? [
-        { id: "schedule", label: "Schedule" },
-        { id: "roster", label: "Roster & Depth Chart" },
-        { id: "news", label: "News" },
+        { id: "schedule", label: "Schedule", analyticsLabel: "Schedule" },
+        { id: "roster", label: "Roster", analyticsLabel: "Roster & Depth Chart" },
+        { id: "news", label: "News", analyticsLabel: "News" },
       ]
     : [
-        { id: "schedule", label: "Schedule" },
-        { id: "roster", label: "Roster & Depth Chart" },
+        { id: "schedule", label: "Schedule", analyticsLabel: "Schedule" },
+        { id: "roster", label: "Roster & Depth Chart", analyticsLabel: "Roster & Depth Chart" },
       ];
+
+  /* Switching tabs used to leave the reader wherever they were scrolled -
+   * which, with the injury report above the strip, could mean the newly
+   * selected tab's content rendered entirely off-screen below them. Pull the
+   * strip itself back to the top of the viewport instead (scroll-margin-top
+   * on .team-tabs accounts for the sticky app header). */
+  function selectTab(id) {
+    setActiveTab(id);
+    if (!isMobile) return;
+    const el = tabsRef.current;
+    if (el && typeof el.scrollIntoView === "function") {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
 
   useEffect(() => {
     if (!tabs.some(t => t.id === activeTab)) setActiveTab("schedule");
@@ -23540,6 +23910,31 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSel
   const spreadCorrectCount = spreadCoverages.filter(Boolean).length;
   const spreadIncorrectCount = spreadCoverages.length - spreadCorrectCount;
 
+  /* The team's own actual record - which the page never showed. "Model-
+   * predicted wins: 6 / 17" is the model's opinion, not the season so far,
+   * and those are different enough facts that conflating them under one line
+   * was misleading. Preseason is tallied separately (and only surfaced while
+   * it's the only thing that's been played) since exhibition results don't
+   * belong in a regular-season record. Demo weeks are excluded on the same
+   * grounds as the accuracy tally above: illustrative scores aren't results. */
+  const realFinished = (list) => list.filter(r => !r.bye && r.actual && !r.actual.isLive && !getWeekContext(r.week).isDemo);
+  const regFinished = realFinished(rows);
+  const regWins = regFinished.filter(r => r.actual.teamWon).length;
+  const preFinished = realFinished(preseasonRows);
+  const preWins = preFinished.filter(r => r.actual.teamWon).length;
+  const recordLabel = regFinished.length > 0
+    ? `${regWins}–${regFinished.length - regWins}`
+    : (preFinished.length > 0 ? `Preseason ${preWins}–${preFinished.length - preWins}` : null);
+
+  // A game in progress counts as "next" - it's the one the reader most likely
+  // came for, and it stops the strip going blank mid-Sunday.
+  const nextRow = [...preseasonRows, ...rows].find(r => !r.bye && (!r.actual || r.actual.isLive));
+
+  const outCount = injuryReport.filter(p => p.status === "out").length;
+  const questionableCount = injuryReport.filter(p => p.status === "questionable").length;
+  const healthyCount = injuryReport.length - outCount - questionableCount;
+  const division = TEAM_DIVISION[teamId];
+
   return (
     <div>
       <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
@@ -23552,82 +23947,133 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSel
           backTourId="team-back"
         />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Team:</span>
-          <TeamSwitcher teamId={teamId} favorites={favorites} onSelectTeam={onSelectTeam} onToggleFavorite={onToggleFavorite} />
+          {!isMobile && <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Team:</span>}
+          <TeamSwitcher teamId={teamId} favorites={favorites} onSelectTeam={onSelectTeam} onToggleFavorite={onToggleFavorite} compact={isMobile} />
         </div>
       </div>
-      <div className="team-view-header">
-        <div className="badge-wrap" style={{ width: 64, height: 64 }}>
-          <TeamLogo teamId={team.id} size={64} />
-          <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <h2>{team.name}</h2>
-          <div className="rec-line">
-            Off: Total <RankPill rank={team.stats.offense.rankTotal} /> Rush <RankPill rank={team.stats.offense.rankRush} /> Pass <RankPill rank={team.stats.offense.rankPass} />
-            &nbsp;&nbsp;Def: Total <RankPill rank={team.stats.defense.rankTotal} /> Rush <RankPill rank={team.stats.defense.rankRush} /> Pass <RankPill rank={team.stats.defense.rankPass} />
+      {/* One identity block instead of three. The app header and the team
+          switcher directly above already say the team's name; the old <h2>
+          made it three times in the first screenful, and the Off/Def ranks
+          ran together as one long sentence that wrapped mid-group (leaving
+          "Pass #25" orphaned on its own line at 390px). Ranks are a labelled
+          2x3 grid now, and the accuracy card folds into the chip strip
+          rather than costing a separate card. */}
+      <div className="team-hero">
+        <div className="team-hero-top">
+          <div className="badge-wrap" style={{ width: 48, height: 48 }}>
+            <TeamLogo teamId={team.id} size={48} />
+            <FavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
           </div>
-          <div className="rec-line" style={{ marginTop: 6 }}>Model-predicted wins this season: {favCount} / {totalGames}</div>
-        </div>
-      </div>
-
-      {finishedRows.length > 0 && (
-        <div className="accuracy-summary">
-          <div className="accuracy-summary-stats">
-            <div className="accuracy-stat">
-              <span className="accuracy-stat-label">Predictions</span>
-              <span className="accuracy-stat-value">
-                <span className="accuracy-count correct">{predCorrectCount} correct</span>
-                <span className="accuracy-count incorrect">{predIncorrectCount} incorrect</span>
-              </span>
+          <div className="team-hero-id">
+            <h2>{team.name}</h2>
+            <div className="team-hero-sub">
+              {division && <span>{division}</span>}
+              {division && recordLabel && <span className="team-hero-sep">·</span>}
+              {recordLabel && <span>{recordLabel}</span>}
             </div>
-            <div className="accuracy-stat">
-              <span className="accuracy-stat-label">Spreads</span>
-              {spreadCoverages.length > 0 ? (
-                <span className="accuracy-stat-value">
-                  <span className="accuracy-count correct">{spreadCorrectCount} correct</span>
-                  <span className="accuracy-count incorrect">{spreadIncorrectCount} incorrect</span>
-                </span>
-              ) : (
-                <span className="accuracy-stat-value hw-tag" style={{ marginLeft: 0 }}>No odds data for finished games</span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="injury-report" id="team-injury-report">
-        <h3 className="injury-report-title">Injury Report — This Week</h3>
-        {injuryReport.length === 0 ? (
-          <p className="hw-tag">No tracked impact players for this team right now.</p>
-        ) : (
-          <div className="injury-list">
-            {injuryReport.map((p, i) => (
-              <div key={i} className={"impact-note impact-" + p.status}>
-                <div className="impact-head">
-                  <span>{p.status === "out" ? "⛔" : p.status === "questionable" ? "⚠️" : "✅"}</span>
-                  <span>
-                    <strong>{p.name}</strong> ({p.position}) — <strong>{p.status}</strong>
-                    <InjuryReturnInline player={p} />
-                    <InjuryInfoButton player={p} />
-                  </span>
-                </div>
-                <InjurySourceLine player={p} />
+            {nextRow && (
+              <div className="team-hero-sub team-hero-next">
+                <span>{nextRow.actual && nextRow.actual.isLive ? "Now:" : "Next:"}</span>
+                <strong>{nextRow.isHome ? "vs" : "@"} {nextRow.opp.id}</strong>
+                {/* No separator here on purpose: at 320px this line wraps,
+                    and a dot either dangles at the end of line one or leads
+                    line two. The gap between the two spans is enough. */}
+                <span>{nextRow.date}{nextRow.time ? ` ${nextRow.time}` : ""}</span>
               </div>
-            ))}
+            )}
+          </div>
+        </div>
+
+        <div className="team-rank-grid" aria-label="Team rankings out of 32">
+          <span></span>
+          <span className="trg-head">Total</span>
+          <span className="trg-head">Rush</span>
+          <span className="trg-head">Pass</span>
+          <span className="trg-side">Off</span>
+          <span className="trg-cell"><RankPill rank={team.stats.offense.rankTotal} /></span>
+          <span className="trg-cell"><RankPill rank={team.stats.offense.rankRush} /></span>
+          <span className="trg-cell"><RankPill rank={team.stats.offense.rankPass} /></span>
+          <span className="trg-side">Def</span>
+          <span className="trg-cell"><RankPill rank={team.stats.defense.rankTotal} /></span>
+          <span className="trg-cell"><RankPill rank={team.stats.defense.rankRush} /></span>
+          <span className="trg-cell"><RankPill rank={team.stats.defense.rankPass} /></span>
+        </div>
+
+        <div className="team-hero-chips">
+          <div className="team-hero-chip">
+            <span className="thc-key">Projected</span>
+            <span className="thc-val">{favCount}–{totalGames - favCount}</span>
+          </div>
+          {finishedRows.length > 0 && (
+            <div className="team-hero-chip">
+              <span className="thc-key">Blitz calls</span>
+              <span className="thc-val">{predCorrectCount}–{predIncorrectCount}</span>
+            </div>
+          )}
+          {spreadCoverages.length > 0 && (
+            <div className="team-hero-chip">
+              <span className="thc-key">ATS</span>
+              <span className="thc-val">{spreadCorrectCount}–{spreadIncorrectCount}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className={"team-injuries" + (injuriesOpen ? " is-open" : "")} id="team-injury-report">
+        <button
+          className="team-injury-toggle"
+          onClick={() => setInjuriesOpen(o => !o)}
+          aria-expanded={injuriesOpen}
+          aria-controls="team-injury-list"
+          data-injury-open={injuriesOpen ? "1" : "0"}
+        >
+          <span className="tit-label">Injuries</span>
+          {/* Counts are one group, not three siblings: under 380px the row
+              becomes a two-row grid and they need to wrap together onto the
+              second row rather than one at a time around the chevron. */}
+          <span className="tit-counts">
+            {outCount > 0 && <span className="tit-count is-out"><i></i>{outCount} out</span>}
+            {questionableCount > 0 && <span className="tit-count is-q"><i></i>{questionableCount} questionable</span>}
+            {healthyCount > 0 && <span className="tit-count is-ok">{healthyCount} healthy</span>}
+            {injuryReport.length === 0 && <span className="tit-count is-ok">None tracked</span>}
+          </span>
+          <span className="tit-chevron"><ChevronIcon direction={injuriesOpen ? "up" : "down"} size={14} /></span>
+        </button>
+        {injuriesOpen && (
+          <div className="team-injury-body" id="team-injury-list">
+            {injuryReport.length === 0 ? (
+              <p className="hw-tag" style={{ marginLeft: 0 }}>No tracked impact players for this team right now.</p>
+            ) : (
+              <div className="injury-list">
+                {injuryReport.map((p, i) => (
+                  <div key={i} className={"impact-note impact-" + p.status}>
+                    <div className="impact-head">
+                      <span>{p.status === "out" ? "⛔" : p.status === "questionable" ? "⚠️" : "✅"}</span>
+                      <span>
+                        <strong>{p.name}</strong> ({p.position}) — <strong>{p.status}</strong>
+                        <InjuryReturnInline player={p} />
+                        <InjuryInfoButton player={p} />
+                      </span>
+                    </div>
+                    <InjurySourceLine player={p} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="team-tabs" role="tablist">
+      <div className="team-tabs" role="tablist" ref={tabsRef}>
         {tabs.map(t => (
           <button
             key={t.id}
             className={"team-tab-btn" + (activeTab === t.id ? " active" : "")}
-            onClick={() => setActiveTab(t.id)}
+            onClick={() => selectTab(t.id)}
             role="tab"
             aria-selected={activeTab === t.id}
             data-tour={"team-tab-" + t.id}
+            data-tab-label={t.analyticsLabel}
           >
             {t.label}
           </button>
@@ -23649,86 +24095,32 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSel
                 </button>
               )}
               {isMobile ? (
-            <div className="schedule-mobile-list">
-              {displayRows.map(r => (
-                <div key={r.week} className={"schedule-mobile-card" + (r.bye ? " bye-row" : "") + (r.isPlayoff ? " playoff-row" : "") + (r.actual && r.actual.isLive ? " live-row" : "")}>
-                  <div className="schedule-mobile-top">
-                    <span className="schedule-mobile-week">{r.label}</span>
-                    {!r.bye && <span className="schedule-mobile-date">{r.date}{r.time ? ` • ${r.time}` : ""}{r.network ? ` • ${r.network}` : ""}<WeatherPill weather={r.weather} /></span>}
+            <>
+              {/* The sportsbook name was repeated on all 21 cards. It's the
+                  same book for the whole list (it's a global setting), so it
+                  belongs once, above - only a card whose line came from a
+                  different book still says so, inline. */}
+              <div className="sched-list-head">
+                <span>Lines · {getSportsbookLabel(sportsbookId)}</span>
+                <span className="sched-list-hint">Tap a game for full details</span>
+              </div>
+              {preseasonRows.length > 0 && (!preseasonCollapsible || showPreseason) && (
+                <>
+                  <div className="sched-section">Preseason</div>
+                  <div className="schedule-mobile-list">
+                    {preseasonRows.map(r => (
+                      <TeamScheduleCard key={r.week} row={r} teamId={teamId} isNext={nextRow === r} sportsbookId={sportsbookId} onSelectGame={onSelectGame} />
+                    ))}
                   </div>
-                  {r.bye ? (
-                    <div className="hw-tag">BYE week</div>
-                  ) : (
-                    <>
-                      <div className="opp-cell">
-                        <TeamLogo teamId={r.opp.id} size={26} />
-                        <span>{r.isHome ? "vs" : "@"} {r.opp.name}</span>
-                        {r.international && <span className="international-tag" title={r.note || "International Game"}><GlobeIcon /> International</span>}
-                      </div>
-                      <div className="schedule-mobile-row">
-                        <span className={r.teamWins ? "pred-win" : "pred-lose"}>
-                          {r.teamWins ? "Predicted W" : "Predicted L"}
-                          <span className="hw-tag">({(r.confidence * 100).toFixed(0)}%)</span>
-                        </span>
-                      </div>
-                      <div className="schedule-mobile-odds">
-                        {r.odds ? (
-                          <>
-                            <span className="odds-field"><span className="odds-label">Spread</span> {r.odds.favorite} {formatSpread(r.odds.spread)}</span>
-                            <span className="odds-field"><span className="odds-label">O/U</span> {r.odds.overUnder}</span>
-                            <span className="odds-source">
-                              {r.odds.sportsbook}{r.odds.isFallback ? ` — no ${getSportsbookLabel(sportsbookId)} line yet` : ""}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="hw-tag">Odds not yet posted</span>
-                        )}
-                      </div>
-                      <div className="schedule-mobile-row">
-                        {r.actual ? (
-                          r.actual.isLive ? (
-                            <>
-                              <GameScoreLink week={r.week} awayAbbr={r.actual.awayAbbr} homeAbbr={r.actual.homeAbbr}>
-                                <span className="live-tag" style={{ fontSize: "0.76rem" }}>
-                                  <span className="live-dot"></span>
-                                  <LiveScoreFlash awayScore={r.actual.awayScore} homeScore={r.actual.homeScore}>
-                                    {r.actual.possession === "away" && <span className="poss-ball">🏈</span>}
-                                    {r.actual.awayAbbr} {r.actual.awayScore} – {r.actual.homeScore} {r.actual.homeAbbr}
-                                    {r.actual.possession === "home" && <span className="poss-ball">🏈</span>}
-                                  </LiveScoreFlash>
-                                </span>
-                              </GameScoreLink>
-                              <div className="live-clock-line">
-                                <span>{r.actual.clockLabel}</span>
-                                {r.actual.downDistanceText && (
-                                  <span className={"down-distance" + (r.actual.isRedZone ? " is-redzone" : "")}>
-                                    {r.actual.downDistanceText}
-                                  </span>
-                                )}
-                              </div>
-                            </>
-                          ) : (
-                            <GameScoreLink week={r.week} awayAbbr={r.actual.awayAbbr} homeAbbr={r.actual.homeAbbr}>
-                              <span>
-                                {r.actual.scoreLine}
-                                <span className={"verdict-pill " + (r.actual.correct ? "correct" : "incorrect")}>
-                                  {r.actual.correct ? "✓" : "✗"}
-                                </span>
-                              </span>
-                            </GameScoreLink>
-                          )
-                        ) : (
-                          <span className="hw-tag">Not played yet</span>
-                        )}
-                      </div>
-                      {r.actual && r.actual.isLive && r.actual.lastPlay && (
-                        <div className="last-play">{r.actual.lastPlay}</div>
-                      )}
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
+                </>
+              )}
+              <div className="sched-section">{preseasonRows.length > 0 ? "Regular season" : "Schedule"}</div>
+              <div className="schedule-mobile-list">
+                {rows.map(r => (
+                  <TeamScheduleCard key={r.week} row={r} teamId={teamId} isNext={nextRow === r} sportsbookId={sportsbookId} onSelectGame={onSelectGame} />
+                ))}
+              </div>
+            </>
           ) : (
             <div className="team-schedule-table-wrap">
             <table className="team-schedule-table">
@@ -27487,7 +27879,7 @@ function App() {
               gameType={gameType}
             />
           ) : (
-            <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onGoHome={goHomeTab} onSelectTeam={selectTeam} sportsbookId={sportsbookId} tz={resolvedTz} focus={teamFocus} />
+            <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onGoHome={goHomeTab} onSelectTeam={selectTeam} onSelectGame={selectGame} sportsbookId={sportsbookId} tz={resolvedTz} focus={teamFocus} />
           )}
         </>
       )}

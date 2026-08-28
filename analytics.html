@@ -461,7 +461,9 @@
         { title: "Team clicks by origin", sub: "Game card vs. the favorites quick-nav", html: barListHtml(relabel(d.teamClicksByOrigin, { game_card: "Game card", favorites_bar: "Favorites bar" }), "teamClickOrigin", { valueFn: function (l) { return l === "Game card" ? "game_card" : l === "Favorites bar" ? "favorites_bar" : l; } }) },
         { title: "Roster views by team", sub: unknownNote(d.rosterViewsByTeam, '"Roster & Depth Chart" tab opens'), html: barListHtml(normTeams(d.rosterViewsByTeam), "rosterTeam", { valueFn: function (l) { return normTeams.raw[l] || l; } }) },
         { title: "Depth chart side", sub: "Offense / Defense / Special Teams", html: barListHtml(d.depthChartSideViews, "rosterSide") },
-        { title: "Most viewed players", sub: "From depth chart or full roster", html: barListHtml(d.topViewedPlayers, "player") }
+        { title: "Most viewed players", sub: "From depth chart or full roster", html: barListHtml(d.topViewedPlayers, "player") },
+        { title: "Injury panel opens", sub: d.injuryPanelOpenRate === null ? "Collapsed by default on mobile - no toggles in range" : fmtNum(d.injuryPanelOpens || 0) + " opens, " + d.injuryPanelOpenRate + "% of all toggles", html: barListHtml(normTeams(d.injuryOpensByTeam), "injuryOpenTeam", { valueFn: function (l) { return normTeams.raw[l] || l; } }) },
+        { title: "Schedule rows tapped", sub: unknownNote(d.scheduleGameClicksByTeam, "Mobile team schedule into a matchup page"), html: barListHtml(normTeams(d.scheduleGameClicksByTeam), "schedGameTeam", { valueFn: function (l) { return normTeams.raw[l] || l; } }) }
       ]},
       { id: "games", title: "Games & box scores", desc: "Live and final game engagement", tiles: [
         { title: "Box scores by team", sub: "Both teams credited per open", html: barListHtml(normTeams(d.boxscoreClicksByTeam), "boxscoreTeam", { valueFn: function (l) { return normTeams.raw[l] || l; } }) },
@@ -801,6 +803,7 @@
       series: { granularity: "day", points: [] },
       teamClicksByTeam: {}, favoritesByTeam: {}, topFavoriteTeam: null,
       rosterViewsByTeam: {}, depthChartSideViews: {}, topViewedPlayers: {},
+      injuryPanelOpens: 0, injuryPanelOpenRate: null, injuryOpensByTeam: {}, scheduleGameClicksByTeam: {},
       newsSourceClicks: {}, newsClicksByPlacement: {}, teamClicksByOrigin: {},
       boxscoreClicksByTeam: {}, boxscoreClicksBySource: {},
       playbookSubtabViews: {}, playbookFormatViews: {},

@@ -486,13 +486,56 @@
         var teamTabEl = target.closest(".team-tab-btn");
         if (teamTabEl) {
           var ttCtx = findActiveTeamContext();
+          // data-tab-label is the canonical, stable name for the tab. The
+          // visible text now shortens on mobile ("Roster & Depth Chart" ->
+          // "Roster") to keep the strip on one line, and reporting the
+          // visible text would have split the depth-chart KPI in
+          // analytics-summary.mts into two names mid-series.
+          var ttLabel = teamTabEl.getAttribute("data-tab-label");
+          if (!ttLabel && teamTabEl.textContent) ttLabel = teamTabEl.textContent.trim();
           sendEvent({
             type: "team_tab",
             visitorId: visitorId,
             ts: Date.now(),
             team: ttCtx.team || "unknown",
             teamName: ttCtx.teamName || undefined,
-            tab: teamTabEl.textContent ? teamTabEl.textContent.trim() : undefined,
+            tab: ttLabel || undefined,
+          });
+          return;
+        }
+
+        /* The injury report is collapsed by default on mobile now, so how
+           often people actually open it is the question that decides whether
+           that was the right call - and it was previously unanswerable, since
+           the report was always expanded and never generated an event.
+           `open` is read before React re-renders (capture phase), so it
+           describes the state being moved *to*. */
+        var injuryToggleEl = target.closest(".team-injury-toggle");
+        if (injuryToggleEl) {
+          var itCtx = findActiveTeamContext();
+          sendEvent({
+            type: "team_injury_toggle",
+            visitorId: visitorId,
+            ts: Date.now(),
+            team: itCtx.team || "unknown",
+            teamName: itCtx.teamName || undefined,
+            open: injuryToggleEl.getAttribute("data-injury-open") !== "1",
+          });
+          return;
+        }
+
+        /* A row on the mobile team schedule. These are new internal links to
+           the per-matchup pages - nothing on a team page linked to them
+           before - so this measures whether the schedule actually feeds
+           traffic into them. */
+        var schedCardEl = target.closest(".sched-card");
+        if (schedCardEl) {
+          sendEvent({
+            type: "team_schedule_game",
+            visitorId: visitorId,
+            ts: Date.now(),
+            team: schedCardEl.getAttribute("data-team") || "unknown",
+            week: schedCardEl.getAttribute("data-week") || undefined,
           });
           return;
         }

@@ -62,6 +62,14 @@ function base64FromBytes(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+function escapeHtml(s: string): string {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 /**
  * Verifies a Svix-signed webhook (the scheme Resend uses).
  *
@@ -218,8 +226,28 @@ export default async (req: Request, _context: Context) => {
     const headerHtml =
       `<div style="font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;` +
       `color:#5b6b80;border-bottom:1px solid #c3cedd;padding-bottom:8px;margin-bottom:14px;">` +
-      noteLines.map((l) => l.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")).join("<br />") +
+      noteLines.map((l) => escapeHtml(l)).join("<br />") +
       `</div>`;
+
+    // A plain-text-only message (phones, plain-text clients, most automated
+    // senders) arrives with html === null and the content in text. Mail
+    // clients render the HTML part whenever both are present, so putting a
+    // placeholder here and the real content in the text part means the
+    // recipient sees an apparently empty email. Promote the text into HTML
+    // instead - pre-wrap keeps the original line breaks without needing the
+    // text converted to markup.
+    let bodyHtml: string;
+    if (email?.html) {
+      bodyHtml = email.html;
+    } else if (email?.text) {
+      bodyHtml =
+        `<div style="white-space:pre-wrap;font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">` +
+        escapeHtml(email.text) +
+        `</div>`;
+    } else {
+      // Genuinely empty - the sender's whole message may be in an attachment.
+      bodyHtml = `<p style="color:#5b6b80;">(This message had no text body.)</p>`;
+    }
 
     const sendRes = await fetch(`${RESEND_API}/emails`, {
       method: "POST",
@@ -231,8 +259,8 @@ export default async (req: Request, _context: Context) => {
         // inbound domain - which would re-trigger this webhook.
         reply_to: email?.from || undefined,
         subject: email?.subject || "(no subject)",
-        html: email?.html ? headerHtml + email.html : headerHtml + "<p>(no HTML body)</p>",
-        text: email?.text ? `${noteLines.join("\n")}\n\n${email.text}` : noteLines.join("\n"),
+        html: headerHtml + bodyHtml,
+        text: `${noteLines.join("\n")}\n\n${email?.text || email?.html || "(This message had no text body.)"}`,
         ...(attachments.length ? { attachments } : {}),
       }),
     });

@@ -25657,7 +25657,9 @@ const ADMIN_TABS = [
   { id: "leagues", label: "Leagues" },
   { id: "picks", label: "Picks" },
   { id: "injuries", label: "Injuries" },
-  { id: "analytics", label: "Analytics" },
+  // No "analytics" tab: the dashboard is its own page, so it hangs off the
+  // account menu (admin-only) instead of being a tab that only ever held a
+  // link out of the console.
   { id: "log", label: "Activity" },
 ];
 
@@ -25736,18 +25738,6 @@ function AdminConsole({ auth, onClose }) {
           )}
           {tab === "injuries" && (
             <AdminInjuriesPanel auth={auth} onToast={showToast} onCount={setInjuryCount} />
-          )}
-          {tab === "analytics" && (
-            <div className="admin-sec">
-              <h4>Traffic and usage</h4>
-              <p className="admin-hint">
-                The full analytics dashboard opens in its own tab. Your admin session covers the injury
-                queue there, so it no longer asks for a secret.
-              </p>
-              <a className="admin-btn admin-btn-block" href="/analytics.html" target="_blank" rel="noopener noreferrer">
-                Open analytics dashboard
-              </a>
-            </div>
           )}
           {tab === "log" && <AdminActivityPanel auth={auth} users={data && data.users} />}
         </div>
@@ -25845,6 +25835,9 @@ function AccountButton({ auth, profile, onOpenLeagues, onOpenSettings, onOpenHow
               has a gap where a hidden entry would have been. */}
           {[
             { label: "Admin", show: isAdmin, run: onOpenAdmin },
+            // Own page rather than a modal, so it opens in a new tab and
+            // leaves whatever week/game the user was on untouched.
+            { label: "Analytics", show: isAdmin, run: () => window.open("/analytics.html", "_blank", "noopener") },
             { label: "How this works", show: true, run: onOpenHowItWorks },
             { label: "My Leagues", show: LEAGUES_UI_ENABLED, run: onOpenLeagues },
             { label: "Replay tutorial", show: !TOUR_DISABLED_PENDING_REDESIGN, run: onReplayTour },

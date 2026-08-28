@@ -184,22 +184,39 @@
   }
 
   /**
-   * Logistic curve turning a rating-point edge into a win probability.
+   * Win probability for the home team, derived from the predicted margin.
    *
-   * scale=36 (was 12) - recalibrated against a backtest of 3,518 historical
-   * games (2015-2025 regular season + playoffs) run through this same
-   * rating model. At scale=12 the model was badly overconfident: a 20-point
-   * rating edge (a common #1-offense-vs-#32-offense gap) mapped to ~98%
-   * win probability, but games with that edge only actually won ~74-78%
-   * of the time. Brier score against the backtest kept improving out to
-   * roughly scale=40-44; 36 sits just inside that range as a validated,
-   * round value. This only rescales confidence magnitude - it doesn't
-   * change which team is favored, so straight-up pick accuracy (~64% in
-   * the backtest) and confidence-based game ranking are unaffected.
+   * This used to be a separate logistic on edge (scale 36). That left the
+   * engine with two different curves from the same `edge` to a probability -
+   * this one, and the margin fit below that the ats cover numbers use - and
+   * they disagreed: the logistic read ~3.5 points low at edge 0 and ~2 points
+   * high at edge 30, so the same game could be described two ways depending
+   * on which sheet you were looking at.
+   *
+   * Scoring both against the 2,761 regular-season games in
+   * data/historical-games-index.json (2015 onward, each scored with that
+   * season's rankings from data/historical-team-rankings.json):
+   *
+   *   logistic scale 36   Brier 0.2184   logloss 0.6261   64.2% accurate
+   *   margin fit          Brier 0.2167   logloss 0.6220   64.4% accurate
+   *
+   * The margin route wins on all three, and re-fitting it against the same
+   * games lands on 0.405 * edge + 1.11 - within rounding of the 0.409 already
+   * shipped, i.e. it's already at its optimum. (The logistic, for what it's
+   * worth, wasn't even the best logistic: its own best-fit scale is 44, not
+   * 36.) So there is now one curve, and predictedMargin and confidence are
+   * the same number expressed two ways rather than two estimates that have
+   * to be kept in step by hand.
+   *
+   * Note this shifts which team is favored in the narrow band where the
+   * predicted margin crosses zero (edge between about -2.7 and 0 now favors
+   * the home team, on the residual home-field the intercept carries). That's
+   * the change that moves accuracy 64.2% -> 64.4%. Ranking by confidence is
+   * unaffected: both curves are monotonic in edge, so the confidence ladder
+   * hands out the same points in the same order.
    */
-  function edgeToWinProbability(edge, scale) {
-    scale = scale || 36;
-    return 1 / (1 + Math.pow(10, -edge / scale));
+  function marginToWinProbability(predictedHomeMargin) {
+    return normalCdf(predictedHomeMargin / MARGIN_SD);
   }
 
   // ---- Margin / cover model -------------------------------------------------
@@ -289,7 +306,10 @@
     var awayOverall = awayAdj.offRating + awayAdj.defRating;
 
     var edge = homeOverall - awayOverall; // positive favors home team
-    var homeWinProb = edgeToWinProbability(edge);
+    // One curve: the margin model, then the probability that margin implies.
+    // Deriving one from the other is what stops them contradicting.
+    var predictedMargin = edgeToMargin(edge);
+    var homeWinProb = marginToWinProbability(predictedMargin);
 
     var winner = homeWinProb >= 0.5 ? homeTeam.id : awayTeam.id;
     var confidence = homeWinProb >= 0.5 ? homeWinProb : 1 - homeWinProb;
@@ -302,7 +322,7 @@
       predictedWinner: winner,
       confidence: confidence,
       edge: edge,
-      predictedMargin: edgeToMargin(edge),
+      predictedMargin: predictedMargin,
       homeRatings: homeAdj,
       awayRatings: awayAdj,
       homeAdjustments: homeAdj.adjustments,
@@ -315,7 +335,7 @@
     computeBaseRatings: computeBaseRatings,
     applyInjuryAdjustments: applyInjuryAdjustments,
     applyWeatherAdjustments: applyWeatherAdjustments,
-    edgeToWinProbability: edgeToWinProbability,
+    marginToWinProbability: marginToWinProbability,
     edgeToMargin: edgeToMargin,
     coverProbability: coverProbability,
     normalCdf: normalCdf,

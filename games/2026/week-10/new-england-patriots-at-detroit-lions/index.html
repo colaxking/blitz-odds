@@ -1169,19 +1169,15 @@
     border-radius: 14px; margin-bottom: 14px; overflow: hidden;
   }
   .pb-sheet-head {
-    display: flex; align-items: center; gap: 10px; padding: 13px 14px; width: 100%;
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px; width: 100%;
     background: none; border: 0; font-family: inherit; color: var(--text);
     cursor: pointer; text-align: left;
   }
-  .pb-fmt-badge {
-    width: 30px; height: 30px; flex: none; border-radius: 8px;
-    display: grid; place-items: center; font-size: 0.56rem; font-weight: 900;
-    border: 1px solid;
-  }
-  .pb-fmt-straight_up { background: rgba(var(--accent-rgb),0.13); border-color: rgba(var(--accent-rgb),0.4); color: var(--accent); }
-  .pb-fmt-confidence { background: rgba(var(--accent-rgb),0.13); border-color: rgba(var(--accent-rgb),0.4); color: var(--accent); }
-  .pb-fmt-ats { background: var(--surface-2); border-color: var(--edge-b); color: var(--edge-b); }
-  .pb-fmt-survivor { background: rgba(var(--warn-rgb),0.13); border-color: rgba(var(--warn-rgb),0.4); color: var(--warn); }
+  /* The same icon+wordmark lockup every other league surface uses (Create a
+     League, league search, the Home dashboard rows, the invite email) rather
+     than a text chip of its own - see LEAGUE_FORMAT_ICON_URLS for why these
+     are never shrunk to icon size. Matches .hd-row-badge's sizing. */
+  .pb-fmt-lockup { width: 62px; height: 50px; flex: none; object-fit: contain; }
   .pb-sheet-headmain { flex: 1; min-width: 0; }
   .pb-sheet-name { display: block; font-weight: 800; font-size: 0.98rem; line-height: 1.2; }
   .pb-sheet-meta { display: block; font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
@@ -1194,21 +1190,129 @@
   .pb-sheet.is-closed .pb-chev { transform: rotate(-90deg); }
   .pb-sheet-body { border-top: 1px solid var(--card-border); }
 
-  /* ---- confidence ladder ---- */
-  .pb-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 14px; border-bottom: 1px solid var(--card-border);
+  /* ---- sheet body lead strip + "how to read a row" panel ---- */
+  .pb-sheet-lead {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    padding: 9px 14px; background: var(--surface-2); border-bottom: 1px solid var(--card-border);
+    font-size: 0.74rem; color: var(--text-dim);
   }
-  .pb-row:last-child { border-bottom: 0; }
-  .pb-row.is-locked { opacity: 0.5; }
-  .pb-pts { width: 34px; flex: none; text-align: center; font-size: 1rem; font-weight: 850; font-variant-numeric: tabular-nums; }
-  .pb-pts small { display: block; font-size: 0.5rem; color: var(--text-dim); font-weight: 700; letter-spacing: 0.05em; margin-top: -3px; }
-  .pb-row.is-top .pb-pts { color: var(--blitz-orange); }
-  .pb-rowmain { flex: 1; min-width: 0; }
-  .pb-pick { display: flex; align-items: center; gap: 7px; font-weight: 750; font-size: 0.88rem; }
-  .pb-pick img { flex: none; }
-  .pb-sub { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
-  .pb-pct { flex: none; font-size: 0.9rem; font-weight: 800; text-align: right; width: 46px; font-variant-numeric: tabular-nums; }
+  .pb-sheet-lead b { color: var(--text); font-weight: 750; }
+  .pb-lead-key { display: flex; align-items: center; gap: 12px; font-size: 0.66rem; }
+  .pb-lead-key > span { display: inline-flex; align-items: center; gap: 5px; }
+  .pb-lead-key i {
+    width: 24px; height: 6px; border-radius: 3px; display: inline-block;
+    background: linear-gradient(90deg, var(--accent) 60%, rgba(var(--accent-rgb),0.18) 60%);
+  }
+  .pb-lead-key u {
+    width: 3px; height: 12px; border-radius: 2px; background: var(--blitz-orange);
+    display: inline-block; margin: 0 5px;
+  }
+  .pb-info-btn {
+    flex: none; width: 18px; height: 18px; border-radius: 50%; padding: 0; cursor: pointer;
+    background: none; border: 1px solid var(--card-border); color: var(--text-dim);
+    font-family: inherit; font-size: 0.62rem; font-weight: 900; line-height: 1;
+    display: inline-grid; place-items: center;
+  }
+  .pb-info-btn:hover, .pb-info-btn[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+  .pb-info-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .pb-explain {
+    padding: 12px 14px 14px; background: var(--surface-2);
+    border-bottom: 1px solid var(--card-border); font-size: 0.78rem; line-height: 1.55;
+  }
+  .pb-explain h4 {
+    margin: 0 0 8px; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--text-dim); font-weight: 850;
+  }
+  .pb-explain dl { margin: 0; display: grid; grid-template-columns: 92px minmax(0,1fr); gap: 7px 12px; align-items: baseline; }
+  .pb-explain dt { display: flex; align-items: center; gap: 7px; font-weight: 800; font-size: 0.72rem; white-space: nowrap; }
+  .pb-explain dd { margin: 0; color: var(--text-dim); }
+  .pb-explain dd b { color: var(--text); font-weight: 700; }
+  .pb-explain .swatch-bar { width: 26px; height: 6px; border-radius: 3px; background: var(--accent); flex: none; }
+  .pb-explain .swatch-notch { width: 3px; height: 13px; border-radius: 2px; background: var(--blitz-orange); flex: none; margin: 0 11px; }
+  .pb-explain .swatch-num { font-variant-numeric: tabular-nums; color: var(--blitz-orange); font-weight: 800; flex: none; width: 26px; text-align: center; }
+  .pb-explain .swatch-pill {
+    font-size: 0.58rem; font-weight: 800; color: var(--edge-b); flex: none;
+    border: 1px solid var(--edge-b); border-radius: 999px; padding: 1px 6px;
+  }
+  .pb-explain .swatch-path {
+    width: 26px; height: 6px; border-radius: 3px; flex: none;
+    background: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 10px);
+  }
+  .pb-explain .caveat { margin: 10px 0 0; color: var(--text-dim); border-top: 1px solid var(--card-border); padding-top: 9px; }
+
+  /* ---- confidence ladder / straight-up tiles ----
+     One row component for both formats. The confidence ladder has to read
+     1..N top to bottom, so it splits into two columns (column flow, so the
+     left column is 16..9); straight-up has no ranking to preserve, so it
+     tiles in normal row flow and can go three wide. Below 900px both are a
+     single column. */
+  .pb-grid { display: grid; grid-template-columns: 1fr; }
+  /* Column dividers are tied to the breakpoint that creates the column, so a
+     single-column phone layout never inherits a stray left border. */
+  @media (min-width: 900px) {
+    .pb-grid.is-ladder { grid-template-columns: 1fr 1fr; grid-auto-flow: column; }
+    .pb-grid.is-ladder > .pb-row2.col-2 { border-left: 1px solid var(--card-border); }
+    .pb-grid.is-tiles { grid-template-columns: 1fr 1fr; }
+    .pb-grid.is-tiles > .pb-row2.t2-right { border-left: 1px solid var(--card-border); }
+  }
+  @media (min-width: 1240px) {
+    .pb-grid.is-tiles { grid-template-columns: 1fr 1fr 1fr; }
+    /* the 2-up divider would land mid-column once there are three */
+    .pb-grid.is-tiles > .pb-row2.t2-right { border-left: 0; }
+    .pb-grid.is-tiles > .pb-row2.t3-right { border-left: 1px solid var(--card-border); }
+  }
+
+  .pb-row2 {
+    display: grid; grid-template-columns: 40px minmax(0,1fr) auto;
+    align-items: center; column-gap: 10px; row-gap: 3px;
+    padding: 9px 14px; border-bottom: 1px solid var(--card-border);
+  }
+  .pb-row2.no-pts { grid-template-columns: minmax(0,1fr) auto; }
+  .pb-row2:hover { background: rgba(var(--accent-rgb),0.045); }
+  .pb-row2.is-locked { opacity: 0.5; }
+
+  .pb-pts {
+    grid-column: 1; grid-row: 1 / span 2; text-align: center;
+    font-size: 1.05rem; font-weight: 850; font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .pb-pts small { display: block; font-size: 0.5rem; color: var(--text-dim); font-weight: 700; letter-spacing: 0.05em; margin-top: 2px; }
+  .pb-row2.is-top .pb-pts { color: var(--blitz-orange); }
+
+  .pb-match { grid-column: 2; grid-row: 1; display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 0.88rem; }
+  .pb-row2.no-pts .pb-match { grid-column: 1; }
+  .pb-match .pick { font-weight: 800; letter-spacing: -0.01em; }
+  .pb-match .at { font-size: 0.7rem; color: var(--text-dim); font-weight: 700; margin: 0 1px; }
+  .pb-match .opp { font-weight: 650; color: var(--text-dim); }
+  .pb-match .opp img { opacity: 0.6; }
+
+  .pb-meter { grid-column: 2; grid-row: 2; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .pb-row2.no-pts .pb-meter { grid-column: 1; }
+  /* One probability axis carrying two marks: the teal fill is the model's
+     number, the notch is the market's. The notch overhangs the track, so no
+     overflow:hidden here. */
+  .pb-bar {
+    position: relative; flex: 1; min-width: 56px; height: 7px; border-radius: 4px;
+    background: rgba(var(--accent-rgb),0.15);
+  }
+  .pb-bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+  .pb-bar u {
+    position: absolute; top: -3px; bottom: -3px; width: 3px; border-radius: 2px;
+    background: var(--blitz-orange); transform: translateX(-1.5px);
+  }
+  .pb-sub2 { font-size: 0.7rem; color: var(--text-dim); white-space: nowrap; }
+  .pb-sub2 .sep { opacity: 0.45; margin: 0 4px; }
+  .pb-sub2 .dog { color: var(--blitz-orange); font-weight: 800; }
+
+  .pb-right {
+    grid-column: 3; grid-row: 1 / span 2; display: flex; flex-direction: column;
+    align-items: flex-end; justify-content: center; gap: 1px; min-width: 58px;
+  }
+  .pb-row2.no-pts .pb-right { grid-column: 2; }
+  .pb-pct { font-size: 1rem; font-weight: 850; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .pb-delta { font-size: 0.64rem; font-weight: 750; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .pb-delta.wide { color: var(--blitz-orange); }
+
   .pb-have {
     font-size: 0.62rem; font-weight: 800; color: var(--win); letter-spacing: 0.04em;
     border: 1px solid rgba(var(--win-rgb),0.35); background: rgba(var(--win-rgb),0.12);
@@ -1300,13 +1404,27 @@
     font-size: 0.83rem; font-weight: 800; padding: 10px 14px; border: 1px solid transparent;
   }
   .pb-btn:disabled { opacity: 0.55; cursor: default; }
-  .pb-btn-primary { background: var(--accent); color: #05221f; flex: 1; min-width: 180px; }
-  .pb-btn-warn { background: var(--warn); color: #241500; flex: 1; min-width: 180px; }
+  /* Sized to their label on desktop - flex:1 in a 1180px footer turned the
+     submit button into a full-bleed slab. The stretch only earns its keep as
+     a thumb target, so it's scoped to the phone breakpoint, where the two
+     buttons stack rather than sharing a row (sharing one wrapped the primary
+     label onto two lines at 390px). */
+  .pb-btn-primary { background: var(--accent); color: #05221f; flex: 0 0 auto; padding: 10px 22px; }
+  .pb-btn-warn { background: var(--warn); color: #241500; flex: 0 0 auto; padding: 10px 22px; }
   .pb-btn-ghost { background: transparent; border-color: var(--card-border); color: var(--text-dim); }
   .pb-btn-ghost:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
   .pb-foot-msg { flex-basis: 100%; font-size: 0.74rem; margin: 2px 0 0; }
   .pb-foot-msg.is-error { color: var(--pill-bad-text); }
   .pb-foot-msg.is-ok { color: var(--pill-good-text); }
+  @media (max-width: 700px) {
+    .pb-fmt-lockup { width: 48px; height: 40px; }
+    /* the lockup already reads CONFIDENCE / ATS / SURVIVOR / STRAIGHT-UP, and
+       repeating it in the meta line is what wrapped it onto two lines at 390px */
+    .pb-fmt-word { display: none; }
+    .pb-btn-primary, .pb-btn-warn, .pb-btn-ghost { flex: 1 0 100%; }
+    .pb-explain dl { grid-template-columns: 1fr; gap: 2px; }
+    .pb-explain dd { margin-bottom: 6px; }
+  }
 
 
   /* ---- Playbook preview (signed out, or signed in with no leagues) ----
@@ -4345,7 +4463,7 @@
   <p><strong>Odds (DraftKings):</strong> DET -1.5 · ML NE +105 / DET -125 · O/U 48.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>New England Patriots</strong> - NE 75% / DET 25%</p>
+  <p>Predicted winner: <strong>New England Patriots</strong> - NE 68% / DET 32%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -15133,12 +15251,30 @@ function playbookPredictions(week) {
   return map;
 }
 
-const PLAYBOOK_FORMAT_SHORT = {
-  straight_up: "SU",
-  confidence: "CONF",
-  ats: "ATS",
-  survivor: "SURV",
-};
+/* Straight-up and confidence score winners, not margins, so the market read
+ * on those sheets is the moneyline - not the spread. The spread is a margin
+ * instrument and stays on the ats sheet, which is the only format it means
+ * anything in. The two prices are de-vigged against each other so the pair
+ * sums to 100 and the number is directly comparable to the model's; on this
+ * slate the raw prices carry ~4.3% of hold, which is enough to flatter the
+ * model by several points if left in.
+ * Returns null when the game has no moneyline posted yet. */
+function playbookMarketPct(odds, pickTeam, homeTeam) {
+  if (!odds || odds.moneylineHome == null || odds.moneylineAway == null) return null;
+  const implied = (ml) => (ml < 0 ? -ml / (-ml + 100) : 100 / (ml + 100));
+  const h = implied(odds.moneylineHome);
+  const a = implied(odds.moneylineAway);
+  if (!(h + a)) return null;
+  return Math.round(((pickTeam === homeTeam ? h : a) / (h + a)) * 100);
+}
+
+/* The meter runs 35-95% rather than 0-100. Nothing on a pick sheet - model or
+ * market - lands outside that on any slate, and the full range flattens
+ * sixteen games into a wall of near-identical bars. Explained to the user in
+ * the "how to read a row" panel rather than left as a silent distortion. */
+const PB_AXIS_LO = 35;
+const PB_AXIS_HI = 95;
+const pbAxisPct = (p) => Math.max(1.5, Math.min(100, ((p - PB_AXIS_LO) / (PB_AXIS_HI - PB_AXIS_LO)) * 100));
 
 /** picks-mine for each of the caller's leagues, in parallel.
  *
@@ -15187,13 +15323,21 @@ function usePlaybookSheets(auth, week, leagues) {
  *  computeConfidenceGuidance - the identical suggestion LeagueWeekPanel
  *  shows next to the points selector - so the sheet and the league's own
  *  pick page can't hand out different numbers for the same game. */
-function buildConfidenceRows(week, games) {
+function buildConfidenceRows(week, games, sportsbookId, tz) {
   const guidance = computeConfidenceGuidance(week);
   const predictions = playbookPredictions(week);
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  // picks-mine returns the caller's per-game state, not the schedule, so the
+  // kickoff has to come from the schedule keyed the same way everything else
+  // in this tab is keyed.
+  const scheduled = {};
+  getGamesForWeek(week).forEach((g) => { scheduled[`${g.away}-${g.home}`] = g; });
+
   return games
     .map((g) => {
-      const prediction = predictions[`${g.away}-${g.home}`];
-      const points = guidance.byGame[`${g.away}-${g.home}`];
+      const key = `${g.away}-${g.home}`;
+      const prediction = predictions[key];
+      const points = guidance.byGame[key];
       if (!prediction || !points) return null;
       const edge = computeBlitzEdge({
         format: "confidence",
@@ -15202,15 +15346,23 @@ function buildConfidenceRows(week, games) {
         maxConfidence: guidance.max,
         suggestedConfidence: points,
       });
+      const team = prediction.predictedWinner;
+      const sched = scheduled[key];
+      const odds = getOdds(week, g.away, g.home, sportsbookId);
+      const pct = Math.round(prediction.confidence * 100);
+      const marketPct = playbookMarketPct(odds, team, g.home);
       return {
         gameId: g.gameId,
         away: g.away,
         home: g.home,
         locked: g.locked,
         existing: g.pick || null,
-        team: prediction.predictedWinner,
+        team,
         points,
-        pct: Math.round(prediction.confidence * 100),
+        pct,
+        marketPct,
+        delta: marketPct == null ? null : pct - marketPct,
+        when: sched ? formatGameDateTimeInZone(sched.date, sched.time, seasonYear, tz) : null,
         note: edge ? edge.note : null,
       };
     })
@@ -15218,9 +15370,186 @@ function buildConfidenceRows(week, games) {
     .sort((a, b) => b.points - a.points);
 }
 
-/** ats plays, ranked by how far the model's own line sits from the market's.
- *  computeBlitzEdge does the actual work (and owns the 2-point threshold);
- *  this only sorts its output and separates the games it declined to call. */
+/* Kickoff, squeezed to fit beside the meter: "Sun 1p", "Thu 8:35p". The full
+ * "Sun, Sep 13 / 1:00 PM ET" the schedule carries is three times as wide as
+ * the slot allows, and the date is redundant on a sheet that is by
+ * definition one week. */
+function pbShortKickoff(when) {
+  if (!when || !when.date || !when.time) return null;
+  const day = String(when.date).split(",")[0].trim();
+  const time = String(when.time)
+    .replace(/:00(?=\s)/, "")
+    // everything from AM/PM onward is the meridiem plus a zone label, and the
+    // zone label is not always alphabetic - Intl emits "PDT" but also "GMT+1"
+    .replace(/\s*(AM|PM)\b.*$/i, (m, ap) => (ap.toUpperCase() === "PM" ? "p" : "a"))
+    .trim();
+  return `${day} ${time}`;
+}
+
+/* One row for both the confidence ladder and the straight-up tiles - the two
+ * formats differ only in whether a points column is shown and how the grid
+ * around them flows. */
+function PlaybookPickRow({ row, showPoints, isTop, columnClass }) {
+  const vs = row.team === row.home ? "vs" : "at";
+  const opponent = row.team === row.home ? row.away : row.home;
+  const kickoff = pbShortKickoff(row.when);
+  return (
+    <div className={"pb-row2" + (showPoints ? "" : " no-pts") + (isTop ? " is-top" : "") + (row.locked ? " is-locked" : "") + (columnClass || "")}>
+      {showPoints && <div className="pb-pts">{row.points}<small>PTS</small></div>}
+      <div className="pb-match">
+        <TeamLogo teamId={row.team} size={20} />
+        <span className="pick">{row.team}</span>
+        <span className="at">{vs}</span>
+        <span className="opp"><TeamLogo teamId={opponent} size={20} /></span>
+        <span className="opp">{opponent}</span>
+        {row.existing && (
+          <span className={"pb-have" + (row.existing.team !== row.team ? " is-diff" : "")}>
+            {row.existing.team !== row.team
+              ? `you have ${row.existing.team}`
+              : (showPoints ? `in at ${row.existing.confidence ?? "\u2014"}` : "in")}
+          </span>
+        )}
+      </div>
+      <div className="pb-meter">
+        <span className="pb-sub2">
+          {kickoff}
+          {row.marketPct != null && (
+            <>
+              {kickoff && <span className="sep">·</span>}
+              {/* under 50 means the book has our pick losing outright */}
+              <span className={row.marketPct < 50 ? "dog" : ""}>market {row.marketPct}%</span>
+            </>
+          )}
+          {row.locked ? <><span className="sep">·</span>locked</> : null}
+        </span>
+        <span className="pb-bar">
+          <i style={{ width: `${pbAxisPct(row.pct)}%` }} />
+          {row.marketPct != null && (
+            <u style={{ left: `${pbAxisPct(row.marketPct)}%` }} title={`Market: ${row.marketPct}%`} />
+          )}
+        </span>
+      </div>
+      <div className="pb-right">
+        <span className="pb-pct">{row.pct}%</span>
+        {row.delta != null && (
+          <span className={"pb-delta" + (Math.abs(row.delta) >= 15 ? " wide" : "")}>
+            {row.delta > 0 ? "+" : ""}{row.delta}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* Per-format copy for the "how to read this" panel. Every sheet gets one:
+ * the numbers on the ats and survivor sheets ("2.1 pts", "to cover", a path
+ * probability) are no more self-explanatory than the meter is, and were the
+ * two the app never explained anywhere. */
+function PlaybookLegendBody({ format }) {
+  if (format === "ats") {
+    return (
+      <>
+        <h4>How to read a play</h4>
+        <dl>
+          <dt><span className="swatch-num">1</span> Order</dt>
+          <dd>Plays are ranked by <b>value</b>, best first — not by how likely the team is to win the game.</dd>
+          <dt><span className="swatch-pill">2.1 pts</span> Value</dt>
+          <dd>How far the model's predicted margin sits from the market's posted line, in points. Only games clearing <b>{ATS_MIN_EDGE_POINTS} points</b> are played at all; the rest are passed on.</dd>
+          <dt><span className="swatch-num">62%</span> To cover</dt>
+          <dd>The chance that side <b>covers the posted number</b> — a different question from winning the game. A heavy favourite can be very likely to win and a poor bet to cover.</dd>
+        </dl>
+        <p className="caveat">
+          Cover percentages come from the same margin model as everything else in the app, but unlike the margin itself they've
+          never been scored against real closing lines — the odds archive only covers the current season. Treat them as
+          <b> calibrated by construction, not proven</b>. And a passed-on game isn't an oversight: it's the model saying the
+          market's number is already where it would put it.
+        </p>
+      </>
+    );
+  }
+  if (format === "survivor") {
+    return (
+      <>
+        <h4>How to read this plan</h4>
+        <dl>
+          <dt><span className="swatch-num">88%</span> This week</dt>
+          <dd>The chance <b>this week's team wins its game</b>. It is not your chance of surviving the season — that's the running number on the path below.</dd>
+          <dt><span className="swatch-path" /> The path</dt>
+          <dd>Every remaining week planned at once, with each team spendable <b>only once</b>. A team is placed in the week it's worth the most, not the first week it looks good.</dd>
+          <dt><span className="swatch-num">held</span> Held back</dt>
+          <dd>A team with better odds this week that the plan is deliberately saving. Spending it now costs you the week it was being kept for.</dd>
+        </dl>
+        <p className="caveat">
+          The plan assumes you follow it all the way through. Take a different team this week and the weeks after it are
+          <b> no longer the right plan</b> — reopen the sheet and it'll re-plan around what you've actually spent.
+        </p>
+      </>
+    );
+  }
+  return (
+    <>
+      <h4>How to read a row</h4>
+      <dl>
+        {format === "confidence" && (
+          <>
+            <dt><span className="swatch-num">16</span> Points</dt>
+            <dd>The ladder. <b>16</b> goes on the game the model is surest of, down to <b>1</b> on the closest one. Most pools score your points only when that pick wins.</dd>
+          </>
+        )}
+        <dt><span className="swatch-bar" /> Blitz</dt>
+        <dd>The model's probability that the team we picked <b>wins the game outright</b> — the same estimate as its predicted margin, just stated as a percentage.</dd>
+        <dt><span className="swatch-notch" /> Market</dt>
+        <dd>The same probability, taken from the sportsbook's <b>moneyline</b> with the book's built-in margin removed, so the two teams' numbers add up to 100.</dd>
+        <dt><span className="swatch-num">+26</span> Gap</dt>
+        <dd>How far apart the two are. A <b>positive</b> number means Blitz rates the pick higher than the book does; a negative one means the book likes it more than we do.</dd>
+      </dl>
+      <p className="caveat">
+        The bar runs 35% to 95% rather than 0 to 100 — no pick on a sheet lands outside that, and the tighter range makes the differences visible.
+        A wide gap is a <b>disagreement, not a guarantee</b>: it means the model sees something the market doesn't, or the model is wrong about this game.
+        Lines move all week, so it's worth another look before kickoff.
+      </p>
+    </>
+  );
+}
+
+/* The lead strip every sheet body opens with: a one-line framing of what the
+ * sheet is, an optional meter key, and behind the info button the panel that
+ * explains the numbers. Deliberately an expanding panel rather than a hover
+ * tooltip - this tab is used on a phone more than anywhere else in the app,
+ * and a tooltip has no phone story. */
+function PlaybookSheetLead({ format, lead, showMeterKey }) {
+  const [open, setOpen] = useState(false);
+  function toggle() {
+    const next = !open;
+    setOpen(next);
+    // If nobody opens this, the sheet isn't self-explanatory enough to need
+    // it; if everybody does, the copy on the rows themselves is what to fix.
+    try {
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "playbook_legend_toggle", { league_format: format, opened: next });
+      }
+    } catch (e) {}
+  }
+  return (
+    <>
+      <div className="pb-sheet-lead">
+        <span>{lead}</span>
+        <span className="pb-lead-key">
+          {showMeterKey && (
+            <>
+              <span><i /> Blitz model</span>
+              <span><u /> market</span>
+            </>
+          )}
+          <button type="button" className="pb-info-btn" onClick={toggle}
+            aria-expanded={open} aria-label="How to read these numbers">i</button>
+        </span>
+      </div>
+      {open && <div className="pb-explain"><PlaybookLegendBody format={format} /></div>}
+    </>
+  );
+}
+
 function buildAtsRows(week, games, sportsbookId) {
   const predictions = playbookPredictions(week);
   const rows = games
@@ -15262,45 +15591,34 @@ function buildAtsRows(week, games, sportsbookId) {
   };
 }
 
-function PlaybookConfidenceSheet({ week, sheet, onSubmit, submitting, result }) {
+function PlaybookConfidenceSheet({ week, sheet, sportsbookId, tz, onSubmit, submitting, result }) {
   const rows = useMemo(
-    () => buildConfidenceRows(week, (sheet.data && sheet.data.games) || []),
-    [week, sheet.data]
+    () => buildConfidenceRows(week, (sheet.data && sheet.data.games) || [], sportsbookId, tz),
+    [week, sheet.data, sportsbookId, tz]
   );
   if (!rows.length) return <p className="pb-note" style={{ padding: "14px" }}>No games with a model read for this week yet.</p>;
 
   const submittable = rows.filter((r) => !r.locked);
+  // Column-major, so the left column runs 16..9 and the right 8..1 - the
+  // ladder still reads downward, which is the whole point of it.
+  const perColumn = Math.ceil(rows.length / 2);
 
   return (
     <>
-      <div>
+      <PlaybookSheetLead
+        format="confidence"
+        showMeterKey
+        lead={<>Ranked most to least lopsided — <b>{rows.length} points</b> on the safest game, <b>1</b> on the coin flip.</>}
+      />
+      <div className="pb-grid is-ladder" style={{ gridTemplateRows: `repeat(${perColumn}, auto)` }}>
         {rows.map((r, i) => (
-          <div key={r.gameId} className={"pb-row" + (i < 3 ? " is-top" : "") + (r.locked ? " is-locked" : "")}>
-            <div className="pb-pts">{r.points}<small>PTS</small></div>
-            <div className="pb-rowmain">
-              <div className="pb-pick">
-                <TeamLogo teamId={r.team} size={20} />
-                <span>{r.team}</span>
-                {r.existing && (
-                  <span className={"pb-have" + (r.existing.team !== r.team ? " is-diff" : "")}>
-                    {r.existing.team !== r.team
-                      ? `you have ${r.existing.team}`
-                      : `in at ${r.existing.confidence ?? "—"}`}
-                  </span>
-                )}
-              </div>
-              {/* Deliberately just the matchup. computeBlitzEdge's confidence
-                  note reads "86% to win - 1st most lopsided game this week",
-                  and both halves of that are already on screen: the win% is
-                  the column to the right, and "1st most lopsided" is this
-                  row's own position in a list sorted by exactly that. */}
-              <div className="pb-sub">
-                {r.team === r.home ? `vs ${r.away}` : `at ${r.home}`}
-                {r.locked ? " · locked" : ""}
-              </div>
-            </div>
-            <div className="pb-pct">{r.pct}%</div>
-          </div>
+          <PlaybookPickRow
+            key={r.gameId}
+            row={r}
+            showPoints
+            isTop={i < 3}
+            columnClass={i >= perColumn ? " col-2" : ""}
+          />
         ))}
       </div>
       <div className="pb-foot">
@@ -15329,6 +15647,10 @@ function PlaybookAtsSheet({ week, sheet, sportsbookId, onSubmit, submitting, res
 
   return (
     <>
+      <PlaybookSheetLead
+        format="ats"
+        lead={<>Ranked by <b>value against the line</b>, not by who wins — {plays.length} {plays.length === 1 ? "play" : "plays"} clear the bar this week.</>}
+      />
       {plays.length === 0 ? (
         <p className="pb-note" style={{ padding: "14px" }}>
           No game this week clears {ATS_MIN_EDGE_POINTS} points of value between the model's line and the market's.
@@ -15438,9 +15760,10 @@ function PlaybookSurvivorSheet({ week, sheet, onSubmit, submitting, result }) {
 
   return (
     <>
-      <p className="pb-surv-lead">
-        Every remaining week, planned at once — each team spent in the spot where it's worth the most.
-      </p>
+      <PlaybookSheetLead
+        format="survivor"
+        lead={<>Every remaining week, planned at once — each team spent in the spot where it's worth the most.</>}
+      />
 
       <div className="pb-surv-pick">
         <TeamLogo teamId={now.team} size={34} />
@@ -15521,36 +15844,27 @@ function PlaybookSurvivorSheet({ week, sheet, onSubmit, submitting, result }) {
 /** Straight-up leagues get the same ladder ordering as confidence (the
  *  model's own ranking is the useful thing either way) without the points
  *  column, since there's nothing to rank in this format. */
-function PlaybookStraightUpSheet({ week, sheet, onSubmit, submitting, result }) {
+function PlaybookStraightUpSheet({ week, sheet, sportsbookId, tz, onSubmit, submitting, result }) {
   const rows = useMemo(
-    () => buildConfidenceRows(week, (sheet.data && sheet.data.games) || []),
-    [week, sheet.data]
+    () => buildConfidenceRows(week, (sheet.data && sheet.data.games) || [], sportsbookId, tz),
+    [week, sheet.data, sportsbookId, tz]
   );
   if (!rows.length) return <p className="pb-note" style={{ padding: "14px" }}>No games with a model read for this week yet.</p>;
   const submittable = rows.filter((r) => !r.locked);
 
   return (
     <>
-      <div>
-        {rows.map((r) => (
-          <div key={r.gameId} className={"pb-row" + (r.locked ? " is-locked" : "")}>
-            <div className="pb-pts" style={{ width: 22 }}>{""}</div>
-            <div className="pb-rowmain">
-              <div className="pb-pick">
-                <TeamLogo teamId={r.team} size={20} />
-                <span>{r.team}</span>
-                {r.existing && (
-                  <span className={"pb-have" + (r.existing.team !== r.team ? " is-diff" : "")}>
-                    {r.existing.team !== r.team ? `you have ${r.existing.team}` : "in"}
-                  </span>
-                )}
-              </div>
-              <div className="pb-sub">
-                {r.team === r.home ? `vs ${r.away}` : `at ${r.home}`}{r.locked ? " · locked" : ""}
-              </div>
-            </div>
-            <div className="pb-pct">{r.pct}%</div>
-          </div>
+      <PlaybookSheetLead
+        format="straight_up"
+        showMeterKey
+        lead={<>Every pick is worth the same, so these run <b>safest first</b> — the bottom of the list is where a pool is won or lost.</>}
+      />
+      {/* No ranking to preserve, so these tile in normal row flow rather than
+          splitting into columns the way the confidence ladder has to. The
+          column class only exists to draw the dividers between them. */}
+      <div className="pb-grid is-tiles">
+        {rows.map((r, i) => (
+          <PlaybookPickRow key={r.gameId} row={r} showPoints={false} columnClass={pbTileColumnClass(i)} />
         ))}
       </div>
       <div className="pb-foot">
@@ -15569,7 +15883,15 @@ function PlaybookStraightUpSheet({ week, sheet, onSubmit, submitting, result }) 
   );
 }
 
-function PlaybookSheetCard({ league, sheetState, week, sportsbookId, auth, onOpenLeague, onReload }) {
+/* The tile grid is 1/2/3 columns by media query, so which tiles need a left
+ * divider isn't knowable from JS without a resize listener. Tagging every
+ * tile with its position in both the 2-up and 3-up arrangements lets CSS
+ * pick the right one at each breakpoint - see .pb-grid.is-tiles. */
+function pbTileColumnClass(i) {
+  return (i % 2 === 1 ? " t2-right" : "") + (i % 3 !== 0 ? " t3-right" : "");
+}
+
+function PlaybookSheetCard({ league, sheetState, week, sportsbookId, tz, auth, onOpenLeague, onReload }) {
   const [open, setOpen] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
@@ -15642,20 +15964,23 @@ function PlaybookSheetCard({ league, sheetState, week, sportsbookId, auth, onOpe
   let body;
   if (!sheetState) body = <p className="pb-note" style={{ padding: "14px" }}>Loading this week…</p>;
   else if (sheetState.status === "error") body = <p className="pb-note" style={{ padding: "14px" }}>Couldn't load this sheet: {sheetState.error}</p>;
-  else if (league.format === "confidence") body = <PlaybookConfidenceSheet week={week} sheet={sheet} onSubmit={submitAll} submitting={submitting} result={result} />;
+  else if (league.format === "confidence") body = <PlaybookConfidenceSheet week={week} sheet={sheet} sportsbookId={sportsbookId} tz={tz} onSubmit={submitAll} submitting={submitting} result={result} />;
   else if (league.format === "ats") body = <PlaybookAtsSheet week={week} sheet={sheet} sportsbookId={sportsbookId} onSubmit={submitAll} submitting={submitting} result={result} />;
   else if (league.format === "survivor") body = <PlaybookSurvivorSheet week={week} sheet={sheet} onSubmit={submitAll} submitting={submitting} result={result} />;
-  else body = <PlaybookStraightUpSheet week={week} sheet={sheet} onSubmit={submitAll} submitting={submitting} result={result} />;
+  else body = <PlaybookStraightUpSheet week={week} sheet={sheet} sportsbookId={sportsbookId} tz={tz} onSubmit={submitAll} submitting={submitting} result={result} />;
 
   return (
     <div className={"pb-sheet" + (open ? "" : " is-closed")}>
       <button type="button" className="pb-sheet-head" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <span className={"pb-fmt-badge pb-fmt-" + league.format}>{PLAYBOOK_FORMAT_SHORT[league.format] || "SU"}</span>
+        <img className="pb-fmt-lockup" src={LEAGUE_FORMAT_ICON_URLS[league.format]} alt="" />
         <span className="pb-sheet-headmain">
           <span className="pb-sheet-name">{league.name}</span>
           <span className="pb-sheet-meta">
-            {(LEAGUE_FORMAT_OPTIONS.find((f) => f.value === league.format) || {}).label || league.format}
-            <span className="dot">·</span>{league.memberCount} {league.memberCount === 1 ? "player" : "players"}
+            <span className="pb-fmt-word">
+              {(LEAGUE_FORMAT_OPTIONS.find((f) => f.value === league.format) || {}).label || league.format}
+              <span className="dot">·</span>
+            </span>
+            {league.memberCount} {league.memberCount === 1 ? "player" : "players"}
             {league.me && league.me.rank != null && <><span className="dot">·</span>You're {ordinalSuffix(league.me.rank)}</>}
           </span>
         </span>
@@ -16931,6 +17256,7 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
               sheetState={sheets[l.leagueId]}
               week={playbookWeek}
               sportsbookId={sportsbookId}
+              tz={tz}
               auth={auth}
               // "week" is the My Picks subtab - the editable grid. These
               // buttons ("Adjust in league", "Pick someone else") exist to

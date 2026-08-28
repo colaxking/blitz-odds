@@ -834,7 +834,8 @@
         latestData = data;
         render(data);
         lastGoodFetch = new Date();
-        setStatus("ok", "Updated " + lastGoodFetch.toLocaleTimeString() + (data.cached ? " · cached" : ""));
+        setStatus(data.stale ? "stale" : "ok", "Updated " + lastGoodFetch.toLocaleTimeString() +
+          (data.stale ? " · cache is stale, recomputing shortly" : data.cached ? " · cached" : ""));
       })
       .catch(function (err) {
         if (reqKey !== cacheKey()) return;

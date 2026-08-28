@@ -11,11 +11,19 @@ const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
 // How long a precomputed summary stays servable before a request rescans.
-// 90s comfortably outlives the dashboard's 60s auto-refresh, so the common
-// case is a cache hit; the Refresh button bypasses it with ?fresh=1.
-const CACHE_TTL_MS = 90 * 1000;
+//
+// The recompute is ~23s against the current store, so this must NOT be tuned
+// to "just longer than the dashboard's refresh interval" - that would make
+// roughly every other auto-refresh pay the full scan. Instead the TTL is long
+// and analytics-cache-warm-background.mts re-warms every source every 5
+// minutes, so an interactive request essentially always hits a warm cache.
+// STALE_TTL_MS is the backstop: past the fresh window we still serve what we
+// have (flagged stale) rather than making someone wait 23s, and only a truly
+// ancient or missing cache blocks on a live scan.
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const STALE_TTL_MS = 60 * 60 * 1000;
 
-type CacheEnvelope = { computedAt: number; ranges: Record<string, unknown> };
+type CacheEnvelope = { computedAt: number; ranges: Record<string, unknown>; excludedSessions?: number };
 
 type Range = "24h" | "7d" | "30d" | "3m" | "6m" | "1y" | "all";
 const VALID_RANGES = new Set<Range>(["24h", "7d", "30d", "3m", "6m", "1y", "all"]);
@@ -361,10 +369,18 @@ export default async (req: Request, _context: Context) => {
     if (!noCache) {
       try {
         const cached = (await store.get(cacheKey, { type: "json" })) as CacheEnvelope | null;
-        if (cached && typeof cached.computedAt === "number" && cached.ranges) {
+        if (cached && typeof cached.computedAt === "number" && cached.ranges && cached.ranges[range]) {
           const age = now - cached.computedAt;
-          if (age < CACHE_TTL_MS && cached.ranges[range]) {
-            return jsonResponse(200, { ...cached.ranges[range], cached: true, computedAt: cached.computedAt, ageMs: age });
+          if (age < STALE_TTL_MS) {
+            return jsonResponse(200, {
+              ...(cached.ranges[range] as Record<string, unknown>),
+              cached: true,
+              stale: age >= CACHE_TTL_MS,
+              computedAt: cached.computedAt,
+              ageMs: age,
+              excludedSessions: cached.excludedSessions,
+              source,
+            });
           }
         }
       } catch {
@@ -809,7 +825,7 @@ export default async (req: Request, _context: Context) => {
 
     // Best-effort cache write - a failure here must not fail the request.
     try {
-      await store.setJSON(cacheKey, { computedAt: now, ranges } as CacheEnvelope);
+      await store.setJSON(cacheKey, { computedAt: now, ranges, excludedSessions } as CacheEnvelope);
     } catch {
       /* cache is an optimisation, not a requirement */
     }

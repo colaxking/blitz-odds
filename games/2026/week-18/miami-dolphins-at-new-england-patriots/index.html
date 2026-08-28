@@ -15651,8 +15651,8 @@ function PlaybookChanges({ week, sportsbookId, auth }) {
                   {withheld} more {withheld === 1 ? "move" : "moves"} in this week's report
                 </div>
                 <div className="pbc-gate-sub">
-                  The full change report — every move, and an alert the moment one changes a pick before
-                  it locks — is coming to Blitz Pro.
+                  Sign in to read the full change report — every move, and which ones changed a pick.
+                  Free, no card.
                 </div>
               </div>
               {!signedIn && (
@@ -15704,24 +15704,22 @@ const PLAYBOOK_PEEK_ROWS = 3;
  *  So: only the current week's pick is revealed - that's the actionable part,
  *  the equivalent of the other formats' top rows - and the rest of the route
  *  is blurred. */
-/** What Changed and Betting Angles are Pro features in waiting, so their
- *  gate works differently from the preview's. On This Week, signing in is
- *  what unlocks the sheet. On those two, signing in changes nothing: everyone sees the summary counts and the
- *  first couple of moves, and the rest is blurred, because the thing being
- *  withheld is destined to sit behind a subscription rather than behind an
- *  account.
+/** What Changed and Betting Angles are Pro features in waiting, but until a
+ *  paid tier exists there is nothing to sell, so an account is the price:
+ *  signed out you get the summary counts and the first couple of entries with
+ *  the rest blurred, signed in you get the lot.
  *
- *  hasPlaybookPro() is the whole switch, shared by both. Today it is false for
- *  everybody; when a paid tier exists it becomes an entitlements check (see
- *  lib/entitlements.mts) and nothing else in this file has to change. */
+ *  hasPlaybookPro() is the whole switch, shared by both surfaces. When Stripe
+ *  lands it becomes an entitlements check (see lib/entitlements.mts) and
+ *  nothing else in this file has to change - the blur, the peek rows and the
+ *  gate all key off this one function. */
 const PLAYBOOK_CHANGES_FREE_CARDS = 2;
 // Two rather than the preview's three: a change card is roughly twice the
 // height of a sheet row, so three of them put ~700px of blur between the last
 // readable card and the call to action on a phone.
 const PLAYBOOK_CHANGES_PEEK_CARDS = 2;
 function hasPlaybookPro(auth) {
-  // eslint-disable-next-line no-unused-vars
-  return false;
+  return !!(auth && auth.status === "in");
 }
 
 const PLAYBOOK_SURVIVOR_REVEALED_WEEKS = 1;
@@ -16472,8 +16470,8 @@ function PlaybookAngles({ week, sportsbookId, tz, auth }) {
                   {withheld} more {group.label.toLowerCase()} {withheld === 1 ? "angle" : "angles"} this week
                 </div>
                 <div className="pbc-gate-sub">
-                  Every angle across all three markets, with the best posted price at each book, is coming
-                  to Blitz Pro.
+                  Sign in to see every angle across all three markets, with the best posted price at each
+                  book. Free, no card.
                 </div>
               </div>
               {!signedIn && (

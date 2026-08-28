@@ -28,6 +28,10 @@
  *  - "player_view" whenever a player's name is clicked to open their detail
  *    modal, from either the depth chart (`.depth-player-name-btn`) or the
  *    full roster table (`.roster-player-name-btn`)
+ *  - "archive_entry" whenever an in-app link into the historical archive is
+ *    clicked (`.archive-entry-link`), with `source` naming which one -
+ *    "menu" (the account dropdown) or "footer". These are the only two
+ *    in-app paths to /historical/ since the Archive tab was removed
  *  - "history_game_click" / "history_team_game_click" whenever a game link
  *    (`.season-index-game`) is clicked on a historical archive page - the
  *    "_team_" variant fires when that link lives on a team archive page
@@ -450,6 +454,25 @@
         //    only path to a box score from a game card since the redesign.
         // Missing the second selector is why game-card box score opens
         // stopped being counted at all after that change shipped.
+        // The archive's in-app entry points. Archive used to be a tab in the
+        // primary bar and nothing counted taps on it, so "does anyone go
+        // there from inside the app" was never answerable - only that
+        // /historical/ got pageviews, which is dominated by search traffic
+        // landing directly. Now that the tab is gone and the archive lives
+        // one level down in the account menu, that question is the whole
+        // basis for deciding whether it earns a slot back, so both surviving
+        // links carry `data-archive-source` and fire here.
+        var archiveEl = target.closest(".archive-entry-link");
+        if (archiveEl) {
+          sendEvent({
+            type: "archive_entry",
+            visitorId: visitorId,
+            ts: Date.now(),
+            source: archiveEl.getAttribute("data-archive-source") || "unknown",
+          });
+          return;
+        }
+
         var boxScoreEl = target.closest(".score-link-btn, .view-boxscore-link");
         if (boxScoreEl) {
           sendEvent({

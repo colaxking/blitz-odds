@@ -400,15 +400,36 @@ header.top h1 a { text-decoration: none; color: inherit; }
   font-size: 13px; line-height: 1; flex-shrink: 0; background: rgba(255,255,255,0.05);
   border: 1px solid var(--card-border); transition: background 0.15s, border-color 0.15s; }
 .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: var(--accent); }
+.tab-icon.has-img { width: 28px; height: 28px; background: none; border-color: transparent; }
+.tab-btn.active .tab-icon.has-img { background: none; border-color: transparent; }
+.tab-icon-img { width: 100%; height: 100%; object-fit: contain; display: block;
+  opacity: 0.62; filter: grayscale(0.6) saturate(0.85) brightness(1.3);
+  transition: opacity 0.15s, filter 0.15s, transform 0.15s; }
+html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) saturate(0.85); }
+.tab-btn:hover .tab-icon-img,
+.tab-btn.active .tab-icon-img { opacity: 1; filter: none; }
+.tab-btn.active .tab-icon-img { transform: scale(1.06); }
+@media (prefers-reduced-motion: reduce) {
+  .tab-icon-img { transition: none; }
+  .tab-btn.active .tab-icon-img { transform: none; }
+}
 @media (max-width: 720px) {
-  .app { padding-bottom: 82px; }
+  .app { padding-bottom: 96px; }
   .tab-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
-    background: var(--card-bg); border-bottom: none; border-top: 1px solid var(--card-border);
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); }
-  .tab-btn { flex: 1; flex-direction: column; gap: 3px; padding: 4px 2px 0; font-size: 0.64rem; }
+    background: var(--card-bg);
+    background: color-mix(in srgb, var(--card-bg) 74%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(22px);
+    backdrop-filter: saturate(180%) blur(22px);
+    border-bottom: none; border-top: 1px solid var(--card-border);
+    padding: 8px 4px calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .tab-btn { flex: 1; flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.64rem;
+    min-height: 48px; transition: transform 0.1s ease; }
+  .tab-btn:active { transform: scale(0.9); }
   .tab-btn.active::after { content: none; }
   .tab-icon { width: 24px; height: 24px; font-size: 12px; background: none; border-color: transparent; }
   .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: transparent; }
+  .tab-icon.has-img { width: 30px; height: 30px; }
+  .tab-btn.active .tab-icon.has-img { background: none; }
   .tab-btn.active { color: var(--accent); }
 }
 .theme-toggle { display: inline-flex; align-items: center; gap: 2px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px; padding: 3px; width: 100%; justify-content: space-between; }
@@ -691,20 +712,27 @@ const SETTINGS_WIDGET_SCRIPT = `(function () {
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
 })();`;
 
-// Mirrors LEAGUES_UI_ENABLED in index.html - keep these in sync manually,
-// since this script runs outside the SPA and can't import that constant.
-// When it's true, add the League <a> back in between Hot Picks and News.
-const LEAGUES_UI_ENABLED = false;
+/* Mirrors TabBar in index.html: four tabs, illustrated icons, real paths.
+ * Three things this deliberately does NOT do, each of which the old version
+ * got wrong and shipped to 3,615 pages (see retrofit-archive-nav-v3.mjs):
+ *   - no hash routes. "/#picks" hasn't worked since Phase 3; index.html's
+ *     router falls a stray hash through to Games, so it was a dead link
+ *     pretending to be a tab.
+ *   - no Archive tab. Archive moved into the account menu when the tab bar
+ *     went to four; the dropdown below is where it lives here too.
+ *   - no `active`/`aria-current` on anything. An archive page is not one of
+ *     the four app tabs, so claiming one would misstate where the reader is.
+ * There is no League tab either - it was already gated off, and the app's
+ * bar has no League slot now; /leagues is reached from Home and the menu. */
+function archiveTab(href, label, icon) {
+  return `    <a class="tab-btn" href="${href}"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-${icon}.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">${label}</span></a>`;
+}
 
 const TAB_BAR_HTML = `<nav class="tab-bar" aria-label="Primary">
-    <a class="tab-btn" href="/"><span class="tab-icon" aria-hidden="true">&#x1F3C8;</span><span class="tab-label">Games</span></a>
-    <a class="tab-btn" href="/#picks"><span class="tab-icon" aria-hidden="true">&#x1F525;</span><span class="tab-label">Hot Picks</span></a>${
-      LEAGUES_UI_ENABLED
-        ? `\n    <a class="tab-btn" href="/#league"><span class="tab-icon" aria-hidden="true">&#x1F3C6;</span><span class="tab-label">League</span></a>`
-        : ""
-    }
-    <a class="tab-btn" href="/#news"><span class="tab-icon" aria-hidden="true">&#x1F4F0;</span><span class="tab-label">News</span></a>
-    <a class="tab-btn active" href="/historical/index.html" aria-current="page"><span class="tab-icon" aria-hidden="true">&#x1F5C2;&#xFE0F;</span><span class="tab-label">Archive</span></a>
+${archiveTab("/", "Home", "home")}
+${archiveTab("/games", "Games", "games")}
+${archiveTab("/picks", "Playbook", "playbook")}
+${archiveTab("/news", "News", "news")}
   </nav>`;
 
 function pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd, pageScript }) {

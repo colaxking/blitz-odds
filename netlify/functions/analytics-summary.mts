@@ -326,6 +326,7 @@ function emptySummary(now: number, range: Range) {
     gateCtaBySurface: {} as Record<string, number>,
     bookCompareOpens: 0,
     historyPageviews: 0,
+    archiveEntriesBySource: {} as Record<string, number>,
     historyGameClicksByTeam: {} as Record<string, number>,
     historyClicksByType: {} as Record<string, number>,
     referrerBreakdown: {} as Record<string, number>,
@@ -658,6 +659,16 @@ export default async (req: Request, _context: Context) => {
     for (const [team, count] of Array.from(historyTeamMap.entries()).sort((a, b) => b[1] - a[1])) {
       historyGameClicksByTeam[team] = count;
     }
+    // --- archiveEntriesBySource: how many people reached the archive from
+    // inside the app, and via which link. Distinct from historyPageviews,
+    // which is dominated by search traffic landing on an archive page
+    // directly and so says nothing about in-app demand. This is the number
+    // that answers whether Archive should ever get its tab slot back. ---
+    const archiveEntriesBySource = sortedCounts(
+      validRecords.filter((r) => r.type === "archive_entry"),
+      (r) => r.source
+    );
+
     const historyClicksByType = sortedCounts(
       validRecords.filter(
         (r) =>
@@ -835,6 +846,7 @@ export default async (req: Request, _context: Context) => {
         gateCtaBySurface,
         bookCompareOpens,
         historyPageviews,
+        archiveEntriesBySource,
         historyGameClicksByTeam,
         historyClicksByType,
         referrerBreakdown: capTop(referrerBreakdown),

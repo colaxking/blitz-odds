@@ -34,6 +34,11 @@ const VALID_TYPES = new Set([
   "news_click",
   "boxscore_click",
   "view_change",
+  // Which in-app link (account menu vs footer) sends people into the
+  // historical archive. Added when Archive gave up its tab slot - the
+  // existing history_* events only fire once you're already inside the
+  // archive, so they can't tell an in-app visit from a search landing.
+  "archive_entry",
   "history_nav_click",
   "history_week_select",
   "history_game_click",
@@ -275,6 +280,12 @@ export default async (req: Request, context: Context) => {
       if (home) record.home = String(home).slice(0, 64);
       if (team) record.team = String(team).slice(0, 64);
     }
+    if (type === "archive_entry") {
+      // Constrained to the two known link sites rather than passed through,
+      // so a stray or spoofed value can't open a new dimension in the
+      // dashboard's bar list.
+      if (source === "menu" || source === "footer") record.source = source;
+    }
     if (type === "history_nav_click" && (nav === "season" || nav === "team")) {
       record.nav = nav;
     }
@@ -445,6 +456,7 @@ export default async (req: Request, context: Context) => {
       addIndex("historyGameTeam", record.away as string | undefined);
       addIndex("historyGameTeam", record.home as string | undefined);
     }
+    if (type === "archive_entry") addIndex("archiveEntrySource", record.source as string | undefined);
     if (type === "history_nav_click") addIndex("historyNav", record.nav as string | undefined);
     if (type === "history_week_select") addIndex("historyFilter", record.filter as string | undefined);
 

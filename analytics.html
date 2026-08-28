@@ -473,7 +473,8 @@
         { title: "News sources clicked", sub: "Which outlet's headlines land", html: barListHtml(d.newsSourceClicks, "newsSource") },
         { title: "News by placement", sub: "Week-view ticker vs. Team News panel", html: barListHtml(relabel(d.newsClicksByPlacement, { ticker: "Ticker", team_news: "Team News" }), "newsPlacement", { valueFn: function (l) { return l === "Ticker" ? "ticker" : l === "Team News" ? "team_news" : l; } }) },
         { title: "Archive interactions", sub: fmtNum(d.historyPageviews) + " archive pageviews in range", html: barListHtml(relabel(d.historyClicksByType, { history_nav_click: "Nav click", history_week_select: "Week select", history_game_click: "Game click", history_team_game_click: "Team game click" })) },
-        { title: "Archive games by team", sub: "Which teams' history gets clicked", html: barListHtml(normTeams(d.historyGameClicksByTeam)) }
+        { title: "Archive games by team", sub: "Which teams' history gets clicked", html: barListHtml(normTeams(d.historyGameClicksByTeam)) },
+        { title: "Archive entries from the app", sub: "Account menu vs. footer — in-app demand, not search landings", html: barListHtml(relabel(d.archiveEntriesBySource, { menu: "Account menu", footer: "Footer link" })) }
       ]},
       { id: "conversion", title: "Conversion & product", desc: "Playbook, gates, and monetisation signals", tiles: [
         { title: "Playbook screens", sub: "Which of the four sub-screens open", html: barListHtml(d.playbookSubtabViews) },
@@ -696,6 +697,7 @@
       case "playbook_format": return { label: "Switched pool format to " + ev.format, detail: "signed-out preview" };
       case "gate_cta": return { label: "Clicked gate CTA — " + (ev.action || "unknown"), detail: ev.surface === "pro" ? "Pro gate" : ev.surface === "signin" ? "Sign-in wall" : "", conversion: true };
       case "book_compare": return { label: "Opened sportsbook comparison", detail: "" };
+      case "archive_entry": return { label: "Opened the archive", detail: ev.source === "menu" ? "from the account menu" : ev.source === "footer" ? "from the footer link" : "" };
       case "history_nav_click": return { label: "Archive — " + (ev.nav === "team" ? "team" : "season") + " navigation", detail: ev.page || "" };
       case "history_week_select": return { label: "Archive — filtered by " + (ev.filter || "week"), detail: ev.value || "" };
       case "history_game_click": return { label: "Archive — opened " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: ev.page || "" };

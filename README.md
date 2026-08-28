@@ -201,7 +201,9 @@ for making anything visible to visitors.
 
 `blitz-odds-odds-refresh` runs every 15 minutes, 8am-11pm local, Aug through Feb
 (preseason through the playoffs), and pulls real lines from the SportsGameOdds API's
-free tier, self-throttling against its 2,500-objects/month cap. It `POST`s updates to
+free tier. Calls are spread across several free-tier SportsGameOdds accounts by the
+`odds-proxy` function (2,500 objects/month each, currently 4 accounts = 10,000/month
+combined), and the task self-throttles against that pooled cap. It `POST`s updates to
 `netlify/functions/odds-update.mts`, which writes to a Netlify Blobs store; the live
 site's `odds-current` function serves that store to the page at runtime. It never
 touches git at all — it also mirrors `data/odds-2026.json` / `data/odds-history.json`

@@ -14,10 +14,11 @@ import type { Context, Config } from "@netlify/functions";
 // 'events'), not a general passthrough. The vendor API key(s) live in this
 // site's env vars and are never exposed to the caller.
 //
-// Multi-account rotation (added 2026-08-03): Dan runs 3 separate
-// SportsGameOdds free-tier accounts (2,500 objects/month each, no card
-// required) to get 7,500/month combined instead of hitting the single-key
-// cap. Keys live in SPORTSGAMEODDS_API_KEY_1/2/3, with matching
+// Multi-account rotation (added 2026-08-03, 4th account added 2026-08-27):
+// Dan runs several separate SportsGameOdds free-tier accounts (2,500
+// objects/month each, no card required) to get a larger combined pool
+// instead of hitting the single-key cap - currently 4 accounts = 10,000
+// objects/month. Keys live in SPORTSGAMEODDS_API_KEY_{n}, with matching
 // SPORTSGAMEODDS_API_KEY_{n}_EMAIL vars purely for readability in logs (not
 // used for auth). Before an 'events' call, this proxy checks each key's
 // current usage (the /account/usage call is free - it doesn't count
@@ -25,21 +26,32 @@ import type { Context, Config } from "@netlify/functions";
 // spread evenly across accounts instead of exhausting one before touching
 // the others. If a given key comes back 429 (rate limited) or 401/403
 // (auth rejected), it moves on to the next key before giving up - same
-// fail-through idea as the old primary/backup pair, just across 3 accounts
-// instead of 2, and driven by real usage instead of only auth failures.
+// fail-through idea as the old primary/backup pair, just across every
+// configured account, and driven by real usage instead of only auth
+// failures.
+//
+// Key slots are scanned by number up to MAX_KEY_SLOTS rather than being
+// hardcoded to a fixed list, so adding a 5th+ account later is an env-var
+// change plus a rebuild, with no code change here. Missing slot numbers are
+// skipped, so the numbering doesn't have to stay gapless.
 //
 // Falls back to the older SPORTSGAMEODDS_API_KEY / SPORTSGAMEODDS_API_KEY_
-// BACKUP vars if none of the _1/_2/_3 vars are set, so this doesn't break
+// BACKUP vars if none of the numbered vars are set, so this doesn't break
 // if the multi-key vars are ever removed.
 //
 // Note: Netlify functions bake env vars in at build time, not read them
-// live - a rebuild is required any time the _1/_2/_3 vars change for a
+// live - a rebuild is required any time the numbered vars change for a
 // running deploy to actually pick them up (2026-08-03 rebuild trigger;
 // 2026-08-04 rebuild trigger after rotating SPORTSGAMEODDS_API_KEY_3 to
-// the tycoon2face@gmail.com account).
+// the tycoon2face@gmail.com account; 2026-08-27 rebuild trigger for
+// SPORTSGAMEODDS_API_KEY_4).
 
 const API_BASE = "https://api.sportsgameodds.com/v2";
 const PER_KEY_MONTHLY_CAP = 2500;
+// Highest SPORTSGAMEODDS_API_KEY_{n} slot number checked. Only slots that
+// actually have a key set are used, so this is just a ceiling - raise it if
+// more than 8 accounts are ever configured.
+const MAX_KEY_SLOTS = 8;
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -87,7 +99,7 @@ interface KeyEntry {
 
 function loadKeys(): KeyEntry[] {
   const entries: KeyEntry[] = [];
-  for (const n of [1, 2, 3]) {
+  for (let n = 1; n <= MAX_KEY_SLOTS; n++) {
     const key = process.env[`SPORTSGAMEODDS_API_KEY_${n}`];
     if (!key) continue;
     const email = process.env[`SPORTSGAMEODDS_API_KEY_${n}_EMAIL`] || `account-${n}`;
@@ -128,7 +140,7 @@ export default async (req: Request, _context: Context) => {
   if (keys.length === 0) {
     // Fail closed, same pattern as odds-update.mts: refuse to proceed
     // rather than calling the vendor API with no key.
-    return jsonResponse(500, { ok: false, error: "No SPORTSGAMEODDS_API_KEY_1/2/3 (or legacy SPORTSGAMEODDS_API_KEY) configured on this site" });
+    return jsonResponse(500, { ok: false, error: `No SPORTSGAMEODDS_API_KEY_1..${MAX_KEY_SLOTS} (or legacy SPORTSGAMEODDS_API_KEY) configured on this site` });
   }
 
   const url = new URL(req.url);

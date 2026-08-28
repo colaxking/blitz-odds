@@ -15330,7 +15330,21 @@ function PlaybookSheetCard({ league, sheetState, week, sportsbookId, auth, onOpe
   const sheet = {
     data: sheetState && sheetState.data,
     leagueName: league.name,
-    onOpenLeague: () => onOpenLeague(league.leagueId),
+    onOpenLeague: () => {
+      // "Did anyone leave the sheet to edit by hand?" is the question that
+      // says whether the Playbook's recommendation is trusted. Fires per
+      // format, since a survivor override means something different from a
+      // confidence one.
+      try {
+        if (typeof window.gtag === "function") {
+          window.gtag("event", "playbook_open_league", {
+            league_format: league.format || "straight",
+            week,
+          });
+        }
+      } catch (e) {}
+      onOpenLeague(league.leagueId);
+    },
   };
 
   let body;
@@ -16626,7 +16640,15 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
               week={playbookWeek}
               sportsbookId={sportsbookId}
               auth={auth}
-              onOpenLeague={(leagueId) => onOpenLeagues({ leagueId, leagueSubTab: "picks" })}
+              // "week" is the My Picks subtab - the editable grid. These
+              // buttons ("Adjust in league", "Pick someone else") exist to
+              // send someone somewhere they can change their own pick, so
+              // "picks" (League Picks - everyone else's, read-only) was the
+              // wrong target.
+              // playbookWeek, not the raw selected week: the sheet above is
+              // built for the clamped regular-season week, so that's the grid
+              // the user is actually being sent to adjust.
+              onOpenLeague={(leagueId) => onOpenLeagues({ leagueId, leagueSubTab: "week", week: playbookWeek })}
               onReload={reloadSheets}
             />
           ))}
@@ -21773,7 +21795,7 @@ function LeagueRequestsPanel({ auth, league, onPendingChange }) {
   );
 }
 
-function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, onOpenLeagueRoute, onGoHome }) {
+function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, initialWeek, onOpenLeagueRoute, onGoHome }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   // /leagues/{id} opens straight into that league. Initial value only -
   // once someone navigates inside the tab, their clicks own this, not the
@@ -21783,7 +21805,12 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   // "week" is the default inside a league (My Picks). initialLeagueSubTab
   // lets the Home dashboard's pending badge open straight onto Requests.
   const [subTab, setSubTab] = useState(initialLeagueSubTab || "week");
-  const [week, setWeek] = useState(() => clampToRegularSeasonWeek(getDefaultWeek()));
+  // Normally the current week, but a caller that was already looking at a
+  // specific week hands it over so the destination matches what they were
+  // just reading - the Playbook's "Adjust in league" / "Pick someone else"
+  // otherwise dropped someone browsing Week 5 onto the current week's grid.
+  // Initial value only; the league's own week picker owns it after that.
+  const [week, setWeek] = useState(() => clampToRegularSeasonWeek(initialWeek || getDefaultWeek()));
   const [leavingLeagueId, setLeavingLeagueId] = useState(null);
   // Count for the Requests tab's pip. Fetched separately from the panel so
   // the number shows on the tab without the owner having to open it - the
@@ -27490,6 +27517,7 @@ function App() {
           initialLeagueId={leagueIntent ? (leagueIntent.leagueId || null) : initialLeagueId}
           initialSubTab={leagueIntent ? (leagueIntent.subTab || null) : null}
           initialLeagueSubTab={leagueIntent ? (leagueIntent.leagueSubTab || null) : initialLeagueSubTabFromUrl}
+          initialWeek={leagueIntent ? (leagueIntent.week || null) : null}
           onOpenLeagueRoute={syncLeagueRoute}
           onGoHome={goHomeTab}
         />

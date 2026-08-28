@@ -16534,11 +16534,22 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
       page_location: window.location.origin + path,
     });
   }, [activeSubTab]);
-  const summary = useHomeSummary(auth, week);
-  const leagues = (summary.data && summary.data.leagues) || [];
-  const [sheets, reloadSheets] = usePlaybookSheets(auth, week, leagues);
 
-  const periodLabel = getPeriodLabel(week);
+  // The whole tab is a regular-season product. Pools don't run in preseason -
+  // picks-mine 404s with "No schedule found for week -1" for every league, so
+  // in preseason every sheet rendered as an error - and the model's ratings
+  // produce nonsense on exhibition games, where a 91% favourite is the engine
+  // extrapolating from a roster that won't play. The Leagues tab already
+  // clamps this way before it fetches; the Playbook was passing the raw
+  // selected week straight through.
+  const playbookWeek = clampToRegularSeasonWeek(week);
+  const isPreseason = playbookWeek !== week;
+
+  const summary = useHomeSummary(auth, playbookWeek);
+  const leagues = (summary.data && summary.data.leagues) || [];
+  const [sheets, reloadSheets] = usePlaybookSheets(auth, playbookWeek, leagues);
+
+  const periodLabel = getPeriodLabel(playbookWeek);
   const signedIn = auth.status === "in";
   const hasLeagues = signedIn && leagues.length > 0;
 
@@ -16550,6 +16561,11 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
   return (
     <div className="pb-view">
       <div className="pb-eyebrow">{periodLabel} · {(SCHEDULE_DATA && SCHEDULE_DATA.season) || ""} Season</div>
+      {isPreseason && (
+        <p className="pb-note" style={{ marginTop: 4 }}>
+          It's still preseason, so this is the Week 1 slate — pools and survivor runs start in Week 1.
+        </p>
+      )}
       <h2 className="pb-title">Your Playbook</h2>
       <p className="pb-built">
         {hasLeagues
@@ -16586,7 +16602,7 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
           {summary.status === "error" && <p className="pb-note">Couldn't load your leagues: {summary.error}</p>}
           {(!signedIn || (summary.status === "ready" && !hasLeagues)) && (
             <PlaybookPreview
-              week={week}
+              week={playbookWeek}
               sportsbookId={sportsbookId}
               tz={tz}
               auth={auth}
@@ -16599,7 +16615,7 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
               key={l.leagueId}
               league={l}
               sheetState={sheets[l.leagueId]}
-              week={week}
+              week={playbookWeek}
               sportsbookId={sportsbookId}
               auth={auth}
               onOpenLeague={(leagueId) => onOpenLeagues({ leagueId, leagueSubTab: "picks" })}
@@ -16609,9 +16625,9 @@ function PlaybookView({ week, sportsbookId, tz, auth, onSelectGame, onOpenLeague
         </>
       )}
 
-      {activeSubTab === "changed" && <PlaybookChanges week={week} sportsbookId={sportsbookId} auth={auth} />}
+      {activeSubTab === "changed" && <PlaybookChanges week={playbookWeek} sportsbookId={sportsbookId} auth={auth} />}
 
-      {activeSubTab === "angles" && <PlaybookAngles week={week} sportsbookId={sportsbookId} tz={tz} auth={auth} />}
+      {activeSubTab === "angles" && <PlaybookAngles week={playbookWeek} sportsbookId={sportsbookId} tz={tz} auth={auth} />}
 
       {activeSubTab === "record" && <TrackRecordPanel />}
     </div>

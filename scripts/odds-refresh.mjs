@@ -55,6 +55,12 @@ const FULL_SWEEP_STALE_HOURS = 20;
 // totalCap (e.g. still running the old single-key build). Once the
 // multi-key proxy is live, the real cap comes from that response instead.
 const MONTHLY_BUDGET = 2500;
+// Don't start a fetch with less than this much real headroom left in the
+// pool. A NEAR sweep costs roughly one object per upcoming game (tens); a
+// FULL sweep costs the whole remaining slate (low hundreds). Below this,
+// a run can only half-complete - burning quota and writing partial odds -
+// so it's better to skip and wait for the cycle to roll over.
+const MIN_REMAINING_RESERVE = 75;
 
 const TEAM_MAP = {
   "Arizona Cardinals": "ARI", "Atlanta Falcons": "ATL", "Baltimore Ravens": "BAL",
@@ -160,9 +166,24 @@ async function checkBudget() {
   // MONTHLY_BUDGET if that's all the proxy has deployed.
   const usage = body?.data?.totalUsage ?? body?.data?.rateLimits?.["per-month"]?.["current-entities"];
   const cap = body?.data?.totalCap ?? MONTHLY_BUDGET;
+  const remaining = body?.data?.totalRemaining;
   if (typeof usage !== "number") {
     log("warning: could not parse usage from response, proceeding cautiously this run.", JSON.stringify(body).slice(0, 300));
     return { proceed: true, usage: null };
+  }
+
+  // Hard floor, checked before the pace curve. totalRemaining is the real
+  // spendable headroom across every account with a known usage number
+  // (exhausted accounts contribute 0). The pace allowance alone can green-
+  // light a run late in a cycle when the pool is nearly dry - the ratio
+  // says "you're under budget for day 29" while there are only a few dozen
+  // objects actually left. A part-paid FULL sweep spends quota and still
+  // writes incomplete odds, so refuse outright rather than start one we
+  // can't finish. Older proxy builds don't report totalRemaining; skip
+  // this check rather than guessing when it's absent.
+  if (typeof remaining === "number" && remaining < MIN_REMAINING_RESERVE) {
+    log(`budget: only ${remaining} objects left in the pool (reserve ${MIN_REMAINING_RESERVE}) - skipping fetch this run.`);
+    return { proceed: false, usage, remaining };
   }
 
   const now = new Date();
@@ -172,7 +193,11 @@ async function checkBudget() {
   const paceAllowance = cap * (dayOfCycle / daysInCycle) * 0.95;
 
   const accountCount = body?.data?.perKey?.length;
-  log(`budget: usage=${usage} cap=${cap}${accountCount ? ` (${accountCount} accounts)` : ""} paceAllowance=${paceAllowance.toFixed(1)} dayOfCycle=${dayOfCycle}/${daysInCycle}`);
+  const knownCount = body?.data?.keysWithKnownUsage;
+  const accountNote = accountCount
+    ? ` (${accountCount} accounts${typeof knownCount === "number" && knownCount !== accountCount ? `, ${knownCount} reporting` : ""})`
+    : "";
+  log(`budget: usage=${usage} cap=${cap}${accountNote}${typeof remaining === "number" ? ` remaining=${remaining}` : ""} paceAllowance=${paceAllowance.toFixed(1)} dayOfCycle=${dayOfCycle}/${daysInCycle}`);
 
   if (usage >= paceAllowance) {
     return { proceed: false, usage, paceAllowance };
@@ -392,7 +417,14 @@ async function main() {
   try {
     const budget = await checkBudget();
     if (!budget.proceed) {
-      log(`skipping fetch this run - usage (${budget.usage}) at or above pace allowance (${budget.paceAllowance?.toFixed(1)}).`);
+      // Two distinct reasons: the pool is genuinely out of headroom, or
+      // we're just running ahead of the monthly pace curve. Without this
+      // split the reserve skip logged an undefined pace allowance.
+      if (typeof budget.paceAllowance === "number") {
+        log(`skipping fetch this run - usage (${budget.usage}) at or above pace allowance (${budget.paceAllowance.toFixed(1)}).`);
+      } else {
+        log(`skipping fetch this run - pool headroom (${budget.remaining}) below the ${MIN_REMAINING_RESERVE}-object reserve.`);
+      }
       return;
     }
 

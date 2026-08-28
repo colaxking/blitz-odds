@@ -148,21 +148,55 @@ export default async (req: Request, _context: Context) => {
 
   if (endpoint === "usage") {
     const perKey = await Promise.all(
-      keys.map(async (k) => ({
-        label: k.label,
-        email: k.email,
-        usage: await getUsage(k.key),
-        cap: PER_KEY_MONTHLY_CAP,
-      }))
+      keys.map(async (k) => {
+        const usage = await getUsage(k.key);
+        const known = typeof usage === "number";
+        return {
+          label: k.label,
+          email: k.email,
+          // Raw vendor number, reported as-is so an over-cap account is
+          // visible rather than silently hidden by the clamping below.
+          usage,
+          cap: PER_KEY_MONTHLY_CAP,
+          remaining: known ? Math.max(0, PER_KEY_MONTHLY_CAP - usage) : null,
+          overCap: known ? usage > PER_KEY_MONTHLY_CAP : null,
+        };
+      })
     );
-    const totalUsage = perKey.reduce((sum, k) => sum + (k.usage ?? 0), 0);
-    const totalCap = perKey.length * PER_KEY_MONTHLY_CAP;
+
+    // Pool math only counts keys whose usage actually came back. A key
+    // with a failed usage lookup contributes to neither side, so it can't
+    // masquerade as 2,500 objects of free headroom - previously an
+    // unknown key added its full cap to totalCap while adding 0 to
+    // totalUsage, overstating the pool by a whole account.
+    const known = perKey.filter((k) => typeof k.usage === "number");
+
+    // Per-key usage is clamped at that key's own cap before summing. An
+    // account can run slightly past its cap (the vendor allows a little
+    // overage - key-4 sat at 2,520/2,500 on 2026-08-27), and without the
+    // clamp that overage was subtracted from *other* accounts' headroom,
+    // understating what the pool could still spend. Clamping makes the
+    // pooled arithmetic self-consistent: totalCap - totalUsage now equals
+    // totalRemaining exactly, which was not true before.
+    const totalUsage = known.length
+      ? known.reduce((sum, k) => sum + Math.min(k.usage as number, PER_KEY_MONTHLY_CAP), 0)
+      : null;
+    const totalCap = known.length ? known.length * PER_KEY_MONTHLY_CAP : null;
+    // The honest number: objects the pool can still spend right now.
+    // Exhausted accounts contribute 0, never a negative offset.
+    const totalRemaining = known.length
+      ? known.reduce((sum, k) => sum + (k.remaining as number), 0)
+      : null;
+
     return jsonResponse(200, {
       success: true,
       data: {
         perKey,
         totalUsage,
         totalCap,
+        totalRemaining,
+        keysConfigured: perKey.length,
+        keysWithKnownUsage: known.length,
         // Kept for backward compatibility with any caller still reading
         // the old single-key shape directly.
         rateLimits: { "per-month": { "current-entities": totalUsage } },

@@ -8,6 +8,7 @@ import {
 import { buildReminderEmail, buildRecapEmail, type RecapLeague, type RecapHighlight } from "./lib/notif-emails.mts";
 import { FORMAT_LABELS } from "./lib/email-shell.mts";
 import { followsGame, deliverAlert, inLeadWindow, minutesUntil, lastCallSlots, type AlertUser } from "./lib/alerts.mts";
+import { loadRegularWeeks, loadAllWeeks } from "./lib/schedule.mts";
 
 // @ts-ignore - plain JS UMD module, no type declarations
 import ScoringEngine from "../../js/scoringEngine.js";
@@ -191,8 +192,12 @@ export default async (req: Request, _context: Context) => {
   };
 
   try {
-    const schedule: any = await siteDataStore.get("schedule", { type: "json" });
-    const weeks: Array<{ week: number; games: ScheduleGame[] }> = schedule?.weeks || [];
+    // Two lists, deliberately. `weeks` is the regular season, which is the
+    // only thing pick'em runs on - reminders, the recap and last call are
+    // all deadline-shaped and must not see a preseason or playoff game.
+    // `allWeeks` is every game there is, for the alerts that are about the
+    // game itself rather than about a pick. See lib/schedule.mts.
+    const weeks = await loadRegularWeeks(siteDataStore);
     if (!weeks.length) return jsonResponse(200, { ...report, note: "No schedule available" });
 
     const teamsDoc: any = await siteDataStore.get("teams", { type: "json" });
@@ -418,7 +423,13 @@ export default async (req: Request, _context: Context) => {
         historyDoc = await siteDataStore.get("history", { type: "json" });
       } catch { /* finals degrade to "none this tick" rather than failing the pass */ }
 
-      for (const w of weeks) {
+      // Kickoff and final-score alerts are about the game, not about a pick,
+      // so they run across the WHOLE season - preseason and playoffs
+      // included. The history doc already carries preseason weeks under the
+      // same negative week numbers, so finals need nothing extra.
+      const allWeeks = await loadAllWeeks(siteDataStore);
+
+      for (const w of allWeeks) {
         for (const g of (w.games || []) as ScheduleGame[]) {
           const kickoff = parseKickoffUTC(CURRENT_SEASON, g.date, g.time);
           if (!kickoff) continue;   // flexed/TBD placeholder

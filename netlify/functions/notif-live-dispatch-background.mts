@@ -5,6 +5,7 @@ import { parseKickoffUTC } from "./lib/kickoff.mts";
 import { getPrefs, notifStore, USER_STORE } from "./lib/notif.mts";
 import { followsGame, deliverAlert, type AlertUser, type ScheduleGame } from "./lib/alerts.mts";
 import { fetchLiveWeek, leaderOf, clockLabel, type LiveGame } from "./lib/livescores.mts";
+import { loadAllWeeks, espnParamsFor, type PhaseWeek } from "./lib/schedule.mts";
 
 // The fast tick. Watches games that are actually in progress and alerts on
 // scoring plays and final whistles.
@@ -90,32 +91,38 @@ export default async (req: Request, _context: Context) => {
   };
 
   try {
-    const schedule: any = await siteDataStore.get("schedule", { type: "json" });
-    const weeks: Array<{ week: number; games: ScheduleGame[] }> = schedule?.weeks || [];
+    // The whole season, not just weeks 1-18: a touchdown in a playoff game
+    // is exactly the thing someone turned these alerts on for. See
+    // lib/schedule.mts for why the three phases arrive separately.
+    const weeks: PhaseWeek[] = await loadAllWeeks(siteDataStore);
     if (!weeks.length) return jsonResponse(200, { ...report, note: "No schedule available" });
 
     // ---- Is anything plausibly on right now? --------------------------
     // Cheapest possible check, deliberately first. Off-season and midweek
     // this returns here, having done exactly one Blobs read.
-    const activeWeeks = new Set<number>();
+    // Carries the whole PhaseWeek, not just the number, because ESPN's
+    // scoreboard numbering for a preseason or playoff round can't be derived
+    // from our week number - it only exists in the schedule data.
+    const activeWeeks: PhaseWeek[] = [];
     for (const w of weeks) {
       for (const g of w.games || []) {
         const k = parseKickoffUTC(CURRENT_SEASON, g.date, g.time);
         if (!k) continue;
         const delta = now.getTime() - k.getTime();
-        if (delta >= -WINDOW_BEFORE_MS && delta <= WINDOW_AFTER_MS) { activeWeeks.add(w.week); break; }
+        if (delta >= -WINDOW_BEFORE_MS && delta <= WINDOW_AFTER_MS) { activeWeeks.push(w); break; }
       }
     }
-    if (!activeWeeks.size && !body.force) {
+    if (!activeWeeks.length && !body.force) {
       return jsonResponse(200, { ...report, note: "No games in progress" });
     }
-    report.polledWeeks = [...activeWeeks];
+    report.polledWeeks = activeWeeks.map((w) => w.week);
 
     // ---- What does ESPN say? -------------------------------------------
     const liveByWeek = new Map<number, LiveGame[]>();
-    for (const week of activeWeeks) {
+    for (const w of activeWeeks) {
+      const week = w.week;
       try {
-        liveByWeek.set(week, await fetchLiveWeek(CURRENT_SEASON, week));
+        liveByWeek.set(week, await fetchLiveWeek(CURRENT_SEASON, week, espnParamsFor(w)));
       } catch (err) {
         // One bad week must not take down the tick; the next one is 90
         // seconds away and the snapshot is unchanged, so nothing is lost.

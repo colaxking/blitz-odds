@@ -5,6 +5,7 @@ import {
 } from "./notif.mts";
 import { sendPush, type PushPayload } from "./push.mts";
 import { getEntitlements, type Capability } from "./entitlements.mts";
+import { isPickemWeek } from "./schedule.mts";
 
 // The rules every push alert shares: which games a reader follows, whether
 // it's a civilised hour to tell them, whether they've already been told, and
@@ -52,6 +53,17 @@ export async function followsGame(
   const byFavorite = user.favorites.includes(game.away) || user.favorites.includes(game.home);
   if (scope === "fav") return byFavorite;
   if (scope === "both" && byFavorite) return true;
+
+  // Preseason and playoff weeks have no picks to follow, because pools only
+  // run the regular season. Without this, a reader on scope "picks" would
+  // get nothing at all for those games - which is how they'd read a promise
+  // of game alerts being broken, not honoured. Favourites is the only
+  // signal that exists there, so it stands in regardless of scope.
+  //
+  // Deliberately NOT "alert on everything" for these weeks: sixteen
+  // preseason kickoffs on one Thursday night is how someone turns alerts
+  // off for good.
+  if (!isPickemWeek(week)) return byFavorite;
 
   // scope is "picks", or "both" and the favourite test didn't match.
   if (!user.leagues.length) return false;

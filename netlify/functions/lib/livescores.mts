@@ -35,17 +35,29 @@ export interface LiveGame {
 }
 
 /** ESPN's public scoreboard uses its own season-type/week numbering.
- *  Mirrors getEspnParams in index.html for the regular season; preseason and
- *  playoffs aren't polled for alerts. */
+ *  Mirrors getEspnParams in index.html for the regular season. Preseason and
+ *  playoff weeks can't be derived from our week number alone - the mapping
+ *  lives in the schedule data (espnSeasonType / espnWeek per round), so
+ *  callers with a resolved PhaseWeek should pass espnParamsFor(w) instead of
+ *  relying on this. */
 export function espnParamsForWeek(week: number): { seasontype: number; week: number } | null {
   if (week >= 1 && week <= 18) return { seasontype: 2, week };
   return null;
 }
 
-export async function fetchLiveWeek(season: number, week: number): Promise<LiveGame[]> {
-  const params = espnParamsForWeek(week);
-  if (!params) return [];
-  const url = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?year=${season}&seasontype=${params.seasontype}&week=${params.week}`;
+/**
+ * @param params - explicit ESPN scoreboard params. Omit for a regular-season
+ *   week and they're derived; required for preseason/playoff weeks, which
+ *   have no derivable mapping.
+ */
+export async function fetchLiveWeek(
+  season: number,
+  week: number,
+  params?: { seasontype: number; week: number } | null
+): Promise<LiveGame[]> {
+  const resolved = params || espnParamsForWeek(week);
+  if (!resolved) return [];
+  const url = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?year=${season}&seasontype=${resolved.seasontype}&week=${resolved.week}`;
 
   const res = await fetch(url, { headers: ESPN_FETCH_HEADERS });
   if (!res.ok) throw new Error(`ESPN scoreboard failed (week ${week}): ${res.status}`);

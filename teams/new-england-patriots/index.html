@@ -1085,8 +1085,8 @@
     display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border);
   }
   .tab-btn {
-    display: flex; align-items: center; gap: 9px; background: none; border: none; cursor: pointer;
-    color: var(--text-dim); font-family: inherit; font-size: 0.86rem; font-weight: 700;
+    display: flex; align-items: center; gap: 11px; background: none; border: none; cursor: pointer;
+    color: var(--text-dim); font-family: inherit; font-size: 0.92rem; font-weight: 700;
     padding: 0 0 14px; position: relative; transition: color 0.15s;
   }
   .tab-btn:hover { color: var(--text); }
@@ -1113,7 +1113,14 @@
      raster marks, not glyphs - below ~28px the interior detail stops
      resolving. The label under each one is still what identifies the tab;
      the icon is the accent. */
-  .tab-icon.has-img { width: 28px; height: 28px; background: none; border-color: transparent; }
+  /* 40px on desktop, against 26px for the emoji box these replaced. That
+     isn't a stylistic preference: at 28px the calendar, notebook, newspaper
+     and shield all collapsed into indistinguishable navy-and-teal blobs,
+     and the desktop bar - a horizontal row with the label beside the icon,
+     not under it - has room the phone's bottom bar doesn't. The label grows
+     slightly with it so the icon doesn't overpower it. Both are overridden
+     in the mobile block below, which keeps its own smaller sizing. */
+  .tab-icon.has-img { width: 40px; height: 40px; background: none; border-color: transparent; }
   .tab-btn.active .tab-icon.has-img { background: none; border-color: transparent; }
   .tab-icon-img {
     width: 100%; height: 100%; object-fit: contain; display: block;
@@ -4522,13 +4529,13 @@
     <tbody>
       <tr><td><a href="/games/2026/preseason-week-1/indianapolis-colts-at-new-england-patriots/">Preseason Week 1</a></td><td>vs <a href="/teams/indianapolis-colts/">Indianapolis Colts</a></td><td>Thu, Aug 13 7:30 PM ET</td><td>Model predicts New England Patriots to win (80%)</td><td>L 13-13 (IND 13 - 13 NE, prediction missed)</td></tr>
       <tr><td><a href="/games/2026/preseason-week-2/philadelphia-eagles-at-new-england-patriots/">Preseason Week 2</a></td><td>vs <a href="/teams/philadelphia-eagles/">Philadelphia Eagles</a></td><td>Sat, Aug 22 7:00 PM ET</td><td>Model predicts New England Patriots to win (91%)</td><td>W 24-21 (PHI 21 - 24 NE, prediction correct)</td></tr>
-      <tr><td><a href="/games/2026/preseason-week-3/new-england-patriots-at-cleveland-browns/">Preseason Week 3</a></td><td>@ <a href="/teams/cleveland-browns/">Cleveland Browns</a></td><td>Thu, Aug 27 8:00 PM ET</td><td>Model predicts New England Patriots to win (83%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/preseason-week-3/new-england-patriots-at-cleveland-browns/">Preseason Week 3</a></td><td>@ <a href="/teams/cleveland-browns/">Cleveland Browns</a></td><td>Thu, Aug 27 8:00 PM ET</td><td>Model predicts New England Patriots to win (87%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-1/new-england-patriots-at-seattle-seahawks/">Week 1</a></td><td>@ <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Wed, Sep 9 8:20 PM ET</td><td>Model predicts Seattle Seahawks to win (48%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-2/pittsburgh-steelers-at-new-england-patriots/">Week 2</a></td><td>vs <a href="/teams/pittsburgh-steelers/">Pittsburgh Steelers</a></td><td>Sun, Sep 20 1:00 PM ET</td><td>Model predicts New England Patriots to win (92%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-3/new-england-patriots-at-jacksonville-jaguars/">Week 3</a></td><td>@ <a href="/teams/jacksonville-jaguars/">Jacksonville Jaguars</a></td><td>Sun, Sep 27 1:00 PM ET</td><td>Model predicts New England Patriots to win (62%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-4/new-england-patriots-at-buffalo-bills/">Week 4</a></td><td>@ <a href="/teams/buffalo-bills/">Buffalo Bills</a></td><td>Sun, Oct 4 1:00 PM ET</td><td>Model predicts New England Patriots to win (51%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-5/las-vegas-raiders-at-new-england-patriots/">Week 5</a></td><td>vs <a href="/teams/las-vegas-raiders/">Las Vegas Raiders</a></td><td>Sun, Oct 11 1:00 PM ET</td><td>Model predicts New England Patriots to win (91%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-6/new-york-jets-at-new-england-patriots/">Week 6</a></td><td>vs <a href="/teams/new-york-jets/">New York Jets</a></td><td>Sun, Oct 18 1:00 PM ET</td><td>Model predicts New England Patriots to win (93%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-6/new-york-jets-at-new-england-patriots/">Week 6</a></td><td>vs <a href="/teams/new-york-jets/">New York Jets</a></td><td>Sun, Oct 18 1:00 PM ET</td><td>Model predicts New England Patriots to win (94%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-7/new-england-patriots-at-chicago-bears/">Week 7</a></td><td>@ <a href="/teams/chicago-bears/">Chicago Bears</a></td><td>Thu, Oct 22 8:15 PM ET</td><td>Model predicts New England Patriots to win (89%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-8/new-england-patriots-at-miami-dolphins/">Week 8</a></td><td>@ <a href="/teams/miami-dolphins/">Miami Dolphins</a></td><td>Sun, Nov 1 4:25 PM ET</td><td>Model predicts New England Patriots to win (85%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-9/green-bay-packers-at-new-england-patriots/">Week 9</a></td><td>vs <a href="/teams/green-bay-packers/">Green Bay Packers</a></td><td>Sun, Nov 8 4:25 PM ET</td><td>Model predicts New England Patriots to win (86%)</td><td>Not played yet</td></tr>
@@ -4538,7 +4545,7 @@
       <tr><td><a href="/games/2026/week-13/buffalo-bills-at-new-england-patriots/">Week 13</a></td><td>vs <a href="/teams/buffalo-bills/">Buffalo Bills</a></td><td>Sun, Dec 6 4:25 PM ET</td><td>Model predicts New England Patriots to win (62%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-14/minnesota-vikings-at-new-england-patriots/">Week 14</a></td><td>vs <a href="/teams/minnesota-vikings/">Minnesota Vikings</a></td><td>Thu, Dec 10 8:15 PM ET</td><td>Model predicts New England Patriots to win (84%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-15/new-england-patriots-at-kansas-city-chiefs/">Week 15</a></td><td>@ <a href="/teams/kansas-city-chiefs/">Kansas City Chiefs</a></td><td>Mon, Dec 21 8:15 PM ET</td><td>Model predicts New England Patriots to win (68%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-16/new-england-patriots-at-new-york-jets/">Week 16</a></td><td>@ <a href="/teams/new-york-jets/">New York Jets</a></td><td>Sun, Dec 27 1:00 PM ET</td><td>Model predicts New England Patriots to win (88%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-16/new-england-patriots-at-new-york-jets/">Week 16</a></td><td>@ <a href="/teams/new-york-jets/">New York Jets</a></td><td>Sun, Dec 27 1:00 PM ET</td><td>Model predicts New England Patriots to win (89%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-17/denver-broncos-at-new-england-patriots/">Week 17</a></td><td>vs <a href="/teams/denver-broncos/">Denver Broncos</a></td><td>Mon, Jan 4 TBD</td><td>Model predicts New England Patriots to win (64%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-18/miami-dolphins-at-new-england-patriots/">Week 18</a></td><td>vs <a href="/teams/miami-dolphins/">Miami Dolphins</a></td><td>Sun, Jan 10 TBD</td><td>Model predicts New England Patriots to win (91%)</td><td>Not played yet</td></tr>
     </tbody>
@@ -5947,6 +5954,19 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Jamari Thrash",
+        "position": "WR",
+        "espnId": "4428678",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Undisclosed",
+          "note": "ir"
+        },
+        "statusUpdatedAt": "2026-08-19T12:07Z",
+        "source": "auto"
       }
     ],
     "JAX": [
@@ -6075,6 +6095,20 @@
         },
         "statusUpdatedAt": "2026-08-20T00:23Z",
         "source": "auto"
+      },
+      {
+        "name": "Caullin Lacy",
+        "position": "WR",
+        "espnId": "4430185",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-28",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-28T21:44:42.886Z",
+        "source": "curated"
       }
     ],
     "TEN": [

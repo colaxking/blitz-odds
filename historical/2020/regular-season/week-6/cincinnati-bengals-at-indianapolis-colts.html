@@ -230,46 +230,102 @@ footer.app-footer p:last-child { margin-bottom: 0; }
 @media (max-width: 600px) {
   .injury-report-archive { grid-template-columns: 1fr; gap: 12px; }
 }
-.tab-bar { display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border); }
-.tab-btn { display: flex; align-items: center; gap: 9px; background: none; border: none; cursor: pointer;
-  color: var(--text-dim); font-family: inherit; font-size: 0.86rem; font-weight: 700; text-decoration: none;
-  padding: 0 0 14px; position: relative; transition: color 0.15s; }
+.tab-bar {
+  display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border);
+}
+.tab-btn {
+  display: flex; align-items: center; gap: 11px; background: none; border: none; cursor: pointer;
+  color: var(--text-dim); font-family: inherit; text-decoration: none; font-size: 0.92rem; font-weight: 700;
+  padding: 0 0 14px; position: relative; transition: color 0.15s;
+}
 .tab-btn:hover { color: var(--text); }
 .tab-btn.active { color: var(--text); }
-.tab-btn.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
-  background: var(--accent); border-radius: 2px; }
-.tab-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+.tab-btn.active::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: var(--accent); border-radius: 2px;
+}
+.tab-icon {
+  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   font-size: 13px; line-height: 1; flex-shrink: 0; background: rgba(255,255,255,0.05);
-  border: 1px solid var(--card-border); transition: background 0.15s, border-color 0.15s; }
+  border: 1px solid var(--card-border); transition: background 0.15s, border-color 0.15s;
+}
 .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: var(--accent); }
-.tab-icon.has-img { width: 28px; height: 28px; background: none; border-color: transparent; }
+/* Illustrated tab icons.
+   The ring + fill that frames an emoji fights the artwork - these icons
+   already carry their own outline and a full palette, so the circle reads
+   as a second border around a badge that's mostly border. .has-img drops
+   it and the active state is carried by the art itself instead: every
+   inactive icon is desaturated and dimmed, the current one is full colour.
+   That also keeps the bar from being five competing full-colour emblems.
+
+   Slightly larger than the emoji box (28 vs 26) because these are detailed
+   raster marks, not glyphs - below ~28px the interior detail stops
+   resolving. The label under each one is still what identifies the tab;
+   the icon is the accent. */
+/* 40px on desktop, against 26px for the emoji box these replaced. That
+   isn't a stylistic preference: at 28px the calendar, notebook, newspaper
+   and shield all collapsed into indistinguishable navy-and-teal blobs,
+   and the desktop bar - a horizontal row with the label beside the icon,
+   not under it - has room the phone's bottom bar doesn't. The label grows
+   slightly with it so the icon doesn't overpower it. Both are overridden
+   in the mobile block below, which keeps its own smaller sizing. */
+.tab-icon.has-img { width: 40px; height: 40px; background: none; border-color: transparent; }
 .tab-btn.active .tab-icon.has-img { background: none; border-color: transparent; }
-.tab-icon-img { width: 100%; height: 100%; object-fit: contain; display: block;
+.tab-icon-img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  /* Tuned for the dark theme, which is the default. The artwork is mostly
+     dark navy, so desaturating it against a dark bar takes it most of the
+     way to invisible - hence the brightness lift, which pulls the inactive
+     marks back up off the background without making them read as active.
+     The light theme doesn't have that problem and overrides it below. */
   opacity: 0.62; filter: grayscale(0.6) saturate(0.85) brightness(1.3);
-  transition: opacity 0.15s, filter 0.15s, transform 0.15s; }
+  transition: opacity 0.15s, filter 0.15s, transform 0.15s;
+}
 html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) saturate(0.85); }
 .tab-btn:hover .tab-icon-img,
 .tab-btn.active .tab-icon-img { opacity: 1; filter: none; }
 .tab-btn.active .tab-icon-img { transform: scale(1.06); }
+/* The desaturate/brighten swap is the only signal these icons carry, and
+   it's a transition - so honour a reduced-motion preference by making the
+   end states instant rather than animated. The states themselves stay. */
 @media (prefers-reduced-motion: reduce) {
   .tab-icon-img { transition: none; }
   .tab-btn.active .tab-icon-img { transform: none; }
 }
 @media (max-width: 720px) {
   .app { padding-bottom: 96px; }
-  .tab-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
+  .tab-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
+    /* Translucent + blurred rather than an opaque fill, so the list reads as
+       continuing underneath the bar. The solid card-bg is the fallback for
+       browsers without backdrop-filter (they just get today's look). */
     background: var(--card-bg);
     background: color-mix(in srgb, var(--card-bg) 74%, transparent);
     -webkit-backdrop-filter: saturate(180%) blur(22px);
     backdrop-filter: saturate(180%) blur(22px);
     border-bottom: none; border-top: 1px solid var(--card-border);
-    padding: 8px 4px calc(14px + env(safe-area-inset-bottom, 0px)); }
-  .tab-btn { flex: 1; flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.64rem;
-    min-height: 48px; transition: transform 0.1s ease; }
+    /* Extra bottom padding (beyond the safe-area inset) keeps the tap
+       targets clear of iOS's edge-swipe gesture zone - without it, taps
+       near the bottom of the bar can land on whatever's behind it. */
+    padding: 8px 4px calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+  .tab-btn {
+    flex: 1; flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.64rem;
+    min-height: 48px;
+    /* Touch has no hover, so :hover above never fires on a phone and every
+       tap felt inert. A brief scale is the feedback instead. */
+    transition: transform 0.1s ease;
+  }
   .tab-btn:active { transform: scale(0.9); }
   .tab-btn.active::after { content: none; }
   .tab-icon { width: 24px; height: 24px; font-size: 12px; background: none; border-color: transparent; }
   .tab-btn.active .tab-icon { background: rgba(var(--accent-rgb),0.16); border-color: transparent; }
+  /* 30px here rather than the desktop 28: the bottom bar is the primary
+     navigation on a phone and these marks need the extra couple of pixels
+     to stay readable. It fits inside the existing 48px min tap target -
+     30 + 4px gap + a 0.64rem label is ~48. No accent pill behind the
+     active one; the colour swap already carries it, and a tinted circle
+     under a full-colour badge just muddies both. */
   .tab-icon.has-img { width: 30px; height: 30px; }
   .tab-btn.active .tab-icon.has-img { background: none; }
   .tab-btn.active { color: var(--accent); }
@@ -332,10 +388,10 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
       <h1 class="sr-only">Blitz Odds</h1>
     </a>
     <nav class="tab-bar" aria-label="Primary">
-    <a class="tab-btn" href="/"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-home.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">Home</span></a>
-    <a class="tab-btn" href="/games"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-games.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">Games</span></a>
-    <a class="tab-btn" href="/picks"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-playbook.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">Playbook</span></a>
-    <a class="tab-btn" href="/news"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-news.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">News</span></a>
+    <a class="tab-btn" href="/"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-home.png" alt="" width="40" height="40" decoding="async" /></span><span class="tab-label">Home</span></a>
+    <a class="tab-btn" href="/games"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-games.png" alt="" width="40" height="40" decoding="async" /></span><span class="tab-label">Games</span></a>
+    <a class="tab-btn" href="/picks"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-playbook.png" alt="" width="40" height="40" decoding="async" /></span><span class="tab-label">Playbook</span></a>
+    <a class="tab-btn" href="/news"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-news.png" alt="" width="40" height="40" decoding="async" /></span><span class="tab-label">News</span></a>
   </nav>
 </header>
   <div class="breadcrumb"><a href="/">Home</a> &raquo; <a href="/historical/2020/regular-season/index.html">2020 Regular Season</a> &raquo; Week 6 &raquo; CIN @ IND</div>

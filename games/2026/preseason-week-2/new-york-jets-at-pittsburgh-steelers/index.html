@@ -1085,8 +1085,8 @@
     display: flex; gap: 28px; margin: 18px 0 0; border-bottom: 1px solid var(--card-border);
   }
   .tab-btn {
-    display: flex; align-items: center; gap: 9px; background: none; border: none; cursor: pointer;
-    color: var(--text-dim); font-family: inherit; font-size: 0.86rem; font-weight: 700;
+    display: flex; align-items: center; gap: 11px; background: none; border: none; cursor: pointer;
+    color: var(--text-dim); font-family: inherit; font-size: 0.92rem; font-weight: 700;
     padding: 0 0 14px; position: relative; transition: color 0.15s;
   }
   .tab-btn:hover { color: var(--text); }
@@ -1113,7 +1113,14 @@
      raster marks, not glyphs - below ~28px the interior detail stops
      resolving. The label under each one is still what identifies the tab;
      the icon is the accent. */
-  .tab-icon.has-img { width: 28px; height: 28px; background: none; border-color: transparent; }
+  /* 40px on desktop, against 26px for the emoji box these replaced. That
+     isn't a stylistic preference: at 28px the calendar, notebook, newspaper
+     and shield all collapsed into indistinguishable navy-and-teal blobs,
+     and the desktop bar - a horizontal row with the label beside the icon,
+     not under it - has room the phone's bottom bar doesn't. The label grows
+     slightly with it so the icon doesn't overpower it. Both are overridden
+     in the mobile block below, which keeps its own smaller sizing. */
+  .tab-icon.has-img { width: 40px; height: 40px; background: none; border-color: transparent; }
   .tab-btn.active .tab-icon.has-img { background: none; border-color: transparent; }
   .tab-icon-img {
     width: 100%; height: 100%; object-fit: contain; display: block;
@@ -4511,7 +4518,7 @@
   <p><strong>Odds (DraftKings):</strong> NYJ -1.5 · ML NYJ -118 / PIT +100 · O/U 37.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Pittsburgh Steelers</strong> - NYJ 44% / PIT 56%</p>
+  <p>Predicted winner: <strong>Pittsburgh Steelers</strong> - NYJ 41% / PIT 59%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -4533,6 +4540,7 @@
 
   <h2>Injury report</h2>
   <ul>
+<li><strong>Caullin Lacy</strong> (NYJ · WR) - questionable - Undisclosed</li>
 <li><strong>Jalen Ramsey</strong> (PIT · CB) - questionable - Knee injury (activated off PUP)</li>
 <li><strong>Kingsley Jonathan</strong> (NYJ · DE) - out - Thigh</li>
 <li><strong>Cole Burgess</strong> (PIT · WR) - out - Knee injury - reverted to injured reserve</li>
@@ -5943,6 +5951,19 @@
         },
         "statusUpdatedAt": "2026-08-23T18:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Jamari Thrash",
+        "position": "WR",
+        "espnId": "4428678",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Undisclosed",
+          "note": "ir"
+        },
+        "statusUpdatedAt": "2026-08-19T12:07Z",
+        "source": "auto"
       }
     ],
     "JAX": [
@@ -6071,6 +6092,20 @@
         },
         "statusUpdatedAt": "2026-08-20T00:23Z",
         "source": "auto"
+      },
+      {
+        "name": "Caullin Lacy",
+        "position": "WR",
+        "espnId": "4430185",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-28",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-28T21:44:42.886Z",
+        "source": "curated"
       }
     ],
     "TEN": [

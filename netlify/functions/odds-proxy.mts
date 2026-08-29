@@ -39,6 +39,17 @@ import type { Context, Config } from "@netlify/functions";
 // BACKUP vars if none of the numbered vars are set, so this doesn't break
 // if the multi-key vars are ever removed.
 //
+// Per-key billing cycles (added 2026-08-29): each account has its own
+// monthly reset date (they were signed up on different days), so pacing
+// the pool as if it were one account on one anchor date was wrong - it
+// skipped runs whose spend was actually affordable, and the pooled ratio
+// could read "over budget" while two accounts still sat well under their
+// own curves. The 'usage' response now reports each key's own cycle,
+// pace allowance and spendability, taken from the vendor's per-month
+// currentIntervalEndTime where available and falling back to a
+// configurable anchor day-of-month otherwise
+// (SPORTSGAMEODDS_API_KEY_{n}_ANCHOR_DAY, else ANCHOR_DAY_DEFAULT).
+//
 // Note: Netlify functions bake env vars in at build time, not read them
 // live - a rebuild is required any time the numbered vars change for a
 // running deploy to actually pick them up (2026-08-03 rebuild trigger;
@@ -52,6 +63,20 @@ const PER_KEY_MONTHLY_CAP = 2500;
 // actually have a key set are used, so this is just a ceiling - raise it if
 // more than 8 accounts are ever configured.
 const MAX_KEY_SLOTS = 8;
+// Fraction of a key's own cycle-to-date allowance we're willing to have
+// spent at any moment. The 5% trim leaves a little headroom for the last
+// run before that key's reset lands.
+const PACE_SAFETY = 0.95;
+// A key needs at least this much genuinely spendable headroom to be worth
+// starting a sweep on. A NEAR sweep costs roughly one object per upcoming
+// game (tens); pagination spreads a FULL sweep across every key, so this
+// is a per-key floor, not the whole sweep's cost.
+const MIN_KEY_HEADROOM = 60;
+// Day-of-month a key's monthly quota resets on, used only when the vendor
+// doesn't report a usable interval end time. Overridable per key via
+// SPORTSGAMEODDS_API_KEY_{n}_ANCHOR_DAY, or globally via ANCHOR_DAY_DEFAULT.
+// 31 means "last day of the month" - it's clamped to each month's length.
+const ANCHOR_DAY_DEFAULT = Number(process.env.ANCHOR_DAY_DEFAULT || 31);
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -95,6 +120,14 @@ interface KeyEntry {
   label: string;
   key: string;
   email: string;
+  anchorDay: number;
+}
+
+function anchorDayFor(slot: number | null): number {
+  const raw = slot === null ? null : process.env[`SPORTSGAMEODDS_API_KEY_${slot}_ANCHOR_DAY`];
+  const parsed = raw ? Number(raw) : NaN;
+  if (Number.isFinite(parsed) && parsed >= 1 && parsed <= 31) return Math.floor(parsed);
+  return ANCHOR_DAY_DEFAULT;
 }
 
 function loadKeys(): KeyEntry[] {
@@ -103,28 +136,166 @@ function loadKeys(): KeyEntry[] {
     const key = process.env[`SPORTSGAMEODDS_API_KEY_${n}`];
     if (!key) continue;
     const email = process.env[`SPORTSGAMEODDS_API_KEY_${n}_EMAIL`] || `account-${n}`;
-    entries.push({ label: `key-${n}`, key, email });
+    entries.push({ label: `key-${n}`, key, email, anchorDay: anchorDayFor(n) });
   }
   if (entries.length > 0) return entries;
 
   // Fallback: old single primary/backup pair.
   const primary = process.env.SPORTSGAMEODDS_API_KEY;
   const backup = process.env.SPORTSGAMEODDS_API_KEY_BACKUP;
-  if (primary) entries.push({ label: "primary", key: primary, email: "primary" });
-  if (backup && backup !== primary) entries.push({ label: "backup", key: backup, email: "backup" });
+  if (primary) entries.push({ label: "primary", key: primary, email: "primary", anchorDay: anchorDayFor(null) });
+  if (backup && backup !== primary) entries.push({ label: "backup", key: backup, email: "backup", anchorDay: anchorDayFor(null) });
   return entries;
 }
 
-async function getUsage(key: string): Promise<number | null> {
+function finiteNumber(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+// The vendor's own docs and its live responses don't agree on field
+// naming inside rateLimits["per-month"] - the docs show
+// currentIntervalEntities / maxEntitiesPerInterval / currentIntervalEndTime,
+// while the payload this site has actually been reading uses the
+// hyphenated current-entities. Read every spelling we've seen rather than
+// betting on one, and treat "unlimited"/"n/a" strings as absent.
+function pickNumber(obj: any, names: string[]): number | null {
+  for (const name of names) {
+    const n = finiteNumber(obj?.[name]);
+    if (n !== null) return n;
+  }
+  return null;
+}
+
+function pickDate(obj: any, names: string[]): Date | null {
+  for (const name of names) {
+    const v = obj?.[name];
+    if (typeof v !== "string" || !v || v === "n/a" || v === "unlimited") continue;
+    const d = new Date(v);
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  return null;
+}
+
+function daysInMonth(year: number, month0: number): number {
+  return new Date(Date.UTC(year, month0 + 1, 0)).getUTCDate();
+}
+
+// One calendar month before `d`, clamping the day to the shorter month
+// (31 Mar -> 28/29 Feb). Used to derive a cycle start from the vendor's
+// interval end time, which is the only side of the window it reports.
+function monthBefore(d: Date): Date {
+  let y = d.getUTCFullYear();
+  let m = d.getUTCMonth() - 1;
+  if (m < 0) { m = 11; y -= 1; }
+  const day = Math.min(d.getUTCDate(), daysInMonth(y, m));
+  return new Date(Date.UTC(y, m, day, d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()));
+}
+
+// Cycle bounds from a day-of-month anchor, for keys with no usable vendor
+// reset time. The anchor day is clamped to each month's length, so 31 is
+// "last day of the month" rather than a date that skips February.
+function anchorCycle(now: Date, anchorDay: number): { start: Date; end: Date } {
+  let y = now.getUTCFullYear();
+  let m = now.getUTCMonth();
+  const clamped = (yy: number, mm: number) => Math.min(anchorDay, daysInMonth(yy, mm));
+  let start = new Date(Date.UTC(y, m, clamped(y, m)));
+  if (start > now) {
+    m -= 1;
+    if (m < 0) { m = 11; y -= 1; }
+    start = new Date(Date.UTC(y, m, clamped(y, m)));
+  }
+  let ny = y, nm = m + 1;
+  if (nm > 11) { nm = 0; ny += 1; }
+  return { start, end: new Date(Date.UTC(ny, nm, clamped(ny, nm))) };
+}
+
+type CycleSource = "vendor" | "anchor";
+
+function resolveCycle(resetAt: Date | null, anchorDay: number, now: Date): { start: Date; end: Date; source: CycleSource } {
+  // A reset time in the past means the vendor handed back a stale or
+  // cached interval; fall back rather than pacing against a window that
+  // has already closed.
+  if (resetAt && resetAt.getTime() > now.getTime()) {
+    return { start: monthBefore(resetAt), end: resetAt, source: "vendor" };
+  }
+  const { start, end } = anchorCycle(now, anchorDay);
+  return { start, end, source: "anchor" };
+}
+
+// Fraction of this key's cycle that has elapsed. Continuous rather than
+// whole-day, so the allowance rises smoothly instead of stair-stepping
+// and stranding a run for the rest of a day.
+function cycleFraction(cycle: { start: Date; end: Date }, now: Date): number {
+  const total = cycle.end.getTime() - cycle.start.getTime();
+  if (total <= 0) return 1;
+  const elapsed = now.getTime() - cycle.start.getTime();
+  return Math.min(1, Math.max(0, elapsed / total));
+}
+
+interface KeyUsage {
+  usage: number | null;
+  cap: number;
+  capSource: "vendor" | "default";
+  resetAt: Date | null;
+  perMonth: any;
+}
+
+async function getKeyUsage(key: string): Promise<KeyUsage> {
+  const unknown: KeyUsage = { usage: null, cap: PER_KEY_MONTHLY_CAP, capSource: "default", resetAt: null, perMonth: null };
   try {
     const res = await fetch(`${API_BASE}/account/usage`, { headers: { "x-api-key": key } });
-    if (!res.ok) return null;
+    if (!res.ok) return unknown;
     const body = await res.json().catch(() => null);
-    const usage = body?.data?.rateLimits?.["per-month"]?.["current-entities"];
-    return typeof usage === "number" ? usage : null;
+    const perMonth = body?.data?.rateLimits?.["per-month"] ?? null;
+    if (!perMonth) return unknown;
+    const usage = pickNumber(perMonth, ["current-entities", "currentIntervalEntities", "currentEntities"]);
+    const vendorCap = pickNumber(perMonth, ["max-entities", "maxEntitiesPerInterval", "maxEntities"]);
+    const resetAt = pickDate(perMonth, ["current-interval-end-time", "currentIntervalEndTime", "currentIntervalEnd", "interval-end-time"]);
+    return {
+      usage,
+      cap: vendorCap ?? PER_KEY_MONTHLY_CAP,
+      capSource: vendorCap === null ? "default" : "vendor",
+      resetAt,
+      perMonth,
+    };
   } catch {
-    return null;
+    return unknown;
   }
+}
+
+// Everything a caller needs to decide whether this key can fund a run.
+function describeKey(entry: KeyEntry, usage: KeyUsage, now: Date) {
+  const cycle = resolveCycle(usage.resetAt, entry.anchorDay, now);
+  const fraction = cycleFraction(cycle, now);
+  const paceAllowance = usage.cap * fraction * PACE_SAFETY;
+  const known = usage.usage !== null;
+  const remaining = known ? Math.max(0, usage.cap - (usage.usage as number)) : null;
+  const underPace = known ? (usage.usage as number) < paceAllowance : null;
+  return {
+    label: entry.label,
+    email: entry.email,
+    // Raw vendor number, reported as-is so an over-cap account stays
+    // visible rather than being hidden by the clamping used in the pool
+    // arithmetic below.
+    usage: usage.usage,
+    cap: usage.cap,
+    capSource: usage.capSource,
+    remaining,
+    overCap: known ? (usage.usage as number) > usage.cap : null,
+    cycleStart: cycle.start.toISOString(),
+    cycleEnd: cycle.end.toISOString(),
+    cycleSource: cycle.source,
+    anchorDay: entry.anchorDay,
+    cycleElapsed: Number(fraction.toFixed(4)),
+    paceAllowance: Number(paceAllowance.toFixed(1)),
+    underPace,
+    // The one field a caller should gate on: this account can fund work
+    // right now without running ahead of its own cycle.
+    spendable: known ? underPace === true && (remaining as number) >= MIN_KEY_HEADROOM : false,
+    // Raw per-month block, so a field-name change at the vendor is
+    // diagnosable from the usage endpoint instead of guessed at.
+    perMonth: usage.perMonth,
+  };
 }
 
 export default async (req: Request, _context: Context) => {
@@ -147,21 +318,9 @@ export default async (req: Request, _context: Context) => {
   const endpoint = url.searchParams.get("endpoint");
 
   if (endpoint === "usage") {
+    const now = new Date();
     const perKey = await Promise.all(
-      keys.map(async (k) => {
-        const usage = await getUsage(k.key);
-        const known = typeof usage === "number";
-        return {
-          label: k.label,
-          email: k.email,
-          // Raw vendor number, reported as-is so an over-cap account is
-          // visible rather than silently hidden by the clamping below.
-          usage,
-          cap: PER_KEY_MONTHLY_CAP,
-          remaining: known ? Math.max(0, PER_KEY_MONTHLY_CAP - usage) : null,
-          overCap: known ? usage > PER_KEY_MONTHLY_CAP : null,
-        };
-      })
+      keys.map(async (k) => describeKey(k, await getKeyUsage(k.key), now))
     );
 
     // Pool math only counts keys whose usage actually came back. A key
@@ -179,14 +338,27 @@ export default async (req: Request, _context: Context) => {
     // pooled arithmetic self-consistent: totalCap - totalUsage now equals
     // totalRemaining exactly, which was not true before.
     const totalUsage = known.length
-      ? known.reduce((sum, k) => sum + Math.min(k.usage as number, PER_KEY_MONTHLY_CAP), 0)
+      ? known.reduce((sum, k) => sum + Math.min(k.usage as number, k.cap), 0)
       : null;
-    const totalCap = known.length ? known.length * PER_KEY_MONTHLY_CAP : null;
+    const totalCap = known.length ? known.reduce((sum, k) => sum + k.cap, 0) : null;
     // The honest number: objects the pool can still spend right now.
     // Exhausted accounts contribute 0, never a negative offset.
     const totalRemaining = known.length
       ? known.reduce((sum, k) => sum + (k.remaining as number), 0)
       : null;
+
+    // Sum of each key's own allowance, on its own cycle. Kept separate
+    // from the pooled ratio a caller could compute from totalCap, which
+    // is only meaningful if every account resets on the same day - they
+    // don't.
+    const totalPaceAllowance = known.length
+      ? Number(known.reduce((sum, k) => sum + k.paceAllowance, 0).toFixed(1))
+      : null;
+    const spendable = perKey.filter((k) => k.spendable);
+    const upcomingResets = perKey
+      .map((k) => k.cycleEnd)
+      .filter((iso) => typeof iso === "string")
+      .sort();
 
     return jsonResponse(200, {
       success: true,
@@ -195,8 +367,17 @@ export default async (req: Request, _context: Context) => {
         totalUsage,
         totalCap,
         totalRemaining,
+        totalPaceAllowance,
+        // What a caller should actually gate on. Each account is paced
+        // against its own billing cycle, so one exhausted account can no
+        // longer veto a run the others can comfortably fund.
+        spendableKeys: spendable.length,
+        spendableLabels: spendable.map((k) => k.label),
         keysConfigured: perKey.length,
         keysWithKnownUsage: known.length,
+        keysWithVendorCycle: perKey.filter((k) => k.cycleSource === "vendor").length,
+        nextResetAt: upcomingResets[0] ?? null,
+        pacing: "per-key",
         // Kept for backward compatibility with any caller still reading
         // the old single-key shape directly.
         rateLimits: { "per-month": { "current-entities": totalUsage } },
@@ -217,13 +398,28 @@ export default async (req: Request, _context: Context) => {
   const upstreamUrl = `${API_BASE}/events?${forward.toString()}`;
 
   try {
-    // Rank keys by current usage (ascending) so requests spread evenly
-    // across accounts instead of hammering the first one until it hits
-    // the vendor's rate limit. Keys with unknown usage (lookup failed) are
-    // tried last, not first, so a flaky usage check doesn't accidentally
-    // prioritize an already-exhausted key.
-    const ranked = await Promise.all(keys.map(async (k) => ({ ...k, usage: await getUsage(k.key) })));
-    ranked.sort((a, b) => (a.usage ?? Infinity) - (b.usage ?? Infinity));
+    // Rank keys by how far each one is through its *own* pace allowance,
+    // ascending, so requests land on whichever account is furthest under
+    // its own curve. Raw usage was the old metric; it's misleading once
+    // accounts sit on different billing cycles, since a key that just
+    // reset and a key three days from resetting can show the same number
+    // while having very different amounts of affordable headroom left.
+    // Keys with unknown usage (lookup failed) are tried last, not first,
+    // so a flaky usage check doesn't accidentally prioritize an already
+    // exhausted key. No key is excluded outright - an over-pace key is
+    // still better than failing the run, it just goes to the back.
+    const rankNow = new Date();
+    const ranked = await Promise.all(
+      keys.map(async (k) => {
+        const u = await getKeyUsage(k.key);
+        const d = describeKey(k, u, rankNow);
+        const ratio = d.usage === null || d.paceAllowance <= 0
+          ? Infinity
+          : d.usage / d.paceAllowance;
+        return { ...k, usage: d.usage, ratio };
+      })
+    );
+    ranked.sort((a, b) => a.ratio - b.ratio);
 
     let lastStatus = 502;
     let lastText = "";

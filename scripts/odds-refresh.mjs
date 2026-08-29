@@ -11,11 +11,12 @@
  * What it does, in order:
  *   1. Acquire a short-lived concurrency lock (netlify/functions/odds-lock)
  *      so overlapping runs can't double-spend the SportsGameOdds quota.
- *   2. Check this month's API usage and skip the fetch if we're pacing
- *      ahead of budget. odds-proxy now spreads calls across multiple
- *      SportsGameOdds accounts (2,500 objects/month each on the free
- *      tier), so the usable budget scales with however many keys are
- *      configured there - see checkBudget() below.
+ *   2. Check API usage and skip the fetch only if no account can fund it.
+ *      odds-proxy spreads calls across multiple SportsGameOdds accounts
+ *      (2,500 objects/month each on the free tier), each on its own
+ *      billing cycle, and reports a per-key pace allowance. This run
+ *      proceeds if at least one account is under its own curve with real
+ *      headroom left - see checkBudget() below.
  *   3. Decide FULL vs NEAR sweep mode (near-term games get checked far more
  *      often than games a month out, since that's where lines actually move).
  *   4. Fetch events from SportsGameOdds via the odds-proxy Netlify function.
@@ -31,9 +32,12 @@
  *   ODDS_UPDATE_SECRET   - shared secret for odds-lock / odds-update
  * Optional env vars:
  *   SITE_BASE            - defaults to https://blitz-odds.com
- *   ANCHOR_YEAR/MONTH/DAY - SportsGameOdds primary key's billing anchor date
- *                           (UTC). Defaults below; update if the key rotates
- *                           onto a different date. MONTH is 1-indexed here.
+ *   ANCHOR_DAY           - day-of-month the quota resets on, used ONLY by the
+ *                           pooled fallback below (when odds-proxy is an older
+ *                           build that doesn't report per-key pacing). Real
+ *                           per-key reset dates come from the proxy; override
+ *                           those with SPORTSGAMEODDS_API_KEY_{n}_ANCHOR_DAY
+ *                           in the Netlify env, not here.
  *   REPO_ROOT            - defaults to CWD; where data/*.json live
  */
 
@@ -44,8 +48,10 @@ const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.com";
 const ODDS_UPDATE_SECRET = process.env.ODDS_UPDATE_SECRET;
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 
-const ANCHOR_YEAR = Number(process.env.ANCHOR_YEAR || 2026);
-const ANCHOR_MONTH = Number(process.env.ANCHOR_MONTH || 7); // 1-indexed (7 = July)
+// Fallback pacing anchor only. ANCHOR_YEAR/ANCHOR_MONTH used to sit here
+// too and were never read by anything - the cycle repeats monthly, so only
+// the day-of-month ever mattered. Removed rather than left to imply the
+// billing cycle is pinned to a specific month.
 const ANCHOR_DAY = Number(process.env.ANCHOR_DAY || 31);
 
 const BOOKMAKERS = ["draftkings", "fanduel", "betmgm", "caesars"];
@@ -59,8 +65,11 @@ const MONTHLY_BUDGET = 2500;
 // pool. A NEAR sweep costs roughly one object per upcoming game (tens); a
 // FULL sweep costs the whole remaining slate (low hundreds). Below this,
 // a run can only half-complete - burning quota and writing partial odds -
-// so it's better to skip and wait for the cycle to roll over.
+// so it's better to skip and wait for the next reset.
 const MIN_REMAINING_RESERVE = 75;
+// Per-key floor for the same reason, applied by odds-proxy when it marks a
+// key spendable. Mirrored here only so the log line can explain a skip.
+const MIN_KEY_HEADROOM = 60;
 
 const TEAM_MAP = {
   "Arizona Cardinals": "ARI", "Atlanta Falcons": "ATL", "Baltimore Ravens": "BAL",
@@ -137,6 +146,9 @@ function daysInMonth(year, month0) {
   return new Date(Date.UTC(year, month0 + 1, 0)).getUTCDate();
 }
 
+// Fallback only - used when odds-proxy is an older build with no per-key
+// pacing in its usage response. Assumes every account shares one anchor
+// day, which is exactly the assumption the per-key path exists to drop.
 function cycleBounds(ref) {
   let y = ref.getUTCFullYear();
   let m = ref.getUTCMonth(); // 0-indexed
@@ -153,6 +165,19 @@ function cycleBounds(ref) {
   return { start, end };
 }
 
+function describeKeyLine(k) {
+  const usage = typeof k.usage === "number" ? k.usage : "?";
+  const pct = typeof k.cycleElapsed === "number" ? `${(k.cycleElapsed * 100).toFixed(1)}%` : "?";
+  const resets = typeof k.cycleEnd === "string" ? k.cycleEnd.slice(0, 10) : "?";
+  const source = k.cycleSource === "vendor" ? "" : ` cycle-from-anchor-day-${k.anchorDay}`;
+  let verdict;
+  if (typeof k.usage !== "number") verdict = "usage lookup failed";
+  else if (k.spendable) verdict = "SPENDABLE";
+  else if (k.underPace === false) verdict = "ahead of its own pace";
+  else verdict = `headroom below ${MIN_KEY_HEADROOM}`;
+  return `budget:   ${k.label} ${k.email} ${usage}/${k.cap} pace<=${k.paceAllowance} rem=${k.remaining ?? "?"} cycle ${pct} resets ${resets}${source} -> ${verdict}`;
+}
+
 async function checkBudget() {
   const res = await fetch(`${SITE_BASE}/.netlify/functions/odds-proxy?endpoint=usage`);
   if (!res.ok) {
@@ -160,21 +185,22 @@ async function checkBudget() {
     return { proceed: true, usage: null };
   }
   const body = await res.json().catch(() => null);
+  const data = body?.data;
   // odds-proxy reports combined usage/cap across every SportsGameOdds key
   // it's configured with (data.totalUsage / data.totalCap). Fall back to
   // the older single-key shape (data.rateLimits...) plus the hardcoded
   // MONTHLY_BUDGET if that's all the proxy has deployed.
-  const usage = body?.data?.totalUsage ?? body?.data?.rateLimits?.["per-month"]?.["current-entities"];
-  const cap = body?.data?.totalCap ?? MONTHLY_BUDGET;
-  const remaining = body?.data?.totalRemaining;
+  const usage = data?.totalUsage ?? data?.rateLimits?.["per-month"]?.["current-entities"];
+  const cap = data?.totalCap ?? MONTHLY_BUDGET;
+  const remaining = data?.totalRemaining;
   if (typeof usage !== "number") {
     log("warning: could not parse usage from response, proceeding cautiously this run.", JSON.stringify(body).slice(0, 300));
     return { proceed: true, usage: null };
   }
 
-  // Hard floor, checked before the pace curve. totalRemaining is the real
+  // Hard floor, checked before any pace curve. totalRemaining is the real
   // spendable headroom across every account with a known usage number
-  // (exhausted accounts contribute 0). The pace allowance alone can green-
+  // (exhausted accounts contribute 0). A pace allowance alone can green-
   // light a run late in a cycle when the pool is nearly dry - the ratio
   // says "you're under budget for day 29" while there are only a few dozen
   // objects actually left. A part-paid FULL sweep spends quota and still
@@ -183,24 +209,47 @@ async function checkBudget() {
   // this check rather than guessing when it's absent.
   if (typeof remaining === "number" && remaining < MIN_REMAINING_RESERVE) {
     log(`budget: only ${remaining} objects left in the pool (reserve ${MIN_REMAINING_RESERVE}) - skipping fetch this run.`);
-    return { proceed: false, usage, remaining };
+    return { proceed: false, reason: "reserve", usage, remaining };
   }
 
+  // Preferred path: every account paced against its own billing cycle.
+  // The accounts were signed up on different days and reset on different
+  // days, so a single pooled ratio was comparing this month's spend
+  // against a cycle position that was wrong for three keys out of four -
+  // and skipping runs the pool could easily afford. A run only needs ONE
+  // account under its own curve with real headroom; odds-proxy ranks by
+  // pace ratio, so that's the account the fetch will land on anyway.
+  const perKey = Array.isArray(data?.perKey) ? data.perKey : [];
+  const paced = perKey.filter((k) => typeof k.paceAllowance === "number");
+  if (paced.length) {
+    const spendable = paced.filter((k) => k.spendable);
+    const vendorCycles = data?.keysWithVendorCycle;
+    log(`budget: pool ${usage}/${cap}, ${remaining ?? "?"} left, ${paced.length} account(s) reporting${typeof vendorCycles === "number" ? `, ${vendorCycles} with a vendor-reported cycle` : ""}`);
+    for (const k of perKey) log(describeKeyLine(k));
+    if (spendable.length === 0) {
+      return { proceed: false, reason: "per-key-pace", usage, remaining, nextResetAt: data?.nextResetAt ?? null };
+    }
+    log(`budget: ${spendable.length} of ${paced.length} account(s) spendable (${spendable.map((k) => k.label).join(", ")}) - proceeding.`);
+    return { proceed: true, usage, remaining, spendable: spendable.length };
+  }
+
+  // Fallback: older odds-proxy build with no per-key pacing. Pool the cap
+  // against one shared anchor day and accept that it's approximate.
   const now = new Date();
   const { start, end } = cycleBounds(now);
   const daysInCycle = Math.round((end - start) / 86400000);
   const dayOfCycle = Math.floor((now - start) / 86400000) + 1;
   const paceAllowance = cap * (dayOfCycle / daysInCycle) * 0.95;
 
-  const accountCount = body?.data?.perKey?.length;
-  const knownCount = body?.data?.keysWithKnownUsage;
+  const accountCount = perKey.length;
+  const knownCount = data?.keysWithKnownUsage;
   const accountNote = accountCount
     ? ` (${accountCount} accounts${typeof knownCount === "number" && knownCount !== accountCount ? `, ${knownCount} reporting` : ""})`
     : "";
-  log(`budget: usage=${usage} cap=${cap}${accountNote}${typeof remaining === "number" ? ` remaining=${remaining}` : ""} paceAllowance=${paceAllowance.toFixed(1)} dayOfCycle=${dayOfCycle}/${daysInCycle}`);
+  log(`budget: pooled fallback - usage=${usage} cap=${cap}${accountNote}${typeof remaining === "number" ? ` remaining=${remaining}` : ""} paceAllowance=${paceAllowance.toFixed(1)} dayOfCycle=${dayOfCycle}/${daysInCycle}`);
 
   if (usage >= paceAllowance) {
-    return { proceed: false, usage, paceAllowance };
+    return { proceed: false, reason: "pooled-pace", usage, paceAllowance };
   }
   return { proceed: true, usage, paceAllowance };
 }
@@ -417,13 +466,16 @@ async function main() {
   try {
     const budget = await checkBudget();
     if (!budget.proceed) {
-      // Two distinct reasons: the pool is genuinely out of headroom, or
-      // we're just running ahead of the monthly pace curve. Without this
-      // split the reserve skip logged an undefined pace allowance.
-      if (typeof budget.paceAllowance === "number") {
-        log(`skipping fetch this run - usage (${budget.usage}) at or above pace allowance (${budget.paceAllowance.toFixed(1)}).`);
-      } else {
+      // Three distinct reasons, each logged with the number that actually
+      // caused it - a skip should never be ambiguous about which gate
+      // stopped it or what would clear it.
+      if (budget.reason === "reserve") {
         log(`skipping fetch this run - pool headroom (${budget.remaining}) below the ${MIN_REMAINING_RESERVE}-object reserve.`);
+      } else if (budget.reason === "per-key-pace") {
+        const resets = budget.nextResetAt ? ` next reset ${budget.nextResetAt.slice(0, 10)}.` : "";
+        log(`skipping fetch this run - every account is ahead of its own pace curve or out of headroom.${resets}`);
+      } else {
+        log(`skipping fetch this run - pooled usage (${budget.usage}) at or above pooled pace allowance (${budget.paceAllowance.toFixed(1)}).`);
       }
       return;
     }

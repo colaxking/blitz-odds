@@ -4661,7 +4661,7 @@
       <tr><td>Week 10</td><td colspan="4">Bye week</td></tr>
       <tr><td><a href="/games/2026/week-11/pittsburgh-steelers-at-philadelphia-eagles/">Week 11</a></td><td>vs <a href="/teams/pittsburgh-steelers/">Pittsburgh Steelers</a></td><td>Sun, Nov 22 4:25 PM ET</td><td>Model predicts Philadelphia Eagles to win (60%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-12/philadelphia-eagles-at-dallas-cowboys/">Week 12</a></td><td>@ <a href="/teams/dallas-cowboys/">Dallas Cowboys</a></td><td>Thu, Nov 26 4:30 PM ET</td><td>Model predicts Dallas Cowboys to win (25%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-13/philadelphia-eagles-at-arizona-cardinals/">Week 13</a></td><td>@ <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Dec 6 4:05 PM ET</td><td>Model predicts Arizona Cardinals to win (48%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-13/philadelphia-eagles-at-arizona-cardinals/">Week 13</a></td><td>@ <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Dec 6 4:05 PM ET</td><td>Model predicts Philadelphia Eagles to win (50%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-14/indianapolis-colts-at-philadelphia-eagles/">Week 14</a></td><td>vs <a href="/teams/indianapolis-colts/">Indianapolis Colts</a></td><td>Sun, Dec 13 1:00 PM ET</td><td>Model predicts Indianapolis Colts to win (37%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-15/seattle-seahawks-at-philadelphia-eagles/">Week 15</a></td><td>vs <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Thu, Dec 17 8:15 PM ET</td><td>Model predicts Seattle Seahawks to win (25%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-16/houston-texans-at-philadelphia-eagles/">Week 16</a></td><td>vs <a href="/teams/houston-texans/">Houston Texans</a></td><td>Thu, Dec 24 8:15 PM ET</td><td>Model predicts Houston Texans to win (40%)</td><td>Not played yet</td></tr>
@@ -5842,6 +5842,20 @@
         "espnId": "4428988",
         "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
         "source": "curated"
+      },
+      {
+        "name": "Michael Heldman",
+        "position": "DE",
+        "espnId": "4705926",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:21.651Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -6333,6 +6347,20 @@
         },
         "statusUpdatedAt": "2026-08-24T23:34Z",
         "source": "auto"
+      },
+      {
+        "name": "Ihmir Smith-Marsette",
+        "position": "WR",
+        "espnId": "4240573",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:41.379Z",
+        "source": "curated"
       }
     ],
     "LAC": [
@@ -27178,6 +27206,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               <span className={"admin-st st-" + item.to}>{item.to}</span>
             </div>
             {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {item.supersedes > 0 && (
+              <div className="admin-inj-src">
+                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
+                this player — clearing this row clears them all.
+              </div>
+            )}
             {downgrade && item.ours && (
               <div className="admin-inj-warn">
                 Your curated status is {item.ours}. Applying this downgrades your own call.

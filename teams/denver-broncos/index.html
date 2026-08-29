@@ -4655,7 +4655,7 @@
       <tr><td><a href="/games/2026/week-4/denver-broncos-at-san-francisco-49ers/">Week 4</a></td><td>@ <a href="/teams/san-francisco-49ers/">San Francisco 49ers</a></td><td>Sun, Oct 4 4:25 PM ET</td><td>Model predicts Denver Broncos to win (75%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-5/denver-broncos-at-los-angeles-chargers/">Week 5</a></td><td>@ <a href="/teams/los-angeles-chargers/">Los Angeles Chargers</a></td><td>Sun, Oct 11 4:05 PM ET</td><td>Model predicts Los Angeles Chargers to win (48%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-6/seattle-seahawks-at-denver-broncos/">Week 6</a></td><td>vs <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Thu, Oct 15 8:15 PM ET</td><td>Model predicts Denver Broncos to win (56%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-7/denver-broncos-at-arizona-cardinals/">Week 7</a></td><td>@ <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Oct 25 4:05 PM ET</td><td>Model predicts Denver Broncos to win (78%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-7/denver-broncos-at-arizona-cardinals/">Week 7</a></td><td>@ <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Oct 25 4:05 PM ET</td><td>Model predicts Denver Broncos to win (80%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-8/kansas-city-chiefs-at-denver-broncos/">Week 8</a></td><td>vs <a href="/teams/kansas-city-chiefs/">Kansas City Chiefs</a></td><td>Sun, Nov 1 4:25 PM ET</td><td>Model predicts Denver Broncos to win (64%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-9/denver-broncos-at-carolina-panthers/">Week 9</a></td><td>@ <a href="/teams/carolina-panthers/">Carolina Panthers</a></td><td>Sun, Nov 8 1:00 PM ET</td><td>Model predicts Denver Broncos to win (83%)</td><td>Not played yet</td></tr>
       <tr><td>Week 10</td><td colspan="4">Bye week</td></tr>
@@ -5842,6 +5842,20 @@
         "espnId": "4428988",
         "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
         "source": "curated"
+      },
+      {
+        "name": "Michael Heldman",
+        "position": "DE",
+        "espnId": "4705926",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:21.651Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -6333,6 +6347,20 @@
         },
         "statusUpdatedAt": "2026-08-24T23:34Z",
         "source": "auto"
+      },
+      {
+        "name": "Ihmir Smith-Marsette",
+        "position": "WR",
+        "espnId": "4240573",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:41.379Z",
+        "source": "curated"
       }
     ],
     "LAC": [
@@ -27178,6 +27206,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               <span className={"admin-st st-" + item.to}>{item.to}</span>
             </div>
             {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {item.supersedes > 0 && (
+              <div className="admin-inj-src">
+                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
+                this player — clearing this row clears them all.
+              </div>
+            )}
             {downgrade && item.ours && (
               <div className="admin-inj-warn">
                 Your curated status is {item.ours}. Applying this downgrades your own call.

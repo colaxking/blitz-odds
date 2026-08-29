@@ -4659,7 +4659,7 @@
       <tr><td><a href="/games/2026/week-8/kansas-city-chiefs-at-denver-broncos/">Week 8</a></td><td>@ <a href="/teams/denver-broncos/">Denver Broncos</a></td><td>Sun, Nov 1 4:25 PM ET</td><td>Model predicts Denver Broncos to win (36%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-9/new-york-jets-at-kansas-city-chiefs/">Week 9</a></td><td>vs <a href="/teams/new-york-jets/">New York Jets</a></td><td>Sun, Nov 8 1:00 PM ET</td><td>Model predicts Kansas City Chiefs to win (81%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-10/kansas-city-chiefs-at-atlanta-falcons/">Week 10</a></td><td>@ <a href="/teams/atlanta-falcons/">Atlanta Falcons</a></td><td>Sun, Nov 15 1:00 PM ET</td><td>Model predicts Kansas City Chiefs to win (54%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-11/arizona-cardinals-at-kansas-city-chiefs/">Week 11</a></td><td>vs <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Nov 22 1:00 PM ET</td><td>Model predicts Kansas City Chiefs to win (79%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-11/arizona-cardinals-at-kansas-city-chiefs/">Week 11</a></td><td>vs <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Nov 22 1:00 PM ET</td><td>Model predicts Kansas City Chiefs to win (81%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-12/kansas-city-chiefs-at-buffalo-bills/">Week 12</a></td><td>@ <a href="/teams/buffalo-bills/">Buffalo Bills</a></td><td>Thu, Nov 26 8:20 PM ET</td><td>Model predicts Buffalo Bills to win (28%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-13/kansas-city-chiefs-at-los-angeles-rams/">Week 13</a></td><td>@ <a href="/teams/los-angeles-rams/">Los Angeles Rams</a></td><td>Thu, Dec 3 8:15 PM ET</td><td>Model predicts Los Angeles Rams to win (30%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-14/kansas-city-chiefs-at-cincinnati-bengals/">Week 14</a></td><td>@ <a href="/teams/cincinnati-bengals/">Cincinnati Bengals</a></td><td>Sun, Dec 13 4:25 PM ET</td><td>Model predicts Kansas City Chiefs to win (71%)</td><td>Not played yet</td></tr>
@@ -5837,6 +5837,20 @@
         "espnId": "4428988",
         "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
         "source": "curated"
+      },
+      {
+        "name": "Michael Heldman",
+        "position": "DE",
+        "espnId": "4705926",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:21.651Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -6328,6 +6342,20 @@
         },
         "statusUpdatedAt": "2026-08-24T23:34Z",
         "source": "auto"
+      },
+      {
+        "name": "Ihmir Smith-Marsette",
+        "position": "WR",
+        "espnId": "4240573",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:41.379Z",
+        "source": "curated"
       }
     ],
     "LAC": [
@@ -27173,6 +27201,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               <span className={"admin-st st-" + item.to}>{item.to}</span>
             </div>
             {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {item.supersedes > 0 && (
+              <div className="admin-inj-src">
+                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
+                this player — clearing this row clears them all.
+              </div>
+            )}
             {downgrade && item.ours && (
               <div className="admin-inj-warn">
                 Your curated status is {item.ours}. Applying this downgrades your own call.

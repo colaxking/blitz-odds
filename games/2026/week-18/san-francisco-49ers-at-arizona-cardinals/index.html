@@ -4636,7 +4636,7 @@
   <p><strong>Odds (DraftKings):</strong> SF -8.5 · ML SF -425 / ARI +330 · O/U 44.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Arizona Cardinals</strong> - SF 49% / ARI 51%</p>
+  <p>Predicted winner: <strong>San Francisco 49ers</strong> - SF 51% / ARI 49%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -4662,6 +4662,7 @@
 <li><strong>George Kittle</strong> (SF · TE) - active - Achilles tear (recovered, activated off PUP)</li>
 <li><strong>Mike Evans</strong> (SF · WR) - questionable - Groin strain (also missed time with a quad strain)</li>
 <li><strong>Jeremiyah Love</strong> (ARI · RB) - questionable - High ankle sprain</li>
+<li><strong>Ihmir Smith-Marsette</strong> (ARI · WR) - questionable - Ankle</li>
 <li><strong>Ricky Pearsall</strong> (SF · WR) - out - PCL knee surgery - season-ending</li>
 <li><strong>Nick Bosa</strong> (SF · Edge) - out - Knee tendinitis (surgically repaired right knee)</li>
 <li><strong>Victor Dimukeje</strong> (SF · DE) - out - Undisclosed</li>
@@ -5837,6 +5838,20 @@
         "espnId": "4428988",
         "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
         "source": "curated"
+      },
+      {
+        "name": "Michael Heldman",
+        "position": "DE",
+        "espnId": "4705926",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:21.651Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -6328,6 +6343,20 @@
         },
         "statusUpdatedAt": "2026-08-24T23:34Z",
         "source": "auto"
+      },
+      {
+        "name": "Ihmir Smith-Marsette",
+        "position": "WR",
+        "espnId": "4240573",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:41.379Z",
+        "source": "curated"
       }
     ],
     "LAC": [
@@ -27173,6 +27202,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               <span className={"admin-st st-" + item.to}>{item.to}</span>
             </div>
             {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {item.supersedes > 0 && (
+              <div className="admin-inj-src">
+                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
+                this player — clearing this row clears them all.
+              </div>
+            )}
             {downgrade && item.ours && (
               <div className="admin-inj-warn">
                 Your curated status is {item.ours}. Applying this downgrades your own call.

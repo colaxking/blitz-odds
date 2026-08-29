@@ -27153,6 +27153,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               <span className={"admin-st st-" + item.to}>{item.to}</span>
             </div>
             {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {item.supersedes > 0 && (
+              <div className="admin-inj-src">
+                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
+                this player — clearing this row clears them all.
+              </div>
+            )}
             {downgrade && item.ours && (
               <div className="admin-inj-warn">
                 Your curated status is {item.ours}. Applying this downgrades your own call.

@@ -4646,7 +4646,7 @@
   <table>
     <thead><tr><th>Week</th><th>Opponent</th><th>Date</th><th>Prediction</th><th>Result</th></tr></thead>
     <tbody>
-      <tr><td><a href="/games/2026/preseason-week-1/jacksonville-jaguars-at-new-orleans-saints/">Preseason Week 1</a></td><td>@ <a href="/teams/new-orleans-saints/">New Orleans Saints</a></td><td>Sat, Aug 15 4:00 PM ET</td><td>Model predicts Jacksonville Jaguars to win (71%)</td><td>W 24-20 (JAX 24 - 20 NO, prediction correct)</td></tr>
+      <tr><td><a href="/games/2026/preseason-week-1/jacksonville-jaguars-at-new-orleans-saints/">Preseason Week 1</a></td><td>@ <a href="/teams/new-orleans-saints/">New Orleans Saints</a></td><td>Sat, Aug 15 4:00 PM ET</td><td>Model predicts Jacksonville Jaguars to win (73%)</td><td>W 24-20 (JAX 24 - 20 NO, prediction correct)</td></tr>
       <tr><td><a href="/games/2026/preseason-week-2/carolina-panthers-at-jacksonville-jaguars/">Preseason Week 2</a></td><td>vs <a href="/teams/carolina-panthers/">Carolina Panthers</a></td><td>Fri, Aug 21 7:30 PM ET</td><td>Model predicts Jacksonville Jaguars to win (88%)</td><td>L 17-34 (CAR 34 - 17 JAX, prediction missed)</td></tr>
       <tr><td><a href="/games/2026/preseason-week-3/tampa-bay-buccaneers-at-jacksonville-jaguars/">Preseason Week 3</a></td><td>vs <a href="/teams/tampa-bay-buccaneers/">Tampa Bay Buccaneers</a></td><td>Fri, Aug 28 7:30 PM ET</td><td>Model predicts Jacksonville Jaguars to win (77%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-1/cleveland-browns-at-jacksonville-jaguars/">Week 1</a></td><td>vs <a href="/teams/cleveland-browns/">Cleveland Browns</a></td><td>Sun, Sep 13 1:00 PM ET</td><td>Model predicts Jacksonville Jaguars to win (83%)</td><td>Not played yet</td></tr>
@@ -5837,6 +5837,20 @@
         "espnId": "4428988",
         "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
         "source": "curated"
+      },
+      {
+        "name": "Michael Heldman",
+        "position": "DE",
+        "espnId": "4705926",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:21.651Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -6328,6 +6342,20 @@
         },
         "statusUpdatedAt": "2026-08-24T23:34Z",
         "source": "auto"
+      },
+      {
+        "name": "Ihmir Smith-Marsette",
+        "position": "WR",
+        "espnId": "4240573",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:41.379Z",
+        "source": "curated"
       }
     ],
     "LAC": [
@@ -27173,6 +27201,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               <span className={"admin-st st-" + item.to}>{item.to}</span>
             </div>
             {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {item.supersedes > 0 && (
+              <div className="admin-inj-src">
+                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
+                this player — clearing this row clears them all.
+              </div>
+            )}
             {downgrade && item.ours && (
               <div className="admin-inj-warn">
                 Your curated status is {item.ours}. Applying this downgrades your own call.

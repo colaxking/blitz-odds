@@ -4637,7 +4637,7 @@
   <p><strong>Odds (DraftKings):</strong> SEA -13.5 · ML ARI +600 / SEA -900 · O/U 45.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Seattle Seahawks</strong> - ARI 15% / SEA 85%</p>
+  <p>Predicted winner: <strong>Seattle Seahawks</strong> - ARI 14% / SEA 86%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -4660,6 +4660,7 @@
   <h2>Injury report</h2>
   <ul>
 <li><strong>Jeremiyah Love</strong> (ARI · RB) - questionable - High ankle sprain</li>
+<li><strong>Ihmir Smith-Marsette</strong> (ARI · WR) - questionable - Ankle</li>
 <li><strong>Xavier Weaver</strong> (ARI · WR) - out - Hamstring</li>
 <li><strong>Zach Charbonnet</strong> (SEA · RB) - out - Torn ACL (surgically repaired)</li>
 <li><strong>Bud Clark</strong> (SEA · S) - out - Broken ankle - on injured reserve</li>
@@ -5834,6 +5835,20 @@
         "espnId": "4428988",
         "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
         "source": "curated"
+      },
+      {
+        "name": "Michael Heldman",
+        "position": "DE",
+        "espnId": "4705926",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:21.651Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -6325,6 +6340,20 @@
         },
         "statusUpdatedAt": "2026-08-24T23:34Z",
         "source": "auto"
+      },
+      {
+        "name": "Ihmir Smith-Marsette",
+        "position": "WR",
+        "espnId": "4240573",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:41.379Z",
+        "source": "curated"
       }
     ],
     "LAC": [
@@ -27170,6 +27199,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               <span className={"admin-st st-" + item.to}>{item.to}</span>
             </div>
             {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {item.supersedes > 0 && (
+              <div className="admin-inj-src">
+                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
+                this player — clearing this row clears them all.
+              </div>
+            )}
             {downgrade && item.ours && (
               <div className="admin-inj-warn">
                 Your curated status is {item.ours}. Applying this downgrades your own call.

@@ -4637,7 +4637,7 @@
   <p><strong>Odds (DraftKings):</strong> CHI -6.5 · ML NO +235 / CHI -290 · O/U 46.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>New Orleans Saints</strong> - NO 56% / CHI 44%</p>
+  <p>Predicted winner: <strong>New Orleans Saints</strong> - NO 53% / CHI 47%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -4659,6 +4659,7 @@
 
   <h2>Injury report</h2>
   <ul>
+<li><strong>Michael Heldman</strong> (NO · DE) - questionable - Undisclosed</li>
 <li><strong>Austin Booker</strong> (CHI · DE) - questionable - Groin</li>
 <li><strong>Alvin Kamara</strong> (NO · RB) - out - Sprained MCL (avoided major/structural damage)</li>
 <li><strong>Ty Chandler</strong> (NO · RB) - out - Knee injury - season-ending</li>
@@ -5838,6 +5839,20 @@
         "espnId": "4428988",
         "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
         "source": "curated"
+      },
+      {
+        "name": "Michael Heldman",
+        "position": "DE",
+        "espnId": "4705926",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:21.651Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -6329,6 +6344,20 @@
         },
         "statusUpdatedAt": "2026-08-24T23:34Z",
         "source": "auto"
+      },
+      {
+        "name": "Ihmir Smith-Marsette",
+        "position": "WR",
+        "espnId": "4240573",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T05:43:41.379Z",
+        "source": "curated"
       }
     ],
     "LAC": [
@@ -27174,6 +27203,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               <span className={"admin-st st-" + item.to}>{item.to}</span>
             </div>
             {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {item.supersedes > 0 && (
+              <div className="admin-inj-src">
+                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
+                this player — clearing this row clears them all.
+              </div>
+            )}
             {downgrade && item.ours && (
               <div className="admin-inj-warn">
                 Your curated status is {item.ours}. Applying this downgrades your own call.

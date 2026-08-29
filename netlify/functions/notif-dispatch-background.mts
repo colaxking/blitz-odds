@@ -8,6 +8,7 @@ import {
 import { buildReminderEmail, buildRecapEmail, type RecapLeague, type RecapHighlight } from "./lib/notif-emails.mts";
 import { FORMAT_LABELS } from "./lib/email-shell.mts";
 import { followsGame, deliverAlert, inLeadWindow, minutesUntil, lastCallSlots, type AlertUser } from "./lib/alerts.mts";
+import { createAlertLog } from "./lib/alertlog.mts";
 import { loadRegularWeeks, loadAllWeeks } from "./lib/schedule.mts";
 
 // @ts-ignore - plain JS UMD module, no type declarations
@@ -175,6 +176,11 @@ export default async (req: Request, _context: Context) => {
   const dryRun = body.dryRun === true;
   const only: string | null = body.only || null;
   const onlyUser: string | null = body.userId || null;
+
+  // Collects one row per (reader, alert) considered this pass, written once
+  // at the end. See lib/alertlog.mts for why the returned `report` alone
+  // wasn't enough: nobody ever sees a background function's response body.
+  const alertLog = createAlertLog("dispatch", now, dryRun);
 
   const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
   const siteDataStore = getStore(SITE_DATA_STORE);
@@ -408,9 +414,18 @@ export default async (req: Request, _context: Context) => {
     // The reverse - asking every user about every game - would be hundreds
     // of Blobs reads a tick to discover that one game is starting.
 
-    const tally = (bucket: any, outcome: string) => {
+    // Skips decided here never reach deliverAlert, so they'd be missing
+    // from the log that exists to explain a silent alert - "off" and
+    // "not-followed" are two of the three most common answers. The context
+    // argument is what puts them in it.
+    const tally = (
+      bucket: any,
+      outcome: string,
+      ctx?: { userId: string; type: string; event: string; week: number; label?: string }
+    ) => {
       bucket.outcomes[outcome] = (bucket.outcomes[outcome] || 0) + 1;
       if (outcome === "sent") bucket.sent++;
+      if (ctx) alertLog.add({ ...ctx, outcome });
     };
 
     if (!only || only === "push") {
@@ -474,18 +489,22 @@ export default async (req: Request, _context: Context) => {
           }
         } catch { /* the line is decoration; a missing one shortens the copy */ }
 
+        const kickLabel = `${c.game.away}@${c.game.home}`;
+
         for (const u of users) {
+          const logCtx = { userId: u.userId, type: "kick", event: gameId, week: c.week, label: kickLabel };
           try {
             const prefs = await getPrefs(u.userId);
-            if (!prefs.push.kickoff) { tally(report.kickoff, "off"); continue; }
+            if (!prefs.push.kickoff) { tally(report.kickoff, "off", logCtx); continue; }
             if (!(await followsGame(u, prefs, CURRENT_SEASON, c.week, c.game, { leagueStore }))) {
-              tally(report.kickoff, "not-followed"); continue;
+              tally(report.kickoff, "not-followed", logCtx); continue;
             }
             const mins = minutesUntil(now, c.kickoff);
             const outcome = await deliverAlert({
               user: u, prefs, type: "kick", event: gameId,
               season: CURRENT_SEASON, week: c.week,
               capability: "alerts.kickoff", now, dryRun,
+              log: alertLog, label: kickLabel,
               payload: {
                 title: `${nameOf(c.game.away)} at ${nameOf(c.game.home)}`,
                 body: line
@@ -512,13 +531,15 @@ export default async (req: Request, _context: Context) => {
           ? `Final: ${c.game.away} ${c.away}, ${c.game.home} ${c.home} (tie)`
           : `Final: ${nameOf(winner as string)} win`;
         const scoreLine = `${c.game.away} ${c.away}, ${c.game.home} ${c.home}`;
+        const finalLabel = `${c.game.away}@${c.game.home}`;
 
         for (const u of users) {
+          const logCtx = { userId: u.userId, type: "final", event: gameId, week: c.week, label: finalLabel };
           try {
             const prefs = await getPrefs(u.userId);
-            if (!prefs.push.final) { tally(report.final, "off"); continue; }
+            if (!prefs.push.final) { tally(report.final, "off", logCtx); continue; }
             if (!(await followsGame(u, prefs, CURRENT_SEASON, c.week, c.game, { leagueStore }))) {
-              tally(report.final, "not-followed"); continue;
+              tally(report.final, "not-followed", logCtx); continue;
             }
 
             // If they picked this game, say whether it came in. Read once per
@@ -539,6 +560,7 @@ export default async (req: Request, _context: Context) => {
               user: u, prefs, type: "final", event: gameId,
               season: CURRENT_SEASON, week: c.week,
               capability: "alerts.final", now, dryRun,
+              log: alertLog, label: finalLabel,
               payload: {
                 title,
                 body: `${scoreLine}.${pickNote}`,
@@ -587,11 +609,14 @@ export default async (req: Request, _context: Context) => {
           const isFirstSlot = !!weekFirstKickoff && slot.at.getTime() === weekFirstKickoff.getTime();
           const mins = minutesUntil(now, slot.at);
 
+          const slotLabel = `Week ${rw.week} lock ${kickoffLabel(slot.at)}`;
+
           for (const u of users) {
-            if (!u.leagues.length) { tally(report.lastCall, "no-leagues"); continue; }
+            const logCtx = { userId: u.userId, type: "lastcall", event: slot.id, week: rw.week, label: slotLabel };
+            if (!u.leagues.length) { tally(report.lastCall, "no-leagues", logCtx); continue; }
             try {
               const prefs = await getPrefs(u.userId);
-              if (!prefs.push.lastCall) { tally(report.lastCall, "off"); continue; }
+              if (!prefs.push.lastCall) { tally(report.lastCall, "off", logCtx); continue; }
 
               const open = await openGamesFor(u, CURRENT_SEASON, rw.week, rw.games, { loadLeague, loadMembers, loadSurvivor, leagueStore });
 
@@ -601,7 +626,7 @@ export default async (req: Request, _context: Context) => {
               let lockingNow = 0;
               for (const gid of open.openGameIds) if (slotGameIds.has(gid)) lockingNow++;
               if (isFirstSlot && open.survivorOpen) lockingNow++;
-              if (lockingNow === 0) { tally(report.lastCall, "nothing-locking"); continue; }
+              if (lockingNow === 0) { tally(report.lastCall, "nothing-locking", logCtx); continue; }
 
               const laterOpen = open.openGameIds.size + (open.survivorOpen ? 1 : 0) - lockingNow;
               const noun = lockingNow === 1 ? "game locks" : "games lock";
@@ -613,6 +638,7 @@ export default async (req: Request, _context: Context) => {
                 user: u, prefs, type: "lastcall", event: slot.id,
                 season: CURRENT_SEASON, week: rw.week,
                 capability: "alerts.last-call", now, dryRun,
+                log: alertLog, label: slotLabel,
                 // The one alert allowed through quiet hours: a pick deadline
                 // slept through is worse than being woken for it.
                 pierceQuietHours: true,
@@ -635,8 +661,16 @@ export default async (req: Request, _context: Context) => {
       }
     }
 
+    await alertLog.flush({
+      kickoffGames: report.kickoff.games,
+      finalGames: report.final.games,
+      users: users.length,
+    });
     return jsonResponse(200, report);
   } catch (err) {
+    // Flushed on the failure path too: a pass that threw halfway is exactly
+    // the one whose partial record is worth having.
+    await alertLog.flush({ failed: true });
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error", report });
   }
 };

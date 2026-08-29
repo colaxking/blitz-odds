@@ -138,13 +138,22 @@ footer.app-footer p:last-child { margin-bottom: 0; }
     <p>If you turn on push notifications, your browser gives us an anonymous subscription token for that
     device so we can deliver kickoff reminders, score updates, and injury alerts. The token identifies the
     browser, not you. You can revoke it at any time in the site's notification settings or in your browser's
-    site permissions.</p>
+    site permissions. Alongside the token we store a short label describing the device (for example
+    &ldquo;Safari on iOS&rdquo;) so you can tell your registered devices apart, and the time of the last
+    successful delivery to it.</p>
+    <p>We also keep a short-lived record of what happened to each alert - which alert it was, which account
+    it was for, and the outcome, including the reasons an alert was deliberately not sent (your settings had
+    it switched off, it fell inside your quiet hours, you were not following that game, or no device was
+    registered). This exists so we can answer &ldquo;why did I not get that notification?&rdquo;, which is
+    otherwise unanswerable after the fact. It records the delivery decision only - never the content of a
+    notification - and is automatically deleted after three weeks.</p>
 
     <h3>Browser storage</h3>
     <p>The site stores a small amount of data in your browser to remember your settings between visits:
     theme, timezone, selected sportsbook, chosen pool format, favorite teams, whether you have seen the
-    tutorial, and the anonymous visitor ID described above. Clearing your browser's site data removes all
-    of it.</p>
+    tutorial, the address of your current push subscription (so we can tell when your browser has silently
+    replaced it), and the anonymous visitor ID described above. Clearing your browser's site data removes
+    all of it.</p>
 
     <h3>Third-party services</h3>
     <table>

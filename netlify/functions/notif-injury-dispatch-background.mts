@@ -2,6 +2,7 @@ import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { getPrefs, notifStore, USER_STORE } from "./lib/notif.mts";
 import { deliverAlert, type AlertUser } from "./lib/alerts.mts";
+import { createAlertLog } from "./lib/alertlog.mts";
 import {
   fetchEspnInjuries, detailPhrase, SEVERITY, PREMIUM_POSITIONS,
   type EspnInjury, type InjuryState,
@@ -93,6 +94,7 @@ export default async (req: Request, _context: Context) => {
 
   const now = body.now ? new Date(body.now) : new Date();
   const dryRun = body.dryRun === true;
+  const alertLog = createAlertLog("injury", now, dryRun);
   const onlyUser: string | null = body.userId || null;
 
   const store = notifStore();
@@ -221,9 +223,13 @@ export default async (req: Request, _context: Context) => {
         }
       }
 
-      const tally = (outcome: string) => {
+      const tally = (
+        outcome: string,
+        ctx?: { userId: string; type: string; event: string; week: number; label?: string }
+      ) => {
         report.alerts.outcomes[outcome] = (report.alerts.outcomes[outcome] || 0) + 1;
         if (outcome === "sent") report.alerts.sent++;
+        if (ctx) alertLog.add({ ...ctx, outcome });
       };
 
       for (const c of alertable) {
@@ -234,12 +240,18 @@ export default async (req: Request, _context: Context) => {
         const worse = c.from !== null && SEVERITY[c.to] > SEVERITY[c.from];
         const detail = detailPhrase(c.e);
 
+        const injuryLabel = `${ours.name || c.e.name} (${team}) \u2192 ${c.e.status}`;
+
         for (const u of users) {
+          const logCtx = {
+            userId: u.userId, type: "inj", event: `${c.e.id}:${c.to}`,
+            week: 0, label: injuryLabel,
+          };
           try {
             if (!u.favorites.includes(team)) continue;
             const prefs = await getPrefs(u.userId);
-            if (prefs.push.injuries === "off") continue;
-            if (prefs.push.injuries === "key" && ours.impactScore < KEY_PLAYER_IMPACT) { tally("below-key-threshold"); continue; }
+            if (prefs.push.injuries === "off") { tally("off", logCtx); continue; }
+            if (prefs.push.injuries === "key" && ours.impactScore < KEY_PLAYER_IMPACT) { tally("below-key-threshold", logCtx); continue; }
 
             // Copy reports the DESIGNATION, not the player's availability.
             // "ESPN now lists him Questionable" stays true even when the
@@ -249,6 +261,7 @@ export default async (req: Request, _context: Context) => {
               user: u, prefs, type: "inj", event: `${c.e.id}:${c.to}`,
               season: CURRENT_SEASON, week: 0,   // injuries aren't week-scoped
               capability: "alerts.injuries", now, dryRun,
+              log: alertLog, label: injuryLabel,
               payload: {
                 title: `Injury update — ${ours.name || c.e.name} (${team})`,
                 body: `ESPN now lists him ${c.e.status}${detail ? `. ${detail}` : ""}. Tap for the full picture.`,
@@ -266,8 +279,10 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (!dryRun) await store.setJSON(SNAPSHOT_KEY, nextSnapshot);
+    await alertLog.flush({ changes: report.changes?.length ?? undefined });
     return jsonResponse(200, report);
   } catch (err) {
+    await alertLog.flush({ failed: true });
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error", report });
   }
 };

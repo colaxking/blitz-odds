@@ -852,6 +852,40 @@
       }
     }
 
+    // A hook for events the app knows about but the DOM doesn't show.
+    //
+    // Everything else in this file is a delegated listener over rendered
+    // markup, which works because the thing being measured is a thing
+    // somebody clicked. Push registration health isn't: it's the outcome of
+    // an async check against the server, with no element to hang a
+    // data-attribute on and no click to catch. Rather than teach this file
+    // about push, it exposes one narrow emitter that index.html can call.
+    //
+    // Deliberately minimal: a type, a small flat payload, and the same
+    // visitorId/device stamping every other event gets. Bot filtering and
+    // the endpoint stay in here, so a caller can't route around either.
+    window.blitzTrack = function (type, payload) {
+      try {
+        if (!type) return;
+        var body = { type: String(type), visitorId: visitorId, ts: Date.now() };
+        if (payload && typeof payload === "object") {
+          for (var key in payload) {
+            if (!Object.prototype.hasOwnProperty.call(payload, key)) continue;
+            var value = payload[key];
+            if (value === undefined || value === null) continue;
+            // Scalars only - this is a dashboard counter, not a log sink,
+            // and an object here would land in the summary as "[object
+            // Object]" rather than failing visibly.
+            if (typeof value === "object") continue;
+            body[key] = value;
+          }
+        }
+        sendEvent(body);
+      } catch (e) {
+        /* never let a tracking failure surface to the user */
+      }
+    };
+
     if (document.readyState === "complete" || document.readyState === "interactive") {
       init();
     } else {

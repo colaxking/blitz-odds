@@ -50,6 +50,15 @@ const VALID_TYPES = new Set([
   "playbook_format",
   "gate_cta",
   "book_compare",
+  // Push registration health. A subscription lives in two places - the
+  // browser and the server's device row - and only the browser can change
+  // its side unannounced. When it does, the app reports push as on and
+  // nothing is ever delivered, which is invisible from both ends. These
+  // three make the rate of that visible: desync is detection, the other two
+  // are whether the automatic repair worked.
+  "push_device_desync",
+  "push_device_repaired",
+  "push_device_repair_failed",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -170,7 +179,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -302,6 +311,18 @@ export default async (req: Request, context: Context) => {
       page
     ) {
       record.page = page.slice(0, 160);
+    }
+
+    // Where the desync was caught and repaired from. "load" and "rotated"
+    // are the silent path (app start), "auto" the Settings reconcile,
+    // "manual" the reader pressing the repair button - a rising share of
+    // "manual" would mean the automatic paths are failing.
+    if (
+      type === "push_device_desync" ||
+      type === "push_device_repaired" ||
+      type === "push_device_repair_failed"
+    ) {
+      if (typeof stage === "string" && stage) record.stage = stage.slice(0, 32);
     }
 
     if (week !== undefined && week !== null && week !== "") {

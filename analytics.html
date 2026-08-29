@@ -411,6 +411,27 @@
     return base + " · " + unknown + " of " + total + " missing a team (tracking gap)";
   }
 
+  /* Three numbers with one conclusion. Desyncs alone read as alarming and
+     repairs alone read as fine; what matters is whether they match, so the
+     tile states the unrepaired count in words rather than leaving it to be
+     subtracted by eye. */
+  function pushHealthHtml(d) {
+    var desyncs = d.pushDesyncs || 0;
+    var repairs = d.pushRepairs || 0;
+    var failures = d.pushRepairFailures || 0;
+    if (!desyncs && !repairs && !failures) {
+      return '<div class="empty">No registration problems in this range</div>';
+    }
+    var verdict = failures > 0
+      ? failures + (failures === 1 ? " device is" : " devices are") + " still unreachable"
+      : "All detected desyncs were repaired automatically";
+    return '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(desyncs) + "</div>" +
+      '<div class="section-desc" style="margin-top:2px;">' +
+      fmtNum(repairs) + " repaired \u00b7 " + fmtNum(failures) + " failed</div>" +
+      '<div class="section-desc" style="margin-top:8px;color:' +
+      (failures > 0 ? "var(--bad, #d33a3a)" : "inherit") + ';">' + esc(verdict) + "</div>";
+  }
+
   // ---- Rendering --------------------------------------------------------
   function barListHtml(data, dim, opts) {
     opts = opts || {};
@@ -482,6 +503,16 @@
         { title: "Gate CTA clicks", sub: "The conversion event", html: barListHtml(d.gateCtaClicks) },
         { title: "Gate CTA by surface", sub: "Sign-in wall vs. Pro gate", html: barListHtml(relabel(d.gateCtaBySurface, { signin: "Sign-in wall", pro: "Pro gate" })) },
         { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" }
+      ]},
+      /* Push health is an operational signal, not a product one, so it sits
+         in its own section rather than under Conversion. The number that
+         matters is the gap between desyncs and repairs: every unrepaired
+         desync is a reader whose alerts stopped without either side
+         noticing. */
+      { id: "push", title: "Push health", desc: "Whether registered devices can actually be reached", tiles: [
+        { title: "Registration desyncs", sub: "Browser subscription no longer matching the stored device", html: pushHealthHtml(d) },
+        { title: "Where they were caught", sub: "App load vs. Settings vs. the reader pressing repair", html: barListHtml(relabel(d.pushDesyncsByStage, { detected: "Settings check", rotated: "App load", load: "App load", auto: "Automatic", manual: "Repair button" })) },
+        { title: "Repairs that failed", sub: "These are the ones still receiving nothing", html: barListHtml(relabel(d.pushRepairFailuresByStage, { load: "App load", auto: "Automatic", manual: "Repair button" })) }
       ]},
       { id: "prefs", title: "Preferences", desc: "What people are currently set to, not how often they changed it", tiles: [
         { title: "Theme", sub: "Current setting per visitor", html: barListHtml(relabel(d.themeDistribution, {}), "theme", { valueFn: function (l) { return l.toLowerCase(); } }) },
@@ -810,6 +841,8 @@
       boxscoreClicksByTeam: {}, boxscoreClicksBySource: {},
       playbookSubtabViews: {}, playbookFormatViews: {},
       gateCtaClicks: {}, gateCtaBySurface: {}, bookCompareOpens: 0,
+      pushDesyncs: 0, pushRepairs: 0, pushRepairFailures: 0,
+      pushDesyncsByStage: {}, pushRepairFailuresByStage: {},
       historyPageviews: 0, historyGameClicksByTeam: {}, historyClicksByType: {},
       referrerBreakdown: {}, pageviewsByPath: {}, teamPageViews: 0, gamePageViews: 0,
       themeDistribution: {}, sportsbookDistribution: {}, tzPrefDistribution: {},

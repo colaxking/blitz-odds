@@ -4,6 +4,7 @@ import { makeGameId } from "./lib/gameId.mts";
 import { parseKickoffUTC } from "./lib/kickoff.mts";
 import { getPrefs, notifStore, USER_STORE } from "./lib/notif.mts";
 import { followsGame, deliverAlert, type AlertUser, type ScheduleGame } from "./lib/alerts.mts";
+import { createAlertLog } from "./lib/alertlog.mts";
 import { fetchLiveWeek, leaderOf, clockLabel, type LiveGame } from "./lib/livescores.mts";
 import { loadAllWeeks, espnParamsFor, type PhaseWeek } from "./lib/schedule.mts";
 
@@ -77,6 +78,7 @@ export default async (req: Request, _context: Context) => {
 
   const now = body.now ? new Date(body.now) : new Date();
   const dryRun = body.dryRun === true;
+  const alertLog = createAlertLog("live", now, dryRun);
   const onlyUser: string | null = body.userId || null;
 
   const siteDataStore = getStore(SITE_DATA_STORE);
@@ -199,14 +201,20 @@ export default async (req: Request, _context: Context) => {
     const teamName = new Map<string, string>((teamsDoc?.teams || []).map((t: any) => [String(t.id).toUpperCase(), t.name as string]));
     const nameOf = (abbr: string) => teamName.get(String(abbr).toUpperCase()) || String(abbr).toUpperCase();
 
-    const tally = (bucket: any, outcome: string) => {
+    const tally = (
+      bucket: any,
+      outcome: string,
+      ctx?: { userId: string; type: string; event: string; week: number; label?: string }
+    ) => {
       bucket.outcomes[outcome] = (bucket.outcomes[outcome] || 0) + 1;
       if (outcome === "sent") bucket.sent++;
+      if (ctx) alertLog.add({ ...ctx, outcome });
     };
 
     for (const ch of changes) {
       const { live } = ch;
       const scoreLine = `${live.away} ${live.awayScore}, ${live.home} ${live.homeScore}`;
+      const gameLabel = `${live.away}@${live.home}`;
 
       for (const u of users) {
         try {
@@ -217,8 +225,9 @@ export default async (req: Request, _context: Context) => {
           if (!wantsScoring && !wantsFinal) continue;
 
           if (!(await followsGame(u, prefs, CURRENT_SEASON, ch.week, ch.game, { leagueStore }))) {
-            if (wantsFinal) tally(report.final, "not-followed");
-            else tally(report.scoring, "not-followed");
+            const ctx = { userId: u.userId, event: ch.gameId, week: ch.week, label: gameLabel };
+            if (wantsFinal) tally(report.final, "not-followed", { ...ctx, type: "final" });
+            else tally(report.scoring, "not-followed", { ...ctx, type: "score" });
             continue;
           }
 
@@ -235,6 +244,7 @@ export default async (req: Request, _context: Context) => {
               user: u, prefs, type: "final", event: ch.gameId,
               season: CURRENT_SEASON, week: ch.week,
               capability: "alerts.final", now, dryRun,
+              log: alertLog, label: gameLabel,
               payload: {
                 title: tie ? `Final: ${scoreLine} (tie)` : `Final: ${nameOf(winner as string)} win`,
                 body: `${scoreLine}.`,
@@ -258,6 +268,7 @@ export default async (req: Request, _context: Context) => {
             user: u, prefs, type: "score", event,
             season: CURRENT_SEASON, week: ch.week,
             capability: "alerts.scoring", now, dryRun,
+            log: alertLog, label: gameLabel,
             payload: {
               title: scoreLine,
               body: `${clockLabel(live)}.${leadNote}`,
@@ -276,8 +287,10 @@ export default async (req: Request, _context: Context) => {
       }
     }
 
+    await alertLog.flush({ games: changes.map((c) => c.gameId) });
     return jsonResponse(200, report);
   } catch (err) {
+    await alertLog.flush({ failed: true });
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error", report });
   }
 };

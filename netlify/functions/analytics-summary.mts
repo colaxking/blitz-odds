@@ -98,6 +98,15 @@ type EventRecord = {
   location?: LocationInfo;
   device?: string;
   host?: string;
+  /* Push-health events only: where the desync was caught/repaired. */
+  stage?: string;
+  /* Playbook events. Read via sortedCounts long before they were typed
+     here - listed now so a reader of this type isn't misled about what a
+     record can hold. */
+  subtab?: string;
+  format?: string;
+  action?: string;
+  surface?: string;
 };
 
 type SessionRecord = {
@@ -325,6 +334,11 @@ function emptySummary(now: number, range: Range) {
     gateCtaClicks: {} as Record<string, number>,
     gateCtaBySurface: {} as Record<string, number>,
     bookCompareOpens: 0,
+    pushDesyncs: 0,
+    pushRepairs: 0,
+    pushRepairFailures: 0,
+    pushDesyncsByStage: {} as Record<string, number>,
+    pushRepairFailuresByStage: {} as Record<string, number>,
     historyPageviews: 0,
     archiveEntriesBySource: {} as Record<string, number>,
     historyGameClicksByTeam: {} as Record<string, number>,
@@ -605,6 +619,21 @@ export default async (req: Request, _context: Context) => {
     // comparison. Worth knowing before any affiliate work is wired to it ---
     const bookCompareOpens = validRecords.filter((r) => r.type === "book_compare").length;
 
+    // --- push registration health. A browser can rotate its push endpoint
+    // whenever it likes, which orphans the device row the server holds and
+    // silently stops every alert to that device while the app still reports
+    // push as on. These count how often that happens and whether the
+    // automatic re-registration recovers it: repairs should track desyncs
+    // almost exactly, and any sustained gap - or a rising "manual" stage -
+    // means readers are losing alerts without being told ---
+    const pushDesyncRecords = validRecords.filter((r) => r.type === "push_device_desync");
+    const pushRepairFailureRecords = validRecords.filter((r) => r.type === "push_device_repair_failed");
+    const pushDesyncs = pushDesyncRecords.length;
+    const pushRepairs = validRecords.filter((r) => r.type === "push_device_repaired").length;
+    const pushRepairFailures = pushRepairFailureRecords.length;
+    const pushDesyncsByStage = sortedCounts(pushDesyncRecords, (r) => r.stage);
+    const pushRepairFailuresByStage = sortedCounts(pushRepairFailureRecords, (r) => r.stage);
+
     // --- teamClicksByOrigin: game-card click vs. the favorites-bar
     // quick-nav chip - how much the favorites shortcut actually gets used ---
     const teamClicksByOrigin = sortedCounts(teamClicks, (r) => r.origin);
@@ -845,6 +874,11 @@ export default async (req: Request, _context: Context) => {
         gateCtaClicks,
         gateCtaBySurface,
         bookCompareOpens,
+        pushDesyncs,
+        pushRepairs,
+        pushRepairFailures,
+        pushDesyncsByStage,
+        pushRepairFailuresByStage,
         historyPageviews,
         archiveEntriesBySource,
         historyGameClicksByTeam,

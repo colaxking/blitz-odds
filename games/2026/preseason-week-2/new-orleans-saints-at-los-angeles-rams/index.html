@@ -4490,6 +4490,38 @@
   .admin-st.st-out, .admin-st.st-ir { color: var(--out); background: rgba(var(--out-rgb),.13); border: 1px solid rgba(var(--out-rgb),.4); }
 
   /* ---- activity ---- */
+  /* Alert delivery log. The rows are denser than the audit log's - a pass
+     can hold several readers - so each row stacks its outcome above the
+     subject rather than sitting on one line that wraps unpredictably at
+     phone width. */
+  .admin-alert-devices {
+    border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 13px;
+    margin: 4px 0 14px; background: var(--surface-2);
+  }
+  .admin-alert-devices.bad { border-color: var(--out); background: rgba(var(--out-rgb),0.09); }
+  .admin-alert-devices-title { margin: 0 0 8px; font-size: .8rem; font-weight: 700; color: var(--text); }
+  .admin-alert-devices.bad .admin-alert-devices-title { color: var(--out); }
+  .admin-alert-device-list { list-style: none; margin: 0; padding: 0; font-size: .76rem; }
+  .admin-alert-device-list li { display: flex; flex-wrap: wrap; gap: 4px 8px; padding: 3px 0; }
+  .admin-alert-device-name { font-weight: 600; color: var(--text); }
+  .admin-alert-device-meta { color: var(--text-dim); }
+  .admin-alert-prefs {
+    margin: 9px 0 0; padding-top: 9px; border-top: 1px solid var(--card-border);
+    font-size: .74rem; color: var(--text-dim);
+  }
+  .admin-alert-prefs b { color: var(--text); font-weight: 600; }
+  .admin-alert-log li { flex-wrap: wrap; }
+  .admin-alert-row { display: block; margin-bottom: 4px; }
+  .admin-alert-row:last-child { margin-bottom: 0; }
+  .admin-alert-outcome {
+    display: inline-block; font-size: .68rem; font-weight: 700; letter-spacing: .02em;
+    padding: 1px 7px; border-radius: 999px; margin-right: 7px;
+    background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--card-border);
+  }
+  .admin-alert-outcome.good { color: var(--win); border-color: rgba(var(--win-rgb),0.45); }
+  .admin-alert-outcome.bad { color: var(--out); border-color: rgba(var(--out-rgb),0.5); }
+  .admin-alert-what { color: var(--text-dim); font-size: .74rem; }
+
   .admin-log { list-style: none; margin: 0; padding: 0; font-size: .78rem;
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; }
   .admin-log li { padding: 10px 12px; display: flex; gap: 10px; }
@@ -12124,6 +12156,99 @@ function describeThisDevice() {
   return os ? `${browser} on ${os}` : browser;
 }
 
+/* Fires an app-level analytics event. analytics.js owns the endpoint, the
+   visitor id and the bot filter; this only guards the case where it hasn't
+   loaded yet (it's a deferred script at the bottom of the page, and push
+   reconciliation can resolve before it). GA gets the same event so the two
+   dashboards agree. */
+function trackEvent(type, payload) {
+  try {
+    if (typeof window.blitzTrack === "function") window.blitzTrack(type, payload);
+    if (typeof window.gtag === "function") window.gtag("event", type, payload || {});
+  } catch (e) { /* analytics must never break the app */ }
+}
+
+const PUSH_ENDPOINT_KEY = "blitz-push-endpoint";
+
+/** The id the SERVER will key this subscription under. Mirrors deviceIdFor()
+ *  in netlify/functions/lib/push.mts exactly - same digest, same 12-byte
+ *  truncation - so the client can ask "is my subscription actually
+ *  registered?" without a new endpoint to answer it. If either side's
+ *  hashing changes, both must. */
+async function deviceIdForEndpoint(endpoint) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(endpoint));
+  return Array.from(new Uint8Array(digest))
+    .slice(0, 12)
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/** This browser's live subscription, or null. */
+async function currentPushSubscription() {
+  try {
+    if (!("serviceWorker" in navigator)) return null;
+    const registration = await navigator.serviceWorker.getRegistration(SW_PATH);
+    if (!registration) return null;
+    return await registration.pushManager.getSubscription();
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Sends an existing subscription to the server. Split out of enablePush
+ * because it's also the repair path, which must NOT touch
+ * Notification.requestPermission - permission is already granted in that
+ * case, and re-asking a browser that has it is a no-op at best.
+ */
+async function registerPushSubscription(auth, subscription) {
+  const res = await auth.authenticatedFetch("/.netlify/functions/push-subscribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "subscribe",
+      subscription: subscription.toJSON(),
+      label: describeThisDevice(),
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't register this device.");
+  try { window.localStorage.setItem(PUSH_ENDPOINT_KEY, subscription.endpoint); } catch (e) { /* private mode */ }
+  return data.deviceId;
+}
+
+/**
+ * Re-registers this browser's subscription if the endpoint has changed since
+ * the last successful registration.
+ *
+ * WHY THIS IS NEEDED AT ALL. A push subscription lives in two places - the
+ * browser and the server's device row - and only one of them can change on
+ * its own. Browsers rotate an endpoint whenever they feel like it, and Safari
+ * does it more than most. When that happens the browser still reports a live
+ * subscription, so every "are alerts on?" check on the client says yes, while
+ * the server holds a row for an endpoint that now 410s and gets pruned. The
+ * result is an account that looks fully subscribed and receives nothing, with
+ * no error anywhere - which is exactly the failure this shipped to fix.
+ *
+ * Cheap by design: the last registered endpoint is remembered locally, so the
+ * common case (unchanged) costs a string comparison and no network at all.
+ */
+async function reconcilePushSubscription(auth) {
+  try {
+    const subscription = await currentPushSubscription();
+    if (!subscription) return null;
+    let known = null;
+    try { known = window.localStorage.getItem(PUSH_ENDPOINT_KEY); } catch (e) { /* private mode */ }
+    if (known === subscription.endpoint) return "unchanged";
+    await registerPushSubscription(auth, subscription);
+    // Only worth reporting when we know it was a rotation rather than a
+    // first sight of an endpoint on a device that predates this key.
+    return known ? "rotated" : "backfilled";
+  } catch (e) {
+    return "failed";
+  }
+}
+
 /**
  * Asks for permission, subscribes, and registers the device server-side.
  * Only ever called from a click handler - the permission prompt fires once
@@ -12152,24 +12277,14 @@ async function enablePush(auth, vapidPublicKey) {
     });
   }
 
-  const res = await auth.authenticatedFetch("/.netlify/functions/push-subscribe", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "subscribe",
-      subscription: subscription.toJSON(),
-      label: describeThisDevice(),
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't register this device.");
-  return data.deviceId;
+  return registerPushSubscription(auth, subscription);
 }
 
 /** Unsubscribes this browser and drops its server row. Removing only one
  *  side would leave either a dead row being pushed at until it 410s, or a
  *  live browser subscription nothing will ever send to. */
 async function disablePush(auth) {
+  try { window.localStorage.removeItem(PUSH_ENDPOINT_KEY); } catch (e) { /* private mode */ }
   let endpoint = null;
   try {
     const registration = await navigator.serviceWorker.getRegistration(SW_PATH);
@@ -18693,6 +18808,12 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
   const [pushEnv, setPushEnv] = useState(() => pushEnvironment());
   const [subscribedHere, setSubscribedHere] = useState(false);
   const [busy, setBusy] = useState(false);
+  // "checking" | "ok" | "repairing" | "orphaned" - whether this browser's
+  // subscription is the one the SERVER holds a row for. subscribedHere alone
+  // can't answer that: it reads the browser, and the browser is exactly the
+  // side that can't tell it has been forgotten.
+  const [registration, setRegistration] = useState("checking");
+  const [localDeviceId, setLocalDeviceId] = useState(null);
 
   const authedFetch = useCallback(async (opts) => {
     return auth.authenticatedFetch("/.netlify/functions/notif-prefs", {
@@ -18734,9 +18855,59 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
   // is in front of you.
   useEffect(() => {
     let cancelled = false;
-    hasLocalPushSubscription().then((has) => { if (!cancelled) setSubscribedHere(has); });
+    (async () => {
+      const subscription = await currentPushSubscription();
+      if (cancelled) return;
+      setSubscribedHere(!!subscription);
+      if (!subscription) { setRegistration("ok"); return; }   // nothing to reconcile
+      try {
+        const id = await deviceIdForEndpoint(subscription.endpoint);
+        if (!cancelled) setLocalDeviceId(id);
+      } catch (e) {
+        // Without a hash there's nothing to compare, so say so rather than
+        // claiming a clean bill of health we can't support.
+        if (!cancelled) setRegistration("ok");
+      }
+    })();
     return () => { cancelled = true; };
   }, []);
+
+  // The reconcile itself. Runs once the device list and the local id are both
+  // known: if this browser's subscription isn't among the rows the server
+  // holds, re-register it silently and re-read. Silent because there is
+  // nothing for the reader to decide - permission is already granted, and the
+  // only alternative is telling them something is broken while being able to
+  // fix it unprompted.
+  useEffect(() => {
+    if (!loaded || !localDeviceId) return;
+    if (registration === "repairing" || registration === "orphaned") return;
+    if (devices.some((d) => d.id === localDeviceId)) { setRegistration("ok"); return; }
+
+    let cancelled = false;
+    setRegistration("repairing");
+    trackEvent("push_device_desync", { stage: "detected" });
+    (async () => {
+      try {
+        const subscription = await currentPushSubscription();
+        if (!subscription) throw new Error("subscription vanished");
+        await registerPushSubscription(auth, subscription);
+        const res = await authedFetch({ method: "GET" });
+        const data = await res.json();
+        if (cancelled) return;
+        const nextDevices = (data.ok && data.devices) || [];
+        setDevices(nextDevices);
+        const fixed = nextDevices.some((d) => d.id === localDeviceId);
+        setRegistration(fixed ? "ok" : "orphaned");
+        trackEvent(fixed ? "push_device_repaired" : "push_device_repair_failed", { stage: "auto" });
+      } catch (e) {
+        if (!cancelled) {
+          setRegistration("orphaned");
+          trackEvent("push_device_repair_failed", { stage: "auto" });
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [loaded, localDeviceId, devices, registration, auth, authedFetch]);
 
   async function persist(patch, optimistic) {
     // `prefs` is always populated now, so the guard has to be on whether
@@ -18805,6 +18976,41 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
     }
   }
 
+  async function handleRepairPush() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const subscription = await currentPushSubscription();
+      // No subscription left to repair means the browser dropped it after we
+      // detected the mismatch. Enabling from scratch is the right recovery,
+      // and it's the same button either way from the reader's side.
+      if (!subscription) {
+        await enablePush(auth, vapidKey);
+      } else {
+        await registerPushSubscription(auth, subscription);
+      }
+      const res = await authedFetch({ method: "GET" });
+      const data = await res.json();
+      const nextDevices = (data.ok && data.devices) || [];
+      setDevices(nextDevices);
+      setSubscribedHere(true);
+      const fresh = await currentPushSubscription();
+      const id = fresh ? await deviceIdForEndpoint(fresh.endpoint) : null;
+      if (id) setLocalDeviceId(id);
+      const fixed = !!id && nextDevices.some((d) => d.id === id);
+      setRegistration(fixed ? "ok" : "orphaned");
+      trackEvent(fixed ? "push_device_repaired" : "push_device_repair_failed", { stage: "manual" });
+      setStatus(fixed
+        ? { kind: "ok", text: "This device is registered again." }
+        : { kind: "err", text: "Still not registered. Turn push off and back on for this device." });
+    } catch (err) {
+      trackEvent("push_device_repair_failed", { stage: "manual" });
+      setStatus({ kind: "err", text: err.message || "Couldn't re-register this device." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleTestPush() {
     setBusy(true);
     setStatus(null);
@@ -18825,7 +19031,11 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
   }
 
   const favs = favorites || [];
-  const pushLive = subscribedHere;
+  // The switches below are only meaningful if an alert can actually be
+  // delivered. An orphaned subscription is not "on" - it looked on for the
+  // entire time this bug went unnoticed - so it reads as off here and the
+  // banner explains why.
+  const pushLive = subscribedHere && registration !== "orphaned";
   // Everything is interactive except while we're still waiting on the
   // server's copy - the switch positions on screen are a cached guess until
   // then, and a tap against a guess would save the guess.
@@ -18880,6 +19090,20 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
           </p>
           <button type="button" className="notif-enable-btn" disabled={busy || !vapidKey} onClick={handleEnablePush}>
             {busy ? "Working\u2026" : vapidKey ? "Turn on push alerts" : "Push isn't set up on this site yet"}
+          </button>
+        </div>
+      )}
+
+      {subscribedHere && registration === "orphaned" && (
+        <div className="notif-enable blocked">
+          <p className="notif-enable-title">This device isn't registered for alerts</p>
+          <p className="notif-enable-desc">
+            {describeThisDevice()} has a notification subscription, but it isn't the one on file for your
+            account — usually because the browser quietly issued a new one. Nothing will arrive here until
+            it's re-registered. Your other devices, if any, are unaffected.
+          </p>
+          <button type="button" className="notif-enable-btn" disabled={busy} onClick={handleRepairPush}>
+            {busy ? "Working\u2026" : "Re-register this device"}
           </button>
         </div>
       )}
@@ -26631,11 +26855,187 @@ function AdminSheet({ title, subtitle, onClose, children }) {
   );
 }
 
+/* ---------------- Alert delivery ---------------- */
+
+/* Plain English for each outcome the dispatchers record. The raw values are
+   deliberately kept in the data (they're what the code branches on), but a
+   list reading "not-entitled / no-devices / quiet-hours" makes an operator
+   guess at exactly the moment they're trying to stop guessing. */
+const ALERT_OUTCOME_LABELS = {
+  "sent": "Delivered",
+  "no-devices": "No registered device",
+  "quiet-hours": "Held — quiet hours",
+  "duplicate": "Already sent",
+  "not-entitled": "Not entitled",
+  "dry-run": "Dry run — not sent",
+  "failed": "Send failed",
+  "off": "Turned off in settings",
+  "not-followed": "Not following that game",
+  "no-leagues": "Not in a league",
+  "nothing-locking": "Nothing locking at that slot",
+  "below-key-threshold": "Below key-player threshold",
+};
+
+/* The outcomes worth flagging in red: each one means a reader who expected
+   an alert didn't get one. "duplicate" and "dry-run" are not failures. */
+const ALERT_OUTCOME_BAD = new Set(["no-devices", "failed", "not-entitled"]);
+
+const ALERT_TYPE_LABELS = {
+  kick: "Kickoff", final: "Final score", lastcall: "Last call",
+  score: "Scoring", inj: "Injury",
+};
+
+const ALERT_SOURCES = [
+  { id: "", label: "All alerts" },
+  { id: "dispatch", label: "Kickoff, final, last call" },
+  { id: "live", label: "Live scoring" },
+  { id: "injury", label: "Injuries" },
+];
+
+function AdminAlertsPanel({ auth, users }) {
+  const [body, setBody] = useState(null);
+  const [error, setError] = useState(null);
+  const [userId, setUserId] = useState("");
+  const [source, setSource] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setBody(null);
+    setError(null);
+    const params = new URLSearchParams({ limit: "60" });
+    if (userId) params.set("userId", userId);
+    if (source) params.set("source", source);
+    adminCall(auth, "/.netlify/functions/admin-alertlog?" + params.toString())
+      .then(b => { if (!cancelled) setBody(b); })
+      .catch(e => { if (!cancelled) setError(e.message); });
+    return () => { cancelled = true; };
+  }, [auth, userId, source]);
+
+  const person = (users || []).find(u => u.id === userId) || null;
+  const entries = (body && body.entries) || null;
+  const devices = (body && body.devices) || null;
+  const prefs = body && body.prefs;
+
+  return (
+    <React.Fragment>
+      <label className="admin-field">
+        <span>Reader</span>
+        <select value={userId} onChange={e => setUserId(e.target.value)}>
+          <option value="">Everyone</option>
+          {(users || []).map(u => (
+            <option key={u.id} value={u.id}>{u.name} — {u.email}</option>
+          ))}
+        </select>
+      </label>
+
+      <label className="admin-field">
+        <span>Type</span>
+        <select value={source} onChange={e => setSource(e.target.value)}>
+          {ALERT_SOURCES.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+        </select>
+      </label>
+
+      {error && <AdminStatus error={error} />}
+      {!body && !error && <AdminStatus busy />}
+
+      {/* Devices first, on purpose: an account with none can't receive
+          anything, and that single fact explains more silent alerts than
+          every other outcome combined. */}
+      {person && devices && (
+        <div className={"admin-alert-devices" + (body.noDevices ? " bad" : "")}>
+          <p className="admin-alert-devices-title">
+            {body.noDevices
+              ? "No registered devices — push can't be delivered to this account"
+              : devices.length + (devices.length === 1 ? " registered device" : " registered devices")}
+          </p>
+          {body.noDevices ? (
+            <p className="admin-hint" style={{ margin: 0 }}>
+              Their settings can say push is on and every switch can look live — that state is read from the
+              browser, not from here. Until a device registers, every alert lands as “No registered device”.
+            </p>
+          ) : (
+            <ul className="admin-alert-device-list">
+              {devices.map(d => (
+                <li key={d.id}>
+                  <span className="admin-alert-device-name">{d.label || d.platform}</span>
+                  <span className="admin-alert-device-meta">
+                    {d.lastOkAt ? "last delivered " + fmtAdminDate(d.lastOkAt, true) : "never delivered to"}
+                    {d.failCount > 0 ? " · " + d.failCount + " recent failures" : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {prefs && prefs.push && (
+            <p className="admin-alert-prefs">
+              Follows <b>{prefs.push.scope === "fav" ? "favorites" : prefs.push.scope === "picks" ? "their picks" : "favorites and picks"}</b>
+              {" · "}kickoff {prefs.push.kickoff ? "on" : "off"}
+              {" · "}final {prefs.push.final ? "on" : "off"}
+              {" · "}quiet {prefs.push.quietFrom === null || prefs.push.quietTo === null
+                ? "off"
+                : prefs.push.quietFrom + ":00–" + prefs.push.quietTo + ":00 " + (prefs.timezone || "")}
+            </p>
+          )}
+        </div>
+      )}
+
+      {entries && !entries.length && (
+        <p className="admin-empty">
+          {person
+            ? "No alerts have been considered for " + person.name + " yet."
+            : "No alerts have been dispatched yet."}
+        </p>
+      )}
+
+      {entries && entries.length > 0 && (
+        <ul className="admin-log admin-alert-log">
+          {entries.map(e => (
+            <li key={e.id}>
+              <time>{fmtAdminDate(e.at, true)}</time>
+              <span>
+                {e.rows.map((r, i) => (
+                  <span key={r.userId + ":" + r.type + ":" + r.event + ":" + i} className="admin-alert-row">
+                    <span className={"admin-alert-outcome" + (ALERT_OUTCOME_BAD.has(r.outcome) ? " bad" : r.outcome === "sent" ? " good" : "")}>
+                      {ALERT_OUTCOME_LABELS[r.outcome] || r.outcome}
+                    </span>
+                    <span className="admin-alert-what">
+                      {ALERT_TYPE_LABELS[r.type] || r.type}
+                      {r.label ? " · " + r.label : ""}
+                      {!person ? " · " + shortAdminUser(users, r.userId) : ""}
+                    </span>
+                  </span>
+                ))}
+                {e.dryRun && <span className="admin-alert-what">Dry run</span>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <p className="admin-hint">
+        One row per reader per alert actually considered — including the ones that were deliberately not sent.
+        Written by the dispatchers themselves, so it shows what the server decided rather than what a device
+        reported. Kept for three weeks, then pruned.
+      </p>
+    </React.Fragment>
+  );
+}
+
+/** A name for a log row when the list isn't already filtered to one person.
+ *  Falls back to a truncated id rather than nothing - an unrecognised id
+ *  usually means a deleted account, which is itself worth seeing. */
+function shortAdminUser(users, userId) {
+  const match = (users || []).find(u => u.id === userId);
+  if (match) return match.name || match.email || userId;
+  return userId.slice(0, 8);
+}
+
 const ADMIN_TABS = [
   { id: "users", label: "Users" },
   { id: "leagues", label: "Leagues" },
   { id: "picks", label: "Picks" },
   { id: "injuries", label: "Injuries" },
+  { id: "alerts", label: "Alerts" },
   // No "analytics" tab: the dashboard is its own page, so it hangs off the
   // account menu (admin-only) instead of being a tab that only ever held a
   // link out of the console.
@@ -26718,6 +27118,7 @@ function AdminConsole({ auth, onClose }) {
           {tab === "injuries" && (
             <AdminInjuriesPanel auth={auth} onToast={showToast} onCount={setInjuryCount} />
           )}
+          {tab === "alerts" && <AdminAlertsPanel auth={auth} users={data && data.users} />}
           {tab === "log" && <AdminActivityPanel auth={auth} users={data && data.users} />}
         </div>
 
@@ -28022,6 +28423,24 @@ function App() {
   useDocumentMeta(activeTab, view, selectedTeamId, selectedWeek, selectedGame); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
+
+  // Repair a rotated push subscription on load, for the reader who never
+  // opens Settings. The whole failure mode is invisible from the app - the
+  // browser reports a live subscription either way - so waiting for someone
+  // to go looking is waiting for them to notice alerts they were never told
+  // stopped. Costs nothing when the endpoint is unchanged; see
+  // reconcilePushSubscription.
+  useEffect(() => {
+    if (auth.status !== "in") return;
+    let cancelled = false;
+    reconcilePushSubscription(auth).then((result) => {
+      if (cancelled || !result || result === "unchanged") return;
+      if (result === "rotated") trackEvent("push_device_desync", { stage: "rotated" });
+      else if (result === "failed") trackEvent("push_device_repair_failed", { stage: "load" });
+      else trackEvent("push_device_repaired", { stage: "load" });
+    });
+    return () => { cancelled = true; };
+  }, [auth.status, auth.user]);
 
   // Recovers view state on browser back/forward. pushState (below) only
   // updates the address bar - it doesn't touch React state on its own - so

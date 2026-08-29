@@ -6,6 +6,7 @@ import {
 import { sendPush, type PushPayload } from "./push.mts";
 import { getEntitlements, type Capability } from "./entitlements.mts";
 import { isPickemWeek } from "./schedule.mts";
+import type { AlertLog } from "./alertlog.mts";
 
 // The rules every push alert shares: which games a reader follows, whether
 // it's a civilised hour to tell them, whether they've already been told, and
@@ -100,6 +101,12 @@ export interface AlertArgs {
    *  woken, so it's the one thing allowed through quiet hours. */
   pierceQuietHours?: boolean;
   dryRun?: boolean;
+  /** Collector for the delivery log. Passing it here rather than logging at
+   *  the call site is what guarantees every gate below is recorded: a new
+   *  early return added to this function can't quietly escape the log. */
+  log?: AlertLog;
+  /** Human-readable subject for the log row, e.g. "MIN@DEN". */
+  label?: string;
 }
 
 export type AlertOutcome =
@@ -118,6 +125,21 @@ export type AlertOutcome =
  * failure than sending it twice.
  */
 export async function deliverAlert(args: AlertArgs): Promise<AlertOutcome> {
+  const outcome = await resolveAlert(args);
+  if (args.log) {
+    args.log.add({
+      userId: args.user.userId,
+      type: args.type,
+      event: args.event,
+      week: args.week,
+      outcome,
+      ...(args.label ? { label: args.label } : {}),
+    });
+  }
+  return outcome;
+}
+
+async function resolveAlert(args: AlertArgs): Promise<AlertOutcome> {
   const { user, prefs, type, event, season, week, capability, payload, now } = args;
 
   // Cheapest checks first - each of these avoids a Blobs read or a network

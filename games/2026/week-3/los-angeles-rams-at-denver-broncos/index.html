@@ -4524,6 +4524,49 @@
     border-radius: 8px;
   }
   .admin-inj-score-hint { font-size: .68rem; color: var(--text-dim); margin-top: 7px; line-height: 1.4; }
+  /* The queue row's player name is a button into the depth-chart sheet. It
+     has to keep looking like the heading it replaced, so it inherits
+     .admin-inj-name's type and only adds the affordance. */
+  .admin-inj-name-btn {
+    background: none; border: none; padding: 0; margin: 0; font: inherit;
+    color: var(--text); cursor: pointer; border-bottom: 1px dashed var(--card-border);
+  }
+  .admin-inj-name-btn:hover, .admin-inj-name-btn:focus-visible {
+    color: var(--accent); border-bottom-color: currentColor; outline: none;
+  }
+
+  /* ---- depth chart sheet ---- */
+  .admin-depth-sum {
+    font-size: .8rem; line-height: 1.5; background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 11px; margin-bottom: 12px;
+  }
+  .admin-depth-sum strong { font-weight: 800; }
+  .admin-depth-slot {
+    border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 11px; margin-bottom: 8px;
+  }
+  .admin-depth-slot-hd { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .admin-depth-slot-label { font-size: .82rem; font-weight: 800; }
+  .admin-depth-slot-side {
+    font-size: .62rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim);
+  }
+  .admin-depth-pill {
+    margin-left: auto; font-size: .62rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 5px; white-space: nowrap;
+    color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border);
+  }
+  .admin-depth-pill.is-starter { color: var(--win); background: rgba(var(--win-rgb),.14); border-color: rgba(var(--win-rgb),.45); }
+  .admin-depth-list { list-style: none; margin: 9px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .admin-depth-row {
+    display: flex; align-items: center; gap: 8px; font-size: .8rem;
+    padding: 5px 7px; border-radius: 6px; min-width: 0;
+  }
+  .admin-depth-row.is-player {
+    background: rgba(var(--accent-rgb),.14); border: 1px solid rgba(var(--accent-rgb),.45); padding: 4px 6px; font-weight: 800;
+  }
+  .admin-depth-row .adr-n { flex: 0 0 14px; color: var(--text-dim); font-size: .7rem; font-weight: 700; }
+  .admin-depth-row .adr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-depth-row .adr-tag { flex: 0 0 auto; font-size: .62rem; font-weight: 800; color: var(--warn); letter-spacing: .04em; text-transform: uppercase; }
+  .admin-depth-row .adr-jersey { margin-left: auto; flex: 0 0 auto; color: var(--text-dim); font-size: .72rem; }
   .admin-st {
     font-size: .64rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
     padding: 3px 7px; border-radius: 5px; white-space: nowrap;
@@ -4594,7 +4637,7 @@
   <p><strong>Odds (DraftKings):</strong> LAR -3 · ML LAR -155 / DEN +130 · O/U 45.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Denver Broncos</strong> - LAR 45% / DEN 55%</p>
+  <p>Predicted winner: <strong>Los Angeles Rams</strong> - LAR 50% / DEN 50%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -4616,6 +4659,8 @@
 
   <h2>Injury report</h2>
   <ul>
+<li><strong>Reese Taylor</strong> (DEN · CB) - questionable - Concussion</li>
+<li><strong>Marvin Mims Jr.</strong> (DEN · WR) - questionable - Foot</li>
 <li><strong>Matt Henningsen</strong> (DEN · DE) - out - Achilles</li>
   </ul>
 
@@ -6639,6 +6684,34 @@
         },
         "statusUpdatedAt": "2026-08-19T12:07Z",
         "source": "auto"
+      },
+      {
+        "name": "Reese Taylor",
+        "position": "CB",
+        "espnId": "4371946",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Concussion",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T03:52:35.622Z",
+        "source": "curated"
+      },
+      {
+        "name": "Marvin Mims Jr.",
+        "position": "WR",
+        "espnId": "4686472",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Foot",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T03:58:33.873Z",
+        "source": "curated"
       }
     ],
     "KC": [
@@ -26966,6 +27039,10 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
   const [error, setError] = useState(null);
   const [choice, setChoice] = useState({});
   const [scores, setScores] = useState({});
+  // The queue row whose depth chart is open, if any. The impact score this
+  // panel asks for is really a question about where the player sits, so the
+  // answer belongs one tap away rather than in another window.
+  const [depthItem, setDepthItem] = useState(null);
   // espnId (and lowercased name) -> the curated record, so a queue row can show
   // the impact score already on file instead of asking for it again.
   const [tracked, setTracked] = useState({});
@@ -27073,7 +27150,14 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
         return (
           <div key={item.id} className={"admin-inj" + (downgrade ? " downgrade" : "")}>
             <div className="admin-inj-top">
-              <span className="admin-inj-name">{item.name || item.espnId}</span>
+              <button
+                type="button"
+                className="admin-inj-name admin-inj-name-btn"
+                onClick={() => setDepthItem(item)}
+                title="Where he sits on the depth chart"
+              >
+                {item.name || item.espnId}
+              </button>
               <span className="admin-row-sub">{item.position || "?"} · {item.team}</span>
               {item.kind === "untracked-candidate" && (
                 <span className="admin-pill admin-pill-off">Not tracked</span>
@@ -27134,11 +27218,151 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
           </div>
         );
       })}
+
+      {depthItem && (
+        <AdminDepthChartSheet item={depthItem} onClose={() => setDepthItem(null)} />
+      )}
     </div>
   );
 }
 
 const STATUS_RANK = { active: 0, questionable: 1, doubtful: 2, out: 3, ir: 4 };
+
+/** Plain-English name for a 0-based slot index. "Starter" and "backup" are
+ *  spelled out because those two lines are what actually decide an impact
+ *  score; anything deeper is just a number. */
+function depthRankWord(i) {
+  if (i === 0) return "Starter";
+  if (i === 1) return "Backup";
+  return ordinalSuffix(i + 1) + " string";
+}
+
+/**
+ * Where a queued player sits on his team's ESPN depth chart, opened from the
+ * queue row's name.
+ *
+ * The panel asks for a 1-10 impact score before it will apply anything, and
+ * that number is mostly a depth-chart question: a starting QB and his third
+ * stringer produce identical-looking rows in the queue. This reuses
+ * useTeamRoster/fetchTeamRoster - the same session-cached ESPN roster +
+ * depthcharts pair the team pages already run on - so opening a second row
+ * for the same team costs nothing.
+ *
+ * Matching is by ESPN athlete id first (both sides of this are ESPN's own
+ * ids, so it's exact), falling back to a normalised name match for the rare
+ * record whose id didn't parse out of the injury feed's links.
+ */
+function AdminDepthChartSheet({ item, onClose }) {
+  const { loading, error, data } = useTeamRoster(item.team);
+
+  const matches = useCallback(p => {
+    if (!p) return false;
+    if (item.espnId && p.id != null && String(p.id) === String(item.espnId)) return true;
+    const theirs = normalizePlayerName(p.displayName || p.fullName || p.shortName);
+    const ours = normalizePlayerName(item.name);
+    return !!ours && theirs === ours;
+  }, [item.espnId, item.name]);
+
+  let rosterEntry = null;
+  if (data) {
+    for (const group of data.fullRoster) {
+      const found = (group.players || []).find(matches);
+      if (found) { rosterEntry = found; break; }
+    }
+  }
+
+  const jersey = rosterEntry && rosterEntry.jersey;
+  const years = rosterEntry && rosterEntry.experience && rosterEntry.experience.years;
+  const rosterPos = rosterEntry && rosterEntry.position && rosterEntry.position.abbreviation;
+
+  // Every slot he appears in. A player legitimately shows up in more than
+  // one - a WR3 who's also the KR2 - and the extra slots are worth seeing,
+  // but the summary line has to lead with the one the injury is about, so
+  // slots are ranked: his own position first, then any non-special-teams
+  // slot, then returner/kicking duty, and only then by depth. Sorting on
+  // depth alone would announce a WR3 as "the backup punt returner".
+  const primaryPos = String(rosterPos || item.position || "").toUpperCase();
+  function slotTier(slot) {
+    if (primaryPos && String(slot.posAbbr || "").toUpperCase() === primaryPos) return 0;
+    return slot.side === "specialTeam" ? 2 : 1;
+  }
+  const hits = !data ? [] : data.depthChart
+    .map(slot => {
+      const idx = slot.athletes.findIndex(matches);
+      return idx === -1 ? null : { slot, idx, tier: slotTier(slot) };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (a.tier - b.tier) || (a.idx - b.idx));
+
+  const best = hits[0] || null;
+  const behind = best && best.slot.athletes[best.idx + 1];
+  // "Jr." already ends the sentence; a second full stop reads as a typo.
+  const behindName = behind ? String(behind.displayName || behind.shortName || "").trim() : "";
+  const behindSentence = behindName + (/\.$/.test(behindName) ? "" : ".");
+
+  return (
+    <AdminSheet
+      title={item.name || item.espnId}
+      subtitle={(rosterPos || item.position || "?") + " · " + item.team +
+        (jersey ? " · #" + jersey : "") +
+        (years === 0 ? " · Rookie" : years ? " · " + ordinalSuffix(years + 1) + " season" : "")}
+      onClose={onClose}
+    >
+      {loading && <AdminStatus busy />}
+      {error && <AdminStatus error="ESPN's roster didn't come back — try again in a moment." />}
+
+      {data && (
+        <React.Fragment>
+          <p className="admin-depth-sum">
+            {best ? (
+              <React.Fragment>
+                <strong>{depthRankWord(best.idx)}</strong> at {best.slot.label} —{" "}
+                {ordinalSuffix(best.idx + 1)} of {best.slot.athletes.length}.
+                {behind
+                  ? " Next man up: " + behindSentence
+                  : " Nobody is listed behind him."}
+              </React.Fragment>
+            ) : rosterEntry ? (
+              "On the roster, but ESPN doesn't list him in any depth-chart formation — usually IR, practice squad, or a slot ESPN hasn't refreshed."
+            ) : (
+              "Not on " + item.team + "'s current ESPN roster. He may have been released or moved to a reserve list since this alert fired."
+            )}
+          </p>
+
+          {hits.map(({ slot, idx }) => (
+            <div className="admin-depth-slot" key={slot.slug}>
+              <div className="admin-depth-slot-hd">
+                <span className="admin-depth-slot-label">{slot.label}</span>
+                <span className="admin-depth-slot-side">{ROSTER_SIDE_LABELS[slot.side] || slot.side}</span>
+                <span className={"admin-depth-pill" + (idx === 0 ? " is-starter" : "")}>
+                  {depthRankWord(idx)}
+                </span>
+              </div>
+              <ul className="admin-depth-list">
+                {slot.athletes.map((p, i) => (
+                  <li className={"admin-depth-row" + (i === idx ? " is-player" : "")} key={(p && p.id) || i}>
+                    <span className="adr-n">{i + 1}</span>
+                    <span className="adr-name">{(p && (p.shortName || p.displayName)) || "—"}</span>
+                    {i === idx + 1 && <span className="adr-tag">Next up</span>}
+                    {p && p.jersey && <span className="adr-jersey">#{p.jersey}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          {hits.length > 0 && (
+            <p className="admin-hint">
+              Live from ESPN's depth chart, so it reflects where he was listed before this
+              designation — not the team's plan without him. A starter at a premium slot with
+              no real backup is the case for a high impact score.
+            </p>
+          )}
+        </React.Fragment>
+      )}
+    </AdminSheet>
+  );
+}
 
 /* ---------------- Activity ---------------- */
 

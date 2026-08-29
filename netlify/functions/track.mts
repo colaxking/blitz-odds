@@ -33,6 +33,12 @@ const VALID_TYPES = new Set([
   "player_view",
   "news_click",
   "boxscore_click",
+  // The "Alert me" bell on a game card. Per-game follows are the only alert
+  // control with no server-side usage signal worth having on its own: the
+  // store knows how many follows exist right now, not how many were tried
+  // and undone, and it's swept a few weeks later, so it can't answer
+  // "is anyone using this" after the fact.
+  "game_follow",
   "view_change",
   // Which in-app link (account menu vs footer) sends people into the
   // historical archive. Added when Archive gave up its tab slot - the
@@ -262,6 +268,15 @@ export default async (req: Request, context: Context) => {
       // panel) and "score_tap" (the tappable score still on the
       // picks/results and team schedule views).
       if (source) record.source = String(source).slice(0, 32);
+    }
+
+    if (type === "game_follow") {
+      if (away) record.away = String(away).slice(0, 64);
+      if (home) record.home = String(home).slice(0, 64);
+      // `adding` matches the `favorite` event's field rather than inventing
+      // a second name for the same idea - the dashboard already knows how
+      // to read a boolean called that.
+      record.adding = adding === true;
     }
 
     if (type === "playbook_subtab" && subtab) {

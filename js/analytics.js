@@ -28,6 +28,12 @@
  *  - "player_view" whenever a player's name is clicked to open their detail
  *    modal, from either the depth chart (`.depth-player-name-btn`) or the
  *    full roster table (`.roster-player-name-btn`)
+ *  - "game_follow" whenever the "Alert me" bell on a game card is tapped
+ *    (`.gc-follow`), with `adding: true/false` for whether the tap was
+ *    turning the follow on or off, plus the two teams and the week. This is
+ *    the only signal for whether per-game alerts are used at all - the
+ *    server knows how many follows exist, but not how many people tried and
+ *    changed their mind, and not which games attract them
  *  - "archive_entry" whenever an in-app link into the historical archive is
  *    clicked (`.archive-entry-link`), with `source` naming which one -
  *    "menu" (the account dropdown) or "footer". These are the only two
@@ -462,6 +468,26 @@
         // one level down in the account menu, that question is the whole
         // basis for deciding whether it earns a slot back, so both surviving
         // links carry `data-archive-source` and fire here.
+        // Capture phase, so aria-pressed still holds the PRE-click state -
+        // "true" means this tap is about to unfollow. Same trick the
+        // favorite star uses above, and for the same reason: React hasn't
+        // re-rendered yet.
+        var followEl = target.closest(".gc-follow");
+        if (followEl) {
+          if (!followEl.disabled) {
+            sendEvent({
+              type: "game_follow",
+              visitorId: visitorId,
+              ts: Date.now(),
+              away: followEl.getAttribute("data-away") || undefined,
+              home: followEl.getAttribute("data-home") || undefined,
+              week: followEl.getAttribute("data-week") || getCurrentWeekLabel(),
+              adding: followEl.getAttribute("aria-pressed") !== "true",
+            });
+          }
+          return;
+        }
+
         var archiveEl = target.closest(".archive-entry-link");
         if (archiveEl) {
           sendEvent({

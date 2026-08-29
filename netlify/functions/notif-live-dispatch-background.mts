@@ -10,6 +10,7 @@ import {
   type LiveGame, type ScoringPlay,
 } from "./lib/livescores.mts";
 import { loadAllWeeks, espnParamsFor, type PhaseWeek } from "./lib/schedule.mts";
+import { loadWeekFollows } from "./lib/follows.mts";
 
 // The fast tick. Watches games that are actually in progress and alerts on
 // scoring plays and final whistles.
@@ -230,6 +231,24 @@ export default async (req: Request, _context: Context) => {
     // ---- Who cares? -----------------------------------------------------
     // Only loaded once something actually happened, so a quiet tick during
     // a game never touches the user list at all.
+
+    // Explicit per-game follows first, because the user filter below needs
+    // them: someone following one game with no starred team and no league
+    // is exactly who that feature is for, and "no leagues and no
+    // favourites" would drop them silently - the same shape of bug as the
+    // `if (!leagues.length) continue;` that used to exclude everyone
+    // without a pool. Scoped to the weeks that actually changed, so this is
+    // one list per live week and nothing on a quiet tick.
+    const followsByWeek = new Map<number, Map<string, Set<string>>>();
+    for (const w of new Set(changes.map((c) => c.week))) {
+      followsByWeek.set(w, await loadWeekFollows(CURRENT_SEASON, w));
+    }
+    const followedBy = (week: number, userId: string) => followsByWeek.get(week)?.get(userId) || null;
+    const anyFollows = new Set<string>();
+    for (const weekMap of followsByWeek.values()) {
+      for (const followerId of weekMap.keys()) anyFollows.add(followerId);
+    }
+
     const users: AlertUser[] = [];
     for await (const page of userStore.list({ prefix: "users:", paginate: true })) {
       for (const b of page.blobs) {
@@ -240,7 +259,7 @@ export default async (req: Request, _context: Context) => {
           if (!profile?.email) continue;
           const leagues: string[] = Array.isArray(profile.leagues) ? profile.leagues : [];
           const favorites: string[] = Array.isArray(profile?.settings?.favorites) ? profile.settings.favorites : [];
-          if (!leagues.length && !favorites.length) continue;
+          if (!leagues.length && !favorites.length && !anyFollows.has(userId)) continue;
           users.push({ userId, email: profile.email, leagues, favorites, profile });
         } catch (err) {
           report.errors.push({ userId, stage: "profile", error: err instanceof Error ? err.message : "unknown" });
@@ -275,7 +294,7 @@ export default async (req: Request, _context: Context) => {
           const wantsFinal = ch.wentFinal && prefs.push.final;
           if (!wantsScoring && !wantsFinal) continue;
 
-          if (!(await followsGame(u, prefs, CURRENT_SEASON, ch.week, ch.game, { leagueStore }))) {
+          if (!(await followsGame(u, prefs, CURRENT_SEASON, ch.week, ch.game, { leagueStore, followed: followedBy(ch.week, u.userId) }))) {
             const ctx = { userId: u.userId, event: ch.gameId, week: ch.week, label: gameLabel };
             if (wantsFinal) tally(report.final, "not-followed", { ...ctx, type: "final" });
             else tally(report.scoring, "not-followed", { ...ctx, type: "score" });

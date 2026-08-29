@@ -10,9 +10,15 @@ import { FORMAT_LABELS } from "./lib/email-shell.mts";
 import { followsGame, deliverAlert, inLeadWindow, minutesUntil, lastCallSlots, type AlertUser } from "./lib/alerts.mts";
 import { createAlertLog } from "./lib/alertlog.mts";
 import { loadRegularWeeks, loadAllWeeks } from "./lib/schedule.mts";
+import { loadWeekFollows, sweepFollows } from "./lib/follows.mts";
 
 // @ts-ignore - plain JS UMD module, no type declarations
 import ScoringEngine from "../../js/scoringEngine.js";
+
+/** How far behind the current week follow keys get cleared. Three weeks is
+ *  well past any chance of a late re-score or a flexed week still being
+ *  worked on, and short enough that the namespace stays small. */
+const FOLLOW_SWEEP_LAG_WEEKS = 3;
 
 // Decides who is due for an email right now and sends it. Same
 // secret-header write-endpoint pattern as results-process.mts /
@@ -477,6 +483,51 @@ export default async (req: Request, _context: Context) => {
       report.kickoff.games = kickoffCandidates.map((c) => `${c.game.away}@${c.game.home}`);
       report.final.games = finalCandidates.map((c) => `${c.game.away}@${c.game.home}`);
 
+      // ---- Explicitly followed games -------------------------------------
+      // Only the weeks that actually produced a candidate, and only once
+      // something is in play - a tick with no kickoff and no final does no
+      // follow I/O at all, which is almost every tick.
+      const candidateWeeks = new Set<number>([
+        ...kickoffCandidates.map((c) => c.week),
+        ...finalCandidates.map((c) => c.week),
+      ]);
+      const followsByWeek = new Map<number, Map<string, Set<string>>>();
+      for (const w of candidateWeeks) {
+        followsByWeek.set(w, await loadWeekFollows(CURRENT_SEASON, w));
+      }
+      const followedBy = (week: number, userId: string) => followsByWeek.get(week)?.get(userId) || null;
+
+      // Someone who follows one game, has no starred team and belongs to no
+      // league is exactly who this feature is for - and the shared user list
+      // above drops them, because neither of the two things it filters on
+      // applies. Rather than widening that filter (which would put a follow
+      // lookup on every account on every tick, including the email passes
+      // that can't use one), the push pass tops the list up from the follow
+      // keys themselves, which already name their user.
+      const pushUsers: AlertUser[] = [...users];
+      const known = new Set(users.map((u) => u.userId));
+      for (const weekMap of followsByWeek.values()) {
+        for (const followerId of weekMap.keys()) {
+          if (known.has(followerId)) continue;
+          if (onlyUser && followerId !== onlyUser) continue;
+          known.add(followerId);
+          try {
+            const profile: any = await userStore.get(`users:${followerId}`, { type: "json" });
+            if (!profile?.email) continue;
+            pushUsers.push({
+              userId: followerId,
+              email: profile.email,
+              leagues: Array.isArray(profile.leagues) ? profile.leagues : [],
+              favorites: Array.isArray(profile?.settings?.favorites) ? profile.settings.favorites : [],
+              profile,
+            });
+          } catch (err) {
+            report.errors.push({ userId: followerId, stage: "follow-profile", error: err instanceof Error ? err.message : "unknown" });
+          }
+        }
+      }
+      report.followers = pushUsers.length - users.length;
+
       // ---- Kickoff --------------------------------------------------------
       for (const c of kickoffCandidates) {
         const gameId = makeGameId(CURRENT_SEASON, c.week, c.game.away, c.game.home);
@@ -491,12 +542,12 @@ export default async (req: Request, _context: Context) => {
 
         const kickLabel = `${c.game.away}@${c.game.home}`;
 
-        for (const u of users) {
+        for (const u of pushUsers) {
           const logCtx = { userId: u.userId, type: "kick", event: gameId, week: c.week, label: kickLabel };
           try {
             const prefs = await getPrefs(u.userId);
             if (!prefs.push.kickoff) { tally(report.kickoff, "off", logCtx); continue; }
-            if (!(await followsGame(u, prefs, CURRENT_SEASON, c.week, c.game, { leagueStore }))) {
+            if (!(await followsGame(u, prefs, CURRENT_SEASON, c.week, c.game, { leagueStore, followed: followedBy(c.week, u.userId) }))) {
               tally(report.kickoff, "not-followed", logCtx); continue;
             }
             const mins = minutesUntil(now, c.kickoff);
@@ -533,12 +584,12 @@ export default async (req: Request, _context: Context) => {
         const scoreLine = `${c.game.away} ${c.away}, ${c.game.home} ${c.home}`;
         const finalLabel = `${c.game.away}@${c.game.home}`;
 
-        for (const u of users) {
+        for (const u of pushUsers) {
           const logCtx = { userId: u.userId, type: "final", event: gameId, week: c.week, label: finalLabel };
           try {
             const prefs = await getPrefs(u.userId);
             if (!prefs.push.final) { tally(report.final, "off", logCtx); continue; }
-            if (!(await followsGame(u, prefs, CURRENT_SEASON, c.week, c.game, { leagueStore }))) {
+            if (!(await followsGame(u, prefs, CURRENT_SEASON, c.week, c.game, { leagueStore, followed: followedBy(c.week, u.userId) }))) {
               tally(report.final, "not-followed", logCtx); continue;
             }
 
@@ -658,6 +709,24 @@ export default async (req: Request, _context: Context) => {
             }
           }
         }
+      }
+    }
+
+    // ---- Housekeeping ------------------------------------------------------
+    // Blobs has no TTL, so the week-scoped follow keys need clearing or the
+    // namespace grows for the life of the site. This is housekeeping, not
+    // correctness: nothing reads a past week's follows, so a key that never
+    // gets swept still never alerts. Run a few weeks behind the current one
+    // so a flexed or re-scored week can't have its follows deleted out from
+    // under a tick that's still working on it, and only on a real pass -
+    // a dry run must not delete anything.
+    if (!dryRun && (!only || only === "push") && recapWeekNum !== null) {
+      const sweepWeek = recapWeekNum - FOLLOW_SWEEP_LAG_WEEKS;
+      if (sweepWeek > 0) {
+        try {
+          const swept = await sweepFollows(CURRENT_SEASON, sweepWeek);
+          if (swept) report.followsSwept = { week: sweepWeek, deleted: swept };
+        } catch { /* housekeeping never fails a pass */ }
       }
     }
 

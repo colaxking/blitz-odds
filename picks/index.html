@@ -2355,10 +2355,39 @@
     background: none; border: none; cursor: pointer; font-size: 0.76rem; font-weight: 700; font-family: inherit;
     color: var(--text);
   }
-  .gc-action:first-child:not(:only-child) { border-right: 1px solid var(--card-border); color: var(--accent); }
+  /* Scoped to the Add to League button by name rather than by position. It
+     used to be :first-child:not(:only-child), which was equivalent while
+     the row only ever held those two buttons - but the follow bell below
+     can appear without Add to League (a live game), and that selector would
+     then have painted "Full Details" in accent and hung a divider on the
+     wrong side of it. */
+  .gc-action[data-tour="add-to-league"] { border-right: 1px solid var(--card-border); color: var(--accent); }
   .gc-action:hover { background: rgba(var(--accent-rgb),0.08); }
   .gc-chevron { transition: transform 0.2s ease; display: inline-block; }
   .gc-chevron.expanded { transform: rotate(180deg); }
+
+  /* The follow bell sits last in the row and deliberately doesn't flex: the
+     two text buttons need the width more, and an icon toggle grown to a
+     third of a phone screen reads as a third equal action rather than a
+     switch attached to this card. */
+  .gc-follow {
+    flex: 0 0 auto; padding-left: 13px; padding-right: 13px;
+    border-left: 1px solid var(--card-border); color: var(--text-dim);
+  }
+  .gc-follow.is-following { color: var(--blitz-orange); }
+  .gc-follow:disabled { opacity: 0.5; cursor: default; }
+  .gc-follow-bell { display: inline-flex; align-items: center; }
+  /* Below 360px three controls genuinely don't fit. The label is what goes,
+     not the button: the bell keeps its aria-label, and it stays a 40px-wide
+     tap target rather than being dropped to a smaller one. */
+  @media (max-width: 359px) {
+    .gc-follow-label { display: none; }
+    /* Icon-only, so the label is no longer supplying width. Padded back out
+       to a 44px-wide target rather than left at the ~40px the icon alone
+       gives - height stays at the row's shared 36px, since making only this
+       button taller would misalign it against the two beside it. */
+    .gc-follow { padding-left: 15px; padding-right: 15px; }
+  }
 
   .full-details-panel { padding-top: 12px; display: flex; flex-direction: column; gap: 14px; }
   .full-details-panel .sec-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
@@ -2830,6 +2859,21 @@
     border: 1px solid var(--card-border); color: var(--text);
   }
   .notif-fav-chip .star { color: var(--star); font-size: 0.8rem; }
+
+  .notif-follow-list { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 10px; }
+  .notif-follow-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 10px; border-radius: 9px; background: var(--surface-2);
+    border: 1px solid var(--card-border);
+  }
+  .notif-follow-teams { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+  .notif-follow-when { font-size: 0.68rem; color: var(--text-dim); font-weight: 600; }
+  .notif-follow-drop {
+    background: none; border: none; font: inherit; font-size: 0.72rem; font-weight: 700;
+    color: var(--text-dim); cursor: pointer; padding: 4px 6px; flex-shrink: 0;
+  }
+  .notif-follow-drop:hover { color: var(--pill-bad-text); }
+  .notif-follow-drop:disabled { opacity: 0.5; cursor: default; }
   .notif-empty {
     font-size: 0.78rem; color: var(--text-dim); background: var(--surface-2);
     border: 1px dashed var(--card-border); border-radius: 9px; padding: 14px;
@@ -5256,7 +5300,7 @@
 <script type="application/json" id="players-data">
 {
   "isDemoData": false,
-  "disclaimer": "Injury statuses reflect training camp/preseason reports as of the evening of Aug. 27, 2026. New this run: Ravens WR Zay Flowers returned to practice Thursday without limitations after a left quad contusion and two precautionary days off, and is upgraded to active and expected to be ready for Week 1; Lions DE Payton Turner (back) and Buccaneers WR Dennis Houston (groin) were added after both reverted to injured reserve. Carrying over from earlier Thursday: Texans RT Braden Smith is out with a plantar fascia injury - Adam Schefter reports he could miss \"a few weeks,\" though it is not considered long-term, with Trent Brown expected to start in his place; Colts WR Alec Pierce was activated off the active/PUP list Thursday and is now active after late-March ankle surgery; Packers RB Josh Jacobs' entry was corrected to reflect his actual groin-injury timeline after an automated note about an unrelated off-field matter. Still unresolved: 49ers Edge Nick Bosa (knee tendinitis) and WR Mike Evans (groin) remain sidelined, with Kyle Shanahan hoping to have them back at practice next week; Bengals WR Ja'Marr Chase is still described as fine after a minor left-knee hyperextension but had not been confirmed back at practice as of Thursday evening; Giants WR Malik Nabers is trending toward Week 1; Raiders RB Ashton Jeanty is practicing again on a sprained ankle with no firm timeline. The Aug. 30 cutdown to 53 players may change several entries. Impact scores are editorial estimates, not official ratings.",
+  "disclaimer": "Injury statuses reflect training camp/preseason reports as of Friday evening, Aug. 28, 2026. New this run: Titans WR Wan'Dale Robinson was upgraded from questionable to active after Ian Rapoport reported Friday that he is not believed to have suffered a concussion in Thursday's joint practice with Chicago, with the team still monitoring for symptoms; Seahawks rookie S Bud Clark was added as out after breaking his ankle on the first defensive snap of the Aug. 23 preseason game at Tennessee - HC Mike Macdonald said he'll miss multiple months and Seattle placed him on injured reserve Aug. 25. Detail update: Falcons QB Michael Penix Jr. will not play in Friday's preseason finale at Miami (only three full practices back from ACL surgery, with Tua Tagovailoa expected to start), and Atlanta still has not named a Week 1 starter. Unchanged after Friday checks: 49ers Edge Nick Bosa is still not practicing but is hoped back next week, 49ers WR Mike Evans still plans to play Week 1 with a groin issue considered minor, Bengals WR Ja'Marr Chase's minor left-knee hyperextension kept him out of Friday's practice as a precaution but he remains active, Raiders RB Ashton Jeanty's ankle sprain has no firm Week 1 timeline, Giants WR Malik Nabers is still trending toward Week 1, and Texans RT Braden Smith could miss \"a few weeks.\" Packers RB Josh Jacobs is facing misdemeanor charges; no league discipline has been announced, so his status remains tied only to his groin strain. The Aug. 30 cutdown to 53 players may change several entries. Impact scores are editorial estimates, not official ratings.",
   "players": {
     "NE": [
       {
@@ -5293,6 +5337,34 @@
         "espnId": "4869523",
         "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
         "source": "curated"
+      },
+      {
+        "name": "Zach Charbonnet",
+        "position": "RB",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Torn ACL (surgically repaired)",
+          "since": "2026-01",
+          "note": "Charbonnet tore his ACL in the playoff loss to San Francisco and had surgery in February. Seattle opened camp by placing him on the PUP list July 24, and reporting points to a return around midseason rather than Week 1."
+        },
+        "espnId": "4426385",
+        "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
+        "source": "curated"
+      },
+      {
+        "name": "Bud Clark",
+        "position": "S",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Broken ankle - on injured reserve",
+          "since": "2026-08-23",
+          "note": "Broke his ankle on Seattle's first defensive snap of the Aug. 23 preseason game at Tennessee and was carted off in an air cast. HC Mike Macdonald said Clark will be out multiple months; the Seahawks placed him on injured reserve Aug. 25 along with OL Mason Richman. The second-round rookie out of TCU had been pushing for the starting free safety job and a significant defensive role."
+        },
+        "statusUpdatedAt": "2026-08-29T01:05:00.000Z",
+        "source": "curated",
+        "espnId": "4430262"
       }
     ],
     "SF": [
@@ -5357,10 +5429,10 @@
         "injury": {
           "type": "Groin strain (also missed time with a quad strain)",
           "since": "2026-08-23",
-          "note": "The 49ers announced Aug. 25 that Evans is dealing with a groin injury after he left Sunday's practice early. He did not practice again Wednesday, Aug. 26; HC Kyle Shanahan described it as a tight groin and said he hopes to have Evans back at practice next week. Evans had already missed camp time with a quad strain in the same leg; it's unclear whether the two are related. No firm return timetable with the Sept. 10 opener vs. the Rams in Australia approaching."
+          "note": "ESPN's Jeremy Fowler reported Aug. 26 that Evans plans to play in the Sept. 10 opener vs. the Rams in Melbourne, and that the groin issue is considered minor barring a change. He had already missed camp time with a quad strain in the same leg and had not returned to practice as of Wednesday; HC Kyle Shanahan said he hopes to have Evans back at practice this coming week."
         },
         "espnId": "16737",
-        "statusUpdatedAt": "2026-08-27T01:15:00.000Z",
+        "statusUpdatedAt": "2026-08-28T17:10:00.000Z",
         "source": "curated"
       },
       {
@@ -5371,10 +5443,10 @@
         "injury": {
           "type": "Knee tendinitis (surgically repaired right knee)",
           "since": "2026-08-03",
-          "note": "Dealing with soreness and tendinitis in the knee he had surgically repaired for a torn ACL in 2025; has not practiced since Aug. 3, including Wednesday, Aug. 26. HC Kyle Shanahan again downplayed it and said the plan is to get Bosa back into practice next week. Shanahan has called the tendinitis a normal part of ACL recovery seen in roughly 90% of players; the goal remains for Bosa to play Week 1 vs. the Rams on Sept. 10."
+          "note": "Has not practiced since Aug. 3 with soreness and tendinitis in the right knee he had surgically repaired for a torn ACL in 2025. HC Kyle Shanahan said this week that Bosa has a lot less irritation and soreness than a week ago and is \"going in the right direction,\" with the club hoping he returns to practice shortly after the preseason finale. Shanahan has described him as week-to-week; Week 1 vs. the Rams on Sept. 10 remains the target but is not assured."
         },
         "espnId": "4040605",
-        "statusUpdatedAt": "2026-08-27T01:15:00.000Z",
+        "statusUpdatedAt": "2026-08-28T17:10:00.000Z",
         "source": "curated"
       },
       {
@@ -5386,9 +5458,9 @@
         "injury": {
           "type": "Undisclosed",
           "since": "2026-08-27",
-          "note": null
+          "note": "Placed on injured reserve Aug. 27, per the NFL transaction wire. The team has not disclosed the injury. San Francisco signed DE Jah Joyner the same day."
         },
-        "statusUpdatedAt": "2026-08-28T13:44:28.632Z",
+        "statusUpdatedAt": "2026-08-28T17:10:00.000Z",
         "source": "curated"
       }
     ],
@@ -5602,9 +5674,9 @@
         "injury": {
           "type": "Left knee hyperextension (minor)",
           "since": "2026-08-25",
-          "note": "Landed awkwardly on a Joe Burrow throw at Tuesday's (Aug. 25) practice, briefly went down and limped to the sideline, but walked off under his own power. Chase called it a \"little hyperextension\" afterward and said he was \"good\" - \"If I had a game tomorrow, I'd play.\" Per NFL.com's Wednesday, Aug. 26 roundup he sat out Wednesday's practice, which appears to be precautionary rather than a setback; reporting still describes him as fine. Cincinnati's starters are not expected to play in Friday's preseason finale, and the Sept. 13 opener vs. Tampa Bay is still 18 days out."
+          "note": "Left Tuesday's practice early after landing awkwardly on a catch attempt and grabbing his left knee. Chase said afterward he is \"good\" and called it \"a little hyperextension\"; he watched Wednesday's session in street clothes. The Bengals have not issued an official diagnosis. He was already expected to sit the Aug. 28 preseason finale with the rest of the starters, and Cincinnati does not open until Sept. 13."
         },
-        "statusUpdatedAt": "2026-08-26T17:00Z",
+        "statusUpdatedAt": "2026-08-28T17:10:00.000Z",
         "source": "curated",
         "espnId": "4362628"
       },
@@ -5660,6 +5732,20 @@
         "espnId": "4242431",
         "statusUpdatedAt": "2026-08-27T01:30:23.026Z",
         "source": "curated"
+      },
+      {
+        "name": "Bryan Bresee",
+        "position": "DT",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Torn ACL - season-ending",
+          "since": "2026-08",
+          "note": "Bresee tore his ACL in an early training-camp practice and was placed on injured reserve Aug. 7 ahead of surgery. He is out for 2026 and targeting full health for 2027; John Ridgeway is expected to start in his place."
+        },
+        "espnId": "4428988",
+        "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -5699,6 +5785,20 @@
         },
         "statusUpdatedAt": "2026-08-27T23:06Z",
         "source": "auto"
+      },
+      {
+        "name": "Isiah Pacheco",
+        "position": "RB",
+        "impactScore": 5,
+        "status": "questionable",
+        "espnId": "4361529",
+        "injury": {
+          "type": "Back injury (on top of an MCL sprain)",
+          "since": "2026-08-27",
+          "note": "HC Dan Campbell said Thursday that Pacheco is now dealing with a back injury and is uncertain for Week 1 - \"I can't give you anything definitive.\" Campbell indicated the earlier MCL sprain is no longer the concern. Detroit worked out free-agent RB Kareem Hunt earlier in the week."
+        },
+        "statusUpdatedAt": "2026-08-28T17:10:00.000Z",
+        "source": "curated"
       }
     ],
     "BUF": [
@@ -5964,18 +6064,13 @@
         "source": "curated"
       },
       {
-        "name": "Devon Marshall",
-        "position": "CB",
-        "espnId": "5083287",
-        "impactScore": 4,
-        "status": "questionable",
-        "injury": {
-          "type": "Undisclosed",
-          "since": "2026-08-27",
-          "note": null
-        },
-        "statusUpdatedAt": "2026-08-28T13:45:21.033Z",
-        "source": "curated"
+        "name": "Brian Thomas Jr.",
+        "position": "WR",
+        "impactScore": 8,
+        "status": "active",
+        "statusUpdatedAt": "2026-08-28T17:10:00.000Z",
+        "source": "curated",
+        "espnId": "4432773"
       }
     ],
     "ATL": [
@@ -5996,10 +6091,10 @@
         "injury": {
           "type": "ACL reconstruction (left knee)",
           "since": "2025-11-25",
-          "note": "Recovering from left knee ACL surgery on Nov. 25 (his third career ACL surgery). Cleared by doctors Aug. 21 to return to 11-on-11 team periods, and split first-team reps with Tua Tagovailoa at Monday's (Aug. 24) practice. HC Kevin Stefanski said starters will play in Friday's preseason finale vs. Miami but was unsure whether Penix would appear. Penix has said full medical clearance could still be about four weeks away, and no Week 1 starter has been named."
+          "note": "Recovering from left knee ACL surgery on Nov. 25 (his third career ACL surgery). Cleared by doctors Aug. 21 to return to 11-on-11 team periods and joined team drills Monday, Aug. 24. HC Kevin Stefanski confirmed Wednesday that Penix will NOT play in Friday's preseason finale at Miami - Penix agreed, saying that with only three full practices in, playing would be \"too soon\" - and Tua Tagovailoa is expected to start that game. No Week 1 starter has been named and Stefanski gave no timeline for the QB1 call, though Penix says he remains confident he'll be ready for Week 1."
         },
         "espnId": "4360423",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
+        "statusUpdatedAt": "2026-08-29T01:05:00.000Z",
         "source": "curated"
       },
       {
@@ -6079,20 +6174,6 @@
         },
         "statusUpdatedAt": "2026-08-20T00:23Z",
         "source": "auto"
-      },
-      {
-        "name": "Caullin Lacy",
-        "position": "WR",
-        "espnId": "4430185",
-        "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Undisclosed",
-          "since": "2026-08-28",
-          "note": null
-        },
-        "statusUpdatedAt": "2026-08-28T21:44:42.886Z",
-        "source": "curated"
       }
     ],
     "TEN": [
@@ -6103,6 +6184,20 @@
         "status": "active",
         "espnId": "4688380",
         "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
+        "source": "curated"
+      },
+      {
+        "name": "Wan'Dale Robinson",
+        "position": "WR",
+        "impactScore": 6,
+        "status": "active",
+        "espnId": "4569587",
+        "injury": {
+          "type": "Concussion evaluation - cleared, no concussion believed",
+          "since": "2026-08-27",
+          "note": "Ian Rapoport reported Friday, Aug. 28 that Robinson is not believed to have suffered a concussion after Thursday's hard hit from Bears S Xavier Woods in joint practice, calling the early indications positive. Tennessee will keep monitoring him in case symptoms surface. HC Robert Saleh, who called the hit \"cheap,\" remains optimistic Robinson is ready for Week 1."
+        },
+        "statusUpdatedAt": "2026-08-29T01:05:00.000Z",
         "source": "curated"
       }
     ],
@@ -6202,9 +6297,9 @@
         "injury": {
           "type": "Undisclosed",
           "since": "2026-08-27",
-          "note": null
+          "note": "Reverted to injured reserve Aug. 27 after clearing waivers with an injury designation, ending his 2026 season with Miami barring a settlement. The injury has not been disclosed."
         },
-        "statusUpdatedAt": "2026-08-28T13:44:47.332Z",
+        "statusUpdatedAt": "2026-08-28T17:10:00.000Z",
         "source": "curated"
       }
     ],
@@ -6337,6 +6432,20 @@
         },
         "statusUpdatedAt": "2026-08-27T21:15:00.000Z",
         "source": "curated"
+      },
+      {
+        "name": "Jamal Adams",
+        "position": "S",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Torn right quadriceps tendon - season-ending",
+          "since": "2026-08-15",
+          "note": "Adams went down without contact in coverage during the Aug. 15 preseason game at the Giants and was carted off. Testing confirmed a torn right quad tendon and Minnesota placed him on injured reserve Aug. 17, ending his season."
+        },
+        "espnId": "3115373",
+        "statusUpdatedAt": "2026-08-29T01:30:25.665Z",
+        "source": "curated"
       }
     ],
     "WAS": [
@@ -6445,10 +6554,10 @@
         "injury": {
           "type": "ACL + meniscus recovery (right knee)",
           "since": "2025-09",
-          "note": "Recovering from a torn ACL/meniscus suffered in Week 4 last season vs. the Chargers, plus a follow-up spring surgery to clear scar tissue. Shed the red non-contact jersey Aug. 24 and practiced in a white (contact) jersey for a second straight day Wednesday, Aug. 26, handling what the team called a full workload. He left roughly 20 minutes early with trainers, but HC John Harbaugh said the medical staff raised no concerns afterward and that it is \"reasonable to assume\" Nabers plays in the Sept. 13 opener vs. Dallas."
+          "note": "Recovering from the torn right ACL and meniscus damage suffered in September 2025. Shed the red non-contact jersey for the first time on Aug. 25 and took reps in both 7-on-7 and 11-on-11, catching passes in each. HC John Harbaugh said it is \"reasonable to assume\" Nabers plays in the Sept. 13 opener vs. Dallas but has not committed either way; the remaining step is live contact work."
         },
         "espnId": "4595348",
-        "statusUpdatedAt": "2026-08-27T01:15:00.000Z",
+        "statusUpdatedAt": "2026-08-28T17:10:00.000Z",
         "source": "curated"
       },
       {
@@ -11625,7 +11734,7 @@
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
 <script type="text/babel" data-presets="react">
-const { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback } = React;
+const { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback, useSyncExternalStore } = React;
 
 // These six all start out pointing at whatever was embedded in the page at
 // last deploy, and are `let` (not `const`) so useLiveSiteData() below can
@@ -14858,6 +14967,32 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   const [fullDetailsOpen, setFullDetailsOpen] = useState(false);
   const [showAddToLeague, setShowAddToLeague] = useState(false);
 
+  // Following one specific game, for this week only. Offered right up until
+  // the final whistle rather than only before kickoff: subscribing before
+  // the game is the main case (you then get kickoff, scoring and the final,
+  // whichever of those your Alerts settings has on), but someone who tunes
+  // into a game already in progress can still ask for the rest of it. Once
+  // it's final there's no alert left to deliver, so the bell goes.
+  const gameFollowId = window.GameId.makeGameId(seasonYear, week, game.away, game.home);
+  const { followed: followedGames, toggle: toggleGameFollow, busy: followBusy } = useGameFollows(auth, week);
+  const signedIn = !!(auth && auth.status === "in");
+  const isFollowing = !!(followedGames && followedGames.has(gameFollowId));
+  const canFollowGame = !isFinal;
+  // Disabled, not hidden, until the week's follows have loaded - a bell that
+  // says "not following" before it knows is a control that lies, and this
+  // one is about whether a phone buzzes.
+  const followPending = signedIn && followedGames === null;
+
+  function handleFollowClick() {
+    if (!signedIn) {
+      // Nothing to attach a follow to without an account, and no device
+      // registered to send it to. Same landing as Add to League.
+      auth && auth.openSignup && auth.openSignup();
+      return;
+    }
+    toggleGameFollow(gameFollowId, !isFollowing);
+  }
+
   function handleAddToLeagueClick() {
     if (auth && auth.status === "in") {
       setShowAddToLeague(true);
@@ -14995,6 +15130,26 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           Full Details &amp; History
           <span className={"gc-chevron" + (fullDetailsOpen ? " expanded" : "")}>▾</span>
         </button>
+        {canFollowGame && (
+          <button
+            type="button"
+            className={"gc-action gc-follow" + (isFollowing ? " is-following" : "")}
+            data-tour="follow-game"
+            data-away={game.away}
+            data-home={game.home}
+            data-week={week}
+            aria-pressed={isFollowing}
+            disabled={followPending || followBusy === gameFollowId}
+            title={isFollowing
+              ? "You're getting alerts for this game this week. Tap to stop."
+              : "Get alerts for this game this week"}
+            aria-label={isFollowing ? "Stop alerts for this game" : "Get alerts for this game"}
+            onClick={handleFollowClick}
+          >
+            <span className="gc-follow-bell"><BellIcon filled={isFollowing} /></span>
+            <span className="gc-follow-label">{isFollowing ? "Following" : "Alert me"}</span>
+          </button>
+        )}
       </div>
 
       {fullDetailsOpen && (
@@ -18751,6 +18906,96 @@ function writeCachedNotifPrefs(userId, prefs) {
   try { window.localStorage.setItem(NOTIF_PREFS_CACHE_KEY(userId), JSON.stringify(prefs)); } catch (e) {}
 }
 
+// The games this account is following right now, inside the Alerts tab.
+//
+// The bell on a game card is the only way to ADD one, and deliberately so -
+// picking a game out of a list in Settings is a worse version of scrolling
+// the slate. What Settings is for is the question the card can't answer:
+// "what am I currently signed up for?" Without this, someone who tapped
+// three bells on Sunday morning has no way to see or undo that without
+// finding all three cards again.
+//
+// Scoped to the current week because that's the whole extent of a follow -
+// there is no later week to show, by construction.
+function FollowedGamesRow({ auth, tz }) {
+  const week = useMemo(() => getDefaultWeek(), []);
+  const { followed, toggle, busy, error } = useGameFollows(auth, week);
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+
+  const rows = useMemo(() => {
+    if (!followed || !followed.size) return [];
+    return getGamesForWeek(week)
+      .map((g) => ({ game: g, id: window.GameId.makeGameId(seasonYear, week, g.away, g.home) }))
+      .filter((r) => followed.has(r.id));
+  }, [followed, week, seasonYear]);
+
+  // A followed game that's no longer in the schedule - a flexed or
+  // rescheduled matchup - would otherwise vanish from this list while its
+  // key stayed in the store, leaving someone unable to turn off alerts they
+  // can still receive. Show the id so there's still a way to drop it.
+  const orphans = useMemo(() => {
+    if (!followed || !followed.size) return [];
+    const known = new Set(rows.map((r) => r.id));
+    return [...followed].filter((id) => !known.has(id));
+  }, [followed, rows]);
+
+  return (
+    <div className="notif-row">
+      <div className="notif-row-body">
+        <p className="notif-row-name">Following this week</p>
+        <p className="notif-row-desc">
+          Single games you asked for alerts on. These clear themselves when the week ends.
+        </p>
+        {followed === null ? (
+          <p className="notif-row-desc">Loading…</p>
+        ) : rows.length === 0 && orphans.length === 0 ? (
+          <div className="notif-empty">
+            No individual games followed. Tap <b>Alert me</b> on any game card to add one.
+          </div>
+        ) : (
+          <div className="notif-follow-list">
+            {rows.map(({ game, id }) => {
+              const when = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
+              return (
+                <div className="notif-follow-row" key={id}>
+                  <span>
+                    <span className="notif-follow-teams">{game.away} @ {game.home}</span>
+                    {when && when.date && (
+                      <span className="notif-follow-when"> · {when.date}{when.time ? " " + when.time : ""}</span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    className="notif-follow-drop"
+                    disabled={busy === id}
+                    onClick={() => toggle(id, false)}
+                  >
+                    {busy === id ? "…" : "Remove"}
+                  </button>
+                </div>
+              );
+            })}
+            {orphans.map((id) => (
+              <div className="notif-follow-row" key={id}>
+                <span className="notif-follow-teams">{id}</span>
+                <button
+                  type="button"
+                  className="notif-follow-drop"
+                  disabled={busy === id}
+                  onClick={() => toggle(id, false)}
+                >
+                  {busy === id ? "…" : "Remove"}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        {error && <p className="notif-row-desc" style={{ color: "var(--pill-bad-text)" }}>{error}</p>}
+      </div>
+    </div>
+  );
+}
+
 function NotificationsTab({ auth, resolvedTz, favorites }) {
   const userId = (auth.user && auth.user.id) || null;
   // Seeded, never null - the panel renders on the first frame. `loaded`
@@ -19128,7 +19373,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
         <div className="notif-row">
           <div className="notif-row-body">
             <p className="notif-row-name">Which games</p>
-            <p className="notif-row-desc">Everything above applies to these.</p>
+            <p className="notif-row-desc">Everything above applies to these, plus any single game you follow from its card.</p>
             <NotifSegmented
               label="Which games to follow"
               value={prefs.push.scope}
@@ -19142,6 +19387,8 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
             />
           </div>
         </div>
+
+        <FollowedGamesRow auth={auth} tz={resolvedTz} />
       </div>
 
       {/* ---- Your teams ---- */}
@@ -20943,6 +21190,121 @@ function prefetchLeagueWeek(auth, leagueId, week) {
   const key = leagueWeekKey(leagueId, week);
   if (leagueWeekCache.has(key) || leagueWeekInflight.has(key)) return;
   fetchLeagueWeek(auth, leagueId, week).catch(() => {});
+}
+
+// ---- Followed games -------------------------------------------------------
+// "Alert me about THIS game, this week." Favourites and picks both answer
+// "which games" indirectly - a team you like, a game you staked something
+// on - and neither covers wanting one specific game without inheriting a
+// team's whole season.
+//
+// An external store rather than per-component state, because the same week's
+// follows are read by every game card on screen at once plus the Alerts tab.
+// With state-per-card, toggling the bell on one card would leave the Alerts
+// tab (and a second card for the same game, e.g. Games and Playbook rendered
+// together) showing the old answer until something remounted. One store, one
+// fetch per week, every reader re-renders on change.
+//
+// Week-scoped to match the server: follows live under follow:{season}:{week}
+// and don't carry forward, so the client caches by week for the same reason
+// and never has to expire anything.
+const gameFollowStore = {
+  byWeek: new Map(),        // week -> Set of gameIds
+  inflight: new Map(),      // week -> in-flight promise, so N cards cause 1 fetch
+  listeners: new Set(),
+  // useSyncExternalStore compares snapshots by identity, so a Set mutated in
+  // place would never look changed. A counter bumped on every write is the
+  // simplest snapshot that always does.
+  version: 0,
+  subscribe(fn) {
+    gameFollowStore.listeners.add(fn);
+    return () => gameFollowStore.listeners.delete(fn);
+  },
+  getVersion() { return gameFollowStore.version; },
+  emit() {
+    gameFollowStore.version++;
+    for (const fn of Array.from(gameFollowStore.listeners)) fn();
+  },
+  set(week, gameIds) {
+    gameFollowStore.byWeek.set(week, new Set(gameIds || []));
+    gameFollowStore.emit();
+  },
+  get(week) { return gameFollowStore.byWeek.get(week) || null; },
+};
+
+function clearGameFollowCache() {
+  gameFollowStore.byWeek.clear();
+  gameFollowStore.inflight.clear();
+  gameFollowStore.emit();
+}
+
+/** One GET per week per session, shared by every caller. */
+function loadGameFollows(auth, week) {
+  if (!auth || auth.status !== "in" || week == null) return Promise.resolve(null);
+  if (gameFollowStore.byWeek.has(week)) return Promise.resolve(gameFollowStore.get(week));
+  const existing = gameFollowStore.inflight.get(week);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    const res = await auth.authenticatedFetch(`/.netlify/functions/game-follow?week=${encodeURIComponent(week)}`);
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't load followed games");
+    gameFollowStore.set(week, data.games);
+    return gameFollowStore.get(week);
+  })();
+
+  gameFollowStore.inflight.set(week, promise);
+  promise.catch(() => {}).then(() => { gameFollowStore.inflight.delete(week); });
+  return promise;
+}
+
+/**
+ * Follows for one week, plus a toggle.
+ *
+ * `followed` is null until the first load lands, which is what lets the bell
+ * render disabled rather than rendering "not following" and then flipping -
+ * a toggle that lies for a moment is worse than one that's briefly inert,
+ * because the lie is the state someone might act on.
+ */
+function useGameFollows(auth, week) {
+  const signedIn = !!(auth && auth.status === "in");
+  useSyncExternalStore(gameFollowStore.subscribe, gameFollowStore.getVersion, gameFollowStore.getVersion);
+  const [busy, setBusy] = useState(null);     // gameId currently in flight
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!signedIn || week == null) return;
+    loadGameFollows(auth, week).catch(() => {});
+  }, [auth, signedIn, week]);
+
+  const followed = signedIn && week != null ? gameFollowStore.get(week) : null;
+
+  const toggle = useCallback(async (gameId, next) => {
+    if (!signedIn || week == null || !gameId) return false;
+    setBusy(gameId);
+    setError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/game-follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ week, gameId, follow: next }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't update that");
+      // The server's list, not an optimistic guess. It's the only thing that
+      // knows about the per-week cap and about a game that has since ended,
+      // both of which come back as a refusal rather than a new list.
+      gameFollowStore.set(week, data.games);
+      return true;
+    } catch (err) {
+      setError(err.message || "Couldn't update that");
+      return false;
+    } finally {
+      setBusy(null);
+    }
+  }, [auth, signedIn, week]);
+
+  return { followed, toggle, busy, error, clearError: () => setError(null) };
 }
 
 function useMyLeagues(auth) {
@@ -24911,6 +25273,32 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSel
   );
 }
 
+// Inline SVG rather than the 🔔/🔕 emoji. An emoji renders in its own fixed
+// colours on every platform, so the "not following" state came out in full
+// colour and read as already switched on - a bad failure for a control whose
+// whole job is telling you whether a phone is going to buzz. This inherits
+// currentColor, so off is the same muted grey as the rest of the row and on
+// is Blitz orange, and it looks the same across platforms rather than
+// changing shape between Apple, Google and Windows emoji fonts.
+function BellIcon({ size = 13, filled = false }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M8 1.9a4.2 4.2 0 0 0-4.2 4.2c0 3.1-1 4-1.4 4.4a.5.5 0 0 0 .35.9h10.5a.5.5 0 0 0 .35-.9c-.4-.4-1.4-1.3-1.4-4.4A4.2 4.2 0 0 0 8 1.9Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+        fill={filled ? "currentColor" : "none"}
+      />
+      <path d="M6.4 13.4a1.75 1.75 0 0 0 3.2 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+      {/* The struck-through state needs a second signal beyond colour, since
+          colour alone is already flagged as a gap on this card for the
+          winner highlight. */}
+      {!filled && <path d="M2.4 2.4l11.2 11.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />}
+    </svg>
+  );
+}
+
 function GlobeIcon({ size = 11 }) {
   return (
     <svg className="intl-icon" width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -27508,6 +27896,8 @@ function useAuth() {
       // briefly render the previous account's leagues, picks and standings
       // from cache before its own fetches landed.
       clearLeagueCaches();
+      // Same reasoning, same lifetime problem: followed games are per account.
+      clearGameFollowCache();
     }
     function onWidgetOpen() {
       widgetShouldBeOpen = true;

@@ -2355,10 +2355,39 @@
     background: none; border: none; cursor: pointer; font-size: 0.76rem; font-weight: 700; font-family: inherit;
     color: var(--text);
   }
-  .gc-action:first-child:not(:only-child) { border-right: 1px solid var(--card-border); color: var(--accent); }
+  /* Scoped to the Add to League button by name rather than by position. It
+     used to be :first-child:not(:only-child), which was equivalent while
+     the row only ever held those two buttons - but the follow bell below
+     can appear without Add to League (a live game), and that selector would
+     then have painted "Full Details" in accent and hung a divider on the
+     wrong side of it. */
+  .gc-action[data-tour="add-to-league"] { border-right: 1px solid var(--card-border); color: var(--accent); }
   .gc-action:hover { background: rgba(var(--accent-rgb),0.08); }
   .gc-chevron { transition: transform 0.2s ease; display: inline-block; }
   .gc-chevron.expanded { transform: rotate(180deg); }
+
+  /* The follow bell sits last in the row and deliberately doesn't flex: the
+     two text buttons need the width more, and an icon toggle grown to a
+     third of a phone screen reads as a third equal action rather than a
+     switch attached to this card. */
+  .gc-follow {
+    flex: 0 0 auto; padding-left: 13px; padding-right: 13px;
+    border-left: 1px solid var(--card-border); color: var(--text-dim);
+  }
+  .gc-follow.is-following { color: var(--blitz-orange); }
+  .gc-follow:disabled { opacity: 0.5; cursor: default; }
+  .gc-follow-bell { display: inline-flex; align-items: center; }
+  /* Below 360px three controls genuinely don't fit. The label is what goes,
+     not the button: the bell keeps its aria-label, and it stays a 40px-wide
+     tap target rather than being dropped to a smaller one. */
+  @media (max-width: 359px) {
+    .gc-follow-label { display: none; }
+    /* Icon-only, so the label is no longer supplying width. Padded back out
+       to a 44px-wide target rather than left at the ~40px the icon alone
+       gives - height stays at the row's shared 36px, since making only this
+       button taller would misalign it against the two beside it. */
+    .gc-follow { padding-left: 15px; padding-right: 15px; }
+  }
 
   .full-details-panel { padding-top: 12px; display: flex; flex-direction: column; gap: 14px; }
   .full-details-panel .sec-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin: 0 0 8px; }
@@ -2830,6 +2859,21 @@
     border: 1px solid var(--card-border); color: var(--text);
   }
   .notif-fav-chip .star { color: var(--star); font-size: 0.8rem; }
+
+  .notif-follow-list { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 10px; }
+  .notif-follow-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 10px; border-radius: 9px; background: var(--surface-2);
+    border: 1px solid var(--card-border);
+  }
+  .notif-follow-teams { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+  .notif-follow-when { font-size: 0.68rem; color: var(--text-dim); font-weight: 600; }
+  .notif-follow-drop {
+    background: none; border: none; font: inherit; font-size: 0.72rem; font-weight: 700;
+    color: var(--text-dim); cursor: pointer; padding: 4px 6px; flex-shrink: 0;
+  }
+  .notif-follow-drop:hover { color: var(--pill-bad-text); }
+  .notif-follow-drop:disabled { opacity: 0.5; cursor: default; }
   .notif-empty {
     font-size: 0.78rem; color: var(--text-dim); background: var(--surface-2);
     border: 1px dashed var(--card-border); border-radius: 9px; padding: 14px;
@@ -11738,7 +11782,7 @@
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
 <script type="text/babel" data-presets="react">
-const { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback } = React;
+const { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback, useSyncExternalStore } = React;
 
 // These six all start out pointing at whatever was embedded in the page at
 // last deploy, and are `let` (not `const`) so useLiveSiteData() below can
@@ -14971,6 +15015,32 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   const [fullDetailsOpen, setFullDetailsOpen] = useState(false);
   const [showAddToLeague, setShowAddToLeague] = useState(false);
 
+  // Following one specific game, for this week only. Offered right up until
+  // the final whistle rather than only before kickoff: subscribing before
+  // the game is the main case (you then get kickoff, scoring and the final,
+  // whichever of those your Alerts settings has on), but someone who tunes
+  // into a game already in progress can still ask for the rest of it. Once
+  // it's final there's no alert left to deliver, so the bell goes.
+  const gameFollowId = window.GameId.makeGameId(seasonYear, week, game.away, game.home);
+  const { followed: followedGames, toggle: toggleGameFollow, busy: followBusy } = useGameFollows(auth, week);
+  const signedIn = !!(auth && auth.status === "in");
+  const isFollowing = !!(followedGames && followedGames.has(gameFollowId));
+  const canFollowGame = !isFinal;
+  // Disabled, not hidden, until the week's follows have loaded - a bell that
+  // says "not following" before it knows is a control that lies, and this
+  // one is about whether a phone buzzes.
+  const followPending = signedIn && followedGames === null;
+
+  function handleFollowClick() {
+    if (!signedIn) {
+      // Nothing to attach a follow to without an account, and no device
+      // registered to send it to. Same landing as Add to League.
+      auth && auth.openSignup && auth.openSignup();
+      return;
+    }
+    toggleGameFollow(gameFollowId, !isFollowing);
+  }
+
   function handleAddToLeagueClick() {
     if (auth && auth.status === "in") {
       setShowAddToLeague(true);
@@ -15108,6 +15178,26 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           Full Details &amp; History
           <span className={"gc-chevron" + (fullDetailsOpen ? " expanded" : "")}>▾</span>
         </button>
+        {canFollowGame && (
+          <button
+            type="button"
+            className={"gc-action gc-follow" + (isFollowing ? " is-following" : "")}
+            data-tour="follow-game"
+            data-away={game.away}
+            data-home={game.home}
+            data-week={week}
+            aria-pressed={isFollowing}
+            disabled={followPending || followBusy === gameFollowId}
+            title={isFollowing
+              ? "You're getting alerts for this game this week. Tap to stop."
+              : "Get alerts for this game this week"}
+            aria-label={isFollowing ? "Stop alerts for this game" : "Get alerts for this game"}
+            onClick={handleFollowClick}
+          >
+            <span className="gc-follow-bell"><BellIcon filled={isFollowing} /></span>
+            <span className="gc-follow-label">{isFollowing ? "Following" : "Alert me"}</span>
+          </button>
+        )}
       </div>
 
       {fullDetailsOpen && (
@@ -18864,6 +18954,96 @@ function writeCachedNotifPrefs(userId, prefs) {
   try { window.localStorage.setItem(NOTIF_PREFS_CACHE_KEY(userId), JSON.stringify(prefs)); } catch (e) {}
 }
 
+// The games this account is following right now, inside the Alerts tab.
+//
+// The bell on a game card is the only way to ADD one, and deliberately so -
+// picking a game out of a list in Settings is a worse version of scrolling
+// the slate. What Settings is for is the question the card can't answer:
+// "what am I currently signed up for?" Without this, someone who tapped
+// three bells on Sunday morning has no way to see or undo that without
+// finding all three cards again.
+//
+// Scoped to the current week because that's the whole extent of a follow -
+// there is no later week to show, by construction.
+function FollowedGamesRow({ auth, tz }) {
+  const week = useMemo(() => getDefaultWeek(), []);
+  const { followed, toggle, busy, error } = useGameFollows(auth, week);
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+
+  const rows = useMemo(() => {
+    if (!followed || !followed.size) return [];
+    return getGamesForWeek(week)
+      .map((g) => ({ game: g, id: window.GameId.makeGameId(seasonYear, week, g.away, g.home) }))
+      .filter((r) => followed.has(r.id));
+  }, [followed, week, seasonYear]);
+
+  // A followed game that's no longer in the schedule - a flexed or
+  // rescheduled matchup - would otherwise vanish from this list while its
+  // key stayed in the store, leaving someone unable to turn off alerts they
+  // can still receive. Show the id so there's still a way to drop it.
+  const orphans = useMemo(() => {
+    if (!followed || !followed.size) return [];
+    const known = new Set(rows.map((r) => r.id));
+    return [...followed].filter((id) => !known.has(id));
+  }, [followed, rows]);
+
+  return (
+    <div className="notif-row">
+      <div className="notif-row-body">
+        <p className="notif-row-name">Following this week</p>
+        <p className="notif-row-desc">
+          Single games you asked for alerts on. These clear themselves when the week ends.
+        </p>
+        {followed === null ? (
+          <p className="notif-row-desc">Loading…</p>
+        ) : rows.length === 0 && orphans.length === 0 ? (
+          <div className="notif-empty">
+            No individual games followed. Tap <b>Alert me</b> on any game card to add one.
+          </div>
+        ) : (
+          <div className="notif-follow-list">
+            {rows.map(({ game, id }) => {
+              const when = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
+              return (
+                <div className="notif-follow-row" key={id}>
+                  <span>
+                    <span className="notif-follow-teams">{game.away} @ {game.home}</span>
+                    {when && when.date && (
+                      <span className="notif-follow-when"> · {when.date}{when.time ? " " + when.time : ""}</span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    className="notif-follow-drop"
+                    disabled={busy === id}
+                    onClick={() => toggle(id, false)}
+                  >
+                    {busy === id ? "…" : "Remove"}
+                  </button>
+                </div>
+              );
+            })}
+            {orphans.map((id) => (
+              <div className="notif-follow-row" key={id}>
+                <span className="notif-follow-teams">{id}</span>
+                <button
+                  type="button"
+                  className="notif-follow-drop"
+                  disabled={busy === id}
+                  onClick={() => toggle(id, false)}
+                >
+                  {busy === id ? "…" : "Remove"}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        {error && <p className="notif-row-desc" style={{ color: "var(--pill-bad-text)" }}>{error}</p>}
+      </div>
+    </div>
+  );
+}
+
 function NotificationsTab({ auth, resolvedTz, favorites }) {
   const userId = (auth.user && auth.user.id) || null;
   // Seeded, never null - the panel renders on the first frame. `loaded`
@@ -19241,7 +19421,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
         <div className="notif-row">
           <div className="notif-row-body">
             <p className="notif-row-name">Which games</p>
-            <p className="notif-row-desc">Everything above applies to these.</p>
+            <p className="notif-row-desc">Everything above applies to these, plus any single game you follow from its card.</p>
             <NotifSegmented
               label="Which games to follow"
               value={prefs.push.scope}
@@ -19255,6 +19435,8 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
             />
           </div>
         </div>
+
+        <FollowedGamesRow auth={auth} tz={resolvedTz} />
       </div>
 
       {/* ---- Your teams ---- */}
@@ -21056,6 +21238,121 @@ function prefetchLeagueWeek(auth, leagueId, week) {
   const key = leagueWeekKey(leagueId, week);
   if (leagueWeekCache.has(key) || leagueWeekInflight.has(key)) return;
   fetchLeagueWeek(auth, leagueId, week).catch(() => {});
+}
+
+// ---- Followed games -------------------------------------------------------
+// "Alert me about THIS game, this week." Favourites and picks both answer
+// "which games" indirectly - a team you like, a game you staked something
+// on - and neither covers wanting one specific game without inheriting a
+// team's whole season.
+//
+// An external store rather than per-component state, because the same week's
+// follows are read by every game card on screen at once plus the Alerts tab.
+// With state-per-card, toggling the bell on one card would leave the Alerts
+// tab (and a second card for the same game, e.g. Games and Playbook rendered
+// together) showing the old answer until something remounted. One store, one
+// fetch per week, every reader re-renders on change.
+//
+// Week-scoped to match the server: follows live under follow:{season}:{week}
+// and don't carry forward, so the client caches by week for the same reason
+// and never has to expire anything.
+const gameFollowStore = {
+  byWeek: new Map(),        // week -> Set of gameIds
+  inflight: new Map(),      // week -> in-flight promise, so N cards cause 1 fetch
+  listeners: new Set(),
+  // useSyncExternalStore compares snapshots by identity, so a Set mutated in
+  // place would never look changed. A counter bumped on every write is the
+  // simplest snapshot that always does.
+  version: 0,
+  subscribe(fn) {
+    gameFollowStore.listeners.add(fn);
+    return () => gameFollowStore.listeners.delete(fn);
+  },
+  getVersion() { return gameFollowStore.version; },
+  emit() {
+    gameFollowStore.version++;
+    for (const fn of Array.from(gameFollowStore.listeners)) fn();
+  },
+  set(week, gameIds) {
+    gameFollowStore.byWeek.set(week, new Set(gameIds || []));
+    gameFollowStore.emit();
+  },
+  get(week) { return gameFollowStore.byWeek.get(week) || null; },
+};
+
+function clearGameFollowCache() {
+  gameFollowStore.byWeek.clear();
+  gameFollowStore.inflight.clear();
+  gameFollowStore.emit();
+}
+
+/** One GET per week per session, shared by every caller. */
+function loadGameFollows(auth, week) {
+  if (!auth || auth.status !== "in" || week == null) return Promise.resolve(null);
+  if (gameFollowStore.byWeek.has(week)) return Promise.resolve(gameFollowStore.get(week));
+  const existing = gameFollowStore.inflight.get(week);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    const res = await auth.authenticatedFetch(`/.netlify/functions/game-follow?week=${encodeURIComponent(week)}`);
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't load followed games");
+    gameFollowStore.set(week, data.games);
+    return gameFollowStore.get(week);
+  })();
+
+  gameFollowStore.inflight.set(week, promise);
+  promise.catch(() => {}).then(() => { gameFollowStore.inflight.delete(week); });
+  return promise;
+}
+
+/**
+ * Follows for one week, plus a toggle.
+ *
+ * `followed` is null until the first load lands, which is what lets the bell
+ * render disabled rather than rendering "not following" and then flipping -
+ * a toggle that lies for a moment is worse than one that's briefly inert,
+ * because the lie is the state someone might act on.
+ */
+function useGameFollows(auth, week) {
+  const signedIn = !!(auth && auth.status === "in");
+  useSyncExternalStore(gameFollowStore.subscribe, gameFollowStore.getVersion, gameFollowStore.getVersion);
+  const [busy, setBusy] = useState(null);     // gameId currently in flight
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!signedIn || week == null) return;
+    loadGameFollows(auth, week).catch(() => {});
+  }, [auth, signedIn, week]);
+
+  const followed = signedIn && week != null ? gameFollowStore.get(week) : null;
+
+  const toggle = useCallback(async (gameId, next) => {
+    if (!signedIn || week == null || !gameId) return false;
+    setBusy(gameId);
+    setError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/game-follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ week, gameId, follow: next }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Couldn't update that");
+      // The server's list, not an optimistic guess. It's the only thing that
+      // knows about the per-week cap and about a game that has since ended,
+      // both of which come back as a refusal rather than a new list.
+      gameFollowStore.set(week, data.games);
+      return true;
+    } catch (err) {
+      setError(err.message || "Couldn't update that");
+      return false;
+    } finally {
+      setBusy(null);
+    }
+  }, [auth, signedIn, week]);
+
+  return { followed, toggle, busy, error, clearError: () => setError(null) };
 }
 
 function useMyLeagues(auth) {
@@ -25024,6 +25321,32 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSel
   );
 }
 
+// Inline SVG rather than the 🔔/🔕 emoji. An emoji renders in its own fixed
+// colours on every platform, so the "not following" state came out in full
+// colour and read as already switched on - a bad failure for a control whose
+// whole job is telling you whether a phone is going to buzz. This inherits
+// currentColor, so off is the same muted grey as the rest of the row and on
+// is Blitz orange, and it looks the same across platforms rather than
+// changing shape between Apple, Google and Windows emoji fonts.
+function BellIcon({ size = 13, filled = false }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M8 1.9a4.2 4.2 0 0 0-4.2 4.2c0 3.1-1 4-1.4 4.4a.5.5 0 0 0 .35.9h10.5a.5.5 0 0 0 .35-.9c-.4-.4-1.4-1.3-1.4-4.4A4.2 4.2 0 0 0 8 1.9Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+        fill={filled ? "currentColor" : "none"}
+      />
+      <path d="M6.4 13.4a1.75 1.75 0 0 0 3.2 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+      {/* The struck-through state needs a second signal beyond colour, since
+          colour alone is already flagged as a gap on this card for the
+          winner highlight. */}
+      {!filled && <path d="M2.4 2.4l11.2 11.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />}
+    </svg>
+  );
+}
+
 function GlobeIcon({ size = 11 }) {
   return (
     <svg className="intl-icon" width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -27621,6 +27944,8 @@ function useAuth() {
       // briefly render the previous account's leagues, picks and standings
       // from cache before its own fetches landed.
       clearLeagueCaches();
+      // Same reasoning, same lifetime problem: followed games are per account.
+      clearGameFollowCache();
     }
     function onWidgetOpen() {
       widgetShouldBeOpen = true;

@@ -40,6 +40,11 @@ export interface ScheduleGame { away: string; home: string; date: string; time: 
  * usually one to three - rather than asking this about all sixteen. Asking
  * per user per league per game across a full slate would be hundreds of
  * reads a tick for no benefit.
+ *
+ * `io.followed` is this reader's explicitly followed gameIds for THIS week,
+ * loaded once per pass by the caller (see lib/follows.mts). Omitting it
+ * means "no explicit follows", which is what every pre-existing caller and
+ * every test fixture written before follows existed correctly gets.
  */
 export async function followsGame(
   user: AlertUser,
@@ -47,8 +52,22 @@ export async function followsGame(
   season: number,
   week: number,
   game: ScheduleGame,
-  io: { leagueStore: any }
+  io: { leagueStore: any; followed?: Set<string> | null }
 ): Promise<boolean> {
+  const gameId = makeGameId(season, week, game.away, game.home);
+
+  // An explicit follow is the reader naming this exact game, so it outranks
+  // the scope setting entirely rather than being another input to it -
+  // including on a preseason or playoff week, where there are no picks to
+  // match and the favourites fallback below would otherwise be the only
+  // answer available.
+  //
+  // It does NOT override the per-type toggles (kickoff / scoring / final).
+  // Those say what KIND of alert this reader wants; this says WHICH GAME.
+  // Following a game should not switch on an alert type they deliberately
+  // turned off, and the dispatchers check those before they get here.
+  if (io.followed && io.followed.has(gameId)) return true;
+
   const scope = prefs.push.scope;
 
   const byFavorite = user.favorites.includes(game.away) || user.favorites.includes(game.home);
@@ -68,7 +87,6 @@ export async function followsGame(
 
   // scope is "picks", or "both" and the favourite test didn't match.
   if (!user.leagues.length) return false;
-  const gameId = makeGameId(season, week, game.away, game.home);
   for (const leagueId of user.leagues) {
     try {
       const pick = await io.leagueStore.get(`picks:${leagueId}:${week}:${user.userId}:${gameId}`, { type: "json" });

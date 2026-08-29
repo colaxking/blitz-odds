@@ -329,6 +329,9 @@ function emptySummary(now: number, range: Range) {
     teamClicksByOrigin: {} as Record<string, number>,
     boxscoreClicksByTeam: {} as Record<string, number>,
     boxscoreClicksBySource: {} as Record<string, number>,
+    gameFollowAdds: 0,
+    gameFollowRemoves: 0,
+    gameFollowsByGame: {} as Record<string, number>,
     playbookSubtabViews: {} as Record<string, number>,
     playbookFormatViews: {} as Record<string, number>,
     gateCtaClicks: {} as Record<string, number>,
@@ -664,6 +667,34 @@ export default async (req: Request, _context: Context) => {
     // predating the client-side tracking fix. ---
     const boxscoreClicksBySource = sortedCounts(boxscoreClicks, (r) => r.source);
 
+    // --- per-game follows: the "Alert me" bell on a game card ---
+    // Adds and removes are counted separately rather than netted. A net
+    // figure would hide the case worth knowing about - a lot of taps on and
+    // straight back off, which reads as the control not doing what people
+    // expected rather than as light usage. The server's follow store can't
+    // answer this either way: it holds current state and is swept a few
+    // weeks later.
+    const gameFollowEvents = validRecords.filter((r) => r.type === "game_follow");
+    const gameFollowAdds = gameFollowEvents.filter((r) => r.adding === true).length;
+    const gameFollowRemoves = gameFollowEvents.length - gameFollowAdds;
+    // Which matchups pull a follow, keyed on the matchup rather than
+    // crediting both teams the way boxscoreClicksByTeam does - the question
+    // here is "which GAME was worth an alert", and splitting a Thursday
+    // nighter across its two teams loses exactly that.
+    const gameFollowsByGame: Record<string, number> = {};
+    for (const [game, count] of Array.from(
+      gameFollowEvents
+        .filter((r) => r.adding === true && r.away && r.home)
+        .reduce((acc: Map<string, number>, r) => {
+          const key = `${r.away}@${r.home}`;
+          acc.set(key, (acc.get(key) || 0) + 1);
+          return acc;
+        }, new Map<string, number>())
+        .entries()
+    ).sort((a, b) => b[1] - a[1])) {
+      gameFollowsByGame[game] = count;
+    }
+
     // --- historical archive: pageviews on /historical/ pages, click
     // breakdown by which archive interaction fired, and which teams'
     // historical games actually get clicked into. `page` for these pages
@@ -869,6 +900,9 @@ export default async (req: Request, _context: Context) => {
         teamClicksByOrigin,
         boxscoreClicksByTeam: capTop(boxscoreClicksByTeam),
         boxscoreClicksBySource,
+        gameFollowAdds,
+        gameFollowRemoves,
+        gameFollowsByGame: capTop(gameFollowsByGame),
         playbookSubtabViews,
         playbookFormatViews,
         gateCtaClicks,

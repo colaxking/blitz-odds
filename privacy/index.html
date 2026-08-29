@@ -12,6 +12,18 @@
 </script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- This page is inside the manifest's scope ("/"), so an installed app that
+     navigates here from the footer stays in the standalone window regardless.
+     These are here so the page is consistent with the rest of the app if it's
+     ever the entry point - a search result, a shared link, or someone adding
+     it to a Home Screen directly. Kept in sync with index.html's head. -->
+<meta name="theme-color" content="#0b1220" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-title" content="Blitz Odds" />
+<link rel="apple-touch-icon" href="/branding/apple-touch-icon.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
 <title>Privacy Policy | Blitz Odds</title>
 <meta name="description" content="How Blitz Odds collects, uses, and stores information - analytics, accounts, league picks, and notifications." />
 <link rel="canonical" href="https://blitz-odds.com/privacy/" />
@@ -94,7 +106,7 @@ footer.app-footer p:last-child { margin-bottom: 0; }
 
   <main class="policy">
     <h2>Privacy Policy</h2>
-    <p class="updated">Last updated: August 28, 2026</p>
+    <p class="updated">Last updated: August 29, 2026</p>
 
     <p class="lede">Blitz Odds is a free NFL pick'em and matchup analysis tool. This page explains what
     information the site collects, why, and what you can do about it. We do not sell personal information,
@@ -110,6 +122,7 @@ footer.app-footer p:last-child { margin-bottom: 0; }
       <li>Approximate location - city, region, and country - derived by our hosting provider from the network
       connection. Your IP address is not stored.</li>
       <li>Your display preferences at the time of the visit (theme, timezone, selected sportsbook)</li>
+      <li>Whether the site was opened as an installed app or in a regular browser tab</li>
       <li>A random visitor ID stored in your browser, used to tell repeat visits from new ones. It is not tied
       to your name or email and is cleared if you clear your browser storage.</li>
     </ul>

@@ -61,6 +61,20 @@
 <link rel="icon" type="image/svg+xml" href="/branding/blitz-odds-icon.svg" />
 <link rel="apple-touch-icon" href="/branding/apple-touch-icon.png" />
 <link rel="apple-touch-icon-precomposed" href="/branding/apple-touch-icon.png" />
+<!-- Legacy standalone opt-in. iOS 15.4+ reads display:standalone straight off
+     the manifest, so these only matter for older iOS - but without them an
+     older device launches the Home Screen icon into full Safari chrome.
+     mobile-web-app-capable is the standardized spelling (Chrome logs a
+     deprecation warning for the apple- prefixed one); both are kept.
+     status-bar-style is deliberately "black", NOT "black-translucent":
+     translucent extends the web view up under the status bar, and nothing in
+     this stylesheet pads for env(safe-area-inset-top), so the header would
+     slide under the clock. "black" keeps content below the bar and reads fine
+     against both themes. -->
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-title" content="Blitz Odds" />
 <!-- Required for push on iOS: Safari only delivers notifications to a site
      that's been added to the Home Screen, and it won't offer that unless a
      manifest with display:standalone is present. -->

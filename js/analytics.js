@@ -8,8 +8,14 @@
  *
  * Tracks:
  *  - "pageview" once per page load, including `pathname` (the real URL
- *    path - meaningful since Phase 3 added routing) and `referrerHost`
- *    (document.referrer's hostname, or "(direct)"/"(internal)")
+ *    path - meaningful since Phase 3 added routing), `referrerHost`
+ *    (document.referrer's hostname, or "(direct)"/"(internal)"), and
+ *    `displayMode` - whether this load is running as an installed app
+ *    ("standalone") or in a normal browser tab ("browser"). That's the only
+ *    read on how many people have actually added the site to a home screen,
+ *    which matters because iOS only delivers web push to an installed app:
+ *    a low standalone share is the ceiling on push adoption, and nothing
+ *    else in this pipeline can see it
  *  - "team_click" whenever a `.team-click` element (logo/name, opens a team's
  *    schedule) or a descendant of one is clicked
  *  - "favorite" whenever a `.star-btn` (the favorite-star toggle) is clicked,
@@ -310,6 +316,32 @@
       }
     }
 
+    /**
+     * How this page load is being displayed: "standalone" for an installed
+     * home-screen/desktop app, "browser" for a normal tab.
+     *
+     * Two checks, because the two platforms disagree. Chrome/Edge/Android
+     * answer the display-mode media query. Older iOS Safari doesn't - it
+     * exposes the non-standard `navigator.standalone` boolean instead - so
+     * skipping that fallback would misreport every iOS installed user as a
+     * browser visitor, which is exactly the population this field exists to
+     * count. "minimal-ui"/"fullscreen" are folded into "standalone" since
+     * they're all launched-as-an-app for our purposes.
+     */
+    function getDisplayMode() {
+      try {
+        if (window.matchMedia) {
+          if (window.matchMedia("(display-mode: standalone)").matches) return "standalone";
+          if (window.matchMedia("(display-mode: minimal-ui)").matches) return "standalone";
+          if (window.matchMedia("(display-mode: fullscreen)").matches) return "standalone";
+        }
+        if (navigator && navigator.standalone === true) return "standalone";
+        return "browser";
+      } catch (e) {
+        return null;
+      }
+    }
+
     function trackPageview() {
       try {
         sendEvent({
@@ -325,6 +357,7 @@
           // to real traffic. Hostname only - never the full URL.
           host: (window.location.hostname || "").replace(/^www\./, ""),
           referrerHost: getReferrerHost(),
+          displayMode: getDisplayMode(),
           theme: readPreference(THEME_KEY, THEME_DEFAULT),
           sportsbook: readPreference(SPORTSBOOK_KEY, SPORTSBOOK_DEFAULT),
           timezone: readPreference(TIMEZONE_KEY, TIMEZONE_DEFAULT),

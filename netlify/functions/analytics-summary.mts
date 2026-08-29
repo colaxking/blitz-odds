@@ -114,6 +114,7 @@ type SessionRecord = {
   theme?: string;
   sportsbookPref?: string;
   tzPref?: string;
+  displayMode?: string;
   host?: string;
   firstSeen?: number;
   lastSeen?: number;
@@ -353,6 +354,7 @@ function emptySummary(now: number, range: Range) {
     themeDistribution: {} as Record<string, number>,
     sportsbookDistribution: {} as Record<string, number>,
     tzPrefDistribution: {} as Record<string, number>,
+    displayModeDistribution: {} as Record<string, number>,
     viewsByCountry: [] as LocationBucket[],
     viewsByCity: [] as LocationBucket[],
     topLocation: null as string | null,
@@ -791,6 +793,13 @@ export default async (req: Request, _context: Context) => {
     const themeDistribution = sessionPrefCounts((s) => s.theme);
     const sportsbookDistribution = sessionPrefCounts((s) => s.sportsbookPref);
     const tzPrefDistribution = sessionPrefCounts((s) => s.tzPref);
+    // Installed-app vs browser-tab share. Same "latest known value per
+    // session" shape as the three preference breakdowns above, but it isn't
+    // a preference - it's an observed fact about how the page was launched,
+    // and it's the gate on iOS push (Safari only delivers to an installed
+    // app), so it's read as "what fraction of the audience could receive a
+    // push at all", not as a setting anyone chose.
+    const displayModeDistribution = sessionPrefCounts((s) => s.displayMode);
 
     // --- viewsByCountry / viewsByCity: where unique views are coming from ---
     // Grouped from pageview events that carried a `location` (Netlify's
@@ -924,6 +933,7 @@ export default async (req: Request, _context: Context) => {
         themeDistribution,
         sportsbookDistribution,
         tzPrefDistribution,
+        displayModeDistribution,
         viewsByCountry: viewsByCountry.slice(0, TOP_N),
         viewsByCity: viewsByCity.slice(0, TOP_N),
         topLocation,

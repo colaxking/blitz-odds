@@ -33,6 +33,7 @@ const VALID_DIMENSIONS = new Set([
   "theme",
   "sportsbook",
   "tzPref",
+  "displayMode",
   "newsSource",
   "newsPlacement",
   "boxscoreTeam",
@@ -153,6 +154,7 @@ type SessionRecord = {
   theme?: string;
   sportsbookPref?: string;
   tzPref?: string;
+  displayMode?: string;
   events: Record<string, unknown>[];
 };
 
@@ -176,6 +178,7 @@ function summarize(session: SessionRecord, requestedDimension?: string, requeste
     theme: session.theme || null,
     sportsbook: session.sportsbookPref || null,
     tzPref: session.tzPref || null,
+    displayMode: session.displayMode || null,
     city: cityLabel,
     country: (loc.country as string) || null,
     pageviews: session.pageviews || 0,

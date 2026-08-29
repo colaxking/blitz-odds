@@ -132,6 +132,7 @@ type SessionRecord = {
   theme?: string;
   sportsbookPref?: string;
   tzPref?: string;
+  displayMode?: string;
   host?: string;
   events: Record<string, unknown>[];
 };
@@ -185,7 +186,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -357,6 +358,14 @@ export default async (req: Request, context: Context) => {
       if (typeof theme === "string" && theme) record.theme = theme.slice(0, 32);
       if (typeof sportsbook === "string" && sportsbook) record.sportsbook = sportsbook.slice(0, 64);
       if (typeof timezone === "string" && timezone) record.tzPref = timezone.slice(0, 64);
+      // Unlike the three above, this is a closed set the client fully
+      // controls (see getDisplayMode in js/analytics.js), so it's checked
+      // against an enum rather than length-capped - an unrecognised value
+      // means the client and this function have drifted, and silently
+      // storing it would put junk in the dashboard's breakdown.
+      if (displayMode === "standalone" || displayMode === "browser") {
+        record.displayMode = displayMode;
+      }
     }
 
     // `page` applies to both a hard pageview and a soft view_change (SPA
@@ -414,6 +423,7 @@ export default async (req: Request, context: Context) => {
     if (record.theme) session.theme = record.theme as string;
     if (record.sportsbook) session.sportsbookPref = record.sportsbook as string;
     if (record.tzPref) session.tzPref = record.tzPref as string;
+    if (record.displayMode) session.displayMode = record.displayMode as string;
     if (record.host) session.host = record.host as string;
     if (type === "pageview") session.pageviews = (session.pageviews || 0) + 1;
     if (!session.favoriteTeams) session.favoriteTeams = {};
@@ -457,6 +467,7 @@ export default async (req: Request, context: Context) => {
       addIndex("theme", record.theme as string | undefined);
       addIndex("sportsbook", record.sportsbook as string | undefined);
       addIndex("tzPref", record.tzPref as string | undefined);
+      addIndex("displayMode", record.displayMode as string | undefined);
       addIndex("pathname", record.pathname as string | undefined);
       addIndex("referrer", record.referrerHost as string | undefined);
       addIndex("host", record.host as string | undefined);

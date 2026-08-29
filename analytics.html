@@ -513,7 +513,13 @@
       { id: "push", title: "Push health", desc: "Whether registered devices can actually be reached", tiles: [
         { title: "Registration desyncs", sub: "Browser subscription no longer matching the stored device", html: pushHealthHtml(d) },
         { title: "Where they were caught", sub: "App load vs. Settings vs. the reader pressing repair", html: barListHtml(relabel(d.pushDesyncsByStage, { detected: "Settings check", rotated: "App load", load: "App load", auto: "Automatic", manual: "Repair button" })) },
-        { title: "Repairs that failed", sub: "These are the ones still receiving nothing", html: barListHtml(relabel(d.pushRepairFailuresByStage, { load: "App load", auto: "Automatic", manual: "Repair button" })) }
+        { title: "Repairs that failed", sub: "These are the ones still receiving nothing", html: barListHtml(relabel(d.pushRepairFailuresByStage, { load: "App load", auto: "Automatic", manual: "Repair button" })) },
+        /* Sits under Push health rather than Preferences because it isn't a
+           setting - it's the hard ceiling on push reach. iOS only delivers
+           web push to a site added to the Home Screen, so the standalone
+           share is the largest fraction of the audience that could ever
+           receive an alert, no matter how the permission prompt performs. */
+        { title: "Installed vs. browser", sub: "iOS only delivers push to an installed app", html: barListHtml(relabel(d.displayModeDistribution, { standalone: "Installed app", browser: "Browser tab" }), "displayMode", { valueFn: function (l) { return l === "Installed app" ? "standalone" : "browser"; } }) }
       ]},
       { id: "prefs", title: "Preferences", desc: "What people are currently set to, not how often they changed it", tiles: [
         { title: "Theme", sub: "Current setting per visitor", html: barListHtml(relabel(d.themeDistribution, {}), "theme", { valueFn: function (l) { return l.toLowerCase(); } }) },
@@ -848,7 +854,7 @@
       pushDesyncsByStage: {}, pushRepairFailuresByStage: {},
       historyPageviews: 0, historyGameClicksByTeam: {}, historyClicksByType: {},
       referrerBreakdown: {}, pageviewsByPath: {}, teamPageViews: 0, gamePageViews: 0,
-      themeDistribution: {}, sportsbookDistribution: {}, tzPrefDistribution: {},
+      themeDistribution: {}, sportsbookDistribution: {}, tzPrefDistribution: {}, displayModeDistribution: {},
       viewsByCountry: [], viewsByCity: [], topLocation: null, viewsByDevice: [],
     };
   }

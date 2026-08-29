@@ -1668,6 +1668,15 @@
     .pbp-lbl-full { display: none; }
     .pbp-lbl-short { display: inline; }
     .pbp-gate { padding: 14px; gap: 12px; }
+    /* .pb-btn-primary/.pb-btn-ghost go full-width at this breakpoint for the
+       sheet footer, where two long labels genuinely need their own rows. The
+       gate's pair is short enough to share one, and stacking them pushed
+       "Sign in" down a row for no gain, so the gate opts back out: the
+       primary sizes to its label and the ghost takes the rest of the row. */
+    .pbp-gate-actions { width: 100%; flex-wrap: nowrap; }
+    .pbp-gate-actions .pb-btn { padding-left: 9px; padding-right: 9px; font-size: 0.8rem; white-space: nowrap; }
+    .pbp-gate-actions .pb-btn-primary { flex: 0 1 auto; }
+    .pbp-gate-actions .pb-btn-ghost { flex: 1 1 auto; }
     .pbp-node { width: 76px; }
   }
 
@@ -1836,6 +1845,15 @@
        don't fit at 360px and shrinking the type enough to force it made the
        counts hard to read without actually fitting. */
     .pbc-gate { padding: 14px; gap: 12px; }
+    /* .pb-btn-primary/.pb-btn-ghost go full-width at this breakpoint for the
+       sheet footer, where two long labels genuinely need their own rows. The
+       gate's pair is short enough to share one, and stacking them pushed
+       "Sign in" down a row for no gain, so the gate opts back out: the
+       primary sizes to its label and the ghost takes the rest of the row. */
+    .pbc-gate-actions { width: 100%; flex-wrap: nowrap; }
+    .pbc-gate-actions .pb-btn { padding-left: 9px; padding-right: 9px; font-size: 0.8rem; white-space: nowrap; }
+    .pbc-gate-actions .pb-btn-primary { flex: 0 1 auto; }
+    .pbc-gate-actions .pb-btn-ghost { flex: 1 1 auto; }
     .pbc-filters { gap: 6px; flex-wrap: nowrap; }
     .pbc-filt { flex: 1 1 0; min-width: 0; justify-content: center; padding: 8px 6px; gap: 6px; }
     .pbc-lbl-full { display: none; }
@@ -16878,7 +16896,7 @@ function PlaybookChanges({ week, sportsbookId, auth }) {
               </div>
               {!signedIn && (
                 <div className="pbc-gate-actions">
-                  <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }}
+                  <button type="button" className="pb-btn pb-btn-primary"
                     onClick={() => auth && auth.openSignup && auth.openSignup()}>
                     Create a free account
                   </button>
@@ -17065,7 +17083,7 @@ function PreviewGate({ remaining, noun, onCreate, onSignIn }) {
         </div>
       </div>
       <div className="pbp-gate-actions">
-        <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={onCreate}>Create a free account</button>
+        <button type="button" className="pb-btn pb-btn-primary" onClick={onCreate}>Create a free account</button>
         <button type="button" className="pb-btn pb-btn-ghost" onClick={onSignIn}>Sign in</button>
       </div>
     </div>
@@ -17283,7 +17301,7 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
                   </div>
                 </div>
                 <div className="pbp-gate-actions">
-                  <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={openSignup}>Create a free account</button>
+                  <button type="button" className="pb-btn pb-btn-primary" onClick={openSignup}>Create a free account</button>
                   <button type="button" className="pb-btn pb-btn-ghost" onClick={openLogin}>Sign in</button>
                 </div>
               </div>
@@ -17308,7 +17326,7 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
               </div>
             </div>
             <div className="pbp-gate-actions">
-              <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={() => onOpenLeagues({ subTab: "create" })}>Create a league</button>
+              <button type="button" className="pb-btn pb-btn-primary" onClick={() => onOpenLeagues({ subTab: "create" })}>Create a league</button>
               <button type="button" className="pb-btn pb-btn-ghost" onClick={() => onOpenLeagues({ subTab: "join" })}>Join a league</button>
             </div>
           </div>
@@ -17697,7 +17715,7 @@ function PlaybookAngles({ week, sportsbookId, tz, auth }) {
               </div>
               {!signedIn && (
                 <div className="pbc-gate-actions">
-                  <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }}
+                  <button type="button" className="pb-btn pb-btn-primary"
                     onClick={() => auth && auth.openSignup && auth.openSignup()}>
                     Create a free account
                   </button>

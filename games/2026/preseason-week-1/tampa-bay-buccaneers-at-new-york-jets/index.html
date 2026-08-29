@@ -1158,7 +1158,15 @@
     .tab-btn.active .tab-icon-img { transform: none; }
   }
   @media (max-width: 720px) {
-    .app { padding-bottom: 96px; }
+    /* Must clear the fixed .tab-bar below, whose height is 84px PLUS
+       env(safe-area-inset-bottom) - see its padding rule. A flat value works
+       only while the inset is 0; once viewport-fit=cover made env() resolve
+       to a real number, a notched iPhone grew the bar to ~118px while this
+       stayed at 96, and the last footer line (the Privacy Policy link) ended
+       up permanently underneath it - not merely clipped, but unreachable,
+       since the page cannot scroll past its own end. The same inset is added
+       here so the two move together; the 96px keeps ~12px of clearance. */
+    .app { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
     .tab-bar {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; margin: 0; gap: 0;
       /* Translucent + blurred rather than an opaque fill, so the list reads as

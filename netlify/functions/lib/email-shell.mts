@@ -46,6 +46,25 @@ export const EMAIL_FONT = `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 export const EMAIL_MONO = `ui-monospace,SFMono-Regular,Menlo,monospace`;
 export const SITE_URL = "https://blitz-odds.com";
 
+/**
+ * Sender's physical mailing address, printed in every footer.
+ *
+ * CAN-SPAM (15 U.S.C. 7704(a)(5)) requires a valid physical postal address
+ * on commercial email - here, the pick reminder and the weekly recap, i.e.
+ * anything `emailShell` is given an `unsubType` for. A PO box or a
+ * registered agent's address both satisfy it; a bare domain does not.
+ *
+ * STILL UNDECIDED, so this is empty and the footer simply omits the line
+ * rather than shipping a placeholder into somebody's inbox. Filling this
+ * one string in is the entire remaining change - `emailShell` starts
+ * rendering it everywhere the moment it's non-empty, and the warning it
+ * logs on every commercial send goes quiet.
+ *
+ * Format it as a single line, comma-separated:
+ *   "Blitz Odds, PO Box 1234, Springfield, IL 62701"
+ */
+export const MAILING_ADDRESS = "";
+
 const C = EMAIL_COLORS;
 
 // Cropped/downscaled copy of the site's dark-background wordmark
@@ -117,6 +136,27 @@ export function emailShell(bodyHtml: string, footer: FooterOptions, preheader?: 
     ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:#ffffff;">${escapeHtml(preheader)}</div>`
     : "";
 
+  // A commercial send with no address configured is the compliance gap, so
+  // it gets a log line at the moment it happens. Transactional mail (no
+  // unsubType) is exempt from the requirement and stays quiet.
+  if (footer.unsubType && !MAILING_ADDRESS) {
+    console.warn(
+      "[email-shell] commercial email sent with no MAILING_ADDRESS - CAN-SPAM requires a physical postal address",
+      { unsubType: footer.unsubType }
+    );
+  }
+
+  // Printed on every email, not just the commercial ones: it identifies the
+  // sender, it costs one line, and the "primary purpose" test that decides
+  // which mail is commercial is fuzzy enough that opting out of the
+  // distinction is safer than getting it wrong per-email-type.
+  const addressHtml = MAILING_ADDRESS
+    ? `
+        <p style="margin:8px 0 0;font-size:11px;line-height:1.6;color:${C.fine};">
+          ${escapeHtml(MAILING_ADDRESS)}
+        </p>`
+    : "";
+
   const unsubHtml = footer.unsubType && footer.unsubUrl
     ? `
         <p style="margin:8px 0 0;font-size:11px;line-height:1.6;color:${C.fine};">
@@ -141,6 +181,7 @@ export function emailShell(bodyHtml: string, footer: FooterOptions, preheader?: 
           ${escapeHtml(footer.reason)}
         </p>
         ${unsubHtml}
+        ${addressHtml}
       </div>
     </div>`;
 }

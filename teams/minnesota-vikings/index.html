@@ -2967,6 +2967,68 @@
     padding: 9px 14px; border-radius: 8px; text-align: center;
   }
 
+  /* Account deletion, at the bottom of the Profile tab. Bordered and tinted
+     rather than styled like the rest of the settings sections: it's the one
+     control on the screen that can't be undone, and it should not look like
+     a neighbour of "Display Name". Deliberately quiet until opened - the
+     outline button reads as available, not as a dare. */
+  .danger-section {
+    margin-top: 26px; border: 1px solid rgba(var(--out-rgb), 0.35);
+    background: rgba(var(--out-rgb), 0.05); border-radius: 12px; padding: 14px;
+  }
+  .danger-title { color: var(--out); }
+  .danger-copy { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; margin: 0 0 10px; }
+  .danger-list {
+    font-size: 0.8rem; color: var(--text-dim); line-height: 1.55;
+    margin: 0 0 10px; padding-left: 18px;
+  }
+  .danger-list li { margin-bottom: 2px; }
+  .danger-label { font-size: 0.74rem; color: var(--text-dim); margin-bottom: 5px; line-height: 1.4; }
+  .danger-btn {
+    background: rgba(var(--out-rgb), 0.12); border: 1px solid rgba(var(--out-rgb), 0.5);
+    color: var(--out); font-family: inherit; font-size: 0.85rem; font-weight: 800;
+    padding: 10px 16px; border-radius: 9px; cursor: pointer; transition: border-color 0.15s;
+  }
+  .danger-btn:hover:not(:disabled) { border-color: var(--out); }
+  .danger-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  /* Cancel first, destructive action second and right-aligned: the reverse
+     puts the irreversible button under the thumb on a phone. */
+  .danger-actions { display: flex; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 12px; }
+  .danger-error {
+    margin: 10px 0 0; font-size: 0.78rem; color: var(--out); font-weight: 700; line-height: 1.45;
+  }
+  @media (max-width: 420px) {
+    /* Stacked and full-width once the row would start wrapping mid-button. */
+    .danger-actions { flex-direction: column-reverse; align-items: stretch; }
+    .danger-actions .danger-btn { width: 100%; }
+  }
+
+  /* Suspension screen - replaces the whole app, so it owns the viewport
+     rather than sitting inside .app's layout. Centred on desktop, top-aligned
+     with breathing room on a phone (vertically centring a tall card on a
+     short screen pushes the sign-out button off the bottom). */
+  .susp-screen {
+    min-height: 100vh; min-height: 100dvh; display: flex; align-items: center;
+    justify-content: center; padding: 24px 16px; box-sizing: border-box;
+  }
+  .susp-card {
+    width: 100%; max-width: 460px; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 26px 22px; text-align: center;
+  }
+  .susp-title { font-size: 1.25rem; font-weight: 800; color: var(--text); margin: 16px 0 10px; }
+  .susp-copy { font-size: 0.88rem; color: var(--text-dim); line-height: 1.6; margin: 0 0 12px; }
+  .susp-copy a { color: var(--accent); font-weight: 700; }
+  .susp-reason {
+    font-size: 0.85rem; color: var(--text); line-height: 1.55; text-align: left;
+    background: rgba(var(--out-rgb), 0.08); border-left: 3px solid var(--out);
+    padding: 10px 12px; border-radius: 0 8px 8px 0; margin: 0 0 14px;
+  }
+  .susp-btn { margin-top: 6px; width: 100%; }
+  @media (min-width: 560px) {
+    .susp-card { padding: 32px 30px; }
+    .susp-btn { width: auto; min-width: 160px; }
+  }
+
   .fav-picker-list { max-height: 320px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 12px; padding: 6px; }
   .fav-picker-group-label {
     font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim);
@@ -4414,6 +4476,10 @@
   }
   .admin-pill-role { color: var(--blitz-orange); background: rgba(253,127,1,.14); border: 1px solid rgba(253,127,1,.4); }
   .admin-pill-off { color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border); }
+  /* Loss-red, matching the Delete zone rather than the muted "Unconfirmed"
+     pill: an unconfirmed account is a state it arrived in, a suspended one
+     is a decision somebody made, and the row should read differently. */
+  .admin-pill-susp { color: var(--out); background: rgba(var(--out-rgb),.14); border: 1px solid rgba(var(--out-rgb),.45); }
 
   .admin-btn {
     display: inline-block; background: var(--surface-2); border: 1px solid var(--card-border);
@@ -4451,6 +4517,11 @@
   .admin-zone { border: 1px solid rgba(var(--out-rgb),.35); background: rgba(var(--out-rgb),.06);
     border-radius: 10px; padding: 12px; }
   .admin-zone h4 { color: var(--out); }
+  /* Suspension is reversible, deletion isn't, and the two sit next to each
+     other at the bottom of the same sheet. Amber vs. red is the only thing
+     stopping them reading as one undifferentiated danger area. */
+  .admin-zone-warn { border-color: rgba(var(--warn-rgb),.4); background: rgba(var(--warn-rgb),.07); }
+  .admin-zone-warn h4 { color: var(--warn); }
 
   .admin-status { font-size: .78rem; color: var(--text-dim); padding: 8px 0; }
   .admin-status-bad { color: var(--out); font-weight: 700; }
@@ -19750,6 +19821,14 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
   const [emailValue, setEmailValue] = useState(currentEmail);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
+  // Account deletion. Kept collapsed behind a button rather than always
+  // visible: the panel has to spell out exactly what's destroyed, and that
+  // paragraph sitting permanently under a routine Save Profile screen reads
+  // as a threat rather than an option.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
     if (!toast) return;
@@ -19808,6 +19887,39 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
       setToast(e && e.message ? e.message : "Couldn't save changes");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/account-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmEmail: deleteEmail.trim() }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body.ok) {
+        trackEvent("account_delete_complete", {
+          surface: "settings",
+          outcome: res.status === 400 ? "mismatch" : "error",
+        });
+        setDeleteError(body.error || "Couldn't delete the account. Try again, or email support@blitz-odds.com.");
+        setDeleting(false);
+        return;
+      }
+      trackEvent("account_delete_complete", { surface: "settings", outcome: "success" });
+      // Sign out rather than leaving a valid token for an account that no
+      // longer exists. Without this the app sits there looking signed in
+      // while every request 401s, which reads as the deletion having failed.
+      // No setDeleting(false) - this component is about to unmount.
+      if (window.netlifyIdentity) window.netlifyIdentity.logout();
+    } catch (e) {
+      trackEvent("account_delete_complete", { surface: "settings", outcome: "error" });
+      setDeleteError(e && e.message ? e.message : "Couldn't reach the server. Try again.");
+      setDeleting(false);
     }
   }
 
@@ -19899,6 +20011,73 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
       </button>
 
       {toast && <div className="profile-toast">{toast}</div>}
+
+      <div className="settings-section danger-section">
+        <h3 className="settings-section-title danger-title">Delete Account</h3>
+        {!confirmingDelete ? (
+          <React.Fragment>
+            <p className="danger-copy">
+              Permanently deletes your account and everything on it. This can't be undone.
+            </p>
+            <button
+              type="button"
+              className="danger-btn"
+              onClick={() => {
+                setConfirmingDelete(true);
+                trackEvent("account_delete_start", { surface: "settings" });
+              }}
+            >
+              Delete my account
+            </button>
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            <p className="danger-copy">
+              This removes, permanently and immediately:
+            </p>
+            <ul className="danger-list">
+              <li>Your login, profile and display name</li>
+              <li>Every pick you've made, in every league</li>
+              <li>Your league memberships and your rows in their standings</li>
+              <li>Notification settings, email subscriptions and push devices</li>
+            </ul>
+            <p className="danger-copy">
+              Leagues you own are <strong>not</strong> deleted — they stay with their other members.
+              If you're the only member, delete the league first.
+            </p>
+            <div className="profile-field">
+              <div className="danger-label">Type <strong>{currentEmail}</strong> to confirm</div>
+              <input
+                className="profile-input"
+                type="text"
+                value={deleteEmail}
+                autoComplete="off"
+                spellCheck={false}
+                onChange={e => setDeleteEmail(e.target.value)}
+              />
+            </div>
+            <div className="danger-actions">
+              <button
+                type="button"
+                className="link-btn"
+                disabled={deleting}
+                onClick={() => { setConfirmingDelete(false); setDeleteEmail(""); setDeleteError(null); }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="danger-btn"
+                disabled={deleting || deleteEmail.trim().toLowerCase() !== currentEmail.toLowerCase()}
+                onClick={handleDeleteAccount}
+              >
+                {deleting ? "Deleting…" : "Permanently delete"}
+              </button>
+            </div>
+            {deleteError && <p className="danger-error">{deleteError}</p>}
+          </React.Fragment>
+        )}
+      </div>
     </React.Fragment>
   );
 }
@@ -26456,6 +26635,7 @@ function AdminUsersPanel({ auth, data, reload, onToast }) {
                 <span className="admin-row-title">
                   {u.name}
                   {u.isAdmin && <span className="admin-pill admin-pill-role">Admin</span>}
+                  {u.suspended && <span className="admin-pill admin-pill-susp">Suspended</span>}
                   {!u.confirmed && <span className="admin-pill admin-pill-off">Unconfirmed</span>}
                 </span>
                 <span className="admin-row-sub">{u.email}</span>
@@ -26489,6 +26669,7 @@ function AdminUserSheet({ auth, user, leagues, actorId, onClose, onChanged, onTo
   const [error, setError] = useState(null);
   const [name, setName] = useState(user.name || "");
   const [confirmEmail, setConfirmEmail] = useState("");
+  const [suspendReason, setSuspendReason] = useState("");
   const [addLeagueId, setAddLeagueId] = useState("");
 
   const prefs = user.prefs || null;
@@ -26668,6 +26849,76 @@ function AdminUserSheet({ auth, user, leagues, actorId, onClose, onChanged, onTo
         </p>
       </section>
 
+      <section className="admin-sec admin-zone admin-zone-warn">
+        <h4>{user.suspended ? "Suspended" : "Suspend account"}</h4>
+        {user.suspended ? (
+          <React.Fragment>
+            <p className="admin-hint" style={{ marginTop: 0 }}>
+              Suspended {fmtAdminDate(user.suspendedAt)}
+              {user.suspendedBy ? " by " + user.suspendedBy : ""}.
+              {user.suspendedReason ? " Reason: " + user.suspendedReason : ""}
+            </p>
+            <p className="admin-hint">
+              They can sign in, but every action is refused and they see a notice instead of the app.
+              Their picks, leagues and standings are untouched and come straight back when you lift this.
+            </p>
+            <button
+              type="button"
+              className="admin-btn admin-btn-block"
+              disabled={busy}
+              onClick={() => run(() => update("set-suspended", false), user.name + " can use the site again")}
+            >
+              Lift suspension
+            </button>
+          </React.Fragment>
+        ) : isSelf ? (
+          <p className="admin-hint" style={{ marginTop: 0 }}>
+            You can't suspend your own account — you'd lock yourself out of the console that undoes it.
+          </p>
+        ) : (
+          <React.Fragment>
+            <p className="admin-hint" style={{ marginTop: 0 }}>
+              Blocks them from picking, joining leagues and changing settings, and stops all alerts.
+              Nothing is deleted and it can be lifted at any time. Use this instead of deleting
+              while something's being sorted out.
+            </p>
+            <label className="admin-field">
+              <span>Reason (optional, shown in the audit log)</span>
+              <input
+                type="text"
+                value={suspendReason}
+                maxLength={200}
+                placeholder="e.g. disputed picks in Week 3"
+                onChange={e => setSuspendReason(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="admin-btn admin-btn-warn admin-btn-block"
+              disabled={busy}
+              onClick={() =>
+                run(
+                  () =>
+                    adminCall(auth, "/.netlify/functions/admin-user-update", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        userId: user.id,
+                        action: "set-suspended",
+                        value: true,
+                        reason: suspendReason.trim(),
+                      }),
+                    }),
+                  user.name + " is suspended"
+                )
+              }
+            >
+              Suspend account
+            </button>
+          </React.Fragment>
+        )}
+      </section>
+
       <section className="admin-sec admin-zone">
         <h4>Delete account</h4>
         <p className="admin-hint">
@@ -26675,7 +26926,10 @@ function AdminUserSheet({ auth, user, leagues, actorId, onClose, onChanged, onTo
           This can't be undone.
         </p>
         {isSelf ? (
-          <p className="admin-hint">You can't delete your own account from here.</p>
+          <p className="admin-hint">
+            You can't delete your own account from here — it would sign you out mid-action, and if
+            you're the last admin nobody could get back in. Settings → Delete my account does it properly.
+          </p>
         ) : (
           <React.Fragment>
             <label className="admin-field">
@@ -28698,6 +28952,41 @@ function getInitialTab(leaguesEnabled) {
   return ROOT_TAB;
 }
 
+/* Shown in place of the entire app when the signed-in account is suspended.
+   Deliberately plain: no nav, no tabs, no week strip. Every one of those
+   would be a control the server refuses, and offering them reads as the app
+   being broken rather than as a decision somebody made.
+
+   The reason is shown when an admin gave one, and omitted cleanly when they
+   didn't - "Reason: " followed by nothing is worse than no line at all. The
+   support address is the only action besides signing out, because appealing
+   is genuinely the only thing they can do from here. */
+function SuspendedScreen({ suspension, onSignOut }) {
+  return (
+    <div className="susp-screen">
+      <div className="susp-card">
+        <BrandWordmark height={26} />
+        <h1 className="susp-title">Your account is suspended</h1>
+        <p className="susp-copy">
+          You can't make picks, join leagues or change settings while this is in place.
+          Nothing has been deleted — your picks and league history are intact and come
+          straight back if the suspension is lifted.
+        </p>
+        {suspension.reason && (
+          <p className="susp-reason"><strong>Reason:</strong> {suspension.reason}</p>
+        )}
+        <p className="susp-copy">
+          If you think this is a mistake, reply from the address on the account:{" "}
+          <a href="mailto:support@blitz-odds.com">support@blitz-odds.com</a>.
+        </p>
+        <button type="button" className="danger-btn susp-btn" onClick={onSignOut}>
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const auth = useAuth();
   const [themeMode, setThemeMode] = useThemeManager();
@@ -28726,6 +29015,10 @@ function App() {
   });
   const [favorites, setFavorites] = useState(loadFavorites);
   const [profile, setProfile] = useState(null);
+  // Non-null when the signed-in account has been suspended. Set from the
+  // user-profile fetch below, which is the only endpoint that reports the
+  // reason rather than a generic 401.
+  const [suspension, setSuspension] = useState(null);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -29005,7 +29298,22 @@ function App() {
       const localFavorites = favorites;
       try {
         const res = await auth.authenticatedFetch("/.netlify/functions/user-profile");
-        if (!res.ok || cancelled) return;
+        if (cancelled) return;
+        // A suspended account is refused here with a 403 carrying a stable
+        // code (see lib/auth.mts). This is the one endpoint that reports the
+        // reason rather than a bare 401, precisely so the app can say what
+        // happened instead of bouncing them into a login that would succeed
+        // and change nothing.
+        if (res.status === 403) {
+          const body = await res.json().catch(() => ({}));
+          if (cancelled) return;
+          if (body && body.code === "account_suspended") {
+            setSuspension({ reason: body.reason || null, at: body.suspendedAt || null });
+            trackEvent("account_suspended_block", {});
+            return;
+          }
+        }
+        if (!res.ok) return;
         const profile = await res.json();
         if (cancelled) return;
         setProfile(profile);
@@ -29070,6 +29378,7 @@ function App() {
       lastSyncedSettingsRef.current = null;
       setSettingsHydrated(false);
       setProfile(null);
+      setSuspension(null);
     }
   }, [auth.status]);
 
@@ -29389,6 +29698,14 @@ function App() {
         },
       }
     : null;
+
+  // A suspended account gets this INSTEAD of the app, not on top of it.
+  // Rendering the normal shell behind a modal would leave a signed-in-looking
+  // UI whose every control silently fails - the server refuses all of them -
+  // and it would invite them to keep trying. One screen, one way out.
+  if (suspension) {
+    return <SuspendedScreen suspension={suspension} onSignOut={auth.logout} />;
+  }
 
   return (
     <div className={"app" + (activeTab === "home" ? " app-home" : "")}>

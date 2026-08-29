@@ -1,16 +1,19 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { verifyToken, isSuspended, suspensionInfo, suspendedResponse } from "./lib/auth.mts";
 
 // Authenticated read/write for a single user's profile blob. This is the
 // unified record backing both the (future) Pro subscription gate and
 // pick'em leagues - one identity, one blob, two feature sets reading/writing
 // different fields on it.
 //
-// Auth: requires a Netlify Identity JWT as a Bearer token. We verify it by
-// asking the site's own hosted Identity (GoTrue) instance who the token
-// belongs to - context.clientContext.user, which older Netlify Functions
-// docs describe, turns out to be a v1/Lambda-compatible-handler-only
-// mechanism. It is never populated for modern v2 "export default" functions
+// Auth: requires a Netlify Identity JWT as a Bearer token, verified by
+// lib/auth.mts. (This function used to carry its own copy of that
+// verification, predating the shared lib; the copy is gone so that the
+// suspension check added to the shared verifier applies here too.) The
+// original note is worth keeping: context.clientContext.user, which older
+// Netlify Functions docs describe, is a v1/Lambda-compatible-handler-only
+// mechanism and is never populated for modern v2 "export default" functions
 // (confirmed via a temporary debug endpoint: Authorization header arrived
 // with a valid-looking JWT, but context.clientContext was entirely absent).
 // Hitting GET {site}/.netlify/identity/user with the same Bearer token is
@@ -19,18 +22,14 @@ import { getStore } from "@netlify/blobs";
 // userId passed in the request body/query for anything other than
 // admin-style lookups (not exposed here) - the authenticated user can only
 // ever read/write their own record, keyed by their Identity user id.
-async function getAuthenticatedUser(req: Request): Promise<any | null> {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) return null;
-  try {
-    const identityUrl = `${new URL(req.url).origin}/.netlify/identity/user`;
-    const res = await fetch(identityUrl, { headers: { Authorization: authHeader } });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
+//
+// WHY verifyToken AND NOT getAuthenticatedUser. This is the one endpoint a
+// suspended user must get a MEANINGFUL refusal from. The app fetches this on
+// sign-in, so it's the natural channel for telling them what happened;
+// getAuthenticatedUser would return null and this would answer 401, which
+// the client reads as "sign in" and bounces them into a login they can
+// complete and still get nowhere. Every other endpoint uses the gated
+// verifier and gives them the ordinary 401.
 //
 // GET  /.netlify/functions/user-profile          -> caller's own profile
 //        (creates a default record on first login if none exists yet)
@@ -131,10 +130,15 @@ export default async (req: Request, _context: Context) => {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  const claims = await getAuthenticatedUser(req);
+  const claims = await verifyToken(req);
   if (!claims || !claims.id) {
     return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" });
   }
+
+  // Answered before anything is read or written. A suspended account gets
+  // the reason and nothing else - not their profile, and certainly not a
+  // successful write.
+  if (isSuspended(claims)) return suspendedResponse(suspensionInfo(claims));
 
   const userId: string = claims.id;
   const store = getStore(STORE_NAME, { consistency: "strong" });

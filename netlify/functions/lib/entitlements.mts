@@ -40,9 +40,11 @@ export interface Entitlements {
  */
 export async function getEntitlements(userId: string, profile?: any): Promise<Entitlements> {
   let tier = "free";
+  let suspended = false;
   try {
     const record = profile || (await getStore(USER_STORE, { consistency: "strong" }).get(`users:${userId}`, { type: "json" }));
     if (record && typeof (record as any).subscriptionTier === "string") tier = (record as any).subscriptionTier;
+    suspended = Boolean(record && (record as any).suspended);
   } catch {
     // A profile read failure must not silently downgrade someone into
     // losing alerts they're entitled to - fall through to the permissive
@@ -50,8 +52,15 @@ export async function getEntitlements(userId: string, profile?: any): Promise<En
   }
   return {
     tier,
-    // Deliberately unconditional. When gating starts, this becomes a lookup
-    // of `tier` against a capability set, and only this line changes.
-    has: (_capability: Capability) => true,
+    // Deliberately unconditional, with one exception. When gating starts,
+    // this becomes a lookup of `tier` against a capability set.
+    //
+    // The exception is suspension, and it's here rather than only in the
+    // dispatchers' user loops because this is the last gate every alert
+    // passes through (see deliverAlert). The loops already skip suspended
+    // profiles, so in practice this never fires - it's the backstop for an
+    // alert type added later that builds its recipient list some other way,
+    // and it costs nothing since the profile is already in hand.
+    has: (_capability: Capability) => !suspended,
   };
 }

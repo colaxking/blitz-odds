@@ -210,6 +210,11 @@ export default async (req: Request, _context: Context) => {
           try {
             const profile: any = await userStore.get(b.key, { type: "json" });
             if (!profile?.email) continue;
+            // A suspended account can't open the site, so alerting it is
+            // pure nuisance: cut off and still nagged. The flag is mirrored
+            // onto the profile blob by admin-user-update precisely so this
+            // loop can see it without an Identity token.
+            if (profile.suspended) continue;
             const favorites: string[] = Array.isArray(profile?.settings?.favorites) ? profile.settings.favorites : [];
             if (!favorites.length) continue;   // injury alerts are favourites-only
             users.push({

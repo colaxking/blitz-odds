@@ -639,6 +639,32 @@ export default async (req: Request, _context: Context) => {
     const pushDesyncsByStage = sortedCounts(pushDesyncRecords, (r) => r.stage);
     const pushRepairFailuresByStage = sortedCounts(pushRepairFailureRecords, (r) => r.stage);
 
+    // --- account lifecycle. Self-service deletion destroys every other
+    // record of itself: the profile, the picks and the login are all gone by
+    // the time it finishes, and the admin audit log only covers deletions an
+    // admin performed. These events are the only place a departure is
+    // visible at all.
+    //
+    // Starts and completions are counted separately rather than netted,
+    // because the gap between them is the interesting number. Someone who
+    // opens the confirm panel and backs out has decided to stay - a healthy
+    // signal. Someone who opens it and hits an error has decided to leave
+    // and been unable to, which is a bug and reads identically in a net
+    // figure. `deleteFailures` splits that second case out. ---
+    const deleteStarts = validRecords.filter((r) => r.type === "account_delete_start").length;
+    const deleteCompletions = validRecords.filter((r) => r.type === "account_delete_complete");
+    const accountDeletes = deleteCompletions.filter((r) => r.outcome === "success").length;
+    const accountDeleteFailures = deleteCompletions.length - accountDeletes;
+    const accountDeleteAbandons = Math.max(0, deleteStarts - deleteCompletions.length);
+    const accountDeleteFailuresByOutcome = sortedCounts(
+      deleteCompletions.filter((r) => r.outcome !== "success"),
+      (r) => r.outcome
+    );
+    // Suspended sessions hitting the block screen. Not deduplicated by
+    // visitor: a suspended account that keeps reopening the app is exactly
+    // the thing worth seeing, and collapsing it to one would hide it.
+    const suspendedBlocks = validRecords.filter((r) => r.type === "account_suspended_block").length;
+
     // --- teamClicksByOrigin: game-card click vs. the favorites-bar
     // quick-nav chip - how much the favorites shortcut actually gets used ---
     const teamClicksByOrigin = sortedCounts(teamClicks, (r) => r.origin);
@@ -922,6 +948,12 @@ export default async (req: Request, _context: Context) => {
         pushRepairFailures,
         pushDesyncsByStage,
         pushRepairFailuresByStage,
+        accountDeleteStarts: deleteStarts,
+        accountDeletes,
+        accountDeleteAbandons,
+        accountDeleteFailures,
+        accountDeleteFailuresByOutcome,
+        suspendedBlocks,
         historyPageviews,
         archiveEntriesBySource,
         historyGameClicksByTeam,

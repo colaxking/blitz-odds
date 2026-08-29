@@ -1,5 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { getAuthenticatedUser } from "./lib/auth.mts";
 
 // Joins the authenticated caller to a league, either via invite code (any
 // league) or by leagueId directly (public leagues only - this is what the
@@ -39,18 +40,10 @@ function jsonResponse(status: number, body: unknown) {
 // hosted Identity (GoTrue) endpoint - context.clientContext.user is a
 // v1/Lambda-handler-only mechanism, never populated for modern v2
 // "export default" functions like this one.
-async function getAuthenticatedUser(req: Request): Promise<any | null> {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) return null;
-  try {
-    const identityUrl = `${new URL(req.url).origin}/.netlify/identity/user`;
-    const res = await fetch(identityUrl, { headers: { Authorization: authHeader } });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
+// Auth is the shared lib/auth.mts verifier, which this function used to
+// carry its own copy of. The copy is gone deliberately: the shared one also
+// refuses a SUSPENDED account, and a local duplicate would quietly opt this
+// endpoint out of that.
 
 export default async (req: Request, _context: Context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });

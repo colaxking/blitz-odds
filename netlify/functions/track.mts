@@ -65,6 +65,23 @@ const VALID_TYPES = new Set([
   "push_device_desync",
   "push_device_repaired",
   "push_device_repair_failed",
+  // Account lifecycle. Self-service deletion is irreversible and the account
+  // is gone by the time it completes, so there is no after-the-fact way to
+  // measure it: the profile, the picks and the login have all been removed,
+  // and the audit log only covers deletions an ADMIN performed. Without
+  // these three the only visible trace of someone leaving is a number that
+  // silently gets smaller.
+  //
+  // The funnel matters more than the total. "started" fires when the confirm
+  // panel is opened, "completed" when the endpoint returns ok - a large gap
+  // between them means people are opening it to see what it says, or trying
+  // and failing, and those are opposite problems.
+  "account_delete_start",
+  "account_delete_complete",
+  // A suspended user reaching the block screen. Counts how often the gate
+  // actually fires, which is the only signal that a suspension is landing
+  // on a live session rather than an account nobody was using.
+  "account_suspended_block",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -186,7 +203,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage, outcome } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -339,6 +356,18 @@ export default async (req: Request, context: Context) => {
       type === "push_device_repair_failed"
     ) {
       if (typeof stage === "string" && stage) record.stage = stage.slice(0, 32);
+    }
+
+    // Account lifecycle. `surface` says where the delete was started from
+    // (today only "settings", but an admin-side or email-link route would
+    // need to be told apart from it), and on completion `outcome` separates
+    // a success from the two failures worth knowing about - a mistyped
+    // confirmation, and the endpoint itself erroring after the data sweep.
+    if (type === "account_delete_start" || type === "account_delete_complete") {
+      if (typeof surface === "string" && surface) record.surface = surface.slice(0, 32);
+    }
+    if (type === "account_delete_complete") {
+      if (typeof outcome === "string" && outcome) record.outcome = outcome.slice(0, 32);
     }
 
     if (week !== undefined && week !== null && week !== "") {

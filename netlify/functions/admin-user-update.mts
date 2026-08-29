@@ -7,13 +7,14 @@ import {
 import { USER_STORE, getPrefs, setPrefs } from "./lib/notif.mts";
 
 // POST /.netlify/functions/admin-user-update
-//   { userId, action: "set-admin",  value: true|false }
-//   { userId, action: "set-name",   value: "New Name" }
-//   { userId, action: "set-prefs",  value: { ...partial NotifPrefs } }
+//   { userId, action: "set-admin",     value: true|false }
+//   { userId, action: "set-suspended", value: true|false, reason?: string }
+//   { userId, action: "set-name",      value: "New Name" }
+//   { userId, action: "set-prefs",     value: { ...partial NotifPrefs } }
 //   { userId, action: "reset-password" }
 //
-// One endpoint, four verbs, because they all mutate one user and all need
-// the same audit stamp. Splitting them into four functions would mean four
+// One endpoint, five verbs, because they all mutate one user and all need
+// the same audit stamp. Splitting them into five functions would mean five
 // copies of the lookup-then-log preamble.
 
 const LEAGUE_STORE = "blitz-leagues";
@@ -92,6 +93,70 @@ export default async (req: Request, context: Context) => {
         { target: userId, meta: { roles } }
       );
       return adminJson(200, { ok: true, roles });
+    }
+
+    /* ---------------- suspension ---------------- */
+    if (action === "set-suspended") {
+      const suspend = body.value !== false;
+      const reason = String(body.reason || "").trim().slice(0, 200);
+
+      // Suspending yourself locks you out of the console that would let you
+      // undo it. If you were the only admin, nobody can undo it.
+      if (userId === actor.id) {
+        return adminJson(409, { ok: false, error: "You can't suspend your own account" });
+      }
+
+      const now = new Date().toISOString();
+      const existingMeta = target.app_metadata || {};
+      const nextMeta = suspend
+        ? { ...existingMeta, suspended: true, suspendedAt: now, suspendedReason: reason || undefined, suspendedBy: actor.email || actor.id }
+        : { ...existingMeta, suspended: false, suspendedAt: undefined, suspendedReason: undefined, suspendedBy: undefined };
+
+      const res = await identityAdminFetch(req, context, `/admin/users/${userId}`, {
+        method: "PUT",
+        body: JSON.stringify({ app_metadata: nextMeta }),
+      });
+      if (!res.ok) {
+        return adminJson(res.status, { ok: false, error: `Identity rejected the change (${res.status})` });
+      }
+
+      // The flag has to land in TWO places, because two different systems
+      // ask the question and neither can cheaply reach the other's answer:
+      //
+      //   Identity app_metadata - read on every request via lib/auth.mts,
+      //     which is what actually stops them acting. Source of truth.
+      //   The profile blob      - read by the three notification dispatchers,
+      //     which walk `users:` in Blobs and have no Identity token and no
+      //     business acquiring one to send a kickoff alert.
+      //
+      // Without the second write a suspended account goes on receiving push
+      // and email for a site it can no longer open, which is the worst of
+      // both: cut off and still nagged. The blob copy is a cache, and a
+      // failed write here is logged rather than fatal - the access gate,
+      // the part that matters, has already succeeded.
+      try {
+        const userStore = getStore(USER_STORE, { consistency: "strong" });
+        const profile: any = await userStore.get(`users:${userId}`, { type: "json" });
+        if (profile) {
+          await userStore.setJSON(`users:${userId}`, {
+            ...profile,
+            suspended: suspend,
+            suspendedAt: suspend ? now : null,
+          });
+        }
+      } catch {
+        console.warn("[admin-user-update] suspension flag not mirrored to profile", { userId });
+      }
+
+      await audit(
+        actor,
+        suspend ? "user.suspend" : "user.unsuspend",
+        suspend
+          ? `suspended ${label}${reason ? ` (${reason})` : ""}`
+          : `lifted the suspension on ${label}`,
+        { target: userId, meta: { reason: reason || null } }
+      );
+      return adminJson(200, { ok: true, suspended: suspend, reason: reason || null, suspendedAt: suspend ? now : null });
     }
 
     /* ---------------- display name ---------------- */

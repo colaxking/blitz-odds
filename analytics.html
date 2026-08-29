@@ -432,6 +432,32 @@
       (failures > 0 ? "var(--bad, #d33a3a)" : "inherit") + ';">' + esc(verdict) + "</div>";
   }
 
+  /* Departures, as a funnel rather than a total. A raw "12 deleted" says
+     nothing about whether the flow is working; starts-minus-completions is
+     the number that separates "people looked and stayed" from "people tried
+     and couldn't". Failures are called out in red because a failed deletion
+     is a person who has asked to leave and is still here. */
+  function accountDeleteHtml(d) {
+    var starts = d.accountDeleteStarts || 0;
+    var done = d.accountDeletes || 0;
+    var failed = d.accountDeleteFailures || 0;
+    var abandoned = d.accountDeleteAbandons || 0;
+    if (!starts && !done && !failed) {
+      return '<div class="empty">Nobody opened the delete panel in this range</div>';
+    }
+    var verdict = failed > 0
+      ? failed + (failed === 1 ? " deletion failed" : " deletions failed") + " - these people asked to leave and couldn't"
+      : abandoned > 0
+        ? fmtNum(abandoned) + (abandoned === 1 ? " person opened it and stayed" : " people opened it and stayed")
+        : "Every deletion that was started completed";
+    return '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(done) + "</div>" +
+      '<div class="section-desc" style="margin-top:2px;">' +
+      fmtNum(starts) + " started \u00b7 " + fmtNum(abandoned) + " backed out \u00b7 " +
+      fmtNum(failed) + " failed</div>" +
+      '<div class="section-desc" style="margin-top:8px;color:' +
+      (failed > 0 ? "var(--bad, #d33a3a)" : "inherit") + ';">' + esc(verdict) + "</div>";
+  }
+
   // ---- Rendering --------------------------------------------------------
   function barListHtml(data, dim, opts) {
     opts = opts || {};
@@ -520,6 +546,22 @@
            share is the largest fraction of the audience that could ever
            receive an alert, no matter how the permission prompt performs. */
         { title: "Installed vs. browser", sub: "iOS only delivers push to an installed app", html: barListHtml(relabel(d.displayModeDistribution, { standalone: "Installed app", browser: "Browser tab" }), "displayMode", { valueFn: function (l) { return l === "Installed app" ? "standalone" : "browser"; } }) }
+      ]},
+      /* Accounts sits next to Push health as the other operational section:
+         both are about the state of real people's access rather than about
+         product usage. It exists because deletion is the one event that
+         erases its own evidence - the profile, the picks and the login are
+         all gone by the time it finishes, and the admin audit log only
+         records deletions an admin performed, never a self-service one. */
+      { id: "accounts", title: "Accounts", desc: "Departures and suspensions - the events that leave no other trace", tiles: [
+        { title: "Accounts deleted", sub: "Self-service, from Settings", html: accountDeleteHtml(d) },
+        { title: "Why a deletion failed", sub: "Empty is the healthy state here", html: barListHtml(relabel(d.accountDeleteFailuresByOutcome, { mismatch: "Confirmation email didn't match", error: "Server error" }), null, { empty: "No failed deletions" }) },
+        /* Counts sessions hit by the gate, not accounts suspended - a
+           suspended account nobody was using never appears here, and one
+           that keeps reopening the app appears repeatedly. That repetition
+           is the point: it's the difference between a dormant suspension
+           and someone actively trying to get back in. */
+        { title: "Blocked by suspension", sub: "Times a suspended session hit the notice", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.suspendedBlocks || 0) + "</div>" }
       ]},
       { id: "prefs", title: "Preferences", desc: "What people are currently set to, not how often they changed it", tiles: [
         { title: "Theme", sub: "Current setting per visitor", html: barListHtml(relabel(d.themeDistribution, {}), "theme", { valueFn: function (l) { return l.toLowerCase(); } }) },

@@ -1,5 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { getAuthenticatedUser } from "./lib/auth.mts";
 
 // Creates a new pick'em league. Authenticated (Netlify Identity JWT)
 // callers only - the creator becomes the owner and first member.
@@ -106,18 +107,10 @@ function generateInviteCode(): string {
 // (confirmed via a temporary debug endpoint). Hitting the Identity
 // endpoint's /user route with the same Bearer token is what GoTrue's own
 // client libraries do internally, and works regardless of function runtime.
-async function getAuthenticatedUser(req: Request): Promise<any | null> {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) return null;
-  try {
-    const identityUrl = `${new URL(req.url).origin}/.netlify/identity/user`;
-    const res = await fetch(identityUrl, { headers: { Authorization: authHeader } });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
+// Auth is the shared lib/auth.mts verifier, which this function used to
+// carry its own copy of. The copy is gone deliberately: the shared one also
+// refuses a SUSPENDED account, and a local duplicate would quietly opt this
+// endpoint out of that.
 
 export default async (req: Request, _context: Context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });

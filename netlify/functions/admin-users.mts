@@ -87,6 +87,7 @@ export default async (req: Request, context: Context) => {
           /* absent rows are normal - fall through with nulls */
         }
         const roles = u.app_metadata?.roles || [];
+        const meta: any = u.app_metadata || {};
         return {
           id: u.id,
           email: u.email,
@@ -96,6 +97,10 @@ export default async (req: Request, context: Context) => {
             (u.email || "").split("@")[0],
           isAdmin: roles.includes(ADMIN_ROLE),
           roles,
+          suspended: Boolean(meta.suspended),
+          suspendedAt: meta.suspendedAt || null,
+          suspendedReason: meta.suspendedReason || null,
+          suspendedBy: meta.suspendedBy || null,
           confirmed: Boolean(u.confirmed_at),
           createdAt: u.created_at || null,
           lastSeenAt: profile?.lastSeenAt || u.updated_at || null,

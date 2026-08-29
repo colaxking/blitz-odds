@@ -1,4 +1,5 @@
 import type { Context, Config } from "@netlify/functions";
+import { getStore } from "@netlify/blobs";
 
 // Server-side proxy for the SportsGameOdds API, used by the
 // blitz-odds-odds-refresh scheduled task. That task runs in a sandboxed
@@ -39,6 +40,18 @@ import type { Context, Config } from "@netlify/functions";
 // BACKUP vars if none of the numbered vars are set, so this doesn't break
 // if the multi-key vars are ever removed.
 //
+// Learned reset days (added 2026-08-29): the vendor's /account/usage
+// response turned out not to include an interval end time at all on the
+// free tier - the live per-month block is just max-requests, max-entities
+// and current-entities, despite what the docs advertise. So instead of
+// guessing each account's reset day, this proxy watches for it: usage
+// within a cycle only ever climbs, so any meaningful drop is a reset, and
+// the day it's first observed on becomes that key's learned anchor day.
+// Observations are keyed by a hash of the API key itself, not the slot
+// number, so rotating a slot onto a different account (as happened to
+// key-3 on 2026-08-04) discards the old account's learned anchor instead
+// of silently applying it to the new one.
+//
 // Per-key billing cycles (added 2026-08-29): each account has its own
 // monthly reset date (they were signed up on different days), so pacing
 // the pool as if it were one account on one anchor date was wrong - it
@@ -77,6 +90,30 @@ const MIN_KEY_HEADROOM = 60;
 // SPORTSGAMEODDS_API_KEY_{n}_ANCHOR_DAY, or globally via ANCHOR_DAY_DEFAULT.
 // 31 means "last day of the month" - it's clamped to each month's length.
 const ANCHOR_DAY_DEFAULT = Number(process.env.ANCHOR_DAY_DEFAULT || 31);
+
+// Where learned reset days live. Same Blobs store as the rest of the odds
+// pipeline, under its own key prefix.
+const PACING_STORE = "blitz-odds-live";
+const PACING_PREFIX = "odds-pacing:";
+// Usage is monotonic within a cycle, so any decrease means a reset. A
+// floor keeps a stray decrement (a vendor recount, an eventually-consistent
+// read) from being mistaken for one - real resets drop by hundreds or
+// thousands, never by tens.
+const RESET_DROP_MIN = 50;
+// Don't rewrite an observation more often than this unless something
+// actually happened. Bounds Blobs writes during a paginated FULL sweep,
+// which re-reads usage once per page per key.
+const OBSERVE_WRITE_INTERVAL_MS = 10 * 60 * 1000;
+// Observed reset days kept per key. Two consecutive agreeing observations
+// promote the anchor from "learned" to "learned-confirmed".
+const RESET_HISTORY_MAX = 6;
+// Floor under the pace allowance. The linear curve starts at zero, so
+// without this a key that just reset is "ahead of pace" the moment it
+// spends anything at all - blocked with 2,400+ objects left an hour into
+// a 31-day cycle. That's the same class of wrong-for-the-wrong-reason
+// skip this whole change exists to remove. Roughly one FULL sweep, or 10%
+// of a free-tier cap, so the early-cycle grace can't drain an account.
+const MIN_CYCLE_ALLOWANCE = 250;
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -121,13 +158,19 @@ interface KeyEntry {
   key: string;
   email: string;
   anchorDay: number;
+  // True when the day came from a SPORTSGAMEODDS_API_KEY_{n}_ANCHOR_DAY
+  // env var rather than the global default, which is what lets an explicit
+  // override outrank a learned day.
+  anchorDayExplicit: boolean;
 }
 
-function anchorDayFor(slot: number | null): number {
+function anchorDayFor(slot: number | null): { day: number; explicit: boolean } {
   const raw = slot === null ? null : process.env[`SPORTSGAMEODDS_API_KEY_${slot}_ANCHOR_DAY`];
   const parsed = raw ? Number(raw) : NaN;
-  if (Number.isFinite(parsed) && parsed >= 1 && parsed <= 31) return Math.floor(parsed);
-  return ANCHOR_DAY_DEFAULT;
+  if (Number.isFinite(parsed) && parsed >= 1 && parsed <= 31) {
+    return { day: Math.floor(parsed), explicit: true };
+  }
+  return { day: ANCHOR_DAY_DEFAULT, explicit: false };
 }
 
 function loadKeys(): KeyEntry[] {
@@ -136,15 +179,17 @@ function loadKeys(): KeyEntry[] {
     const key = process.env[`SPORTSGAMEODDS_API_KEY_${n}`];
     if (!key) continue;
     const email = process.env[`SPORTSGAMEODDS_API_KEY_${n}_EMAIL`] || `account-${n}`;
-    entries.push({ label: `key-${n}`, key, email, anchorDay: anchorDayFor(n) });
+    const anchor = anchorDayFor(n);
+    entries.push({ label: `key-${n}`, key, email, anchorDay: anchor.day, anchorDayExplicit: anchor.explicit });
   }
   if (entries.length > 0) return entries;
 
   // Fallback: old single primary/backup pair.
   const primary = process.env.SPORTSGAMEODDS_API_KEY;
   const backup = process.env.SPORTSGAMEODDS_API_KEY_BACKUP;
-  if (primary) entries.push({ label: "primary", key: primary, email: "primary", anchorDay: anchorDayFor(null) });
-  if (backup && backup !== primary) entries.push({ label: "backup", key: backup, email: "backup", anchorDay: anchorDayFor(null) });
+  const legacyAnchor = anchorDayFor(null);
+  if (primary) entries.push({ label: "primary", key: primary, email: "primary", anchorDay: legacyAnchor.day, anchorDayExplicit: legacyAnchor.explicit });
+  if (backup && backup !== primary) entries.push({ label: "backup", key: backup, email: "backup", anchorDay: legacyAnchor.day, anchorDayExplicit: legacyAnchor.explicit });
   return entries;
 }
 
@@ -263,11 +308,134 @@ async function getKeyUsage(key: string): Promise<KeyUsage> {
   }
 }
 
+interface PacingRecord {
+  keyHash: string;
+  label: string;
+  lastUsage: number | null;
+  lastSeenAt: string | null;
+  // Day-of-month a reset was actually observed on, and the trail of
+  // observations behind it.
+  learnedAnchorDay: number | null;
+  learnedConfirmed: boolean;
+  lastResetAt: string | null;
+  // Width of the window the last reset was caught in. A reset is only
+  // known to have happened somewhere between the previous observation and
+  // the one that spotted the drop; a narrow window means the day is right.
+  lastResetWindowHours: number | null;
+  resetHistory: { at: string; day: number; usageBefore: number; usageAfter: number }[];
+}
+
+// Identify an account by its key material, not its slot number, so that
+// rotating SPORTSGAMEODDS_API_KEY_{n} onto a different account starts that
+// account's learning from scratch rather than inheriting the old one's
+// reset day.
+async function hashKey(key: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(key));
+  return Array.from(new Uint8Array(digest))
+    .slice(0, 8)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function emptyRecord(keyHash: string, label: string): PacingRecord {
+  return {
+    keyHash,
+    label,
+    lastUsage: null,
+    lastSeenAt: null,
+    learnedAnchorDay: null,
+    learnedConfirmed: false,
+    lastResetAt: null,
+    lastResetWindowHours: null,
+    resetHistory: [],
+  };
+}
+
+// Read the stored observation for a key, note the current usage, and write
+// back if a reset just happened or the record has gone stale. Every Blobs
+// call is best-effort: pacing degrades to the env/default anchor if the
+// store is unavailable, it never fails the request.
+async function observeKey(entry: KeyEntry, usage: number | null, now: Date): Promise<PacingRecord | null> {
+  let keyHash: string;
+  try {
+    keyHash = await hashKey(entry.key);
+  } catch {
+    return null;
+  }
+
+  const blobKey = `${PACING_PREFIX}${keyHash}`;
+  let store: ReturnType<typeof getStore>;
+  let record: PacingRecord;
+  try {
+    store = getStore(PACING_STORE, { consistency: "strong" });
+    record = ((await store.get(blobKey, { type: "json" })) as PacingRecord) || emptyRecord(keyHash, entry.label);
+  } catch {
+    return null;
+  }
+
+  if (usage === null) return record;
+
+  const previous = record.lastUsage;
+  const previousAt = record.lastSeenAt ? new Date(record.lastSeenAt) : null;
+  const reset = previous !== null && usage <= previous - RESET_DROP_MIN;
+
+  if (reset) {
+    const windowHours = previousAt
+      ? Number(((now.getTime() - previousAt.getTime()) / 3600000).toFixed(2))
+      : null;
+    const day = now.getUTCDate();
+    const history = [
+      ...record.resetHistory,
+      { at: now.toISOString(), day, usageBefore: previous as number, usageAfter: usage },
+    ].slice(-RESET_HISTORY_MAX);
+    // Two consecutive observations landing on the same day-of-month is
+    // enough to stop treating the anchor as provisional. They can differ
+    // legitimately by a day when a reset lands near midnight UTC and the
+    // poll that catches it falls on the far side.
+    const lastTwo = history.slice(-2);
+    record = {
+      ...record,
+      label: entry.label,
+      learnedAnchorDay: day,
+      learnedConfirmed: lastTwo.length === 2 && lastTwo[0].day === lastTwo[1].day,
+      lastResetAt: now.toISOString(),
+      lastResetWindowHours: windowHours,
+      resetHistory: history,
+    };
+  }
+
+  const stale = !record.lastSeenAt
+    || now.getTime() - new Date(record.lastSeenAt).getTime() > OBSERVE_WRITE_INTERVAL_MS;
+  if (reset || stale) {
+    record = { ...record, lastUsage: usage, lastSeenAt: now.toISOString() };
+    try {
+      await store.setJSON(blobKey, record);
+    } catch {
+      // Observation lost this round; the next poll picks it back up.
+    }
+  }
+  return record;
+}
+
+// Precedence for a key's reset day: an explicit env override first (an
+// operator escape hatch, and the only way to seed a day before one has
+// ever been observed), then whatever has actually been observed, then the
+// global default. A disagreement between the two is surfaced in the usage
+// response rather than resolved silently.
+function effectiveAnchorDay(entry: KeyEntry, record: PacingRecord | null): { day: number; source: string } {
+  if (entry.anchorDayExplicit) return { day: entry.anchorDay, source: "env" };
+  if (record?.learnedAnchorDay) {
+    return { day: record.learnedAnchorDay, source: record.learnedConfirmed ? "learned-confirmed" : "learned" };
+  }
+  return { day: entry.anchorDay, source: "default" };
+}
+
 // Everything a caller needs to decide whether this key can fund a run.
-function describeKey(entry: KeyEntry, usage: KeyUsage, now: Date) {
-  const cycle = resolveCycle(usage.resetAt, entry.anchorDay, now);
+function describeKey(entry: KeyEntry, usage: KeyUsage, now: Date, record: PacingRecord | null = null) {
+  const anchor = effectiveAnchorDay(entry, record);
+  const cycle = resolveCycle(usage.resetAt, anchor.day, now);
   const fraction = cycleFraction(cycle, now);
-  const paceAllowance = usage.cap * fraction * PACE_SAFETY;
+  const paceAllowance = Math.max(usage.cap * fraction * PACE_SAFETY, MIN_CYCLE_ALLOWANCE);
   const known = usage.usage !== null;
   const remaining = known ? Math.max(0, usage.cap - (usage.usage as number)) : null;
   const underPace = known ? (usage.usage as number) < paceAllowance : null;
@@ -285,7 +453,18 @@ function describeKey(entry: KeyEntry, usage: KeyUsage, now: Date) {
     cycleStart: cycle.start.toISOString(),
     cycleEnd: cycle.end.toISOString(),
     cycleSource: cycle.source,
-    anchorDay: entry.anchorDay,
+    anchorDay: anchor.day,
+    anchorSource: anchor.source,
+    learnedAnchorDay: record?.learnedAnchorDay ?? null,
+    learnedConfirmed: record?.learnedConfirmed ?? false,
+    lastResetAt: record?.lastResetAt ?? null,
+    lastResetWindowHours: record?.lastResetWindowHours ?? null,
+    resetsObserved: record?.resetHistory?.length ?? 0,
+    // Set when an operator override and the observed reset day disagree -
+    // the override still wins, but it shouldn't do so invisibly.
+    anchorConflict: anchor.source === "env" && !!record?.learnedAnchorDay && record.learnedAnchorDay !== entry.anchorDay
+      ? { env: entry.anchorDay, learned: record.learnedAnchorDay }
+      : null,
     cycleElapsed: Number(fraction.toFixed(4)),
     paceAllowance: Number(paceAllowance.toFixed(1)),
     underPace,
@@ -320,7 +499,11 @@ export default async (req: Request, _context: Context) => {
   if (endpoint === "usage") {
     const now = new Date();
     const perKey = await Promise.all(
-      keys.map(async (k) => describeKey(k, await getKeyUsage(k.key), now))
+      keys.map(async (k) => {
+        const usage = await getKeyUsage(k.key);
+        const record = await observeKey(k, usage.usage, now);
+        return describeKey(k, usage, now, record);
+      })
     );
 
     // Pool math only counts keys whose usage actually came back. A key
@@ -376,6 +559,8 @@ export default async (req: Request, _context: Context) => {
         keysConfigured: perKey.length,
         keysWithKnownUsage: known.length,
         keysWithVendorCycle: perKey.filter((k) => k.cycleSource === "vendor").length,
+        keysWithLearnedAnchor: perKey.filter((k) => k.learnedAnchorDay !== null).length,
+        keysAwaitingFirstReset: perKey.filter((k) => k.learnedAnchorDay === null && k.anchorSource === "default").length,
         nextResetAt: upcomingResets[0] ?? null,
         pacing: "per-key",
         // Kept for backward compatibility with any caller still reading
@@ -412,7 +597,11 @@ export default async (req: Request, _context: Context) => {
     const ranked = await Promise.all(
       keys.map(async (k) => {
         const u = await getKeyUsage(k.key);
-        const d = describeKey(k, u, rankNow);
+        // Rank-time lookups are the most frequent usage reads there are,
+        // so they double as observations - a reset landing mid-sweep gets
+        // caught here rather than waiting for the next budget check.
+        const record = await observeKey(k, u.usage, rankNow);
+        const d = describeKey(k, u, rankNow, record);
         const ratio = d.usage === null || d.paceAllowance <= 0
           ? Infinity
           : d.usage / d.paceAllowance;

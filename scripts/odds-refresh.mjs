@@ -169,13 +169,22 @@ function describeKeyLine(k) {
   const usage = typeof k.usage === "number" ? k.usage : "?";
   const pct = typeof k.cycleElapsed === "number" ? `${(k.cycleElapsed * 100).toFixed(1)}%` : "?";
   const resets = typeof k.cycleEnd === "string" ? k.cycleEnd.slice(0, 10) : "?";
-  const source = k.cycleSource === "vendor" ? "" : ` cycle-from-anchor-day-${k.anchorDay}`;
+  // Where this key's reset day came from: the vendor's own interval end
+  // time, an env override, a day actually observed by watching usage drop,
+  // or the fallback default. Worth showing on every line - a key still on
+  // "default" is one whose real reset day nothing has pinned down yet.
+  const source = k.cycleSource === "vendor"
+    ? " reset from vendor"
+    : ` anchor ${k.anchorDay} (${k.anchorSource || "default"}${k.resetsObserved ? `, ${k.resetsObserved} reset(s) seen` : ""})`;
+  const conflict = k.anchorConflict
+    ? ` [override ${k.anchorConflict.env} disagrees with observed ${k.anchorConflict.learned}]`
+    : "";
   let verdict;
   if (typeof k.usage !== "number") verdict = "usage lookup failed";
   else if (k.spendable) verdict = "SPENDABLE";
   else if (k.underPace === false) verdict = "ahead of its own pace";
   else verdict = `headroom below ${MIN_KEY_HEADROOM}`;
-  return `budget:   ${k.label} ${k.email} ${usage}/${k.cap} pace<=${k.paceAllowance} rem=${k.remaining ?? "?"} cycle ${pct} resets ${resets}${source} -> ${verdict}`;
+  return `budget:   ${k.label} ${k.email} ${usage}/${k.cap} pace<=${k.paceAllowance} rem=${k.remaining ?? "?"} cycle ${pct} resets ${resets}${source}${conflict} -> ${verdict}`;
 }
 
 async function checkBudget() {
@@ -223,8 +232,13 @@ async function checkBudget() {
   const paced = perKey.filter((k) => typeof k.paceAllowance === "number");
   if (paced.length) {
     const spendable = paced.filter((k) => k.spendable);
-    const vendorCycles = data?.keysWithVendorCycle;
-    log(`budget: pool ${usage}/${cap}, ${remaining ?? "?"} left, ${paced.length} account(s) reporting${typeof vendorCycles === "number" ? `, ${vendorCycles} with a vendor-reported cycle` : ""}`);
+    const learned = data?.keysWithLearnedAnchor;
+    const awaiting = data?.keysAwaitingFirstReset;
+    const cycleNote = [
+      typeof learned === "number" && learned > 0 ? `${learned} with a learned reset day` : null,
+      typeof awaiting === "number" && awaiting > 0 ? `${awaiting} still awaiting a first observed reset` : null,
+    ].filter(Boolean).join(", ");
+    log(`budget: pool ${usage}/${cap}, ${remaining ?? "?"} left, ${paced.length} account(s) reporting${cycleNote ? ` - ${cycleNote}` : ""}`);
     for (const k of perKey) log(describeKeyLine(k));
     if (spendable.length === 0) {
       return { proceed: false, reason: "per-key-pace", usage, remaining, nextResetAt: data?.nextResetAt ?? null };

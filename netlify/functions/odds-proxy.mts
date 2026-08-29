@@ -455,6 +455,12 @@ function describeKey(entry: KeyEntry, usage: KeyUsage, now: Date, record: Pacing
     cycleSource: cycle.source,
     anchorDay: anchor.day,
     anchorSource: anchor.source,
+    // False means the observation store couldn't be read or written this
+    // round, so nothing is being learned. Without this, a Blobs outage is
+    // indistinguishable from "no reset has happened yet" - both show a
+    // null learned day - and the learning could quietly never start.
+    observed: record !== null,
+    lastSeenAt: record?.lastSeenAt ?? null,
     learnedAnchorDay: record?.learnedAnchorDay ?? null,
     learnedConfirmed: record?.learnedConfirmed ?? false,
     lastResetAt: record?.lastResetAt ?? null,
@@ -560,6 +566,8 @@ export default async (req: Request, _context: Context) => {
         keysWithKnownUsage: known.length,
         keysWithVendorCycle: perKey.filter((k) => k.cycleSource === "vendor").length,
         keysWithLearnedAnchor: perKey.filter((k) => k.learnedAnchorDay !== null).length,
+        // "ok" once every key's observation round-tripped through Blobs.
+        pacingStore: perKey.every((k) => k.observed) ? "ok" : "unavailable",
         keysAwaitingFirstReset: perKey.filter((k) => k.learnedAnchorDay === null && k.anchorSource === "default").length,
         nextResetAt: upcomingResets[0] ?? null,
         pacing: "per-key",

@@ -179,12 +179,15 @@ function describeKeyLine(k) {
   const conflict = k.anchorConflict
     ? ` [override ${k.anchorConflict.env} disagrees with observed ${k.anchorConflict.learned}]`
     : "";
+  // A store outage is a warning, not a verdict - a key stays perfectly
+  // spendable while it's happening, it just stops learning.
+  const notLearning = k.observed === false ? " [observation store unavailable - not learning]" : "";
   let verdict;
   if (typeof k.usage !== "number") verdict = "usage lookup failed";
   else if (k.spendable) verdict = "SPENDABLE";
   else if (k.underPace === false) verdict = "ahead of its own pace";
   else verdict = `headroom below ${MIN_KEY_HEADROOM}`;
-  return `budget:   ${k.label} ${k.email} ${usage}/${k.cap} pace<=${k.paceAllowance} rem=${k.remaining ?? "?"} cycle ${pct} resets ${resets}${source}${conflict} -> ${verdict}`;
+  return `budget:   ${k.label} ${k.email} ${usage}/${k.cap} pace<=${k.paceAllowance} rem=${k.remaining ?? "?"} cycle ${pct} resets ${resets}${source}${conflict} -> ${verdict}${notLearning}`;
 }
 
 async function checkBudget() {

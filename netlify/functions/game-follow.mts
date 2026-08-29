@@ -21,6 +21,11 @@ import { parseKickoffUTC } from "./lib/kickoff.mts";
 const SITE_DATA_STORE = "blitz-site-data";
 const CURRENT_SEASON = 2026;
 
+/** How long after kickoff a game is assumed to be finished, for the purpose
+ *  of refusing a new follow. See the POST handler for why this is a clock
+ *  estimate rather than a live lookup, and why it's deliberately loose. */
+const GAME_OVER_AFTER_MS = 6 * 60 * 60 * 1000;
+
 const CORS_HEADERS: Record<string, string> = {
   ...CORS_HEADERS_BASE,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -91,20 +96,32 @@ export default async (req: Request, _context: Context) => {
         return jsonResponse(404, { ok: false, error: "No such game in that week" }, CORS_HEADERS);
       }
 
-      // Following closes at kickoff, matching the bell on the card. An
-      // existing follow keeps running through the whole game - the live
-      // dispatcher never re-checks this - so the only thing shut off here
-      // is STARTING one, which is what the client already stopped offering.
+      // Following closes when the game is OVER, not at kickoff. It used to
+      // close at kickoff, matching a card gate that has since been
+      // relaxed: the live dispatcher drives scoring alerts and the final
+      // off this same follow set, so a follow placed during the second
+      // quarter still delivers the rest of the game. The only alert
+      // genuinely unavailable after kickoff is the kickoff warning itself,
+      // and refusing the whole subscription over it was the wrong trade.
+      //
+      // "Over" is inferred from the clock rather than looked up, because
+      // the alternative is an ESPN round-trip on a user-initiated tap to
+      // answer a question whose only consumer is this guard. NFL games run
+      // ~3h10m including overtime and stoppages; SIX hours past kickoff is
+      // far enough beyond the longest plausible game that a rejection here
+      // is never a live one, which is the direction to err - the cost of
+      // being generous is one week-scoped blob key that the sweep clears
+      // anyway, while the cost of being strict is refusing a real request.
       //
       // Enforced server-side as well as in the UI because the card's gate
-      // is a render-time decision: a tab left open through kickoff still
-      // has a live bell in the DOM, and this is what answers it.
+      // is a render-time decision: a tab left open past the final whistle
+      // still has a live bell in the DOM, and this is what answers it.
       //
       // A placeholder kickoff time (flex-scheduled weeks parse to null) is
       // treated as followable - those are always future games.
       const kickoff = parseKickoffUTC(CURRENT_SEASON, game.date, game.time);
-      if (kickoff && Date.now() >= kickoff.getTime()) {
-        return jsonResponse(409, { ok: false, error: "That game has already started." }, CORS_HEADERS);
+      if (kickoff && Date.now() >= kickoff.getTime() + GAME_OVER_AFTER_MS) {
+        return jsonResponse(409, { ok: false, error: "That game has already finished." }, CORS_HEADERS);
       }
 
       try {

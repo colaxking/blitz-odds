@@ -705,6 +705,21 @@ export default async (req: Request, _context: Context) => {
     const gameFollowEvents = validRecords.filter((r) => r.type === "game_follow");
     const gameFollowAdds = gameFollowEvents.filter((r) => r.adding === true).length;
     const gameFollowRemoves = gameFollowEvents.length - gameFollowAdds;
+    // Of the follows turned ON, how many were placed on a game already
+    // under way. The bell used to disappear at kickoff, so every one of
+    // these is a subscription the old gate would have refused - this is
+    // the number that says whether relaxing it was worth doing. Events
+    // predating the `gameState` field have no value here and fall into
+    // neither bucket, which is correct: they were all pre-kickoff by
+    // construction, but counting them as such would inflate the
+    // denominator with a period when mid-game follows were impossible.
+    const gameFollowAddsWithState = gameFollowEvents.filter(
+      (r) => r.adding === true && typeof r.gameState === "string"
+    );
+    const gameFollowAddsInProgress = gameFollowAddsWithState.filter(
+      (r) => r.gameState === "live" || r.gameState === "started"
+    ).length;
+    const gameFollowAddsScheduled = gameFollowAddsWithState.length - gameFollowAddsInProgress;
     // Which matchups pull a follow, keyed on the matchup rather than
     // crediting both teams the way boxscoreClicksByTeam does - the question
     // here is "which GAME was worth an alert", and splitting a Thursday
@@ -937,6 +952,8 @@ export default async (req: Request, _context: Context) => {
         boxscoreClicksBySource,
         gameFollowAdds,
         gameFollowRemoves,
+        gameFollowAddsInProgress,
+        gameFollowAddsScheduled,
         gameFollowsByGame: capTop(gameFollowsByGame),
         playbookSubtabViews,
         playbookFormatViews,

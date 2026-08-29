@@ -515,7 +515,7 @@
       { id: "games", title: "Games & box scores", desc: "Live and final game engagement", tiles: [
         { title: "Box scores by team", sub: "Both teams credited per open", html: barListHtml(normTeams(d.boxscoreClicksByTeam), "boxscoreTeam", { valueFn: function (l) { return normTeams.raw[l] || l; } }) },
         { title: "Box scores by entry point", sub: "Full Details button vs. tappable score", html: barListHtml(relabel(d.boxscoreClicksBySource, { full_details: "Full Details", score_tap: "Score tap", unknown: "Before tracking" })) },
-        { title: "Per-game alert follows", sub: fmtNum(d.gameFollowAdds || 0) + " turned on, " + fmtNum(d.gameFollowRemoves || 0) + " turned off", html: barListHtml(d.gameFollowsByGame, "followGame", { long: true }) }
+        { title: "Per-game alert follows", sub: fmtNum(d.gameFollowAdds || 0) + " turned on, " + fmtNum(d.gameFollowRemoves || 0) + " turned off" + ((d.gameFollowAddsInProgress || 0) + (d.gameFollowAddsScheduled || 0) > 0 ? " · " + fmtNum(d.gameFollowAddsInProgress || 0) + " of " + fmtNum((d.gameFollowAddsInProgress || 0) + (d.gameFollowAddsScheduled || 0)) + " placed mid-game" : ""), html: barListHtml(d.gameFollowsByGame, "followGame", { long: true }) }
       ]},
       { id: "content", title: "Content & archive", desc: "News ticker and the historical archive", tiles: [
         { title: "News sources clicked", sub: "Which outlet's headlines land", html: barListHtml(d.newsSourceClicks, "newsSource") },
@@ -773,7 +773,7 @@
       case "player_view": return { label: "Viewed player " + ev.player, detail: ev.source ? String(ev.source).replace(/_/g, " ") : "" };
       case "news_click": return { label: "Clicked " + (ev.newsSource || "a") + " headline", detail: [ev.placement === "team_news" ? "Team News panel" : ev.placement === "ticker" ? "ticker" : null, ev.headline].filter(Boolean).join(" · ") };
       case "boxscore_click": return { label: "Opened box score — " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: ev.source === "full_details" ? "from Full Details" : ev.source === "score_tap" ? "tapped the score" : "" };
-      case "game_follow": return { label: (ev.adding ? "Followed game — " : "Unfollowed game — ") + (ev.away || "?") + " @ " + (ev.home || "?"), detail: ev.week ? "week " + ev.week : "" };
+      case "game_follow": return { label: (ev.adding ? "Followed game — " : "Unfollowed game — ") + (ev.away || "?") + " @ " + (ev.home || "?"), detail: [ev.week ? "week " + ev.week : null, ev.gameState === "live" || ev.gameState === "started" ? "mid-game" : null].filter(Boolean).join(" · ") };
       case "playbook_subtab": return { label: 'Opened Playbook — "' + ev.subtab + '"', detail: "" };
       case "playbook_format": return { label: "Switched pool format to " + ev.format, detail: "signed-out preview" };
       case "gate_cta": return { label: "Clicked gate CTA — " + (ev.action || "unknown"), detail: ev.surface === "pro" ? "Pro gate" : ev.surface === "signin" ? "Sign-in wall" : "", conversion: true };
@@ -890,6 +890,7 @@
       newsSourceClicks: {}, newsClicksByPlacement: {}, teamClicksByOrigin: {},
       boxscoreClicksByTeam: {}, boxscoreClicksBySource: {},
       gameFollowAdds: 0, gameFollowRemoves: 0, gameFollowsByGame: {},
+      gameFollowAddsInProgress: 0, gameFollowAddsScheduled: 0,
       playbookSubtabViews: {}, playbookFormatViews: {},
       gateCtaClicks: {}, gateCtaBySurface: {}, bookCompareOpens: 0,
       pushDesyncs: 0, pushRepairs: 0, pushRepairFailures: 0,

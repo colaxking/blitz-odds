@@ -203,7 +203,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage, outcome } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage, outcome, state } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -295,6 +295,15 @@ export default async (req: Request, context: Context) => {
       // a second name for the same idea - the dashboard already knows how
       // to read a boolean called that.
       record.adding = adding === true;
+      // Whether the game had started when the bell was tapped. The bell
+      // used to vanish at kickoff; it now stays up until the final
+      // whistle, and this field is the only thing that can say whether
+      // anyone actually uses the window that opened up. Restricted to the
+      // three values the card emits so a malformed body can't seed the
+      // dashboard with junk categories.
+      if (state === "scheduled" || state === "started" || state === "live") {
+        record.gameState = state;
+      }
     }
 
     if (type === "playbook_subtab" && subtab) {

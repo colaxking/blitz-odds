@@ -36,7 +36,8 @@
  *    full roster table (`.roster-player-name-btn`)
  *  - "game_follow" whenever the "Alert me" bell on a game card is tapped
  *    (`.gc-follow`), with `adding: true/false` for whether the tap was
- *    turning the follow on or off, plus the two teams and the week. This is
+ *    turning the follow on or off, `state` for whether the game had started
+ *    yet, plus the two teams and the week. This is
  *    the only signal for whether per-game alerts are used at all - the
  *    server knows how many follows exist, but not how many people tried and
  *    changed their mind, and not which games attract them
@@ -516,6 +517,13 @@
               home: followEl.getAttribute("data-home") || undefined,
               week: followEl.getAttribute("data-week") || getCurrentWeekLabel(),
               adding: followEl.getAttribute("aria-pressed") !== "true",
+              // "scheduled" | "started" | "live" - whether the game had
+              // kicked off when the bell was tapped. The bell used to
+              // disappear at kickoff and now stays up until the final
+              // whistle, so this is what says whether that was worth
+              // doing: a follow placed mid-game is one the old gate
+              // refused outright.
+              state: followEl.getAttribute("data-state") || undefined,
             });
           }
           return;

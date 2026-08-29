@@ -1134,6 +1134,35 @@
      not under it - has room the phone's bottom bar doesn't. The label grows
      slightly with it so the icon doesn't overpower it. Both are overridden
      in the mobile block below, which keeps its own smaller sizing. */
+  /* Count of games in progress, pinned to the Games tab's icon. Absolute,
+     so it hangs off the corner without widening the button and shifting
+     the other three tabs sideways the moment a game kicks off.
+     The 2px ring is the bar's own background rather than a border colour:
+     the badge overlaps artwork that is itself full-colour, and without a
+     gap between the two the red pill reads as part of the illustration. */
+  .tab-icon { position: relative; }
+  .tab-live-count {
+    position: absolute; top: -3px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 999px; background: var(--live); color: #fff;
+    font-size: 0.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 2px var(--bg);
+    animation: pulse 1.4s infinite;
+  }
+  /* White on --live clears AA at this weight in both themes (dark #ff3b30 →
+     3.4:1, light #d92d20 → 4.9:1); it's bold 0.6rem text, which WCAG treats
+     as large only at 14pt+, so the dark-theme figure is the one to watch if
+     --live ever moves. The count is never the only signal anyway - the
+     aria-label carries it, and the games themselves are one tap away. */
+  @media (prefers-reduced-motion: reduce) {
+    .tab-live-count { animation: none; }
+  }
+  /* Against the translucent mobile bar rather than the page. Both resolve
+     to something close, but the fixed bar is blurred over the list behind
+     it, so matching --bg there leaves a faint halo. */
+  @media (max-width: 720px) {
+    .tab-live-count { box-shadow: 0 0 0 2px var(--card-bg); }
+  }
   .tab-icon.has-img { width: 40px; height: 40px; background: none; border-color: transparent; }
   .tab-btn.active .tab-icon.has-img { background: none; border-color: transparent; }
   .tab-icon-img {
@@ -15193,17 +15222,29 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   const [fullDetailsOpen, setFullDetailsOpen] = useState(false);
   const [showAddToLeague, setShowAddToLeague] = useState(false);
 
-  // Following one specific game, for this week only. Offered only before
-  // kickoff, the same gate as Add to League: subscribing is a thing you do
-  // in advance, and the alert this is mostly bought for - the kickoff
-  // warning - is already gone by the time a game is on. An existing follow
-  // keeps running through the whole game and delivers the final; it's only
-  // the ability to START one that closes at kickoff.
+  // Following one specific game, for this week only.
+  //
+  // The gate is "not finished yet", NOT the pre-kickoff gate Add to League
+  // uses. It was originally the same gate, on the reasoning that the alert
+  // this is mostly bought for - the kickoff warning - is already gone once
+  // a game is on. But that undersold what a follow does: the live
+  // dispatcher (notif-live-dispatch-background) drives scoring alerts and
+  // the final whistle off the exact same follow set, so a follow started at
+  // halftime still delivers everything except the one alert that has
+  // already passed. Someone who tunes into a close game in the third
+  // quarter is precisely the person who wants the rest of it pushed to
+  // them, and the old gate met them with no control at all.
+  //
+  // A final game does hide it: there is nothing left to send, so a bell
+  // there would be a switch wired to nothing. Unfollowing a finished game
+  // is still possible from the Alerts tab, which lists the week's follows
+  // regardless of state - and the server accepts an unfollow
+  // unconditionally, precisely so no one gets stranded.
   const gameFollowId = window.GameId.makeGameId(seasonYear, week, game.away, game.home);
   const { followed: followedGames, toggle: toggleGameFollow, busy: followBusy } = useGameFollows(auth, week);
   const signedIn = !!(auth && auth.status === "in");
   const isFollowing = !!(followedGames && followedGames.has(gameFollowId));
-  const canFollowGame = !hasStarted;
+  const canFollowGame = !isFinal;
   // Disabled, not hidden, until the week's follows have loaded - a bell that
   // says "not following" before it knows is a control that lies, and this
   // one is about whether a phone buzzes.
@@ -15364,11 +15405,20 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             data-away={game.away}
             data-home={game.home}
             data-week={week}
+            /* Read by js/analytics.js so the dashboard can separate a follow
+               placed in advance from one placed on a game already in
+               progress - the whole question this gate change raises. */
+            data-state={isLive ? "live" : hasStarted ? "started" : "scheduled"}
             aria-pressed={isFollowing}
             disabled={followPending || followBusy === gameFollowId}
+            /* Nothing visible changes once a game is on - same icon, same
+               label, same colour - but the tooltip stops promising a
+               kickoff alert that has already been and gone. */
             title={isFollowing
               ? "You're getting alerts for this game this week. Tap to stop."
-              : "Get alerts for this game this week"}
+              : hasStarted
+                ? "Get scoring and final alerts for this game"
+                : "Get alerts for this game this week"}
             aria-label={isFollowing ? "Stop alerts for this game" : "Get alerts for this game"}
             onClick={handleFollowClick}
           >
@@ -26442,7 +26492,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
  * dashboard once that landed, and it cost a slot in a bar that has to fit
  * on a phone. LEAGUES_UI_ENABLED still gates the tab's *route*, so nothing
  * about linking to /leagues changed. */
-function TabBar({ activeTab, onSelectTab }) {
+function TabBar({ activeTab, onSelectTab, liveCount = 0 }) {
   /* Each tab carries both an `img` (the illustrated brand mark) and an
    * `icon` (the emoji it replaced). The emoji is not dead code - TabBar
    * renders it for any tab without an image, and it's the one-line revert
@@ -26472,12 +26522,25 @@ function TabBar({ activeTab, onSelectTab }) {
   /* The span stays aria-hidden and the <img> stays alt="" on purpose: the
    * .tab-label next to it is the accessible name, so describing the artwork
    * as well would have a screen reader announce every tab twice. */
+  /* The Games tab carries a count of games in progress right now. It rides
+   * the icon rather than the label so it reads at a glance in the phone's
+   * bottom bar, where the label is 0.64rem and already the smallest thing
+   * on screen. Capped at "9+" because a full Sunday afternoon window can
+   * have a dozen games on at once and a two-digit number inside a 16px pill
+   * stops being legible before it stops being true.
+   *
+   * aria-hidden on the badge, with the count folded into the button's
+   * aria-label instead (below) - a screen reader announcing a bare "3"
+   * between the artwork and the word "Games" is worse than useless. */
   const renderIcon = (t) => (
     <span className={"tab-icon" + (t.img ? " has-img" : "")} aria-hidden="true">
       {t.img ? (
         <img className="tab-icon-img" src={t.img} alt="" width="30" height="30" decoding="async" />
       ) : (
         t.icon
+      )}
+      {t.id === "games" && liveCount > 0 && (
+        <span className="tab-live-count">{liveCount > 9 ? "9+" : liveCount}</span>
       )}
     </span>
   );
@@ -26493,6 +26556,9 @@ function TabBar({ activeTab, onSelectTab }) {
           className={"tab-btn" + (activeTab === t.id ? " active" : "")}
           onClick={() => onSelectTab(t.id)}
           aria-current={activeTab === t.id ? "page" : undefined}
+          aria-label={t.id === "games" && liveCount > 0
+            ? `Games, ${liveCount} live now`
+            : undefined}
           data-tour={"tab-" + t.id}
         >
           {renderIcon(t)}
@@ -28994,6 +29060,27 @@ function App() {
   });
   const [favorites, setFavorites] = useState(loadFavorites);
   const [profile, setProfile] = useState(null);
+
+  /* Games currently in progress, for the badge on the Games tab.
+   *
+   * Pinned to getDefaultWeek() rather than `selectedWeek` on purpose: the
+   * badge answers "is football on right now", which has nothing to do with
+   * which week someone happens to be browsing. Someone reading week 3 in
+   * November should still see that today's games have kicked off.
+   *
+   * This is a second useLiveScores() subscription alongside WeekView's, not
+   * a hoist of it - WeekView needs the map for whatever week is on screen,
+   * which is usually but not always this one. The duplication is cheap:
+   * fetchLiveScoresCached() dedupes overlapping calls, and with nothing
+   * live the hook sits at IDLE_POLL_MS (5 minutes). It has to live at App
+   * level regardless, since the bar is visible from every tab and WeekView
+   * is unmounted on three of them. */
+  const liveTabWeek = useMemo(() => getDefaultWeek(), []);
+  const liveTabMap = useLiveScores(liveTabWeek);
+  const liveGameCount = useMemo(
+    () => Object.values(liveTabMap).filter((g) => g && g.state === "in").length,
+    [liveTabMap]
+  );
   // Non-null when the signed-in account has been suspended. Set from the
   // user-profile fetch below, which is the only endpoint that reports the
   // reason rather than a generic 401.
@@ -29736,7 +29823,7 @@ function App() {
         </div>
       </header>
 
-      <TabBar activeTab={activeTab} onSelectTab={selectTab} />
+      <TabBar activeTab={activeTab} onSelectTab={selectTab} liveCount={liveGameCount} />
 
       {activeTab === "home" && HOME_TAB_ENABLED && (
         auth.status === "in" ? (

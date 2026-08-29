@@ -2991,14 +2991,15 @@
   }
   .danger-btn:hover:not(:disabled) { border-color: var(--out); }
   .danger-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  /* Cancel first, destructive action second and right-aligned: the reverse
-     puts the irreversible button under the thumb on a phone. */
+  /* Desktop: Cancel then the destructive action, right-aligned. */
   .danger-actions { display: flex; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 12px; }
   .danger-error {
     margin: 10px 0 0; font-size: 0.78rem; color: var(--out); font-weight: 700; line-height: 1.45;
   }
   @media (max-width: 420px) {
-    /* Stacked and full-width once the row would start wrapping mid-button. */
+    /* Stacked once the row would wrap mid-button. column-reverse, not
+       column: it keeps Cancel at the BOTTOM, nearest the thumb, so the
+       button sitting where a thumb naturally lands is the harmless one. */
     .danger-actions { flex-direction: column-reverse; align-items: stretch; }
     .danger-actions .danger-btn { width: 100%; }
   }

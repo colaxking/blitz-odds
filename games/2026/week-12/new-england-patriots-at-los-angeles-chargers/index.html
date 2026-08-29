@@ -2742,7 +2742,12 @@
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
     padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.5);
   }
-  .terms-modal-title { font-size: 1.08rem; font-weight: 800; margin: 0 0 6px; }
+  /* Colour set explicitly rather than inherited from body. Every other
+     modal title in here relies on that inheritance and gets away with it,
+     but this one can render over the Identity widget's own stacking
+     context, and a heading that silently falls back to the UA default
+     black on a dark card is unreadable. */
+  .terms-modal-title { font-size: 1.08rem; font-weight: 800; margin: 0 0 6px; color: var(--text); }
   .terms-modal-lede { font-size: 0.85rem; line-height: 1.55; color: var(--text-dim); margin: 0 0 14px; }
   .terms-modal-points { margin: 0 0 16px; padding: 0; list-style: none; }
   .terms-modal-points li {
@@ -2767,8 +2772,10 @@
   }
   .terms-modal-check span { font-size: 0.84rem; line-height: 1.5; color: var(--text); }
   .terms-modal-check a { color: var(--accent); font-weight: 650; }
+  /* --out, not --lose: --lose is the muted grey used for a losing team's
+     row, not an error red. */
   .terms-modal-error {
-    font-size: 0.8rem; line-height: 1.45; color: var(--lose); margin: 0 0 12px;
+    font-size: 0.8rem; line-height: 1.45; color: var(--out); margin: 0 0 12px;
   }
   .terms-modal-actions { display: flex; gap: 9px; }
   .terms-modal-btn {

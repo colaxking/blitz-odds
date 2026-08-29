@@ -130,6 +130,7 @@
        correct call reads as a Blitz Edge signal rather than a generic
        win/loss color. */
     --blitz-orange: #fd7f01;
+    --blitz-orange-fill-text: #062b16;
     --pill-good-text: #6be3a1;
     --pill-bad-text: #ff8080;
     --pill-good-fill-text: #062b16;
@@ -164,6 +165,7 @@
     /* Darkened from the same brand orange to hold AA text contrast
        (~4.8:1) on a white card - the raw logo orange only clears ~2.6:1. */
     --blitz-orange: #b35900;
+    --blitz-orange-fill-text: #ffffff;
     --pill-good-text: #1a7a43;
     --pill-bad-text: #b42318;
     --pill-good-fill-text: #ffffff;
@@ -2218,6 +2220,9 @@
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 16px; display: flex; flex-direction: column; gap: 10px;
     width: 100%; box-sizing: border-box;
+    /* Anchors .card-ribbon, the final-game verdict tag pinned to the card's
+       top-right corner (see the GAMECARD REDESIGN block below). */
+    position: relative;
   }
   .game-card.is-historical { border-color: rgba(var(--demo-rgb),0.35); }
   .game-card.is-division {
@@ -2228,6 +2233,12 @@
   .game-card.is-live { border-color: var(--live); box-shadow: 0 0 0 1px rgba(var(--live-rgb),0.3); }
   .game-card.is-international { border-color: #2dd4bf; box-shadow: 0 0 0 1px rgba(45,212,191,0.3), 0 0 18px rgba(45,212,191,0.12); }
   .game-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); }
+  /* Only on a final card, where .card-ribbon occupies the top-right corner -
+     the right-aligned network label would otherwise run under it. */
+  .game-meta.has-ribbon { padding-right: 104px; }
+  /* "Missed" is 16px narrower than "Called it" - reclaim it so a miss card
+     doesn't wrap its date line for clearance it doesn't need. */
+  .game-meta.has-ribbon.ribbon-short { padding-right: 88px; }
   .game-meta-left { display: flex; align-items: center; flex-wrap: wrap; }
   .division-tag {
     display: inline-flex; align-items: center; margin-left: 6px; padding: 2px 8px;
@@ -2304,8 +2315,20 @@
   .score-flash { display: inline-flex; border-radius: 6px; animation: score-flash 3.2s ease-out; }
   .matchup-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .team-block { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 10px; position: relative; }
-  .team-block.winner { background: rgba(var(--win-rgb), 0.12); border: 1px solid rgba(var(--win-rgb), 0.4); }
-  .team-block.actual-winner { box-shadow: 0 0 0 2px var(--demo) inset; }
+  /* Two different things that used to fight each other: green used to mean
+     "the model picked this team" while a purple ring meant "this team won",
+     so a missed call showed the losing team tinted green. Now green is only
+     ever the outcome (plus a checkmark, so colour isn't the sole signal) and
+     the model's pick is a teal dashed outline at every stage of the game. */
+  .team-block { border: 1px solid transparent; }
+  .team-block.blitz-pick { border: 1px dashed rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.07); }
+  .team-block.actual-winner { border: 1px solid rgba(var(--win-rgb), 0.55); background: rgba(var(--win-rgb), 0.16); }
+  .team-block.actual-winner.blitz-pick { border-style: solid; }
+  .won-check {
+    position: absolute; top: 4px; right: 4px; width: 17px; height: 17px; border-radius: 999px;
+    background: var(--win); color: var(--pill-good-fill-text); font-size: 0.7rem; font-weight: 900;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
   .team-click { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; padding: 0; color: inherit; font: inherit; }
   .team-click:hover .team-name { text-decoration: underline; }
   .badge-wrap { position: relative; width: 46px; height: 46px; }
@@ -2330,7 +2353,10 @@
   }
   .star-btn.active { color: var(--star); border-color: var(--star); }
   .team-name { font-size: 0.8rem; text-align: center; color: var(--text); }
-  .win-tag { font-size: 0.7rem; color: var(--win); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .win-tag {
+    font-size: 0.55rem; color: var(--accent); font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.4px; border: 1px solid rgba(var(--accent-rgb), 0.5); border-radius: 999px; padding: 1px 6px;
+  }
   .win-tag-hidden { visibility: hidden; }
   .at-sep { color: var(--text-dim); font-size: 0.75rem; padding: 0 4px; }
   .confidence-bar-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-dim); }
@@ -2381,9 +2407,23 @@
   .final-score-mid .fs-nums { font-size: 1rem; font-weight: 800; white-space: nowrap; }
   .final-score-mid .fs-sep { color: var(--text-dim); font-weight: 600; margin: 0 3px; }
   .final-score-mid .fs-label { font-size: 0.58rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; }
-  .final-call-badge { font-size: 0.56rem; font-weight: 800; white-space: nowrap; margin-top: 1px; }
-  .final-call-badge.correct { color: var(--blitz-orange); }
-  .final-call-badge.incorrect { color: var(--pill-bad-text); }
+  /* Verdict tag for a finished game. Replaces the old .final-call-badge,
+     which was 0.56rem unstyled text stacked third in the narrow middle
+     column under the score and "FINAL" and got lost there. A hit is filled
+     brand orange; a miss is filled --lose grey rather than red, because at a
+     realistic miss rate a red fill puts several alarm-coloured tags on every
+     week screen and collides with the --live red used in the same corner
+     region. The grey is a label on the miss, not the only signal for it -
+     the split between the green outcome block and the teal pick block
+     carries that on its own. */
+  .card-ribbon {
+    position: absolute; top: 0; right: 0; padding: 5px 11px 5px 13px;
+    border-radius: 0 13px 0 12px; font-size: 0.68rem; font-weight: 900;
+    letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap;
+    display: flex; align-items: center; gap: 5px; line-height: 1.15;
+  }
+  .card-ribbon.correct { background: var(--blitz-orange); color: var(--blitz-orange-fill-text); }
+  .card-ribbon.incorrect { background: var(--lose); color: #fff; }
 
   /* Two bands: the Blitz Edge lockup and the pick's confidence on top (one
      left-aligned group), the sportsbook line underneath. The odds band uses
@@ -4775,7 +4815,7 @@
   <p>Sun, Oct 4 · 4:05 PM ET · FOX</p>
 
   
-  <p><strong>Odds (DraftKings):</strong> MIN -7.5 · ML MIA +330 / MIN -425 · O/U 43.5</p>
+  <p><strong>Odds (DraftKings):</strong> MIN -7.5 · ML MIA +310 / MIN -395 · O/U 43.5</p>
 
   <h2>Model prediction</h2>
   <p>Predicted winner: <strong>Minnesota Vikings</strong> - MIA 35% / MIN 65%</p>
@@ -15333,7 +15373,17 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
 
   return (
     <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (divisionGame ? " is-division" : "") + (internationalGame ? " is-international" : "") + (isLive ? " is-live" : "")}>
-      <div className="game-meta">
+      {isFinal && predictionCorrect != null && (
+        <div
+          className={"card-ribbon " + (predictionCorrect ? "correct" : "incorrect")}
+          title={predictionCorrect
+            ? "Blitz Edge picked the winner of this game"
+            : "Blitz Edge picked the other team"}
+        >
+          {predictionCorrect ? "✓ Called it" : "✗ Missed"}
+        </div>
+      )}
+      <div className={"game-meta" + (isFinal && predictionCorrect != null ? " has-ribbon" : "") + (isFinal && predictionCorrect === false ? " ribbon-short" : "")}>
         <span className="game-meta-left">
           {!isLive && <>{shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}</>}
           {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
@@ -15381,26 +15431,25 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
       )}
 
       <div className="matchup-row" data-tour="matchup-teams">
-        <div className={"team-block" + (!homeIsWinner ? " winner" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
+        <div className={"team-block" + (!homeIsWinner ? " blitz-pick" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
+          {actualWinnerId === away.id && <span className="won-check" title={away.name + " won"} aria-label={away.name + " won"}>&#10003;</span>}
           <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{away.name}</div>
-          <div className={"win-tag" + (!homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
+          <div className={"win-tag" + (!homeIsWinner ? "" : " win-tag-hidden")}>Blitz Pick</div>
         </div>
         {isFinal ? (
           <div className="final-score-mid">
             <span className="fs-nums">{scoreInfo.awayScore}<span className="fs-sep">-</span>{scoreInfo.homeScore}</span>
             <span className="fs-label">Final</span>
-            <span className={"final-call-badge " + (predictionCorrect ? "correct" : "incorrect")}>
-              {predictionCorrect ? "Called it ✓" : "Missed ✗"}
-            </span>
           </div>
         ) : (
           <div className="at-sep">@</div>
         )}
-        <div className={"team-block" + (homeIsWinner ? " winner" : "") + (actualWinnerId === home.id ? " actual-winner" : "")}>
+        <div className={"team-block" + (homeIsWinner ? " blitz-pick" : "") + (actualWinnerId === home.id ? " actual-winner" : "")}>
+          {actualWinnerId === home.id && <span className="won-check" title={home.name + " won"} aria-label={home.name + " won"}>&#10003;</span>}
           <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{home.name}</div>
-          <div className={"win-tag" + (homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
+          <div className={"win-tag" + (homeIsWinner ? "" : " win-tag-hidden")}>Blitz Pick</div>
         </div>
       </div>
 

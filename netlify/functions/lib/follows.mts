@@ -10,6 +10,11 @@ import { notifStore } from "./notif.mts";
 // hands you that team's other sixteen games for the rest of the season, and
 // which you then have to remember to un-star.
 //
+// A follow can only be STARTED before kickoff (enforced in game-follow.mts,
+// and the card hides the bell once a game is under way). Once made it runs
+// through the whole game and delivers the final - nothing downstream
+// re-checks kickoff, so an in-progress game keeps alerting normally.
+//
 // Storage (blitz-notif store):
 //   follow:{season}:{week}:{userId} -> { games: string[], updatedAt }
 //

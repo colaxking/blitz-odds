@@ -21,11 +21,6 @@ import { parseKickoffUTC } from "./lib/kickoff.mts";
 const SITE_DATA_STORE = "blitz-site-data";
 const CURRENT_SEASON = 2026;
 
-/** How long after kickoff a game is still worth following. Long enough to
- *  cover overtime and a slow final whistle, after which the only alert left
- *  (the final score) has already fired and a follow buys nothing. */
-const FOLLOW_TAIL_MS = 5 * 60 * 60 * 1000;
-
 const CORS_HEADERS: Record<string, string> = {
   ...CORS_HEADERS_BASE,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -96,15 +91,20 @@ export default async (req: Request, _context: Context) => {
         return jsonResponse(404, { ok: false, error: "No such game in that week" }, CORS_HEADERS);
       }
 
-      // A game that's over can't produce another alert, so following it is
-      // a control that would silently do nothing. A game already in
-      // progress still can - scoring alerts and the final - so the cutoff
-      // is the end of the game, not kickoff. A placeholder kickoff time
-      // (flex-scheduled weeks parse to null) is treated as followable:
-      // those are always future games.
+      // Following closes at kickoff, matching the bell on the card. An
+      // existing follow keeps running through the whole game - the live
+      // dispatcher never re-checks this - so the only thing shut off here
+      // is STARTING one, which is what the client already stopped offering.
+      //
+      // Enforced server-side as well as in the UI because the card's gate
+      // is a render-time decision: a tab left open through kickoff still
+      // has a live bell in the DOM, and this is what answers it.
+      //
+      // A placeholder kickoff time (flex-scheduled weeks parse to null) is
+      // treated as followable - those are always future games.
       const kickoff = parseKickoffUTC(CURRENT_SEASON, game.date, game.time);
-      if (kickoff && Date.now() > kickoff.getTime() + FOLLOW_TAIL_MS) {
-        return jsonResponse(409, { ok: false, error: "That game is over." }, CORS_HEADERS);
+      if (kickoff && Date.now() >= kickoff.getTime()) {
+        return jsonResponse(409, { ok: false, error: "That game has already started." }, CORS_HEADERS);
       }
 
       try {

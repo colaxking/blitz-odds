@@ -14957,27 +14957,30 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   const isLive = !!(scoreInfo && scoreInfo.isLive);
   const isFinal = !!(scoreInfo && scoreInfo.isFinal);
   const kickoffMs = gameKickoffUtcMs(game.date, game.time, seasonYear);
+  // "Has this game started yet" - the gate both footer actions hang off.
+  // The scheduled-kickoff clause matters independently of isLive/isFinal:
+  // a score feed can lag, and for those few minutes the game has started
+  // while the card still thinks it hasn't.
+  const hasStarted = isLive || isFinal || (kickoffMs != null && Date.now() >= kickoffMs);
   // Add to League is only offered before kickoff - picks-submit.mts rejects
-  // a pick once the deadline passes anyway, but hiding the action once the
-  // game is live/final (or just past its scheduled kickoff, in case a score
-  // feed hasn't flipped isLive yet) avoids inviting a submission the backend
-  // is just going to reject.
-  const canAddToLeague = !isLive && !isFinal && !(kickoffMs != null && Date.now() >= kickoffMs);
+  // a pick once the deadline passes anyway, but hiding the action avoids
+  // inviting a submission the backend is just going to reject.
+  const canAddToLeague = !hasStarted;
 
   const [fullDetailsOpen, setFullDetailsOpen] = useState(false);
   const [showAddToLeague, setShowAddToLeague] = useState(false);
 
-  // Following one specific game, for this week only. Offered right up until
-  // the final whistle rather than only before kickoff: subscribing before
-  // the game is the main case (you then get kickoff, scoring and the final,
-  // whichever of those your Alerts settings has on), but someone who tunes
-  // into a game already in progress can still ask for the rest of it. Once
-  // it's final there's no alert left to deliver, so the bell goes.
+  // Following one specific game, for this week only. Offered only before
+  // kickoff, the same gate as Add to League: subscribing is a thing you do
+  // in advance, and the alert this is mostly bought for - the kickoff
+  // warning - is already gone by the time a game is on. An existing follow
+  // keeps running through the whole game and delivers the final; it's only
+  // the ability to START one that closes at kickoff.
   const gameFollowId = window.GameId.makeGameId(seasonYear, week, game.away, game.home);
   const { followed: followedGames, toggle: toggleGameFollow, busy: followBusy } = useGameFollows(auth, week);
   const signedIn = !!(auth && auth.status === "in");
   const isFollowing = !!(followedGames && followedGames.has(gameFollowId));
-  const canFollowGame = !isFinal;
+  const canFollowGame = !hasStarted;
   // Disabled, not hidden, until the week's follows have loaded - a bell that
   // says "not following" before it knows is a control that lies, and this
   // one is about whether a phone buzzes.

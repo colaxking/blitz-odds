@@ -1,5 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { TERMS_VERSION, VALID_TERMS_SOURCES, MAX_TERMS_HISTORY } from "./lib/terms.mts";
 import {
   verifyToken,
   isSuspended,
@@ -55,6 +56,8 @@ import {
 
 const STORE_NAME = "blitz-users";
 const LEAGUE_STORE = "blitz-leagues";
+
+// TERMS_VERSION and friends are shared with auth-signup.mts - see lib/terms.mts.
 const VALID_THEME_MODES = new Set(["light", "dark", "system"]);
 // Mirrors the `id` values in PROFILE_AVATARS in index.html - keep these two
 // lists in sync if avatar options are ever added/removed.
@@ -103,8 +106,38 @@ function defaultProfile(claims: any) {
     subscriptionTier: "free",
     leagues: [],
     settings: defaultSettings(),
+    // Null rather than absent so the shape is stable for every reader. A
+    // profile created before this existed backfills to the same thing, and
+    // both cases are correctly treated as "has not accepted yet".
+    termsAcceptedVersion: null,
+    termsAcceptedAt: null,
+    termsHistory: [] as any[],
     createdAt: now,
     updatedAt: now,
+  };
+}
+
+// Decorates a stored profile with the two derived terms fields the client
+// actually reads. Deliberately computed on every response instead of stored:
+// `termsAcceptanceRequired` is a comparison against TERMS_VERSION, and
+// storing it would leave every existing record stale the moment the version
+// is bumped.
+function withTermsState(profile: any, claims?: any) {
+  /* Two places an acceptance can live, and the identity metadata is checked
+     first because it is the earlier of the two. auth-signup.mts stamps the
+     version into user_metadata at account creation, which happens before any
+     profile blob exists - so on a brand new account the blob says null while
+     the account has genuinely accepted. Reading only the blob would show
+     every new signup the re-consent gate on their very first load. */
+  const meta = claims?.user_metadata || {};
+  const acceptedVersion = profile.termsAcceptedVersion ?? meta.terms_accepted_version ?? null;
+  const acceptedAt = profile.termsAcceptedAt ?? meta.terms_accepted_at ?? null;
+  return {
+    ...profile,
+    termsAcceptedVersion: acceptedVersion,
+    termsAcceptedAt: acceptedAt,
+    termsCurrentVersion: TERMS_VERSION,
+    termsAcceptanceRequired: acceptedVersion !== TERMS_VERSION,
   };
 }
 
@@ -169,7 +202,7 @@ export default async (req: Request, _context: Context) => {
         // rather than sending the client an undefined settings object.
         profile = { ...profile, settings: defaultSettings() };
       }
-      return jsonResponse(200, profile);
+      return jsonResponse(200, withTermsState(profile, claims));
     }
 
     if (req.method === "POST") {
@@ -182,8 +215,31 @@ export default async (req: Request, _context: Context) => {
 
       const existing: any = (await store.get(key, { type: "json" })) || defaultProfile(claims);
 
+      // --- Terms acceptance ---
+      // One-way and version-stamped server-side. The client sends
+      // `acceptTerms: true` (optionally with a source), never a version, so
+      // there is no way to record consent to anything but what is currently
+      // published. Re-accepting the same version is a no-op rather than a
+      // duplicate history entry, which keeps a retried POST idempotent.
+      const acceptingTerms = body.acceptTerms === true;
+      const alreadyOnCurrent =
+        (existing.termsAcceptedVersion ?? claims?.user_metadata?.terms_accepted_version) === TERMS_VERSION;
+      const termsPatch: Record<string, unknown> = {};
+      if (acceptingTerms && !alreadyOnCurrent) {
+        const acceptedAt = new Date().toISOString();
+        const entry: Record<string, unknown> = { version: TERMS_VERSION, acceptedAt };
+        if (typeof body.termsSource === "string" && VALID_TERMS_SOURCES.has(body.termsSource)) {
+          entry.source = body.termsSource;
+        }
+        const history = Array.isArray(existing.termsHistory) ? existing.termsHistory : [];
+        termsPatch.termsAcceptedVersion = TERMS_VERSION;
+        termsPatch.termsAcceptedAt = acceptedAt;
+        termsPatch.termsHistory = [...history, entry].slice(-MAX_TERMS_HISTORY);
+      }
+
       const updated = {
         ...existing,
+        ...termsPatch,
         ...(typeof body.displayName === "string" && body.displayName.trim()
           ? { displayName: body.displayName.trim().slice(0, 40) }
           : {}),
@@ -237,7 +293,7 @@ export default async (req: Request, _context: Context) => {
         );
       }
 
-      return jsonResponse(200, updated);
+      return jsonResponse(200, withTermsState(updated, claims));
     }
 
     return jsonResponse(405, { ok: false, error: "Method not allowed" });

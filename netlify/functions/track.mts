@@ -117,6 +117,35 @@ const VALID_TYPES = new Set([
   // start. What it does measure is demand - how many people reach for the
   // Google button rather than the email form, on each screen.
   "oauth_start",
+  // Terms of Service acceptance. Two routes into an account need it, and
+  // they fail in different ways, so the actions distinguish them. The email
+  // form carries the checkbox inline, so the only thing worth counting
+  // there is the tick itself against signup_submit above - a gap means the
+  // checkbox is where people stop. OAuth has no form to put a checkbox in,
+  // so it gets an interstitial, and that interstitial is a genuine drop-out
+  // point that did not exist before. The gate_* actions are the blocking
+  // re-consent screen; a spike in gate_signout after a TERMS_VERSION bump
+  // is a terms change losing accounts, which is otherwise invisible.
+  "terms_consent",
+]);
+
+// Steps in the terms acceptance flow (see index.html's TermsConsentModal
+// and the checkbox in SignupPanel). Allowlisted rather than passed through
+// so a spoofed body cannot open a new dimension in the dashboard's bar list
+// - same convention as gate_cta's `surface` and archive_entry's `source`.
+const VALID_TERMS_ACTIONS = new Set([
+  // Inline checkbox on the email signup form.
+  "signup_checked",
+  "signup_unchecked",
+  // Interstitial in front of an OAuth provider's consent screen.
+  "oauth_prompt",
+  "oauth_accepted",
+  "oauth_declined",
+  // Blocking post-sign-in gate.
+  "gate_shown",
+  "gate_accepted",
+  "gate_signout",
+  "record_failed",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -432,6 +461,10 @@ export default async (req: Request, context: Context) => {
     }
     if (type === "verify_complete") {
       if (typeof outcome === "string" && outcome) record.outcome = outcome.slice(0, 32);
+    }
+
+    if (type === "terms_consent" && VALID_TERMS_ACTIONS.has(action)) {
+      record.action = action;
     }
 
     if (week !== undefined && week !== null && week !== "") {

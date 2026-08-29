@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-1KHS0JK39B');
+</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- This page is inside the manifest's scope ("/"), so an installed app that
+     navigates here from the footer stays in the standalone window regardless.
+     These are here so the page is consistent with the rest of the app if it's
+     ever the entry point - a search result, a shared link, or someone adding
+     it to a Home Screen directly. Kept in sync with index.html's head. -->
+<meta name="theme-color" content="#0b1220" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-title" content="Blitz Odds" />
+<link rel="apple-touch-icon" href="/branding/apple-touch-icon.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<title>Terms of Service | Blitz Odds</title>
+<meta name="description" content="The terms you agree to when you create a Blitz Odds account - eligibility, accounts, leagues and picks, acceptable use, and disclaimers." />
+<link rel="canonical" href="https://blitz-odds.com/terms/" />
+<meta property="og:title" content="Terms of Service | Blitz Odds" />
+<meta property="og:description" content="The terms you agree to when you create a Blitz Odds account - eligibility, accounts, leagues and picks, acceptable use, and disclaimers." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blitz-odds.com/terms/" />
+<meta name="twitter:card" content="summary" />
+<script>(function () {
+  try {
+    var saved = localStorage.getItem("blitz-odds-theme");
+    var mode = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+    var resolved = mode === "system"
+      ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : mode;
+    if (resolved === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  } catch (e) {}
+})();</script>
+<style>
+:root {
+  --bg: #0b1220; --card-bg: #131c2e; --card-border: #223049; --surface-2: #1a2438;
+  --text: #eef2f8; --text-dim: #9fb0c9; --accent: #4fd1c5; --accent-rgb: 79,209,197;
+}
+html[data-theme="light"] {
+  --bg: #dbe2ec; --card-bg: #ffffff; --card-border: #c3cedd; --surface-2: #e7ecf3;
+  --text: #16202f; --text-dim: #5b6b80; --accent: #0f8f83; --accent-rgb: 15,143,131;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); transition: background 0.15s, color 0.15s; }
+.app { max-width: 780px; margin: 0 auto; padding: 20px 16px 60px; }
+a { color: var(--accent); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+header.top { position: relative; text-align: center; margin-bottom: 18px; }
+.brand-row { display: flex; align-items: center; justify-content: center; text-decoration: none; color: inherit; }
+.brand-logo-light { display: none; }
+html[data-theme="light"] .brand-logo-dark { display: none !important; }
+html[data-theme="light"] .brand-logo-light { display: block !important; }
+@media (max-width: 480px) { .brand-logo-img { height: 52px !important; } }
+@media (max-width: 380px) { .brand-logo-img { height: 42px !important; } }
+
+.breadcrumb { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 16px; }
+.breadcrumb a { color: var(--text-dim); }
+
+.policy { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 22px; }
+.policy h2 { font-size: 1.45rem; margin: 0 0 4px; }
+.policy .updated { color: var(--text-dim); font-size: 0.78rem; margin: 0 0 18px; }
+.policy h3 { font-size: 1rem; margin: 24px 0 8px; padding-top: 16px; border-top: 1px solid var(--card-border); }
+.policy h3:first-of-type { border-top: 0; padding-top: 0; margin-top: 18px; }
+.policy p, .policy li { font-size: 0.88rem; line-height: 1.62; color: var(--text); }
+.policy p { margin: 0 0 10px; }
+.policy ul { margin: 0 0 10px; padding-left: 20px; }
+.policy li { margin-bottom: 6px; }
+.policy .lede { color: var(--text-dim); }
+.policy table { width: 100%; border-collapse: collapse; margin: 0 0 12px; font-size: 0.82rem; }
+.policy th, .policy td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--card-border); vertical-align: top; }
+.policy th { color: var(--text-dim); font-weight: 600; }
+
+footer.app-footer { color: var(--text-dim); font-size: 0.75rem; margin-top: 30px; text-align:center; }
+footer.app-footer p { margin: 0 0 8px; }
+footer.app-footer p:last-child { margin-bottom: 0; }
+.footer-legal { border-top: 1px solid var(--card-border); padding-top: 10px; margin-top: 10px; font-size: 0.7rem; line-height: 1.5; }
+.footer-legal a { color: inherit; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Terms of Service",
+  "url": "https://blitz-odds.com/terms/",
+  "description": "The terms you agree to when you create a Blitz Odds account - eligibility, accounts, leagues and picks, acceptable use, and disclaimers.",
+  "dateModified": "2026-08-29",
+  "isPartOf": { "@type": "WebSite", "name": "Blitz Odds", "url": "https://blitz-odds.com/" }
+}
+</script>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <a href="/" class="brand-row" aria-label="Blitz Odds home">
+      <span class="brand-logo-wrap" style="display:inline-flex;align-items:center;flex-shrink:0">
+        <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" style="height:76px;width:auto;display:block" />
+        <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" style="height:76px;width:auto;display:none" />
+      </span>
+      <h1 class="sr-only">Blitz Odds</h1>
+    </a>
+  </header>
+
+  <div class="breadcrumb"><a href="/">Home</a> &rsaquo; Terms of Service</div>
+
+  <main class="policy">
+    <h2>Terms of Service</h2>
+    <p class="updated">Version 2026-08-29 &middot; Last updated: August 29, 2026</p>
+
+    <p class="lede">These Terms of Service (the &ldquo;Terms&rdquo;) are the agreement between you and Blitz
+    Odds (&ldquo;Blitz Odds&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;) covering your use of
+    blitz-odds.com and any app or feature we provide through it (the &ldquo;Service&rdquo;). Please read
+    them &mdash; you are asked to accept them when you create an account, and they limit our liability to
+    you.</p>
+
+    <h3>1. Accepting these Terms</h3>
+    <p>You accept these Terms by checking the acceptance box when you register, or by continuing to use the
+    Service after being asked to accept an updated version. If you do not agree to these Terms, do not
+    create an account and do not use the Service.</p>
+    <p>We record the version of these Terms you accepted and the date and time you accepted it, against
+    your account. That record exists so both of us know which version applies. See our
+    <a href="/privacy/">Privacy Policy</a>, which is incorporated into these Terms by reference.</p>
+
+    <h3>2. Who may use the Service</h3>
+    <ul>
+      <li>You must be at least 18 years old, or older if that is the minimum age for sports wagering where
+      you live. The Service displays betting odds and is intended for adults.</li>
+      <li>You must be legally able to enter into this agreement, and not barred from using the Service
+      under the laws that apply to you.</li>
+      <li>You may hold one account. Accounts are personal to you and may not be shared, sold, or
+      transferred.</li>
+      <li>Information you give us when registering must be accurate, and you must keep it current.</li>
+    </ul>
+
+    <h3>3. What Blitz Odds is &mdash; and is not</h3>
+    <p>Blitz Odds is an informational and entertainment tool. It aggregates publicly available NFL data,
+    displays betting lines published by third parties, and produces model-generated predictions and
+    recommendations for pick'em pools.</p>
+    <ul>
+      <li><strong>We do not accept, place, broker, or process wagers</strong>, and we are not a sportsbook,
+      a gambling operator, or a betting exchange.</li>
+      <li><strong>Predictions are not advice and are not guarantees.</strong> Our model can be and often is
+      wrong. Nothing on the Service is financial, investment, or betting advice.</li>
+      <li><strong>Odds, lines, scores, injuries, weather, and schedules can be delayed, incomplete, or
+      wrong.</strong> Always confirm a line with a licensed sportsbook before acting on it.</li>
+      <li>Leagues and pools on the Service are for entertainment. We do not operate, hold, escrow, or
+      distribute prize money or entry fees of any kind.</li>
+    </ul>
+    <p>Bet only where it is legal and you meet the minimum age in your jurisdiction. If gambling is causing
+    you harm, call or text 1-800-GAMBLER (1-800-426-2537), or visit
+    <a href="https://www.ncpgambling.org" target="_blank" rel="noopener noreferrer">ncpgambling.org</a>.</p>
+
+    <h3>4. Your account</h3>
+    <p>You are responsible for keeping your login credentials secure and for everything that happens under
+    your account. Tell us promptly at
+    <a href="mailto:support@blitz-odds.com">support@blitz-odds.com</a> if you believe your account has been
+    used without your permission.</p>
+    <p>You may close your account at any time by emailing us. Closing your account removes your profile,
+    picks, standings entries, league memberships, and notification subscriptions as described in the
+    Privacy Policy, and cannot be undone.</p>
+
+    <h3>5. Leagues, picks, and the things you post</h3>
+    <p>When you create or join a league, the display name, avatar, picks, and standings on your account are
+    visible to the other members of that league. Do not put anything in a display name, league name, or
+    other field that you would not want those members to see.</p>
+    <p>You keep ownership of what you submit. You grant us a non-exclusive, worldwide, royalty-free licence
+    to store, display, and process it as needed to operate the Service &mdash; scoring picks, building
+    standings, and showing them to the league you submitted them to.</p>
+    <p>A league commissioner sets that league's format, scoring, and settings, and can remove members.
+    Disputes inside a league are between its members; we are not the referee, and we do not adjudicate
+    standings disagreements or off-platform stakes.</p>
+
+    <h3>6. Acceptable use</h3>
+    <p>You agree not to:</p>
+    <ul>
+      <li>Scrape, crawl, harvest, or bulk-download the Service, or use it to build or train a competing
+      product or dataset, other than ordinary access by a search engine that respects our robots.txt.</li>
+      <li>Access the Service through automated means, or attempt to circumvent rate limits, access
+      controls, or feature gates.</li>
+      <li>Reverse engineer, decompile, or attempt to derive the source of any non-public part of the
+      Service.</li>
+      <li>Interfere with, overload, or disrupt the Service or the infrastructure it runs on, or probe it
+      for vulnerabilities without our written permission.</li>
+      <li>Register accounts in bulk, impersonate anyone, or use a display name that is abusive, hateful,
+      obscene, or designed to mislead.</li>
+      <li>Harass, threaten, or abuse other users, or use the Service for anything unlawful.</li>
+      <li>Resell, redistribute, or commercially exploit data, predictions, or output from the Service
+      without our written permission.</li>
+    </ul>
+
+    <h3>7. Paid features</h3>
+    <p>Parts of the Service are free and parts may require a paid subscription. If you subscribe, the price,
+    billing period, and renewal terms will be shown to you before you pay, and payment will be handled by a
+    third-party payment processor &mdash; we do not store your card details. Subscriptions renew
+    automatically until cancelled, and you can cancel at any time to stop the next renewal. Except where a
+    refund is required by law, payments are non-refundable. We may change subscription pricing on notice,
+    effective at your next renewal.</p>
+
+    <h3>8. Email and notifications</h3>
+    <p>Creating an account lets us send you service messages &mdash; account email, league invitations, and
+    join requests. If you opt in, we can also send push notifications and week-in-review email. You can
+    turn optional messages off in Settings or in your browser's site permissions at any time. Essential
+    account messages are part of holding an account and cannot be switched off separately.</p>
+
+    <h3>9. Intellectual property</h3>
+    <p>The Service, including its design, code, branding, and model output, belongs to Blitz Odds and is
+    protected by intellectual property law. These Terms do not transfer any of it to you; you get a
+    personal, revocable, non-transferable licence to use the Service for its intended purpose.</p>
+    <p>Blitz Odds is not affiliated with, endorsed by, or sponsored by the National Football League. Team
+    names, logos, and marks are the property of their respective owners and are used for identification
+    only.</p>
+
+    <h3>10. Third-party data and links</h3>
+    <p>The Service depends on data from third parties, including SportsGameOdds (betting lines), ESPN
+    (scores and box scores), and Open-Meteo (weather), and it links to third-party sites. We do not control
+    those services, we are not responsible for their accuracy or availability, and their own terms and
+    privacy policies apply when you use them.</p>
+
+    <h3>11. Availability and changes to the Service</h3>
+    <p>The Service is provided free of charge for most features and we may change, suspend, or discontinue
+    any part of it at any time, including features you rely on. We do not promise any level of uptime, and
+    data feeds we depend on may fail outside our control.</p>
+
+    <h3>12. Disclaimer of warranties</h3>
+    <p>The Service is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo;, without warranties of any
+    kind, express or implied, including any implied warranties of merchantability, fitness for a particular
+    purpose, accuracy, or non-infringement. We do not warrant that the Service will be uninterrupted,
+    secure, error-free, or that any prediction, line, score, or other information on it is accurate or
+    current. Some jurisdictions do not allow the exclusion of implied warranties, so parts of this section
+    may not apply to you.</p>
+
+    <h3>13. Limitation of liability</h3>
+    <p>To the fullest extent permitted by law, Blitz Odds will not be liable for any indirect, incidental,
+    special, consequential, or punitive damages, or for any lost profits, lost winnings, gambling losses,
+    lost data, or loss of goodwill, arising out of or related to your use of the Service &mdash; whether or
+    not we were advised such damages were possible.</p>
+    <p>To the fullest extent permitted by law, our total liability to you for all claims relating to the
+    Service is limited to the greater of the amount you paid us in the twelve months before the claim, or
+    USD $50.</p>
+    <p>You accept that any decision you make about a wager is yours alone, made at your own risk, and that
+    we are not responsible for its outcome.</p>
+
+    <h3>14. Indemnity</h3>
+    <p>You agree to indemnify and hold Blitz Odds harmless from any claim, loss, or expense (including
+    reasonable legal fees) arising from your use of the Service, anything you submit through it, or your
+    breach of these Terms or of any law.</p>
+
+    <h3>15. Suspension and termination</h3>
+    <p>We may suspend or terminate your account, with or without notice, if you breach these Terms, if your
+    use of the Service creates risk or legal exposure for us or other users, or if we discontinue the
+    Service. You may stop using the Service at any time. Sections 5 (the licence you grant us), 9, 12, 13,
+    14, and 17 survive termination.</p>
+
+    <h3>16. Changes to these Terms</h3>
+    <p>We may update these Terms. When we do, we will change the version and date at the top of this page.
+    If a change is material, we will ask you to accept the updated Terms the next time you sign in, and you
+    will need to accept them to keep using your account. Continued use after a non-material change means
+    you accept it.</p>
+
+    <h3>17. General</h3>
+    <p>If any part of these Terms is found unenforceable, the rest stays in force. Our not enforcing a
+    provision is not a waiver of it. You may not assign these Terms; we may assign them in connection with a
+    merger, acquisition, or sale of assets. These Terms, together with the Privacy Policy, are the entire
+    agreement between you and Blitz Odds about the Service.</p>
+
+    <h3>18. Contact</h3>
+    <p>Questions about these Terms:
+    <a href="mailto:support@blitz-odds.com">support@blitz-odds.com</a>.</p>
+  </main>
+
+  <footer class="app-footer">
+    <p>Blitz Odds is for informational and entertainment purposes only and does not accept wagers.</p>
+    <p class="footer-legal">&copy; <span class="footer-year">2026</span> Blitz Odds. Not affiliated with or endorsed by the National Football League. Team names and marks are the property of their respective owners. <a href="/terms/">Terms</a> &middot; <a href="/privacy/">Privacy</a></p>
+  </footer>
+</div>
+<script src="/js/analytics.js"></script>
+<script>(function () {
+  try {
+    var y = String(new Date().getFullYear());
+    var nodes = document.querySelectorAll(".footer-year");
+    for (var i = 0; i < nodes.length; i++) nodes[i].textContent = y;
+  } catch (e) { /* leave the fallback year in place */ }
+})();</script>
+</body>
+</html>

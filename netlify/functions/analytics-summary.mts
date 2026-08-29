@@ -337,6 +337,14 @@ function emptySummary(now: number, range: Range) {
     playbookFormatViews: {} as Record<string, number>,
     gateCtaClicks: {} as Record<string, number>,
     gateCtaBySurface: {} as Record<string, number>,
+    termsConsentActions: {} as Record<string, number>,
+    termsSignupChecked: 0,
+    termsOauthPrompts: 0,
+    termsOauthAccepted: 0,
+    termsOauthAcceptRate: null as number | null,
+    termsGateShown: 0,
+    termsGateAccepted: 0,
+    termsGateSignouts: 0,
     bookCompareOpens: 0,
     pushDesyncs: 0,
     pushRepairs: 0,
@@ -619,6 +627,30 @@ export default async (req: Request, _context: Context) => {
     const gateCtas = validRecords.filter((r) => r.type === "gate_cta");
     const gateCtaClicks = sortedCounts(gateCtas, (r) => r.action);
     const gateCtaBySurface = sortedCounts(gateCtas, (r) => r.surface);
+
+    // --- terms consent. Two funnels, for the two routes that need one.
+    // The email form's checkbox is inline, so signup_checked against
+    // signup_submit says whether the checkbox is where people stop. OAuth
+    // gets an interstitial because there is no form of ours before Google,
+    // and that interstitial is a genuine new drop-out point. The gate trio
+    // should be near-zero in steady state; every sign-out from it is an
+    // account walking away rather than accepting ---
+    const termsRecords = validRecords.filter((r) => r.type === "terms_consent");
+    const termsConsentActions = sortedCounts(termsRecords, (r) => r.action);
+    const countAction = (action: string) =>
+      termsRecords.filter((r) => r.action === action).length;
+    const termsSignupChecked = countAction("signup_checked");
+    const termsOauthPrompts = countAction("oauth_prompt");
+    const termsOauthAccepted = countAction("oauth_accepted");
+    // Null rather than 0 when nobody was prompted in range - a rate of "0%"
+    // and "nobody reached this screen" are different findings, and the
+    // dashboard renders them differently.
+    const termsOauthAcceptRate = termsOauthPrompts
+      ? Math.round((termsOauthAccepted / termsOauthPrompts) * 1000) / 10
+      : null;
+    const termsGateShown = countAction("gate_shown");
+    const termsGateAccepted = countAction("gate_accepted");
+    const termsGateSignouts = countAction("gate_signout");
 
     // --- bookCompareOpens: how often anyone opens the per-book price
     // comparison. Worth knowing before any affiliate work is wired to it ---
@@ -1025,6 +1057,14 @@ export default async (req: Request, _context: Context) => {
         playbookFormatViews,
         gateCtaClicks,
         gateCtaBySurface,
+        termsConsentActions,
+        termsSignupChecked,
+        termsOauthPrompts,
+        termsOauthAccepted,
+        termsOauthAcceptRate,
+        termsGateShown,
+        termsGateAccepted,
+        termsGateSignouts,
         bookCompareOpens,
         pushDesyncs,
         pushRepairs,

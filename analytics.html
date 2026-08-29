@@ -458,6 +458,49 @@
       (failed > 0 ? "var(--bad, #d33a3a)" : "inherit") + ';">' + esc(verdict) + "</div>";
   }
 
+  /* The OAuth consent interstitial. The email form's checkbox needs no tile
+     of its own - signup_checked sits next to signup_submit in the events
+     list and the two move together. This one is different: it is a screen
+     people can back out of, in front of a route where they have already
+     decided to sign up. Stated as the drop rather than the accept count for
+     the same reason as pushHealthHtml above. */
+  function termsOauthHtml(d) {
+    var prompts = d.termsOauthPrompts || 0;
+    var accepted = d.termsOauthAccepted || 0;
+    if (!prompts) return '<div class="empty">Nobody reached the OAuth consent step in this range</div>';
+    var dropped = prompts - accepted;
+    var rate = d.termsOauthAcceptRate;
+    return '<div style="font-size:1.7rem;font-weight:650;">' + (rate === null ? "\u2014" : rate + "%") + "</div>" +
+      '<div class="section-desc" style="margin-top:2px;">' +
+      fmtNum(accepted) + " accepted of " + fmtNum(prompts) + " prompted</div>" +
+      '<div class="section-desc" style="margin-top:8px;color:' +
+      (dropped > 0 ? "var(--bad, #d33a3a)" : "inherit") + ';">' +
+      esc(dropped > 0
+        ? fmtNum(dropped) + (dropped === 1 ? " person backed out before Google" : " people backed out before Google")
+        : "Everyone prompted accepted") + "</div>";
+  }
+
+  /* The blocking re-consent gate. Should be flat at zero in steady state -
+     anything here means accounts are being stopped on the way in, either
+     because the terms version was bumped, or because an OAuth round trip
+     came back without consent recorded. Sign-outs are the ones that left. */
+  function termsGateHtml(d) {
+    var shown = d.termsGateShown || 0;
+    var accepted = d.termsGateAccepted || 0;
+    var signouts = d.termsGateSignouts || 0;
+    if (!shown && !accepted && !signouts) {
+      return '<div class="empty">No account was stopped by the gate in this range</div>';
+    }
+    return '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(shown) + "</div>" +
+      '<div class="section-desc" style="margin-top:2px;">' +
+      fmtNum(accepted) + " accepted \u00b7 " + fmtNum(signouts) + " signed out</div>" +
+      '<div class="section-desc" style="margin-top:8px;color:' +
+      (signouts > 0 ? "var(--bad, #d33a3a)" : "inherit") + ';">' +
+      esc(signouts > 0
+        ? fmtNum(signouts) + (signouts === 1 ? " account left rather than accept" : " accounts left rather than accept")
+        : "Every account shown the gate accepted") + "</div>";
+  }
+
   // ---- Rendering --------------------------------------------------------
   function barListHtml(data, dim, opts) {
     opts = opts || {};
@@ -529,7 +572,10 @@
         { title: "Pool format on preview", sub: "Format picked before signing up", html: barListHtml(d.playbookFormatViews) },
         { title: "Gate CTA clicks", sub: "The conversion event", html: barListHtml(d.gateCtaClicks) },
         { title: "Gate CTA by surface", sub: "Sign-in wall vs. Pro gate", html: barListHtml(relabel(d.gateCtaBySurface, { signin: "Sign-in wall", pro: "Pro gate" })) },
-        { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" }
+        { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" },
+        { title: "Terms consent before Google", sub: "What the interstitial costs the OAuth route", html: termsOauthHtml(d) },
+        { title: "Blocking terms gate", sub: "Accounts stopped until they accept the current terms", html: termsGateHtml(d) },
+        { title: "Consent flow steps", sub: "Every action in the terms flow, including failed writes", html: barListHtml(relabel(d.termsConsentActions, { signup_checked: "Signup box ticked", signup_unchecked: "Signup box un-ticked", oauth_prompt: "OAuth dialog shown", oauth_accepted: "OAuth dialog accepted", oauth_declined: "OAuth dialog dismissed", gate_shown: "Gate shown", gate_accepted: "Gate accepted", gate_signout: "Signed out at gate", record_failed: "Save failed" })) }
       ]},
       /* Push health is an operational signal, not a product one, so it sits
          in its own section rather than under Conversion. The number that
@@ -838,6 +884,21 @@
       case "playbook_format": return { label: "Switched pool format to " + ev.format, detail: "signed-out preview" };
       case "gate_cta": return { label: "Clicked gate CTA — " + (ev.action || "unknown"), detail: ev.surface === "pro" ? "Pro gate" : ev.surface === "signin" ? "Sign-in wall" : "", conversion: true };
       case "book_compare": return { label: "Opened sportsbook comparison", detail: "" };
+      case "terms_consent": return (function () {
+        var map = {
+          signup_checked: ["Ticked the terms box", "signup form"],
+          signup_unchecked: ["Un-ticked the terms box", "signup form"],
+          oauth_prompt: ["Saw the terms consent dialog", "before Google"],
+          oauth_accepted: ["Accepted the terms", "before Google"],
+          oauth_declined: ["Dismissed the terms dialog", "OAuth abandoned"],
+          gate_shown: ["Blocked by the terms gate", "has not accepted current terms"],
+          gate_accepted: ["Accepted the terms", "blocking gate"],
+          gate_signout: ["Signed out at the terms gate", "left rather than accept"],
+          record_failed: ["Terms acceptance failed to save", "write error"]
+        };
+        var hit = map[ev.action] || ["Terms consent \u2014 " + (ev.action || "unknown"), ""];
+        return { label: hit[0], detail: hit[1], conversion: ev.action === "oauth_accepted" || ev.action === "gate_accepted" };
+      })();
       case "archive_entry": return { label: "Opened the archive", detail: ev.source === "menu" ? "from the account menu" : ev.source === "footer" ? "from the footer link" : "" };
       case "history_nav_click": return { label: "Archive — " + (ev.nav === "team" ? "team" : "season") + " navigation", detail: ev.page || "" };
       case "history_week_select": return { label: "Archive — filtered by " + (ev.filter || "week"), detail: ev.value || "" };
@@ -953,6 +1014,8 @@
       gameFollowAddsInProgress: 0, gameFollowAddsScheduled: 0,
       playbookSubtabViews: {}, playbookFormatViews: {},
       gateCtaClicks: {}, gateCtaBySurface: {}, bookCompareOpens: 0,
+      termsConsentActions: {}, termsSignupChecked: 0, termsOauthPrompts: 0, termsOauthAccepted: 0, termsOauthAcceptRate: null,
+      termsGateShown: 0, termsGateAccepted: 0, termsGateSignouts: 0,
       pushDesyncs: 0, pushRepairs: 0, pushRepairFailures: 0,
       pushDesyncsByStage: {}, pushRepairFailuresByStage: {},
       historyPageviews: 0, historyGameClicksByTeam: {}, historyClicksByType: {},

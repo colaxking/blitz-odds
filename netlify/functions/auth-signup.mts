@@ -2,6 +2,7 @@ import { identityAdminFetch, listIdentityUsers } from "./lib/admin.mts";
 import { jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
 import { mintToken, rateLimitOk } from "./lib/auth-tokens.mts";
 import { buildVerifyEmail, sendTransactionalEmail } from "./lib/auth-emails.mts";
+import { TERMS_VERSION } from "./lib/terms.mts";
 
 // Signup, done server-side so that WE send the confirmation email instead
 // of Netlify.
@@ -52,6 +53,7 @@ export default async (req: Request, context: any) => {
   const email = String(body?.email || "").trim().toLowerCase();
   const password = String(body?.password || "");
   const fullName = String(body?.fullName || "").trim().slice(0, 80);
+  const acceptTerms = body?.acceptTerms === true;
 
   if (!isPlausibleEmail(email)) {
     return jsonResponse(400, { ok: false, code: "bad_email", error: "Enter a valid email address." });
@@ -61,6 +63,19 @@ export default async (req: Request, context: any) => {
       ok: false,
       code: "weak_password",
       error: `Password must be at least ${MIN_PASSWORD} characters.`,
+    });
+  }
+
+  // The form disables its own submit button without this, so reaching here
+  // means the request did not come from our form. Refuse rather than create
+  // the account and rely on the post-sign-in gate to catch it: an account
+  // that exists without recorded consent is exactly what this endpoint is
+  // supposed to make impossible.
+  if (!acceptTerms) {
+    return jsonResponse(400, {
+      ok: false,
+      code: "terms_required",
+      error: "You need to accept the Terms of Service and Privacy Policy to create an account.",
     });
   }
 
@@ -110,6 +125,13 @@ export default async (req: Request, context: any) => {
           ...(fullName ? { full_name: fullName } : {}),
           email_verified: false,
           signup_source: "site",
+          /* Stamped here, in the create call, rather than written to the
+             profile blob afterwards. A second write could fail and leave a
+             live account with no record of what it agreed to; this way the
+             acceptance and the account are the same operation. The profile
+             blob picks it up on first read - see user-profile.mts. */
+          terms_accepted_version: TERMS_VERSION,
+          terms_accepted_at: new Date().toISOString(),
         },
       }),
     });

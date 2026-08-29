@@ -5,7 +5,10 @@ import { parseKickoffUTC } from "./lib/kickoff.mts";
 import { getPrefs, notifStore, USER_STORE } from "./lib/notif.mts";
 import { followsGame, deliverAlert, type AlertUser, type ScheduleGame } from "./lib/alerts.mts";
 import { createAlertLog } from "./lib/alertlog.mts";
-import { fetchLiveWeek, leaderOf, clockLabel, type LiveGame } from "./lib/livescores.mts";
+import {
+  fetchLiveWeek, leaderOf, clockLabel, scoreDelta, fetchScoringPlays, playClockLabel,
+  type LiveGame, type ScoringPlay,
+} from "./lib/livescores.mts";
 import { loadAllWeeks, espnParamsFor, type PhaseWeek } from "./lib/schedule.mts";
 
 // The fast tick. Watches games that are actually in progress and alerts on
@@ -58,6 +61,10 @@ interface Snapshot {
   period: number;
   leader: string | null;
   lastPlayId: string | null;
+  /** Cursor into the game's scoring plays: the last one an alert was built
+   *  from. Anything after it in the feed is a score nobody has been told
+   *  about, which survives a missed tick or a dispatcher outage. */
+  lastScoringPlayId?: string | null;
   updatedAt: string;
 }
 
@@ -136,6 +143,13 @@ export default async (req: Request, _context: Context) => {
     interface Change {
       week: number; gameId: string; game: ScheduleGame; live: LiveGame;
       scored: boolean; leadChanged: boolean; wentFinal: boolean;
+      /* The scores this tick is diffing against - the fallback description
+       * is computed from the difference. */
+      prev: { awayScore: number; homeScore: number };
+      /* Scoring plays not yet alerted on, oldest first. Empty when the
+       * summary feed couldn't be read, in which case the points delta
+       * stands in. */
+      pending: ScoringPlay[];
     }
     const changes: Change[] = [];
 
@@ -150,9 +164,42 @@ export default async (req: Request, _context: Context) => {
         const prev = (await store.get(snapKey(CURRENT_SEASON, week, gameId), { type: "json" })) as Snapshot | null;
         const leader = leaderOf(live);
 
+        const scored = !!prev && (live.awayScore !== prev.awayScore || live.homeScore !== prev.homeScore);
+
+        // The scoring-play feed is only worth a request when the score has
+        // actually moved - about ten times across a whole game rather than
+        // once per game per tick. A first sighting reads it too, purely to
+        // set the cursor, so the next real score isn't mistaken for a
+        // backlog of every score so far.
+        let pending: ScoringPlay[] = [];
+        let cursor: string | null | undefined = prev?.lastScoringPlayId ?? null;
+        if ((scored || !prev) && live.eventId) {
+          try {
+            const plays = await fetchScoringPlays(live.eventId);
+            if (plays.length) {
+              const at = cursor ? plays.findIndex((pl) => pl.id === cursor) : -1;
+              // An unknown cursor - first sighting, or a play id that has
+              // vanished from the feed - must not replay the whole game.
+              // Only the newest play is treated as news.
+              pending = prev && cursor && at >= 0
+                ? plays.slice(at + 1)
+                : prev
+                  ? plays.slice(-1)
+                  : [];
+              cursor = plays[plays.length - 1].id;
+            }
+          } catch (err) {
+            // The scoreline is still trustworthy without this, and the
+            // points delta describes the play well enough to send. Losing
+            // the alert entirely would be the worse failure.
+            report.errors.push({ week, stage: "scoring-plays", error: err instanceof Error ? err.message : "unknown" });
+          }
+        }
+
         const next: Snapshot = {
           awayScore: live.awayScore, homeScore: live.homeScore, state: live.state,
-          period: live.period, leader, lastPlayId: live.lastPlayId, updatedAt: now.toISOString(),
+          period: live.period, leader, lastPlayId: live.lastPlayId,
+          lastScoringPlayId: cursor, updatedAt: now.toISOString(),
         };
         if (!dryRun) await store.setJSON(snapKey(CURRENT_SEASON, week, gameId), next);
 
@@ -162,15 +209,19 @@ export default async (req: Request, _context: Context) => {
         // game already in progress when this starts up would fire for a
         // score that happened long before anyone was watching.
         if (!prev) continue;
-
-        const scored = live.awayScore !== prev.awayScore || live.homeScore !== prev.homeScore;
         // "Lead change" means the trailing team went ahead. A drop into a
         // tie isn't one - otherwise a tie-then-retake fires twice for what
         // a viewer experiences as a single swing.
         const leadChanged = !!leader && leader !== prev.leader;
         const wentFinal = live.state === "post" && prev.state !== "post";
 
-        if (scored || wentFinal) changes.push({ week, gameId, game, live, scored, leadChanged, wentFinal });
+        if (scored || wentFinal) {
+          changes.push({
+            week, gameId, game, live, scored, leadChanged, wentFinal,
+            prev: { awayScore: prev.awayScore, homeScore: prev.homeScore },
+            pending,
+          });
+        }
       }
     }
 
@@ -261,8 +312,44 @@ export default async (req: Request, _context: Context) => {
           // `situation` at dead-ball moments, which is exactly when a score
           // has just happened) fall back to the scoreline, which is unique
           // per scoring event within a game barring an exact repeat.
-          const event = `${ch.gameId}:${live.lastPlayId || `${live.awayScore}-${live.homeScore}`}`;
           const leadNote = ch.leadChanged ? ` ${nameOf(leaderOf(live) as string)} take the lead.` : "";
+
+          // What actually happened, which the scoreline and clock never said.
+          //
+          // ONE ALERT PER TICK, NOT ONE PER PLAY. Every alert for a game
+          // shares a collapseKey, so a device only ever shows the most recent
+          // one - sending three would deliver three and display one. Anything
+          // the reader missed is folded into that single message instead.
+          const newest = ch.pending.length ? ch.pending[ch.pending.length - 1] : null;
+          const missed = ch.pending.length - 1;
+
+          let event: string;
+          let body: string;
+          if (newest) {
+            const when = playClockLabel(newest) || clockLabel(live);
+            const who = newest.team ? `, ${nameOf(newest.team)}` : "";
+            const missedNote = missed > 0
+              ? ` Plus ${missed} earlier score${missed === 1 ? "" : "s"} you missed.`
+              : "";
+            body = `${newest.type}${who}. ${newest.text}. ${when}.${leadNote}${missedNote}`;
+            // Dedupe on the play, not the tick: the ledger then makes a
+            // retried or overlapping tick free.
+            event = `${ch.gameId}:${newest.id}`;
+          } else {
+            // No scoring feed this tick. The points delta still says whether
+            // it was a touchdown or a field goal, which is most of the value.
+            const delta = scoreDelta(ch.prev, live);
+            const headline = delta.kind
+              ? `${delta.kind}${delta.team ? `, ${nameOf(delta.team)}` : ""}.`
+              : "";
+            // A truncated play already ends in an ellipsis; a full stop after
+            // it reads as a typo.
+            const detail = delta.detail
+              ? ` ${delta.detail}${delta.detail.endsWith("\u2026") ? "" : "."}`
+              : "";
+            body = `${headline}${detail} ${clockLabel(live)}.${leadNote}`;
+            event = `${ch.gameId}:${live.lastPlayId || `${live.awayScore}-${live.homeScore}`}`;
+          }
 
           const outcome = await deliverAlert({
             user: u, prefs, type: "score", event,
@@ -270,8 +357,11 @@ export default async (req: Request, _context: Context) => {
             capability: "alerts.scoring", now, dryRun,
             log: alertLog, label: gameLabel,
             payload: {
+              // Title stays the scoreline - it's the fact people want at a
+              // glance - and the body now leads with the play rather than
+              // opening on a clock nobody asked about.
               title: scoreLine,
-              body: `${clockLabel(live)}.${leadNote}`,
+              body: body.replace(/\s+/g, " ").trim(),
               url: `/g/${ch.gameId}`,
               // Successive updates for one game replace each other rather
               // than stacking - six scores in a game is six notifications

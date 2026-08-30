@@ -1644,6 +1644,41 @@
   .pbp-gate-title { font-weight: 800; font-size: 0.9rem; }
   .pbp-gate-sub { font-size: 0.76rem; color: var(--text-dim); margin-top: 3px; }
   .pbp-gate-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* The same .pbp-gate shell reused inside a game card's Full Details panel.
+     Playbook's version sits in a wide tab layout; here it sits in a 390px
+     card, where the side-by-side title/actions row leaves the two buttons
+     ~120px each and wraps "Create a free account" onto three lines. Stacking
+     is the only change - colours, radius and copy stay identical, because the
+     point of reusing the component is that a reader meets one gate, not two
+     that almost match. */
+  .full-details-panel .pbp-gate,
+  .game-page-section .pbp-gate { flex-direction: column; align-items: stretch; gap: 12px; }
+  .full-details-panel .pbp-gate .pbp-gate-actions,
+  .game-page-section .pbp-gate .pbp-gate-actions { flex-wrap: nowrap; }
+  .full-details-panel .pbp-gate .pb-btn,
+  .game-page-section .pbp-gate .pb-btn { flex: 1 1 auto; padding: 10px 8px; }
+  /* Flags the section heading of anything currently gated. Deliberately the
+     tinted treatment rather than a filled pill: filled orange is reserved for
+     a badge stating that someone HAS something (see .notif-channel-tag.pro),
+     and this says the opposite. */
+  .gate-flag {
+    display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px;
+    background: rgba(253,127,1,0.16); color: var(--blitz-orange);
+    font-size: 0.6rem; font-weight: 900; letter-spacing: 0.4px; vertical-align: 1px;
+    text-transform: uppercase;
+  }
+  html[data-theme="light"] .gate-flag { background: rgba(179,89,0,0.12); }
+  /* The write-up teaser. Line-clamped rather than faded: a gradient has to
+     match whatever surface sits behind it, and .edge-detail is a tinted panel
+     on a card, so a fade needs four theme-specific backdrops and still washes
+     out the visible line at desktop width where the lead sentence is short
+     enough not to overflow. */
+  /* A cap, not the truncation mechanism - rationaleTeaser() decides what the
+     teaser says, by sentence. This only stops an unusually long pair of
+     sentences from filling a phone screen before the gate under it. */
+  .edge-teaser {
+    display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+  }
 
   /* survivor path in the preview */
   .pbp-path-wrap { padding: 16px; }
@@ -2729,6 +2764,14 @@
     text-align: left;
   }
   .odds-compare-table td.odds-best { color: var(--win); font-weight: 800; }
+  .odds-row-locked td { color: var(--text-dim); }
+  .odds-row-locked td:first-child { opacity: 0.65; }
+  .odds-redact {
+    display: inline-block; height: 9px; width: 70%; min-width: 26px; border-radius: 3px;
+    vertical-align: middle;
+    background: repeating-linear-gradient(135deg,
+      rgba(var(--accent-rgb),0.20) 0 5px, rgba(var(--accent-rgb),0.08) 5px 10px);
+  }
   .odds-est-tag { color: var(--text-dim); font-weight: 500; font-size: 0.68rem; font-style: italic; }
   .odds-asof-note { font-size: 0.68rem; color: var(--text-dim); margin-top: 8px; }
 
@@ -19775,7 +19818,7 @@ function isVisibleInInjuryReport(p) {
  *  the user discovering the score is tappable. One-shot fetch (no live
  *  polling) since this is just a glance - the full modal already polls live
  *  games itself once opened. */
-function ShortBoxScore({ week, awayAbbr, homeAbbr, awayId, homeId, live }) {
+function ShortBoxScore({ week, awayAbbr, homeAbbr, awayId, homeId, live, auth }) {
   const [state, setState] = useState({ status: "loading", stats: null });
   const [showFull, setShowFull] = useState(false);
 
@@ -19838,17 +19881,29 @@ function ShortBoxScore({ week, awayAbbr, homeAbbr, awayId, homeId, live }) {
           ))}
         </div>
       )}
-      <button
-        type="button"
-        className="view-boxscore-link"
-        onClick={() => setShowFull(true)}
-        data-away={awayAbbr}
-        data-home={homeAbbr}
-        data-week={week}
-        data-boxscore-source="full_details"
-      >
-        View Full Box Score →
-      </button>
+      {/* The three headline stats above stay free - they are the reason to
+          expand a live card at all, and taking them away would make the panel
+          worse rather than the account more valuable. Only the full sheet
+          (linescore, complete team stats, per-player passing/rushing/
+          receiving) sits behind the gate. */}
+      {hasFullAccess(auth) ? (
+        <button
+          type="button"
+          className="view-boxscore-link"
+          onClick={() => setShowFull(true)}
+          data-away={awayAbbr}
+          data-home={homeAbbr}
+          data-week={week}
+          data-boxscore-source="full_details"
+        >
+          View Full Box Score →
+        </button>
+      ) : (
+        <AccountGate section="boxscore" title="See the full box score" auth={auth}>
+          Sign in for the drive-by-drive linescore, complete team stats, and passing / rushing /
+          receiving splits for both sides.
+        </AccountGate>
+      )}
       {showFull && <BoxScoreModal week={week} awayAbbr={awayAbbr} homeAbbr={homeAbbr} onClose={() => setShowFull(false)} />}
     </div>
   );
@@ -20343,6 +20398,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
                 awayId={away.id}
                 homeId={home.id}
                 live={isLive}
+                auth={auth}
               />
             </div>
           )}
@@ -20366,8 +20422,18 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             </div>
             <div className="edge-detail" data-tour="blitz-verdict">
               <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="edge-detail-logo" />
-              <p>{rationale}</p>
-              {modelAgreesWithMarket != null && (
+              {hasFullAccess(auth) ? (
+                <p>{rationale}</p>
+              ) : (
+                <>
+                  <p className="edge-teaser">{rationaleTeaser(rationale)}</p>
+                  <AccountGate section="edge_writeup" title="Read the full breakdown" auth={auth}>
+                    Sign in for the rest of this write-up — which matchups decide the game, how the
+                    injuries move it, and what the model saw that the line didn't.
+                  </AccountGate>
+                </>
+              )}
+              {hasFullAccess(auth) && modelAgreesWithMarket != null && (
                 <p
                   className={"edge-market-note " + (modelAgreesWithMarket ? "agree" : "disagree")}
                   data-tour="odds-agree"
@@ -20456,11 +20522,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
               below is already handled the same way (component-owned header,
               no outer label). */}
           {!hideFullMatchupLink && (
-            <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} />
+            <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} auth={auth} />
           )}
 
           {!hideFullMatchupLink && (
-            <HeadToHeadHistory awayAbbr={game.away} homeAbbr={game.home} />
+            <HeadToHeadHistory awayAbbr={game.away} homeAbbr={game.home} auth={auth} />
           )}
 
           {/* Permalink to the standalone per-game page. This is deliberately
@@ -21849,8 +21915,64 @@ const PLAYBOOK_CHANGES_FREE_CARDS = 2;
 // height of a sheet row, so three of them put ~700px of blur between the last
 // readable card and the call to action on a phone.
 const PLAYBOOK_CHANGES_PEEK_CARDS = 2;
-function hasPlaybookPro(auth) {
+/** The one switch behind every gated surface in the app - Playbook's sheets
+ *  and the game card's Full Details sections both route through here.
+ *
+ *  The price is an account, not money. That is deliberate and temporary: the
+ *  gates are going out ahead of any paid tier so the conversion data arrives
+ *  before anyone is asked for a card, and so the copy, the placement and the
+ *  analytics are already proven when a tier does land. When it does, this
+ *  function becomes an entitlements check (see netlify/functions/lib/
+ *  entitlements.mts) and nothing else in this file changes - every gate keys
+ *  off this and nothing keys off auth.status directly. */
+function hasFullAccess(auth) {
   return !!(auth && auth.status === "in");
+}
+
+/** Kept as its own name because Playbook's call sites read better for it and
+ *  because a future tier might plausibly gate Playbook and the game card
+ *  separately. Same answer for now. */
+function hasPlaybookPro(auth) {
+  return hasFullAccess(auth);
+}
+
+/** Shared gate panel. Identical markup to Playbook's PreviewGate so
+ *  js/analytics.js's existing delegated .pbp-gate listener fires gate_cta for
+ *  these without needing to learn about the game card at all; `section` is
+ *  the one thing added, so the dashboard can tell which gate earned a signup
+ *  rather than only that some gate did. */
+function AccountGate({ section, title, children, auth }) {
+  return (
+    <div className="pbp-gate" data-gate-section={section}>
+      <div className="pbp-gate-main">
+        <div className="pbp-gate-title">{title}</div>
+        <div className="pbp-gate-sub">{children} Free, no card.</div>
+      </div>
+      <div className="pbp-gate-actions">
+        <button type="button" className="pb-btn pb-btn-primary" onClick={() => auth && auth.openSignup && auth.openSignup()}>Create a free account</button>
+        <button type="button" className="pb-btn pb-btn-ghost" onClick={() => auth && auth.openLogin && auth.openLogin()}>Sign in</button>
+      </div>
+    </div>
+  );
+}
+
+/** Opening of the Blitz Edge write-up, for the signed-out teaser.
+ *
+ *  TWO sentences, not one. buildFormatLead's first sentence is the headline
+ *  read - "The model gives Seattle a 52% chance to win this one" - which is
+ *  the same number the combo row already prints three inches above it. A
+ *  one-sentence teaser is therefore empty: it shows the reader nothing they
+ *  have not just seen and asks them to sign up for "the rest". The second
+ *  sentence is the biggest-factor line, which is the first thing on the card
+ *  that is actually analysis, and it is what makes the remainder worth
+ *  wanting.
+ *
+ *  Split on sentence boundaries rather than a character count so a teaser
+ *  never cuts mid-number - "favoured by 3." reads as a different spread. */
+function rationaleTeaser(text) {
+  if (!text) return "";
+  const match = /^(?:[\s\S]*?[.!?](?=\s|$)\s*){1,2}/.exec(text);
+  return match ? match[0].trim() : text;
 }
 
 const PLAYBOOK_SURVIVOR_REVEALED_WEEKS = 1;
@@ -22947,8 +23069,9 @@ function BetCard({ tagLabel, tagClass, pick, week, onClick }) {
  *  (highest-payout) moneyline per side in var(--win) - spread/O-U don't get
  *  a "best" highlight since which side is favorable depends on which way
  *  someone would bet it. */
-function SportsbookCompareSection({ week, awayAbbr, homeAbbr }) {
+function SportsbookCompareSection({ week, awayAbbr, homeAbbr, auth }) {
   const rows = useMemo(() => getAllBookLines(week, awayAbbr, homeAbbr), [week, awayAbbr, homeAbbr]);
+  const fullAccess = hasFullAccess(auth);
 
   if (!rows) {
     return (
@@ -22967,7 +23090,10 @@ function SportsbookCompareSection({ week, awayAbbr, homeAbbr }) {
 
   return (
     <div className="game-page-section">
-      <div className="section-title"><img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Compare Sportsbooks</div>
+      <div className="section-title">
+        <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Compare Sportsbooks
+        {!fullAccess && <span className="gate-flag">Account</span>}
+      </div>
       <div className="table-scroll">
         <table className="odds-compare-table">
           <thead>
@@ -22980,20 +23106,43 @@ function SportsbookCompareSection({ week, awayAbbr, homeAbbr }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map(r => (
-              <tr key={r.id}>
-                <td>{r.label}{!r.isReal && <span className="odds-est-tag" title="No line posted yet for this book — showing the game's default line"> (est.)</span>}</td>
-                <td>{r.favorite} {formatSpread(r.spread)}</td>
-                <td className={r.moneylineAway != null && r.moneylineAway === bestAwayMl ? "odds-best" : undefined}>{formatMoneyline(r.moneylineAway)}</td>
-                <td className={r.moneylineHome != null && r.moneylineHome === bestHomeMl ? "odds-best" : undefined}>{formatMoneyline(r.moneylineHome)}</td>
-                <td>{r.overUnder}</td>
-              </tr>
-            ))}
+            {rows.map((r, i) => {
+              // Signed out: the first book only. The rest render as redaction
+              // bars rather than blurred numbers - a CSS filter over values
+              // the browser already has is removed in one devtools click, and
+              // "blurred" would misrepresent what the gate is doing.
+              if (!fullAccess && i > 0) {
+                return (
+                  <tr key={r.id} className="odds-row-locked">
+                    <td>{r.label}</td>
+                    <td><span className="odds-redact" /></td>
+                    <td><span className="odds-redact" /></td>
+                    <td><span className="odds-redact" /></td>
+                    <td><span className="odds-redact" /></td>
+                  </tr>
+                );
+              }
+              return (
+                <tr key={r.id}>
+                  <td>{r.label}{!r.isReal && <span className="odds-est-tag" title="No line posted yet for this book — showing the game's default line"> (est.)</span>}</td>
+                  <td>{r.favorite} {formatSpread(r.spread)}</td>
+                  <td className={r.moneylineAway != null && r.moneylineAway === bestAwayMl ? "odds-best" : undefined}>{formatMoneyline(r.moneylineAway)}</td>
+                  <td className={r.moneylineHome != null && r.moneylineHome === bestHomeMl ? "odds-best" : undefined}>{formatMoneyline(r.moneylineHome)}</td>
+                  <td>{r.overUnder}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
-      {anyEstimated && (
+      {fullAccess && anyEstimated && (
         <div className="odds-asof-note">(est.) = that book hasn't posted its own line yet; showing the game's default line instead.</div>
+      )}
+      {!fullAccess && (
+        <AccountGate section="odds_compare" title={`See all ${rows.length} sportsbooks`} auth={auth}>
+          Signed out shows the default line only. Sign in to compare every book side by side, with the
+          best price per side highlighted.
+        </AccountGate>
       )}
     </div>
   );
@@ -23108,11 +23257,16 @@ function H2HRow({ game }) {
  *  has covered) rather than any single season's data. Shows nothing (not an
  *  empty-state box) on load error, so a slow/broken fetch doesn't leave a
  *  jarring error block on an otherwise-normal matchup page. */
-function HeadToHeadHistory({ awayAbbr, homeAbbr }) {
+function HeadToHeadHistory({ awayAbbr, homeAbbr, auth }) {
   const [status, setStatus] = useState("loading");
   const [games, setGames] = useState([]);
+  const fullAccess = hasFullAccess(auth);
 
   useEffect(() => {
+    // Signed out, the fetch itself is skipped rather than fetched-then-hidden.
+    // The archive index is ~1.5MB; downloading it to render a gate over it
+    // would make the signed-out page load slower than the signed-in one.
+    if (!fullAccess) return;
     let cancelled = false;
     setStatus("loading");
     loadHistoricalGamesIndex()
@@ -23126,7 +23280,22 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr }) {
       })
       .catch(() => { if (!cancelled) setStatus("error"); });
     return () => { cancelled = true; };
-  }, [awayAbbr, homeAbbr]);
+  }, [awayAbbr, homeAbbr, fullAccess]);
+
+  if (!fullAccess) {
+    return (
+      <div className="game-page-section">
+        <div className="section-title">
+          <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Past Matchups
+          <span className="gate-flag">Account</span>
+        </div>
+        <AccountGate section="past_matchups" title="See every past meeting" auth={auth}>
+          {`Sign in for every ${awayAbbr}–${homeAbbr} meeting since 2015 — the series record, final
+          scores, and the full box score for each game.`}
+        </AccountGate>
+      </div>
+    );
+  }
 
   if (status === "error") return null;
 
@@ -23212,8 +23381,8 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
             gameTypeContext={gameTypeContext}
             hideFullMatchupLink
           />
-          <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} />
-          <HeadToHeadHistory awayAbbr={game.away} homeAbbr={game.home} />
+          <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} auth={auth} />
+          <HeadToHeadHistory awayAbbr={game.away} homeAbbr={game.home} auth={auth} />
         </>
       ) : (
         <p>This matchup isn't on the schedule.</p>

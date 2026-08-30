@@ -722,14 +722,23 @@
         // no way to tell a working gate from one people ignore.
         var gateEl = target.closest(".pbp-gate, .pbc-gate");
         if (gateEl && target.closest("button")) {
-          sendEvent({
+          var gateBody = {
             type: "gate_cta",
             visitorId: visitorId,
             ts: Date.now(),
             action: (target.closest("button").textContent || "").trim() || "unknown",
             surface: gateEl.className.indexOf("pbc-gate") !== -1 ? "pro" : "signin",
             page: getCurrentPageLabel(),
-          });
+          };
+          // Which gate, not just that some gate converted. The game card has
+          // four of these in one panel and Playbook has three more; without
+          // a section the dashboard can count signups from gates but cannot
+          // say which gate earned them, which is the whole question the
+          // account wall is being shipped to answer. Playbook's own gates
+          // carry no data-gate-section and fall through as "playbook".
+          var section = gateEl.getAttribute("data-gate-section");
+          gateBody.section = section || "playbook";
+          sendEvent(gateBody);
           return;
         }
 

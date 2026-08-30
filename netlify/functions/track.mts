@@ -154,6 +154,17 @@ const VALID_TERMS_ACTIONS = new Set([
 // stored - same convention as location below.
 const VALID_DEVICES = new Set(["mobile", "tablet", "desktop"]);
 
+// Gated surfaces, one entry per gate that can be clicked. "playbook" is the
+// fallback for Playbook's own gates, which predate this dimension and carry
+// no data-gate-section of their own.
+const VALID_GATE_SECTIONS = new Set([
+  "playbook",
+  "edge_writeup",
+  "odds_compare",
+  "past_matchups",
+  "boxscore",
+]);
+
 // Best-effort extraction of Netlify's built-in geolocation (derived from the
 // edge node that served the request, via the `x-nf-geo` header). This is
 // approximate (city-level at best) and never involves storing a raw IP.
@@ -267,7 +278,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage, outcome, state, reason, emailSent, provider } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -383,6 +394,12 @@ export default async (req: Request, context: Context) => {
       // "signin" is the preview's sign-in wall, "pro" the subscription gate.
       // Kept apart because they convert on different things.
       if (surface === "signin" || surface === "pro") record.surface = surface;
+      // Which gated surface. Allowlisted rather than passed through, same as
+      // terms_consent's action and archive_entry's source, so a spoofed body
+      // cannot open a new dimension in the dashboard's bar list.
+      if (typeof section === "string" && VALID_GATE_SECTIONS.has(section)) {
+        record.section = section;
+      }
     }
 
     // Historical archive events (see js/analytics.js header comment for

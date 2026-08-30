@@ -572,6 +572,7 @@
         { title: "Pool format on preview", sub: "Format picked before signing up", html: barListHtml(d.playbookFormatViews) },
         { title: "Gate CTA clicks", sub: "The conversion event", html: barListHtml(d.gateCtaClicks) },
         { title: "Gate CTA by surface", sub: "Sign-in wall vs. Pro gate", html: barListHtml(relabel(d.gateCtaBySurface, { signin: "Sign-in wall", pro: "Pro gate" })) },
+        { title: "Gate CTA by section", sub: "Which gate earns the signup", html: barListHtml(relabel(d.gateCtaBySection, { playbook: "Playbook", edge_writeup: "Blitz Edge write-up", odds_compare: "Compare Sportsbooks", past_matchups: "Past Matchups", boxscore: "Full box score" })) },
         { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" },
         { title: "Terms consent before Google", sub: "What the interstitial costs the OAuth route", html: termsOauthHtml(d) },
         { title: "Blocking terms gate", sub: "Accounts stopped until they accept the current terms", html: termsGateHtml(d) },

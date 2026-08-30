@@ -107,6 +107,7 @@ type EventRecord = {
   format?: string;
   action?: string;
   surface?: string;
+  section?: string;
 };
 
 type SessionRecord = {
@@ -337,6 +338,7 @@ function emptySummary(now: number, range: Range) {
     playbookFormatViews: {} as Record<string, number>,
     gateCtaClicks: {} as Record<string, number>,
     gateCtaBySurface: {} as Record<string, number>,
+    gateCtaBySection: {} as Record<string, number>,
     termsConsentActions: {} as Record<string, number>,
     termsSignupChecked: 0,
     termsOauthPrompts: 0,
@@ -627,6 +629,14 @@ export default async (req: Request, _context: Context) => {
     const gateCtas = validRecords.filter((r) => r.type === "gate_cta");
     const gateCtaClicks = sortedCounts(gateCtas, (r) => r.action);
     const gateCtaBySurface = sortedCounts(gateCtas, (r) => r.surface);
+    // Which gate, not just that some gate converted. There are five of them
+    // now - four in a game card's Full Details panel plus Playbook's own -
+    // and the whole reason the account wall ships before a paid tier is to
+    // learn which one people will actually give something up for. Ranking
+    // matters more than the rate: signup friction and card friction are not
+    // the same curve, so the order here transfers to a paid tier and the
+    // absolute numbers do not.
+    const gateCtaBySection = sortedCounts(gateCtas, (r) => r.section);
 
     // --- terms consent. Two funnels, for the two routes that need one.
     // The email form's checkbox is inline, so signup_checked against
@@ -1057,6 +1067,7 @@ export default async (req: Request, _context: Context) => {
         playbookFormatViews,
         gateCtaClicks,
         gateCtaBySurface,
+        gateCtaBySection,
         termsConsentActions,
         termsSignupChecked,
         termsOauthPrompts,

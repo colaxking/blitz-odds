@@ -55,6 +55,21 @@
  *  - "history_week_select" whenever a season/year index page's "Jump to:"
  *    week/round or team filter select changes (`#week-select`/`#team-select`)
  *
+ * Not tracked from this file, but sent through the window.blitzTrack hook at
+ * the bottom of it (see the comment there):
+ *  - "push_device_desync" / "push_device_repaired" /
+ *    "push_device_repair_failed" - push registration health
+ *  - "terms_consent" - the Terms of Service acceptance flow, with `action`
+ *    naming the step. The email signup form carries the checkbox inline
+ *    ("signup_checked" / "signup_unchecked"); the OAuth route gets an
+ *    interstitial instead, since there is no form of ours before the
+ *    provider's screen ("oauth_prompt" and its outcome "oauth_accepted" /
+ *    "oauth_declined"); and the blocking post-sign-in gate covers everyone
+ *    else ("gate_shown" / "gate_accepted" / "gate_signout"), with
+ *    "record_failed" for a write that did not land. signup_checked against
+ *    signup_submit says whether the checkbox is where people stop; a rising
+ *    gate_signout means a terms change is losing accounts
+ *
  * The click listener is registered in the CAPTURE phase, not bubble. The
  * favorite star's own onClick calls `event.stopPropagation()` (to keep the
  * click from also triggering the team-click "view schedule" action next to

@@ -2814,6 +2814,79 @@
     to { transform: translateY(0); opacity: 1; }
   }
 
+  /* ---- Terms of Service consent (TermsConsentModal) ----
+     z-index sits above every other overlay in the app (highest in use is
+     3200) because the blocking variant has to cover whatever the reader
+     happened to have open when their profile came back needing acceptance,
+     including the Netlify Identity widget itself. */
+  .terms-modal-overlay {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.72); backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 3400;
+  }
+  .terms-modal {
+    position: relative; width: 100%; max-width: 460px; max-height: 92vh; max-height: 92dvh;
+    overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 22px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  /* Colour set explicitly rather than inherited from body. Every other
+     modal title in here relies on that inheritance and gets away with it,
+     but this one can render over the Identity widget's own stacking
+     context, and a heading that silently falls back to the UA default
+     black on a dark card is unreadable. */
+  .terms-modal-title { font-size: 1.08rem; font-weight: 800; margin: 0 0 6px; color: var(--text); }
+  .terms-modal-lede { font-size: 0.85rem; line-height: 1.55; color: var(--text-dim); margin: 0 0 14px; }
+  .terms-modal-points { margin: 0 0 16px; padding: 0; list-style: none; }
+  .terms-modal-points li {
+    position: relative; font-size: 0.82rem; line-height: 1.5; color: var(--text);
+    padding-left: 20px; margin-bottom: 8px;
+  }
+  .terms-modal-points li::before {
+    content: ""; position: absolute; left: 4px; top: 0.55em; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--accent);
+  }
+  /* The whole row is the hit target, not just the 18px box - this is the one
+     control the reader has to operate before they can get an account, and a
+     checkbox-sized tap target on a phone is the wrong place to be stingy. */
+  .terms-modal-check {
+    display: flex; gap: 11px; align-items: flex-start; cursor: pointer;
+    background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 11px;
+    padding: 13px 14px; margin: 0 0 14px;
+  }
+  .terms-modal-check:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .terms-modal-check input {
+    flex: 0 0 auto; width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--accent); cursor: pointer;
+  }
+  .terms-modal-check span { font-size: 0.84rem; line-height: 1.5; color: var(--text); }
+  .terms-modal-check a { color: var(--accent); font-weight: 650; }
+  /* --out, not --lose: --lose is the muted grey used for a losing team's
+     row, not an error red. */
+  .terms-modal-error {
+    font-size: 0.8rem; line-height: 1.45; color: var(--out); margin: 0 0 12px;
+  }
+  .terms-modal-actions { display: flex; gap: 9px; }
+  .terms-modal-btn {
+    flex: 1; font-family: inherit; font-size: 0.88rem; font-weight: 700; padding: 11px 12px;
+    border-radius: 10px; cursor: pointer; border: 1px solid var(--card-border);
+    background: var(--surface-2); color: var(--text); transition: opacity 0.15s;
+  }
+  .terms-modal-btn-primary {
+    background: var(--accent); border-color: var(--accent); color: #08131f;
+  }
+  .terms-modal-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .terms-modal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .terms-modal-foot {
+    font-size: 0.73rem; line-height: 1.5; color: var(--text-dim); margin: 13px 0 0; text-align: center;
+  }
+  @media (max-width: 480px) {
+    .terms-modal-overlay { align-items: flex-end; padding: 0; }
+    .terms-modal {
+      max-width: none; max-height: 94vh; max-height: 94dvh;
+      border-radius: 16px 16px 0 0; border-bottom: 0; padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
+    }
+    .terms-modal-actions { flex-direction: column-reverse; }
+  }
+
   .settings-modal-overlay {
     position: fixed; inset: 0; background: rgba(4,8,16,0.6); backdrop-filter: blur(2px);
     display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000;
@@ -3199,6 +3272,21 @@
   .auth-field.has-err input { border-color: rgba(var(--out-rgb),0.65); }
   .auth-hint { margin: 6px 0 0; font-size: 0.72rem; color: var(--text-dim); }
   .auth-err { margin: 6px 0 0; font-size: 0.74rem; line-height: 1.5; color: var(--pill-bad-text); }
+  /* Terms acceptance, inside the signup form's field stack. The whole row is
+     the hit target rather than just the 18px box - this is the one control
+     that has to be operated before an account can exist, and a
+     checkbox-sized tap target on a phone is the wrong place to be stingy. */
+  .auth-terms-check {
+    display: flex; gap: 10px; align-items: flex-start; cursor: pointer;
+    padding: 2px 0 0; margin: 2px 0 0;
+  }
+  .auth-terms-check input {
+    flex: 0 0 auto; width: 17px; height: 17px; margin: 1px 0 0;
+    accent-color: var(--accent); cursor: pointer;
+  }
+  .auth-terms-check span { font-size: 0.78rem; line-height: 1.5; color: var(--text-dim); }
+  .auth-terms-check a { color: var(--accent); font-weight: 650; }
+  .auth-terms-check:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
   .auth-err a, .auth-linkish {
     color: var(--accent); font-weight: 700; text-decoration: none; background: none;
     border: 0; font-family: inherit; font-size: inherit; cursor: pointer; padding: 0;
@@ -28772,6 +28860,127 @@ function saveTutorialSeen() {
   try { window.localStorage.setItem(TUTORIAL_SEEN_KEY, "1"); } catch (e) {}
 }
 
+/* ---------- Terms of Service acceptance ----------
+
+   Registering requires accepting /terms/ and /privacy/. Three surfaces
+   enforce it, one per route into an account:
+
+     1. A checkbox inside SignupPanel, submitted with the email signup form
+        and refused by auth-signup.mts if it's missing. Acceptance is stamped
+        onto the account at creation, in the same call - so there is no
+        window in which an account exists without it, and no follow-up write
+        that can fail.
+
+     2. A consent dialog in front of an OAuth provider. This route has no
+        form of ours to put a checkbox in: the next screen belongs to Google.
+        So the dialog is the checkbox, and it's shown before the redirect.
+
+     3. The post-sign-in gate, driven by `termsAcceptanceRequired` on the
+        profile user-profile.mts returns. This is the backstop the other two
+        can't be: it covers accounts that existed before any of this shipped,
+        an OAuth round trip that came back without consent recorded, and
+        everybody again the next time TERMS_VERSION is bumped.
+
+   The server owns the version string. The client only ever says "accepted";
+   it never sends a version, so a stale cached page can't record consent to
+   terms that are no longer published. */
+const TERMS_URL = "/terms/";
+const PRIVACY_URL = "/privacy/";
+
+/* The consent dialog. One component, two modes:
+     "oauth" - shown before handing off to an external provider,
+               dismissable. The email signup form uses its own inline
+               checkbox instead and never renders this.
+     "gate"  - shown after sign-in to an account that hasn't accepted the
+               current terms. Not dismissable: no close button, no backdrop
+               click, and the only way past it is Accept or Sign out. */
+function TermsConsentModal({ mode, busy, error, onAccept, onDecline }) {
+  const [checked, setChecked] = useState(false);
+  const isGate = mode === "gate";
+
+  // Escape closes the dismissable variant only - the gate has nothing to
+  // fall back to, since dismissing it would leave a signed-in session that
+  // never accepted the terms.
+  useEffect(() => {
+    if (isGate) return;
+    const onKey = (e) => { if (e.key === "Escape") onDecline(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isGate, onDecline]);
+
+  const links = (
+    <React.Fragment>
+      <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">Terms of Service</a>
+      {" and "}
+      <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+    </React.Fragment>
+  );
+
+  return (
+    <div
+      className="terms-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="terms-modal-title"
+      onClick={isGate ? undefined : (e) => { if (e.target === e.currentTarget) onDecline(); }}
+    >
+      <div className="terms-modal">
+        <h2 className="terms-modal-title" id="terms-modal-title">
+          {isGate ? "We've updated our terms" : "Before you continue"}
+        </h2>
+        <p className="terms-modal-lede">
+          {isGate
+            ? "Your account needs to accept the current Terms of Service and Privacy Policy before you can carry on. Nothing else has changed \u2014 your leagues, picks and settings are all still here."
+            : "You're about to sign in with an outside provider, so we need this before you go."}
+        </p>
+
+        {!isGate && (
+          <ul className="terms-modal-points">
+            <li>You're 18 or older, or the legal wagering age where you live.</li>
+            <li>Blitz Odds never takes wagers and never handles money. Predictions are for entertainment and are often wrong&mdash;confirm every line with a licensed sportsbook.</li>
+            <li>Your display name, picks and standings are visible to the other members of any league you join.</li>
+          </ul>
+        )}
+
+        <label className="terms-modal-check">
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={(e) => setChecked(e.target.checked)}
+            disabled={busy}
+          />
+          <span>I have read and agree to the {links}.</span>
+        </label>
+
+        {error && <p className="terms-modal-error" role="alert">{error}</p>}
+
+        <div className="terms-modal-actions">
+          <button
+            type="button"
+            className="terms-modal-btn"
+            onClick={onDecline}
+            disabled={busy}
+          >
+            {isGate ? "Sign out" : "Cancel"}
+          </button>
+          <button
+            type="button"
+            className="terms-modal-btn terms-modal-btn-primary"
+            onClick={onAccept}
+            disabled={!checked || busy}
+          >
+            {busy ? "Saving\u2026" : "Agree and continue"}
+          </button>
+        </div>
+
+        <p className="terms-modal-foot">
+          We record which version you accepted and when, on your account.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // Wraps the Netlify Identity widget (loaded via <script> in <head>) in a
 // React-friendly hook. status is "loading" until the widget's "init" event
 // fires (it needs a beat to check for an existing session), then "in" or
@@ -29532,15 +29741,27 @@ function GoogleMark() {
    Google" is the same single act either way - the person doing it neither
    knows nor cares whether they already have an account, and making them pick
    the right screen first is asking a question only our database can answer. */
-function AuthProviderBlock({ auth, context }) {
+function AuthProviderBlock({ auth, context, onNeedTermsConsent }) {
+  /* On the signup screen the Google button creates an account, and there is
+     no form of ours between here and Google to carry a terms checkbox - so
+     the handoff is interrupted by the consent dialog first, and resumed on
+     accept. On the LOGIN screen it isn't: the overwhelmingly common case
+     there is an existing account signing back in, and stopping all of them
+     to re-accept terms they already accepted would be noise. A first-time
+     account created through the login button is caught by the post-sign-in
+     gate instead. */
+  const handoff = () => {
+    trackEvent("oauth_start", { provider: "google", surface: context });
+    auth.signInWithProvider("google");
+  };
   return (
     <React.Fragment>
       <button
         type="button"
         className="auth-btn auth-btn-provider"
         onClick={() => {
-          trackEvent("oauth_start", { provider: "google", surface: context });
-          auth.signInWithProvider("google");
+          if (onNeedTermsConsent) onNeedTermsConsent("google", handoff);
+          else handoff();
         }}
       >
         <GoogleMark />
@@ -29709,14 +29930,20 @@ function LoginPanel({ auth }) {
    is unverified, and signing them straight into an app whose every endpoint
    refuses them would show a broken dashboard instead of "check your email".
    It hands back to the caller, which shows the pending screen. */
-function SignupPanel({ auth, onSignedUp }) {
+function SignupPanel({ auth, onSignedUp, onNeedTermsConsent }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
 
-  const canSubmit = email.trim().length > 3 && password.length >= AUTH_MIN_PASSWORD && !busy;
+  /* Acceptance is a submit requirement alongside the email and password,
+     not a separate screen. auth-signup.mts refuses a signup without it and
+     stamps the version onto the account in the same call, so the account
+     never exists in an un-accepted state. */
+  const canSubmit =
+    email.trim().length > 3 && password.length >= AUTH_MIN_PASSWORD && acceptedTerms && !busy;
 
   async function submit() {
     if (!canSubmit) return;
@@ -29727,7 +29954,12 @@ function SignupPanel({ auth, onSignedUp }) {
       const res = await fetch("/.netlify/functions/auth-signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password, fullName: name.trim() }),
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          fullName: name.trim(),
+          acceptTerms: acceptedTerms,
+        }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -29753,7 +29985,7 @@ function SignupPanel({ auth, onSignedUp }) {
         <h1 className="auth-title">Start picking.</h1>
         <p className="auth-sub">Leagues, confidence rankings and game alerts. No card, no trial.</p>
 
-        <AuthProviderBlock auth={auth} context="signup" />
+        <AuthProviderBlock auth={auth} context="signup" onNeedTermsConsent={onNeedTermsConsent} />
 
         <div className="auth-fields">
           <div className="auth-field">
@@ -29784,6 +30016,25 @@ function SignupPanel({ auth, onSignedUp }) {
             id="su-pass" label="Password" value={password} onChange={setPassword}
             autoComplete="new-password" meter
           />
+          <label className="auth-terms-check">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              disabled={busy}
+              onChange={(e) => {
+                setAcceptedTerms(e.target.checked);
+                trackEvent("terms_consent", {
+                  action: e.target.checked ? "signup_checked" : "signup_unchecked",
+                });
+              }}
+            />
+            <span>
+              I'm 18 or older and agree to the{" "}
+              <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">Terms of Service</a>
+              {" and "}
+              <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+            </span>
+          </label>
         </div>
 
         {err && err.code !== "email_taken" && <p className="auth-err">{err.message}</p>}
@@ -30240,6 +30491,15 @@ function App() {
     if (auth.status === "in" && auth.refreshUser) auth.refreshUser();
   }, [verifyResult, auth.status]);
 
+  /* Terms acceptance. The email signup form carries its own checkbox (see
+     SignupPanel), so there is no interstitial on that route any more.
+     `oauthConsentOpen` is the dialog in front of an OAuth provider, which
+     has no form of ours to put a checkbox in; `termsGate` is the blocking
+     post-sign-in one. Separate state because they answer to completely
+     different triggers and can never both be open. */
+  const [oauthConsentOpen, setOauthConsentOpen] = useState(null);
+  const [termsGate, setTermsGate] = useState({ open: false, busy: false, error: null });
+
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -30612,6 +30872,106 @@ function App() {
       setUnverified(null);
     }
   }, [auth.status]);
+
+  /* ---------- Terms of Service acceptance ----------
+     See the block comment above TermsConsentModal for the three surfaces.
+     The email form's checkbox lives in SignupPanel and is enforced by
+     auth-signup.mts; this is the wiring for the other two. */
+
+  /* Consent before an OAuth handoff. Opened by AuthProviderBlock instead of
+     redirecting straight out, because once the redirect happens the next
+     screen is Google's and there is no checkbox of ours anywhere in it.
+     Holds the pending provider so accepting can resume the exact handoff
+     that was interrupted. */
+  const requestOauthConsent = useCallback((provider, run) => {
+    trackEvent("terms_consent", { action: "oauth_prompt" });
+    setOauthConsentOpen({ provider, run });
+  }, []);
+
+  const acceptOauthConsent = useCallback(() => {
+    const pending = oauthConsentOpen;
+    setOauthConsentOpen(null);
+    trackEvent("terms_consent", { action: "oauth_accepted" });
+    /* Nothing is written here. There is no account yet, and after the
+       redirect this page is gone - a localStorage handoff would have to
+       survive a round trip through Google and still be there on return,
+       which is exactly the fragile path the gate exists to make
+       unnecessary. The returning session lands on the gate instead, which
+       is one extra tap on a route most people won't take, in exchange for
+       consent that is never inferred from a marker left in a browser. */
+    if (pending && typeof pending.run === "function") pending.run();
+  }, [oauthConsentOpen]);
+
+  const declineOauthConsent = useCallback(() => {
+    setOauthConsentOpen(null);
+    trackEvent("terms_consent", { action: "oauth_declined" });
+  }, []);
+
+  /* Writes acceptance from the gate. The server stamps the version - see
+     lib/terms.mts - so there is nothing to send but the fact of it. This is
+     now the gate's path only: an account created through SignupPanel was
+     stamped at creation by auth-signup.mts and never gets here. */
+  const submitTermsAcceptance = useCallback(async (source) => {
+    setTermsGate((g) => ({ ...g, busy: true, error: null }));
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/user-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acceptTerms: true, termsSource: source }),
+      });
+      if (!res.ok) throw new Error(`user-profile responded ${res.status}`);
+      const updated = await res.json();
+      setProfile(updated);
+      setTermsGate({ open: false, busy: false, error: null });
+      trackEvent("terms_consent", { action: "gate_accepted" });
+    } catch (e) {
+      // The account still hasn't accepted, so the gate stays up with an
+      // error on it rather than closing. Failing open here would leave an
+      // unaccepted account quietly using the app, which is the one outcome
+      // this whole thing exists to prevent.
+      setTermsGate({
+        open: true,
+        busy: false,
+        error: "We couldn't save that. Check your connection and try again.",
+      });
+      trackEvent("terms_consent", { action: "record_failed" });
+    }
+  }, [auth]);
+
+  // One-shot guard, reset on sign-out below: without it the gate would
+  // re-log a "shown" event on every re-render.
+  const termsGateTrackedRef = useRef(false);
+
+  useEffect(() => {
+    if (auth.status !== "in" || !profile) return;
+
+    if (!profile.termsAcceptanceRequired) {
+      termsGateTrackedRef.current = false;
+      setTermsGate((g) => (g.open || g.error ? { open: false, busy: false, error: null } : g));
+      return;
+    }
+
+    /* An account created through SignupPanel is stamped at creation and
+       never reaches here. What does: accounts from before this shipped, a
+       returning OAuth session, and everybody after a TERMS_VERSION bump. */
+    if (!termsGateTrackedRef.current) {
+      termsGateTrackedRef.current = true;
+      trackEvent("terms_consent", { action: "gate_shown" });
+    }
+    setTermsGate((g) => (g.open ? g : { open: true, busy: false, error: null }));
+  }, [auth.status, profile]);
+
+  useEffect(() => {
+    if (auth.status !== "out") return;
+    termsGateTrackedRef.current = false;
+    setTermsGate({ open: false, busy: false, error: null });
+  }, [auth.status]);
+
+  const declineTermsGate = useCallback(() => {
+    trackEvent("terms_consent", { action: "gate_signout" });
+    setTermsGate({ open: false, busy: false, error: null });
+    auth.logout();
+  }, [auth]);
 
   // Push local setting changes back to the account so they follow the user
   // to their next login/device. Debounced since favorites in particular can
@@ -31157,9 +31517,34 @@ function App() {
         <p className="footer-legal">
           &copy; {new Date().getFullYear()} Blitz Odds. Not affiliated with or endorsed by the National Football
           League. Team names and marks are the property of their respective owners.
-          {" "}<a href="/privacy/" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
+          {" "}<a href="/terms/" style={{ color: "inherit", textDecoration: "underline" }}>Terms of Service</a>
+          {" \u00b7 "}<a href="/privacy/" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
         </p>
       </footer>
+
+      {/* Terms acceptance. Rendered last and above everything (z-index 3400)
+          so the blocking variant covers whatever was already open when the
+          profile came back needing acceptance. Only one can ever be up: the
+          signup dialog belongs to a signed-out reader, the gate to a
+          signed-in one. */}
+      {oauthConsentOpen && !termsGate.open && (
+        <TermsConsentModal
+          mode="oauth"
+          busy={false}
+          error={null}
+          onAccept={acceptOauthConsent}
+          onDecline={declineOauthConsent}
+        />
+      )}
+      {termsGate.open && (
+        <TermsConsentModal
+          mode="gate"
+          busy={termsGate.busy}
+          error={termsGate.error}
+          onAccept={() => submitTermsAcceptance("gate")}
+          onDecline={declineTermsGate}
+        />
+      )}
 
       {showAdmin && <AdminConsole auth={auth} onClose={() => setShowAdmin(false)} />}
 
@@ -31203,6 +31588,7 @@ function App() {
       {auth.authPanel === "signup" && (
         <SignupPanel
           auth={auth}
+          onNeedTermsConsent={requestOauthConsent}
           onSignedUp={(result) => {
             auth.closeAuthPanel();
             setAwaitingVerify({ email: result.email });

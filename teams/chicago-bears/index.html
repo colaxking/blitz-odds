@@ -4828,6 +4828,16 @@
   }
   .admin-pill-role { color: var(--blitz-orange); background: rgba(253,127,1,.14); border: 1px solid rgba(253,127,1,.4); }
   .admin-pill-off { color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border); }
+  .admin-muted { color: var(--text-dim); }
+  /* Terms acceptance trail. Collapsed by default - for almost every account
+     it repeats the single acceptance already shown above it, and it only
+     earns space on the ones that have re-accepted after a version bump. */
+  .admin-terms-history { margin-top: 8px; }
+  .admin-terms-history summary {
+    cursor: pointer; font-size: 0.76rem; color: var(--text-dim); padding: 4px 0;
+  }
+  .admin-terms-history summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .admin-terms-history .admin-kv { font-size: 0.76rem; }
   /* Loss-red, matching the Delete zone rather than the muted "Unconfirmed"
      pill: an unconfirmed account is a state it arrived in, a suspended one
      is a decision somebody made, and the row should read differently. */
@@ -27053,6 +27063,7 @@ function AdminUsersPanel({ auth, data, reload, onToast }) {
   const [openId, setOpenId] = useState(null);
 
   const users = data.users || [];
+  const termsCurrent = data.termsCurrentVersion || null;
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return users;
@@ -27093,6 +27104,12 @@ function AdminUsersPanel({ auth, data, reload, onToast }) {
                   {u.isAdmin && <span className="admin-pill admin-pill-role">Admin</span>}
                   {u.suspended && <span className="admin-pill admin-pill-susp">Suspended</span>}
                   {!u.confirmed && <span className="admin-pill admin-pill-off">Unconfirmed</span>}
+                  {/* Scannable from the list, since "who still owes me an
+                      acceptance" is a question about the whole set rather
+                      than about one account. */}
+                  {termsCurrent && u.termsAcceptedVersion !== termsCurrent && (
+                    <span className="admin-pill admin-pill-off">Terms {u.termsAcceptedVersion ? "outdated" : "not accepted"}</span>
+                  )}
                 </span>
                 <span className="admin-row-sub">{u.email}</span>
               </span>
@@ -27111,6 +27128,7 @@ function AdminUsersPanel({ auth, data, reload, onToast }) {
           user={open}
           leagues={data.leagues || []}
           actorId={data.actorId}
+          termsCurrent={data.termsCurrentVersion || null}
           onClose={() => setOpenId(null)}
           onChanged={reload}
           onToast={onToast}
@@ -27120,7 +27138,7 @@ function AdminUsersPanel({ auth, data, reload, onToast }) {
   );
 }
 
-function AdminUserSheet({ auth, user, leagues, actorId, onClose, onChanged, onToast }) {
+function AdminUserSheet({ auth, user, leagues, actorId, termsCurrent, onClose, onChanged, onToast }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [name, setName] = useState(user.name || "");
@@ -27176,6 +27194,52 @@ function AdminUserSheet({ auth, user, leagues, actorId, onClose, onChanged, onTo
         <div className="admin-kv"><span>Last seen</span><span>{fmtAdminDate(user.lastSeenAt)}</span></div>
         <div className="admin-kv"><span>Email confirmed</span><span>{user.confirmed ? "Yes" : "No"}</span></div>
         <div className="admin-kv"><span>Push notifications</span><span>{user.pushEnabled ? "On" : "Off"}</span></div>
+      </section>
+
+      <section className="admin-sec">
+        <h4>Terms of Service</h4>
+        {user.termsAcceptedVersion ? (
+          <React.Fragment>
+            <div className="admin-kv">
+              <span>Accepted version</span>
+              <span>
+                {user.termsAcceptedVersion}
+                {/* Flagged against the version the server reports, not a
+                    hardcoded one, so this stays right after a bump without
+                    touching the console. An out-of-date account is not a
+                    fault - it just means it will meet the gate next sign-in. */}
+                {termsCurrent && user.termsAcceptedVersion !== termsCurrent && (
+                  <span className="admin-pill admin-pill-off">Out of date</span>
+                )}
+              </span>
+            </div>
+            <div className="admin-kv">
+              <span>Accepted on</span><span>{fmtAdminDate(user.termsAcceptedAt)}</span>
+            </div>
+          </React.Fragment>
+        ) : (
+          <div className="admin-kv">
+            <span>Accepted version</span>
+            <span className="admin-muted">Never accepted</span>
+          </div>
+        )}
+        {termsCurrent && (
+          <div className="admin-kv"><span>Current version</span><span>{termsCurrent}</span></div>
+        )}
+        {/* The append-only trail, newest first. Only shown when there is more
+            than the one acceptance already listed above, so an ordinary
+            account does not get a redundant one-row history. */}
+        {user.termsHistory && user.termsHistory.length > 1 && (
+          <details className="admin-terms-history">
+            <summary>Acceptance history ({user.termsHistory.length})</summary>
+            {user.termsHistory.slice().reverse().map((h, i) => (
+              <div className="admin-kv" key={(h.version || "?") + ":" + (h.acceptedAt || i)}>
+                <span>{h.version || "unknown"}{h.source ? " \u00b7 " + h.source : ""}</span>
+                <span>{fmtAdminDate(h.acceptedAt)}</span>
+              </div>
+            ))}
+          </details>
+        )}
       </section>
 
       <section className="admin-sec">

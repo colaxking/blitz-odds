@@ -2,6 +2,7 @@ import {
   EMAIL_COLORS as C,
   EMAIL_FONT,
   SITE_URL,
+  APP_URL,
   FORMAT_LABELS,
   escapeHtml,
   emailShell,
@@ -36,8 +37,8 @@ import {
 // was never read by the app, so "Review request" dropped the owner on the
 // league's My Picks tab and left them to find the queue themselves. The app
 // still honours the old param for emails already delivered.
-const REQUESTS_URL = (leagueId: string) => `${SITE_URL}/leagues/${leagueId}/requests`;
-const LEAGUE_URL = (leagueId: string) => `${SITE_URL}/leagues/${leagueId}`;
+const REQUESTS_URL = (leagueId: string) => `${APP_URL}/leagues/${leagueId}/requests`;
+const LEAGUE_URL = (leagueId: string) => `${APP_URL}/leagues/${leagueId}`;
 
 export interface JoinRequestEmailInput {
   leagueId: string;
@@ -140,7 +141,7 @@ export function buildRequestDeclinedEmail(input: RequestOutcomeEmailInput) {
         If they change their mind, an invite code from them will still get you in.
       </p>
     `)}
-    ${emailButton("Find another league", `${SITE_URL}/leagues`)}
+    ${emailButton("Find another league", `${APP_URL}/leagues`)}
     <p style="margin:0;font-size:13px;line-height:1.6;color:${C.muted};">
       Plenty of public leagues take anyone instantly - or start your own in about a minute.
     </p>`;

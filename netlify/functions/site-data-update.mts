@@ -146,7 +146,10 @@ export default async (req: Request, _context: Context) => {
     return jsonResponse(400, { ok: false, error: `Provide at least one of: ${[...VALID_KEYS].join(", ")}` });
   }
 
-  const store = getStore(STORE_NAME);
+  // Strong consistency: mergePlayersPayload below reads the stored doc and
+  // writes a merged version straight back. A stale read there would drop
+  // fields the previous run had just added.
+  const store = getStore(STORE_NAME, { consistency: "strong" });
   const updated: string[] = [];
 
   for (const key of relevantKeys) {

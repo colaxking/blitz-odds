@@ -49,12 +49,18 @@ export default async (req: Request, _context: Context) => {
   const type = url.searchParams.get("type");
 
   try {
-    const store = getStore(STORE_NAME);
-
     if (type) {
       if (!VALID_KEYS.has(type)) {
         return jsonResponse(400, { ok: false, error: `Unknown type. Valid: ${[...VALID_KEYS].join(", ")}` });
       }
+      // Strong consistency on the single-doc path only. This is the
+      // fetch-before-merge mode the weekly tasks use (history-results-refresh,
+      // the injury syncs): they read a doc, mutate it, and write it straight
+      // back, so a stale read silently reverts whatever the previous run
+      // published. Default eventual consistency was also why a purge could
+      // look like it had failed - the read-back right after the write still
+      // showed the old doc for a few seconds.
+      const store = getStore(STORE_NAME, { consistency: "strong" });
       const doc = await store.get(type, { type: "json" });
       if (!doc) {
         return jsonResponse(404, { ok: false, error: `No ${type} published yet` });
@@ -65,6 +71,12 @@ export default async (req: Request, _context: Context) => {
     // Combined snapshot: fetch every key in parallel, omit any that have
     // never been published so the client's existing "did this actually
     // change" validation can leave that piece alone.
+    //
+    // Deliberately left eventually consistent: this is the hot path every
+    // visitor polls on page load, it's read-only, and a few seconds of lag on
+    // a stats snapshot costs nothing. Only the mutating callers above pay the
+    // strong-read latency.
+    const store = getStore(STORE_NAME);
     const keys = [...VALID_KEYS];
     const docs = await Promise.all(keys.map((k) => store.get(k, { type: "json" })));
     const combined: Record<string, unknown> = {};

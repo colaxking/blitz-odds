@@ -669,12 +669,19 @@
   .home-combo .hc-conf { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
   .home-combo .hc-conf-lbl { font-size: .72rem; color: var(--text-dim); }
   .home-combo .hc-conf-pct { font-size: .95rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  /* Same two-row treatment as the game card's .cb-odds (both moneylines,
+     fixed rows) so the two surfaces keep reading identically - that match is
+     the whole reason this row was built to copy that one. */
   .home-combo .hc-odds {
-    border-top: 1px solid var(--card-border); padding: 7px 12px; text-align: center;
+    border-top: 1px solid var(--card-border); padding: 7px 12px;
+    display: flex; flex-direction: column; gap: 3px;
     font-size: .74rem; color: var(--text-dim); font-variant-numeric: tabular-nums;
   }
+  .home-combo .hc-odds-line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; }
   .home-combo .hc-odds b { color: var(--text); font-weight: 800; white-space: nowrap; }
-  .home-combo .hc-odds .dot { opacity: .5; margin: 0 6px; }
+  .home-combo .hc-stat { white-space: nowrap; }
+  .home-combo .hc-stat + .hc-stat::before { content: "\00b7"; opacity: .5; margin: 0 6px; }
+  .home-combo .hc-odds-k { font-size: .62rem; text-transform: uppercase; letter-spacing: .4px; font-weight: 800; margin-right: 5px; }
   .home-why-line { margin: 12px 0 0; font-size: .82rem; line-height: 1.55; color: var(--text-dim); }
   .home-why-line b { color: var(--text); }
 
@@ -2360,16 +2367,10 @@
   .win-tag-hidden { visibility: hidden; }
   .at-sep { color: var(--text-dim); font-size: 0.75rem; padding: 0 4px; }
   .confidence-bar-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-dim); }
-  .odds-row {
-    display: flex; flex-direction: column; gap: 4px; font-size: 0.74rem;
-    background: var(--surface-2); border-radius: 8px; padding: 8px 10px;
-  }
-  .odds-fields { display: flex; flex-wrap: wrap; gap: 12px; }
-  .odds-field { color: var(--text); }
-  .odds-label { color: var(--text-dim); text-transform: uppercase; font-size: 0.62rem; letter-spacing: 0.4px; margin-right: 4px; }
-  .odds-agree { font-size: 0.68rem; }
-  .odds-agree.agree { color: var(--win); }
-  .odds-agree.disagree { color: var(--warn); }
+  /* .odds-row / .odds-field(s) / .odds-label / .odds-agree are gone with the
+     Full Details "Betting Lines" block - see the .cb-odds note below for why.
+     .odds-source and .odds-fallback-note stay: the Playbook rows and the
+     international-venue note still use them. */
   .odds-source { font-size: 0.64rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
   .odds-fallback-note { font-size: 0.68rem; color: var(--text-dim); font-style: italic; }
   .confidence-bar { flex: 1; height: 6px; border-radius: 4px; background: var(--lose); overflow: hidden; display: flex; }
@@ -2450,13 +2451,43 @@
     border-top: 1px dashed var(--card-border); padding: 6px 12px; text-align: center;
     font-size: 0.68rem; color: var(--text-dim); line-height: 1.45;
   }
+  /* Two fixed rows - spread/total, then both moneylines. Both sides of the
+     ML live here now rather than just the favourite's: the Full Details
+     "Betting Lines" block that used to carry the dog's number was printing
+     the same spread, total and pair of moneylines a second time (and
+     Compare Sportsbooks, three sections further down the same panel, lists
+     every book's line a third), so it was deleted and this row absorbed the
+     one number it had that this one didn't.
+     Fixed rows rather than one wrapping line: a blowout's four-digit prices
+     (CHI +650 / PHI -1000) reflow a single row at 390px, so cards down a
+     week would each be a different height and the numbers wouldn't line up.
+     Two rows always costs one line on the games that would have fit and
+     buys a stable card in exchange. */
   .cb-odds {
-    border-top: 1px solid var(--card-border); padding: 7px 12px; text-align: center;
+    border-top: 1px solid var(--card-border); padding: 7px 12px;
+    display: flex; flex-direction: column; gap: 3px;
     font-size: 0.74rem; color: var(--text-dim); font-variant-numeric: tabular-nums;
   }
+  .cb-odds-line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; }
   .cb-odds b { color: var(--text); font-weight: 800; white-space: nowrap; }
-  .cb-odds .dot { opacity: 0.5; margin: 0 6px; }
-  .cb-odds-none { font-size: 0.72rem; font-weight: 600; }
+  /* Each stat is one unbreakable unit and carries its own leading separator,
+     so a row that does have to wrap breaks between stats, never inside a
+     price. */
+  .cb-stat { white-space: nowrap; }
+  .cb-stat + .cb-stat::before { content: "\00b7"; opacity: 0.5; margin: 0 6px; }
+  .cb-odds-k { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 800; margin-right: 5px; }
+  .cb-odds-none { font-size: 0.72rem; font-weight: 600; text-align: center; }
+  /* Line attribution, relocated out of the deleted Betting Lines block: the
+     book has to be named on the surface that shows its numbers, and this is
+     now the only one that does. */
+  .cb-odds-src {
+    border-top: 1px dashed var(--card-border); padding: 5px 12px; text-align: center;
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-dim);
+  }
+  .cb-odds-fallback {
+    display: block; margin-top: 2px; text-transform: none; letter-spacing: 0;
+    font-style: italic; font-size: 0.68rem;
+  }
 
   .gc-actions { display: flex; border-top: 1px solid var(--card-border); margin: 10px -14px -12px; }
   .gc-action {
@@ -2508,6 +2539,15 @@
   .edge-detail { background: rgba(var(--accent-rgb),0.06); border: 1px solid rgba(var(--accent-rgb),0.25); border-radius: 10px; padding: 12px; }
   .edge-detail-logo { height: 30px; width: auto; display: block; margin: 0 0 10px; }
   .edge-detail p { margin: 0; font-size: 0.8rem; line-height: 1.5; color: var(--text); }
+  /* Was the last line of the Betting Lines block. It's a statement about the
+     model rather than about a line, so it moved in with the reasoning it's
+     describing instead of dying with the block. */
+  .edge-detail p.edge-market-note {
+    margin-top: 10px; padding-top: 9px; border-top: 1px dashed rgba(var(--accent-rgb),0.3);
+    font-size: 0.72rem; font-weight: 600;
+  }
+  .edge-detail p.edge-market-note.agree { color: var(--win); }
+  .edge-detail p.edge-market-note.disagree { color: var(--warn); }
 
   .short-boxscore-loading { font-size: 0.76rem; color: var(--text-dim); padding: 4px 0; }
   .short-boxscore-stats { display: flex; flex-direction: column; gap: 5px; }
@@ -15521,15 +15561,6 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   const historicalResult = context.getResult(game.away, game.home);
   const scoreInfo = resolveScore(live, historicalResult);
   const odds = getOdds(week, game.away, game.home, sportsbookId);
-  // The compact card shows only the favored side's moneyline - both sides
-  // would wrap on a phone, and Full Details already lists away/home in full.
-  const favoriteMoneyline = !odds
-    ? null
-    : odds.favorite === game.home
-      ? odds.moneylineHome
-      : odds.favorite === game.away
-        ? odds.moneylineAway
-        : null;
   const weather = getWeather(week, game.away, game.home);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
@@ -15776,20 +15807,36 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         <div className="cb-odds">
           {odds ? (
             <>
-              <b>{odds.favorite} {formatSpread(odds.spread)}</b> Spread
-              <span className="dot">·</span>
-              <b>{odds.overUnder}</b> O/U
-              {favoriteMoneyline != null && (
-                <>
-                  <span className="dot">·</span>
-                  <b>{odds.favorite} {formatMoneyline(favoriteMoneyline)}</b> ML
-                </>
+              <div className="cb-odds-line">
+                <span className="cb-stat"><b>{odds.favorite} {formatSpread(odds.spread)}</b> Spread</span>
+                <span className="cb-stat"><b>{odds.overUnder}</b> O/U</span>
+              </div>
+              {/* Both sides, since Full Details no longer carries the pair.
+                  A book occasionally posts a spread with no moneyline at
+                  all, so the row is skipped rather than printing "ML" over
+                  two blanks. */}
+              {(odds.moneylineAway != null || odds.moneylineHome != null) && (
+                <div className="cb-odds-line" data-tour="odds-ml">
+                  <span className="cb-odds-k">ML</span>
+                  <span className="cb-stat"><b>{away.id} {formatMoneyline(odds.moneylineAway)}</b></span>
+                  <span className="cb-stat"><b>{home.id} {formatMoneyline(odds.moneylineHome)}</b></span>
+                </div>
               )}
             </>
           ) : (
             <span className="cb-odds-none">Odds not yet posted</span>
           )}
         </div>
+        {odds && (
+          <div className="cb-odds-src">
+            Line: {odds.sportsbook}
+            {odds.isFallback && (
+              <span className="cb-odds-fallback">
+                No {getSportsbookLabel(sportsbookId)} line yet for this game — showing the {odds.sportsbook} default.
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="gc-actions">
@@ -15861,32 +15908,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             </div>
           )}
 
-          <div>
-            <div className="sec-label">Betting Lines</div>
-            <div className="odds-row" data-tour="betting-lines">
-              {odds ? (
-                <>
-                  <div className="odds-fields">
-                    <span className="odds-field" data-tour="odds-spread"><span className="odds-label">Spread</span> {odds.favorite} {formatSpread(odds.spread)}</span>
-                    <span className="odds-field" data-tour="odds-ml"><span className="odds-label">ML</span> {away.id} {formatMoneyline(odds.moneylineAway)} / {home.id} {formatMoneyline(odds.moneylineHome)}</span>
-                    <span className="odds-field" data-tour="odds-ou"><span className="odds-label">O/U</span> {odds.overUnder}</span>
-                  </div>
-                  <div className={"odds-agree " + (modelAgreesWithMarket ? "agree" : "disagree")} data-tour="odds-agree">
-                    {modelAgreesWithMarket ? "Model agrees with the market favorite" : "Model disagrees with the market favorite"}
-                  </div>
-                  <div className="odds-source">Line: {odds.sportsbook}</div>
-                  {odds.isFallback && (
-                    <div className="odds-fallback-note">
-                      No {getSportsbookLabel(sportsbookId)} line yet for this game — showing the {odds.sportsbook} default.
-                    </div>
-                  )}
-                </>
-              ) : (
-                <span className="hw-tag">Odds not yet posted for this game</span>
-              )}
-            </div>
-          </div>
-
+          {/* No "Betting Lines" section here any more. Every number it held
+              - spread, total, both moneylines, the book's name - is on the
+              compact card above, and Compare Sportsbooks below lists all of
+              them per book. Its one non-duplicated line, the model-vs-market
+              verdict, moved into the Blitz Edge write-up. */}
           <div>
             {/* The format is named in the label because the paragraph below
                 changes with it - without it, a reader who flipped the
@@ -15902,6 +15928,14 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             <div className="edge-detail" data-tour="blitz-verdict">
               <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="edge-detail-logo" />
               <p>{rationale}</p>
+              {modelAgreesWithMarket != null && (
+                <p
+                  className={"edge-market-note " + (modelAgreesWithMarket ? "agree" : "disagree")}
+                  data-tour="odds-agree"
+                >
+                  {modelAgreesWithMarket ? "Model agrees with the market favorite" : "Model disagrees with the market favorite"}
+                </p>
+              )}
             </div>
           </div>
 
@@ -26237,14 +26271,6 @@ function americanToImpliedProbability(ml) {
 function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbookId, tz }) {
   const edge = useMemo(() => pickTopEdgeGame(week, sportsbookId), [week, sportsbookId]);
   const periodLabel = getPeriodLabel(week);
-  // Only the favored side's moneyline, matching the compact game card.
-  const edgeFavoriteMoneyline = !edge || !edge.odds || !edge.odds.favorite
-    ? null
-    : edge.odds.favorite === edge.home.id
-      ? edge.odds.moneylineHome
-      : edge.odds.favorite === edge.away.id
-        ? edge.odds.moneylineAway
-        : null;
 
   return (
     <div className="home-landing">
@@ -26303,25 +26329,30 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
                   <span className="hc-conf-pct">{Math.round(edge.modelProb * 100)}%</span>
                 </span>
               </div>
+              {/* Mirrors the game card's .cb-odds exactly - two rows, both
+                  moneylines. No "Line: {book}" caption under it the way the
+                  game card has: this is one hand-picked game on a marketing
+                  page rather than the surface someone reads a line off, and
+                  it never carried the book's name. */}
               <div className="hc-odds">
                 {edge.odds && edge.odds.favorite ? (
                   <>
-                    <b>{edge.odds.favorite} {formatSpread(edge.odds.spread)}</b> Spread
-                    {edge.odds.overUnder != null && (
-                      <>
-                        <span className="dot">·</span>
-                        <b>{edge.odds.overUnder}</b> O/U
-                      </>
-                    )}
-                    {edgeFavoriteMoneyline != null && (
-                      <>
-                        <span className="dot">·</span>
-                        <b>{edge.odds.favorite} {formatMoneyline(edgeFavoriteMoneyline)}</b> ML
-                      </>
+                    <div className="hc-odds-line">
+                      <span className="hc-stat"><b>{edge.odds.favorite} {formatSpread(edge.odds.spread)}</b> Spread</span>
+                      {edge.odds.overUnder != null && (
+                        <span className="hc-stat"><b>{edge.odds.overUnder}</b> O/U</span>
+                      )}
+                    </div>
+                    {(edge.odds.moneylineAway != null || edge.odds.moneylineHome != null) && (
+                      <div className="hc-odds-line">
+                        <span className="hc-odds-k">ML</span>
+                        <span className="hc-stat"><b>{edge.away.id} {formatMoneyline(edge.odds.moneylineAway)}</b></span>
+                        <span className="hc-stat"><b>{edge.home.id} {formatMoneyline(edge.odds.moneylineHome)}</b></span>
+                      </div>
                     )}
                   </>
                 ) : (
-                  "Line not posted"
+                  <div className="hc-odds-line">Line not posted</div>
                 )}
               </div>
             </div>

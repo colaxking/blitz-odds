@@ -143,7 +143,20 @@ async function main() {
     throw new Error("published history doc is missing a weeks[] array");
   }
 
+  // Belt-and-braces with the same guard in site-data-update.mts. If a demo
+  // snapshot ever reaches the published doc anyway, drop it here so it can't
+  // reach the on-disk mirror either - data/history.json is what the weekly
+  // archive and the embedded HISTORY_DATA block get rebuilt from, and that is
+  // exactly how the 2026 Week 1 sample kept resurfacing.
   let changed = false;
+
+  const demoWeeks = history.weeks.filter((w) => w && w.isDemo === true);
+  if (demoWeeks.length) {
+    history.weeks = history.weeks.filter((w) => !(w && w.isDemo === true));
+    changed = true;
+    log(`dropped ${demoWeeks.length} demo snapshot(s): week ${demoWeeks.map((w) => w.week).join(", ")}`);
+  }
+
   const skipped = [];
 
   for (const snap of history.weeks) {

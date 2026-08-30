@@ -59,6 +59,35 @@ async function mergePlayersPayload(store: ReturnType<typeof getStore>, incoming:
   return { ...incoming, players: mergedTeams };
 }
 
+// Hard guard for the "history" key. Week 1 of 2026 originally shipped as an
+// illustrative sample snapshot (isDemo: true) to demonstrate the
+// predicted-vs-actual view before the season started. It was deleted from git
+// five separate times (Jul 30, Aug 8, Aug 18, Aug 24, plus a blob-only purge
+// Aug 25) and came back every time, because the weekly archive step copies the
+// whole history document forward and only needs ONE surviving stale copy - the
+// blob, data/history.json, the embedded HISTORY_DATA block, or a static page -
+// to re-propagate it everywhere.
+//
+// Rather than keep chasing copies, this rejects the data at the only choke
+// point every publisher goes through. No demo week can enter the blob store,
+// so no archive can pick one back up. The app no longer renders isDemo at all;
+// this exists purely so a stale payload can't reintroduce it.
+function stripDemoWeeks(incoming: any): { value: any; dropped: number[] } {
+  if (!incoming || typeof incoming !== "object" || !Array.isArray(incoming.weeks)) {
+    return { value: incoming, dropped: [] };
+  }
+  const dropped: number[] = [];
+  const weeks = incoming.weeks.filter((w: any) => {
+    if (w && typeof w === "object" && w.isDemo === true) {
+      dropped.push(typeof w.week === "number" ? w.week : -0);
+      return false;
+    }
+    return true;
+  });
+  if (!dropped.length) return { value: incoming, dropped };
+  return { value: { ...incoming, weeks }, dropped };
+}
+
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -127,6 +156,15 @@ export default async (req: Request, _context: Context) => {
     }
     if (key === "players") {
       value = await mergePlayersPayload(store, value);
+    }
+    if (key === "history") {
+      const { value: cleaned, dropped } = stripDemoWeeks(value);
+      if (dropped.length) {
+        console.warn(
+          `site-data-update: dropped ${dropped.length} demo week(s) from history payload: ${dropped.join(", ")}`
+        );
+      }
+      value = cleaned;
     }
     await store.setJSON(key, value);
     updated.push(key);

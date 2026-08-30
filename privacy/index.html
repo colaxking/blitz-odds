@@ -106,7 +106,7 @@ footer.app-footer p:last-child { margin-bottom: 0; }
 
   <main class="policy">
     <h2>Privacy Policy</h2>
-    <p class="updated">Last updated: August 29, 2026</p>
+    <p class="updated">Last updated: August 30, 2026</p>
 
     <p class="lede">Blitz Odds is a free NFL pick'em and matchup analysis tool. This page explains what
     information the site collects, why, and what you can do about it. We do not sell personal information,
@@ -134,8 +134,9 @@ footer.app-footer p:last-child { margin-bottom: 0; }
     <h3>Information you provide</h3>
     <p>Most of the site works without an account. If you create one, we store:</p>
     <ul>
-      <li><strong>Account details</strong> - your email address and password, handled by our authentication
-      provider. We never see or store your password.</li>
+      <li><strong>Account details</strong> - your email address and password. Your password is passed
+      straight to our authentication provider when you sign up or reset it; we never store it and never
+      keep a copy.</li>
       <li><strong>Profile</strong> - a display name and a chosen avatar from a fixed set. Your display name is
       visible to other members of any league you join.</li>
       <li><strong>League activity</strong> - leagues you create or join, the picks you submit, and your
@@ -148,6 +149,14 @@ footer.app-footer p:last-child { margin-bottom: 0; }
     <p>We send email only for things you or a league you belong to initiate - league invitations, join
     requests, and account messages. These are sent through our email provider, Resend. We do not send
     marketing email.</p>
+    <p>Two of those messages are part of getting into your account: the link that confirms your email
+    address when you sign up, and the link that lets you set a new password if you forget yours. To make
+    each link work we store a one-way scrambled version of it - never the link itself - alongside your
+    account identifier and email address, so that a link can be checked when you click it and then
+    immediately discarded. Confirmation links stop working after 24 hours and reset links after one hour,
+    whether or not they are used, and the stored record is deleted the moment a link is clicked. We also
+    keep a short-lived count of how many of these emails have been requested for an address, so the same
+    address cannot be used to send someone repeated mail.</p>
     <p>If you follow an individual game to get alerts on it, we store that game&rsquo;s identifier against your
     account for that week only. It is used solely to decide whether to send you an alert about that game, is
     never shared with anyone, and is automatically cleared a few weeks after the week it belongs to.</p>
@@ -190,6 +199,12 @@ footer.app-footer p:last-child { margin-bottom: 0; }
     account it is removed immediately and permanently - there is no recovery period and no archived copy.
     Analytics records are kept to track traffic trends over time and are not linked to your account, so
     they are unaffected by deletion.</p>
+
+    <h3>Unconfirmed accounts</h3>
+    <p>Until you click the link in the confirmation email, your account exists but cannot make picks, join
+    leagues, or change settings, and receives no notifications. You can still delete it. We do this so that
+    an address someone typed by mistake - or on purpose, without owning it - cannot be used to receive our
+    email or to appear in a league under someone else's name.</p>
 
     <h3>Suspended accounts</h3>
     <p>We may suspend an account that appears to be misused - for example a disputed pick'em result or a

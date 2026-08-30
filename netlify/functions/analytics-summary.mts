@@ -665,6 +665,46 @@ export default async (req: Request, _context: Context) => {
     // the thing worth seeing, and collapsing it to one would hide it.
     const suspendedBlocks = validRecords.filter((r) => r.type === "account_suspended_block").length;
 
+    // --- Signup + verification funnel ---
+    //
+    // The interesting number is not any single one of these, it's the drop
+    // between signup_success and verify_complete. Every account in that gap
+    // is a person who asked for an account, got as far as a password, and
+    // then never received (or never opened) the confirmation mail. Since
+    // that mail is now ours to send rather than Netlify's, a widening gap
+    // points at our own deliverability and nobody else's.
+    const signupSubmits = validRecords.filter((r) => r.type === "signup_submit").length;
+    const signupSuccesses = validRecords.filter((r) => r.type === "signup_success");
+    const signupErrors = validRecords.filter((r) => r.type === "signup_error");
+    const verifyCompletes = validRecords.filter((r) => r.type === "verify_complete").length;
+    const signupFunnel = {
+      submits: signupSubmits,
+      successes: signupSuccesses.length,
+      errors: signupErrors.length,
+      verified: verifyCompletes,
+      // Signups whose confirmation mail failed to send. Should be zero;
+      // anything else is an account that cannot be used.
+      mailFailures: signupSuccesses.filter((r) => r.emailSent === "no").length,
+      errorsByReason: sortedCounts(signupErrors, (r) => r.reason),
+    };
+
+    // Unverified sessions hitting the gate, and how often people ask for the
+    // mail again. Resends running well ahead of blocks means the first email
+    // is not arriving.
+    const verifyBlocks = validRecords.filter((r) => r.type === "verify_block").length;
+    const verifyResends = validRecords.filter((r) => r.type === "verify_resend").length;
+
+    // Password reset, ours now rather than GoTrue's.
+    const resetFunnel = {
+      requested: validRecords.filter((r) => r.type === "password_forgot_submit").length,
+      submitted: validRecords.filter((r) => r.type === "password_reset_submit").length,
+      succeeded: validRecords.filter((r) => r.type === "password_reset_success").length,
+      errorsByReason: sortedCounts(
+        validRecords.filter((r) => r.type === "password_reset_error"),
+        (r) => r.reason
+      ),
+    };
+
     // --- teamClicksByOrigin: game-card click vs. the favorites-bar
     // quick-nav chip - how much the favorites shortcut actually gets used ---
     const teamClicksByOrigin = sortedCounts(teamClicks, (r) => r.origin);
@@ -971,6 +1011,10 @@ export default async (req: Request, _context: Context) => {
         accountDeleteFailures,
         accountDeleteFailuresByOutcome,
         suspendedBlocks,
+        signupFunnel,
+        verifyBlocks,
+        verifyResends,
+        resetFunnel,
         historyPageviews,
         archiveEntriesBySource,
         historyGameClicksByTeam,

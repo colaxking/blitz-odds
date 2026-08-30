@@ -1,6 +1,13 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
-import { verifyToken, isSuspended, suspensionInfo, suspendedResponse } from "./lib/auth.mts";
+import {
+  verifyToken,
+  isSuspended,
+  suspensionInfo,
+  suspendedResponse,
+  isUnverified,
+  unverifiedResponse,
+} from "./lib/auth.mts";
 
 // Authenticated read/write for a single user's profile blob. This is the
 // unified record backing both the (future) Pro subscription gate and
@@ -139,6 +146,13 @@ export default async (req: Request, _context: Context) => {
   // the reason and nothing else - not their profile, and certainly not a
   // successful write.
   if (isSuspended(claims)) return suspendedResponse(suspensionInfo(claims));
+
+  // Same reasoning one step down: this is the endpoint the app fetches on
+  // sign-in, so it is the one that has to say WHY an account can't do
+  // anything. Every other endpoint just 401s an unverified caller (see
+  // getAuthenticatedUser); if this one did too, the app would show a
+  // generic error instead of the screen with the Resend button on it.
+  if (isUnverified(claims)) return unverifiedResponse(claims.email);
 
   const userId: string = claims.id;
   const store = getStore(STORE_NAME, { consistency: "strong" });

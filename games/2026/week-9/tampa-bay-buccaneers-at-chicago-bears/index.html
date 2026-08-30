@@ -3117,6 +3117,128 @@
     .susp-btn { width: auto; min-width: 160px; }
   }
 
+  /* ---- account screens: signup, confirm-your-email, forgot, reset ----
+
+     These live outside .app the same way .susp-screen does, and for the same
+     reason: each of them is the whole screen, not a panel inside a working
+     app. The confirm-email one in particular gates an account the server
+     refuses at every authenticated endpoint (see lib/auth.mts), so rendering
+     the normal shell behind it would offer a wall of controls that silently
+     fail. */
+  .authscreen {
+    min-height: 100vh; min-height: 100dvh; display: flex; align-items: center;
+    justify-content: center; padding: 24px 16px; box-sizing: border-box;
+  }
+  .authcard {
+    width: 100%; max-width: 430px; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 14px; padding: 24px 20px;
+  }
+  .authcard-center { text-align: center; }
+  .auth-eyebrow {
+    margin: 0 0 6px; font-size: 0.66rem; font-weight: 800; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .auth-title { margin: 0 0 8px; font-size: 1.22rem; font-weight: 800; line-height: 1.25; color: var(--text); }
+  .auth-sub { margin: 0 0 4px; font-size: 0.86rem; line-height: 1.55; color: var(--text-dim); }
+  .auth-icon {
+    width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center;
+    font-size: 1.5rem; margin: 0 0 14px;
+    background: rgba(var(--accent-rgb),0.14); border: 1px solid rgba(var(--accent-rgb),0.32);
+  }
+  .authcard-center .auth-icon { margin-left: auto; margin-right: auto; }
+  .auth-icon.is-warn { background: rgba(var(--warn-rgb),0.14); border-color: rgba(var(--warn-rgb),0.34); }
+  .auth-icon.is-err { background: rgba(var(--out-rgb),0.13); border-color: rgba(var(--out-rgb),0.32); }
+
+  .auth-fields { margin: 18px 0 0; }
+  .auth-field { margin: 0 0 14px; text-align: left; }
+  .auth-field label {
+    display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: .03em;
+    text-transform: uppercase; color: var(--text-dim); margin: 0 0 6px;
+  }
+  .auth-field label .auth-opt { text-transform: none; font-weight: 600; }
+  .auth-field input {
+    width: 100%; box-sizing: border-box; font-family: inherit; font-size: 0.95rem;
+    color: var(--text); background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 11px 12px;
+  }
+  .auth-field input:focus { outline: none; border-color: rgba(var(--accent-rgb),0.6); }
+  .auth-field.has-err input { border-color: rgba(var(--out-rgb),0.65); }
+  .auth-hint { margin: 6px 0 0; font-size: 0.72rem; color: var(--text-dim); }
+  .auth-err { margin: 6px 0 0; font-size: 0.74rem; line-height: 1.5; color: var(--pill-bad-text); }
+  .auth-err a, .auth-linkish {
+    color: var(--accent); font-weight: 700; text-decoration: none; background: none;
+    border: 0; font-family: inherit; font-size: inherit; cursor: pointer; padding: 0;
+  }
+  .auth-linkish:hover, .auth-err a:hover { text-decoration: underline; }
+
+  /* The password field's reveal toggle. Absolutely positioned inside the row
+     rather than beside the input, so the input keeps the full width every
+     other field has and the fields still line up. */
+  .auth-pw-row { position: relative; }
+  .auth-pw-row input { padding-right: 62px; }
+  .auth-pw-toggle {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: 0; color: var(--text-dim); cursor: pointer;
+    font-size: 0.7rem; font-weight: 800; letter-spacing: .04em; font-family: inherit; padding: 6px;
+  }
+  .auth-pw-toggle:hover { color: var(--text); }
+
+  /* Four segments, not a numeric score: the point is "longer is better",
+     and a percentage invites people to optimise a number that doesn't
+     measure what they think it does. */
+  .auth-meter { display: flex; gap: 4px; margin: 8px 0 0; }
+  .auth-meter i { flex: 1; height: 4px; border-radius: 2px; background: var(--card-border); }
+  .auth-meter i.on { background: var(--accent); }
+  .auth-meter i.warn { background: var(--warn); }
+
+  .auth-actions { display: flex; flex-direction: column; gap: 8px; margin: 18px 0 0; }
+  .auth-btn {
+    appearance: none; font-family: inherit; cursor: pointer; border-radius: 10px;
+    font-size: 0.86rem; font-weight: 800; padding: 12px 18px; border: 1px solid transparent;
+    width: 100%;
+  }
+  .auth-btn:disabled { opacity: 0.55; cursor: default; }
+  .auth-btn-primary { background: var(--accent); color: #05221f; }
+  .auth-btn-ghost { background: transparent; border-color: var(--card-border); color: var(--text-dim); }
+  .auth-btn-ghost:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
+  .auth-alt { margin: 16px 0 0; font-size: 0.8rem; color: var(--text-dim); text-align: center; }
+
+  .auth-addr {
+    display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8rem; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 5px 9px; margin: 4px 0 0; color: var(--text);
+    max-width: 100%; overflow-wrap: anywhere;
+  }
+  .auth-note {
+    margin: 16px 0 0; padding: 11px 12px; border-radius: 10px; font-size: 0.78rem;
+    line-height: 1.55; text-align: left; background: var(--surface-2);
+    border: 1px solid var(--card-border); color: var(--text-dim);
+  }
+  .auth-note.is-ok { border-left: 3px solid var(--win); }
+  .auth-note.is-err { border-left: 3px solid var(--out); }
+
+  /* The ?verified= outcome, shown at the top of the app rather than as its
+     own screen: by the time this renders the person is already where they
+     wanted to be, and a full-screen interstitial between them and it would
+     be a step for no reason. */
+  .verify-banner {
+    display: flex; gap: 10px; align-items: flex-start; margin: 0 0 12px;
+    padding: 12px 14px; border-radius: 12px; font-size: 0.82rem; line-height: 1.5;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+  }
+  .verify-banner.is-ok { border-left: 4px solid var(--win); }
+  .verify-banner.is-warn { border-left: 4px solid var(--warn); }
+  .verify-banner.is-err { border-left: 4px solid var(--out); }
+  .verify-banner strong { display: block; margin: 0 0 2px; color: var(--text); }
+  .verify-banner p { margin: 0; color: var(--text-dim); }
+  .verify-banner-x {
+    margin-left: auto; background: none; border: 0; color: var(--text-dim);
+    font-size: 1.05rem; cursor: pointer; line-height: 1; padding: 2px 4px; flex: 0 0 auto;
+  }
+  @media (min-width: 560px) {
+    .authcard { padding: 30px 28px; }
+  }
+
   .fav-picker-list { max-height: 320px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 12px; padding: 6px; }
   .fav-picker-group-label {
     font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim);
@@ -28617,6 +28739,15 @@ function saveTutorialSeen() {
 function useAuth() {
   const [status, setStatus] = useState("loading");
   const [user, setUser] = useState(null);
+  /* Which of our own account screens is open, if any: "signup" | "forgot" |
+     "reset" | null.
+     
+     It lives in this hook rather than in App so that every existing
+     auth.openSignup() caller scattered through the app - the preview gates,
+     the Playbook prompt, the league CTAs - keeps working untouched. They
+     called a function that opened the Netlify widget; they now call a
+     function that opens ours, and none of them had to know. */
+  const [authPanel, setAuthPanel] = useState(null);
 
   useEffect(() => {
     const identity = window.netlifyIdentity;
@@ -28710,8 +28841,62 @@ function useAuth() {
   // week schedule was effectively being loaded two or three times over,
   // with a visible flash back to "Loading…" in between.
   const openLogin = useCallback(() => window.netlifyIdentity && window.netlifyIdentity.open("login"), []);
-  const openSignup = useCallback(() => window.netlifyIdentity && window.netlifyIdentity.open("signup"), []);
+
+  /* Signup no longer opens the widget. The widget posts straight to GoTrue
+     /signup, which immediately mails Netlify's own unbranded confirmation
+     from no-reply@netlify.com - and on the Personal plan there is no setting
+     that restyles or re-addresses it. Our signup goes through
+     auth-signup.mts, which creates the account with confirm:true so GoTrue
+     stays quiet, and mails our own template through Resend instead. */
+  const openSignup = useCallback(() => setAuthPanel("signup"), []);
+  const openForgot = useCallback(() => setAuthPanel("forgot"), []);
+  const openResetPanel = useCallback(() => setAuthPanel("reset"), []);
+  const closeAuthPanel = useCallback(() => setAuthPanel(null), []);
   const logout = useCallback(() => window.netlifyIdentity && window.netlifyIdentity.logout(), []);
+
+  /* Signs in against the same GoTrue instance the widget wraps, without the
+     widget's UI.
+     
+     window.netlifyIdentity.gotrue is the underlying client, and gotrue.login
+     persists the session to the same storage netlifyIdentity.currentUser()
+     reads from - so authenticatedFetch keeps working unchanged afterwards.
+     What does NOT happen is the widget's "login" event, so this sets the
+     hook's state itself.
+     
+     Falls back to opening the widget if gotrue isn't exposed (a version bump,
+     a blocked script). Signing in through the widget is perfectly fine - it
+     sends no email - so the fallback costs nothing but a different-looking
+     form. */
+  const signIn = useCallback(async (email, password) => {
+    const identity = window.netlifyIdentity;
+    if (!identity || !identity.gotrue) {
+      if (identity) identity.open("login");
+      throw new Error("WIDGET_FALLBACK");
+    }
+    const u = await identity.gotrue.login(email, password, true);
+    setUser(u);
+    setStatus("in");
+    setAuthPanel(null);
+    return u;
+  }, []);
+
+  /* Re-reads the current user from GoTrue. Called after email confirmation
+     so the freshly-set email_verified flag lands in the session without a
+     full reload - the JWT itself doesn't carry it (lib/auth.mts reads
+     user_metadata server-side), but the app's own gate keys off the profile
+     fetch, which this re-triggers by changing the user object. */
+  const refreshUser = useCallback(async () => {
+    const identity = window.netlifyIdentity;
+    const current = identity && identity.currentUser();
+    if (!current) return null;
+    try {
+      const fresh = await current.jwt(true);
+      void fresh;
+    } catch (e) { /* a refresh failure is not a reason to blank the session */ }
+    const next = identity.currentUser();
+    setUser(next ? Object.assign(Object.create(Object.getPrototypeOf(next)), next) : null);
+    return next;
+  }, []);
 
   const authenticatedFetch = useCallback(async (path, options) => {
     const identity = window.netlifyIdentity;
@@ -28731,8 +28916,16 @@ function useAuth() {
   // Identity changes only when sign-in state actually changes, which is
   // exactly when a consumer genuinely does need to re-run.
   return useMemo(
-    () => ({ status, user, openLogin, openSignup, logout, authenticatedFetch }),
-    [status, user, openLogin, openSignup, logout, authenticatedFetch]
+    () => ({
+      status, user, authPanel,
+      openLogin, openSignup, openForgot, openResetPanel, closeAuthPanel,
+      signIn, refreshUser, logout, authenticatedFetch,
+    }),
+    [
+      status, user, authPanel,
+      openLogin, openSignup, openForgot, openResetPanel, closeAuthPanel,
+      signIn, refreshUser, logout, authenticatedFetch,
+    ]
   );
 }
 
@@ -29136,6 +29329,463 @@ function getInitialTab(leaguesEnabled) {
   return ROOT_TAB;
 }
 
+/* ---------------------------------------------------------------------- *
+ * Account screens
+ *
+ * Signup, "confirm your email", forgot-password and reset all live here.
+ * They exist because Netlify Identity's email settings - custom template,
+ * custom sender - are Pro-plan features and this site is on Personal, so
+ * every mail GoTrue sends would be its unbranded default from
+ * no-reply@netlify.com. The way around that is to never let GoTrue send:
+ * accounts are created server-side with confirm:true (auth-signup.mts) and
+ * password resets run on our own tokens (auth-forgot/auth-reset.mts), with
+ * both emails going out through Resend like everything else the site sends.
+ *
+ * Sign-IN still goes through the widget, or through auth.signIn against the
+ * same GoTrue client - either way it sends no email, so it needed no
+ * replacement.
+ * ---------------------------------------------------------------------- */
+
+const AUTH_MIN_PASSWORD = 8;
+
+/* Four segments, deliberately not a score out of ten. Length is doing most
+   of the work and the bar should say so, rather than implying that adding a
+   punctuation mark to "password1" has bought anything. */
+function authPasswordScore(v) {
+  let score = 0;
+  if (v.length >= AUTH_MIN_PASSWORD) score++;
+  if (v.length >= 12) score++;
+  if (/[^a-zA-Z0-9]/.test(v)) score++;
+  if (/[0-9]/.test(v) && /[a-zA-Z]/.test(v)) score++;
+  return score;
+}
+
+function AuthPasswordField({ id, label, value, onChange, autoComplete, meter }) {
+  const [show, setShow] = useState(false);
+  const score = meter ? authPasswordScore(value) : 0;
+  return (
+    <div className="auth-field">
+      <label htmlFor={id}>{label}</label>
+      <div className="auth-pw-row">
+        <input
+          id={id}
+          type={show ? "text" : "password"}
+          value={value}
+          autoComplete={autoComplete}
+          placeholder={"At least " + AUTH_MIN_PASSWORD + " characters"}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <button
+          type="button"
+          className="auth-pw-toggle"
+          aria-label={show ? "Hide password" : "Show password"}
+          onClick={() => setShow((s) => !s)}
+        >
+          {show ? "HIDE" : "SHOW"}
+        </button>
+      </div>
+      {meter && (
+        <React.Fragment>
+          <div className="auth-meter" aria-hidden="true">
+            {[0, 1, 2, 3].map((i) => (
+              <i key={i} className={i < score ? (score < 2 ? "warn" : "on") : ""} />
+            ))}
+          </div>
+          <p className="auth-hint">
+            {value.length === 0
+              ? "Minimum " + AUTH_MIN_PASSWORD + " characters."
+              : value.length < AUTH_MIN_PASSWORD
+              ? "Too short \u2014 " + (AUTH_MIN_PASSWORD - value.length) + " more."
+              : score >= 3
+              ? "Strong."
+              : "Fine. Longer is better."}
+          </p>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+/* Signup. On success it does NOT sign the person in - the account exists but
+   is unverified, and signing them straight into an app whose every endpoint
+   refuses them would show a broken dashboard instead of "check your email".
+   It hands back to the caller, which shows the pending screen. */
+function SignupPanel({ auth, onSignedUp }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const canSubmit = email.trim().length > 3 && password.length >= AUTH_MIN_PASSWORD && !busy;
+
+  async function submit() {
+    if (!canSubmit) return;
+    setBusy(true);
+    setErr(null);
+    trackEvent("signup_submit", {});
+    try {
+      const res = await fetch("/.netlify/functions/auth-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password, fullName: name.trim() }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr({ code: body.code || "error", message: body.error || "Something went wrong. Try again." });
+        trackEvent("signup_error", { reason: body.code || "unknown" });
+        return;
+      }
+      trackEvent("signup_success", { emailSent: body.emailSent === false ? "no" : "yes" });
+      onSignedUp({ email: email.trim(), emailSent: body.emailSent !== false });
+    } catch (e) {
+      setErr({ code: "network", message: "Couldn't reach the server. Check your connection and try again." });
+      trackEvent("signup_error", { reason: "network" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="authscreen">
+      <div className="authcard">
+        <p className="auth-eyebrow">Free account</p>
+        <h1 className="auth-title">Start picking.</h1>
+        <p className="auth-sub">Leagues, confidence rankings and game alerts. No card, no trial.</p>
+
+        <div className="auth-fields">
+          <div className="auth-field">
+            <label htmlFor="su-name">Display name <span className="auth-opt">(optional)</span></label>
+            <input
+              id="su-name" type="text" value={name} autoComplete="name"
+              placeholder="How you'll show in standings"
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className={"auth-field" + (err && err.code === "email_taken" ? " has-err" : "")}>
+            <label htmlFor="su-email">Email</label>
+            <input
+              id="su-email" type="email" value={email} autoComplete="email"
+              placeholder="you@example.com"
+              onChange={(e) => { setEmail(e.target.value); if (err) setErr(null); }}
+            />
+            {err && err.code === "email_taken" && (
+              <p className="auth-err">
+                There's already an account with that email.{" "}
+                <button type="button" className="auth-linkish" onClick={auth.openLogin}>Sign in</button>
+                {" or "}
+                <button type="button" className="auth-linkish" onClick={auth.openForgot}>reset your password</button>.
+              </p>
+            )}
+          </div>
+          <AuthPasswordField
+            id="su-pass" label="Password" value={password} onChange={setPassword}
+            autoComplete="new-password" meter
+          />
+        </div>
+
+        {err && err.code !== "email_taken" && <p className="auth-err">{err.message}</p>}
+
+        <div className="auth-actions">
+          <button type="button" className="auth-btn auth-btn-primary" disabled={!canSubmit} onClick={submit}>
+            {busy ? "Creating\u2026" : "Create free account"}
+          </button>
+          <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.closeAuthPanel}>
+            Cancel
+          </button>
+        </div>
+
+        <p className="auth-alt">
+          Already have one?{" "}
+          <button type="button" className="auth-linkish" onClick={() => { auth.closeAuthPanel(); auth.openLogin(); }}>
+            Sign in
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* "Confirm your email." Shown INSTEAD of the app for an unverified signed-in
+   account, exactly as SuspendedScreen is - same reasoning, and the server
+   refuses the same set of endpoints in both cases.
+
+   Also reached straight after signup, before any session exists, which is
+   why the address is passed in rather than read from auth.user. */
+function UnverifiedScreen({ email, onSignOut, onUseDifferent }) {
+  const [state, setState] = useState("idle"); // idle | sending | sent | error
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  async function resend() {
+    if (state === "sending" || cooldown > 0) return;
+    setState("sending");
+    trackEvent("verify_resend", {});
+    try {
+      const res = await fetch("/.netlify/functions/auth-verify-resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      // The endpoint answers 202 whether or not the address exists - it is
+      // deliberately not an address oracle - so there is nothing here to
+      // branch on beyond "did the request itself work".
+      setState(res.ok ? "sent" : "error");
+      if (res.ok) setCooldown(30);
+    } catch (e) {
+      setState("error");
+    }
+  }
+
+  return (
+    <div className="authscreen">
+      <div className="authcard authcard-center">
+        <div className="auth-icon">{"\u2709\uFE0F"}</div>
+        <p className="auth-eyebrow">One more step</p>
+        <h1 className="auth-title">Confirm your email.</h1>
+        <p className="auth-sub">We sent a link to</p>
+        <span className="auth-addr">{email}</span>
+        <p className="auth-sub" style={{ marginTop: 10 }}>
+          Click it and you're in. The link expires in 24 hours.
+        </p>
+
+        {state === "sent" ? (
+          <p className="auth-note is-ok">Sent. Give it a minute, then check your inbox again.</p>
+        ) : state === "error" ? (
+          <p className="auth-note is-err">
+            Couldn't send that just now. Try again in a moment, or email{" "}
+            <a href="mailto:support@blitz-odds.com">support@blitz-odds.com</a>.
+          </p>
+        ) : (
+          <p className="auth-note">
+            Nothing arrived? Check spam for a message from <strong>support@blitz-odds.com</strong>,
+            then try again below.
+          </p>
+        )}
+
+        <div className="auth-actions">
+          <button
+            type="button" className="auth-btn auth-btn-primary"
+            disabled={state === "sending" || cooldown > 0}
+            onClick={resend}
+          >
+            {state === "sending" ? "Sending\u2026" : cooldown > 0 ? "Resend in " + cooldown + "s" : "Resend the email"}
+          </button>
+          <button type="button" className="auth-btn auth-btn-ghost" onClick={onUseDifferent}>
+            {onSignOut ? "Sign out" : "Use a different address"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Forgot password. Answers identically whether or not the address exists,
+   matching auth-forgot.mts - a client that branched on the response would
+   reintroduce the address oracle the endpoint was written to avoid. */
+function ForgotPanel({ auth }) {
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState(null);
+
+  async function submit() {
+    if (!email.trim() || busy) return;
+    setBusy(true);
+    setErr(null);
+    trackEvent("password_forgot_submit", {});
+    try {
+      const res = await fetch("/.netlify/functions/auth-forgot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (res.ok) setSent(true);
+      else setErr("Something went wrong. Try again in a moment.");
+    } catch (e) {
+      setErr("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (sent) {
+    return (
+      <div className="authscreen">
+        <div className="authcard authcard-center">
+          <div className="auth-icon">{"\uD83D\uDCE8"}</div>
+          <h1 className="auth-title">Check your inbox.</h1>
+          <p className="auth-sub">
+            If there's an account with that address, a reset link is on its way. It expires in an hour.
+          </p>
+          <div className="auth-actions">
+            <button type="button" className="auth-btn auth-btn-ghost" onClick={() => { auth.closeAuthPanel(); auth.openLogin(); }}>
+              Back to sign in
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="authscreen">
+      <div className="authcard">
+        <p className="auth-eyebrow">Password reset</p>
+        <h1 className="auth-title">Can't get in?</h1>
+        <p className="auth-sub">Give us the address on the account and we'll send a reset link.</p>
+        <div className="auth-fields">
+          <div className="auth-field">
+            <label htmlFor="fg-email">Email</label>
+            <input
+              id="fg-email" type="email" value={email} autoComplete="email"
+              placeholder="you@example.com"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+        </div>
+        {err && <p className="auth-err">{err}</p>}
+        <div className="auth-actions">
+          <button type="button" className="auth-btn auth-btn-primary" disabled={!email.trim() || busy} onClick={submit}>
+            {busy ? "Sending\u2026" : "Send reset link"}
+          </button>
+          <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.closeAuthPanel}>
+            Back
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Set a new password, from the ?reset= token the email link carries. On
+   success it signs the person straight in with the password they just
+   chose - they typed it a second ago and making them type it again on a
+   login form is a step that exists only because the code was easier to
+   write that way. */
+function ResetPanel({ auth, token, onDone }) {
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const [dead, setDead] = useState(null); // "token_expired" | "token_invalid"
+
+  async function submit() {
+    if (password.length < AUTH_MIN_PASSWORD || busy) return;
+    setBusy(true);
+    setErr(null);
+    trackEvent("password_reset_submit", {});
+    try {
+      const res = await fetch("/.netlify/functions/auth-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (body.code === "token_expired" || body.code === "token_invalid") {
+          setDead(body.code);
+          trackEvent("password_reset_error", { reason: body.code });
+          return;
+        }
+        setErr(body.error || "Something went wrong. Try again.");
+        trackEvent("password_reset_error", { reason: body.code || "unknown" });
+        return;
+      }
+      trackEvent("password_reset_success", {});
+      try {
+        await auth.signIn(body.email, password);
+      } catch (e) {
+        // Sign-in after a successful reset is a convenience, not the point.
+        // The password IS changed; fall back to the login form.
+        auth.openLogin();
+      }
+      onDone();
+    } catch (e) {
+      setErr("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (dead) {
+    return (
+      <div className="authscreen">
+        <div className="authcard authcard-center">
+          <div className="auth-icon is-warn">{dead === "token_expired" ? "\u23F3" : "\u26A0\uFE0F"}</div>
+          <h1 className="auth-title">
+            {dead === "token_expired" ? "That link has expired." : "That link isn't valid."}
+          </h1>
+          <p className="auth-sub">
+            {dead === "token_expired"
+              ? "Reset links last an hour. Request a fresh one and it'll be in your inbox in a moment."
+              : "It may already have been used. Request a new one to try again."}
+          </p>
+          <div className="auth-actions">
+            <button type="button" className="auth-btn auth-btn-primary" onClick={() => { onDone(); auth.openForgot(); }}>
+              Send a new link
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="authscreen">
+      <div className="authcard">
+        <p className="auth-eyebrow">Password reset</p>
+        <h1 className="auth-title">Choose a new password.</h1>
+        <div className="auth-fields">
+          <AuthPasswordField
+            id="rs-pass" label="New password" value={password} onChange={setPassword}
+            autoComplete="new-password" meter
+          />
+        </div>
+        {err && <p className="auth-err">{err}</p>}
+        <div className="auth-actions">
+          <button
+            type="button" className="auth-btn auth-btn-primary"
+            disabled={password.length < AUTH_MIN_PASSWORD || busy}
+            onClick={submit}
+          >
+            {busy ? "Saving\u2026" : "Set password & sign in"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* The ?verified= outcome from auth-verify.mts's redirect. */
+const VERIFY_BANNERS = {
+  ok: { cls: "is-ok", icon: "\u2705", title: "Email confirmed.", body: "You're all set \u2014 your account is live." },
+  expired: { cls: "is-warn", icon: "\u23F3", title: "That link expired.", body: "Confirmation links last 24 hours. Sign in and press Resend for a fresh one." },
+  invalid: { cls: "is-err", icon: "\u26A0\uFE0F", title: "That link isn't valid.", body: "It may already have been used. If you're already confirmed, just sign in." },
+  error: { cls: "is-err", icon: "\u26A0\uFE0F", title: "Something went wrong.", body: "We couldn't confirm the address. Sign in and press Resend to try again." },
+};
+
+function VerifyBanner({ status, email, onDismiss }) {
+  const b = VERIFY_BANNERS[status];
+  if (!b) return null;
+  return (
+    <div className={"verify-banner " + b.cls} role="status">
+      <span aria-hidden="true">{b.icon}</span>
+      <div>
+        <strong>{b.title}</strong>
+        <p>{status === "ok" && email ? email + " is verified and your account is live." : b.body}</p>
+      </div>
+      <button type="button" className="verify-banner-x" aria-label="Dismiss" onClick={onDismiss}>
+        {"\u00D7"}
+      </button>
+    </div>
+  );
+}
+
 /* Shown in place of the entire app when the signed-in account is suspended.
    Deliberately plain: no nav, no tabs, no week strip. Every one of those
    would be a control the server refuses, and offering them reads as the app
@@ -29224,6 +29874,61 @@ function App() {
   // user-profile fetch below, which is the only endpoint that reports the
   // reason rather than a generic 401.
   const [suspension, setSuspension] = useState(null);
+
+  /* Set when user-profile answers 403 email_unverified - same shape and same
+     source as `suspension` above, and gated the same way further down. Holds
+     the address so the pending screen can offer Resend without a second
+     round trip. */
+  const [unverified, setUnverified] = useState(null);
+
+  /* Set straight after signup, BEFORE any session exists. Distinct from
+     `unverified`: that one describes a signed-in account the server refuses,
+     this one describes someone who has an account and hasn't signed in at
+     all. Both render the same screen; only the way out differs. */
+  const [awaitingVerify, setAwaitingVerify] = useState(null);
+
+  /* The ?verified= outcome auth-verify.mts redirects back with, and the
+     ?reset= token the reset email links to. Both are read once at mount and
+     immediately stripped from the URL - left in place, a refresh would
+     re-show the banner, and a reset token would sit in the address bar (and
+     the browser history, and any screenshot) long after it was spent. */
+  const [verifyResult, setVerifyResult] = useState(() => {
+    try {
+      const params = new URL(window.location.href).searchParams;
+      const status = params.get("verified");
+      if (!status || !VERIFY_BANNERS[status]) return null;
+      return { status, email: params.get("email") || null };
+    } catch (e) { return null; }
+  });
+  const [resetToken, setResetToken] = useState(() => {
+    try { return new URL(window.location.href).searchParams.get("reset") || null; }
+    catch (e) { return null; }
+  });
+
+  useEffect(() => {
+    if (!verifyResult && !resetToken) return;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("verified");
+      url.searchParams.delete("email");
+      url.searchParams.delete("reset");
+      window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    } catch (e) {}
+  }, []);
+
+  /* A confirmation that landed while the tab was already open and signed in
+     needs the session's view of the account refreshed, or the app keeps
+     showing the "confirm your email" screen against an account that is now
+     confirmed. Clearing `unverified` alone isn't enough - the profile fetch
+     has to run again, which it does once the user object changes. */
+  useEffect(() => {
+    if (!verifyResult || verifyResult.status !== "ok") return;
+    trackEvent("verify_complete", { outcome: "ok" });
+    setUnverified(null);
+    setAwaitingVerify(null);
+    if (auth.status === "in" && auth.refreshUser) auth.refreshUser();
+  }, [verifyResult, auth.status]);
+
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -29517,6 +30222,15 @@ function App() {
             trackEvent("account_suspended_block", {});
             return;
           }
+          // The other gate in lib/auth.mts. Same handling for the same
+          // reason: this endpoint is the only one that reports why, so it
+          // is the only place the app can learn to show the right screen
+          // rather than a generic failure.
+          if (body && body.code === "email_unverified") {
+            setUnverified({ email: body.email || (auth.user && auth.user.email) || "" });
+            trackEvent("verify_block", {});
+            return;
+          }
         }
         if (!res.ok) return;
         const profile = await res.json();
@@ -29584,6 +30298,7 @@ function App() {
       setSettingsHydrated(false);
       setProfile(null);
       setSuspension(null);
+      setUnverified(null);
     }
   }, [auth.status]);
 
@@ -29912,6 +30627,58 @@ function App() {
     return <SuspendedScreen suspension={suspension} onSignOut={auth.logout} />;
   }
 
+  /* The reset link's own screen. Ahead of every other gate on purpose: someone
+     following a reset link may well be signed in as somebody else on this
+     device, or be locked out of an unverified account, and in both cases the
+     thing they clicked is the thing they should get. */
+  if (resetToken) {
+    return (
+      <ResetPanel
+        auth={auth}
+        token={resetToken}
+        onDone={() => setResetToken(null)}
+      />
+    );
+  }
+
+  /* Signed in but unverified, or just signed up and not signed in at all.
+     Same screen either way - see the state declarations above for why they
+     are two variables. Rendering the app behind this would show a shell
+     whose every authenticated control is refused server-side. */
+  if (unverified || awaitingVerify) {
+    const pending = unverified || awaitingVerify;
+    return (
+      <UnverifiedScreen
+        email={pending.email}
+        onSignOut={Boolean(unverified)}
+        onUseDifferent={() => {
+          if (unverified) auth.logout();
+          setUnverified(null);
+          setAwaitingVerify(null);
+        }}
+      />
+    );
+  }
+
+  /* Our own account panels, in place of the widget's signup. Rendered as a
+     full screen rather than a modal over the app: on a phone the difference
+     is invisible, and it avoids a scroll-locked overlay on top of a tab bar
+     that would still be tappable underneath. */
+  if (auth.authPanel === "signup") {
+    return (
+      <SignupPanel
+        auth={auth}
+        onSignedUp={(result) => {
+          auth.closeAuthPanel();
+          setAwaitingVerify({ email: result.email });
+        }}
+      />
+    );
+  }
+  if (auth.authPanel === "forgot") {
+    return <ForgotPanel auth={auth} />;
+  }
+
   return (
     <div className={"app" + (activeTab === "home" ? " app-home" : "")}>
       {/* One markup, two layouts. Above 720px `header.top` is the grid it has
@@ -29961,6 +30728,19 @@ function App() {
           <h1 className="sr-only">Blitz Odds</h1>
         </div>
       </header>
+
+      {/* Sits above the tab bar rather than inside a tab, because the outcome
+          it reports is about the account, not about whatever page the link
+          happened to land on. Dismissed by hand only - it is one line and
+          auto-hiding it would lose the "that link expired" case for anyone
+          who looked away for four seconds. */}
+      {verifyResult && (
+        <VerifyBanner
+          status={verifyResult.status}
+          email={verifyResult.email}
+          onDismiss={() => setVerifyResult(null)}
+        />
+      )}
 
       <TabBar activeTab={activeTab} onSelectTab={selectTab} liveCount={liveGameCount} />
 

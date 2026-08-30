@@ -12,7 +12,14 @@
 export interface AuthClaims {
   id: string;
   email?: string;
-  user_metadata?: { full_name?: string };
+  created_at?: string;
+  user_metadata?: {
+    full_name?: string;
+    /** Set by auth-verify.mts / auth-reset.mts. See isUnverified below. */
+    email_verified?: boolean;
+    email_verified_at?: string;
+    [key: string]: unknown;
+  };
   app_metadata?: {
     roles?: string[];
     /** Set by admin-user-update's "set-suspended" action. See below. */
@@ -87,6 +94,68 @@ export function suspendedResponse(info: SuspensionInfo = { suspended: true }): R
   });
 }
 
+/* ------------------------------------------------------------------------ */
+/* Email verification                                                        */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Accounts created before server-side signup shipped were confirmed by
+ * GoTrue itself and have no email_verified key at all. Treating a missing
+ * key as unverified would lock out every existing user at once, so anything
+ * created before this cutoff is grandfathered in.
+ *
+ * This date must not move. It is not a config knob - it is a statement
+ * about which accounts predate the flag, and that set is fixed forever.
+ * Every account created after it goes through auth-signup.mts and therefore
+ * has the key.
+ */
+export const VERIFY_ENFORCED_FROM = Date.parse("2026-08-30T00:00:00Z");
+
+/**
+ * WHY THIS LIVES HERE, next to suspension. Same argument, same file, same
+ * twenty-odd callers: an unverified account that can still submit picks
+ * because one endpoint forgot to check is a silent failure, and gating in
+ * the shared verifier closes every current endpoint and every future one by
+ * default.
+ *
+ * WHY VERIFY AT ALL on a free pick'em site. Leagues are the reason. A league
+ * invite goes to an address, standings are shown to other members by name,
+ * and the alert system will happily mail whatever address an account claims
+ * - an unverified signup is a way to send Blitz Odds mail to someone who
+ * never asked for it, with our domain's reputation attached.
+ */
+export function isUnverified(claims: AuthClaims | null): boolean {
+  if (!claims) return false;
+  if (claims.user_metadata?.email_verified === true) return false;
+
+  const created = claims.created_at ? Date.parse(claims.created_at) : NaN;
+  // Unparseable or absent created_at: fail OPEN. A date GoTrue didn't send
+  // is not evidence that someone is unverified, and the cost of guessing
+  // wrong in that direction is locking a legitimate user out of an account
+  // they have done nothing wrong with.
+  if (!Number.isFinite(created)) return false;
+
+  return created >= VERIFY_ENFORCED_FROM;
+}
+
+export const UNVERIFIED_CODE = "email_unverified";
+
+/**
+ * Like suspendedResponse: 403 with a stable `code` the client keys on. The
+ * app turns this into the "confirm your email" screen with a Resend button,
+ * so the email address comes back too - the client needs it to call
+ * auth-verify-resend and may not have it if the session was restored from
+ * a cold start.
+ */
+export function unverifiedResponse(email?: string): Response {
+  return jsonResponse(403, {
+    ok: false,
+    code: UNVERIFIED_CODE,
+    error: "Confirm your email address to finish setting up your account.",
+    ...(email ? { email } : {}),
+  });
+}
+
 /**
  * Verification is a full network round trip to GoTrue on every single call,
  * and a warm function instance frequently sees the same token twice in a
@@ -157,8 +226,21 @@ export async function verifyToken(req: Request): Promise<AuthClaims | null> {
  */
 export async function getAuthenticatedUser(req: Request): Promise<AuthClaims | null> {
   const claims = await verifyToken(req);
-  if (!claims || isSuspended(claims)) return null;
+  if (!claims || isSuspended(claims) || isUnverified(claims)) return null;
   return claims;
+}
+
+/**
+ * account-delete's escape hatch, widened. A suspended user may already
+ * delete their own account (see that file); an unverified one must be able
+ * to as well, or a mistyped address creates an account its owner can never
+ * remove. Returns claims for anyone with a genuinely valid token,
+ * suspension and verification both ignored.
+ *
+ * Nothing else should use this.
+ */
+export async function getAuthenticatedUserIgnoringGates(req: Request): Promise<AuthClaims | null> {
+  return verifyToken(req);
 }
 
 export function displayNameFromClaims(claims: AuthClaims): string {

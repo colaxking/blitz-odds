@@ -82,6 +82,28 @@ const VALID_TYPES = new Set([
   // actually fires, which is the only signal that a suspension is landing
   // on a live session rather than an account nobody was using.
   "account_suspended_block",
+  // Account creation, now that signup runs through auth-signup.mts rather
+  // than the Netlify widget. The three together are the funnel: submit ->
+  // success tells you how many attempts get through, submit -> error with a
+  // reason tells you what stops the rest, and the commonest reason by far
+  // will be email_taken, which is a "they already have an account" signal
+  // rather than a fault.
+  "signup_submit",
+  "signup_success",
+  "signup_error",
+  // The verification gap. verify_block fires when an unverified session hits
+  // the gate, verify_resend when someone asks for the mail again, and
+  // verify_complete when a link is actually followed. A large block count
+  // against few completes is deliverability, not UX.
+  "verify_block",
+  "verify_resend",
+  "verify_complete",
+  // Password reset, which is ours now too (GoTrue's /recover would mail
+  // Netlify's own template).
+  "password_forgot_submit",
+  "password_reset_submit",
+  "password_reset_success",
+  "password_reset_error",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -203,7 +225,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage, outcome, state } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage, outcome, state, reason, emailSent } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -376,6 +398,23 @@ export default async (req: Request, context: Context) => {
       if (typeof surface === "string" && surface) record.surface = surface.slice(0, 32);
     }
     if (type === "account_delete_complete") {
+      if (typeof outcome === "string" && outcome) record.outcome = outcome.slice(0, 32);
+    }
+
+    // Signup and reset failures. `reason` is the endpoint's own stable code
+    // (email_taken, weak_password, token_expired, network...) - never a
+    // message and never anything the user typed, so nothing here can carry
+    // an address or a password into the analytics store.
+    if (type === "signup_error" || type === "password_reset_error") {
+      if (typeof reason === "string" && reason) record.reason = reason.slice(0, 32);
+    }
+    // Whether the confirmation mail actually went out. A signup that
+    // succeeded with emailSent="no" is an account nobody can use, and it is
+    // invisible without this.
+    if (type === "signup_success") {
+      if (typeof emailSent === "string" && emailSent) record.emailSent = emailSent.slice(0, 8);
+    }
+    if (type === "verify_complete") {
       if (typeof outcome === "string" && outcome) record.outcome = outcome.slice(0, 32);
     }
 

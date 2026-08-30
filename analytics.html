@@ -563,6 +563,50 @@
            and someone actively trying to get back in. */
         { title: "Blocked by suspension", sub: "Times a suspended session hit the notice", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.suspendedBlocks || 0) + "</div>" }
       ]},
+      /* Signup and verification. Split out from Account above because the
+         question is different: that section is about accounts ending, this
+         one is about accounts starting and the number that don't finish
+         starting. Both emails behind this are ours (Resend), so a bad
+         number here is our deliverability rather than Netlify's. */
+      { id: "signup", title: "Signup & verification", desc: "Account creation, email confirmation and password reset", tiles: [
+        { title: "Signup funnel", sub: "Attempted \u2192 created \u2192 email confirmed", html: (function () {
+            var f = d.signupFunnel || {};
+            return barListHtml([
+              { name: "Attempted", value: f.submits || 0 },
+              { name: "Account created", value: f.successes || 0 },
+              { name: "Email confirmed", value: f.verified || 0 }
+            ], null, { empty: "No signups in range" });
+          })() },
+        /* The gap between "created" and "confirmed" above, stated outright -
+           it is the number that actually matters and reading it off two bars
+           invites people not to. */
+        { title: "Stalled at confirmation", sub: "Accounts created but never confirmed", html: (function () {
+            var f = d.signupFunnel || {};
+            var gap = Math.max(0, (f.successes || 0) - (f.verified || 0));
+            return '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(gap) + "</div>";
+          })() },
+        { title: "Why a signup failed", sub: "email_taken is usually benign \u2014 they already have an account", html: barListHtml(relabel((d.signupFunnel || {}).errorsByReason, { email_taken: "Address already registered", weak_password: "Password too short", bad_email: "Invalid address", rate_limited: "Rate limited", network: "Network / offline" }), null, { empty: "No failed signups" }) },
+        /* Should be flat zero. Anything else is an account that exists,
+           has a working password, and has never been sent the one link
+           that makes it usable. */
+        { title: "Confirmation emails that failed to send", sub: "Zero is the only healthy value", html: (function () {
+            var n = (d.signupFunnel || {}).mailFailures || 0;
+            return '<div style="font-size:1.7rem;font-weight:650;' + (n > 0 ? "color:var(--out);" : "") + '">' + fmtNum(n) + "</div>";
+          })() },
+        { title: "Confirmation gate", sub: "Unverified sessions blocked vs. emails re-requested", html: barListHtml([
+            { name: "Hit the gate", value: d.verifyBlocks || 0 },
+            { name: "Asked to resend", value: d.verifyResends || 0 }
+          ], null, { empty: "Nobody blocked" }) },
+        { title: "Password reset", sub: "Requested \u2192 submitted \u2192 completed", html: (function () {
+            var r = d.resetFunnel || {};
+            return barListHtml([
+              { name: "Link requested", value: r.requested || 0 },
+              { name: "New password submitted", value: r.submitted || 0 },
+              { name: "Completed", value: r.succeeded || 0 }
+            ], null, { empty: "No resets in range" });
+          })() },
+        { title: "Why a reset failed", sub: "Expired links are the common one", html: barListHtml(relabel((d.resetFunnel || {}).errorsByReason, { token_expired: "Link expired", token_invalid: "Link already used or invalid" }), null, { empty: "No failed resets" }) }
+      ]},
       { id: "prefs", title: "Preferences", desc: "What people are currently set to, not how often they changed it", tiles: [
         { title: "Theme", sub: "Current setting per visitor", html: barListHtml(relabel(d.themeDistribution, {}), "theme", { valueFn: function (l) { return l.toLowerCase(); } }) },
         { title: "Sportsbook", sub: "Preferred odds source", html: barListHtml(bookNames(d.sportsbookDistribution), "sportsbook", { valueFn: function (l) { return l.toLowerCase(); } }) },

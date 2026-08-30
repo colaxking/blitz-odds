@@ -10,7 +10,9 @@ import { NOTIF_STORE } from "./lib/notif.mts";
 // because no single one of them knows the whole picture:
 //
 //   Identity        - the login: email, confirmation state, roles, created_at
-//   blitz-users     - the profile: display name, notification prefs, push subs
+//   blitz-users     - the profile: display name, last seen, terms acceptance
+//   blitz-notif     - notification prefs (prefs:{id}) and registered push
+//                     devices (push:{id}:{deviceId}, written by lib/push.mts)
 //   blitz-leagues   - membership: which leagues each person is actually in
 //
 // Doing the join here rather than in the browser is what makes the tab usable
@@ -32,10 +34,27 @@ export default async (req: Request, context: Context) => {
     const leagueStore = getStore(LEAGUE_STORE, { consistency: "strong" });
     const notifStore = getStore(NOTIF_STORE, { consistency: "strong" });
 
-    const [identityUsers, leagueList] = await Promise.all([
+    const [identityUsers, leagueList, pushList] = await Promise.all([
       listIdentityUsers(req, context),
       leagueStore.list({ prefix: "league:" }),
+      // Push devices are rows in blitz-notif keyed push:{userId}:{deviceId}
+      // (see lib/push.mts) - NOT a field on the profile blob. Listed once for
+      // the whole site and counted here rather than per user, because a
+      // prefix list per account would be one round trip per row in the table.
+      notifStore.list({ prefix: "push:" }),
     ]);
+
+    // userId -> registered device count. The device id is a hex hash and the
+    // user id is an Identity UUID, so neither contains a colon; splitting on
+    // the LAST one still does the right thing if that ever stops being true.
+    const pushDevicesByUser = new Map<string, number>();
+    for (const b of pushList.blobs) {
+      const rest = b.key.slice("push:".length);
+      const cut = rest.lastIndexOf(":");
+      if (cut <= 0) continue;
+      const uid = rest.slice(0, cut);
+      pushDevicesByUser.set(uid, (pushDevicesByUser.get(uid) || 0) + 1);
+    }
 
     // Membership index: userId -> [{ id, name, role }]. Built from the
     // members docs rather than from each user's profile, because a members
@@ -105,7 +124,8 @@ export default async (req: Request, context: Context) => {
           confirmed: Boolean(u.confirmed_at),
           createdAt: u.created_at || null,
           lastSeenAt: profile?.lastSeenAt || u.updated_at || null,
-          pushEnabled: Boolean(profile?.subscriptions?.length),
+          pushDevices: pushDevicesByUser.get(u.id) || 0,
+          pushEnabled: (pushDevicesByUser.get(u.id) || 0) > 0,
           prefs: prefs || null,
           subscriptionTier: profile?.subscriptionTier || "free",
           /* Terms acceptance, read the same way user-profile.mts reads it and

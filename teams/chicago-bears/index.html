@@ -27193,7 +27193,14 @@ function AdminUserSheet({ auth, user, leagues, actorId, termsCurrent, onClose, o
         <div className="admin-kv"><span>Joined</span><span>{fmtAdminDate(user.createdAt)}</span></div>
         <div className="admin-kv"><span>Last seen</span><span>{fmtAdminDate(user.lastSeenAt)}</span></div>
         <div className="admin-kv"><span>Email confirmed</span><span>{user.confirmed ? "Yes" : "No"}</span></div>
-        <div className="admin-kv"><span>Push notifications</span><span>{user.pushEnabled ? "On" : "Off"}</span></div>
+        <div className="admin-kv">
+          <span>Push notifications</span>
+          <span>
+            {user.pushDevices > 0
+              ? "On — " + user.pushDevices + (user.pushDevices === 1 ? " device" : " devices")
+              : "Off"}
+          </span>
+        </div>
       </section>
 
       <section className="admin-sec">

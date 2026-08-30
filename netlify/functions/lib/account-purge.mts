@@ -174,7 +174,11 @@ export async function purgeUserData(userId: string): Promise<PurgeResult> {
   } catch {
     /* no prefs row */
   }
-  result.prefs += await purgePrefix(notif, `sub:${userId}`);
+  /* Push devices. lib/push.mts writes push:{userId}:{deviceId}; this used to
+     purge `sub:{userId}`, a prefix nothing has ever written, so a deleted
+     account kept its registered devices and the dispatchers kept pushing to
+     them until the endpoint 410'd on its own. */
+  result.prefs += await purgePrefix(notif, `push:${userId}:`);
 
   // 5b. The two idempotency ledgers, sent:{type}:{season}:{week}:{userId}
   //     and evt:{season}:{week}:{type}:{event}:{userId}. Both end in the

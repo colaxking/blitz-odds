@@ -151,15 +151,29 @@ export async function revokeTokensFor(purpose: TokenPurpose, userId: string): Pr
   return removed;
 }
 
+/** Longest rate-limit window in use below. Anything older than this can
+ *  never be counted against anyone again. */
+const MAX_RATE_WINDOW_MS = 60 * 60 * 1000;
+
 /**
- * Housekeeping: drop anything already past its expiry. Safe to run any
- * time; nothing reads an expired token even if this never runs at all.
+ * Housekeeping: drop expired tokens AND stale rate-limit counters. Safe to
+ * run any time; nothing reads an expired token or a lapsed counter even if
+ * this never runs at all.
  *
- * Unlike sweepEventLedger in notif.mts (which shipped with no caller and
- * has grown unbounded since), this one is wired to a schedule from day one
- * - see netlify/functions/auth-token-sweep.mts.
+ * BOTH namespaces, not just the tokens. A rate-limit key is written for
+ * every address that touches signup, resend or forgot - including addresses
+ * with no account, since the endpoints deliberately don't check first - and
+ * unlike a token it is never consumed. Sweeping only `authtok:` would leave
+ * `authrate:` growing one key per address forever, which is precisely the
+ * failure sweepEventLedger in notif.mts already has. It is wired to a
+ * schedule from day one here - see auth-token-sweep-background.mts.
  */
-export async function sweepAuthTokens(): Promise<{ scanned: number; deleted: number }> {
+export async function sweepAuthTokens(): Promise<{
+  scanned: number;
+  deleted: number;
+  rateScanned: number;
+  rateDeleted: number;
+}> {
   const store = notifStore();
   const now = Date.now();
   let scanned = 0;
@@ -177,7 +191,23 @@ export async function sweepAuthTokens(): Promise<{ scanned: number; deleted: num
     }
   }
 
-  return { scanned, deleted };
+  let rateScanned = 0;
+  let rateDeleted = 0;
+  const { blobs: rateBlobs } = await store.list({ prefix: "authrate:" });
+  for (const b of rateBlobs) {
+    rateScanned++;
+    const doc = (await store.get(b.key, { type: "json" })) as { hits?: number[] } | null;
+    const hits = Array.isArray(doc?.hits) ? doc!.hits : [];
+    // Every recorded hit has aged out of even the longest window, so the
+    // record can no longer affect any decision. rateLimitOk rebuilds it from
+    // nothing on the next request.
+    if (!hits.length || hits.every((t) => now - t >= MAX_RATE_WINDOW_MS)) {
+      await store.delete(b.key);
+      rateDeleted++;
+    }
+  }
+
+  return { scanned, deleted, rateScanned, rateDeleted };
 }
 
 /**

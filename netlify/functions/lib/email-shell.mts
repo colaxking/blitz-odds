@@ -44,7 +44,33 @@ export const EMAIL_COLORS = {
 
 export const EMAIL_FONT = `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif`;
 export const EMAIL_MONO = `ui-monospace,SFMono-Regular,Menlo,monospace`;
+/* The canonical production origin. Use this for anything that has to keep
+   working long after the deploy that produced it is gone: image sources,
+   the visible "blitz-odds.com" in body copy, the VAPID subject. An email
+   sits in an inbox for months, so a branch-deploy URL baked into an <img>
+   would render as a broken image the moment that deploy is deleted. */
 export const SITE_URL = "https://blitz-odds.com";
+
+/* The origin of the deploy that is actually running. Use this for every
+   link or redirect that sends someone back INTO the app - verify, reset,
+   unsubscribe, league invites, "make my picks".
+
+   Netlify sets DEPLOY_PRIME_URL to the branch or preview address on a
+   non-production deploy, and to the primary domain on production, so this
+   resolves to SITE_URL in production and to the preview origin on a branch.
+   Without it, a signup on a preview deploy mails a verification link that
+   runs the PRODUCTION function and lands on production - the preview
+   account never gets confirmed on the deploy being tested, which makes the
+   whole auth flow impossible to check before merging.
+
+   Falls back through URL (set on production even when DEPLOY_PRIME_URL is
+   not, e.g. under some CLI contexts) to the canonical origin, so a missing
+   env var degrades to today's behaviour rather than to a broken link. */
+export const APP_URL = (
+  process.env.DEPLOY_PRIME_URL ||
+  process.env.URL ||
+  SITE_URL
+).replace(/\/+$/, "");
 
 /**
  * Sender's physical mailing address, printed in every footer.
@@ -160,7 +186,7 @@ export function emailShell(bodyHtml: string, footer: FooterOptions, preheader?: 
   const unsubHtml = footer.unsubType && footer.unsubUrl
     ? `
         <p style="margin:8px 0 0;font-size:11px;line-height:1.6;color:${C.fine};">
-          <a href="${SITE_URL}/?settings=notifications" style="color:${C.muted};text-decoration:underline;">Manage notifications</a>
+          <a href="${APP_URL}/?settings=notifications" style="color:${C.muted};text-decoration:underline;">Manage notifications</a>
           &middot;
           <a href="${escapeHtml(footer.unsubUrl)}" style="color:${C.muted};text-decoration:underline;">Unsubscribe</a>
           &middot;

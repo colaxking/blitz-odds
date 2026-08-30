@@ -7,6 +7,7 @@ import {
   EMAIL_COLORS as C,
   EMAIL_MONO,
   SITE_URL,
+  APP_URL,
 } from "./email-shell.mts";
 
 // The account emails: verify-your-address and reset-your-password. Same
@@ -124,7 +125,7 @@ export interface BuiltEmail {
 /* ------------------------------------------------------------------------ */
 
 export function verifyUrl(token: string): string {
-  return `${SITE_URL}/.netlify/functions/auth-verify?t=${encodeURIComponent(token)}`;
+  return `${APP_URL}/.netlify/functions/auth-verify?t=${encodeURIComponent(token)}`;
 }
 
 export function buildVerifyEmail(args: { email: string; token: string }): BuiltEmail {
@@ -172,7 +173,7 @@ export function buildVerifyEmail(args: { email: string; token: string }): BuiltE
 /* ------------------------------------------------------------------------ */
 
 export function resetUrl(token: string): string {
-  return `${SITE_URL}/?reset=${encodeURIComponent(token)}`;
+  return `${APP_URL}/?reset=${encodeURIComponent(token)}`;
 }
 
 export function buildResetEmail(args: { email: string; token: string }): BuiltEmail {

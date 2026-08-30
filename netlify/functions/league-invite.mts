@@ -2,7 +2,7 @@ import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
 import {
-  SITE_URL, FORMAT_LABELS, FORMAT_BADGE_URLS, escapeHtml,
+  SITE_URL, APP_URL, FORMAT_LABELS, FORMAT_BADGE_URLS, escapeHtml,
   emailShell, emailButton, emailFormatBadge, EMAIL_COLORS as C, EMAIL_MONO,
 } from "./lib/email-shell.mts";
 
@@ -66,8 +66,8 @@ function buildInviteEmail(league: any, inviterName: string) {
   // later. `getInitialLeagueJoin` still reads both query params, and always
   // will - invites already sitting in inboxes don't expire on our schedule.
   const joinUrl = isPrivate
-    ? `${SITE_URL}/join/${encodeURIComponent(league.inviteCode)}`
-    : `${SITE_URL}/join/league/${encodeURIComponent(league.id)}`;
+    ? `${APP_URL}/join/${encodeURIComponent(league.inviteCode)}`
+    : `${APP_URL}/join/league/${encodeURIComponent(league.id)}`;
 
   const descriptionHtml = league.description
     ? `<p style="margin:0 0 18px;color:${C.body};font-size:14px;line-height:1.5;">${escapeHtml(league.description)}</p>`

@@ -1,6 +1,6 @@
 import { identityAdminFetch } from "./lib/admin.mts";
 import { consumeToken } from "./lib/auth-tokens.mts";
-import { SITE_URL } from "./lib/email-shell.mts";
+import { APP_URL } from "./lib/email-shell.mts";
 
 // The target of the link in the verification email.
 //
@@ -22,7 +22,7 @@ function redirect(status: string, extra: Record<string, string> = {}): Response 
   const params = new URLSearchParams({ verified: status, ...extra });
   return new Response(null, {
     status: 302,
-    headers: { Location: `${SITE_URL}/?${params.toString()}`, "Cache-Control": "no-store" },
+    headers: { Location: `${APP_URL}/?${params.toString()}`, "Cache-Control": "no-store" },
   });
 }
 

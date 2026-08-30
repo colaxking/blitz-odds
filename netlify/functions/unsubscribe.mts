@@ -1,6 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getPrefs, setPrefs, verifyUnsubToken, type NotifType } from "./lib/notif.mts";
-import { EMAIL_COLORS as C, EMAIL_FONT, SITE_URL, WORDMARK_URL, escapeHtml } from "./lib/email-shell.mts";
+import { EMAIL_COLORS as C, EMAIL_FONT, SITE_URL, APP_URL, WORDMARK_URL, escapeHtml } from "./lib/email-shell.mts";
 
 // Unsubscribe, reachable without being signed in.
 //
@@ -42,7 +42,7 @@ function page(title: string, message: string, actionHtml: string): Response {
         ${actionHtml}
         <p style="margin:20px 0 0;padding-top:16px;border-top:1px solid ${C.panelBorder};font-size:12px;color:${C.foot};">
           Your leagues and picks are unchanged.
-          <a href="${SITE_URL}/?settings=notifications" style="color:${C.teal};text-decoration:underline;">Manage all notifications</a>
+          <a href="${APP_URL}/?settings=notifications" style="color:${C.teal};text-decoration:underline;">Manage all notifications</a>
         </p>
       </div>
     </div>
@@ -94,7 +94,7 @@ export default async (req: Request, _context: Context) => {
     return page(
       "This link didn't work",
       "It may have been altered in transit, or the address it was issued for no longer exists.",
-      button("Open notification settings", `${SITE_URL}/?settings=notifications`)
+      button("Open notification settings", `${APP_URL}/?settings=notifications`)
     );
   }
 
@@ -105,7 +105,7 @@ export default async (req: Request, _context: Context) => {
     return page(
       "Something went wrong",
       "We couldn't update your preferences just now. Try again from your account settings.",
-      button("Open notification settings", `${SITE_URL}/?settings=notifications`)
+      button("Open notification settings", `${APP_URL}/?settings=notifications`)
     );
   }
 
@@ -115,7 +115,7 @@ export default async (req: Request, _context: Context) => {
   const label = LABELS[type] || "these emails";
 
   if (resubscribe) {
-    const offUrl = `${SITE_URL}/.netlify/functions/unsubscribe?u=${encodeURIComponent(userId)}&t=${type}&s=${encodeURIComponent(sig)}`;
+    const offUrl = `${APP_URL}/.netlify/functions/unsubscribe?u=${encodeURIComponent(userId)}&t=${type}&s=${encodeURIComponent(sig)}`;
     return page(
       "You're back on",
       `You'll start receiving ${escapeHtml(label)} again.`,
@@ -123,7 +123,7 @@ export default async (req: Request, _context: Context) => {
     );
   }
 
-  const backUrl = `${SITE_URL}/.netlify/functions/unsubscribe?u=${encodeURIComponent(userId)}&t=${type}&s=${encodeURIComponent(sig)}&resubscribe=1`;
+  const backUrl = `${APP_URL}/.netlify/functions/unsubscribe?u=${encodeURIComponent(userId)}&t=${type}&s=${encodeURIComponent(sig)}&resubscribe=1`;
   return page(
     "Unsubscribed",
     `You won't receive ${escapeHtml(label)} anymore. Changed your mind?`,

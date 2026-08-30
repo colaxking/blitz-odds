@@ -1,6 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { SITE_URL } from "./email-shell.mts";
+import { APP_URL } from "./email-shell.mts";
 
 // Notification preferences, unsubscribe tokens, and the Resend send path.
 // Everything that decides *whether* and *where* to send lives here; the
@@ -209,7 +209,7 @@ export function verifyUnsubToken(userId: string, type: NotifType, token: string)
 
 export function unsubUrl(userId: string, type: NotifType): string {
   const t = unsubToken(userId, type);
-  return `${SITE_URL}/.netlify/functions/unsubscribe?u=${encodeURIComponent(userId)}&t=${type}&s=${t}`;
+  return `${APP_URL}/.netlify/functions/unsubscribe?u=${encodeURIComponent(userId)}&t=${type}&s=${t}`;
 }
 
 // ---------------------------------------------------------------------------

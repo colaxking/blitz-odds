@@ -130,6 +130,7 @@
        correct call reads as a Blitz Edge signal rather than a generic
        win/loss color. */
     --blitz-orange: #fd7f01;
+    --blitz-orange-fill-text: #062b16;
     --pill-good-text: #6be3a1;
     --pill-bad-text: #ff8080;
     --pill-good-fill-text: #062b16;
@@ -164,6 +165,7 @@
     /* Darkened from the same brand orange to hold AA text contrast
        (~4.8:1) on a white card - the raw logo orange only clears ~2.6:1. */
     --blitz-orange: #b35900;
+    --blitz-orange-fill-text: #ffffff;
     --pill-good-text: #1a7a43;
     --pill-bad-text: #b42318;
     --pill-good-fill-text: #ffffff;
@@ -1134,6 +1136,35 @@
      not under it - has room the phone's bottom bar doesn't. The label grows
      slightly with it so the icon doesn't overpower it. Both are overridden
      in the mobile block below, which keeps its own smaller sizing. */
+  /* Count of games in progress, pinned to the Games tab's icon. Absolute,
+     so it hangs off the corner without widening the button and shifting
+     the other three tabs sideways the moment a game kicks off.
+     The 2px ring is the bar's own background rather than a border colour:
+     the badge overlaps artwork that is itself full-colour, and without a
+     gap between the two the red pill reads as part of the illustration. */
+  .tab-icon { position: relative; }
+  .tab-live-count {
+    position: absolute; top: -3px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 999px; background: var(--live); color: #fff;
+    font-size: 0.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 2px var(--bg);
+    animation: pulse 1.4s infinite;
+  }
+  /* White on --live clears AA at this weight in both themes (dark #ff3b30 →
+     3.4:1, light #d92d20 → 4.9:1); it's bold 0.6rem text, which WCAG treats
+     as large only at 14pt+, so the dark-theme figure is the one to watch if
+     --live ever moves. The count is never the only signal anyway - the
+     aria-label carries it, and the games themselves are one tap away. */
+  @media (prefers-reduced-motion: reduce) {
+    .tab-live-count { animation: none; }
+  }
+  /* Against the translucent mobile bar rather than the page. Both resolve
+     to something close, but the fixed bar is blurred over the list behind
+     it, so matching --bg there leaves a faint halo. */
+  @media (max-width: 720px) {
+    .tab-live-count { box-shadow: 0 0 0 2px var(--card-bg); }
+  }
   .tab-icon.has-img { width: 40px; height: 40px; background: none; border-color: transparent; }
   .tab-btn.active .tab-icon.has-img { background: none; border-color: transparent; }
   .tab-icon-img {
@@ -1668,6 +1699,15 @@
     .pbp-lbl-full { display: none; }
     .pbp-lbl-short { display: inline; }
     .pbp-gate { padding: 14px; gap: 12px; }
+    /* .pb-btn-primary/.pb-btn-ghost go full-width at this breakpoint for the
+       sheet footer, where two long labels genuinely need their own rows. The
+       gate's pair is short enough to share one, and stacking them pushed
+       "Sign in" down a row for no gain, so the gate opts back out: the
+       primary sizes to its label and the ghost takes the rest of the row. */
+    .pbp-gate-actions { width: 100%; flex-wrap: nowrap; }
+    .pbp-gate-actions .pb-btn { padding-left: 9px; padding-right: 9px; font-size: 0.8rem; white-space: nowrap; }
+    .pbp-gate-actions .pb-btn-primary { flex: 0 1 auto; }
+    .pbp-gate-actions .pb-btn-ghost { flex: 1 1 auto; }
     .pbp-node { width: 76px; }
   }
 
@@ -1836,6 +1876,15 @@
        don't fit at 360px and shrinking the type enough to force it made the
        counts hard to read without actually fitting. */
     .pbc-gate { padding: 14px; gap: 12px; }
+    /* .pb-btn-primary/.pb-btn-ghost go full-width at this breakpoint for the
+       sheet footer, where two long labels genuinely need their own rows. The
+       gate's pair is short enough to share one, and stacking them pushed
+       "Sign in" down a row for no gain, so the gate opts back out: the
+       primary sizes to its label and the ghost takes the rest of the row. */
+    .pbc-gate-actions { width: 100%; flex-wrap: nowrap; }
+    .pbc-gate-actions .pb-btn { padding-left: 9px; padding-right: 9px; font-size: 0.8rem; white-space: nowrap; }
+    .pbc-gate-actions .pb-btn-primary { flex: 0 1 auto; }
+    .pbc-gate-actions .pb-btn-ghost { flex: 1 1 auto; }
     .pbc-filters { gap: 6px; flex-wrap: nowrap; }
     .pbc-filt { flex: 1 1 0; min-width: 0; justify-content: center; padding: 8px 6px; gap: 6px; }
     .pbc-lbl-full { display: none; }
@@ -2171,6 +2220,9 @@
     background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
     padding: 16px; display: flex; flex-direction: column; gap: 10px;
     width: 100%; box-sizing: border-box;
+    /* Anchors .card-ribbon, the final-game verdict tag pinned to the card's
+       top-right corner (see the GAMECARD REDESIGN block below). */
+    position: relative;
   }
   .game-card.is-historical { border-color: rgba(var(--demo-rgb),0.35); }
   .game-card.is-division {
@@ -2181,6 +2233,12 @@
   .game-card.is-live { border-color: var(--live); box-shadow: 0 0 0 1px rgba(var(--live-rgb),0.3); }
   .game-card.is-international { border-color: #2dd4bf; box-shadow: 0 0 0 1px rgba(45,212,191,0.3), 0 0 18px rgba(45,212,191,0.12); }
   .game-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); }
+  /* Only on a final card, where .card-ribbon occupies the top-right corner -
+     the right-aligned network label would otherwise run under it. */
+  .game-meta.has-ribbon { padding-right: 104px; }
+  /* "Missed" is 16px narrower than "Called it" - reclaim it so a miss card
+     doesn't wrap its date line for clearance it doesn't need. */
+  .game-meta.has-ribbon.ribbon-short { padding-right: 88px; }
   .game-meta-left { display: flex; align-items: center; flex-wrap: wrap; }
   .division-tag {
     display: inline-flex; align-items: center; margin-left: 6px; padding: 2px 8px;
@@ -2257,8 +2315,20 @@
   .score-flash { display: inline-flex; border-radius: 6px; animation: score-flash 3.2s ease-out; }
   .matchup-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .team-block { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 10px; position: relative; }
-  .team-block.winner { background: rgba(var(--win-rgb), 0.12); border: 1px solid rgba(var(--win-rgb), 0.4); }
-  .team-block.actual-winner { box-shadow: 0 0 0 2px var(--demo) inset; }
+  /* Two different things that used to fight each other: green used to mean
+     "the model picked this team" while a purple ring meant "this team won",
+     so a missed call showed the losing team tinted green. Now green is only
+     ever the outcome (plus a checkmark, so colour isn't the sole signal) and
+     the model's pick is a teal dashed outline at every stage of the game. */
+  .team-block { border: 1px solid transparent; }
+  .team-block.blitz-pick { border: 1px dashed rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.07); }
+  .team-block.actual-winner { border: 1px solid rgba(var(--win-rgb), 0.55); background: rgba(var(--win-rgb), 0.16); }
+  .team-block.actual-winner.blitz-pick { border-style: solid; }
+  .won-check {
+    position: absolute; top: 4px; right: 4px; width: 17px; height: 17px; border-radius: 999px;
+    background: var(--win); color: var(--pill-good-fill-text); font-size: 0.7rem; font-weight: 900;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
   .team-click { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; padding: 0; color: inherit; font: inherit; }
   .team-click:hover .team-name { text-decoration: underline; }
   .badge-wrap { position: relative; width: 46px; height: 46px; }
@@ -2283,7 +2353,10 @@
   }
   .star-btn.active { color: var(--star); border-color: var(--star); }
   .team-name { font-size: 0.8rem; text-align: center; color: var(--text); }
-  .win-tag { font-size: 0.7rem; color: var(--win); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .win-tag {
+    font-size: 0.55rem; color: var(--accent); font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.4px; border: 1px solid rgba(var(--accent-rgb), 0.5); border-radius: 999px; padding: 1px 6px;
+  }
   .win-tag-hidden { visibility: hidden; }
   .at-sep { color: var(--text-dim); font-size: 0.75rem; padding: 0 4px; }
   .confidence-bar-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-dim); }
@@ -2334,9 +2407,23 @@
   .final-score-mid .fs-nums { font-size: 1rem; font-weight: 800; white-space: nowrap; }
   .final-score-mid .fs-sep { color: var(--text-dim); font-weight: 600; margin: 0 3px; }
   .final-score-mid .fs-label { font-size: 0.58rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; }
-  .final-call-badge { font-size: 0.56rem; font-weight: 800; white-space: nowrap; margin-top: 1px; }
-  .final-call-badge.correct { color: var(--blitz-orange); }
-  .final-call-badge.incorrect { color: var(--pill-bad-text); }
+  /* Verdict tag for a finished game. Replaces the old .final-call-badge,
+     which was 0.56rem unstyled text stacked third in the narrow middle
+     column under the score and "FINAL" and got lost there. A hit is filled
+     brand orange; a miss is filled --lose grey rather than red, because at a
+     realistic miss rate a red fill puts several alarm-coloured tags on every
+     week screen and collides with the --live red used in the same corner
+     region. The grey is a label on the miss, not the only signal for it -
+     the split between the green outcome block and the teal pick block
+     carries that on its own. */
+  .card-ribbon {
+    position: absolute; top: 0; right: 0; padding: 5px 11px 5px 13px;
+    border-radius: 0 13px 0 12px; font-size: 0.68rem; font-weight: 900;
+    letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap;
+    display: flex; align-items: center; gap: 5px; line-height: 1.15;
+  }
+  .card-ribbon.correct { background: var(--blitz-orange); color: var(--blitz-orange-fill-text); }
+  .card-ribbon.incorrect { background: var(--lose); color: #fff; }
 
   /* Two bands: the Blitz Edge lockup and the pick's confidence on top (one
      left-aligned group), the sportsbook line underneath. The odds band uses
@@ -3038,6 +3125,260 @@
   .profile-toast {
     margin-top: 10px; background: var(--win); color: #06210f; font-weight: 700; font-size: 0.82rem;
     padding: 9px 14px; border-radius: 8px; text-align: center;
+  }
+
+  /* Account deletion, at the bottom of the Profile tab. Bordered and tinted
+     rather than styled like the rest of the settings sections: it's the one
+     control on the screen that can't be undone, and it should not look like
+     a neighbour of "Display Name". Deliberately quiet until opened - the
+     outline button reads as available, not as a dare. */
+  .danger-section {
+    margin-top: 26px; border: 1px solid rgba(var(--out-rgb), 0.35);
+    background: rgba(var(--out-rgb), 0.05); border-radius: 12px; padding: 14px;
+  }
+  .danger-title { color: var(--out); }
+  .danger-copy { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; margin: 0 0 10px; }
+  .danger-list {
+    font-size: 0.8rem; color: var(--text-dim); line-height: 1.55;
+    margin: 0 0 10px; padding-left: 18px;
+  }
+  .danger-list li { margin-bottom: 2px; }
+  .danger-label { font-size: 0.74rem; color: var(--text-dim); margin-bottom: 5px; line-height: 1.4; }
+  .danger-btn {
+    background: rgba(var(--out-rgb), 0.12); border: 1px solid rgba(var(--out-rgb), 0.5);
+    color: var(--out); font-family: inherit; font-size: 0.85rem; font-weight: 800;
+    padding: 10px 16px; border-radius: 9px; cursor: pointer; transition: border-color 0.15s;
+  }
+  .danger-btn:hover:not(:disabled) { border-color: var(--out); }
+  .danger-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  /* Desktop: Cancel then the destructive action, right-aligned. */
+  .danger-actions { display: flex; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 12px; }
+  .danger-error {
+    margin: 10px 0 0; font-size: 0.78rem; color: var(--out); font-weight: 700; line-height: 1.45;
+  }
+  @media (max-width: 420px) {
+    /* Stacked once the row would wrap mid-button. column-reverse, not
+       column: it keeps Cancel at the BOTTOM, nearest the thumb, so the
+       button sitting where a thumb naturally lands is the harmless one. */
+    .danger-actions { flex-direction: column-reverse; align-items: stretch; }
+    .danger-actions .danger-btn { width: 100%; }
+  }
+
+  /* Suspension screen - replaces the whole app, so it owns the viewport
+     rather than sitting inside .app's layout. Centred on desktop, top-aligned
+     with breathing room on a phone (vertically centring a tall card on a
+     short screen pushes the sign-out button off the bottom). */
+  .susp-screen {
+    min-height: 100vh; min-height: 100dvh; display: flex; align-items: center;
+    justify-content: center; padding: 24px 16px; box-sizing: border-box;
+  }
+  .susp-card {
+    width: 100%; max-width: 460px; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 26px 22px; text-align: center;
+  }
+  .susp-title { font-size: 1.25rem; font-weight: 800; color: var(--text); margin: 16px 0 10px; }
+  .susp-copy { font-size: 0.88rem; color: var(--text-dim); line-height: 1.6; margin: 0 0 12px; }
+  .susp-copy a { color: var(--accent); font-weight: 700; }
+  .susp-reason {
+    font-size: 0.85rem; color: var(--text); line-height: 1.55; text-align: left;
+    background: rgba(var(--out-rgb), 0.08); border-left: 3px solid var(--out);
+    padding: 10px 12px; border-radius: 0 8px 8px 0; margin: 0 0 14px;
+  }
+  .susp-btn { margin-top: 6px; width: 100%; }
+  @media (min-width: 560px) {
+    .susp-card { padding: 32px 30px; }
+    .susp-btn { width: auto; min-width: 160px; }
+  }
+
+  /* ---- account screens: signup, confirm-your-email, forgot, reset ----
+
+     These live outside .app the same way .susp-screen does, and for the same
+     reason: each of them is the whole screen, not a panel inside a working
+     app. The confirm-email one in particular gates an account the server
+     refuses at every authenticated endpoint (see lib/auth.mts), so rendering
+     the normal shell behind it would offer a wall of controls that silently
+     fail. */
+  /* A modal over the app, not a page that replaces it.
+
+     These are things somebody opened on purpose from a page they were
+     already reading - a preview gate, a league CTA, the account menu - and
+     replacing the whole screen loses the thing that made them want an
+     account thirty seconds ago. It also breaks the back button's meaning:
+     "cancel" and "go back to the last page" become the same gesture when
+     they shouldn't be.
+
+     Deliberately NOT true of UnverifiedScreen or SuspendedScreen, which stay
+     full-screen. Those aren't things anyone opened; they're states the
+     server put the account in, where every control behind a modal would be
+     one the server refuses. */
+  .authscreen {
+    position: fixed; inset: 0; z-index: 1200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .authscreen-backdrop {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.55); z-index: 1199;
+  }
+  /* Gated on the modal flag so the gate screens, which reuse .authcard, keep
+     their plain centred-on-the-page treatment. */
+  .authscreen.is-modal .authcard {
+    position: relative; z-index: 1201; margin: auto;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+  }
+  .authcard-close {
+    position: absolute; top: 10px; right: 10px; background: none; border: 0;
+    color: var(--text-dim); font-size: 1.35rem; line-height: 1; cursor: pointer;
+    padding: 6px 9px; border-radius: 8px;
+  }
+  .authcard-close:hover { color: var(--text); background: var(--surface-2); }
+  /* The gate screens keep the old full-page behaviour. */
+  .authscreen.is-page {
+    position: static; min-height: 100vh; min-height: 100dvh; z-index: auto; overflow: visible;
+  }
+  .authcard {
+    width: 100%; max-width: 430px; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 14px; padding: 24px 20px;
+  }
+  .authcard-center { text-align: center; }
+  .auth-eyebrow {
+    margin: 0 0 6px; font-size: 0.66rem; font-weight: 800; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .auth-title { margin: 0 0 8px; font-size: 1.22rem; font-weight: 800; line-height: 1.25; color: var(--text); }
+  .auth-sub { margin: 0 0 4px; font-size: 0.86rem; line-height: 1.55; color: var(--text-dim); }
+  .auth-icon {
+    width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center;
+    font-size: 1.5rem; margin: 0 0 14px;
+    background: rgba(var(--accent-rgb),0.14); border: 1px solid rgba(var(--accent-rgb),0.32);
+  }
+  .authcard-center .auth-icon { margin-left: auto; margin-right: auto; }
+  .auth-icon.is-warn { background: rgba(var(--warn-rgb),0.14); border-color: rgba(var(--warn-rgb),0.34); }
+  .auth-icon.is-err { background: rgba(var(--out-rgb),0.13); border-color: rgba(var(--out-rgb),0.32); }
+
+  .auth-fields { margin: 18px 0 0; }
+  .auth-field { margin: 0 0 14px; text-align: left; }
+  .auth-field label {
+    display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: .03em;
+    text-transform: uppercase; color: var(--text-dim); margin: 0 0 6px;
+  }
+  .auth-field label .auth-opt { text-transform: none; font-weight: 600; }
+  .auth-field input {
+    width: 100%; box-sizing: border-box; font-family: inherit; font-size: 0.95rem;
+    color: var(--text); background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 11px 12px;
+  }
+  .auth-field input:focus { outline: none; border-color: rgba(var(--accent-rgb),0.6); }
+  .auth-field.has-err input { border-color: rgba(var(--out-rgb),0.65); }
+  .auth-hint { margin: 6px 0 0; font-size: 0.72rem; color: var(--text-dim); }
+  .auth-err { margin: 6px 0 0; font-size: 0.74rem; line-height: 1.5; color: var(--pill-bad-text); }
+  /* Terms acceptance, inside the signup form's field stack. The whole row is
+     the hit target rather than just the 18px box - this is the one control
+     that has to be operated before an account can exist, and a
+     checkbox-sized tap target on a phone is the wrong place to be stingy. */
+  .auth-terms-check {
+    display: flex; gap: 10px; align-items: flex-start; cursor: pointer;
+    padding: 2px 0 0; margin: 2px 0 0;
+  }
+  .auth-terms-check input {
+    flex: 0 0 auto; width: 17px; height: 17px; margin: 1px 0 0;
+    accent-color: var(--accent); cursor: pointer;
+  }
+  .auth-terms-check span { font-size: 0.78rem; line-height: 1.5; color: var(--text-dim); }
+  .auth-terms-check a { color: var(--accent); font-weight: 650; }
+  .auth-terms-check:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .auth-err a, .auth-linkish {
+    color: var(--accent); font-weight: 700; text-decoration: none; background: none;
+    border: 0; font-family: inherit; font-size: inherit; cursor: pointer; padding: 0;
+  }
+  .auth-linkish:hover, .auth-err a:hover { text-decoration: underline; }
+
+  /* The password field's reveal toggle. Absolutely positioned inside the row
+     rather than beside the input, so the input keeps the full width every
+     other field has and the fields still line up. */
+  .auth-pw-row { position: relative; }
+  .auth-pw-row input { padding-right: 62px; }
+  .auth-pw-toggle {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: 0; color: var(--text-dim); cursor: pointer;
+    font-size: 0.7rem; font-weight: 800; letter-spacing: .04em; font-family: inherit; padding: 6px;
+  }
+  .auth-pw-toggle:hover { color: var(--text); }
+
+  /* Four segments, not a numeric score: the point is "longer is better",
+     and a percentage invites people to optimise a number that doesn't
+     measure what they think it does. */
+  .auth-meter { display: flex; gap: 4px; margin: 8px 0 0; }
+  .auth-meter i { flex: 1; height: 4px; border-radius: 2px; background: var(--card-border); }
+  .auth-meter i.on { background: var(--accent); }
+  .auth-meter i.warn { background: var(--warn); }
+
+  .auth-actions { display: flex; flex-direction: column; gap: 8px; margin: 18px 0 0; }
+  .auth-btn {
+    appearance: none; font-family: inherit; cursor: pointer; border-radius: 10px;
+    font-size: 0.86rem; font-weight: 800; padding: 12px 18px; border: 1px solid transparent;
+    width: 100%;
+  }
+  .auth-btn:disabled { opacity: 0.55; cursor: default; }
+  .auth-btn-primary { background: var(--accent); color: #05221f; }
+  .auth-btn-ghost { background: transparent; border-color: var(--card-border); color: var(--text-dim); }
+  .auth-btn-ghost:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
+  .auth-alt { margin: 16px 0 0; font-size: 0.8rem; color: var(--text-dim); text-align: center; }
+
+  /* Provider button. Neutral surface rather than Google's white-on-white or
+     their dark variant, so one treatment reads correctly in both themes -
+     the mark itself keeps its own colours, which is the part their
+     guidelines actually pin down. */
+  .auth-btn-provider {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--surface-2); border-color: var(--card-border); color: var(--text);
+    margin-top: 18px;
+  }
+  .auth-btn-provider:hover { border-color: rgba(var(--accent-rgb),0.45); }
+  .auth-btn-provider svg { flex: 0 0 auto; }
+
+  .auth-divider {
+    display: flex; align-items: center; gap: 12px; margin: 16px 0 0;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim);
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: ""; flex: 1; height: 1px; background: var(--card-border);
+  }
+
+  .auth-addr {
+    display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8rem; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 5px 9px; margin: 4px 0 0; color: var(--text);
+    max-width: 100%; overflow-wrap: anywhere;
+  }
+  .auth-note {
+    margin: 16px 0 0; padding: 11px 12px; border-radius: 10px; font-size: 0.78rem;
+    line-height: 1.55; text-align: left; background: var(--surface-2);
+    border: 1px solid var(--card-border); color: var(--text-dim);
+  }
+  .auth-note.is-ok { border-left: 3px solid var(--win); }
+  .auth-note.is-err { border-left: 3px solid var(--out); }
+
+  /* The ?verified= outcome, shown at the top of the app rather than as its
+     own screen: by the time this renders the person is already where they
+     wanted to be, and a full-screen interstitial between them and it would
+     be a step for no reason. */
+  .verify-banner {
+    display: flex; gap: 10px; align-items: flex-start; margin: 0 0 12px;
+    padding: 12px 14px; border-radius: 12px; font-size: 0.82rem; line-height: 1.5;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+  }
+  .verify-banner.is-ok { border-left: 4px solid var(--win); }
+  .verify-banner.is-warn { border-left: 4px solid var(--warn); }
+  .verify-banner.is-err { border-left: 4px solid var(--out); }
+  .verify-banner strong { display: block; margin: 0 0 2px; color: var(--text); }
+  .verify-banner p { margin: 0; color: var(--text-dim); }
+  .verify-banner-x {
+    margin-left: auto; background: none; border: 0; color: var(--text-dim);
+    font-size: 1.05rem; cursor: pointer; line-height: 1; padding: 2px 4px; flex: 0 0 auto;
+  }
+  @media (min-width: 560px) {
+    .authcard { padding: 30px 28px; }
   }
 
   .fav-picker-list { max-height: 320px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 12px; padding: 6px; }
@@ -4487,6 +4828,10 @@
   }
   .admin-pill-role { color: var(--blitz-orange); background: rgba(253,127,1,.14); border: 1px solid rgba(253,127,1,.4); }
   .admin-pill-off { color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border); }
+  /* Loss-red, matching the Delete zone rather than the muted "Unconfirmed"
+     pill: an unconfirmed account is a state it arrived in, a suspended one
+     is a decision somebody made, and the row should read differently. */
+  .admin-pill-susp { color: var(--out); background: rgba(var(--out-rgb),.14); border: 1px solid rgba(var(--out-rgb),.45); }
 
   .admin-btn {
     display: inline-block; background: var(--surface-2); border: 1px solid var(--card-border);
@@ -4524,6 +4869,11 @@
   .admin-zone { border: 1px solid rgba(var(--out-rgb),.35); background: rgba(var(--out-rgb),.06);
     border-radius: 10px; padding: 12px; }
   .admin-zone h4 { color: var(--out); }
+  /* Suspension is reversible, deletion isn't, and the two sit next to each
+     other at the bottom of the same sheet. Amber vs. red is the only thing
+     stopping them reading as one undifferentiated danger area. */
+  .admin-zone-warn { border-color: rgba(var(--warn-rgb),.4); background: rgba(var(--warn-rgb),.07); }
+  .admin-zone-warn h4 { color: var(--warn); }
 
   .admin-status { font-size: .78rem; color: var(--text-dim); padding: 8px 0; }
   .admin-status-bad { color: var(--out); font-weight: 700; }
@@ -4745,21 +5095,21 @@
       <tr><td><a href="/games/2026/preseason-week-2/san-francisco-49ers-at-los-angeles-chargers/">Preseason Week 2</a></td><td>@ <a href="/teams/los-angeles-chargers/">Los Angeles Chargers</a></td><td>Thu, Aug 20 10:00 PM ET</td><td>Model predicts Los Angeles Chargers to win (20%)</td><td>W 41-17 (SF 41 - 17 LAC, prediction missed)</td></tr>
       <tr><td><a href="/games/2026/preseason-week-3/san-francisco-49ers-at-las-vegas-raiders/">Preseason Week 3</a></td><td>@ <a href="/teams/las-vegas-raiders/">Las Vegas Raiders</a></td><td>Thu, Aug 27 8:00 PM ET</td><td>Model predicts Las Vegas Raiders to win (46%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-1/san-francisco-49ers-at-los-angeles-rams/">Week 1</a></td><td>@ <a href="/teams/los-angeles-rams/">Los Angeles Rams</a></td><td>Thu, Sep 10 8:35 PM ET</td><td>Model predicts Los Angeles Rams to win (14%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-2/miami-dolphins-at-san-francisco-49ers/">Week 2</a></td><td>vs <a href="/teams/miami-dolphins/">Miami Dolphins</a></td><td>Sun, Sep 20 4:25 PM ET</td><td>Model predicts San Francisco 49ers to win (55%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-2/miami-dolphins-at-san-francisco-49ers/">Week 2</a></td><td>vs <a href="/teams/miami-dolphins/">Miami Dolphins</a></td><td>Sun, Sep 20 4:25 PM ET</td><td>Model predicts San Francisco 49ers to win (58%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-3/arizona-cardinals-at-san-francisco-49ers/">Week 3</a></td><td>vs <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Sep 27 4:05 PM ET</td><td>Model predicts San Francisco 49ers to win (61%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-4/denver-broncos-at-san-francisco-49ers/">Week 4</a></td><td>vs <a href="/teams/denver-broncos/">Denver Broncos</a></td><td>Sun, Oct 4 4:25 PM ET</td><td>Model predicts Denver Broncos to win (25%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-5/san-francisco-49ers-at-seattle-seahawks/">Week 5</a></td><td>@ <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Sun, Oct 11 4:25 PM ET</td><td>Model predicts Seattle Seahawks to win (17%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-6/washington-commanders-at-san-francisco-49ers/">Week 6</a></td><td>vs <a href="/teams/washington-commanders/">Washington Commanders</a></td><td>Mon, Oct 19 8:15 PM ET</td><td>Model predicts San Francisco 49ers to win (62%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-7/san-francisco-49ers-at-atlanta-falcons/">Week 7</a></td><td>@ <a href="/teams/atlanta-falcons/">Atlanta Falcons</a></td><td>Sun, Oct 25 1:00 PM ET</td><td>Model predicts Atlanta Falcons to win (32%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-7/san-francisco-49ers-at-atlanta-falcons/">Week 7</a></td><td>@ <a href="/teams/atlanta-falcons/">Atlanta Falcons</a></td><td>Sun, Oct 25 1:00 PM ET</td><td>Model predicts Atlanta Falcons to win (34%)</td><td>Not played yet</td></tr>
       <tr><td>Week 8</td><td colspan="4">Bye week</td></tr>
       <tr><td><a href="/games/2026/week-9/las-vegas-raiders-at-san-francisco-49ers/">Week 9</a></td><td>vs <a href="/teams/las-vegas-raiders/">Las Vegas Raiders</a></td><td>Sun, Nov 8 4:05 PM ET</td><td>Model predicts San Francisco 49ers to win (57%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-10/san-francisco-49ers-at-dallas-cowboys/">Week 10</a></td><td>@ <a href="/teams/dallas-cowboys/">Dallas Cowboys</a></td><td>Sun, Nov 15 4:25 PM ET</td><td>Model predicts Dallas Cowboys to win (26%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-11/minnesota-vikings-at-san-francisco-49ers/">Week 11</a></td><td>vs <a href="/teams/minnesota-vikings/">Minnesota Vikings</a></td><td>Sun, Nov 22 8:20 PM ET</td><td>Model predicts Minnesota Vikings to win (47%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-12/seattle-seahawks-at-san-francisco-49ers/">Week 12</a></td><td>vs <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Sun, Nov 29 4:25 PM ET</td><td>Model predicts Seattle Seahawks to win (25%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-13/san-francisco-49ers-at-new-york-giants/">Week 13</a></td><td>@ <a href="/teams/new-york-giants/">New York Giants</a></td><td>Sun, Dec 6 1:00 PM ET</td><td>Model predicts New York Giants to win (41%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-13/san-francisco-49ers-at-new-york-giants/">Week 13</a></td><td>@ <a href="/teams/new-york-giants/">New York Giants</a></td><td>Sun, Dec 6 1:00 PM ET</td><td>Model predicts New York Giants to win (43%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-14/los-angeles-rams-at-san-francisco-49ers/">Week 14</a></td><td>vs <a href="/teams/los-angeles-rams/">Los Angeles Rams</a></td><td>Sun, Dec 13 4:25 PM ET</td><td>Model predicts Los Angeles Rams to win (21%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-15/san-francisco-49ers-at-los-angeles-chargers/">Week 15</a></td><td>@ <a href="/teams/los-angeles-chargers/">Los Angeles Chargers</a></td><td>Thu, Dec 17 8:15 PM ET</td><td>Model predicts Los Angeles Chargers to win (20%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-16/san-francisco-49ers-at-kansas-city-chiefs/">Week 16</a></td><td>@ <a href="/teams/kansas-city-chiefs/">Kansas City Chiefs</a></td><td>Sun, Dec 27 4:25 PM ET</td><td>Model predicts Kansas City Chiefs to win (24%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-16/san-francisco-49ers-at-kansas-city-chiefs/">Week 16</a></td><td>@ <a href="/teams/kansas-city-chiefs/">Kansas City Chiefs</a></td><td>Sun, Dec 27 4:25 PM ET</td><td>Model predicts Kansas City Chiefs to win (27%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-17/philadelphia-eagles-at-san-francisco-49ers/">Week 17</a></td><td>vs <a href="/teams/philadelphia-eagles/">Philadelphia Eagles</a></td><td>Sun, Jan 3 8:20 PM ET</td><td>Model predicts San Francisco 49ers to win (56%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-18/san-francisco-49ers-at-arizona-cardinals/">Week 18</a></td><td>@ <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Jan 10 TBD</td><td>Model predicts San Francisco 49ers to win (51%)</td><td>Not played yet</td></tr>
     </tbody>
@@ -4767,8 +5117,6 @@
 
   <h2>San Francisco 49ers injury report</h2>
   <ul>
-<li><strong>Christian McCaffrey</strong> (RB) - active - Calf/leg tightness (recovered)</li>
-<li><strong>George Kittle</strong> (TE) - active - Achilles tear (recovered, activated off PUP)</li>
 <li><strong>Mike Evans</strong> (WR) - questionable - Groin strain (also missed time with a quad strain)</li>
 <li><strong>Ricky Pearsall</strong> (WR) - out - PCL knee surgery - season-ending</li>
 <li><strong>Nick Bosa</strong> (Edge) - out - Knee tendinitis (surgically repaired right knee)</li>
@@ -5757,6 +6105,20 @@
         },
         "statusUpdatedAt": "2026-08-28T13:45:04.819Z",
         "source": "curated"
+      },
+      {
+        "name": "Jaylon Johnson",
+        "position": "CB",
+        "espnId": "4243253",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Arm",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T21:26:37.374Z",
+        "source": "curated"
       }
     ],
     "CAR": [
@@ -6199,14 +6561,13 @@
         "position": "WR",
         "espnId": "4360078",
         "impactScore": 6,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Ankle/heel surgery (recovered, activated off PUP)",
-          "since": "2026-03",
-          "note": "The Colts activated Pierce off the active/PUP list Thursday, Aug. 27, clearing him to practice for the first time this camp after late-March ankle surgery (a PRP treatment had failed to resolve the pain). He topped 1,000 receiving yards in 2025 and led the NFL in yards per catch for a second straight year; he is expected to be available for the Sept. 13 opener, though he will need ramping up after missing all of camp."
+          "type": "Ankle",
+          "note": "Pierce (ankle) is working out prior to Saturday's preseason game against the Lions but will not play, Mike Chappell of Fox 59 News Indianapolis reports."
         },
-        "statusUpdatedAt": "2026-08-27T21:15:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-08-29T16:42Z",
+        "source": "auto",
         "activatedDate": "2026-08-27"
       }
     ],
@@ -6317,6 +6678,20 @@
         },
         "espnId": "4685597",
         "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
+        "source": "curated"
+      },
+      {
+        "name": "Darren Hall",
+        "position": "CB",
+        "espnId": "4261606",
+        "impactScore": 3,
+        "status": "out",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T21:25:36.403Z",
         "source": "curated"
       }
     ],
@@ -6522,6 +6897,20 @@
           "note": "Reverted to injured reserve Aug. 27 after clearing waivers with an injury designation, ending his 2026 season with Miami barring a settlement. The injury has not been disclosed."
         },
         "statusUpdatedAt": "2026-08-28T17:10:00.000Z",
+        "source": "curated"
+      },
+      {
+        "name": "Will Kacmarek",
+        "position": "TE",
+        "espnId": "4880236",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T17:53:03.688Z",
         "source": "curated"
       }
     ],
@@ -6795,6 +7184,20 @@
         "statusUpdatedAt": "2026-08-26T21:05:00.000Z",
         "source": "curated",
         "espnId": "4243389"
+      },
+      {
+        "name": "Tyrone Tracy Jr.",
+        "position": "RB",
+        "espnId": "4360516",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Neck",
+          "since": "2026-08-29",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-29T17:16:39.427Z",
+        "source": "curated"
       }
     ],
     "DEN": [
@@ -6854,16 +7257,15 @@
         "name": "Patrick Mahomes",
         "position": "QB",
         "impactScore": 10,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Torn ACL/LCL (left knee) - fully cleared",
-          "since": "2025-12-14",
-          "note": "Suffered the injury Dec. 14, 2025 vs. the Chargers, ending his 2025 season; had knee debridement surgery in May. Fully cleared off the PUP list for camp and has been a full practice participant, including 11-on-11 team drills, since late July."
+          "type": "Knee - ACL",
+          "note": "Mahomes (knee) is on track to start Week 1 against the Broncos, Ian Rapoport of NFL Network reports."
         },
         "activatedDate": "2026-07-28",
         "espnId": "3139477",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-08-29T17:08Z",
+        "source": "auto"
       },
       {
         "name": "Justin Fields",
@@ -15220,17 +15622,29 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   const [fullDetailsOpen, setFullDetailsOpen] = useState(false);
   const [showAddToLeague, setShowAddToLeague] = useState(false);
 
-  // Following one specific game, for this week only. Offered only before
-  // kickoff, the same gate as Add to League: subscribing is a thing you do
-  // in advance, and the alert this is mostly bought for - the kickoff
-  // warning - is already gone by the time a game is on. An existing follow
-  // keeps running through the whole game and delivers the final; it's only
-  // the ability to START one that closes at kickoff.
+  // Following one specific game, for this week only.
+  //
+  // The gate is "not finished yet", NOT the pre-kickoff gate Add to League
+  // uses. It was originally the same gate, on the reasoning that the alert
+  // this is mostly bought for - the kickoff warning - is already gone once
+  // a game is on. But that undersold what a follow does: the live
+  // dispatcher (notif-live-dispatch-background) drives scoring alerts and
+  // the final whistle off the exact same follow set, so a follow started at
+  // halftime still delivers everything except the one alert that has
+  // already passed. Someone who tunes into a close game in the third
+  // quarter is precisely the person who wants the rest of it pushed to
+  // them, and the old gate met them with no control at all.
+  //
+  // A final game does hide it: there is nothing left to send, so a bell
+  // there would be a switch wired to nothing. Unfollowing a finished game
+  // is still possible from the Alerts tab, which lists the week's follows
+  // regardless of state - and the server accepts an unfollow
+  // unconditionally, precisely so no one gets stranded.
   const gameFollowId = window.GameId.makeGameId(seasonYear, week, game.away, game.home);
   const { followed: followedGames, toggle: toggleGameFollow, busy: followBusy } = useGameFollows(auth, week);
   const signedIn = !!(auth && auth.status === "in");
   const isFollowing = !!(followedGames && followedGames.has(gameFollowId));
-  const canFollowGame = !hasStarted;
+  const canFollowGame = !isFinal;
   // Disabled, not hidden, until the week's follows have loaded - a bell that
   // says "not following" before it knows is a control that lies, and this
   // one is about whether a phone buzzes.
@@ -15260,7 +15674,17 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
 
   return (
     <div className={"game-card" + (context.isHistorical ? " is-historical" : "") + (divisionGame ? " is-division" : "") + (internationalGame ? " is-international" : "") + (isLive ? " is-live" : "")}>
-      <div className="game-meta">
+      {isFinal && predictionCorrect != null && (
+        <div
+          className={"card-ribbon " + (predictionCorrect ? "correct" : "incorrect")}
+          title={predictionCorrect
+            ? "Blitz Edge picked the winner of this game"
+            : "Blitz Edge picked the other team"}
+        >
+          {predictionCorrect ? "✓ Called it" : "✗ Missed"}
+        </div>
+      )}
+      <div className={"game-meta" + (isFinal && predictionCorrect != null ? " has-ribbon" : "") + (isFinal && predictionCorrect === false ? " ribbon-short" : "")}>
         <span className="game-meta-left">
           {!isLive && <>{shownTime.date}{shownTime.time ? " • " + shownTime.time : ""}</>}
           {divisionGame && <span className="division-tag" title="Both teams are in the same division">Division</span>}
@@ -15308,26 +15732,25 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
       )}
 
       <div className="matchup-row" data-tour="matchup-teams">
-        <div className={"team-block" + (!homeIsWinner ? " winner" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
+        <div className={"team-block" + (!homeIsWinner ? " blitz-pick" : "") + (actualWinnerId === away.id ? " actual-winner" : "")}>
+          {actualWinnerId === away.id && <span className="won-check" title={away.name + " won"} aria-label={away.name + " won"}>&#10003;</span>}
           <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{away.name}</div>
-          <div className={"win-tag" + (!homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
+          <div className={"win-tag" + (!homeIsWinner ? "" : " win-tag-hidden")}>Blitz Pick</div>
         </div>
         {isFinal ? (
           <div className="final-score-mid">
             <span className="fs-nums">{scoreInfo.awayScore}<span className="fs-sep">-</span>{scoreInfo.homeScore}</span>
             <span className="fs-label">Final</span>
-            <span className={"final-call-badge " + (predictionCorrect ? "correct" : "incorrect")}>
-              {predictionCorrect ? "Called it ✓" : "Missed ✗"}
-            </span>
           </div>
         ) : (
           <div className="at-sep">@</div>
         )}
-        <div className={"team-block" + (homeIsWinner ? " winner" : "") + (actualWinnerId === home.id ? " actual-winner" : "")}>
+        <div className={"team-block" + (homeIsWinner ? " blitz-pick" : "") + (actualWinnerId === home.id ? " actual-winner" : "")}>
+          {actualWinnerId === home.id && <span className="won-check" title={home.name + " won"} aria-label={home.name + " won"}>&#10003;</span>}
           <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{home.name}</div>
-          <div className={"win-tag" + (homeIsWinner ? "" : " win-tag-hidden")}>Predicted Winner</div>
+          <div className={"win-tag" + (homeIsWinner ? "" : " win-tag-hidden")}>Blitz Pick</div>
         </div>
       </div>
 
@@ -15391,11 +15814,20 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             data-away={game.away}
             data-home={game.home}
             data-week={week}
+            /* Read by js/analytics.js so the dashboard can separate a follow
+               placed in advance from one placed on a game already in
+               progress - the whole question this gate change raises. */
+            data-state={isLive ? "live" : hasStarted ? "started" : "scheduled"}
             aria-pressed={isFollowing}
             disabled={followPending || followBusy === gameFollowId}
+            /* Nothing visible changes once a game is on - same icon, same
+               label, same colour - but the tooltip stops promising a
+               kickoff alert that has already been and gone. */
             title={isFollowing
               ? "You're getting alerts for this game this week. Tap to stop."
-              : "Get alerts for this game this week"}
+              : hasStarted
+                ? "Get scoring and final alerts for this game"
+                : "Get alerts for this game this week"}
             aria-label={isFollowing ? "Stop alerts for this game" : "Get alerts for this game"}
             onClick={handleFollowClick}
           >
@@ -16881,7 +17313,7 @@ function PlaybookChanges({ week, sportsbookId, auth }) {
               </div>
               {!signedIn && (
                 <div className="pbc-gate-actions">
-                  <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }}
+                  <button type="button" className="pb-btn pb-btn-primary"
                     onClick={() => auth && auth.openSignup && auth.openSignup()}>
                     Create a free account
                   </button>
@@ -17068,7 +17500,7 @@ function PreviewGate({ remaining, noun, onCreate, onSignIn }) {
         </div>
       </div>
       <div className="pbp-gate-actions">
-        <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={onCreate}>Create a free account</button>
+        <button type="button" className="pb-btn pb-btn-primary" onClick={onCreate}>Create a free account</button>
         <button type="button" className="pb-btn pb-btn-ghost" onClick={onSignIn}>Sign in</button>
       </div>
     </div>
@@ -17286,7 +17718,7 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
                   </div>
                 </div>
                 <div className="pbp-gate-actions">
-                  <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={openSignup}>Create a free account</button>
+                  <button type="button" className="pb-btn pb-btn-primary" onClick={openSignup}>Create a free account</button>
                   <button type="button" className="pb-btn pb-btn-ghost" onClick={openLogin}>Sign in</button>
                 </div>
               </div>
@@ -17311,7 +17743,7 @@ function PlaybookPreview({ week, sportsbookId, tz, auth, onOpenLeagues, hasAccou
               </div>
             </div>
             <div className="pbp-gate-actions">
-              <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }} onClick={() => onOpenLeagues({ subTab: "create" })}>Create a league</button>
+              <button type="button" className="pb-btn pb-btn-primary" onClick={() => onOpenLeagues({ subTab: "create" })}>Create a league</button>
               <button type="button" className="pb-btn pb-btn-ghost" onClick={() => onOpenLeagues({ subTab: "join" })}>Join a league</button>
             </div>
           </div>
@@ -17700,7 +18132,7 @@ function PlaybookAngles({ week, sportsbookId, tz, auth }) {
               </div>
               {!signedIn && (
                 <div className="pbc-gate-actions">
-                  <button type="button" className="pb-btn pb-btn-primary" style={{ flex: "none" }}
+                  <button type="button" className="pb-btn pb-btn-primary"
                     onClick={() => auth && auth.openSignup && auth.openSignup()}>
                     Create a free account
                   </button>
@@ -19827,6 +20259,14 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
   const [emailValue, setEmailValue] = useState(currentEmail);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
+  // Account deletion. Kept collapsed behind a button rather than always
+  // visible: the panel has to spell out exactly what's destroyed, and that
+  // paragraph sitting permanently under a routine Save Profile screen reads
+  // as a threat rather than an option.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
     if (!toast) return;
@@ -19885,6 +20325,39 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
       setToast(e && e.message ? e.message : "Couldn't save changes");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/account-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmEmail: deleteEmail.trim() }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body.ok) {
+        trackEvent("account_delete_complete", {
+          surface: "settings",
+          outcome: res.status === 400 ? "mismatch" : "error",
+        });
+        setDeleteError(body.error || "Couldn't delete the account. Try again, or email support@blitz-odds.com.");
+        setDeleting(false);
+        return;
+      }
+      trackEvent("account_delete_complete", { surface: "settings", outcome: "success" });
+      // Sign out rather than leaving a valid token for an account that no
+      // longer exists. Without this the app sits there looking signed in
+      // while every request 401s, which reads as the deletion having failed.
+      // No setDeleting(false) - this component is about to unmount.
+      if (window.netlifyIdentity) window.netlifyIdentity.logout();
+    } catch (e) {
+      trackEvent("account_delete_complete", { surface: "settings", outcome: "error" });
+      setDeleteError(e && e.message ? e.message : "Couldn't reach the server. Try again.");
+      setDeleting(false);
     }
   }
 
@@ -19976,6 +20449,73 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
       </button>
 
       {toast && <div className="profile-toast">{toast}</div>}
+
+      <div className="settings-section danger-section">
+        <h3 className="settings-section-title danger-title">Delete Account</h3>
+        {!confirmingDelete ? (
+          <React.Fragment>
+            <p className="danger-copy">
+              Permanently deletes your account and everything on it. This can't be undone.
+            </p>
+            <button
+              type="button"
+              className="danger-btn"
+              onClick={() => {
+                setConfirmingDelete(true);
+                trackEvent("account_delete_start", { surface: "settings" });
+              }}
+            >
+              Delete my account
+            </button>
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            <p className="danger-copy">
+              This removes, permanently and immediately:
+            </p>
+            <ul className="danger-list">
+              <li>Your login, profile and display name</li>
+              <li>Every pick you've made, in every league</li>
+              <li>Your league memberships and your rows in their standings</li>
+              <li>Notification settings, email subscriptions and push devices</li>
+            </ul>
+            <p className="danger-copy">
+              Leagues you own are <strong>not</strong> deleted — they stay with their other members.
+              If you're the only member, delete the league first.
+            </p>
+            <div className="profile-field">
+              <div className="danger-label">Type <strong>{currentEmail}</strong> to confirm</div>
+              <input
+                className="profile-input"
+                type="text"
+                value={deleteEmail}
+                autoComplete="off"
+                spellCheck={false}
+                onChange={e => setDeleteEmail(e.target.value)}
+              />
+            </div>
+            <div className="danger-actions">
+              <button
+                type="button"
+                className="link-btn"
+                disabled={deleting}
+                onClick={() => { setConfirmingDelete(false); setDeleteEmail(""); setDeleteError(null); }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="danger-btn"
+                disabled={deleting || deleteEmail.trim().toLowerCase() !== currentEmail.toLowerCase()}
+                onClick={handleDeleteAccount}
+              >
+                {deleting ? "Deleting…" : "Permanently delete"}
+              </button>
+            </div>
+            {deleteError && <p className="danger-error">{deleteError}</p>}
+          </React.Fragment>
+        )}
+      </div>
     </React.Fragment>
   );
 }
@@ -26361,7 +26901,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
  * dashboard once that landed, and it cost a slot in a bar that has to fit
  * on a phone. LEAGUES_UI_ENABLED still gates the tab's *route*, so nothing
  * about linking to /leagues changed. */
-function TabBar({ activeTab, onSelectTab }) {
+function TabBar({ activeTab, onSelectTab, liveCount = 0 }) {
   /* Each tab carries both an `img` (the illustrated brand mark) and an
    * `icon` (the emoji it replaced). The emoji is not dead code - TabBar
    * renders it for any tab without an image, and it's the one-line revert
@@ -26391,12 +26931,25 @@ function TabBar({ activeTab, onSelectTab }) {
   /* The span stays aria-hidden and the <img> stays alt="" on purpose: the
    * .tab-label next to it is the accessible name, so describing the artwork
    * as well would have a screen reader announce every tab twice. */
+  /* The Games tab carries a count of games in progress right now. It rides
+   * the icon rather than the label so it reads at a glance in the phone's
+   * bottom bar, where the label is 0.64rem and already the smallest thing
+   * on screen. Capped at "9+" because a full Sunday afternoon window can
+   * have a dozen games on at once and a two-digit number inside a 16px pill
+   * stops being legible before it stops being true.
+   *
+   * aria-hidden on the badge, with the count folded into the button's
+   * aria-label instead (below) - a screen reader announcing a bare "3"
+   * between the artwork and the word "Games" is worse than useless. */
   const renderIcon = (t) => (
     <span className={"tab-icon" + (t.img ? " has-img" : "")} aria-hidden="true">
       {t.img ? (
         <img className="tab-icon-img" src={t.img} alt="" width="30" height="30" decoding="async" />
       ) : (
         t.icon
+      )}
+      {t.id === "games" && liveCount > 0 && (
+        <span className="tab-live-count">{liveCount > 9 ? "9+" : liveCount}</span>
       )}
     </span>
   );
@@ -26412,6 +26965,9 @@ function TabBar({ activeTab, onSelectTab }) {
           className={"tab-btn" + (activeTab === t.id ? " active" : "")}
           onClick={() => onSelectTab(t.id)}
           aria-current={activeTab === t.id ? "page" : undefined}
+          aria-label={t.id === "games" && liveCount > 0
+            ? `Games, ${liveCount} live now`
+            : undefined}
           data-tour={"tab-" + t.id}
         >
           {renderIcon(t)}
@@ -26533,6 +27089,7 @@ function AdminUsersPanel({ auth, data, reload, onToast }) {
                 <span className="admin-row-title">
                   {u.name}
                   {u.isAdmin && <span className="admin-pill admin-pill-role">Admin</span>}
+                  {u.suspended && <span className="admin-pill admin-pill-susp">Suspended</span>}
                   {!u.confirmed && <span className="admin-pill admin-pill-off">Unconfirmed</span>}
                 </span>
                 <span className="admin-row-sub">{u.email}</span>
@@ -26566,6 +27123,7 @@ function AdminUserSheet({ auth, user, leagues, actorId, onClose, onChanged, onTo
   const [error, setError] = useState(null);
   const [name, setName] = useState(user.name || "");
   const [confirmEmail, setConfirmEmail] = useState("");
+  const [suspendReason, setSuspendReason] = useState("");
   const [addLeagueId, setAddLeagueId] = useState("");
 
   const prefs = user.prefs || null;
@@ -26745,6 +27303,76 @@ function AdminUserSheet({ auth, user, leagues, actorId, onClose, onChanged, onTo
         </p>
       </section>
 
+      <section className="admin-sec admin-zone admin-zone-warn">
+        <h4>{user.suspended ? "Suspended" : "Suspend account"}</h4>
+        {user.suspended ? (
+          <React.Fragment>
+            <p className="admin-hint" style={{ marginTop: 0 }}>
+              Suspended {fmtAdminDate(user.suspendedAt)}
+              {user.suspendedBy ? " by " + user.suspendedBy : ""}.
+              {user.suspendedReason ? " Reason: " + user.suspendedReason : ""}
+            </p>
+            <p className="admin-hint">
+              They can sign in, but every action is refused and they see a notice instead of the app.
+              Their picks, leagues and standings are untouched and come straight back when you lift this.
+            </p>
+            <button
+              type="button"
+              className="admin-btn admin-btn-block"
+              disabled={busy}
+              onClick={() => run(() => update("set-suspended", false), user.name + " can use the site again")}
+            >
+              Lift suspension
+            </button>
+          </React.Fragment>
+        ) : isSelf ? (
+          <p className="admin-hint" style={{ marginTop: 0 }}>
+            You can't suspend your own account — you'd lock yourself out of the console that undoes it.
+          </p>
+        ) : (
+          <React.Fragment>
+            <p className="admin-hint" style={{ marginTop: 0 }}>
+              Blocks them from picking, joining leagues and changing settings, and stops all alerts.
+              Nothing is deleted and it can be lifted at any time. Use this instead of deleting
+              while something's being sorted out.
+            </p>
+            <label className="admin-field">
+              <span>Reason (optional, shown in the audit log)</span>
+              <input
+                type="text"
+                value={suspendReason}
+                maxLength={200}
+                placeholder="e.g. disputed picks in Week 3"
+                onChange={e => setSuspendReason(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="admin-btn admin-btn-warn admin-btn-block"
+              disabled={busy}
+              onClick={() =>
+                run(
+                  () =>
+                    adminCall(auth, "/.netlify/functions/admin-user-update", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        userId: user.id,
+                        action: "set-suspended",
+                        value: true,
+                        reason: suspendReason.trim(),
+                      }),
+                    }),
+                  user.name + " is suspended"
+                )
+              }
+            >
+              Suspend account
+            </button>
+          </React.Fragment>
+        )}
+      </section>
+
       <section className="admin-sec admin-zone">
         <h4>Delete account</h4>
         <p className="admin-hint">
@@ -26752,7 +27380,10 @@ function AdminUserSheet({ auth, user, leagues, actorId, onClose, onChanged, onTo
           This can't be undone.
         </p>
         {isSelf ? (
-          <p className="admin-hint">You can't delete your own account from here.</p>
+          <p className="admin-hint">
+            You can't delete your own account from here — it would sign you out mid-action, and if
+            you're the last admin nobody could get back in. Settings → Delete my account does it properly.
+          </p>
         ) : (
           <React.Fragment>
             <label className="admin-field">
@@ -28243,69 +28874,38 @@ function saveTutorialSeen() {
 
 /* ---------- Terms of Service acceptance ----------
 
-   Registering requires accepting /terms/ and /privacy/. Two surfaces enforce
-   it, because neither one alone is enough:
+   Registering requires accepting /terms/ and /privacy/. Three surfaces
+   enforce it, one per route into an account:
 
-     1. The pre-signup dialog, in front of the Netlify Identity widget. The
-        widget renders its own form inside an iframe we don't control, so a
-        checkbox can't be added to it - the dialog sits in front instead and
-        only opens the widget once the box is ticked. This is the surface a
-        new user actually sees.
+     1. A checkbox inside SignupPanel, submitted with the email signup form
+        and refused by auth-signup.mts if it's missing. Acceptance is stamped
+        onto the account at creation, in the same call - so there is no
+        window in which an account exists without it, and no follow-up write
+        that can fail.
 
-     2. The post-sign-in gate, driven by `termsAcceptanceRequired` on the
-        profile user-profile.mts returns. This is what actually *enforces*
-        acceptance, and it covers the three cases the dialog can't: accounts
-        that existed before any of this shipped, anyone who reaches the
-        widget by a path that skipped the dialog, and everybody again the
-        next time TERMS_VERSION is bumped.
+     2. A consent dialog in front of an OAuth provider. This route has no
+        form of ours to put a checkbox in: the next screen belongs to Google.
+        So the dialog is the checkbox, and it's shown before the redirect.
+
+     3. The post-sign-in gate, driven by `termsAcceptanceRequired` on the
+        profile user-profile.mts returns. This is the backstop the other two
+        can't be: it covers accounts that existed before any of this shipped,
+        an OAuth round trip that came back without consent recorded, and
+        everybody again the next time TERMS_VERSION is bumped.
 
    The server owns the version string. The client only ever says "accepted";
    it never sends a version, so a stale cached page can't record consent to
    terms that are no longer published. */
 const TERMS_URL = "/terms/";
 const PRIVACY_URL = "/privacy/";
-const TERMS_PENDING_KEY = "blitz-terms-pending";
-
-function markTermsPending() {
-  try { window.localStorage.setItem(TERMS_PENDING_KEY, String(Date.now())); } catch (e) {}
-}
-
-/** Reads and clears the "accepted in the dialog just now" marker. Consent is
- *  only carried into a sign-up that completes shortly afterwards - an
- *  abandoned dialog from last week must not silently satisfy the gate for
- *  whoever signs in on this browser next. */
-function takeTermsPending() {
-  try {
-    const raw = window.localStorage.getItem(TERMS_PENDING_KEY);
-    window.localStorage.removeItem(TERMS_PENDING_KEY);
-    if (!raw) return false;
-    const at = Number(raw);
-    return Number.isFinite(at) && Date.now() - at < 60 * 60 * 1000;
-  } catch (e) { return false; }
-}
-
-/* auth.openSignup is threaded through the whole app and has to stay
-   referentially stable (see the memo note at the end of useAuth - rebuilding
-   it re-runs every league/pick effect that depends on the auth object), so
-   the dialog's open state can't live inside useAuth. This is the narrowest
-   thing that works: openSignup raises a request here, and the single
-   <TermsConsentModal> mounted in App answers it. */
-const signupConsent = {
-  handler: null,
-  request() {
-    if (this.handler) { this.handler(); return; }
-    // No dialog mounted - App hasn't rendered yet, or its effect never ran.
-    // Don't strand someone trying to sign up over it: let them through to
-    // the widget and let the post-sign-in gate collect acceptance instead.
-    if (window.netlifyIdentity) window.netlifyIdentity.open("signup");
-  },
-};
 
 /* The consent dialog. One component, two modes:
-     "signup" - shown before the Identity widget, dismissable.
-     "gate"   - shown after sign-in to an account that hasn't accepted the
-                current terms. Not dismissable: no close button, no backdrop
-                click, and the only way past it is Accept or Sign out. */
+     "oauth" - shown before handing off to an external provider,
+               dismissable. The email signup form uses its own inline
+               checkbox instead and never renders this.
+     "gate"  - shown after sign-in to an account that hasn't accepted the
+               current terms. Not dismissable: no close button, no backdrop
+               click, and the only way past it is Accept or Sign out. */
 function TermsConsentModal({ mode, busy, error, onAccept, onDecline }) {
   const [checked, setChecked] = useState(false);
   const isGate = mode === "gate";
@@ -28338,12 +28938,12 @@ function TermsConsentModal({ mode, busy, error, onAccept, onDecline }) {
     >
       <div className="terms-modal">
         <h2 className="terms-modal-title" id="terms-modal-title">
-          {isGate ? "We've updated our terms" : "Before you create an account"}
+          {isGate ? "We've updated our terms" : "Before you continue"}
         </h2>
         <p className="terms-modal-lede">
           {isGate
             ? "Your account needs to accept the current Terms of Service and Privacy Policy before you can carry on. Nothing else has changed \u2014 your leagues, picks and settings are all still here."
-            : "Blitz Odds is free. Creating an account means agreeing to a couple of things first."}
+            : "You're about to sign in with an outside provider, so we need this before you go."}
         </p>
 
         {!isGate && (
@@ -28381,7 +28981,7 @@ function TermsConsentModal({ mode, busy, error, onAccept, onDecline }) {
             onClick={onAccept}
             disabled={!checked || busy}
           >
-            {busy ? "Saving\u2026" : isGate ? "Accept and continue" : "Agree and continue"}
+            {busy ? "Saving\u2026" : "Agree and continue"}
           </button>
         </div>
 
@@ -28408,6 +29008,15 @@ function TermsConsentModal({ mode, busy, error, onAccept, onDecline }) {
 function useAuth() {
   const [status, setStatus] = useState("loading");
   const [user, setUser] = useState(null);
+  /* Which of our own account screens is open, if any: "signup" | "forgot" |
+     "reset" | null.
+     
+     It lives in this hook rather than in App so that every existing
+     auth.openSignup() caller scattered through the app - the preview gates,
+     the Playbook prompt, the league CTAs - keeps working untouched. They
+     called a function that opened the Netlify widget; they now call a
+     function that opens ours, and none of them had to know. */
+  const [authPanel, setAuthPanel] = useState(null);
 
   useEffect(() => {
     const identity = window.netlifyIdentity;
@@ -28500,13 +29109,117 @@ function useAuth() {
   // force a re-render as soon as their fetch lands right after mount. The
   // week schedule was effectively being loaded two or three times over,
   // with a visible flash back to "Loading…" in between.
-  const openLogin = useCallback(() => window.netlifyIdentity && window.netlifyIdentity.open("login"), []);
-  // Not a direct widget open: registration has to collect terms acceptance
-  // first, so this raises a request that App's <TermsConsentModal> answers
-  // and the widget is opened from there. See signupConsent above for why the
-  // dialog's state can't live in this hook.
-  const openSignup = useCallback(() => signupConsent.request(), []);
+  /* Both openLogin and openSignup now open our own screens rather than the
+     Netlify widget.
+
+     Signup had to move: the widget posts straight to GoTrue /signup, which
+     mails Netlify's unbranded confirmation from no-reply@netlify.com, and on
+     the Personal plan nothing restyles it.
+
+     Login moved for a subtler reason. Signing in sends no mail, so the
+     widget's login form was harmless in itself - but it carries a "Forgot
+     password?" link straight to GoTrue /recover, which mails Netlify's
+     unbranded RECOVERY template. Leaving the widget in place for login would
+     have left that one door open onto the exact mail this whole change
+     exists to stop sending, and it is the door people reach for at their
+     most frustrated. */
+  const openLogin = useCallback(() => setAuthPanel("login"), []);
+
+  /* Signup no longer opens the widget. The widget posts straight to GoTrue
+     /signup, which immediately mails Netlify's own unbranded confirmation
+     from no-reply@netlify.com - and on the Personal plan there is no setting
+     that restyles or re-addresses it. Our signup goes through
+     auth-signup.mts, which creates the account with confirm:true so GoTrue
+     stays quiet, and mails our own template through Resend instead. */
+  const openSignup = useCallback(() => setAuthPanel("signup"), []);
+  const openForgot = useCallback(() => setAuthPanel("forgot"), []);
+  const openResetPanel = useCallback(() => setAuthPanel("reset"), []);
+  const closeAuthPanel = useCallback(() => setAuthPanel(null), []);
   const logout = useCallback(() => window.netlifyIdentity && window.netlifyIdentity.logout(), []);
+
+  /* Signs in against the same GoTrue instance the widget wraps, without the
+     widget's UI.
+     
+     window.netlifyIdentity.gotrue is the underlying client, and gotrue.login
+     persists the session to the same storage netlifyIdentity.currentUser()
+     reads from - so authenticatedFetch keeps working unchanged afterwards.
+     What does NOT happen is the widget's "login" event, so this sets the
+     hook's state itself.
+     
+     Falls back to opening the widget if gotrue isn't exposed (a version bump,
+     a blocked script). Signing in through the widget is perfectly fine - it
+     sends no email - so the fallback costs nothing but a different-looking
+     form. */
+  const signIn = useCallback(async (email, password) => {
+    const identity = window.netlifyIdentity;
+    /* No gotrue client means a widget version bump or a blocked script. The
+       widget's own login form still works and still sends no mail, so
+       falling back to it costs nothing but a different-looking form - which
+       is a far better outcome than a sign-in button that does nothing. The
+       forgot-password link inside it is the one regression, and it only
+       appears in a case that shouldn't happen. */
+    if (!identity || !identity.gotrue) {
+      if (identity) {
+        setAuthPanel(null);
+        identity.open("login");
+      }
+      throw new Error("WIDGET_FALLBACK");
+    }
+    const u = await identity.gotrue.login(email, password, true);
+    /* gotrue.login persists the session to the same storage
+       netlifyIdentity.currentUser() reads from, so authenticatedFetch keeps
+       working unchanged. What does NOT happen is the widget's own "login"
+       event, so the hook's state is set here by hand. */
+    setUser(u);
+    setStatus("in");
+    setAuthPanel(null);
+    return u;
+  }, []);
+
+  /* Starts an external-provider sign-in by leaving the site for the
+     provider's consent screen.
+
+     There is no promise to await here - the page navigates away and comes
+     back with #access_token= in the hash, which the Netlify widget picks up
+     on its next init() and turns into a "login" event. useAuth is already
+     listening for that (see onLogin above), so the return trip needs no code
+     of its own.
+
+     GoTrue does not send a confirmation email for these, and never sets our
+     email_verified flag - the gate in lib/auth.mts passes them on
+     app_metadata.provider instead. Google verified the address before
+     handing it over, which is better standing than our own emailed link. */
+  const signInWithProvider = useCallback((provider) => {
+    const identity = window.netlifyIdentity;
+    if (!identity || !identity.gotrue) {
+      // No gotrue client: fall back to the widget, which has its own
+      // provider buttons for whatever is enabled on the site.
+      if (identity) {
+        setAuthPanel(null);
+        identity.open("login");
+      }
+      return;
+    }
+    window.location.href = identity.gotrue.loginExternalUrl(provider);
+  }, []);
+
+  /* Re-reads the current user from GoTrue. Called after email confirmation
+     so the freshly-set email_verified flag lands in the session without a
+     full reload - the JWT itself doesn't carry it (lib/auth.mts reads
+     user_metadata server-side), but the app's own gate keys off the profile
+     fetch, which this re-triggers by changing the user object. */
+  const refreshUser = useCallback(async () => {
+    const identity = window.netlifyIdentity;
+    const current = identity && identity.currentUser();
+    if (!current) return null;
+    try {
+      const fresh = await current.jwt(true);
+      void fresh;
+    } catch (e) { /* a refresh failure is not a reason to blank the session */ }
+    const next = identity.currentUser();
+    setUser(next ? Object.assign(Object.create(Object.getPrototypeOf(next)), next) : null);
+    return next;
+  }, []);
 
   const authenticatedFetch = useCallback(async (path, options) => {
     const identity = window.netlifyIdentity;
@@ -28526,8 +29239,16 @@ function useAuth() {
   // Identity changes only when sign-in state actually changes, which is
   // exactly when a consumer genuinely does need to re-run.
   return useMemo(
-    () => ({ status, user, openLogin, openSignup, logout, authenticatedFetch }),
-    [status, user, openLogin, openSignup, logout, authenticatedFetch]
+    () => ({
+      status, user, authPanel,
+      openLogin, openSignup, openForgot, openResetPanel, closeAuthPanel,
+      signIn, signInWithProvider, refreshUser, logout, authenticatedFetch,
+    }),
+    [
+      status, user, authPanel,
+      openLogin, openSignup, openForgot, openResetPanel, closeAuthPanel,
+      signIn, signInWithProvider, refreshUser, logout, authenticatedFetch,
+    ]
   );
 }
 
@@ -28931,6 +29652,749 @@ function getInitialTab(leaguesEnabled) {
   return ROOT_TAB;
 }
 
+/* ---------------------------------------------------------------------- *
+ * Account screens
+ *
+ * Signup, "confirm your email", forgot-password and reset all live here.
+ * They exist because Netlify Identity's email settings - custom template,
+ * custom sender - are Pro-plan features and this site is on Personal, so
+ * every mail GoTrue sends would be its unbranded default from
+ * no-reply@netlify.com. The way around that is to never let GoTrue send:
+ * accounts are created server-side with confirm:true (auth-signup.mts) and
+ * password resets run on our own tokens (auth-forgot/auth-reset.mts), with
+ * both emails going out through Resend like everything else the site sends.
+ *
+ * Sign-IN still goes through the widget, or through auth.signIn against the
+ * same GoTrue client - either way it sends no email, so it needed no
+ * replacement.
+ * ---------------------------------------------------------------------- */
+
+const AUTH_MIN_PASSWORD = 8;
+
+/* The overlay every deliberately-opened account screen sits in. One place
+   for backdrop dismissal, Escape, scroll lock and the close button, rather
+   than four panels each remembering three of the four.
+
+   `onClose` null renders it as a page instead (no backdrop, no dismissal) -
+   that's the confirm-your-email gate, which reuses the same card but must
+   not be dismissible, since dismissing it would reveal an app whose every
+   authenticated control the server refuses. */
+function AuthOverlay({ onClose, label, children }) {
+  useEffect(() => {
+    if (!onClose) return;
+    function onKey(e) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    // Locking the page behind a modal is what stops a phone scrolling the
+    // app under the card while someone types into it.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  if (!onClose) {
+    return <div className="authscreen is-page">{children}</div>;
+  }
+
+  return (
+    <div className="authscreen is-modal" role="dialog" aria-modal="true" aria-label={label}>
+      <div className="authscreen-backdrop" onClick={onClose} />
+      {children}
+    </div>
+  );
+}
+
+/* Corner dismiss. Separate from the Cancel button in the footer on purpose:
+   Cancel is the answer to "do you want to do this", the X is the answer to
+   "I opened this by accident", and on a phone they want to be in different
+   places. */
+function AuthCloseButton({ onClose }) {
+  if (!onClose) return null;
+  return (
+    <button type="button" className="authcard-close" aria-label="Close" onClick={onClose}>
+      {"\u00D7"}
+    </button>
+  );
+}
+
+/* Four segments, deliberately not a score out of ten. Length is doing most
+   of the work and the bar should say so, rather than implying that adding a
+   punctuation mark to "password1" has bought anything. */
+function authPasswordScore(v) {
+  let score = 0;
+  if (v.length >= AUTH_MIN_PASSWORD) score++;
+  if (v.length >= 12) score++;
+  if (/[^a-zA-Z0-9]/.test(v)) score++;
+  if (/[0-9]/.test(v) && /[a-zA-Z]/.test(v)) score++;
+  return score;
+}
+
+/* Google's own mark, inline rather than an <img>, so it inherits nothing and
+   loads with the rest of the page. The four brand colours are fixed by
+   Google's guidelines and deliberately not theme tokens - a recoloured G is
+   a misused logo. */
+function GoogleMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2 5-4.4 6.6v5.5h7.1c4.1-3.8 6.6-9.4 6.6-16.1z" />
+      <path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.5-3.8-12.2-9H4.5v5.7C8.1 41.1 15.4 46 24 46z" />
+      <path fill="#FBBC05" d="M11.8 28.2c-.4-1.3-.7-2.7-.7-4.2s.2-2.9.7-4.2v-5.7H4.5C3 17.1 2.1 20.4 2.1 24s.9 6.9 2.4 9.9l7.3-5.7z" />
+      <path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 29.9 2 24 2 15.4 2 8.1 6.9 4.5 14.1l7.3 5.7c1.7-5.2 6.5-9 12.2-9z" />
+    </svg>
+  );
+}
+
+/* The provider block that sits above the email fields on both the sign-in and
+   the create-account panels.
+
+   Above rather than below, and on both screens, because "continue with
+   Google" is the same single act either way - the person doing it neither
+   knows nor cares whether they already have an account, and making them pick
+   the right screen first is asking a question only our database can answer. */
+function AuthProviderBlock({ auth, context, onNeedTermsConsent }) {
+  /* On the signup screen the Google button creates an account, and there is
+     no form of ours between here and Google to carry a terms checkbox - so
+     the handoff is interrupted by the consent dialog first, and resumed on
+     accept. On the LOGIN screen it isn't: the overwhelmingly common case
+     there is an existing account signing back in, and stopping all of them
+     to re-accept terms they already accepted would be noise. A first-time
+     account created through the login button is caught by the post-sign-in
+     gate instead. */
+  const handoff = () => {
+    trackEvent("oauth_start", { provider: "google", surface: context });
+    auth.signInWithProvider("google");
+  };
+  return (
+    <React.Fragment>
+      <button
+        type="button"
+        className="auth-btn auth-btn-provider"
+        onClick={() => {
+          if (onNeedTermsConsent) onNeedTermsConsent("google", handoff);
+          else handoff();
+        }}
+      >
+        <GoogleMark />
+        <span>Continue with Google</span>
+      </button>
+      <div className="auth-divider"><span>or</span></div>
+    </React.Fragment>
+  );
+}
+
+function AuthPasswordField({ id, label, value, onChange, autoComplete, meter, placeholder, onEnter }) {
+  const [show, setShow] = useState(false);
+  const score = meter ? authPasswordScore(value) : 0;
+  return (
+    <div className="auth-field">
+      <label htmlFor={id}>{label}</label>
+      <div className="auth-pw-row">
+        <input
+          id={id}
+          type={show ? "text" : "password"}
+          value={value}
+          autoComplete={autoComplete}
+          /* The signup and reset forms are setting a password and should say
+             what the rule is. The login form is recalling one that already
+             exists, where a minimum-length hint is noise at best and, for an
+             older account, actively wrong. */
+          placeholder={placeholder || "At least " + AUTH_MIN_PASSWORD + " characters"}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && onEnter) onEnter(); }}
+        />
+        <button
+          type="button"
+          className="auth-pw-toggle"
+          aria-label={show ? "Hide password" : "Show password"}
+          onClick={() => setShow((s) => !s)}
+        >
+          {show ? "HIDE" : "SHOW"}
+        </button>
+      </div>
+      {meter && (
+        <React.Fragment>
+          <div className="auth-meter" aria-hidden="true">
+            {[0, 1, 2, 3].map((i) => (
+              <i key={i} className={i < score ? (score < 2 ? "warn" : "on") : ""} />
+            ))}
+          </div>
+          <p className="auth-hint">
+            {value.length === 0
+              ? "Minimum " + AUTH_MIN_PASSWORD + " characters."
+              : value.length < AUTH_MIN_PASSWORD
+              ? "Too short \u2014 " + (AUTH_MIN_PASSWORD - value.length) + " more."
+              : score >= 3
+              ? "Strong."
+              : "Fine. Longer is better."}
+          </p>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+/* Sign in. Replaces the Netlify widget's login form - not because signing in
+   sends mail (it doesn't) but because the widget's form carries a "Forgot
+   password?" link straight to GoTrue /recover, which mails Netlify's own
+   unbranded recovery template. Our forgot link goes to ForgotPanel and
+   auth-forgot.mts instead.
+
+   GoTrue's error bodies are inconsistent across failure modes (error_description
+   on some, msg on others, plain text on a gateway hiccup), and none of them is
+   phrasing to show a person. Everything that isn't a network failure is
+   reported as bad credentials, which is what it almost always is - and saying
+   only that avoids confirming which half was wrong. */
+function LoginPanel({ auth }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const canSubmit = email.trim().length > 3 && password.length > 0 && !busy;
+
+  async function submit() {
+    if (!canSubmit) return;
+    setBusy(true);
+    setErr(null);
+    trackEvent("login_submit", {});
+    try {
+      await auth.signIn(email.trim(), password);
+      trackEvent("login_success", {});
+      // No navigation needed: setStatus("in") re-renders the app behind this
+      // panel and clears authPanel in the same update.
+    } catch (e) {
+      if (e && e.message === "WIDGET_FALLBACK") {
+        trackEvent("login_error", { reason: "widget_fallback" });
+        return;
+      }
+      const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+      setErr(
+        offline
+          ? "You appear to be offline. Check your connection and try again."
+          : "That email and password don't match an account."
+      );
+      trackEvent("login_error", { reason: offline ? "offline" : "bad_credentials" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <AuthOverlay onClose={auth.closeAuthPanel} label="Sign in">
+      <div className="authcard">
+        <AuthCloseButton onClose={auth.closeAuthPanel} />
+        <p className="auth-eyebrow">Welcome back</p>
+        <h1 className="auth-title">Sign in.</h1>
+
+        <AuthProviderBlock auth={auth} context="login" />
+
+        <div className="auth-fields">
+          <div className={"auth-field" + (err ? " has-err" : "")}>
+            <label htmlFor="li-email">Email</label>
+            <input
+              id="li-email" type="email" value={email} autoComplete="email"
+              placeholder="you@example.com"
+              onChange={(e) => { setEmail(e.target.value); if (err) setErr(null); }}
+              onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+            />
+          </div>
+          <div className={err ? "has-err" : ""}>
+            <AuthPasswordField
+              id="li-pass" label="Password" value={password}
+              onChange={(v) => { setPassword(v); if (err) setErr(null); }}
+              autoComplete="current-password"
+              placeholder="Your password"
+              onEnter={submit}
+            />
+          </div>
+        </div>
+
+        {err && <p className="auth-err">{err}</p>}
+
+        <div className="auth-actions">
+          <button type="button" className="auth-btn auth-btn-primary" disabled={!canSubmit} onClick={submit}>
+            {busy ? "Signing in\u2026" : "Sign in"}
+          </button>
+          <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.closeAuthPanel}>
+            Cancel
+          </button>
+        </div>
+
+        <p className="auth-alt">
+          <button type="button" className="auth-linkish" onClick={auth.openForgot}>
+            Forgot your password?
+          </button>
+        </p>
+        <p className="auth-alt">
+          No account yet?{" "}
+          <button type="button" className="auth-linkish" onClick={auth.openSignup}>
+            Create a free one
+          </button>
+        </p>
+      </div>
+    </AuthOverlay>
+  );
+}
+
+/* Signup. On success it does NOT sign the person in - the account exists but
+   is unverified, and signing them straight into an app whose every endpoint
+   refuses them would show a broken dashboard instead of "check your email".
+   It hands back to the caller, which shows the pending screen. */
+function SignupPanel({ auth, onSignedUp, onNeedTermsConsent }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+
+  /* Acceptance is a submit requirement alongside the email and password,
+     not a separate screen. auth-signup.mts refuses a signup without it and
+     stamps the version onto the account in the same call, so the account
+     never exists in an un-accepted state. */
+  const canSubmit =
+    email.trim().length > 3 && password.length >= AUTH_MIN_PASSWORD && acceptedTerms && !busy;
+
+  async function submit() {
+    if (!canSubmit) return;
+    setBusy(true);
+    setErr(null);
+    trackEvent("signup_submit", {});
+    try {
+      const res = await fetch("/.netlify/functions/auth-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          fullName: name.trim(),
+          acceptTerms: acceptedTerms,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr({ code: body.code || "error", message: body.error || "Something went wrong. Try again." });
+        trackEvent("signup_error", { reason: body.code || "unknown" });
+        return;
+      }
+      trackEvent("signup_success", { emailSent: body.emailSent === false ? "no" : "yes" });
+      onSignedUp({ email: email.trim(), emailSent: body.emailSent !== false });
+    } catch (e) {
+      setErr({ code: "network", message: "Couldn't reach the server. Check your connection and try again." });
+      trackEvent("signup_error", { reason: "network" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <AuthOverlay onClose={auth.closeAuthPanel} label="Create an account">
+      <div className="authcard">
+        <AuthCloseButton onClose={auth.closeAuthPanel} />
+        <p className="auth-eyebrow">Free account</p>
+        <h1 className="auth-title">Start picking.</h1>
+        <p className="auth-sub">Leagues, confidence rankings and game alerts. No card, no trial.</p>
+
+        <AuthProviderBlock auth={auth} context="signup" onNeedTermsConsent={onNeedTermsConsent} />
+
+        <div className="auth-fields">
+          <div className="auth-field">
+            <label htmlFor="su-name">Display name <span className="auth-opt">(optional)</span></label>
+            <input
+              id="su-name" type="text" value={name} autoComplete="name"
+              placeholder="How you'll show in standings"
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className={"auth-field" + (err && err.code === "email_taken" ? " has-err" : "")}>
+            <label htmlFor="su-email">Email</label>
+            <input
+              id="su-email" type="email" value={email} autoComplete="email"
+              placeholder="you@example.com"
+              onChange={(e) => { setEmail(e.target.value); if (err) setErr(null); }}
+            />
+            {err && err.code === "email_taken" && (
+              <p className="auth-err">
+                There's already an account with that email.{" "}
+                <button type="button" className="auth-linkish" onClick={auth.openLogin}>Sign in</button>
+                {" or "}
+                <button type="button" className="auth-linkish" onClick={auth.openForgot}>reset your password</button>.
+              </p>
+            )}
+          </div>
+          <AuthPasswordField
+            id="su-pass" label="Password" value={password} onChange={setPassword}
+            autoComplete="new-password" meter
+          />
+          <label className="auth-terms-check">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              disabled={busy}
+              onChange={(e) => {
+                setAcceptedTerms(e.target.checked);
+                trackEvent("terms_consent", {
+                  action: e.target.checked ? "signup_checked" : "signup_unchecked",
+                });
+              }}
+            />
+            <span>
+              I'm 18 or older and agree to the{" "}
+              <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">Terms of Service</a>
+              {" and "}
+              <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+            </span>
+          </label>
+        </div>
+
+        {err && err.code !== "email_taken" && <p className="auth-err">{err.message}</p>}
+
+        <div className="auth-actions">
+          <button type="button" className="auth-btn auth-btn-primary" disabled={!canSubmit} onClick={submit}>
+            {busy ? "Creating\u2026" : "Create free account"}
+          </button>
+          <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.closeAuthPanel}>
+            Cancel
+          </button>
+        </div>
+
+        <p className="auth-alt">
+          Already have one?{" "}
+          <button type="button" className="auth-linkish" onClick={auth.openLogin}>
+            Sign in
+          </button>
+        </p>
+      </div>
+    </AuthOverlay>
+  );
+}
+
+/* "Confirm your email." Shown INSTEAD of the app for an unverified signed-in
+   account, exactly as SuspendedScreen is - same reasoning, and the server
+   refuses the same set of endpoints in both cases.
+
+   Also reached straight after signup, before any session exists, which is
+   why the address is passed in rather than read from auth.user. */
+function UnverifiedScreen({ email, onSignOut, onUseDifferent }) {
+  const [state, setState] = useState("idle"); // idle | sending | sent | error
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  async function resend() {
+    if (state === "sending" || cooldown > 0) return;
+    setState("sending");
+    trackEvent("verify_resend", {});
+    try {
+      const res = await fetch("/.netlify/functions/auth-verify-resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      // The endpoint answers 202 whether or not the address exists - it is
+      // deliberately not an address oracle - so there is nothing here to
+      // branch on beyond "did the request itself work".
+      setState(res.ok ? "sent" : "error");
+      if (res.ok) setCooldown(30);
+    } catch (e) {
+      setState("error");
+    }
+  }
+
+  return (
+    /* onClose null => rendered as a page, with no backdrop and no way to
+       dismiss. This is a gate, not something anyone opened. */
+    <AuthOverlay onClose={null} label="Confirm your email">
+      <div className="authcard authcard-center">
+        <div className="auth-icon">{"\u2709\uFE0F"}</div>
+        <p className="auth-eyebrow">One more step</p>
+        <h1 className="auth-title">Confirm your email.</h1>
+        <p className="auth-sub">We sent a link to</p>
+        <span className="auth-addr">{email}</span>
+        <p className="auth-sub" style={{ marginTop: 10 }}>
+          Click it and you're in. The link expires in 24 hours.
+        </p>
+
+        {state === "sent" ? (
+          <p className="auth-note is-ok">Sent. Give it a minute, then check your inbox again.</p>
+        ) : state === "error" ? (
+          <p className="auth-note is-err">
+            Couldn't send that just now. Try again in a moment, or email{" "}
+            <a href="mailto:support@blitz-odds.com">support@blitz-odds.com</a>.
+          </p>
+        ) : (
+          <p className="auth-note">
+            Nothing arrived? Check spam for a message from <strong>support@blitz-odds.com</strong>,
+            then try again below.
+          </p>
+        )}
+
+        <div className="auth-actions">
+          <button
+            type="button" className="auth-btn auth-btn-primary"
+            disabled={state === "sending" || cooldown > 0}
+            onClick={resend}
+          >
+            {state === "sending" ? "Sending\u2026" : cooldown > 0 ? "Resend in " + cooldown + "s" : "Resend the email"}
+          </button>
+          <button type="button" className="auth-btn auth-btn-ghost" onClick={onUseDifferent}>
+            {onSignOut ? "Sign out" : "Use a different address"}
+          </button>
+        </div>
+      </div>
+    </AuthOverlay>
+  );
+}
+
+/* Forgot password. Answers identically whether or not the address exists,
+   matching auth-forgot.mts - a client that branched on the response would
+   reintroduce the address oracle the endpoint was written to avoid. */
+function ForgotPanel({ auth }) {
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState(null);
+
+  async function submit() {
+    if (!email.trim() || busy) return;
+    setBusy(true);
+    setErr(null);
+    trackEvent("password_forgot_submit", {});
+    try {
+      const res = await fetch("/.netlify/functions/auth-forgot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (res.ok) setSent(true);
+      else setErr("Something went wrong. Try again in a moment.");
+    } catch (e) {
+      setErr("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (sent) {
+    return (
+      <AuthOverlay onClose={auth.closeAuthPanel} label="Reset link sent">
+        <div className="authcard authcard-center">
+          <AuthCloseButton onClose={auth.closeAuthPanel} />
+          <div className="auth-icon">{"\uD83D\uDCE8"}</div>
+          <h1 className="auth-title">Check your inbox.</h1>
+          <p className="auth-sub">
+            If there's an account with that address, a reset link is on its way. It expires in an hour.
+          </p>
+          <div className="auth-actions">
+            <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.openLogin}>
+              Back to sign in
+            </button>
+          </div>
+        </div>
+      </AuthOverlay>
+    );
+  }
+
+  return (
+    <AuthOverlay onClose={auth.closeAuthPanel} label="Forgot password">
+      <div className="authcard">
+        <AuthCloseButton onClose={auth.closeAuthPanel} />
+        <p className="auth-eyebrow">Password reset</p>
+        <h1 className="auth-title">Can't get in?</h1>
+        <p className="auth-sub">Give us the address on the account and we'll send a reset link.</p>
+        <div className="auth-fields">
+          <div className="auth-field">
+            <label htmlFor="fg-email">Email</label>
+            <input
+              id="fg-email" type="email" value={email} autoComplete="email"
+              placeholder="you@example.com"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+        </div>
+        {err && <p className="auth-err">{err}</p>}
+        <div className="auth-actions">
+          <button type="button" className="auth-btn auth-btn-primary" disabled={!email.trim() || busy} onClick={submit}>
+            {busy ? "Sending\u2026" : "Send reset link"}
+          </button>
+          <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.openLogin}>
+            Back to sign in
+          </button>
+        </div>
+      </div>
+    </AuthOverlay>
+  );
+}
+
+/* Set a new password, from the ?reset= token the email link carries. On
+   success it signs the person straight in with the password they just
+   chose - they typed it a second ago and making them type it again on a
+   login form is a step that exists only because the code was easier to
+   write that way. */
+function ResetPanel({ auth, token, onDone }) {
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const [dead, setDead] = useState(null); // "token_expired" | "token_invalid"
+
+  async function submit() {
+    if (password.length < AUTH_MIN_PASSWORD || busy) return;
+    setBusy(true);
+    setErr(null);
+    trackEvent("password_reset_submit", {});
+    try {
+      const res = await fetch("/.netlify/functions/auth-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (body.code === "token_expired" || body.code === "token_invalid") {
+          setDead(body.code);
+          trackEvent("password_reset_error", { reason: body.code });
+          return;
+        }
+        setErr(body.error || "Something went wrong. Try again.");
+        trackEvent("password_reset_error", { reason: body.code || "unknown" });
+        return;
+      }
+      trackEvent("password_reset_success", {});
+      try {
+        await auth.signIn(body.email, password);
+      } catch (e) {
+        // Sign-in after a successful reset is a convenience, not the point.
+        // The password IS changed; fall back to the login form.
+        auth.openLogin();
+      }
+      onDone();
+    } catch (e) {
+      setErr("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (dead) {
+    return (
+      <AuthOverlay onClose={onDone} label="Reset link problem">
+        <div className="authcard authcard-center">
+          <AuthCloseButton onClose={onDone} />
+          <div className="auth-icon is-warn">{dead === "token_expired" ? "\u23F3" : "\u26A0\uFE0F"}</div>
+          <h1 className="auth-title">
+            {dead === "token_expired" ? "That link has expired." : "That link isn't valid."}
+          </h1>
+          <p className="auth-sub">
+            {dead === "token_expired"
+              ? "Reset links last an hour. Request a fresh one and it'll be in your inbox in a moment."
+              : "It may already have been used. Request a new one to try again."}
+          </p>
+          <div className="auth-actions">
+            <button type="button" className="auth-btn auth-btn-primary" onClick={() => { onDone(); auth.openForgot(); }}>
+              Send a new link
+            </button>
+          </div>
+        </div>
+      </AuthOverlay>
+    );
+  }
+
+  return (
+    <AuthOverlay onClose={onDone} label="Set a new password">
+      <div className="authcard">
+        {/* Dismissable, and safe to dismiss: consumeToken only fires on
+            submit, so closing this leaves the link in the email still
+            usable for its remaining hour. */}
+        <AuthCloseButton onClose={onDone} />
+        <p className="auth-eyebrow">Password reset</p>
+        <h1 className="auth-title">Choose a new password.</h1>
+        <div className="auth-fields">
+          <AuthPasswordField
+            id="rs-pass" label="New password" value={password} onChange={setPassword}
+            autoComplete="new-password" meter
+          />
+        </div>
+        {err && <p className="auth-err">{err}</p>}
+        <div className="auth-actions">
+          <button
+            type="button" className="auth-btn auth-btn-primary"
+            disabled={password.length < AUTH_MIN_PASSWORD || busy}
+            onClick={submit}
+          >
+            {busy ? "Saving\u2026" : "Set password & sign in"}
+          </button>
+        </div>
+      </div>
+    </AuthOverlay>
+  );
+}
+
+/* The ?verified= outcome from auth-verify.mts's redirect. */
+const VERIFY_BANNERS = {
+  ok: { cls: "is-ok", icon: "\u2705", title: "Email confirmed.", body: "You're all set \u2014 your account is live." },
+  expired: { cls: "is-warn", icon: "\u23F3", title: "That link expired.", body: "Confirmation links last 24 hours. Sign in and press Resend for a fresh one." },
+  invalid: { cls: "is-err", icon: "\u26A0\uFE0F", title: "That link isn't valid.", body: "It may already have been used. If you're already confirmed, just sign in." },
+  error: { cls: "is-err", icon: "\u26A0\uFE0F", title: "Something went wrong.", body: "We couldn't confirm the address. Sign in and press Resend to try again." },
+};
+
+function VerifyBanner({ status, email, onDismiss }) {
+  const b = VERIFY_BANNERS[status];
+  if (!b) return null;
+  return (
+    <div className={"verify-banner " + b.cls} role="status">
+      <span aria-hidden="true">{b.icon}</span>
+      <div>
+        <strong>{b.title}</strong>
+        <p>{status === "ok" && email ? email + " is verified and your account is live." : b.body}</p>
+      </div>
+      <button type="button" className="verify-banner-x" aria-label="Dismiss" onClick={onDismiss}>
+        {"\u00D7"}
+      </button>
+    </div>
+  );
+}
+
+/* Shown in place of the entire app when the signed-in account is suspended.
+   Deliberately plain: no nav, no tabs, no week strip. Every one of those
+   would be a control the server refuses, and offering them reads as the app
+   being broken rather than as a decision somebody made.
+
+   The reason is shown when an admin gave one, and omitted cleanly when they
+   didn't - "Reason: " followed by nothing is worse than no line at all. The
+   support address is the only action besides signing out, because appealing
+   is genuinely the only thing they can do from here. */
+function SuspendedScreen({ suspension, onSignOut }) {
+  return (
+    <div className="susp-screen">
+      <div className="susp-card">
+        <BrandWordmark height={26} />
+        <h1 className="susp-title">Your account is suspended</h1>
+        <p className="susp-copy">
+          You can't make picks, join leagues or change settings while this is in place.
+          Nothing has been deleted — your picks and league history are intact and come
+          straight back if the suspension is lifted.
+        </p>
+        {suspension.reason && (
+          <p className="susp-reason"><strong>Reason:</strong> {suspension.reason}</p>
+        )}
+        <p className="susp-copy">
+          If you think this is a mistake, reply from the address on the account:{" "}
+          <a href="mailto:support@blitz-odds.com">support@blitz-odds.com</a>.
+        </p>
+        <button type="button" className="danger-btn susp-btn" onClick={onSignOut}>
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const auth = useAuth();
   const [themeMode, setThemeMode] = useThemeManager();
@@ -28959,12 +30423,95 @@ function App() {
   });
   const [favorites, setFavorites] = useState(loadFavorites);
   const [profile, setProfile] = useState(null);
-  // Terms acceptance. `signupConsentOpen` is the dismissable dialog in front
-  // of the Identity widget; `termsGate` is the blocking post-sign-in one.
-  // They're separate state because they can't both be open and they answer
-  // to completely different triggers.
-  const [signupConsentOpen, setSignupConsentOpen] = useState(false);
+
+  /* Games currently in progress, for the badge on the Games tab.
+   *
+   * Pinned to getDefaultWeek() rather than `selectedWeek` on purpose: the
+   * badge answers "is football on right now", which has nothing to do with
+   * which week someone happens to be browsing. Someone reading week 3 in
+   * November should still see that today's games have kicked off.
+   *
+   * This is a second useLiveScores() subscription alongside WeekView's, not
+   * a hoist of it - WeekView needs the map for whatever week is on screen,
+   * which is usually but not always this one. The duplication is cheap:
+   * fetchLiveScoresCached() dedupes overlapping calls, and with nothing
+   * live the hook sits at IDLE_POLL_MS (5 minutes). It has to live at App
+   * level regardless, since the bar is visible from every tab and WeekView
+   * is unmounted on three of them. */
+  const liveTabWeek = useMemo(() => getDefaultWeek(), []);
+  const liveTabMap = useLiveScores(liveTabWeek);
+  const liveGameCount = useMemo(
+    () => Object.values(liveTabMap).filter((g) => g && g.state === "in").length,
+    [liveTabMap]
+  );
+  // Non-null when the signed-in account has been suspended. Set from the
+  // user-profile fetch below, which is the only endpoint that reports the
+  // reason rather than a generic 401.
+  const [suspension, setSuspension] = useState(null);
+
+  /* Set when user-profile answers 403 email_unverified - same shape and same
+     source as `suspension` above, and gated the same way further down. Holds
+     the address so the pending screen can offer Resend without a second
+     round trip. */
+  const [unverified, setUnverified] = useState(null);
+
+  /* Set straight after signup, BEFORE any session exists. Distinct from
+     `unverified`: that one describes a signed-in account the server refuses,
+     this one describes someone who has an account and hasn't signed in at
+     all. Both render the same screen; only the way out differs. */
+  const [awaitingVerify, setAwaitingVerify] = useState(null);
+
+  /* The ?verified= outcome auth-verify.mts redirects back with, and the
+     ?reset= token the reset email links to. Both are read once at mount and
+     immediately stripped from the URL - left in place, a refresh would
+     re-show the banner, and a reset token would sit in the address bar (and
+     the browser history, and any screenshot) long after it was spent. */
+  const [verifyResult, setVerifyResult] = useState(() => {
+    try {
+      const params = new URL(window.location.href).searchParams;
+      const status = params.get("verified");
+      if (!status || !VERIFY_BANNERS[status]) return null;
+      return { status, email: params.get("email") || null };
+    } catch (e) { return null; }
+  });
+  const [resetToken, setResetToken] = useState(() => {
+    try { return new URL(window.location.href).searchParams.get("reset") || null; }
+    catch (e) { return null; }
+  });
+
+  useEffect(() => {
+    if (!verifyResult && !resetToken) return;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("verified");
+      url.searchParams.delete("email");
+      url.searchParams.delete("reset");
+      window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    } catch (e) {}
+  }, []);
+
+  /* A confirmation that landed while the tab was already open and signed in
+     needs the session's view of the account refreshed, or the app keeps
+     showing the "confirm your email" screen against an account that is now
+     confirmed. Clearing `unverified` alone isn't enough - the profile fetch
+     has to run again, which it does once the user object changes. */
+  useEffect(() => {
+    if (!verifyResult || verifyResult.status !== "ok") return;
+    trackEvent("verify_complete", { outcome: "ok" });
+    setUnverified(null);
+    setAwaitingVerify(null);
+    if (auth.status === "in" && auth.refreshUser) auth.refreshUser();
+  }, [verifyResult, auth.status]);
+
+  /* Terms acceptance. The email signup form carries its own checkbox (see
+     SignupPanel), so there is no interstitial on that route any more.
+     `oauthConsentOpen` is the dialog in front of an OAuth provider, which
+     has no form of ours to put a checkbox in; `termsGate` is the blocking
+     post-sign-in one. Separate state because they answer to completely
+     different triggers and can never both be open. */
+  const [oauthConsentOpen, setOauthConsentOpen] = useState(null);
   const [termsGate, setTermsGate] = useState({ open: false, busy: false, error: null });
+
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -29244,7 +30791,31 @@ function App() {
       const localFavorites = favorites;
       try {
         const res = await auth.authenticatedFetch("/.netlify/functions/user-profile");
-        if (!res.ok || cancelled) return;
+        if (cancelled) return;
+        // A suspended account is refused here with a 403 carrying a stable
+        // code (see lib/auth.mts). This is the one endpoint that reports the
+        // reason rather than a bare 401, precisely so the app can say what
+        // happened instead of bouncing them into a login that would succeed
+        // and change nothing.
+        if (res.status === 403) {
+          const body = await res.json().catch(() => ({}));
+          if (cancelled) return;
+          if (body && body.code === "account_suspended") {
+            setSuspension({ reason: body.reason || null, at: body.suspendedAt || null });
+            trackEvent("account_suspended_block", {});
+            return;
+          }
+          // The other gate in lib/auth.mts. Same handling for the same
+          // reason: this endpoint is the only one that reports why, so it
+          // is the only place the app can learn to show the right screen
+          // rather than a generic failure.
+          if (body && body.code === "email_unverified") {
+            setUnverified({ email: body.email || (auth.user && auth.user.email) || "" });
+            trackEvent("verify_block", {});
+            return;
+          }
+        }
+        if (!res.ok) return;
         const profile = await res.json();
         if (cancelled) return;
         setProfile(profile);
@@ -29309,41 +30880,49 @@ function App() {
       lastSyncedSettingsRef.current = null;
       setSettingsHydrated(false);
       setProfile(null);
+      setSuspension(null);
+      setUnverified(null);
     }
   }, [auth.status]);
 
   /* ---------- Terms of Service acceptance ----------
-     See the block comment above TermsConsentModal for why there are two
-     surfaces. This is the App-side wiring for both. */
+     See the block comment above TermsConsentModal for the three surfaces.
+     The email form's checkbox lives in SignupPanel and is enforced by
+     auth-signup.mts; this is the wiring for the other two. */
 
-  // Answer signupConsent.request(), raised by auth.openSignup from wherever
-  // in the app someone pressed a "create an account" button.
-  useEffect(() => {
-    signupConsent.handler = () => {
-      trackEvent("terms_consent", { action: "signup_prompt" });
-      setSignupConsentOpen(true);
-    };
-    return () => { signupConsent.handler = null; };
+  /* Consent before an OAuth handoff. Opened by AuthProviderBlock instead of
+     redirecting straight out, because once the redirect happens the next
+     screen is Google's and there is no checkbox of ours anywhere in it.
+     Holds the pending provider so accepting can resume the exact handoff
+     that was interrupted. */
+  const requestOauthConsent = useCallback((provider, run) => {
+    trackEvent("terms_consent", { action: "oauth_prompt" });
+    setOauthConsentOpen({ provider, run });
   }, []);
 
-  const acceptSignupConsent = useCallback(() => {
-    // Recorded locally first, then carried onto the account by the effect
-    // below once sign-up completes and a profile exists to write it to.
-    // There is no account to POST to at this point in the flow.
-    markTermsPending();
-    setSignupConsentOpen(false);
-    trackEvent("terms_consent", { action: "signup_accepted" });
-    if (window.netlifyIdentity) window.netlifyIdentity.open("signup");
+  const acceptOauthConsent = useCallback(() => {
+    const pending = oauthConsentOpen;
+    setOauthConsentOpen(null);
+    trackEvent("terms_consent", { action: "oauth_accepted" });
+    /* Nothing is written here. There is no account yet, and after the
+       redirect this page is gone - a localStorage handoff would have to
+       survive a round trip through Google and still be there on return,
+       which is exactly the fragile path the gate exists to make
+       unnecessary. The returning session lands on the gate instead, which
+       is one extra tap on a route most people won't take, in exchange for
+       consent that is never inferred from a marker left in a browser. */
+    if (pending && typeof pending.run === "function") pending.run();
+  }, [oauthConsentOpen]);
+
+  const declineOauthConsent = useCallback(() => {
+    setOauthConsentOpen(null);
+    trackEvent("terms_consent", { action: "oauth_declined" });
   }, []);
 
-  const declineSignupConsent = useCallback(() => {
-    setSignupConsentOpen(false);
-    trackEvent("terms_consent", { action: "signup_declined" });
-  }, []);
-
-  // Writes acceptance to the account. The server stamps the version - see
-  // TERMS_VERSION in user-profile.mts - so there's nothing to send but the
-  // fact of it and where it came from.
+  /* Writes acceptance from the gate. The server stamps the version - see
+     lib/terms.mts - so there is nothing to send but the fact of it. This is
+     now the gate's path only: an account created through SignupPanel was
+     stamped at creation by auth-signup.mts and never gets here. */
   const submitTermsAcceptance = useCallback(async (source) => {
     setTermsGate((g) => ({ ...g, busy: true, error: null }));
     try {
@@ -29356,12 +30935,12 @@ function App() {
       const updated = await res.json();
       setProfile(updated);
       setTermsGate({ open: false, busy: false, error: null });
-      trackEvent("terms_consent", { action: source === "gate" ? "gate_accepted" : "signup_recorded" });
+      trackEvent("terms_consent", { action: "gate_accepted" });
     } catch (e) {
-      // Whichever path failed, the outcome is the same: the account still
-      // hasn't accepted, so fall through to the blocking gate and let them
-      // retry there. A silent post-sign-up write that fails must not leave
-      // an unaccepted account quietly using the app.
+      // The account still hasn't accepted, so the gate stays up with an
+      // error on it rather than closing. Failing open here would leave an
+      // unaccepted account quietly using the app, which is the one outcome
+      // this whole thing exists to prevent.
       setTermsGate({
         open: true,
         busy: false,
@@ -29371,10 +30950,8 @@ function App() {
     }
   }, [auth]);
 
-  // One-shot guards, reset on sign-out below: without them the silent write
-  // would fire again on every profile change while the POST is in flight,
-  // and the gate would re-log a "shown" event on every re-render.
-  const termsSilentWriteRef = useRef(false);
+  // One-shot guard, reset on sign-out below: without it the gate would
+  // re-log a "shown" event on every re-render.
   const termsGateTrackedRef = useRef(false);
 
   useEffect(() => {
@@ -29386,26 +30963,18 @@ function App() {
       return;
     }
 
-    // Consent given in the dialog moments before this account existed:
-    // record it without asking a second time.
-    if (!termsSilentWriteRef.current && takeTermsPending()) {
-      termsSilentWriteRef.current = true;
-      submitTermsAcceptance("signup");
-      return;
-    }
-
-    // Everyone else - an account from before this shipped, a sign-up that
-    // bypassed the dialog, or a TERMS_VERSION bump - gets the blocking gate.
+    /* An account created through SignupPanel is stamped at creation and
+       never reaches here. What does: accounts from before this shipped, a
+       returning OAuth session, and everybody after a TERMS_VERSION bump. */
     if (!termsGateTrackedRef.current) {
       termsGateTrackedRef.current = true;
       trackEvent("terms_consent", { action: "gate_shown" });
     }
     setTermsGate((g) => (g.open ? g : { open: true, busy: false, error: null }));
-  }, [auth.status, profile, submitTermsAcceptance]);
+  }, [auth.status, profile]);
 
   useEffect(() => {
     if (auth.status !== "out") return;
-    termsSilentWriteRef.current = false;
     termsGateTrackedRef.current = false;
     setTermsGate({ open: false, busy: false, error: null });
   }, [auth.status]);
@@ -29733,6 +31302,38 @@ function App() {
       }
     : null;
 
+  // A suspended account gets this INSTEAD of the app, not on top of it.
+  // Rendering the normal shell behind a modal would leave a signed-in-looking
+  // UI whose every control silently fails - the server refuses all of them -
+  // and it would invite them to keep trying. One screen, one way out.
+  if (suspension) {
+    return <SuspendedScreen suspension={suspension} onSignOut={auth.logout} />;
+  }
+
+  /* Signed in but unverified, or just signed up and not signed in at all.
+     Same screen either way - see the state declarations above for why they
+     are two variables. This one still replaces the app rather than sitting
+     over it: every authenticated control behind it is one the server
+     refuses, so showing them would be offering a wall of dead buttons.
+
+     The deliberately-opened panels (signup, login, forgot, reset) are the
+     opposite case and render as modals inside the app tree below. */
+  if (unverified || awaitingVerify) {
+    const pending = unverified || awaitingVerify;
+    return (
+      <UnverifiedScreen
+        email={pending.email}
+        onSignOut={Boolean(unverified)}
+        onUseDifferent={() => {
+          if (unverified) auth.logout();
+          setUnverified(null);
+          setAwaitingVerify(null);
+        }}
+      />
+    );
+  }
+
+
   return (
     <div className={"app" + (activeTab === "home" ? " app-home" : "")}>
       {/* One markup, two layouts. Above 720px `header.top` is the grid it has
@@ -29783,7 +31384,20 @@ function App() {
         </div>
       </header>
 
-      <TabBar activeTab={activeTab} onSelectTab={selectTab} />
+      {/* Sits above the tab bar rather than inside a tab, because the outcome
+          it reports is about the account, not about whatever page the link
+          happened to land on. Dismissed by hand only - it is one line and
+          auto-hiding it would lose the "that link expired" case for anyone
+          who looked away for four seconds. */}
+      {verifyResult && (
+        <VerifyBanner
+          status={verifyResult.status}
+          email={verifyResult.email}
+          onDismiss={() => setVerifyResult(null)}
+        />
+      )}
+
+      <TabBar activeTab={activeTab} onSelectTab={selectTab} liveCount={liveGameCount} />
 
       {activeTab === "home" && HOME_TAB_ENABLED && (
         auth.status === "in" ? (
@@ -29925,13 +31539,13 @@ function App() {
           profile came back needing acceptance. Only one can ever be up: the
           signup dialog belongs to a signed-out reader, the gate to a
           signed-in one. */}
-      {signupConsentOpen && !termsGate.open && (
+      {oauthConsentOpen && !termsGate.open && (
         <TermsConsentModal
-          mode="signup"
+          mode="oauth"
           busy={false}
           error={null}
-          onAccept={acceptSignupConsent}
-          onDecline={declineSignupConsent}
+          onAccept={acceptOauthConsent}
+          onDecline={declineOauthConsent}
         />
       )}
       {termsGate.open && (
@@ -29970,6 +31584,33 @@ function App() {
 
       {showTour && !TOUR_DISABLED_PENDING_REDESIGN && (
         <TutorialTour onClose={closeTour} setActiveTab={setActiveTab} />
+      )}
+
+      {/* The account panels, mounted alongside the app's other modals rather
+          than replacing the page. Whatever someone was reading when they
+          tapped "Create a free account" is still behind the card - which is
+          usually the thing that made them want an account in the first
+          place, and losing it was the whole problem with the full-page
+          version.
+
+          The reset panel is in here too even though it arrives from an email
+          link rather than a tap: it lands on the site root, so there is
+          always a page underneath, and dismissing it should put someone on
+          that page rather than nowhere. */}
+      {auth.authPanel === "signup" && (
+        <SignupPanel
+          auth={auth}
+          onNeedTermsConsent={requestOauthConsent}
+          onSignedUp={(result) => {
+            auth.closeAuthPanel();
+            setAwaitingVerify({ email: result.email });
+          }}
+        />
+      )}
+      {auth.authPanel === "login" && <LoginPanel auth={auth} />}
+      {auth.authPanel === "forgot" && <ForgotPanel auth={auth} />}
+      {resetToken && (
+        <ResetPanel auth={auth} token={resetToken} onDone={() => setResetToken(null)} />
       )}
     </div>
   );

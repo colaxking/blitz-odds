@@ -1,5 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { TERMS_VERSION } from "./lib/terms.mts";
 import { requireAdmin, listIdentityUsers, adminJson, forbidden, ADMIN_CORS, ADMIN_ROLE } from "./lib/admin.mts";
 import { NOTIF_STORE } from "./lib/notif.mts";
 
@@ -107,6 +108,20 @@ export default async (req: Request, context: Context) => {
           pushEnabled: Boolean(profile?.subscriptions?.length),
           prefs: prefs || null,
           subscriptionTier: profile?.subscriptionTier || "free",
+          /* Terms acceptance, read the same way user-profile.mts reads it and
+             in the same order: identity metadata first, then the profile
+             blob. auth-signup.mts stamps the version into user_metadata at
+             account creation, which happens before any profile blob exists,
+             so a brand new account has it in one place and not the other.
+             Reading only the blob would show every recent signup as never
+             having accepted. */
+          termsAcceptedVersion:
+            profile?.termsAcceptedVersion ?? u.user_metadata?.terms_accepted_version ?? null,
+          termsAcceptedAt:
+            profile?.termsAcceptedAt ?? u.user_metadata?.terms_accepted_at ?? null,
+          // The full audit trail, oldest first. Only ever written by
+          // user-profile.mts, and only appended to.
+          termsHistory: Array.isArray(profile?.termsHistory) ? profile.termsHistory : [],
           leagues: membershipsByUser.get(u.id) || [],
         };
       })
@@ -115,7 +130,10 @@ export default async (req: Request, context: Context) => {
     users.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     leagues.sort((a, b) => a.name.localeCompare(b.name));
 
-    return adminJson(200, { ok: true, users, leagues, actorId: actor.id });
+    /* Sent alongside the rows so the console can mark an account as being on
+       an OLD version without hardcoding the current one in the client - the
+       version lives in lib/terms.mts and the dashboard should follow it. */
+    return adminJson(200, { ok: true, users, leagues, actorId: actor.id, termsCurrentVersion: TERMS_VERSION });
   } catch (err) {
     return adminJson(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" });
   }

@@ -3125,9 +3125,43 @@
      refuses at every authenticated endpoint (see lib/auth.mts), so rendering
      the normal shell behind it would offer a wall of controls that silently
      fail. */
+  /* A modal over the app, not a page that replaces it.
+
+     These are things somebody opened on purpose from a page they were
+     already reading - a preview gate, a league CTA, the account menu - and
+     replacing the whole screen loses the thing that made them want an
+     account thirty seconds ago. It also breaks the back button's meaning:
+     "cancel" and "go back to the last page" become the same gesture when
+     they shouldn't be.
+
+     Deliberately NOT true of UnverifiedScreen or SuspendedScreen, which stay
+     full-screen. Those aren't things anyone opened; they're states the
+     server put the account in, where every control behind a modal would be
+     one the server refuses. */
   .authscreen {
-    min-height: 100vh; min-height: 100dvh; display: flex; align-items: center;
-    justify-content: center; padding: 24px 16px; box-sizing: border-box;
+    position: fixed; inset: 0; z-index: 1200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .authscreen-backdrop {
+    position: fixed; inset: 0; background: rgba(4,8,16,0.55); z-index: 1199;
+  }
+  /* Gated on the modal flag so the gate screens, which reuse .authcard, keep
+     their plain centred-on-the-page treatment. */
+  .authscreen.is-modal .authcard {
+    position: relative; z-index: 1201; margin: auto;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+  }
+  .authcard-close {
+    position: absolute; top: 10px; right: 10px; background: none; border: 0;
+    color: var(--text-dim); font-size: 1.35rem; line-height: 1; cursor: pointer;
+    padding: 6px 9px; border-radius: 8px;
+  }
+  .authcard-close:hover { color: var(--text); background: var(--surface-2); }
+  /* The gate screens keep the old full-page behaviour. */
+  .authscreen.is-page {
+    position: static; min-height: 100vh; min-height: 100dvh; z-index: auto; overflow: visible;
   }
   .authcard {
     width: 100%; max-width: 430px; background: var(--card-bg);
@@ -29374,6 +29408,54 @@ function getInitialTab(leaguesEnabled) {
 
 const AUTH_MIN_PASSWORD = 8;
 
+/* The overlay every deliberately-opened account screen sits in. One place
+   for backdrop dismissal, Escape, scroll lock and the close button, rather
+   than four panels each remembering three of the four.
+
+   `onClose` null renders it as a page instead (no backdrop, no dismissal) -
+   that's the confirm-your-email gate, which reuses the same card but must
+   not be dismissible, since dismissing it would reveal an app whose every
+   authenticated control the server refuses. */
+function AuthOverlay({ onClose, label, children }) {
+  useEffect(() => {
+    if (!onClose) return;
+    function onKey(e) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    // Locking the page behind a modal is what stops a phone scrolling the
+    // app under the card while someone types into it.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  if (!onClose) {
+    return <div className="authscreen is-page">{children}</div>;
+  }
+
+  return (
+    <div className="authscreen is-modal" role="dialog" aria-modal="true" aria-label={label}>
+      <div className="authscreen-backdrop" onClick={onClose} />
+      {children}
+    </div>
+  );
+}
+
+/* Corner dismiss. Separate from the Cancel button in the footer on purpose:
+   Cancel is the answer to "do you want to do this", the X is the answer to
+   "I opened this by accident", and on a phone they want to be in different
+   places. */
+function AuthCloseButton({ onClose }) {
+  if (!onClose) return null;
+  return (
+    <button type="button" className="authcard-close" aria-label="Close" onClick={onClose}>
+      {"\u00D7"}
+    </button>
+  );
+}
+
 /* Four segments, deliberately not a score out of ten. Length is doing most
    of the work and the bar should say so, rather than implying that adding a
    punctuation mark to "password1" has bought anything. */
@@ -29484,8 +29566,9 @@ function LoginPanel({ auth }) {
   }
 
   return (
-    <div className="authscreen">
+    <AuthOverlay onClose={auth.closeAuthPanel} label="Sign in">
       <div className="authcard">
+        <AuthCloseButton onClose={auth.closeAuthPanel} />
         <p className="auth-eyebrow">Welcome back</p>
         <h1 className="auth-title">Sign in.</h1>
 
@@ -29533,7 +29616,7 @@ function LoginPanel({ auth }) {
           </button>
         </p>
       </div>
-    </div>
+    </AuthOverlay>
   );
 }
 
@@ -29578,8 +29661,9 @@ function SignupPanel({ auth, onSignedUp }) {
   }
 
   return (
-    <div className="authscreen">
+    <AuthOverlay onClose={auth.closeAuthPanel} label="Create an account">
       <div className="authcard">
+        <AuthCloseButton onClose={auth.closeAuthPanel} />
         <p className="auth-eyebrow">Free account</p>
         <h1 className="auth-title">Start picking.</h1>
         <p className="auth-sub">Leagues, confidence rankings and game alerts. No card, no trial.</p>
@@ -29633,7 +29717,7 @@ function SignupPanel({ auth, onSignedUp }) {
           </button>
         </p>
       </div>
-    </div>
+    </AuthOverlay>
   );
 }
 
@@ -29674,7 +29758,9 @@ function UnverifiedScreen({ email, onSignOut, onUseDifferent }) {
   }
 
   return (
-    <div className="authscreen">
+    /* onClose null => rendered as a page, with no backdrop and no way to
+       dismiss. This is a gate, not something anyone opened. */
+    <AuthOverlay onClose={null} label="Confirm your email">
       <div className="authcard authcard-center">
         <div className="auth-icon">{"\u2709\uFE0F"}</div>
         <p className="auth-eyebrow">One more step</p>
@@ -29712,7 +29798,7 @@ function UnverifiedScreen({ email, onSignOut, onUseDifferent }) {
           </button>
         </div>
       </div>
-    </div>
+    </AuthOverlay>
   );
 }
 
@@ -29747,8 +29833,9 @@ function ForgotPanel({ auth }) {
 
   if (sent) {
     return (
-      <div className="authscreen">
+      <AuthOverlay onClose={auth.closeAuthPanel} label="Reset link sent">
         <div className="authcard authcard-center">
+          <AuthCloseButton onClose={auth.closeAuthPanel} />
           <div className="auth-icon">{"\uD83D\uDCE8"}</div>
           <h1 className="auth-title">Check your inbox.</h1>
           <p className="auth-sub">
@@ -29760,13 +29847,14 @@ function ForgotPanel({ auth }) {
             </button>
           </div>
         </div>
-      </div>
+      </AuthOverlay>
     );
   }
 
   return (
-    <div className="authscreen">
+    <AuthOverlay onClose={auth.closeAuthPanel} label="Forgot password">
       <div className="authcard">
+        <AuthCloseButton onClose={auth.closeAuthPanel} />
         <p className="auth-eyebrow">Password reset</p>
         <h1 className="auth-title">Can't get in?</h1>
         <p className="auth-sub">Give us the address on the account and we'll send a reset link.</p>
@@ -29790,7 +29878,7 @@ function ForgotPanel({ auth }) {
           </button>
         </div>
       </div>
-    </div>
+    </AuthOverlay>
   );
 }
 
@@ -29845,8 +29933,9 @@ function ResetPanel({ auth, token, onDone }) {
 
   if (dead) {
     return (
-      <div className="authscreen">
+      <AuthOverlay onClose={onDone} label="Reset link problem">
         <div className="authcard authcard-center">
+          <AuthCloseButton onClose={onDone} />
           <div className="auth-icon is-warn">{dead === "token_expired" ? "\u23F3" : "\u26A0\uFE0F"}</div>
           <h1 className="auth-title">
             {dead === "token_expired" ? "That link has expired." : "That link isn't valid."}
@@ -29862,13 +29951,17 @@ function ResetPanel({ auth, token, onDone }) {
             </button>
           </div>
         </div>
-      </div>
+      </AuthOverlay>
     );
   }
 
   return (
-    <div className="authscreen">
+    <AuthOverlay onClose={onDone} label="Set a new password">
       <div className="authcard">
+        {/* Dismissable, and safe to dismiss: consumeToken only fires on
+            submit, so closing this leaves the link in the email still
+            usable for its remaining hour. */}
+        <AuthCloseButton onClose={onDone} />
         <p className="auth-eyebrow">Password reset</p>
         <h1 className="auth-title">Choose a new password.</h1>
         <div className="auth-fields">
@@ -29888,7 +29981,7 @@ function ResetPanel({ auth, token, onDone }) {
           </button>
         </div>
       </div>
-    </div>
+    </AuthOverlay>
   );
 }
 
@@ -30758,24 +30851,14 @@ function App() {
     return <SuspendedScreen suspension={suspension} onSignOut={auth.logout} />;
   }
 
-  /* The reset link's own screen. Ahead of every other gate on purpose: someone
-     following a reset link may well be signed in as somebody else on this
-     device, or be locked out of an unverified account, and in both cases the
-     thing they clicked is the thing they should get. */
-  if (resetToken) {
-    return (
-      <ResetPanel
-        auth={auth}
-        token={resetToken}
-        onDone={() => setResetToken(null)}
-      />
-    );
-  }
-
   /* Signed in but unverified, or just signed up and not signed in at all.
      Same screen either way - see the state declarations above for why they
-     are two variables. Rendering the app behind this would show a shell
-     whose every authenticated control is refused server-side. */
+     are two variables. This one still replaces the app rather than sitting
+     over it: every authenticated control behind it is one the server
+     refuses, so showing them would be offering a wall of dead buttons.
+
+     The deliberately-opened panels (signup, login, forgot, reset) are the
+     opposite case and render as modals inside the app tree below. */
   if (unverified || awaitingVerify) {
     const pending = unverified || awaitingVerify;
     return (
@@ -30791,27 +30874,6 @@ function App() {
     );
   }
 
-  /* Our own account panels, in place of the widget's signup. Rendered as a
-     full screen rather than a modal over the app: on a phone the difference
-     is invisible, and it avoids a scroll-locked overlay on top of a tab bar
-     that would still be tappable underneath. */
-  if (auth.authPanel === "signup") {
-    return (
-      <SignupPanel
-        auth={auth}
-        onSignedUp={(result) => {
-          auth.closeAuthPanel();
-          setAwaitingVerify({ email: result.email });
-        }}
-      />
-    );
-  }
-  if (auth.authPanel === "login") {
-    return <LoginPanel auth={auth} />;
-  }
-  if (auth.authPanel === "forgot") {
-    return <ForgotPanel auth={auth} />;
-  }
 
   return (
     <div className={"app" + (activeTab === "home" ? " app-home" : "")}>
@@ -31038,6 +31100,32 @@ function App() {
 
       {showTour && !TOUR_DISABLED_PENDING_REDESIGN && (
         <TutorialTour onClose={closeTour} setActiveTab={setActiveTab} />
+      )}
+
+      {/* The account panels, mounted alongside the app's other modals rather
+          than replacing the page. Whatever someone was reading when they
+          tapped "Create a free account" is still behind the card - which is
+          usually the thing that made them want an account in the first
+          place, and losing it was the whole problem with the full-page
+          version.
+
+          The reset panel is in here too even though it arrives from an email
+          link rather than a tap: it lands on the site root, so there is
+          always a page underneath, and dismissing it should put someone on
+          that page rather than nowhere. */}
+      {auth.authPanel === "signup" && (
+        <SignupPanel
+          auth={auth}
+          onSignedUp={(result) => {
+            auth.closeAuthPanel();
+            setAwaitingVerify({ email: result.email });
+          }}
+        />
+      )}
+      {auth.authPanel === "login" && <LoginPanel auth={auth} />}
+      {auth.authPanel === "forgot" && <ForgotPanel auth={auth} />}
+      {resetToken && (
+        <ResetPanel auth={auth} token={resetToken} onDone={() => setResetToken(null)} />
       )}
     </div>
   );

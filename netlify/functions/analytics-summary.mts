@@ -694,6 +694,20 @@ export default async (req: Request, _context: Context) => {
     const verifyBlocks = validRecords.filter((r) => r.type === "verify_block").length;
     const verifyResends = validRecords.filter((r) => r.type === "verify_resend").length;
 
+    // Sign-in. The widget gave no visibility into this at all, so a rising
+    // failure rate - people who own an account and cannot get into it - was
+    // previously invisible. bad_credentials dominating is normal; offline or
+    // widget_fallback showing up at all is not.
+    const loginSubmits = validRecords.filter((r) => r.type === "login_submit").length;
+    const loginSuccesses = validRecords.filter((r) => r.type === "login_success").length;
+    const loginErrors = validRecords.filter((r) => r.type === "login_error");
+    const loginFunnel = {
+      submits: loginSubmits,
+      successes: loginSuccesses,
+      errors: loginErrors.length,
+      errorsByReason: sortedCounts(loginErrors, (r) => r.reason),
+    };
+
     // Password reset, ours now rather than GoTrue's.
     const resetFunnel = {
       requested: validRecords.filter((r) => r.type === "password_forgot_submit").length,
@@ -1012,6 +1026,7 @@ export default async (req: Request, _context: Context) => {
         accountDeleteFailuresByOutcome,
         suspendedBlocks,
         signupFunnel,
+        loginFunnel,
         verifyBlocks,
         verifyResends,
         resetFunnel,

@@ -597,6 +597,14 @@
             { name: "Hit the gate", value: d.verifyBlocks || 0 },
             { name: "Asked to resend", value: d.verifyResends || 0 }
           ], null, { empty: "Nobody blocked" }) },
+        { title: "Sign-in", sub: "Attempted vs. succeeded", html: (function () {
+            var l = d.loginFunnel || {};
+            return barListHtml([
+              { name: "Attempted", value: l.submits || 0 },
+              { name: "Signed in", value: l.successes || 0 }
+            ], null, { empty: "No sign-ins in range" });
+          })() },
+        { title: "Why a sign-in failed", sub: "Anything but bad_credentials is worth a look", html: barListHtml(relabel((d.loginFunnel || {}).errorsByReason, { bad_credentials: "Wrong email or password", offline: "Offline / no connection", widget_fallback: "Fell back to the Netlify widget" }), null, { empty: "No failed sign-ins" }) },
         { title: "Password reset", sub: "Requested \u2192 submitted \u2192 completed", html: (function () {
             var r = d.resetFunnel || {};
             return barListHtml([

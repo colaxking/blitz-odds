@@ -28841,7 +28841,21 @@ function useAuth() {
   // force a re-render as soon as their fetch lands right after mount. The
   // week schedule was effectively being loaded two or three times over,
   // with a visible flash back to "Loading…" in between.
-  const openLogin = useCallback(() => window.netlifyIdentity && window.netlifyIdentity.open("login"), []);
+  /* Both openLogin and openSignup now open our own screens rather than the
+     Netlify widget.
+
+     Signup had to move: the widget posts straight to GoTrue /signup, which
+     mails Netlify's unbranded confirmation from no-reply@netlify.com, and on
+     the Personal plan nothing restyles it.
+
+     Login moved for a subtler reason. Signing in sends no mail, so the
+     widget's login form was harmless in itself - but it carries a "Forgot
+     password?" link straight to GoTrue /recover, which mails Netlify's
+     unbranded RECOVERY template. Leaving the widget in place for login would
+     have left that one door open onto the exact mail this whole change
+     exists to stop sending, and it is the door people reach for at their
+     most frustrated. */
+  const openLogin = useCallback(() => setAuthPanel("login"), []);
 
   /* Signup no longer opens the widget. The widget posts straight to GoTrue
      /signup, which immediately mails Netlify's own unbranded confirmation
@@ -28870,11 +28884,24 @@ function useAuth() {
      form. */
   const signIn = useCallback(async (email, password) => {
     const identity = window.netlifyIdentity;
+    /* No gotrue client means a widget version bump or a blocked script. The
+       widget's own login form still works and still sends no mail, so
+       falling back to it costs nothing but a different-looking form - which
+       is a far better outcome than a sign-in button that does nothing. The
+       forgot-password link inside it is the one regression, and it only
+       appears in a case that shouldn't happen. */
     if (!identity || !identity.gotrue) {
-      if (identity) identity.open("login");
+      if (identity) {
+        setAuthPanel(null);
+        identity.open("login");
+      }
       throw new Error("WIDGET_FALLBACK");
     }
     const u = await identity.gotrue.login(email, password, true);
+    /* gotrue.login persists the session to the same storage
+       netlifyIdentity.currentUser() reads from, so authenticatedFetch keeps
+       working unchanged. What does NOT happen is the widget's own "login"
+       event, so the hook's state is set here by hand. */
     setUser(u);
     setStatus("in");
     setAuthPanel(null);
@@ -29361,7 +29388,7 @@ function authPasswordScore(v) {
   return score;
 }
 
-function AuthPasswordField({ id, label, value, onChange, autoComplete, meter }) {
+function AuthPasswordField({ id, label, value, onChange, autoComplete, meter, placeholder, onEnter }) {
   const [show, setShow] = useState(false);
   const score = meter ? authPasswordScore(value) : 0;
   return (
@@ -29373,8 +29400,13 @@ function AuthPasswordField({ id, label, value, onChange, autoComplete, meter }) 
           type={show ? "text" : "password"}
           value={value}
           autoComplete={autoComplete}
-          placeholder={"At least " + AUTH_MIN_PASSWORD + " characters"}
+          /* The signup and reset forms are setting a password and should say
+             what the rule is. The login form is recalling one that already
+             exists, where a minimum-length hint is noise at best and, for an
+             older account, actively wrong. */
+          placeholder={placeholder || "At least " + AUTH_MIN_PASSWORD + " characters"}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && onEnter) onEnter(); }}
         />
         <button
           type="button"
@@ -29403,6 +29435,106 @@ function AuthPasswordField({ id, label, value, onChange, autoComplete, meter }) 
           </p>
         </React.Fragment>
       )}
+    </div>
+  );
+}
+
+/* Sign in. Replaces the Netlify widget's login form - not because signing in
+   sends mail (it doesn't) but because the widget's form carries a "Forgot
+   password?" link straight to GoTrue /recover, which mails Netlify's own
+   unbranded recovery template. Our forgot link goes to ForgotPanel and
+   auth-forgot.mts instead.
+
+   GoTrue's error bodies are inconsistent across failure modes (error_description
+   on some, msg on others, plain text on a gateway hiccup), and none of them is
+   phrasing to show a person. Everything that isn't a network failure is
+   reported as bad credentials, which is what it almost always is - and saying
+   only that avoids confirming which half was wrong. */
+function LoginPanel({ auth }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const canSubmit = email.trim().length > 3 && password.length > 0 && !busy;
+
+  async function submit() {
+    if (!canSubmit) return;
+    setBusy(true);
+    setErr(null);
+    trackEvent("login_submit", {});
+    try {
+      await auth.signIn(email.trim(), password);
+      trackEvent("login_success", {});
+      // No navigation needed: setStatus("in") re-renders the app behind this
+      // panel and clears authPanel in the same update.
+    } catch (e) {
+      if (e && e.message === "WIDGET_FALLBACK") {
+        trackEvent("login_error", { reason: "widget_fallback" });
+        return;
+      }
+      const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+      setErr(
+        offline
+          ? "You appear to be offline. Check your connection and try again."
+          : "That email and password don't match an account."
+      );
+      trackEvent("login_error", { reason: offline ? "offline" : "bad_credentials" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="authscreen">
+      <div className="authcard">
+        <p className="auth-eyebrow">Welcome back</p>
+        <h1 className="auth-title">Sign in.</h1>
+
+        <div className="auth-fields">
+          <div className={"auth-field" + (err ? " has-err" : "")}>
+            <label htmlFor="li-email">Email</label>
+            <input
+              id="li-email" type="email" value={email} autoComplete="email"
+              placeholder="you@example.com"
+              onChange={(e) => { setEmail(e.target.value); if (err) setErr(null); }}
+              onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+            />
+          </div>
+          <div className={err ? "has-err" : ""}>
+            <AuthPasswordField
+              id="li-pass" label="Password" value={password}
+              onChange={(v) => { setPassword(v); if (err) setErr(null); }}
+              autoComplete="current-password"
+              placeholder="Your password"
+              onEnter={submit}
+            />
+          </div>
+        </div>
+
+        {err && <p className="auth-err">{err}</p>}
+
+        <div className="auth-actions">
+          <button type="button" className="auth-btn auth-btn-primary" disabled={!canSubmit} onClick={submit}>
+            {busy ? "Signing in\u2026" : "Sign in"}
+          </button>
+          <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.closeAuthPanel}>
+            Cancel
+          </button>
+        </div>
+
+        <p className="auth-alt">
+          <button type="button" className="auth-linkish" onClick={auth.openForgot}>
+            Forgot your password?
+          </button>
+        </p>
+        <p className="auth-alt">
+          No account yet?{" "}
+          <button type="button" className="auth-linkish" onClick={auth.openSignup}>
+            Create a free one
+          </button>
+        </p>
+      </div>
     </div>
   );
 }
@@ -29498,7 +29630,7 @@ function SignupPanel({ auth, onSignedUp }) {
 
         <p className="auth-alt">
           Already have one?{" "}
-          <button type="button" className="auth-linkish" onClick={() => { auth.closeAuthPanel(); auth.openLogin(); }}>
+          <button type="button" className="auth-linkish" onClick={auth.openLogin}>
             Sign in
           </button>
         </p>
@@ -29625,7 +29757,7 @@ function ForgotPanel({ auth }) {
             If there's an account with that address, a reset link is on its way. It expires in an hour.
           </p>
           <div className="auth-actions">
-            <button type="button" className="auth-btn auth-btn-ghost" onClick={() => { auth.closeAuthPanel(); auth.openLogin(); }}>
+            <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.openLogin}>
               Back to sign in
             </button>
           </div>
@@ -29655,8 +29787,8 @@ function ForgotPanel({ auth }) {
           <button type="button" className="auth-btn auth-btn-primary" disabled={!email.trim() || busy} onClick={submit}>
             {busy ? "Sending\u2026" : "Send reset link"}
           </button>
-          <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.closeAuthPanel}>
-            Back
+          <button type="button" className="auth-btn auth-btn-ghost" onClick={auth.openLogin}>
+            Back to sign in
           </button>
         </div>
       </div>
@@ -30675,6 +30807,9 @@ function App() {
         }}
       />
     );
+  }
+  if (auth.authPanel === "login") {
+    return <LoginPanel auth={auth} />;
   }
   if (auth.authPanel === "forgot") {
     return <ForgotPanel auth={auth} />;

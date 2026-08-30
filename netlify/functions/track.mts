@@ -104,6 +104,13 @@ const VALID_TYPES = new Set([
   "password_reset_submit",
   "password_reset_success",
   "password_reset_error",
+  // Sign-in, now that the login form is ours rather than the widget's. The
+  // ratio that matters is submits to successes: the widget gave no visibility
+  // into failed sign-ins at all, so a rise in people who cannot get into an
+  // account they own was previously invisible.
+  "login_submit",
+  "login_success",
+  "login_error",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -405,7 +412,7 @@ export default async (req: Request, context: Context) => {
     // (email_taken, weak_password, token_expired, network...) - never a
     // message and never anything the user typed, so nothing here can carry
     // an address or a password into the analytics store.
-    if (type === "signup_error" || type === "password_reset_error") {
+    if (type === "signup_error" || type === "password_reset_error" || type === "login_error") {
       if (typeof reason === "string" && reason) record.reason = reason.slice(0, 32);
     }
     // Whether the confirmation mail actually went out. A signup that

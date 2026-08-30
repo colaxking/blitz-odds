@@ -604,6 +604,14 @@
               { name: "Signed in", value: l.successes || 0 }
             ], null, { empty: "No sign-ins in range" });
           })() },
+        { title: "Google sign-in", sub: "Times the provider button was used, by screen", html: barListHtml((function () {
+            var o = d.oauth || {};
+            var s = o.bySurface || {};
+            var rows = Object.keys(s).map(function (k) {
+              return { name: k === "login" ? "From sign-in" : k === "signup" ? "From create account" : k, value: s[k] };
+            });
+            return rows;
+          })(), null, { empty: "Not used in this range" }) },
         { title: "Why a sign-in failed", sub: "Anything but bad_credentials is worth a look", html: barListHtml(relabel((d.loginFunnel || {}).errorsByReason, { bad_credentials: "Wrong email or password", offline: "Offline / no connection", widget_fallback: "Fell back to the Netlify widget" }), null, { empty: "No failed sign-ins" }) },
         { title: "Password reset", sub: "Requested \u2192 submitted \u2192 completed", html: (function () {
             var r = d.resetFunnel || {};

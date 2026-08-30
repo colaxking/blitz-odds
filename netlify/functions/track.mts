@@ -111,6 +111,12 @@ const VALID_TYPES = new Set([
   "login_submit",
   "login_success",
   "login_error",
+  // Leaving for an external provider's consent screen. There is no matching
+  // "oauth_success": the round trip reloads the page, so the return shows up
+  // as an ordinary session rather than anything this file can pair with the
+  // start. What it does measure is demand - how many people reach for the
+  // Google button rather than the email form, on each screen.
+  "oauth_start",
 ]);
 
 // Coarse buckets sent by js/analytics.js's UA-based detectDeviceType().
@@ -232,7 +238,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage, outcome, state, reason, emailSent } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, open, stage, outcome, state, reason, emailSent, provider } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -401,8 +407,11 @@ export default async (req: Request, context: Context) => {
     // need to be told apart from it), and on completion `outcome` separates
     // a success from the two failures worth knowing about - a mistyped
     // confirmation, and the endpoint itself erroring after the data sweep.
-    if (type === "account_delete_start" || type === "account_delete_complete") {
+    if (type === "account_delete_start" || type === "account_delete_complete" || type === "oauth_start") {
       if (typeof surface === "string" && surface) record.surface = surface.slice(0, 32);
+    }
+    if (type === "oauth_start") {
+      if (typeof provider === "string" && provider) record.provider = provider.slice(0, 32);
     }
     if (type === "account_delete_complete") {
       if (typeof outcome === "string" && outcome) record.outcome = outcome.slice(0, 32);

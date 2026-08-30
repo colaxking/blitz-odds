@@ -22,6 +22,8 @@ export interface AuthClaims {
   };
   app_metadata?: {
     roles?: string[];
+    /** "email" for a password signup, "google"/"github"/etc for OAuth. */
+    provider?: string;
     /** Set by admin-user-update's "set-suspended" action. See below. */
     suspended?: boolean;
     suspendedAt?: string;
@@ -127,6 +129,19 @@ export const VERIFY_ENFORCED_FROM = Date.parse("2026-08-30T00:00:00Z");
 export function isUnverified(claims: AuthClaims | null): boolean {
   if (!claims) return false;
   if (claims.user_metadata?.email_verified === true) return false;
+
+  // An external-provider signup is already verified, by someone with far
+  // better standing to verify it than us: Google confirmed the address
+  // before handing it over, and GoTrue sends no confirmation email for these
+  // at all. Without this, every Google signup would be created successfully
+  // and then refused by all ~20 endpoints, staring at a "confirm your email"
+  // screen for a message that was never sent and never will be.
+  //
+  // provider is "email" for a password signup (ours included, since
+  // auth-signup.mts creates through /admin/users). Anything else came from
+  // an OAuth round trip.
+  const provider = claims.app_metadata?.provider;
+  if (provider && provider !== "email") return false;
 
   const created = claims.created_at ? Date.parse(claims.created_at) : NaN;
   // Unparseable or absent created_at: fail OPEN. A date GoTrue didn't send

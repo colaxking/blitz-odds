@@ -3237,6 +3237,26 @@
   .auth-btn-ghost:hover { color: var(--text); border-color: rgba(var(--accent-rgb),0.4); }
   .auth-alt { margin: 16px 0 0; font-size: 0.8rem; color: var(--text-dim); text-align: center; }
 
+  /* Provider button. Neutral surface rather than Google's white-on-white or
+     their dark variant, so one treatment reads correctly in both themes -
+     the mark itself keeps its own colours, which is the part their
+     guidelines actually pin down. */
+  .auth-btn-provider {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--surface-2); border-color: var(--card-border); color: var(--text);
+    margin-top: 18px;
+  }
+  .auth-btn-provider:hover { border-color: rgba(var(--accent-rgb),0.45); }
+  .auth-btn-provider svg { flex: 0 0 auto; }
+
+  .auth-divider {
+    display: flex; align-items: center; gap: 12px; margin: 16px 0 0;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim);
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: ""; flex: 1; height: 1px; background: var(--card-border);
+  }
+
   .auth-addr {
     display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.8rem; background: var(--surface-2); border: 1px solid var(--card-border);
@@ -28940,6 +28960,33 @@ function useAuth() {
     return u;
   }, []);
 
+  /* Starts an external-provider sign-in by leaving the site for the
+     provider's consent screen.
+
+     There is no promise to await here - the page navigates away and comes
+     back with #access_token= in the hash, which the Netlify widget picks up
+     on its next init() and turns into a "login" event. useAuth is already
+     listening for that (see onLogin above), so the return trip needs no code
+     of its own.
+
+     GoTrue does not send a confirmation email for these, and never sets our
+     email_verified flag - the gate in lib/auth.mts passes them on
+     app_metadata.provider instead. Google verified the address before
+     handing it over, which is better standing than our own emailed link. */
+  const signInWithProvider = useCallback((provider) => {
+    const identity = window.netlifyIdentity;
+    if (!identity || !identity.gotrue) {
+      // No gotrue client: fall back to the widget, which has its own
+      // provider buttons for whatever is enabled on the site.
+      if (identity) {
+        setAuthPanel(null);
+        identity.open("login");
+      }
+      return;
+    }
+    window.location.href = identity.gotrue.loginExternalUrl(provider);
+  }, []);
+
   /* Re-reads the current user from GoTrue. Called after email confirmation
      so the freshly-set email_verified flag lands in the session without a
      full reload - the JWT itself doesn't carry it (lib/auth.mts reads
@@ -28979,12 +29026,12 @@ function useAuth() {
     () => ({
       status, user, authPanel,
       openLogin, openSignup, openForgot, openResetPanel, closeAuthPanel,
-      signIn, refreshUser, logout, authenticatedFetch,
+      signIn, signInWithProvider, refreshUser, logout, authenticatedFetch,
     }),
     [
       status, user, authPanel,
       openLogin, openSignup, openForgot, openResetPanel, closeAuthPanel,
-      signIn, refreshUser, logout, authenticatedFetch,
+      signIn, signInWithProvider, refreshUser, logout, authenticatedFetch,
     ]
   );
 }
@@ -29468,6 +29515,47 @@ function authPasswordScore(v) {
   return score;
 }
 
+/* Google's own mark, inline rather than an <img>, so it inherits nothing and
+   loads with the rest of the page. The four brand colours are fixed by
+   Google's guidelines and deliberately not theme tokens - a recoloured G is
+   a misused logo. */
+function GoogleMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2 5-4.4 6.6v5.5h7.1c4.1-3.8 6.6-9.4 6.6-16.1z" />
+      <path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.5-3.8-12.2-9H4.5v5.7C8.1 41.1 15.4 46 24 46z" />
+      <path fill="#FBBC05" d="M11.8 28.2c-.4-1.3-.7-2.7-.7-4.2s.2-2.9.7-4.2v-5.7H4.5C3 17.1 2.1 20.4 2.1 24s.9 6.9 2.4 9.9l7.3-5.7z" />
+      <path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 29.9 2 24 2 15.4 2 8.1 6.9 4.5 14.1l7.3 5.7c1.7-5.2 6.5-9 12.2-9z" />
+    </svg>
+  );
+}
+
+/* The provider block that sits above the email fields on both the sign-in and
+   the create-account panels.
+
+   Above rather than below, and on both screens, because "continue with
+   Google" is the same single act either way - the person doing it neither
+   knows nor cares whether they already have an account, and making them pick
+   the right screen first is asking a question only our database can answer. */
+function AuthProviderBlock({ auth, context }) {
+  return (
+    <React.Fragment>
+      <button
+        type="button"
+        className="auth-btn auth-btn-provider"
+        onClick={() => {
+          trackEvent("oauth_start", { provider: "google", surface: context });
+          auth.signInWithProvider("google");
+        }}
+      >
+        <GoogleMark />
+        <span>Continue with Google</span>
+      </button>
+      <div className="auth-divider"><span>or</span></div>
+    </React.Fragment>
+  );
+}
+
 function AuthPasswordField({ id, label, value, onChange, autoComplete, meter, placeholder, onEnter }) {
   const [show, setShow] = useState(false);
   const score = meter ? authPasswordScore(value) : 0;
@@ -29572,6 +29660,8 @@ function LoginPanel({ auth }) {
         <p className="auth-eyebrow">Welcome back</p>
         <h1 className="auth-title">Sign in.</h1>
 
+        <AuthProviderBlock auth={auth} context="login" />
+
         <div className="auth-fields">
           <div className={"auth-field" + (err ? " has-err" : "")}>
             <label htmlFor="li-email">Email</label>
@@ -29667,6 +29757,8 @@ function SignupPanel({ auth, onSignedUp }) {
         <p className="auth-eyebrow">Free account</p>
         <h1 className="auth-title">Start picking.</h1>
         <p className="auth-sub">Leagues, confidence rankings and game alerts. No card, no trial.</p>
+
+        <AuthProviderBlock auth={auth} context="signup" />
 
         <div className="auth-fields">
           <div className="auth-field">

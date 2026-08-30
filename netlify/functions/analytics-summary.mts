@@ -708,6 +708,18 @@ export default async (req: Request, _context: Context) => {
       errorsByReason: sortedCounts(loginErrors, (r) => r.reason),
     };
 
+    // External-provider sign-in. Only the START is recorded - the consent
+    // round trip reloads the page, so a return arrives as an ordinary
+    // session with nothing tying it back. What this answers is demand: how
+    // many people reach for Google rather than the email form, and from
+    // which screen.
+    const oauthStarts = validRecords.filter((r) => r.type === "oauth_start");
+    const oauth = {
+      starts: oauthStarts.length,
+      byProvider: sortedCounts(oauthStarts, (r) => r.provider),
+      bySurface: sortedCounts(oauthStarts, (r) => r.surface),
+    };
+
     // Password reset, ours now rather than GoTrue's.
     const resetFunnel = {
       requested: validRecords.filter((r) => r.type === "password_forgot_submit").length,
@@ -1027,6 +1039,7 @@ export default async (req: Request, _context: Context) => {
         suspendedBlocks,
         signupFunnel,
         loginFunnel,
+        oauth,
         verifyBlocks,
         verifyResends,
         resetFunnel,

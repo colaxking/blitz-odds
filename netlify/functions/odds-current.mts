@@ -12,7 +12,7 @@ const STORE_NAME = "blitz-odds-live";
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, x-odds-update-secret",
 };
 
 function jsonResponse(status: number, body: unknown) {
@@ -45,9 +45,20 @@ export default async (req: Request, _context: Context) => {
   const url = new URL(req.url);
   const type = url.searchParams.get("type") === "history" ? "history" : "odds";
 
+  // Blobs reads are eventually consistent by default, which is exactly what
+  // the public site wants - it polls this endpoint constantly and a few
+  // seconds of lag on a line change costs nothing. odds-refresh needs the
+  // opposite: it reads this back immediately after publishing to confirm the
+  // write landed, and an eventually-consistent read there reports a stale
+  // doc for 15-20s and fails a publish that actually succeeded. So a strong
+  // read is opt-in, and gated behind the same secret that authorises writes
+  // in odds-update - otherwise any caller could force the expensive path.
+  const expectedSecret = process.env.ODDS_UPDATE_SECRET;
+  const strong = !!expectedSecret && req.headers.get("x-odds-update-secret") === expectedSecret;
+
   try {
     const store = getStore(STORE_NAME);
-    const doc = await store.get(type, { type: "json" });
+    const doc = await store.get(type, { type: "json", ...(strong ? { consistency: "strong" as const } : {}) });
     if (doc) {
       return jsonResponse(200, doc);
     }

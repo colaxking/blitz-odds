@@ -114,8 +114,8 @@ export default async (req: Request, _context: Context) => {
   // answers a background function with 202 before this code runs, so the
   // caller never sees this status. See indexnow-submit.mts's header.
   const expectedSecret = process.env.INDEXNOW_SECRET;
-  const provided = req.headers.get("x-indexnow-secret");
-  if (!expectedSecret || !provided || provided !== expectedSecret) {
+  const provided = req.headers.get("x-indexnow-secret")?.trim();
+  if (!expectedSecret || !provided || provided !== expectedSecret.trim()) {
     return jsonResponse(401, { ok: false, error: "Missing or invalid x-indexnow-secret header" });
   }
 

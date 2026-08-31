@@ -32,9 +32,24 @@ export default async (req: Request, _context: Context) => {
   if (!expectedSecret) {
     return jsonResponse(500, { ok: false, error: "INDEXNOW_SECRET is not set on this site" });
   }
-  const provided = req.headers.get("x-indexnow-secret");
-  if (!provided || provided !== expectedSecret) {
-    return jsonResponse(401, { ok: false, error: "Missing or invalid x-indexnow-secret header" });
+  // Trimmed on both sides. A secret with meaningful leading or trailing
+  // whitespace is not a thing anyone intends, and copying a value between a
+  // dashboard and a cron scheduler picks up a stray space or newline very
+  // easily - especially on mobile, where the invisible character and the
+  // correct value look identical in both UIs.
+  const provided = req.headers.get("x-indexnow-secret")?.trim();
+  if (!provided || provided !== expectedSecret.trim()) {
+    // Says WHY, because "401" alone can't distinguish "the header never
+    // arrived" from "it arrived and didn't match" - and those have
+    // completely different fixes. Reports the received length but never the
+    // expected one: enough for the operator, who knows what they pasted, to
+    // spot a truncation or a stray character; nothing useful to anyone else.
+    return jsonResponse(401, {
+      ok: false,
+      error: "Missing or invalid x-indexnow-secret header",
+      headerPresent: provided !== undefined,
+      receivedLength: provided?.length ?? 0,
+    });
   }
 
   const missing = REQUIRED_ENV.filter((k) => !process.env[k]);

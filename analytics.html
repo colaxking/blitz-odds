@@ -526,6 +526,42 @@
     }).join("") + "</div>";
   }
 
+  /* The tour funnel. Deliberately not barListHtml: that caps at 8 rows,
+     ranks by count, and drops zeros, and all three are wrong for a funnel
+     whose whole point is the sequence and the step that fell off a cliff.
+     Bars are scaled against the first step rather than the largest, so the
+     row widths read as "share of runs that got this far" directly. A step
+     with a real skip count gets it shown inline - that's the difference
+     between people leaving at a step and people drifting away after it. */
+  function tourFunnelHtml(d) {
+    var views = d.tourStepViews || {};
+    var skips = d.tourSkips || {};
+    var names = Object.keys(views);
+    if (!names.length) return '<div class="empty">No tour runs in this range yet</div>';
+    var start = views[names[0]] || 0;
+    if (!start) return '<div class="empty">No tour runs in this range yet</div>';
+    var labels = {
+      "welcome": "Welcome", "game-type": "Format switcher", "matchup-teams": "The matchup",
+      "combo-row": "Blitz Edge read", "odds-ml": "Market numbers",
+      "full-details-toggle": "Full Details", "blitz-edge-writeup": "Edge write-up",
+      "stat-compare": "Team rankings", "injury-notes": "Injuries",
+      "add-to-league": "Add to League", "follow-game": "Alert me",
+      "team-crest": "Team pages", "team-schedule": "Team schedule",
+      "team-roster": "Team roster", "live-scoring": "Live scores",
+      "box-scores": "Box scores", "tab-picks": "Playbook", "account-menu": "Settings"
+    };
+    var rows = names.map(function (k) {
+      var v = views[k] || 0, sk = skips[k] || 0;
+      var pct = Math.round((v / start) * 100);
+      var sub = pct + "% of runs" + (sk ? " · " + fmtNum(sk) + " left here" : "");
+      return '<div class="bar-row"><div class="bname">' + esc(labels[k] || titleSlug(k)) + "</div>" +
+        '<div class="bsub">' + esc(sub) + "</div>" +
+        '<div class="brow-bottom"><div class="bar-track"><div class="bar-fill" style="width:' +
+        Math.max(2, pct) + '%"></div></div><div class="bval">' + fmtNum(v) + "</div></div></div>";
+    }).join("");
+    return '<div class="bar-list long">' + rows + "</div>";
+  }
+
   function cityTableHtml(cities) {
     var top = (cities || []).slice(0, 8);
     if (!top.length) return '<div class="empty">No location data yet</div>';
@@ -573,6 +609,7 @@
         { title: "Gate CTA clicks", sub: "The conversion event", html: barListHtml(d.gateCtaClicks) },
         { title: "Gate CTA by surface", sub: "Sign-in wall vs. Pro gate", html: barListHtml(relabel(d.gateCtaBySurface, { signin: "Sign-in wall", pro: "Pro gate" })) },
         { title: "Gate CTA by section", sub: "Which gate earns the signup", html: barListHtml(relabel(d.gateCtaBySection, { playbook: "Playbook", edge_writeup: "Blitz Edge write-up", odds_compare: "Compare Sportsbooks", past_matchups: "Past Matchups", boxscore: "Full box score" })) },
+        { title: "Tour funnel", sub: (d.tourStarts || 0) ? fmtNum(d.tourStarts) + " runs started · " + fmtNum(d.tourCompletions || 0) + " finished (" + (d.tourCompletionRate == null ? "–" : d.tourCompletionRate + "%") + ")" : "First-run tour, step by step", html: tourFunnelHtml(d) },
         { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" },
         { title: "Terms consent before Google", sub: "What the interstitial costs the OAuth route", html: termsOauthHtml(d) },
         { title: "Blocking terms gate", sub: "Accounts stopped until they accept the current terms", html: termsGateHtml(d) },
@@ -1014,6 +1051,7 @@
       gameFollowAdds: 0, gameFollowRemoves: 0, gameFollowsByGame: {},
       gameFollowAddsInProgress: 0, gameFollowAddsScheduled: 0,
       playbookSubtabViews: {}, playbookFormatViews: {},
+      tourStepViews: {}, tourSkips: {}, tourStarts: 0, tourCompletions: 0, tourCompletionRate: null,
       gateCtaClicks: {}, gateCtaBySurface: {}, bookCompareOpens: 0,
       termsConsentActions: {}, termsSignupChecked: 0, termsOauthPrompts: 0, termsOauthAccepted: 0, termsOauthAcceptRate: null,
       termsGateShown: 0, termsGateAccepted: 0, termsGateSignouts: 0,

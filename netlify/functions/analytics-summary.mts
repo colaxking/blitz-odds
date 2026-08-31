@@ -108,6 +108,12 @@ type EventRecord = {
   action?: string;
   surface?: string;
   section?: string;
+  /* Tour events: the step id, and its 1-based place in the run as that
+     reader actually saw it. The two can disagree - steps whose target
+     isn't on the page are skipped without rendering - so the id is what
+     the funnel groups by and the index only says how far someone got. */
+  step?: string;
+  index?: number;
 };
 
 type SessionRecord = {
@@ -270,6 +276,52 @@ function capTop(obj: Record<string, number>, n = TOP_N): Record<string, number> 
     out[k] = obj[k];
   }
   return out;
+}
+
+/* The tour's own step order. Duplicated from track.mts's VALID_TOUR_STEPS
+   (and from index.html's TOUR_STEPS before it) rather than imported,
+   because these are three separate deploy units and a shared module would
+   couple the dashboard's build to the ingest function's. The cost of the
+   duplication is that adding a tour step means touching all three; the
+   failure mode if that's forgotten is a step missing from the funnel
+   chart, not a dropped event - track.mts is the one that gates. */
+const TOUR_STEP_ORDER = [
+  "welcome",
+  "game-type",
+  "matchup-teams",
+  "combo-row",
+  "odds-ml",
+  "full-details-toggle",
+  "blitz-edge-writeup",
+  "stat-compare",
+  "injury-notes",
+  "add-to-league",
+  "follow-game",
+  "team-crest",
+  "team-schedule",
+  "team-roster",
+  "live-scoring",
+  "box-scores",
+  "tab-picks",
+  "account-menu",
+];
+
+/* Like sortedCounts, but holds a fixed sequence instead of ranking by
+   count, and keeps zero rows. A funnel with the biggest bar first is
+   unreadable as a funnel, and a step that dropped to zero is the single
+   most interesting row in it - both of which sortedCounts would destroy. */
+function orderedCounts(
+  records: EventRecord[],
+  keyFn: (r: EventRecord) => string | undefined,
+  order: string[]
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+  order.forEach((k) => { counts[k] = 0; });
+  records.forEach((r) => {
+    const k = keyFn(r);
+    if (k && Object.prototype.hasOwnProperty.call(counts, k)) counts[k] += 1;
+  });
+  return counts;
 }
 
 function sortedCounts(records: EventRecord[], keyFn: (r: EventRecord) => string | undefined): Record<string, number> {
@@ -637,6 +689,32 @@ export default async (req: Request, _context: Context) => {
     // the same curve, so the order here transfers to a paid tier and the
     // absolute numbers do not.
     const gateCtaBySection = sortedCounts(gateCtas, (r) => r.section);
+
+    /* --- the first-run tour. Ordered by the tour's own sequence rather
+       than by count, because the shape that matters is the drop from one
+       step to the next: a step that halves is where the tour is too long,
+       and everything after it is being read by a fraction of the accounts
+       that started. Skips are counted at the step abandoned, so the two
+       lists read together - a big skip count at a step whose view count
+       barely fell means people left there deliberately rather than
+       drifting off. Completion rate is against tour_step at "welcome",
+       which every run shows, rather than against account creations, since
+       an account that never reaches the week view never starts a tour. --- */
+    const tourStepViews = orderedCounts(
+      validRecords.filter((r) => r.type === "tour_step"),
+      (r) => r.step,
+      TOUR_STEP_ORDER
+    );
+    const tourSkips = orderedCounts(
+      validRecords.filter((r) => r.type === "tour_skip"),
+      (r) => r.step,
+      TOUR_STEP_ORDER
+    );
+    const tourStarts = tourStepViews["welcome"] || 0;
+    const tourCompletions = validRecords.filter((r) => r.type === "tour_complete").length;
+    const tourCompletionRate = tourStarts
+      ? Math.round((tourCompletions / tourStarts) * 100)
+      : null;
 
     // --- terms consent. Two funnels, for the two routes that need one.
     // The email form's checkbox is inline, so signup_checked against
@@ -1068,6 +1146,11 @@ export default async (req: Request, _context: Context) => {
         gateCtaClicks,
         gateCtaBySurface,
         gateCtaBySection,
+        tourStepViews,
+        tourSkips,
+        tourStarts,
+        tourCompletions,
+        tourCompletionRate,
         termsConsentActions,
         termsSignupChecked,
         termsOauthPrompts,

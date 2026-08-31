@@ -127,7 +127,49 @@ const VALID_TYPES = new Set([
   // re-consent screen; a spike in gate_signout after a TERMS_VERSION bump
   // is a terms change losing accounts, which is otherwise invisible.
   "terms_consent",
+  // The first-run tour, which has never been measured. tutorialSeen is set
+  // whether someone read every step or skipped the first one, so the only
+  // thing observable until now was that the tour had happened. tour_step
+  // fires once per step actually shown, tour_skip once at the step someone
+  // abandoned, tour_complete when the last step's Done is pressed - the
+  // drop between consecutive step ids is what decides how long the tour
+  // should be. A step id missing entirely means its target wasn't on the
+  // page for those readers (the live-scoring and box-score steps have no
+  // real target the week before kickoff), not that nobody got that far.
+  "tour_step",
+  "tour_skip",
+  "tour_complete",
 ]);
+
+// Step ids from index.html's TOUR_STEPS. Allowlisted rather than passed
+// through, same as VALID_TERMS_ACTIONS: an unbounded `step` dimension would
+// let a spoofed body invent rows in the dashboard's funnel list. Adding a
+// step to the tour means adding it here, and the order below is the tour's
+// own order so the dashboard can render the funnel without re-sorting.
+const VALID_TOUR_STEPS = [
+  "welcome",
+  "game-type",
+  "matchup-teams",
+  "combo-row",
+  "odds-ml",
+  "full-details-toggle",
+  "blitz-edge-writeup",
+  "stat-compare",
+  "injury-notes",
+  "add-to-league",
+  "follow-game",
+  "team-crest",
+  "team-schedule",
+  "team-roster",
+  "live-scoring",
+  "box-scores",
+  "tab-picks",
+  "account-menu",
+  // tour_complete's own marker, so the completion row sorts after the last
+  // real step rather than being dropped for not matching one.
+  "done",
+];
+const VALID_TOUR_STEP_SET = new Set(VALID_TOUR_STEPS);
 
 // Steps in the terms acceptance flow (see index.html's TermsConsentModal
 // and the checkbox in SignupPanel). Allowlisted rather than passed through
@@ -278,7 +320,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -379,6 +421,18 @@ export default async (req: Request, context: Context) => {
       if (state === "scheduled" || state === "started" || state === "live") {
         record.gameState = state;
       }
+    }
+
+    // Tour position. `step` is the id, `index` its 1-based place in the run
+    // as it was actually assembled - the two can disagree, because a step
+    // whose target isn't on the page is skipped, so index 9 is not always
+    // the same step for every reader. Both are kept: the id is what the
+    // funnel groups by, the index is what says how many screens someone
+    // sat through before leaving.
+    if (type === "tour_step" || type === "tour_skip" || type === "tour_complete") {
+      if (typeof step === "string" && VALID_TOUR_STEP_SET.has(step)) record.step = step;
+      const n = Number(index);
+      if (Number.isFinite(n) && n >= 1 && n <= 40) record.index = Math.round(n);
     }
 
     if (type === "playbook_subtab" && subtab) {

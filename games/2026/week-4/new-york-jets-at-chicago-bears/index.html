@@ -32753,11 +32753,16 @@ function AccountButton({ auth, profile, onOpenLeagues, onOpenSettings, onOpenHow
             <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenHowItWorks(); }}>
               How this works
             </button>
-            {!TOUR_DISABLED_PENDING_REDESIGN && (
-              <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onReplayTour(); }}>
-                Replay tutorial
-              </button>
-            )}
+            {/* No "Replay tutorial" in the signed-out menu, unlike the
+                signed-in one below. The tour is written for somebody with an
+                account - it opens with "You're in", nine of its steps
+                explain Add to League, the per-game bell, the full write-up
+                and Playbook, and the write-up step's `when` skips itself
+                without full access - so a signed-out run is a degraded
+                version of a tour addressed to the wrong reader. This item
+                reappeared on its own when TOUR_DISABLED_PENDING_REDESIGN
+                flipped to false, which is why it's spelled out here rather
+                than simply omitted. */}
             <button type="button" className="account-dropdown-item" onClick={() => { setOpen(false); onOpenSettings(); }}>
               Settings
             </button>
@@ -35326,6 +35331,10 @@ function App() {
 
   function replayTour() {
     if (TOUR_DISABLED_PENDING_REDESIGN) return;
+    // Belt and braces with the menu item's own visibility check: the tour
+    // assumes an account throughout, and this is reachable from a second
+    // surface if one is ever added.
+    if (auth.status !== "in") return;
     // A manual replay (from the account menu's "Replay tutorial") should
     // work regardless of which tab/view someone's currently on, so jump
     // back to the Games/week view first - the tour's own steps handle

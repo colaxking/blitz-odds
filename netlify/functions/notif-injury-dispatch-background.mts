@@ -103,7 +103,7 @@ export default async (req: Request, _context: Context) => {
 
   const report: any = {
     ok: true, at: now.toISOString(), dryRun,
-    fetched: 0, changes: [], alerts: { sent: 0, outcomes: {} }, queued: 0, errors: [],
+    fetched: 0, changes: [], alerts: { sent: 0, outcomes: {} }, queued: 0, skippedDismissed: [], errors: [],
   };
 
   try {
@@ -175,6 +175,33 @@ export default async (req: Request, _context: Context) => {
       if (!c.tracked && !isCandidate) continue;
 
       const ours = curated.get(c.e.id);
+      // The alert path above already refuses to fire twice for the same
+      // `{espnId}:{to}` (the evt ledger inside deliverAlert). The queue had no
+      // equivalent, and it needs one: `id` collapses to `{espnId}:{to}`
+      // whenever ESPN gives no injuryId, so a player who bounces
+      // questionable -> active -> questionable lands back on a key he has
+      // already been on. A blind setJSON writes a fresh object with no
+      // `resolved` field, which silently undoes a dismissal and puts him back
+      // in the queue looking brand new. Dan ignores him again, ESPN flips him
+      // again, and the row never stays gone.
+      //
+      // Three things have to line up before a repeat is treated as a repeat:
+      //   - the row was dismissed by hand, not folded away by collapseRepeats
+      //     (a superseded row's `to` is stale by definition, so a change back
+      //     to it is real news and must re-open);
+      //   - ESPN is asking for the same destination status as last time;
+      //   - the curated file still says what it said when it was dismissed -
+      //     if Dan has since changed his own call, the same ESPN report is a
+      //     different question and deserves asking again.
+      const key = reviewKey(`${c.e.id}:${c.e.injuryId || c.to}`);
+      const existing = (await store.get(key, { type: "json" })) as
+        (ReviewItem & { supersededBy?: string }) | null;
+      const dismissedByHand = !!existing && existing.resolved === true && !existing.supersededBy;
+      if (dismissedByHand && existing!.to === c.to && (existing!.ours ?? null) === (ours ? ours.status : null)) {
+        report.skippedDismissed.push(`${c.e.name} (${c.e.team}) → ${c.to}`);
+        continue;
+      }
+
       const item: ReviewItem = {
         id: `${c.e.id}:${c.e.injuryId || c.to}`,
         espnId: c.e.id,
@@ -192,7 +219,7 @@ export default async (req: Request, _context: Context) => {
         reportedAt: c.e.date,
         seenAt: now.toISOString(),
       };
-      if (!dryRun) await store.setJSON(reviewKey(item.id), item);
+      if (!dryRun) await store.setJSON(key, item);
       report.queued++;
     }
 

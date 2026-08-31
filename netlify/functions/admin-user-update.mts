@@ -12,12 +12,14 @@ import { USER_STORE, getPrefs, setPrefs } from "./lib/notif.mts";
 //   { userId, action: "set-name",      value: "New Name" }
 //   { userId, action: "set-prefs",     value: { ...partial NotifPrefs } }
 //   { userId, action: "reset-password" }
+//   { userId, action: "reset-tutorial" }
 //
-// One endpoint, five verbs, because they all mutate one user and all need
-// the same audit stamp. Splitting them into five functions would mean five
+// One endpoint, six verbs, because they all mutate one user and all need
+// the same audit stamp. Splitting them into six functions would mean six
 // copies of the lookup-then-log preamble.
 
 const LEAGUE_STORE = "blitz-leagues";
+const PROFILE_STORE = "blitz-users";
 
 /** Fetches one Identity user so the audit line can name them even when the
  *  action is about to change that name. */
@@ -256,6 +258,50 @@ export default async (req: Request, context: Context) => {
       }
       await audit(actor, "user.password-reset", `sent a password reset to ${label}`, { target: userId });
       return adminJson(200, { ok: true, sentTo: target.email });
+    }
+
+    /* ---------------- first-run tour ---------------- */
+    if (action === "reset-tutorial") {
+      /* Written straight to the profile blob rather than through
+         user-profile.mts, because that endpoint deliberately treats
+         tutorialSeen as a one-way flip: a client can set it and never
+         unset it, so a stale payload can't wipe out somebody's completed
+         run. Clearing it is exactly the thing only an admin should be able
+         to do, which is why it lives here instead.
+
+         Read-modify-write rather than a bare set(): Blobs writes are
+         whole-key overwrites, so replacing `settings` wholesale would take
+         their theme, sportsbook, timezone and favourites with it. */
+      const store = getStore(PROFILE_STORE, { consistency: "strong" });
+      const key = `users:${userId}`;
+      const profile: any = await store.get(key, { type: "json" });
+      if (!profile) {
+        // No profile blob means they have never signed in far enough to
+        // have settings, so there is nothing to reset and the tour will
+        // fire on its own the first time they reach the week view.
+        return adminJson(200, { ok: true, alreadyUnseen: true });
+      }
+      const before = profile.settings?.tutorialSeen ? (profile.settings.tutorialOutcome || "seen") : "never seen";
+      const next = {
+        ...profile,
+        settings: {
+          ...(profile.settings || {}),
+          tutorialSeen: false,
+          tutorialOutcome: null,
+          tutorialLastStep: null,
+          tutorialSeenAt: null,
+        },
+      };
+      await store.setJSON(key, next);
+      await audit(actor, "user.tutorial-reset", `reset the first-run tour for ${label}`, {
+        target: userId,
+        meta: { previous: before },
+      });
+      /* They see it again the next time they land on the Games week view -
+         the app reads this flag from the profile on sign-in, not from the
+         device, so it doesn't matter which browser they come back on and
+         a session already open picks it up on its next profile load. */
+      return adminJson(200, { ok: true, previous: before });
     }
 
     return adminJson(400, { ok: false, error: `Unknown action "${action}"` });

@@ -128,6 +128,16 @@ export default async (req: Request, context: Context) => {
           pushEnabled: (pushDevicesByUser.get(u.id) || 0) > 0,
           prefs: prefs || null,
           subscriptionTier: profile?.subscriptionTier || "free",
+          /* First-run tour. `tutorialSeen` alone can't answer the question
+             the console is actually asked - Done and Skip both set it - so
+             the outcome and the step they stopped at come with it. Accounts
+             that met the tour before this shipped have the flag and no
+             outcome; those read as "seen, outcome unknown" rather than
+             being guessed at in either direction. */
+          tutorialSeen: Boolean(profile?.settings?.tutorialSeen),
+          tutorialOutcome: profile?.settings?.tutorialOutcome ?? null,
+          tutorialLastStep: profile?.settings?.tutorialLastStep ?? null,
+          tutorialSeenAt: profile?.settings?.tutorialSeenAt ?? null,
           /* Terms acceptance, read the same way user-profile.mts reads it and
              in the same order: identity metadata first, then the profile
              blob. auth-signup.mts stamps the version into user_metadata at

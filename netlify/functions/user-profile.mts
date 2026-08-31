@@ -92,6 +92,9 @@ function defaultSettings() {
     tzId: "auto",
     favorites: [] as string[],
     tutorialSeen: false,
+    tutorialOutcome: null as string | null,
+    tutorialLastStep: null as string | null,
+    tutorialSeenAt: null as string | null,
   };
 }
 
@@ -158,9 +161,30 @@ function sanitizeSettings(input: any, existing: any) {
   if (Array.isArray(input.favorites)) {
     out.favorites = [...new Set(input.favorites.filter((f: unknown) => typeof f === "string"))].slice(0, 32);
   }
-  // One-way flip: once true (tour completed or skipped), never revert to
-  // false from a stale client payload that simply omitted the field.
-  if (input.tutorialSeen === true) out.tutorialSeen = true;
+  /* One-way flip: once true (tour completed or skipped), never revert to
+     false from a stale client payload that simply omitted the field. Only
+     an admin can clear it - see admin-user-update.mts's reset-tutorial,
+     which writes the blob directly rather than coming through here.
+
+     The three fields beside it say WHICH of those two happened, since the
+     boolean alone can't: Done and Skip both set it, so without these every
+     account that has met the tour looks the same afterwards. They're only
+     accepted in the same payload that sets the flag, so a client can't
+     rewrite the outcome of a run it isn't reporting. */
+  if (input.tutorialSeen === true) {
+    out.tutorialSeen = true;
+    out.tutorialOutcome = input.tutorialOutcome === "completed" ? "completed" : "skipped";
+    out.tutorialLastStep =
+      typeof input.tutorialLastStep === "string" && input.tutorialLastStep
+        ? input.tutorialLastStep.slice(0, 40)
+        : null;
+    // Client-stamped, and treated as approximate for that reason - it is a
+    // support and product signal, not an audit record.
+    out.tutorialSeenAt =
+      typeof input.tutorialSeenAt === "string" && !Number.isNaN(Date.parse(input.tutorialSeenAt))
+        ? input.tutorialSeenAt
+        : new Date().toISOString();
+  }
 
   return out;
 }

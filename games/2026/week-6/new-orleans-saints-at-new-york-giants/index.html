@@ -23197,7 +23197,7 @@ function TutorialTour({ onClose, setActiveTab, auth }) {
     if (index < 0) { onDone(null); return; }
     if (index >= TOUR_STEPS.length) {
       trackEvent("tour_complete", { step: "done", index: TOUR_STEPS.length });
-      onClose();
+      onClose({ outcome: "completed", lastStep: "done" });
       return;
     }
     const step = TOUR_STEPS[index];
@@ -23251,7 +23251,10 @@ function TutorialTour({ onClose, setActiveTab, auth }) {
   useEffect(() => {
     setPlannedSteps(plannedStepCount());
     resolveStep(0, 1, (result) => {
-      if (!result) { onClose(); return; }
+      // Nothing resolvable at all - close without an outcome, which leaves
+      // the account's tutorialSeen alone so the tour gets another go rather
+      // than being silently marked as read.
+      if (!result) { onClose(null); return; }
       setRect(result.rect);
       setShowingMockup(result.mockup);
       setStepIndex(result.index);
@@ -23305,7 +23308,7 @@ function TutorialTour({ onClose, setActiveTab, auth }) {
     closeBoxScoreForTour();
     closeFullDetailsForTour();
     closeScoredCardDetailsForTour();
-    onClose();
+    onClose({ outcome: "skipped", lastStep: currentStep ? currentStep.id : null });
   }
 
   /* Keep the spotlight glued to its target.
@@ -31207,6 +31210,36 @@ function AdminStatus({ busy, error, note }) {
 
 /* ---------------- Users ---------------- */
 
+/** Step ids from TOUR_STEPS, in words, for the admin console's tour panel.
+ *  A step that isn't in this map (renamed, or a run recorded by an older
+ *  build) falls back to its raw id rather than being hidden - knowing they
+ *  stopped at something unrecognised is more use than a blank. */
+const ADMIN_TOUR_STEP_LABELS = {
+  "welcome": "Welcome",
+  "game-type": "Format switcher",
+  "matchup-teams": "The matchup",
+  "combo-row": "Blitz Edge read",
+  "odds-ml": "Market numbers",
+  "full-details-toggle": "Full Details",
+  "blitz-edge-writeup": "Edge write-up",
+  "stat-compare": "Team rankings",
+  "injury-notes": "Injuries",
+  "add-to-league": "Add to League",
+  "follow-game": "Alert me",
+  "team-crest": "Team pages",
+  "team-schedule": "Team schedule",
+  "team-roster": "Team roster",
+  "live-scoring": "Live scores",
+  "box-scores": "Box scores",
+  "tab-picks": "Playbook",
+  "account-menu": "Settings",
+  "done": "Finished",
+};
+function adminTourStepLabel(id) {
+  if (!id) return null;
+  return ADMIN_TOUR_STEP_LABELS[id] || id;
+}
+
 function AdminUsersPanel({ auth, data, reload, onToast }) {
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState(null);
@@ -31396,6 +31429,52 @@ function AdminUserSheet({ auth, user, leagues, actorId, termsCurrent, onClose, o
             ))}
           </details>
         )}
+      </section>
+
+      <section className="admin-sec">
+        <h4>First-run tour</h4>
+        {/* Three states, not two. An account that met the tour before the
+            outcome was recorded has the flag and nothing else, and is shown
+            as exactly that rather than being guessed into "completed" or
+            "skipped" - the old boolean genuinely cannot say which. */}
+        <div className="admin-kv">
+          <span>Status</span>
+          <span>
+            {!user.tutorialSeen ? (
+              <span className="admin-muted">Not seen yet</span>
+            ) : user.tutorialOutcome === "completed" ? (
+              <span className="admin-pill">Completed</span>
+            ) : user.tutorialOutcome === "skipped" ? (
+              <span className="admin-pill admin-pill-off">Skipped</span>
+            ) : (
+              <span className="admin-pill admin-pill-off">Seen — outcome not recorded</span>
+            )}
+          </span>
+        </div>
+        {user.tutorialSeen && user.tutorialOutcome === "skipped" && user.tutorialLastStep && (
+          <div className="admin-kv">
+            <span>Stopped at</span><span>{adminTourStepLabel(user.tutorialLastStep)}</span>
+          </div>
+        )}
+        {user.tutorialSeenAt && (
+          <div className="admin-kv">
+            <span>{user.tutorialOutcome === "completed" ? "Finished on" : "Last run"}</span>
+            <span>{fmtAdminDate(user.tutorialSeenAt)}</span>
+          </div>
+        )}
+        <button
+          type="button"
+          className="admin-btn"
+          disabled={busy || !user.tutorialSeen}
+          onClick={() => run(() => update("reset-tutorial"), "Tour reset — " + user.name + " will see it again")}
+        >
+          Show the tour again
+        </button>
+        <p className="admin-hint">
+          {user.tutorialSeen
+            ? "Clears the flag on their account, so the tour runs the next time they open the Games tab. It's the account that's reset, not this device, so it doesn't matter which browser they come back on."
+            : "Nothing to reset — they haven't been shown the tour yet."}
+        </p>
       </section>
 
       <section className="admin-sec">
@@ -33097,6 +33176,11 @@ function loadTutorialSeen() {
 }
 function saveTutorialSeen() {
   try { window.localStorage.setItem(TUTORIAL_SEEN_KEY, "1"); } catch (e) {}
+}
+/** Used when the account says the tour hasn't been seen - an admin reset,
+ *  most often - so the device copy can't contradict the profile. */
+function clearTutorialSeen() {
+  try { window.localStorage.removeItem(TUTORIAL_SEEN_KEY); } catch (e) {}
 }
 
 /* ---------- Terms of Service acceptance ----------
@@ -35062,7 +35146,13 @@ function App() {
         setSportsbookId(nextSportsbookId);
         setTzId(nextTzId);
         setFavorites(nextFavorites);
-        if (s.tutorialSeen) saveTutorialSeen(); // mirror the account's flag onto this device too
+        /* Mirror the account's flag onto this device, in BOTH directions.
+           The auto-trigger reads the account rather than localStorage, so
+           the device copy is no longer load-bearing - but an admin who
+           resets someone's tour would otherwise leave a stale "1" here,
+           and anything that reads loadTutorialSeen() later would disagree
+           with the console. */
+        if (s.tutorialSeen) saveTutorialSeen(); else clearTutorialSeen();
         // Seed the comparison with what the account now holds, so a pure
         // load never generates a POST - but a genuine change after it always
         // does, unlike the old one-shot flag. Note this records the
@@ -35352,24 +35442,40 @@ function App() {
     return () => clearTimeout(timer);
   }, [activeTab, view, auth.status, settingsHydrated, profile, unverified]);
 
-  function markTutorialSeen() {
+  /* `tutorialSeen` on its own can't answer "did they finish it?" - Done and
+     Skip both set it, so every account that has met the tour looks identical
+     afterwards. The outcome and the step someone stopped at are recorded
+     alongside it so the admin console can tell the difference, and so a
+     support conversation ("they say they never saw the tutorial") has an
+     answer better than a boolean. `tutorialSeenAt` is stamped client-side
+     because the profile endpoint doesn't timestamp settings writes. */
+  function markTutorialSeen(outcome, lastStep) {
     saveTutorialSeen();
+    const patch = {
+      tutorialSeen: true,
+      tutorialOutcome: outcome || "skipped",
+      tutorialLastStep: lastStep || null,
+      tutorialSeenAt: new Date().toISOString(),
+    };
     // Optimistic local update: the auto-trigger effect reads `profile`, and
     // without this a re-render before the POST lands would see the flag
     // still unset and offer the tour a second time.
-    setProfile(p => (p ? { ...p, settings: { ...(p.settings || {}), tutorialSeen: true } } : p));
+    setProfile(p => (p ? { ...p, settings: { ...(p.settings || {}), ...patch } } : p));
     if (auth.status === "in") {
       auth.authenticatedFetch("/.netlify/functions/user-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settings: { tutorialSeen: true } }),
+        body: JSON.stringify({ settings: patch }),
       }).catch(() => {});
     }
   }
 
-  function closeTour() {
+  /* `result` is null when the tour closed without ever rendering a step -
+     see the mount effect. That isn't a run, so it isn't recorded as one. */
+  function closeTour(result) {
     setShowTour(false);
-    markTutorialSeen();
+    if (!result || !result.outcome) return;
+    markTutorialSeen(result.outcome, result.lastStep);
   }
 
   function replayTour() {

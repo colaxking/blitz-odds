@@ -41,7 +41,12 @@ jobs:
           NODE_OPTIONS: "--dns-result-order=ipv4first"
         run: node scripts/odds-refresh.mjs
 
+      # always(): the refresh script writes the on-disk mirror before it
+      # verifies the publish, so a late failure can still leave good data on
+      # disk worth committing. If the run failed earlier than that there'll
+      # simply be nothing to commit and this exits clean.
       - name: Commit on-disk mirror if changed
+        if: always()
         run: |
           if git diff --quiet -- data/odds-2026.json data/odds-history.json; then
             echo "No changes to commit."

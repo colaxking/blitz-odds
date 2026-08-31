@@ -274,11 +274,50 @@ async function checkBudget() {
 // ---------------------------------------------------------------------------
 // Fetch odds-current / odds-update
 
-async function getOddsCurrent(type) {
+// `strong` asks odds-current for a strongly consistent Blobs read. Only the
+// post-publish verification needs it - the two reads at the top of a run are
+// happy with whatever the store last settled on, and the strong path is the
+// slower/more expensive one, so it stays opt-in on both sides.
+async function getOddsCurrent(type, { strong = false } = {}) {
   const qs = type === "history" ? "?type=history" : "";
-  const res = await fetch(`${SITE_BASE}/.netlify/functions/odds-current${qs}`, { cache: "no-store" });
+  const res = await fetch(`${SITE_BASE}/.netlify/functions/odds-current${qs}`, {
+    cache: "no-store",
+    ...(strong ? { headers: { "x-odds-update-secret": ODDS_UPDATE_SECRET } } : {}),
+  });
   if (!res.ok) throw new Error(`odds-current${qs} failed: ${res.status}`);
   return res.json();
+}
+
+// Netlify Blobs is eventually consistent by default and can lag a write by
+// 15-20 seconds. The original verification read back with a default read
+// roughly a second after publishing, saw the pre-write document, and threw -
+// failing every FULL sweep run even though the publish had landed correctly.
+// The read is strongly consistent now, so one attempt should be enough; the
+// retries only cover a transient hiccup on the read path itself.
+const VERIFY_ATTEMPTS = 3;
+const VERIFY_BACKOFF_MS = 3000;
+
+async function verifyPublish(expectedFullSweepAt) {
+  let lastSeen = null;
+  for (let attempt = 1; attempt <= VERIFY_ATTEMPTS; attempt += 1) {
+    if (attempt > 1) await sleep(VERIFY_BACKOFF_MS);
+    let verify;
+    try {
+      verify = await getOddsCurrent(undefined, { strong: true });
+    } catch (err) {
+      log(`verify attempt ${attempt}/${VERIFY_ATTEMPTS}: read-back failed: ${err.message}`);
+      continue;
+    }
+    lastSeen = verify.lastFullSweepAt ?? null;
+    if (lastSeen === expectedFullSweepAt) {
+      log(`verified: publish landed${attempt > 1 ? ` (attempt ${attempt})` : ""}.`);
+      return;
+    }
+    log(`verify attempt ${attempt}/${VERIFY_ATTEMPTS}: live store still shows ${lastSeen ?? "no lastFullSweepAt"}.`);
+  }
+  throw new Error(
+    `verification failed: lastFullSweepAt did not land on the live store (expected ${expectedFullSweepAt}, saw ${lastSeen ?? "none"}).`
+  );
 }
 
 async function fetchEventsPage(params, attempt = 1) {
@@ -584,17 +623,24 @@ async function main() {
     if (!publishRes.ok) {
       throw new Error(`odds-update publish failed: ${publishRes.status} ${await publishRes.text().catch(() => "")}`);
     }
-    log("published to odds-update, verifying...");
+    log("published to odds-update.");
 
-    const verify = await getOddsCurrent();
-    if (fullSweepFlagChanged && verify.lastFullSweepAt !== liveOdds.lastFullSweepAt) {
-      throw new Error("verification failed: lastFullSweepAt did not land on the live store.");
-    }
-    log("verified: publish landed.");
-
+    // Mirror to disk before verifying, not after. odds-update has already
+    // returned 200 by this point, so the data is good regardless of what the
+    // read-back says - and when the verification below used to fail
+    // spuriously it took the mirror down with it, leaving data/odds-2026.json
+    // a full sweep behind on every failed run.
     await writeJson("data/odds-2026.json", liveOdds);
     if (historyChanged) await writeJson("data/odds-history.json", liveHistory);
     log("wrote on-disk mirror (data/odds-2026.json" + (historyChanged ? ", data/odds-history.json" : "") + ").");
+
+    // Only a FULL sweep stamps a value that's cheap to check for round-trip.
+    // A NEAR sweep has nothing comparable to assert on, so it was always
+    // paying for a read it then ignored.
+    if (fullSweepFlagChanged) {
+      log("verifying full-sweep publish...");
+      await verifyPublish(liveOdds.lastFullSweepAt);
+    }
   } finally {
     if (lock.held) await releaseLock(runId);
   }

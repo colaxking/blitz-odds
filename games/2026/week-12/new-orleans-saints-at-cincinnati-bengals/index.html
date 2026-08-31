@@ -2231,6 +2231,22 @@
   .news-load-more-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
 
   .how-it-works-copy { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
+  /* The modal used to be one unbroken paragraph. It now covers formats,
+     cards, leagues, alerts and settings, which is more than a wall of text
+     can carry - these are the subheads that break it up. Deliberately the
+     same uppercase-eyebrow treatment as .sec-label inside a game card's
+     Full Details panel, since this modal is describing those sections. */
+  .how-it-works-sec { margin-top: 18px; }
+  .how-it-works-sec:first-of-type { margin-top: 6px; }
+  .how-it-works-sec h3 {
+    font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--text); margin: 0 0 6px;
+  }
+  .how-it-works-copy + .how-it-works-copy { margin-top: 8px; }
+  .how-it-works-foot {
+    margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--card-border);
+    font-size: 0.78rem; color: var(--text-dim); line-height: 1.55; margin-bottom: 0;
+  }
   .demo-banner {
     background: rgba(var(--demo-rgb),0.14); border: 1px solid rgba(var(--demo-rgb),0.4); color: var(--pill-purple-text);
     border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; margin: 8px 0 20px;
@@ -23643,22 +23659,103 @@ function HowItWorksModal({ onClose }) {
       <div className="settings-modal" role="dialog" aria-modal="true" aria-label="How this works">
         <button type="button" className="settings-modal-close" onClick={onClose} aria-label="Close">×</button>
         <h2 className="settings-modal-title">How This Works</h2>
-        <p className="how-it-works-copy">
-          Each team gets an offense rating and a defense rating built from its
-          rush/pass/total yardage ranks (1 = best in the league). A matchup compares one team's offense rating to
-          the other's defense rating, adds a small home-field bonus, and converts the gap into a win probability.
-          If a star player is marked "out" or "questionable," their impact score docks their team's offense or
-          defense rating before the matchup is scored. While a game is being played, the score updates live
-          (polling every 30 seconds) with a <strong style={{ color: "var(--live)" }}>LIVE</strong> badge and running
-          score. Playoff rounds only appear in the Week dropdown once their matchups are actually announced.
-          Weeks marked "(has results)" show a frozen snapshot of that week's stats and predictions next to the
-          final score. Each card also shows the real sportsbook spread, moneyline, and over/under when a line has
-          been posted, alongside a note on whether the model's own pick agrees with the market favorite. Use the
-          "Sportsbook" picker in Settings (account menu, top right) to set which book's line you want to see —
-          if that book doesn't have its own line for a game yet, the default line is shown instead and labeled
-          accordingly. Click any team logo to see their full-season schedule, and click the star to favorite a
-          team. Click any live or final score to pull up that game's box score — quarter-by-quarter scoring, team
-          stats, and top performers.
+
+        <div className="how-it-works-sec">
+          <h3>The model</h3>
+          <p className="how-it-works-copy">
+            Every team carries an offense rating and a defense rating built from its league ranks in total,
+            rushing and passing yards (1 = best). A matchup runs one side's offense against the other's defense
+            and adds home field, then adjusts: a player ruled out docks his side's rating, one listed
+            questionable docks it by about half as much, and an outdoor game in cold, wind or rain pulls both
+            offenses down (a dome team playing outside takes a little extra). What's left is an edge, which
+            becomes a predicted margin in points, and that margin becomes the percentage on the card.
+          </p>
+          <p className="how-it-works-copy">
+            Scored against every regular-season game since 2015, it picks the winner about 64% of the time —
+            which also means it misses roughly one game in three. Treat it as a starting point for your own
+            read, not a lock.
+          </p>
+        </div>
+
+        <div className="how-it-works-sec">
+          <h3>Pick your format first</h3>
+          <p className="how-it-works-copy">
+            The switcher in the bar above the games — Straight Up, Confidence, Against the Spread, Survivor —
+            changes what every card recommends, so set it to whatever your pool actually plays. Straight Up and
+            Confidence read off the win percentage. Against the Spread compares the model's predicted margin to
+            the posted line and gives the chance that side covers, which is a different question from who wins.
+            Survivor weighs this week against the rest of that team's schedule before telling you to spend them.
+          </p>
+        </div>
+
+        <div className="how-it-works-sec">
+          <h3>Reading a game card</h3>
+          <p className="how-it-works-copy">
+            Away team on the left, home team on the right, with <strong>Blitz Pick</strong> on the side the model
+            likes. The row under it is the one-line version of the call — the Blitz Edge mark, the model's number
+            for your format, and the market's spread and over/under — with both moneylines below that.
+          </p>
+          <p className="how-it-works-copy">
+            While a game is on, the score updates about every 30 seconds with a{" "}
+            <strong style={{ color: "var(--live)" }}>LIVE</strong> badge, alongside possession, down and distance,
+            and the broadcast network; the weather forecast drops off at kickoff. Once it's over, the final score
+            sits between the crests, the team that actually won turns green, and a corner ribbon says whether the
+            call was right. The ribbon is about the result and the Blitz Pick tag is about the prediction — two
+            different things on purpose.
+          </p>
+        </div>
+
+        <div className="how-it-works-sec">
+          <h3>Full Details &amp; History</h3>
+          <p className="how-it-works-copy">
+            Cards stay short on purpose; the rest is behind that button, in order: the box score for a live or
+            finished game (plus "View Full Box Score" for the complete sheet — team stats and passing, rushing
+            and receiving for both sides), the Blitz Edge write-up explaining the call in plain language and
+            following whichever format you picked, both teams' offense-and-defense ranks side by side, the
+            injuries that actually moved the number, every sportsbook's line for that game, past meetings between
+            the two, and a link to the matchup's own page. A few of those need a free account.
+          </p>
+          <p className="how-it-works-copy">
+            Tap a team's crest for their season schedule, roster, depth chart and injury report, or the star to
+            favorite them.
+          </p>
+        </div>
+
+        <div className="how-it-works-sec">
+          <h3>Your pool</h3>
+          <p className="how-it-works-copy">
+            Create or join a league and it scores itself all season. "Add to League" on any card before kickoff
+            drops a pick into as many of your leagues as you want without leaving the page. The Playbook tab
+            builds a finished sheet for each league off the same model, next to What Changed since you last
+            looked, the week's Betting Angles, and the model's Track Record.
+          </p>
+        </div>
+
+        <div className="how-it-works-sec">
+          <h3>Alerts</h3>
+          <p className="how-it-works-copy">
+            "Alert me" on a card follows that one game for kickoff, scoring and the final. The broader settings
+            are in the account menu under Alerts: which games to follow automatically (your favorites, your
+            picks, or both), injury alerts for starred teams, a last call before the week's first kickoff, and
+            email for the pick reminder and Tuesday's recap. All of it is off-switchable in the same place.
+          </p>
+        </div>
+
+        <div className="how-it-works-sec">
+          <h3>Lines, weeks and settings</h3>
+          <p className="how-it-works-copy">
+            Lines come from DraftKings, FanDuel, BetMGM, Caesars and BetRivers — pick which one the cards show
+            under Settings, and if that book hasn't posted a number for a game yet you'll see the default line,
+            labeled as such. Timezone, theme and favorite teams live there too. Playoff rounds appear in the week
+            switcher once the matchups are announced; a past week is flagged as a historical snapshot and shows
+            the stats and prediction as they stood then, next to the final score. Older seasons are in the
+            archive, linked from the account menu.
+          </p>
+        </div>
+
+        <p className="how-it-works-foot">
+          Blitz Odds doesn't take wagers and never handles money. Predictions are for entertainment, they are
+          often wrong, and every line is worth confirming with the sportsbook before you act on it.
         </p>
       </div>
     </div>,

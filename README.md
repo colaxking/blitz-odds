@@ -237,6 +237,17 @@ it calls no external API itself, so it's only useful run *after* one of the othe
 has actually changed something; odds/injury/result updates are invisible on the static
 pages (though still live in the React app) until it re-runs.
 
+`indexnow-submit.mts` (fronting `indexnow-submit-background.mts`) is the one scheduled
+job that is *not* a GitHub Action — it needs a Blobs ledger, so cron-job.org POSTs the
+function directly rather than going through `workflow_dispatch`. It tells Bing / Yandex /
+Naver / Seznam which pages changed, by fetching the **live** `sitemap.xml` over HTTP and
+diffing each URL's `lastmod` against `indexnow:submitted` in `blitz-site-data`. Reading
+the published sitemap rather than the repo is deliberate: a deploy sits unpublished until
+someone clicks publish, so a build-time ping would send crawlers to the *old* page. Note
+Google does not participate in IndexNow and is unaffected by any of this. Run it ~30
+minutes after `static-pages-refresh`; see the function's header comment for the full
+rationale, caps, and bootstrap behaviour.
+
 ## Working conventions for Claude
 
 Any push to `main` triggers a live Netlify deploy of this site, so for changes

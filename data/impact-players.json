@@ -190,10 +190,14 @@
         "name": "Myles Garrett",
         "position": "Edge",
         "impactScore": 8,
-        "status": "active",
+        "status": "questionable",
         "espnId": "3122132",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-08-30T23:41Z",
+        "source": "auto",
+        "injury": {
+          "type": "Knee",
+          "note": "Garrett (knee) did not participate in Sunday's practice, Gary Klein of the Los Angeles Times reports."
+        }
       }
     ],
     "CHI": [
@@ -790,6 +794,20 @@
         },
         "statusUpdatedAt": "2026-08-19T12:07Z",
         "source": "auto"
+      },
+      {
+        "name": "Dillon Gabriel",
+        "position": "QB",
+        "espnId": "4427238",
+        "impactScore": 4,
+        "status": "out",
+        "injury": {
+          "type": "Back",
+          "since": "2026-08-30",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-30T23:45:50.477Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -1003,6 +1021,20 @@
           "note": null
         },
         "statusUpdatedAt": "2026-08-29T05:43:41.379Z",
+        "source": "curated"
+      },
+      {
+        "name": "James Conner",
+        "position": "RB",
+        "espnId": "3045147",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Foot",
+          "since": "2026-08-30",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-08-30T23:44:46.921Z",
         "source": "curated"
       }
     ],

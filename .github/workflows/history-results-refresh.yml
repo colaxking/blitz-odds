@@ -50,12 +50,4 @@ jobs:
 
       - name: Commit on-disk mirror if changed
         run: |
-          if git diff --quiet -- data/history.json; then
-            echo "No changes to commit."
-            exit 0
-          fi
-          git config user.name "blitz-odds-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add data/history.json
-          git commit -m "History results refresh: automated final-score update via GitHub Actions"
-          git push
+          scripts/commit-and-push.sh "History results refresh: automated final-score update via GitHub Actions" data/history.json

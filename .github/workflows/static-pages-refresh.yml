@@ -65,12 +65,4 @@ jobs:
 
       - name: Commit regenerated pages if changed
         run: |
-          if git diff --quiet -- teams/ games/ sitemap.xml; then
-            echo "No changes to commit."
-            exit 0
-          fi
-          git config user.name "blitz-odds-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add teams/ games/ sitemap.xml
-          git commit -m "Static pages refresh: automated regeneration via GitHub Actions"
-          git push
+          scripts/commit-and-push.sh "Static pages refresh: automated regeneration via GitHub Actions" teams/ games/ sitemap.xml

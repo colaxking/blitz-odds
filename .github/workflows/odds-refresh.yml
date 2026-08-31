@@ -48,12 +48,4 @@ jobs:
       - name: Commit on-disk mirror if changed
         if: always()
         run: |
-          if git diff --quiet -- data/odds-2026.json data/odds-history.json; then
-            echo "No changes to commit."
-            exit 0
-          fi
-          git config user.name "blitz-odds-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add data/odds-2026.json data/odds-history.json
-          git commit -m "Odds refresh: automated update via GitHub Actions"
-          git push
+          scripts/commit-and-push.sh "Odds refresh: automated update via GitHub Actions" data/odds-2026.json data/odds-history.json

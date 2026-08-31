@@ -23315,7 +23315,28 @@ function TutorialTour({ onClose, setActiveTab, auth }) {
     onClose();
   }
 
-  // Keep the spotlight glued to its target through scroll/resize.
+  /* Keep the spotlight glued to its target.
+   *
+   * `scroll` + `resize` on window is not enough on iOS, which is where this
+   * was caught: the ring sat about 35px below the crest it was meant to be
+   * on. Two gaps produced that, and both are invisible on a desktop
+   * browser, which is why every automated pass measured this as correct.
+   *
+   * 1. Safari's collapsing address bar moves the layout viewport and fires
+   *    visualViewport's own resize/scroll - `window.resize` often never
+   *    fires at all. The rect captured 60ms after scrollIntoView is then
+   *    stale for as long as the step is on screen, because nothing tells
+   *    us to re-measure.
+   * 2. Nothing fires when layout shifts on its own. A crest image that
+   *    decodes late, or a font swap, moves everything below it with no
+   *    event of any kind - and the tour measures earlier in a step's life
+   *    than almost anything else in the app does.
+   *
+   * So: listen to visualViewport as well, and re-measure a couple of times
+   * shortly after a step renders rather than trusting the single reading.
+   * The settle passes are cheap (a getBoundingClientRect each) and the
+   * ring's own CSS transition absorbs a correction into the glide rather
+   * than showing it as a jump. */
   useEffect(() => {
     if (!ready || showingMockup) return;
     const step = TOUR_STEPS[stepIndex];
@@ -23325,9 +23346,30 @@ function TutorialTour({ onClose, setActiveTab, auth }) {
     }
     window.addEventListener("scroll", reposition, true);
     window.addEventListener("resize", reposition);
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener("resize", reposition);
+      vv.addEventListener("scroll", reposition);
+    }
+    // Late layout shifts: images decoding, fonts swapping, the panel a
+    // step's own onEnter just expanded finishing its reflow.
+    const settleTimers = [
+      setTimeout(reposition, 150),
+      setTimeout(reposition, 450),
+    ];
+    let cancelled = false;
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(() => { if (!cancelled) reposition(); }).catch(() => {});
+    }
     return () => {
+      cancelled = true;
+      settleTimers.forEach(clearTimeout);
       window.removeEventListener("scroll", reposition, true);
       window.removeEventListener("resize", reposition);
+      if (vv) {
+        vv.removeEventListener("resize", reposition);
+        vv.removeEventListener("scroll", reposition);
+      }
     };
   }, [ready, showingMockup, stepIndex]);
 

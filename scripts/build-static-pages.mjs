@@ -382,6 +382,180 @@ async function buildGamePage(template, data, period, game) {
   return { path: canonicalPath, changed };
 }
 
+// ---- Week hub pages --------------------------------------------------------
+// /games/{year}/{week-slug}/ - the level between /games and the per-matchup
+// pages, which had no file of its own: the non-forced `/games/* /index.html
+// 200` rewrite answered it with the homepage, so every week hub was a soft
+// 404 serving duplicate content.
+//
+// This is also the page that matches how pick'em players actually search.
+// The per-game pages target "{team} vs {team} prediction"; the head terms
+// ("week 1 pick em picks", "confidence pool picks week 1") are week-level,
+// and /picks is a single rolling URL that can't accumulate signal per week.
+//
+// The content is the confidence ladder itself: every game in the period run
+// through the same PredictionEngine call the per-game snapshot makes, sorted
+// by the model's confidence in the favorite, and numbered N..1 the way a
+// confidence pool assigns points. That's the finished artifact a pool player
+// wants, and it's genuinely useful prerendered - no JS needed to read it.
+
+/** Every game in a period, predicted and sorted into confidence order.
+ *  Highest win probability gets the most points, matching how a pool
+ *  assigns N points down to 1 across N games. */
+function buildLadder(data, period) {
+  const rows = [];
+  for (const game of period.games) {
+    const away = teamForWeek(data, period.week, game.away);
+    const home = teamForWeek(data, period.week, game.home);
+    if (!away || !home) continue;
+    const prediction = PredictionEngine.predictMatchup({
+      homeTeam: home,
+      awayTeam: away,
+      homeImpactPlayers: data.players[game.home] || [],
+      awayImpactPlayers: data.players[game.away] || [],
+      weather: null,
+      homeIsDomeTeam: isDomeTeam(data.stadiums, game.home),
+      awayIsDomeTeam: isDomeTeam(data.stadiums, game.away),
+    });
+    const pickIsHome = prediction.predictedWinner === home.id;
+    const winPct = Math.round(
+      (pickIsHome ? prediction.homeWinProbability : prediction.awayWinProbability) * 100
+    );
+    rows.push({
+      game,
+      away,
+      home,
+      pickName: pickIsHome ? home.name : away.name,
+      pickAbbr: pickIsHome ? game.home : game.away,
+      winPct,
+      odds: getOdds(data, period.week, game.away, game.home),
+      result: resultForWeek(data, period.week, game.away, game.home),
+      slug: `${slugify(away.name)}-at-${slugify(home.name)}`,
+    });
+  }
+  rows.sort((a, b) => b.winPct - a.winPct);
+  return rows.map((r, i) => ({ ...r, points: rows.length - i }));
+}
+
+function buildWeekHubSnapshotHtml(data, period, ladder, prev, next) {
+  const seasonYear = data.seasonYear;
+  const weekSlug = slugify(period.label);
+  const gameUrl = (row) => `/games/${seasonYear}/${weekSlug}/${row.slug}/`;
+
+  const ladderRows = ladder
+    .map((r) => {
+      const spread = r.odds ? `${escapeHtml(r.odds.favorite)} ${escapeHtml(formatSpread(r.odds.spread))}` : "-";
+      const kickoff = `${escapeHtml(r.game.date)}${r.game.time ? " · " + escapeHtml(r.game.time) : ""}`;
+      return `<tr><td>${r.points}</td><td><strong>${escapeHtml(r.pickName)}</strong></td>` +
+        `<td><a href="${gameUrl(r)}">${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}</a></td>` +
+        `<td>${r.winPct}%</td><td>${spread}</td><td>${kickoff}</td></tr>`;
+    })
+    .join("\n      ");
+
+  // Games that have already been played, so the page stays useful (and
+  // honest) after kickoff instead of showing a stale set of predictions.
+  const settled = ladder.filter((r) => r.result && r.result.final);
+  const hits = settled.filter((r) => {
+    const winnerId = r.result.homeScore > r.result.awayScore ? r.game.home : r.game.away;
+    return winnerId === r.pickAbbr;
+  }).length;
+  const resultsBlock = settled.length
+    ? `<h2>Results</h2>\n  <p>The model went <strong>${hits}-${settled.length - hits}</strong> on ${escapeHtml(period.label)} games played so far.</p>\n  <ul>\n${settled
+        .map((r) => {
+          const winnerId = r.result.homeScore > r.result.awayScore ? r.game.home : r.game.away;
+          const correct = winnerId === r.pickAbbr;
+          return `    <li><a href="${gameUrl(r)}">${escapeHtml(r.away.name)} ${r.result.awayScore} - ${r.result.homeScore} ${escapeHtml(r.home.name)}</a> - picked ${escapeHtml(r.pickName)} (${correct ? "correct" : "incorrect"})</li>`;
+        })
+        .join("\n")}\n  </ul>`
+    : "";
+
+  const nav = [
+    prev ? `<a href="/games/${seasonYear}/${slugify(prev.label)}/">&laquo; ${escapeHtml(prev.label)}</a>` : "",
+    next ? `<a href="/games/${seasonYear}/${slugify(next.label)}/">${escapeHtml(next.label)} &raquo;</a>` : "",
+    `<a href="/games">All ${seasonYear} weeks</a>`,
+    `<a href="/picks">Confidence, survivor &amp; ATS sheets</a>`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return `
+<div id="prerendered-content">
+  <h1>NFL ${escapeHtml(period.label)} Picks &amp; Predictions - ${seasonYear}</h1>
+  <p>Blitz Odds model picks for all ${ladder.length} ${escapeHtml(period.label)} games, ranked into a full confidence pool ladder. Win probabilities are adjusted for team rankings, injuries, and home field. Free, no account needed.</p>
+
+  <h2>${escapeHtml(period.label)} confidence pool ladder</h2>
+  <p>Assign ${ladder.length} points to the top row down to 1 point at the bottom - the model's most confident pick first.</p>
+  <table>
+    <thead><tr><th>Points</th><th>Pick</th><th>Matchup</th><th>Win probability</th><th>Spread</th><th>Kickoff</th></tr></thead>
+    <tbody>
+      ${ladderRows}
+    </tbody>
+  </table>
+
+  ${resultsBlock}
+
+  <p>${nav}</p>
+</div>`;
+}
+
+/** ItemList of the week's SportsEvents. The per-game pages each carry their
+ *  own SportsEvent; this is the collection-level equivalent, and it gives
+ *  the hub an explicit machine-readable link to every game under it. */
+function buildWeekHubJsonLd(data, period, ladder, canonicalPath) {
+  const items = ladder
+    .map((r, i) => {
+      const startDate = iso8601GameStart(r.game, data.seasonYear);
+      const event = {
+        "@type": "SportsEvent",
+        name: `${r.away.name} at ${r.home.name}`,
+        sport: "American Football",
+        url: `${SITE_BASE}/games/${data.seasonYear}/${slugify(period.label)}/${r.slug}/`,
+        homeTeam: { "@type": "SportsTeam", name: r.home.name },
+        awayTeam: { "@type": "SportsTeam", name: r.away.name },
+      };
+      if (startDate) event.startDate = startDate;
+      return { "@type": "ListItem", position: i + 1, item: event };
+    });
+  if (!items.length) return "";
+  const list = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `NFL ${period.label} ${data.seasonYear} games`,
+    url: `${SITE_BASE}${canonicalPath}`,
+    numberOfItems: items.length,
+    itemListElement: items,
+  };
+  return `<script type="application/ld+json">${JSON.stringify(list)}</script>`;
+}
+
+async function buildWeekHubPage(template, data, period, prev, next) {
+  const ladder = buildLadder(data, period);
+  if (!ladder.length) return null;
+
+  const weekSlug = slugify(period.label);
+  const canonicalPath = `/games/${data.seasonYear}/${weekSlug}/`;
+  const isNumberedWeek = /^Week \d+$/.test(period.label);
+  const title = isNumberedWeek
+    ? `NFL ${period.label} Pick'em Picks & Confidence Pool Rankings ${data.seasonYear} | Blitz Odds`
+    : `NFL ${period.label} Picks & Predictions ${data.seasonYear} | Blitz Odds`;
+  const description = `Free model picks for all ${ladder.length} NFL ${period.label} games, ranked into a confidence pool ladder with win probabilities, spreads, and injury-adjusted predictions.`;
+
+  let html = applyMeta(template, { title, description, canonicalPath });
+
+  const jsonLd = buildWeekHubJsonLd(data, period, ladder, canonicalPath);
+  if (jsonLd) html = html.replace("</head>", `${jsonLd}\n</head>`);
+
+  html = html.replace("<body>", `<body>\n${buildWeekHubSnapshotHtml(data, period, ladder, prev, next)}`);
+  html = html.replace(
+    "</body>",
+    `<script>(function(){var el=document.getElementById('prerendered-content');if(el)el.style.display='none';})();</script>\n</body>`
+  );
+
+  const outPath = path.join(REPO_ROOT, "games", String(data.seasonYear), weekSlug, "index.html");
+  const changed = await writeIfChanged(outPath, html);
+  return { path: canonicalPath, changed };
+}
+
 /** One schedule row for a given team/week/game - opponent, date, real result
  *  if the game's been played, and the model's predicted winner/probability
  *  otherwise (same PredictionEngine call the live TeamView schedule tab
@@ -785,13 +959,20 @@ async function main() {
     }
   }
 
+  log(`Building ${periods.length} week hub pages...`);
+  const weekEntries = [];
+  for (let i = 0; i < periods.length; i++) {
+    const entry = await buildWeekHubPage(template, data, periods[i], periods[i - 1] || null, periods[i + 1] || null);
+    if (entry) weekEntries.push(entry);
+  }
+
   log(`Building ${TAB_PAGES.length} tab pages...`);
   const tabEntries = [];
   for (const page of TAB_PAGES) {
     tabEntries.push(await buildTabPage(template, page));
   }
 
-  const entries = [...tabEntries, ...teamEntries, ...gameEntries];
+  const entries = [...tabEntries, ...teamEntries, ...weekEntries, ...gameEntries];
   const changedCount = entries.filter((e) => e.changed).length;
 
   log("Updating sitemap...");

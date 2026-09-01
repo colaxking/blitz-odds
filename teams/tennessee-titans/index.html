@@ -16788,6 +16788,16 @@ function parseLocationPath(pathname) {
       if (game) return { view: "game", week, awayAbbr: game.away, homeAbbr: game.home };
     }
   }
+  // The week hub one level above the per-game pages
+  // (/games/{year}/{week-slug}/). build-static-pages.mjs writes a real
+  // prerendered file there; this makes the booted app land on that week
+  // rather than falling through to getDefaultWeek(), which would silently
+  // show the current week on a URL naming a different one.
+  const weekMatch = pathname.match(/^\/games\/(\d{4})\/([a-z0-9-]+)\/?$/);
+  if (weekMatch) {
+    const week = weekFromSlug(weekMatch[2]);
+    if (week != null) return { view: "week", week };
+  }
   const aliasMatch = pathname.match(/^\/g\/([A-Za-z0-9-]+)\/?$/);
   if (aliasMatch) {
     const resolved = parseGameIdPath(aliasMatch[1]);
@@ -34292,7 +34302,7 @@ function getInitialTab(leaguesEnabled) {
     // this, a direct hit or crawl of /teams/{slug} or /games/{season}/... would
     // open the Home tab and the route sync effect would then rewrite the URL
     // to "/", losing the page entirely.
-    if (route && (route.view === "team" || route.view === "game")) return "games";
+    if (route && (route.view === "team" || route.view === "game" || route.view === "week")) return "games";
   } catch (e) {}
   try {
     const hash = (window.location.hash || "").replace(/^#/, "");
@@ -35053,7 +35063,7 @@ function App() {
   const [view, setView] = useState(() => (getInitialRoute() || {}).view || "week");
   const [selectedWeek, setSelectedWeek] = useState(() => {
     const route = getInitialRoute();
-    return route && route.view === "game" ? route.week : getDefaultWeek();
+    return route && (route.view === "game" || route.view === "week") ? route.week : getDefaultWeek();
   });
   // Which section of the team page a link asked for, if any. Only ever set
   // from the initial URL - clicking through to a team in-app lands at the

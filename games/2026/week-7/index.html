@@ -247,8 +247,15 @@
     /* header.top steps out of the way so .hdr-bar sticks against .app - a
        52px-tall parent would let it scroll straight off. */
     header.top { display: contents; }
+    /* Columns 1 and 3 are both 82px so the centre pill lands optically
+       centred. Column 3 has to be allowed to grow past that, though: signed
+       out the cluster is a "Sign in" button plus its caret, which measures
+       93px, and a hard 82px track clipped 11px of it off the right edge of
+       the screen. minmax keeps the 82px floor (so the signed-in avatar
+       still balances the mark on the left) while letting the wider
+       signed-out button size to its content. */
     .hdr-bar {
-      display: grid; grid-template-columns: 82px minmax(0, 1fr) 82px; align-items: center;
+      display: grid; grid-template-columns: 82px minmax(0, 1fr) minmax(82px, auto); align-items: center;
       position: sticky; top: 0; z-index: 450;
       height: 52px; margin: -20px -16px 6px; padding: 0 8px;
       background: var(--card-bg);
@@ -16775,7 +16782,7 @@ function parseLocationPath(pathname) {
   const weekMatch = pathname.match(/^\/games\/(\d{4})\/([a-z0-9-]+)\/?$/);
   if (weekMatch) {
     const week = weekFromSlug(weekMatch[2]);
-    if (week != null) return { view: "week", week };
+    if (week != null) return { view: "weekHub", week };
   }
   const aliasMatch = pathname.match(/^\/g\/([A-Za-z0-9-]+)\/?$/);
   if (aliasMatch) {
@@ -34281,7 +34288,7 @@ function getInitialTab(leaguesEnabled) {
     // this, a direct hit or crawl of /teams/{slug} or /games/{season}/... would
     // open the Home tab and the route sync effect would then rewrite the URL
     // to "/", losing the page entirely.
-    if (route && (route.view === "team" || route.view === "game" || route.view === "week")) return "games";
+    if (route && (route.view === "team" || route.view === "game" || route.view === "weekHub")) return "games";
   } catch (e) {}
   try {
     const hash = (window.location.hash || "").replace(/^#/, "");
@@ -35039,10 +35046,17 @@ function App() {
   const [sportsbookId, setSportsbookId] = useSportsbookManager();
   const [gameType, setGameType] = useGameTypeManager();
   const [tzId, setTzId, resolvedTz] = useTimezoneManager();
-  const [view, setView] = useState(() => (getInitialRoute() || {}).view || "week");
+  // "weekHub" is a routing distinction, not a separate screen: it means
+  // "the week view, opened on the week named in the URL". It has to stay a
+  // distinct route name so the root route (which is also view:"week", with
+  // tab:"home") doesn't get mistaken for it, but it renders as the week view.
+  const [view, setView] = useState(() => {
+    const r = getInitialRoute() || {};
+    return r.view === "weekHub" ? "week" : (r.view || "week");
+  });
   const [selectedWeek, setSelectedWeek] = useState(() => {
     const route = getInitialRoute();
-    return route && (route.view === "game" || route.view === "week") ? route.week : getDefaultWeek();
+    return route && (route.view === "game" || route.view === "weekHub") && route.week != null ? route.week : getDefaultWeek();
   });
   // Which section of the team page a link asked for, if any. Only ever set
   // from the initial URL - clicking through to a team in-app lands at the

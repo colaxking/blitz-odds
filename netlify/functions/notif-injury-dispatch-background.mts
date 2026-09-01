@@ -7,6 +7,11 @@ import {
   fetchEspnInjuries, detailPhrase, SEVERITY, PREMIUM_POSITIONS,
   type EspnInjury, type InjuryState,
 } from "./lib/espn-injuries.mts";
+import {
+  fetchTeamDepth, bestSpot, foldHealthyDepth, isBuriedDepthPiece, suggestImpactScore, describeSpot,
+  DEPTH_SNAPSHOT_KEY, DEPTH_REFETCH_MS,
+  type DepthSnapshot, type DepthSpot, type HealthyDepth,
+} from "./lib/espn-depth.mts";
 
 // Watches ESPN's injury feed for changes, alerts on the ones that matter,
 // and queues the rest for review.
@@ -73,6 +78,12 @@ export interface ReviewItem {
   returnDate: string | null;
   comment: string | null;
   reportedAt: string | null;
+  /** Where he sits when healthy, from the depth snapshot. Null when he has
+   *  no healthy reading on file - which is "unknown", never "buried". */
+  depth?: { index: number; size: number; pos: string | null; label: string | null } | null;
+  /** A starting number for the queue row's 1-10 box, so applying a row is
+   *  one tap instead of a research question. Always overridable. */
+  suggestedImpact?: number | null;
   seenAt: string;
   resolved?: boolean;
 }
@@ -103,7 +114,8 @@ export default async (req: Request, _context: Context) => {
 
   const report: any = {
     ok: true, at: now.toISOString(), dryRun,
-    fetched: 0, changes: [], alerts: { sent: 0, outcomes: {} }, queued: 0, skippedDismissed: [], errors: [],
+    fetched: 0, changes: [], alerts: { sent: 0, outcomes: {} }, queued: 0,
+    skippedDismissed: [], skippedAgreed: [], errors: [],
   };
 
   try {
@@ -162,6 +174,60 @@ export default async (req: Request, _context: Context) => {
       return jsonResponse(200, { ...report, note: "No changes this tick" });
     }
 
+    // ---- Depth charts, for the teams that actually moved -----------------
+    // Two uses: filtering out genuine depth pieces before they reach the
+    // queue, and pre-filling the impact score each row asks for.
+    //
+    // ESPN DEMOTES AN INJURED PLAYER ON HIS OWN DEPTH CHART, at the same
+    // moment it designates him out. 44 of the 74 players impact-players.json
+    // carries as "out" are listed third-or-deeper with nobody behind them
+    // today - Josh Jacobs, Laremy Tunsil, Owusu-Koramoah among them - against
+    // 0 of the 71 carried active or questionable. So a live reading of an
+    // injured player says nothing about how much he matters, and everything
+    // about the designation that just landed.
+    //
+    // The snapshot therefore records a player ONLY on a tick where ESPN
+    // lists him healthy, and keeps the best index ever seen. That's "where
+    // he plays when he plays". A player with no healthy reading is unknown
+    // rather than buried, and is never filtered on that basis.
+    //
+    // Only teams with a change this tick are fetched, and each at most every
+    // DEPTH_REFETCH_MS, so a two-minute tick usually adds zero requests.
+    const depthSnapshot: DepthSnapshot =
+      ((await store.get(DEPTH_SNAPSHOT_KEY, { type: "json" })) as DepthSnapshot | null)
+      || { updatedAt: now.toISOString(), teams: {}, players: {} };
+    depthSnapshot.teams = depthSnapshot.teams || {};
+    depthSnapshot.players = depthSnapshot.players || {};
+
+    // Healthy per ESPN right now: either no injury record at all, or one
+    // that collapses to "active".
+    const isHealthy = (athleteId: string) => {
+      const rec = fresh[athleteId];
+      return !rec || rec.state === "active";
+    };
+
+    /** This tick's live readings, for players with no healthy reading on
+     *  file - used for scoring only, never for filtering. */
+    const liveDepth: Record<string, DepthSpot[]> = {};
+    let depthFetched = 0;
+    const changedTeams = [...new Set(changes.map((c) => c.e.team))];
+    for (const team of changedTeams) {
+      const last = Date.parse(depthSnapshot.teams[team] || "");
+      if (Number.isFinite(last) && now.getTime() - last < DEPTH_REFETCH_MS) continue;
+      try {
+        const spots = await fetchTeamDepth(team);
+        Object.assign(liveDepth, spots);
+        foldHealthyDepth(depthSnapshot, team, spots, isHealthy, now);
+        depthFetched++;
+      } catch (err) {
+        // A missing depth chart costs a suggested score and a filter, not a
+        // queue row. Never a reason to lose the tick.
+        report.errors.push(`depth chart ${team}: ${err instanceof Error ? err.message : "failed"}`);
+      }
+    }
+    report.depthFetched = depthFetched;
+    report.buried = [];
+
     // ---- Review queue ----------------------------------------------------
     // Every change lands here, tracked or not. This is the half of the
     // system that's for Dan rather than for readers: the curated file isn't
@@ -175,6 +241,30 @@ export default async (req: Request, _context: Context) => {
       if (!c.tracked && !isCandidate) continue;
 
       const ours = curated.get(c.e.id);
+
+      // ESPN CAUGHT UP TO A CALL ALREADY MADE. The diff above is ESPN
+      // against ESPN, which is right for alerting - the feed genuinely
+      // moved - but a queue row is a question ("should the curated file say
+      // something else?"), and when ESPN's new state is what the file
+      // already says, there is no question. These are the rows that render
+      // as "active → active": Dan had the player active, ESPN spent a week
+      // calling him questionable, and has now agreed. Nothing to apply.
+      if (ours && ours.status === c.to) {
+        report.skippedAgreed.push(`${c.e.name} (${c.e.team}) — already ${c.to} on file`);
+        continue;
+      }
+
+      // A HEALTHY reading, never a live one - see the depth-chart note
+      // above. Tracked players are exempt: being in the curated file is
+      // Dan's own statement that the player matters, and it outranks a
+      // depth chart.
+      const healthySpot: HealthyDepth | null = depthSnapshot.players[c.e.id] || null;
+      const scoringSpot = healthySpot || bestSpot(liveDepth[c.e.id], c.e.position);
+      if (!c.tracked && isBuriedDepthPiece(healthySpot)) {
+        report.buried.push(`${c.e.name} (${c.e.team}) — ${describeSpot(healthySpot)}`);
+        continue;
+      }
+
       // The alert path above already refuses to fire twice for the same
       // `{espnId}:{to}` (the evt ledger inside deliverAlert). The queue had no
       // equivalent, and it needs one: `id` collapses to `{espnId}:{to}`
@@ -217,6 +307,13 @@ export default async (req: Request, _context: Context) => {
         returnDate: c.e.returnDate,
         comment: c.e.comment,
         reportedAt: c.e.date,
+        depth: scoringSpot
+          ? { index: scoringSpot.index, size: scoringSpot.size, pos: scoringSpot.pos, label: describeSpot(scoringSpot) }
+          : null,
+        // A tracked player already has a number Dan chose; suggesting one
+        // over the top of it would invite overwriting a real decision with a
+        // guess. Suggest only where there is nothing on file.
+        suggestedImpact: ours ? null : suggestImpactScore(c.e.position, scoringSpot),
         seenAt: now.toISOString(),
       };
       if (!dryRun) await store.setJSON(key, item);
@@ -310,7 +407,12 @@ export default async (req: Request, _context: Context) => {
       }
     }
 
-    if (!dryRun) await store.setJSON(SNAPSHOT_KEY, nextSnapshot);
+    if (!dryRun) {
+      await store.setJSON(SNAPSHOT_KEY, nextSnapshot);
+      // Only when a team was actually read this tick - otherwise this is a
+      // full rewrite of an unchanged document every couple of minutes.
+      if (depthFetched) await store.setJSON(DEPTH_SNAPSHOT_KEY, depthSnapshot);
+    }
     await alertLog.flush({ changes: report.changes?.length ?? undefined });
     return jsonResponse(200, report);
   } catch (err) {

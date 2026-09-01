@@ -33087,6 +33087,7 @@ function AdminPicksPanel({ auth, data, onToast }) {
 
 function AdminInjuriesPanel({ auth, onToast, onCount }) {
   const [items, setItems] = useState(null);
+  const [autoHandled, setAutoHandled] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [choice, setChoice] = useState({});
@@ -33106,6 +33107,7 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
       const body = await adminCall(auth, "/.netlify/functions/injury-review");
       const list = body.items || [];
       setItems(list);
+      setAutoHandled(body.autoHandled || 0);
       onCount(list.length);
     } catch (e) {
       setError(e.message);
@@ -33186,8 +33188,10 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
       <AdminStatus busy={busy} error={error} />
 
       <p className="admin-note">
-        ESPN spotted these. Nothing reaches the app or the prediction model until you apply it —
-        and the sync script won't downgrade a status you set by hand.
+        Only changes that need a decision from you. A player whose absence doesn't change who
+        plays, and anything the sync script applies on its own, never reaches this list. Nothing
+        here touches the app or the prediction model until you apply it.
+        {autoHandled > 0 && " " + autoHandled + " handled automatically since the last sweep."}
       </p>
 
       {items && !items.length && <p className="admin-empty">Queue is clear.</p>}
@@ -33206,6 +33210,7 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
         const scoreOk = scoreValue !== "" && Number(scoreValue) >= 1 && Number(scoreValue) <= 10;
         return (
           <div key={item.id} className={"admin-inj" + (downgrade ? " downgrade" : "")}>
+            {/* Reason he's here at all, for a name you won't recognise. */}
             <div className="admin-inj-top">
               <button
                 type="button"
@@ -33218,6 +33223,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               <span className="admin-row-sub">{item.position || "?"} · {item.team}</span>
               {item.kind === "untracked-candidate" && (
                 <span className="admin-pill admin-pill-off">Not tracked</span>
+              )}
+              {item.standing === "next-man-up" && (
+                <span className="admin-pill admin-pill-off">Next man up</span>
+              )}
+              {item.standing === "unknown" && (
+                <span className="admin-pill admin-pill-off">Not on the depth chart</span>
               )}
             </div>
             {/* Two different facts, and conflating them is what made rows read

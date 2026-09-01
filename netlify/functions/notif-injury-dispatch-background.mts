@@ -8,7 +8,7 @@ import {
   type EspnInjury, type InjuryState,
 } from "./lib/espn-injuries.mts";
 import {
-  fetchTeamDepth, bestSpot, foldHealthyDepth, isBuriedDepthPiece, suggestImpactScore, describeSpot,
+  fetchTeamDepth, bestSpot, foldHealthyDepth, checkStanding, suggestImpactScore, describeSpot,
   DEPTH_SNAPSHOT_KEY, DEPTH_REFETCH_MS,
   type DepthSnapshot, type DepthSpot, type HealthyDepth,
 } from "./lib/espn-depth.mts";
@@ -84,8 +84,15 @@ export interface ReviewItem {
   /** A starting number for the queue row's 1-10 box, so applying a row is
    *  one tap instead of a research question. Always overridable. */
   suggestedImpact?: number | null;
+  /** Where he stood when the change landed. Kept for the row's own copy so
+   *  the panel doesn't have to re-derive it from a chart that has since moved. */
+  standing?: "starter" | "next-man-up" | "covered" | "unknown";
+  /** Set when the dispatcher resolved this itself because
+   *  injury-player-sync.mjs is going to handle it. Never set by a human. */
+  autoHandled?: string;
   seenAt: string;
   resolved?: boolean;
+  resolvedAt?: string;
 }
 
 const reviewKey = (id: string) => `review:${id}`;
@@ -139,10 +146,18 @@ export default async (req: Request, _context: Context) => {
 
     // ---- Which curated players do we track, and how important? ----------
     const playersDoc: any = await siteDataStore.get("players", { type: "json" });
-    const curated = new Map<string, { name: string; team: string; status: InjuryState; impactScore: number }>();
+    const curated = new Map<string, {
+      name: string; team: string; status: InjuryState; impactScore: number;
+      statusUpdatedAt: string | null; source: string | null; pinned: boolean;
+    }>();
     for (const [team, list] of Object.entries<any>(playersDoc?.players || {})) {
       for (const p of list || []) {
-        if (p.espnId) curated.set(String(p.espnId), { name: p.name, team, status: p.status, impactScore: p.impactScore || 0 });
+        if (p.espnId) curated.set(String(p.espnId), {
+          name: p.name, team, status: p.status, impactScore: p.impactScore || 0,
+          // Read only to predict what injury-player-sync.mjs will do with
+          // this player on its next run - see autoHandledReason below.
+          statusUpdatedAt: p.statusUpdatedAt || null, source: p.source || null, pinned: p.pinned === true,
+        });
       }
     }
 
@@ -215,9 +230,9 @@ export default async (req: Request, _context: Context) => {
       const last = Date.parse(depthSnapshot.teams[team] || "");
       if (Number.isFinite(last) && now.getTime() - last < DEPTH_REFETCH_MS) continue;
       try {
-        const spots = await fetchTeamDepth(team);
-        Object.assign(liveDepth, spots);
-        foldHealthyDepth(depthSnapshot, team, spots, isHealthy, now);
+        const { byAthlete, slots } = await fetchTeamDepth(team);
+        Object.assign(liveDepth, byAthlete);
+        foldHealthyDepth(depthSnapshot, team, byAthlete, isHealthy, now, slots);
         depthFetched++;
       } catch (err) {
         // A missing depth chart costs a suggested score and a filter, not a
@@ -226,7 +241,36 @@ export default async (req: Request, _context: Context) => {
       }
     }
     report.depthFetched = depthFetched;
-    report.buried = [];
+    report.covered = [];
+    report.autoHandled = [];
+
+    /** Down per ESPN right now. The running order comes from the depth
+     *  snapshot (up to DEPTH_REFETCH_MS old, which is fine - charts move on a
+     *  practice-report cadence); who can actually play comes from this
+     *  tick's feed, which is current. */
+    const isDown = (athleteId: string) => {
+      const rec = fresh[athleteId];
+      return !!rec && rec.state !== "active";
+    };
+
+    /**
+     * What injury-player-sync.mjs will do with this player unaided, mirroring
+     * its status pass exactly (scripts/injury-player-sync.mjs, "DIRECTION
+     * MATTERS"). If it's going to apply the change itself, the row is not a
+     * decision and shouldn't be sitting in front of Dan.
+     *
+     * IF THAT SCRIPT'S RULES CHANGE, CHANGE THESE.
+     */
+    const syncWillApply = (
+      ours: { status: InjuryState; statusUpdatedAt: string | null; source: string | null; pinned: boolean },
+      to: InjuryState,
+      reportedAt: string | null,
+    ): boolean => {
+      if (!reportedAt || !ours.statusUpdatedAt) return false;      // no date, no auto-apply
+      if (Date.parse(reportedAt) <= Date.parse(ours.statusUpdatedAt)) return false;  // our opinion is newer
+      if (ours.pinned) return false;                                // never auto-apply, permanently
+      return SEVERITY[to] > SEVERITY[ours.status] || ours.source === "auto";
+    };
 
     // ---- Review queue ----------------------------------------------------
     // Every change lands here, tracked or not. This is the half of the
@@ -254,15 +298,37 @@ export default async (req: Request, _context: Context) => {
         continue;
       }
 
-      // A HEALTHY reading, never a live one - see the depth-chart note
-      // above. Tracked players are exempt: being in the curated file is
-      // Dan's own statement that the player matters, and it outranks a
-      // depth chart.
+      // A HEALTHY reading, never a live one, for the suggested score - see
+      // the depth-chart note above.
       const healthySpot: HealthyDepth | null = depthSnapshot.players[c.e.id] || null;
       const scoringSpot = healthySpot || bestSpot(liveDepth[c.e.id], c.e.position);
-      if (!c.tracked && isBuriedDepthPiece(healthySpot)) {
-        report.buried.push(`${c.e.name} (${c.e.team}) — ${describeSpot(healthySpot)}`);
+
+      // DOES HIS ABSENCE CHANGE WHO PLAYS? For an unfamiliar name that's the
+      // whole question, and for 121 of 126 of them today the answer is no:
+      // somebody healthy is still ahead of him, so the snap gets taken and
+      // the line doesn't move. Tracked players are exempt - being in the
+      // curated file is Dan's own statement that the player matters, and it
+      // outranks a depth chart.
+      const standing = checkStanding(depthSnapshot.slots?.[c.e.team], c.e.id, isDown);
+      if (!c.tracked && standing.covered) {
+        report.covered.push(`${c.e.name} (${c.e.team}) — healthy body still ahead of him`);
         continue;
+      }
+
+      // ---- Is this a decision, or something the automation already makes? --
+      // A row that injury-player-sync.mjs will apply on its own run is not a
+      // question for anyone. It is still WRITTEN, pre-resolved rather than
+      // skipped: if that script fails or a run is delayed, a skipped row is a
+      // change nobody ever sees, whereas a pre-resolved one is out of the
+      // default view and still there under ?all=1.
+      let autoHandled: string | null = null;
+      if (c.tracked && ours && syncWillApply(ours, c.to, c.e.date)) {
+        autoHandled = "sync-applies";
+      } else if (!c.tracked && standing.starter) {
+        // The sync auto-adds an untracked first-stringer at a premium
+        // position who's been ruled out. Questionable isn't in its remit, so
+        // that stays a real row.
+        if (c.to === "out") autoHandled = "sync-adds";
       }
 
       // The alert path above already refuses to fire twice for the same
@@ -286,7 +352,12 @@ export default async (req: Request, _context: Context) => {
       const key = reviewKey(`${c.e.id}:${c.e.injuryId || c.to}`);
       const existing = (await store.get(key, { type: "json" })) as
         (ReviewItem & { supersededBy?: string }) | null;
-      const dismissedByHand = !!existing && existing.resolved === true && !existing.supersededBy;
+      // `autoHandled` excluded deliberately: those rows are resolved by the
+      // dispatcher, not by Dan, so treating one as a dismissal would suppress
+      // the genuine row that follows when the sync's own rules stop covering
+      // the player.
+      const dismissedByHand = !!existing && existing.resolved === true
+        && !existing.supersededBy && !(existing as any).autoHandled;
       if (dismissedByHand && existing!.to === c.to && (existing!.ours ?? null) === (ours ? ours.status : null)) {
         report.skippedDismissed.push(`${c.e.name} (${c.e.team}) → ${c.to}`);
         continue;
@@ -314,10 +385,19 @@ export default async (req: Request, _context: Context) => {
         // over the top of it would invite overwriting a real decision with a
         // guess. Suggest only where there is nothing on file.
         suggestedImpact: ours ? null : suggestImpactScore(c.e.position, scoringSpot),
+        standing: standing.starter ? "starter"
+          : standing.nextManUp ? "next-man-up"
+          : standing.unknown ? "unknown" : "covered",
         seenAt: now.toISOString(),
       };
+      if (autoHandled) {
+        item.autoHandled = autoHandled;
+        item.resolved = true;
+        item.resolvedAt = now.toISOString();
+        report.autoHandled.push(`${c.e.name} (${c.e.team}) → ${c.to} [${autoHandled}]`);
+      }
       if (!dryRun) await store.setJSON(key, item);
-      report.queued++;
+      if (!autoHandled) report.queued++;
     }
 
     // ---- Alerts ----------------------------------------------------------

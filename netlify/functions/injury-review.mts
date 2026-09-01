@@ -103,6 +103,10 @@ export default async (req: Request, _context: Context) => {
       const includeDone = new URL(req.url).searchParams.get("all") === "1";
       const items: any[] = [];
       let swept = 0;
+      // Rows the dispatcher resolved itself because injury-player-sync.mjs
+      // is going to apply them. Counted rather than returned, so the panel
+      // can say "12 handled for you" without listing twelve non-decisions.
+      let autoHandled = 0;
 
       for await (const page of store.list({ prefix: "review:", paginate: true })) {
         for (const blob of page.blobs) {
@@ -115,6 +119,7 @@ export default async (req: Request, _context: Context) => {
               swept++;
               continue;
             }
+            if (item.autoHandled) autoHandled++;
             if (item.resolved && !includeDone) continue;
             items.push(item);
           } catch {
@@ -167,6 +172,7 @@ export default async (req: Request, _context: Context) => {
         items: out,
         swept,
         folded,
+        autoHandled,
         openCount: out.filter((i) => !i.resolved).length,
       });
     }

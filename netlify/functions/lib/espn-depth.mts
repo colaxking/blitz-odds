@@ -52,12 +52,22 @@ export interface HealthyDepth {
   pos: string | null;
   seenAt: string;
 }
+/** One slot's running order: who ESPN lists ahead of whom. */
+export interface DepthSlot {
+  pos: string | null;
+  ids: string[];
+}
 export interface DepthSnapshot {
   updatedAt: string;
   /** team abbr -> ISO timestamp of the last fetch, so a tick doesn't refetch
    *  a team it already read minutes ago. */
   teams: Record<string, string>;
   players: Record<string, HealthyDepth>;
+  /** team abbr -> its slots, persisted so the next-man-up test works on
+   *  every tick and not only the one that happened to refetch. Depth charts
+   *  move on a practice-report cadence, so a reading up to
+   *  DEPTH_REFETCH_MS old is still the right running order. */
+  slots?: Record<string, DepthSlot[]>;
 }
 
 export const DEPTH_SNAPSHOT_KEY = "espn-depth-healthy";
@@ -70,28 +80,39 @@ const isSpecialFormation = (name: unknown) =>
   /(special|punt|kick|field ?goal|\bfg\b|return)/i.test(String(name || ""));
 
 /**
- * Every slot every athlete on one team appears in, keyed by ESPN athlete id.
- * A player legitimately appears in more than one (a WR3 who's also the KR2).
+ * One team's depth chart, in both shapes the callers need: `byAthlete` for
+ * "where does this player sit", `slots` for "who is ahead of him".
+ *
+ * Special-teams formations are excluded from `slots` - being third on the
+ * kick-return unit says nothing about whether anyone's snaps change hands.
+ * They stay in `byAthlete`, which ranks them last anyway.
  */
-export async function fetchTeamDepth(teamAbbr: string): Promise<Record<string, DepthSpot[]>> {
+export async function fetchTeamDepth(teamAbbr: string): Promise<{
+  byAthlete: Record<string, DepthSpot[]>;
+  slots: DepthSlot[];
+}> {
   const res = await fetch(depthUrl(espnTeamSlug(teamAbbr)), { headers: ESPN_HEADERS });
   if (!res.ok) throw new Error(`ESPN depth chart failed for ${teamAbbr}: ${res.status}`);
   const data: any = await res.json();
 
-  const out: Record<string, DepthSpot[]> = {};
+  const byAthlete: Record<string, DepthSpot[]> = {};
+  const slots: DepthSlot[] = [];
   for (const formation of data.depthchart || []) {
     const special = isSpecialFormation(formation?.name);
     for (const entry of Object.values<any>(formation?.positions || {})) {
       const athletes = entry?.athletes || [];
       const pos = entry?.position?.abbreviation || null;
+      const ids: string[] = [];
       athletes.forEach((a: any, index: number) => {
         const id = a?.id != null ? String(a.id) : null;
         if (!id) return;
-        (out[id] = out[id] || []).push({ index, size: athletes.length, pos, special });
+        ids.push(id);
+        (byAthlete[id] = byAthlete[id] || []).push({ index, size: athletes.length, pos, special });
       });
+      if (ids.length && !special) slots.push({ pos, ids });
     }
   }
-  return out;
+  return { byAthlete, slots };
 }
 
 /**
@@ -160,16 +181,52 @@ export function suggestImpactScore(position: string | null, spot: HealthyDepth |
   return Math.min(10, Math.max(SCORE_FLOOR, base - penalty));
 }
 
+/** Where a player sits relative to the people ahead of him, and whether any
+ *  of them can still play. */
+export interface StandingCheck {
+  /** ESPN lists him first in at least one slot. */
+  starter: boolean;
+  /** He isn't first, but everyone ahead of him is down - so his snaps are
+   *  the ones that just changed hands. */
+  nextManUp: boolean;
+  /** Somebody healthy is still ahead of him in every slot he holds. */
+  covered: boolean;
+  /** No slot data for his team at all. Unknown, never "covered". */
+  unknown: boolean;
+}
+
 /**
- * Whether a player is deep enough, with nobody behind him, that an untracked
- * status change isn't worth a queue row.
+ * THE RULE THAT DECIDES WHETHER AN UNFAMILIAR NAME IS WORTH ASKING ABOUT.
  *
- * ONLY EVER CALLED WITH A HEALTHY READING. See the header: on a live reading
- * this returns true for 59% of genuinely injured players.
+ * Not "is he deep" - "does his absence change who plays". Measured against
+ * the live feed: of 126 untracked premium-position players carrying a
+ * designation, 121 had a healthy body still ahead of them. A backup WR3
+ * tweaking a hamstring doesn't move a line, because the player taking that
+ * snap is fine. Five did not, and those are the real ones.
+ *
+ * This supersedes the earlier "third-or-deeper with nobody behind him" test,
+ * which asked about the wrong end of the depth chart: what matters is who's
+ * in FRONT of him, and whether they can play.
  */
-export function isBuriedDepthPiece(spot: HealthyDepth | DepthSpot | null): boolean {
-  if (!spot) return false;
-  return spot.index >= 2 && spot.index === spot.size - 1;
+export function checkStanding(
+  slots: DepthSlot[] | undefined,
+  athleteId: string,
+  isDown: (id: string) => boolean,
+): StandingCheck {
+  const base = { starter: false, nextManUp: false, covered: false, unknown: false };
+  if (!slots || !slots.length) return { ...base, unknown: true };
+
+  let held = false;
+  for (const slot of slots) {
+    const i = slot.ids.indexOf(athleteId);
+    if (i === -1) continue;
+    held = true;
+    if (i === 0) return { ...base, starter: true };
+    if (slot.ids.slice(0, i).every(isDown)) return { ...base, nextManUp: true };
+  }
+  // In no slot at all: practice squad, IR, or a chart ESPN hasn't refreshed.
+  // Not the same as being covered, so it doesn't get filtered on that basis.
+  return held ? { ...base, covered: true } : { ...base, unknown: true };
 }
 
 function ordinal(n: number): string {
@@ -204,7 +261,14 @@ export function foldHealthyDepth(
   spotsById: Record<string, DepthSpot[]>,
   isHealthy: (athleteId: string) => boolean,
   now: Date,
+  slots?: DepthSlot[],
 ): number {
+  if (slots) {
+    // Overwritten rather than merged: a running order is only meaningful as
+    // a whole, and a stale half of one is worse than none.
+    snapshot.slots = snapshot.slots || {};
+    snapshot.slots[fixAbbr(teamAbbr)] = slots;
+  }
   let recorded = 0;
   for (const [id, spots] of Object.entries(spotsById)) {
     if (!isHealthy(id)) continue;

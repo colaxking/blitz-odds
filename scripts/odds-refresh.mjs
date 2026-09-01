@@ -57,6 +57,12 @@ const ANCHOR_DAY = Number(process.env.ANCHOR_DAY || 31);
 const BOOKMAKERS = ["draftkings", "fanduel", "betmgm", "caesars"];
 const NEAR_WINDOW_DAYS = 10;
 const FULL_SWEEP_STALE_HOURS = 20;
+// How far past its scheduled date a game has to be before its odds history is
+// collapsed (see collapseFinishedHistory). The schedule files carry day-level
+// dates only, so this covers both the missing kickoff time and a late game
+// running long - a Monday nighter kicking off at 00:15 UTC Tuesday is still
+// safely inside two days.
+const FINISHED_GRACE_DAYS = 2;
 // Fallback only - used if odds-proxy's usage response doesn't report a
 // totalCap (e.g. still running the old single-key build). Once the
 // multi-key proxy is live, the real cap comes from that response instead.
@@ -93,6 +99,28 @@ async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Transient network blips (ECONNRESET, DNS hiccups, etc.) between the
+// GitHub Actions runner and Netlify's edge happen occasionally and aren't
+// worth failing the whole run over - especially the reads at the top, which
+// hadn't spent a single object of SportsGameOdds quota yet. Same helper as
+// scripts/hotpicks-snapshot.mjs, which hit exactly this and was fixed first.
+// Note this only retries *network-level* failures (fetch() rejecting); an
+// HTTP error response is returned as-is for the caller to judge.
+async function fetchWithRetry(url, options, attempts = 3) {
+  let lastErr;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      lastErr = err;
+      const cause = err?.cause?.code ? ` (${err.cause.code})` : "";
+      log(`fetch failed (attempt ${i}/${attempts}) for ${url}: ${err.message}${cause}`);
+      if (i < attempts) await sleep(1000 * i);
+    }
+  }
+  throw lastErr;
+}
+
 async function readJson(relPath) {
   const full = path.join(REPO_ROOT, relPath);
   return JSON.parse(await readFile(full, "utf8"));
@@ -107,7 +135,7 @@ async function writeJson(relPath, data) {
 // Lock
 
 async function acquireLock(runId) {
-  const res = await fetch(`${SITE_BASE}/.netlify/functions/odds-lock`, {
+  const res = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/odds-lock`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-odds-update-secret": ODDS_UPDATE_SECRET },
     body: JSON.stringify({ runId }),
@@ -118,6 +146,13 @@ async function acquireLock(runId) {
   }
   if (res.status === 409) {
     const body = await res.json().catch(() => ({}));
+    // A retried acquire can collide with its own first attempt: the write
+    // landed but the response never made it back, so the retry now sees a
+    // lock held by this very runId. That's us - take it, don't skip the run.
+    if (body.holder === runId) {
+      log("lock already held by this run (a retried acquire raced its own first attempt) - proceeding.");
+      return { held: true, deployed: true };
+    }
     log(`skipped - another run already holds the lock (holder ${body.holder}, age ${body.ageSeconds}s)`);
     return { held: false, deployed: true, blocked: true };
   }
@@ -129,7 +164,7 @@ async function acquireLock(runId) {
 
 async function releaseLock(runId) {
   try {
-    await fetch(`${SITE_BASE}/.netlify/functions/odds-lock`, {
+    await fetchWithRetry(`${SITE_BASE}/.netlify/functions/odds-lock`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json", "x-odds-update-secret": ODDS_UPDATE_SECRET },
       body: JSON.stringify({ runId }),
@@ -191,7 +226,7 @@ function describeKeyLine(k) {
 }
 
 async function checkBudget() {
-  const res = await fetch(`${SITE_BASE}/.netlify/functions/odds-proxy?endpoint=usage`);
+  const res = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/odds-proxy?endpoint=usage`);
   if (!res.ok) {
     log("warning: usage check failed, proceeding cautiously this run:", res.status);
     return { proceed: true, usage: null };
@@ -280,7 +315,7 @@ async function checkBudget() {
 // slower/more expensive one, so it stays opt-in on both sides.
 async function getOddsCurrent(type, { strong = false } = {}) {
   const qs = type === "history" ? "?type=history" : "";
-  const res = await fetch(`${SITE_BASE}/.netlify/functions/odds-current${qs}`, {
+  const res = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/odds-current${qs}`, {
     cache: "no-store",
     ...(strong ? { headers: { "x-odds-update-secret": ODDS_UPDATE_SECRET } } : {}),
   });
@@ -322,7 +357,7 @@ async function verifyPublish(expectedFullSweepAt) {
 
 async function fetchEventsPage(params, attempt = 1) {
   const url = `${SITE_BASE}/.netlify/functions/odds-proxy?endpoint=events&${params.toString()}`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetchWithRetry(url, { cache: "no-store" });
   const body = await res.json().catch(() => null);
   if (body && body.success === false && /rate limit/i.test(body.error || "") && attempt <= 5) {
     // odds-proxy already rotates across every configured SportsGameOdds
@@ -438,6 +473,41 @@ function resolveWeek(scheduleIndex, away, home, startsAt) {
 }
 
 // ---------------------------------------------------------------------------
+// History pruning
+
+// A game's odds history stops growing the moment it kicks off - every fetch
+// window in this script starts at `now`, so a finished game is never fetched
+// again and never gets another entry appended. What doesn't stop is the cost
+// of carrying it: the whole history document is read at the top of every run
+// and POSTed back on every publish that touches history, so a September game's
+// line-by-line detail is paid for on every run until February, and the client
+// downloads it too.
+//
+// The one consumer of this document (PlaybookChanges in index.html) reads
+// exactly two entries per game - snaps[0] and snaps[snaps.length - 1], the
+// opening line and the closing one - and skips any game with fewer than two.
+// So a finished game keeps precisely those two and drops everything between.
+// Line movement for past weeks reads identically before and after.
+function collapseFinishedHistory(history, scheduleIndex, now = new Date()) {
+  const cutoff = now.getTime() - FINISHED_GRACE_DAYS * 86400000;
+  let gamesCollapsed = 0;
+  let entriesDropped = 0;
+  for (const [gameKey, snaps] of Object.entries(history.games || {})) {
+    if (!Array.isArray(snaps) || snaps.length <= 2) continue;
+    const candidates = scheduleIndex.get(gameKey);
+    // Unknown to the schedule, or any candidate date not safely past: leave it
+    // alone. Collapsing is destructive and there's no way to re-fetch what it
+    // drops, so anything ambiguous keeps its full history.
+    if (!candidates || candidates.length === 0) continue;
+    if (!candidates.every((c) => c.date && c.date.getTime() < cutoff)) continue;
+    entriesDropped += snaps.length - 2;
+    history.games[gameKey] = [snaps[0], snaps[snaps.length - 1]];
+    gamesCollapsed += 1;
+  }
+  return { gamesCollapsed, entriesDropped };
+}
+
+// ---------------------------------------------------------------------------
 // Event -> odds entry
 
 function extractLine(oddsObj, statEntityID, betTypeID, sideID) {
@@ -536,7 +606,15 @@ async function main() {
       return;
     }
 
-    const [liveOdds, liveHistory] = await Promise.all([getOddsCurrent(), getOddsCurrent("history")]);
+    // Sequential, not Promise.all - two concurrent fetches to the same host
+    // from a GitHub Actions runner have been unreliable (ECONNRESET survived
+    // both retries and forced IPv4 DNS resolution over in
+    // scripts/hotpicks-snapshot.mjs), which points at a Node/undici
+    // connection-pooling issue rather than a genuinely flaky path. The
+    // history document is ~700KB and climbing, so it's the one that tends to
+    // lose. One connection at a time costs a few hundred ms.
+    const liveOdds = await getOddsCurrent();
+    const liveHistory = await getOddsCurrent("history");
 
     const lastFullSweepAt = liveOdds.lastFullSweepAt ? new Date(liveOdds.lastFullSweepAt) : null;
     const hoursSinceFull = lastFullSweepAt ? (Date.now() - lastFullSweepAt.getTime()) / 3600000 : Infinity;
@@ -601,6 +679,16 @@ async function main() {
 
     if (skipped.length) log(`skipped ${skipped.length} event(s): ${skipped.slice(0, 10).join(", ")}${skipped.length > 10 ? "..." : ""}`);
 
+    // After the append loop, never before: a game old enough to collapse is
+    // outside this run's fetch window anyway, so the two can't fight over the
+    // same game, but ordering it this way makes that impossible rather than
+    // merely true today.
+    const collapsed = collapseFinishedHistory(liveHistory, scheduleIndex);
+    if (collapsed.entriesDropped > 0) {
+      log(`history: collapsed ${collapsed.gamesCollapsed} finished game(s) to open/close, dropping ${collapsed.entriesDropped} intermediate snapshot(s).`);
+      historyChanged = true;
+    }
+
     let fullSweepFlagChanged = false;
     if (sweepMode === "FULL") {
       liveOdds.lastFullSweepAt = new Date().toISOString();
@@ -615,7 +703,7 @@ async function main() {
     const publishBody = { odds: liveOdds };
     if (historyChanged) publishBody.history = liveHistory;
 
-    const publishRes = await fetch(`${SITE_BASE}/.netlify/functions/odds-update`, {
+    const publishRes = await fetchWithRetry(`${SITE_BASE}/.netlify/functions/odds-update`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-odds-update-secret": ODDS_UPDATE_SECRET },
       body: JSON.stringify(publishBody),

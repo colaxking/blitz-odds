@@ -5135,6 +5135,11 @@
     border-radius: 8px;
   }
   .admin-inj-score-hint { font-size: .68rem; color: var(--text-dim); margin-top: 7px; line-height: 1.4; }
+  .admin-inj-purge {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-border);
+  }
+  .admin-inj-purge-ask { flex: 1 1 220px; font-size: .72rem; color: var(--warn); font-weight: 700; line-height: 1.45; }
   /* The queue row's player name is a button into the depth-chart sheet. It
      has to keep looking like the heading it replaced, so it inherits
      .admin-inj-name's type and only adds the affordance. */
@@ -5249,15 +5254,15 @@
     <thead><tr><th>Points</th><th>Pick</th><th>Matchup</th><th>Win probability</th><th>Spread</th><th>Kickoff</th></tr></thead>
     <tbody>
       <tr><td>16</td><td><strong>Buffalo Bills</strong></td><td><a href="/games/2026/week-15/chicago-bears-at-buffalo-bills/">Chicago Bears at Buffalo Bills</a></td><td>91%</td><td>BUF -3.5</td><td>Thu, Dec 17 · 8:15 PM ET</td></tr>
-      <tr><td>15</td><td><strong>Los Angeles Chargers</strong></td><td><a href="/games/2026/week-15/san-francisco-49ers-at-los-angeles-chargers/">San Francisco 49ers at Los Angeles Chargers</a></td><td>82%</td><td>LAC -2.5</td><td>Thu, Dec 17 · 8:15 PM ET</td></tr>
+      <tr><td>15</td><td><strong>Los Angeles Chargers</strong></td><td><a href="/games/2026/week-15/san-francisco-49ers-at-los-angeles-chargers/">San Francisco 49ers at Los Angeles Chargers</a></td><td>85%</td><td>LAC -2.5</td><td>Thu, Dec 17 · 8:15 PM ET</td></tr>
       <tr><td>14</td><td><strong>Denver Broncos</strong></td><td><a href="/games/2026/week-15/denver-broncos-at-las-vegas-raiders/">Denver Broncos at Las Vegas Raiders</a></td><td>78%</td><td>DEN -4.5</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
       <tr><td>13</td><td><strong>New England Patriots</strong></td><td><a href="/games/2026/week-15/new-england-patriots-at-kansas-city-chiefs/">New England Patriots at Kansas City Chiefs</a></td><td>76%</td><td>KC -2.5</td><td>Mon, Dec 21 · 8:15 PM ET</td></tr>
       <tr><td>12</td><td><strong>Jacksonville Jaguars</strong></td><td><a href="/games/2026/week-15/jacksonville-jaguars-at-houston-texans/">Jacksonville Jaguars at Houston Texans</a></td><td>74%</td><td>HOU -3</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
       <tr><td>11</td><td><strong>Los Angeles Rams</strong></td><td><a href="/games/2026/week-15/dallas-cowboys-at-los-angeles-rams/">Dallas Cowboys at Los Angeles Rams</a></td><td>73%</td><td>LAR -6</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
-      <tr><td>10</td><td><strong>Tampa Bay Buccaneers</strong></td><td><a href="/games/2026/week-15/new-orleans-saints-at-tampa-bay-buccaneers/">New Orleans Saints at Tampa Bay Buccaneers</a></td><td>71%</td><td>TB -3.5</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
+      <tr><td>10</td><td><strong>Tampa Bay Buccaneers</strong></td><td><a href="/games/2026/week-15/new-orleans-saints-at-tampa-bay-buccaneers/">New Orleans Saints at Tampa Bay Buccaneers</a></td><td>72%</td><td>TB -3.5</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
       <tr><td>9</td><td><strong>Detroit Lions</strong></td><td><a href="/games/2026/week-15/detroit-lions-at-minnesota-vikings/">Detroit Lions at Minnesota Vikings</a></td><td>71%</td><td>DET -1.5</td><td>Sun, Dec 20 · 8:20 PM ET</td></tr>
       <tr><td>8</td><td><strong>Seattle Seahawks</strong></td><td><a href="/games/2026/week-15/seattle-seahawks-at-philadelphia-eagles/">Seattle Seahawks at Philadelphia Eagles</a></td><td>65%</td><td>PHI -1.5</td><td>Thu, Dec 17 · 8:15 PM ET</td></tr>
-      <tr><td>7</td><td><strong>Indianapolis Colts</strong></td><td><a href="/games/2026/week-15/indianapolis-colts-at-tennessee-titans/">Indianapolis Colts at Tennessee Titans</a></td><td>62%</td><td>IND -1.5</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
+      <tr><td>7</td><td><strong>Indianapolis Colts</strong></td><td><a href="/games/2026/week-15/indianapolis-colts-at-tennessee-titans/">Indianapolis Colts at Tennessee Titans</a></td><td>64%</td><td>IND -1.5</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
       <tr><td>6</td><td><strong>New York Giants</strong></td><td><a href="/games/2026/week-15/cleveland-browns-at-new-york-giants/">Cleveland Browns at New York Giants</a></td><td>61%</td><td>NYG -4.5</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
       <tr><td>5</td><td><strong>Atlanta Falcons</strong></td><td><a href="/games/2026/week-15/atlanta-falcons-at-washington-commanders/">Atlanta Falcons at Washington Commanders</a></td><td>60%</td><td>WAS -3.5</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
       <tr><td>4</td><td><strong>Carolina Panthers</strong></td><td><a href="/games/2026/week-15/cincinnati-bengals-at-carolina-panthers/">Cincinnati Bengals at Carolina Panthers</a></td><td>55%</td><td>CIN -2.5</td><td>Sun, Dec 20 · 1:00 PM ET</td></tr>
@@ -6096,16 +6101,15 @@
         "name": "Christian McCaffrey",
         "position": "RB",
         "impactScore": 9,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Calf/leg tightness (recovered)",
-          "since": "2026-08-10",
-          "note": "Returned to full practice Aug. 23, taking part in 11-on-11 work including handoffs and routes out of the backfield, after being sidelined since Aug. 10. McCaffrey said the absence was a planned ramp-up rather than a new setback, telling reporters it was 'part of the plan from the jump...to be fresh for the duration.'"
+          "type": "Undisclosed",
+          "note": "McCaffrey (undisclosed) suited up and went through drills at Tuesday's practice, according to Matt Lively of CBS Sports Bay Area."
         },
         "activatedDate": "2026-08-23",
         "espnId": "3117251",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-01T19:59Z",
+        "source": "auto"
       },
       {
         "name": "George Kittle",
@@ -6621,6 +6625,20 @@
         },
         "statusUpdatedAt": "2026-08-29T16:59Z",
         "source": "auto"
+      },
+      {
+        "name": "Kendre Miller",
+        "position": "RB",
+        "espnId": "4599739",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-09-01",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-01T20:20:12.728Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -7276,6 +7294,20 @@
           "note": null
         },
         "statusUpdatedAt": "2026-08-31T15:11:57.003Z",
+        "source": "curated"
+      },
+      {
+        "name": "Carnell Tate",
+        "position": "WR",
+        "espnId": "4871023",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-09-01",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-01T20:19:48.129Z",
         "source": "curated"
       }
     ],
@@ -33107,6 +33139,10 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
   // hands the row back, that's a bug to find in the dispatcher's `reopened`
   // report, not a reason to make the same decision twice.
   const dismissedRef = useRef(new Set());
+  // Two taps to empty the queue. Deleting every row is irreversible and the
+  // button sits next to Apply/Ignore, so it asks once rather than firing on
+  // a mis-tap.
+  const [confirmPurge, setConfirmPurge] = useState(false);
   // espnId (and lowercased name) -> the curated record, so a queue row can show
   // the impact score already on file instead of asking for it again.
   const [tracked, setTracked] = useState({});
@@ -33193,6 +33229,28 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
       onToast(applied
         ? (item.name || "Player") + " set to " + (choice[item.id] || item.to)
         : "Ignored — " + (item.name || "player") + " unchanged");
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function purge() {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = await adminCall(auth, "/.netlify/functions/injury-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purge: true }),
+      });
+      dismissedRef.current = new Set();
+      setConfirmPurge(false);
+      setItems([]);
+      onCount(0);
+      onToast("Queue cleared — " + (body.deleted || 0) + " row" + (body.deleted === 1 ? "" : "s") + " deleted");
       await load();
     } catch (e) {
       setError(e.message);
@@ -33328,6 +33386,29 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
           </div>
         );
       })}
+
+      {items && items.length > 0 && (
+        <div className="admin-inj-purge">
+          {confirmPurge ? (
+            <React.Fragment>
+              <span className="admin-inj-purge-ask">
+                Delete all {items.length} row{items.length === 1 ? "" : "s"}? This can't be undone.
+                ESPN's snapshot is untouched, so nothing reappears until a player actually moves.
+              </span>
+              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(false)}>
+                Cancel
+              </button>
+              <button type="button" className="admin-btn admin-btn-sm admin-btn-warn" disabled={busy} onClick={purge}>
+                Delete them
+              </button>
+            </React.Fragment>
+          ) : (
+            <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(true)}>
+              Clear the queue
+            </button>
+          )}
+        </div>
+      )}
 
       {depthItem && (
         <AdminDepthChartSheet item={depthItem} onClose={() => setDepthItem(null)} />

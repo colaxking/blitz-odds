@@ -5135,6 +5135,11 @@
     border-radius: 8px;
   }
   .admin-inj-score-hint { font-size: .68rem; color: var(--text-dim); margin-top: 7px; line-height: 1.4; }
+  .admin-inj-purge {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-border);
+  }
+  .admin-inj-purge-ask { flex: 1 1 220px; font-size: .72rem; color: var(--warn); font-weight: 700; line-height: 1.45; }
   /* The queue row's player name is a button into the depth-chart sheet. It
      has to keep looking like the heading it replaced, so it inherits
      .admin-inj-name's type and only adds the affordance. */
@@ -5259,7 +5264,7 @@
     <tbody>
       <tr><td><a href="/games/2026/preseason-week-1/dallas-cowboys-at-seattle-seahawks/">Preseason Week 1</a></td><td>@ <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Sat, Aug 15 8:00 PM ET</td><td>Model predicts Seattle Seahawks to win (40%)</td><td>W 17-7 (DAL 17 - 7 SEA, prediction missed)</td></tr>
       <tr><td><a href="/games/2026/preseason-week-2/dallas-cowboys-at-arizona-cardinals/">Preseason Week 2</a></td><td>@ <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sat, Aug 22 10:00 PM ET</td><td>Model predicts Dallas Cowboys to win (66%)</td><td>W 34-13 (DAL 34 - 13 ARI, prediction correct)</td></tr>
-      <tr><td><a href="/games/2026/preseason-week-3/new-orleans-saints-at-dallas-cowboys/">Preseason Week 3</a></td><td>vs <a href="/teams/new-orleans-saints/">New Orleans Saints</a></td><td>Fri, Aug 28 8:00 PM ET</td><td>Model predicts Dallas Cowboys to win (81%)</td><td>L 24-27 (NO 27 - 24 DAL, prediction missed)</td></tr>
+      <tr><td><a href="/games/2026/preseason-week-3/new-orleans-saints-at-dallas-cowboys/">Preseason Week 3</a></td><td>vs <a href="/teams/new-orleans-saints/">New Orleans Saints</a></td><td>Fri, Aug 28 8:00 PM ET</td><td>Model predicts Dallas Cowboys to win (82%)</td><td>L 24-27 (NO 27 - 24 DAL, prediction missed)</td></tr>
       <tr><td><a href="/games/2026/week-1/dallas-cowboys-at-new-york-giants/">Week 1</a></td><td>@ <a href="/teams/new-york-giants/">New York Giants</a></td><td>Sun, Sep 13 8:20 PM ET</td><td>Model predicts Dallas Cowboys to win (63%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-2/washington-commanders-at-dallas-cowboys/">Week 2</a></td><td>vs <a href="/teams/washington-commanders/">Washington Commanders</a></td><td>Sun, Sep 20 4:25 PM ET</td><td>Model predicts Dallas Cowboys to win (76%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-3/baltimore-ravens-at-dallas-cowboys/">Week 3</a></td><td>vs <a href="/teams/baltimore-ravens/">Baltimore Ravens</a></td><td>Sun, Sep 27 4:25 PM ET</td><td>Model predicts Dallas Cowboys to win (72%)</td><td>Not played yet</td></tr>
@@ -5269,8 +5274,8 @@
       <tr><td><a href="/games/2026/week-7/dallas-cowboys-at-philadelphia-eagles/">Week 7</a></td><td>@ <a href="/teams/philadelphia-eagles/">Philadelphia Eagles</a></td><td>Mon, Oct 26 8:15 PM ET</td><td>Model predicts Dallas Cowboys to win (61%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-8/arizona-cardinals-at-dallas-cowboys/">Week 8</a></td><td>vs <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Nov 1 1:00 PM ET</td><td>Model predicts Dallas Cowboys to win (75%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-9/dallas-cowboys-at-indianapolis-colts/">Week 9</a></td><td>@ <a href="/teams/indianapolis-colts/">Indianapolis Colts</a></td><td>Sun, Nov 8 1:00 PM ET</td><td>Model predicts Dallas Cowboys to win (56%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-10/san-francisco-49ers-at-dallas-cowboys/">Week 10</a></td><td>vs <a href="/teams/san-francisco-49ers/">San Francisco 49ers</a></td><td>Sun, Nov 15 4:25 PM ET</td><td>Model predicts Dallas Cowboys to win (77%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-11/tennessee-titans-at-dallas-cowboys/">Week 11</a></td><td>vs <a href="/teams/tennessee-titans/">Tennessee Titans</a></td><td>Sun, Nov 22 1:00 PM ET</td><td>Model predicts Dallas Cowboys to win (80%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-10/san-francisco-49ers-at-dallas-cowboys/">Week 10</a></td><td>vs <a href="/teams/san-francisco-49ers/">San Francisco 49ers</a></td><td>Sun, Nov 15 4:25 PM ET</td><td>Model predicts Dallas Cowboys to win (80%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-11/tennessee-titans-at-dallas-cowboys/">Week 11</a></td><td>vs <a href="/teams/tennessee-titans/">Tennessee Titans</a></td><td>Sun, Nov 22 1:00 PM ET</td><td>Model predicts Dallas Cowboys to win (82%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-12/philadelphia-eagles-at-dallas-cowboys/">Week 12</a></td><td>vs <a href="/teams/philadelphia-eagles/">Philadelphia Eagles</a></td><td>Thu, Nov 26 4:30 PM ET</td><td>Model predicts Dallas Cowboys to win (70%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-13/dallas-cowboys-at-seattle-seahawks/">Week 13</a></td><td>@ <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Mon, Dec 7 8:15 PM ET</td><td>Model predicts Seattle Seahawks to win (40%)</td><td>Not played yet</td></tr>
       <tr><td>Week 14</td><td colspan="4">Bye week</td></tr>
@@ -6113,16 +6118,15 @@
         "name": "Christian McCaffrey",
         "position": "RB",
         "impactScore": 9,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Calf/leg tightness (recovered)",
-          "since": "2026-08-10",
-          "note": "Returned to full practice Aug. 23, taking part in 11-on-11 work including handoffs and routes out of the backfield, after being sidelined since Aug. 10. McCaffrey said the absence was a planned ramp-up rather than a new setback, telling reporters it was 'part of the plan from the jump...to be fresh for the duration.'"
+          "type": "Undisclosed",
+          "note": "McCaffrey (undisclosed) suited up and went through drills at Tuesday's practice, according to Matt Lively of CBS Sports Bay Area."
         },
         "activatedDate": "2026-08-23",
         "espnId": "3117251",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-01T19:59Z",
+        "source": "auto"
       },
       {
         "name": "George Kittle",
@@ -6638,6 +6642,20 @@
         },
         "statusUpdatedAt": "2026-08-29T16:59Z",
         "source": "auto"
+      },
+      {
+        "name": "Kendre Miller",
+        "position": "RB",
+        "espnId": "4599739",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-09-01",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-01T20:20:12.728Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -7293,6 +7311,20 @@
           "note": null
         },
         "statusUpdatedAt": "2026-08-31T15:11:57.003Z",
+        "source": "curated"
+      },
+      {
+        "name": "Carnell Tate",
+        "position": "WR",
+        "espnId": "4871023",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-09-01",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-01T20:19:48.129Z",
         "source": "curated"
       }
     ],
@@ -33124,6 +33156,10 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
   // hands the row back, that's a bug to find in the dispatcher's `reopened`
   // report, not a reason to make the same decision twice.
   const dismissedRef = useRef(new Set());
+  // Two taps to empty the queue. Deleting every row is irreversible and the
+  // button sits next to Apply/Ignore, so it asks once rather than firing on
+  // a mis-tap.
+  const [confirmPurge, setConfirmPurge] = useState(false);
   // espnId (and lowercased name) -> the curated record, so a queue row can show
   // the impact score already on file instead of asking for it again.
   const [tracked, setTracked] = useState({});
@@ -33210,6 +33246,28 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
       onToast(applied
         ? (item.name || "Player") + " set to " + (choice[item.id] || item.to)
         : "Ignored — " + (item.name || "player") + " unchanged");
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function purge() {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = await adminCall(auth, "/.netlify/functions/injury-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purge: true }),
+      });
+      dismissedRef.current = new Set();
+      setConfirmPurge(false);
+      setItems([]);
+      onCount(0);
+      onToast("Queue cleared — " + (body.deleted || 0) + " row" + (body.deleted === 1 ? "" : "s") + " deleted");
       await load();
     } catch (e) {
       setError(e.message);
@@ -33345,6 +33403,29 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
           </div>
         );
       })}
+
+      {items && items.length > 0 && (
+        <div className="admin-inj-purge">
+          {confirmPurge ? (
+            <React.Fragment>
+              <span className="admin-inj-purge-ask">
+                Delete all {items.length} row{items.length === 1 ? "" : "s"}? This can't be undone.
+                ESPN's snapshot is untouched, so nothing reappears until a player actually moves.
+              </span>
+              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(false)}>
+                Cancel
+              </button>
+              <button type="button" className="admin-btn admin-btn-sm admin-btn-warn" disabled={busy} onClick={purge}>
+                Delete them
+              </button>
+            </React.Fragment>
+          ) : (
+            <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(true)}>
+              Clear the queue
+            </button>
+          )}
+        </div>
+      )}
 
       {depthItem && (
         <AdminDepthChartSheet item={depthItem} onClose={() => setDepthItem(null)} />

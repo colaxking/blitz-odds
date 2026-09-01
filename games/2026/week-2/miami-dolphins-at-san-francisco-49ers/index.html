@@ -5135,6 +5135,11 @@
     border-radius: 8px;
   }
   .admin-inj-score-hint { font-size: .68rem; color: var(--text-dim); margin-top: 7px; line-height: 1.4; }
+  .admin-inj-purge {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-border);
+  }
+  .admin-inj-purge-ask { flex: 1 1 220px; font-size: .72rem; color: var(--warn); font-weight: 700; line-height: 1.45; }
   /* The queue row's player name is a button into the depth-chart sheet. It
      has to keep looking like the heading it replaced, so it inherits
      .admin-inj-name's type and only adds the affordance. */
@@ -5248,7 +5253,7 @@
   <p><strong>Odds (DraftKings):</strong> SF -10.5 · ML MIA +470 / SF -650 · O/U 46.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Miami Dolphins</strong> - MIA 57% / SF 43%</p>
+  <p>Predicted winner: <strong>Miami Dolphins</strong> - MIA 61% / SF 39%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -5271,6 +5276,7 @@
   <h2>Injury report</h2>
   <ul>
 <li><strong>Will Kacmarek</strong> (MIA · TE) - questionable - Undisclosed</li>
+<li><strong>Christian McCaffrey</strong> (SF · RB) - questionable - Undisclosed</li>
 <li><strong>George Kittle</strong> (SF · TE) - questionable - Torn Achilles (recovery)</li>
 <li><strong>Mike Evans</strong> (SF · WR) - questionable - Groin strain (also missed time with a quad strain)</li>
 <li><strong>Ricky Pearsall</strong> (SF · WR) - out - PCL knee surgery - season-ending</li>
@@ -6110,16 +6116,15 @@
         "name": "Christian McCaffrey",
         "position": "RB",
         "impactScore": 9,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Calf/leg tightness (recovered)",
-          "since": "2026-08-10",
-          "note": "Returned to full practice Aug. 23, taking part in 11-on-11 work including handoffs and routes out of the backfield, after being sidelined since Aug. 10. McCaffrey said the absence was a planned ramp-up rather than a new setback, telling reporters it was 'part of the plan from the jump...to be fresh for the duration.'"
+          "type": "Undisclosed",
+          "note": "McCaffrey (undisclosed) suited up and went through drills at Tuesday's practice, according to Matt Lively of CBS Sports Bay Area."
         },
         "activatedDate": "2026-08-23",
         "espnId": "3117251",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-01T19:59Z",
+        "source": "auto"
       },
       {
         "name": "George Kittle",
@@ -6635,6 +6640,20 @@
         },
         "statusUpdatedAt": "2026-08-29T16:59Z",
         "source": "auto"
+      },
+      {
+        "name": "Kendre Miller",
+        "position": "RB",
+        "espnId": "4599739",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-09-01",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-01T20:20:12.728Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -7290,6 +7309,20 @@
           "note": null
         },
         "statusUpdatedAt": "2026-08-31T15:11:57.003Z",
+        "source": "curated"
+      },
+      {
+        "name": "Carnell Tate",
+        "position": "WR",
+        "espnId": "4871023",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "since": "2026-09-01",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-01T20:19:48.129Z",
         "source": "curated"
       }
     ],
@@ -33121,6 +33154,10 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
   // hands the row back, that's a bug to find in the dispatcher's `reopened`
   // report, not a reason to make the same decision twice.
   const dismissedRef = useRef(new Set());
+  // Two taps to empty the queue. Deleting every row is irreversible and the
+  // button sits next to Apply/Ignore, so it asks once rather than firing on
+  // a mis-tap.
+  const [confirmPurge, setConfirmPurge] = useState(false);
   // espnId (and lowercased name) -> the curated record, so a queue row can show
   // the impact score already on file instead of asking for it again.
   const [tracked, setTracked] = useState({});
@@ -33207,6 +33244,28 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
       onToast(applied
         ? (item.name || "Player") + " set to " + (choice[item.id] || item.to)
         : "Ignored — " + (item.name || "player") + " unchanged");
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function purge() {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = await adminCall(auth, "/.netlify/functions/injury-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purge: true }),
+      });
+      dismissedRef.current = new Set();
+      setConfirmPurge(false);
+      setItems([]);
+      onCount(0);
+      onToast("Queue cleared — " + (body.deleted || 0) + " row" + (body.deleted === 1 ? "" : "s") + " deleted");
       await load();
     } catch (e) {
       setError(e.message);
@@ -33342,6 +33401,29 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
           </div>
         );
       })}
+
+      {items && items.length > 0 && (
+        <div className="admin-inj-purge">
+          {confirmPurge ? (
+            <React.Fragment>
+              <span className="admin-inj-purge-ask">
+                Delete all {items.length} row{items.length === 1 ? "" : "s"}? This can't be undone.
+                ESPN's snapshot is untouched, so nothing reappears until a player actually moves.
+              </span>
+              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(false)}>
+                Cancel
+              </button>
+              <button type="button" className="admin-btn admin-btn-sm admin-btn-warn" disabled={busy} onClick={purge}>
+                Delete them
+              </button>
+            </React.Fragment>
+          ) : (
+            <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(true)}>
+              Clear the queue
+            </button>
+          )}
+        </div>
+      )}
 
       {depthItem && (
         <AdminDepthChartSheet item={depthItem} onClose={() => setDepthItem(null)} />

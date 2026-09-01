@@ -253,6 +253,40 @@ export default async (req: Request, _context: Context) => {
     if (req.method === "POST") {
       let body: any;
       try { body = await req.json(); } catch { return jsonResponse(400, { ok: false, error: "Invalid JSON body" }); }
+
+      // ---- purge: empty the queue and start over ---------------------------
+      // Deletes rather than marks resolved. "Start fresh" means the keys are
+      // gone, not that they're hidden behind ?all=1 for another three weeks.
+      //
+      // ONLY THE review: PREFIX. This store also holds prefs:, push:,
+      // sent:, evt:, follow:, the ESPN injury snapshot and the depth
+      // snapshot, none of which are this endpoint's business.
+      //
+      // Deliberately does NOT touch espn-injury-snapshot. The dispatcher
+      // diffs ESPN against that snapshot, so leaving it intact is what stops
+      // an empty queue from immediately refilling: rows come back only when
+      // ESPN actually moves a player, not because the queue forgot him.
+      // Clearing the snapshot too would make the next tick a "first run",
+      // which records the world and alerts on nothing - silently dropping
+      // every change that was pending at that moment.
+      if (body.purge === true) {
+        const keys: string[] = [];
+        for await (const page of store.list({ prefix: "review:", paginate: true })) {
+          for (const blob of page.blobs) keys.push(blob.key);
+        }
+        let deleted = 0;
+        for (const key of keys) {
+          try { await store.delete(key); deleted++; } catch { /* a stuck key shouldn't abort the rest */ }
+        }
+        await audit(
+          actor,
+          "injury.purge",
+          `emptied the injury review queue - ${deleted} row${deleted === 1 ? "" : "s"} deleted`,
+          { meta: { deleted, found: keys.length } }
+        );
+        return jsonResponse(200, { ok: true, purged: true, deleted, found: keys.length });
+      }
+
       if (!body.id) return jsonResponse(400, { ok: false, error: "id is required" });
 
       const key = `review:${body.id}`;

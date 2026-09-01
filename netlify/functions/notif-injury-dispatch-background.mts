@@ -9,7 +9,7 @@ import {
 } from "./lib/espn-injuries.mts";
 import {
   fetchTeamDepth, bestSpot, foldHealthyDepth, checkStanding, suggestImpactScore, describeSpot,
-  DEPTH_SNAPSHOT_KEY, DEPTH_REFETCH_MS,
+  DEPTH_SNAPSHOT_KEY, DEPTH_REFETCH_MS, DOWN_SET_KEY,
   type DepthSnapshot, type DepthSpot, type HealthyDepth,
 } from "./lib/espn-depth.mts";
 
@@ -489,6 +489,13 @@ export default async (req: Request, _context: Context) => {
 
     if (!dryRun) {
       await store.setJSON(SNAPSHOT_KEY, nextSnapshot);
+      // Every tick, unconditionally: injury-review reads this to retire rows
+      // whose starter has since been cleared, and a stale copy would keep
+      // them sitting in the queue.
+      await store.setJSON(DOWN_SET_KEY, {
+        updatedAt: now.toISOString(),
+        ids: Object.entries(fresh).filter(([, e]) => e.state !== "active").map(([id]) => id),
+      });
       // Only when a team was actually read this tick - otherwise this is a
       // full rewrite of an unchanged document every couple of minutes.
       if (depthFetched) await store.setJSON(DEPTH_SNAPSHOT_KEY, depthSnapshot);

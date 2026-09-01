@@ -33109,6 +33109,7 @@ function AdminPicksPanel({ auth, data, onToast }) {
 function AdminInjuriesPanel({ auth, onToast, onCount }) {
   const [items, setItems] = useState(null);
   const [autoHandled, setAutoHandled] = useState(0);
+  const [retired, setRetired] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [choice, setChoice] = useState({});
@@ -33129,6 +33130,7 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
       const list = body.items || [];
       setItems(list);
       setAutoHandled(body.autoHandled || 0);
+      setRetired(body.retired || 0);
       onCount(list.length);
     } catch (e) {
       setError(e.message);
@@ -33213,6 +33215,7 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
         plays, and anything the sync script applies on its own, never reaches this list. Nothing
         here touches the app or the prediction model until you apply it.
         {autoHandled > 0 && " " + autoHandled + " handled automatically since the last sweep."}
+        {retired > 0 && " " + retired + " cleared just now — a healthy player is still ahead of them."}
       </p>
 
       {items && !items.length && <p className="admin-empty">Queue is clear.</p>}
@@ -33320,8 +33323,11 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
               {known
                 ? "Impact " + known.impactScore + " on file — change it here if this injury shifts how much he matters."
                 : item.suggestedImpact != null
-                  ? "Suggested " + item.suggestedImpact + (item.depth && item.depth.label ? " — " + item.depth.label + " when healthy" : " — no depth-chart reading, so this is the position alone") +
-                    ". Fitted against your own scores and lands within 2 of them most of the time; change it if he's worth more."
+                  ? "Suggested " + item.suggestedImpact +
+                    (item.depth && item.depth.label
+                      ? " — " + item.depth.label + " when healthy"
+                      : " — ESPN has no healthy depth-chart reading for him, so this is his position alone") +
+                    ". Change it if he's worth more."
                   : "New to the tracked list, so he needs an impact score: 1 is a depth piece, 10 moves the line on his own."}
             </div>
           </div>

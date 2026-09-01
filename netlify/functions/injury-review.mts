@@ -1,6 +1,10 @@
 import type { Context, Config } from "@netlify/functions";
 import { notifStore } from "./lib/notif.mts";
 import { requireAdminOrSecret, audit } from "./lib/admin.mts";
+import {
+  suggestImpactScore, describeSpot, checkStanding, DEPTH_SNAPSHOT_KEY, DOWN_SET_KEY,
+  type DepthSnapshot, type HealthyDepth, type DownSet,
+} from "./lib/espn-depth.mts";
 
 // The review queue behind the injury dispatcher: what ESPN saw move that
 // Dan hasn't reflected in data/impact-players.json yet.
@@ -100,6 +104,52 @@ export default async (req: Request, _context: Context) => {
 
   try {
     if (req.method === "GET") {
+      // Rows written before the dispatcher started suggesting a score carry
+      // no `suggestedImpact`, so the panel showed them an empty box with a
+      // disabled Apply - which is exactly the manual typing the suggestion
+      // exists to remove. Backfilling on read fixes the whole standing
+      // backlog at once instead of waiting three weeks for it to age out.
+      //
+      // Computed, not persisted: the depth snapshot moves, and a value
+      // written into the row would freeze whatever this endpoint happened to
+      // see the first time anyone opened the panel. Reads are cheap; the
+      // snapshot is one blob already in this store.
+      const depthSnapshot = (await store.get(DEPTH_SNAPSHOT_KEY, { type: "json" })
+        .catch(() => null)) as DepthSnapshot | null;
+      const downSet = (await store.get(DOWN_SET_KEY, { type: "json" })
+        .catch(() => null)) as DownSet | null;
+      const down = new Set(downSet?.ids || []);
+      const isDown = (id: string) => down.has(id);
+
+      // The standing rule is applied on read as well as at write time, for
+      // the same reason collapseRepeats is: rows queued before it existed
+      // are sitting in the queue right now, and they'd otherwise take three
+      // weeks to age out. It also self-corrects afterwards - a backup who
+      // qualified on Wednesday because his starter was out stops qualifying
+      // once the starter is cleared, and the row retires itself instead of
+      // waiting for someone to notice it's moot.
+      //
+      // Only ever applied to untracked candidates. A tracked player is in
+      // the curated file because Dan put him there, which outranks a depth
+      // chart, and a tracked row is never retired on this basis.
+      let retired = 0;
+      const stillMatters = (item: any): boolean => {
+        if (item.kind !== "untracked-candidate") return true;
+        if (!downSet || !depthSnapshot?.slots) return true;   // no data is not a verdict
+        const st = checkStanding(depthSnapshot.slots[item.team], String(item.espnId), isDown);
+        return !st.covered;
+      };
+      const backfill = (item: any) => {
+        if (item.suggestedImpact != null || item.ours) return item;
+        const spot: HealthyDepth | null = depthSnapshot?.players?.[item.espnId] || null;
+        item.suggestedImpact = suggestImpactScore(item.position, spot);
+        item.suggestedBackfilled = true;
+        if (!item.depth && spot) {
+          item.depth = { index: spot.index, size: spot.size, pos: spot.pos, label: describeSpot(spot) };
+        }
+        return item;
+      };
+
       const includeDone = new URL(req.url).searchParams.get("all") === "1";
       const items: any[] = [];
       let swept = 0;
@@ -121,7 +171,18 @@ export default async (req: Request, _context: Context) => {
             }
             if (item.autoHandled) autoHandled++;
             if (item.resolved && !includeDone) continue;
-            items.push(item);
+
+            if (!includeDone && !stillMatters(item)) {
+              item.resolved = true;
+              item.resolvedAt = new Date().toISOString();
+              item.autoHandled = "covered";
+              await store.setJSON(blob.key, item);
+              retired++;
+              autoHandled++;
+              continue;
+            }
+
+            items.push(backfill(item));
           } catch {
             // One unreadable row shouldn't empty the whole queue.
           }
@@ -167,11 +228,23 @@ export default async (req: Request, _context: Context) => {
         }
       }
 
+      // One line for the batch, same as the fold pass - a row per retirement
+      // would bury the human decisions this log exists to record.
+      if (retired) {
+        await audit(
+          actor,
+          "injury.retire",
+          `retired ${retired} injury row${retired === 1 ? "" : "s"} - a healthy player is still ahead of them on the depth chart`,
+          { meta: { retired } }
+        );
+      }
+
       return jsonResponse(200, {
         ok: true,
         items: out,
         swept,
         folded,
+        retired,
         autoHandled,
         openCount: out.filter((i) => !i.resolved).length,
       });

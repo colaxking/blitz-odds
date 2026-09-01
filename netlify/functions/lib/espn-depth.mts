@@ -72,6 +72,15 @@ export interface DepthSnapshot {
 
 export const DEPTH_SNAPSHOT_KEY = "espn-depth-healthy";
 
+/** Athlete ids ESPN currently lists as anything but active, written every
+ *  tick by the dispatcher. Small (a few hundred ids) and kept out of the
+ *  depth snapshot on purpose: that document carries slots and is ~150 KB,
+ *  and this one has to be fresh, not big. It exists so injury-review can
+ *  answer "is anyone ahead of him able to play" without its own ESPN fetch
+ *  on every panel load. */
+export const DOWN_SET_KEY = "espn-down-set";
+export interface DownSet { updatedAt: string; ids: string[] }
+
 /** A team is refetched at most this often. Depth charts move on a
  *  practice-report cadence, not a two-minute one. */
 export const DEPTH_REFETCH_MS = 45 * 60 * 1000;

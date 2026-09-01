@@ -56,6 +56,13 @@ const VALID_TYPES = new Set([
   "playbook_format",
   "gate_cta",
   "book_compare",
+  // Sharing a pick out of the app. Two events because they answer
+  // different questions: share_open is whether an entry point earns a
+  // tap, share_action is whether an opened sheet produces a share. The
+  // gap between them is the sheet failing to convert, which is invisible
+  // with only one of the two.
+  "share_open",
+  "share_action",
   // Push registration health. A subscription lives in two places - the
   // browser and the server's device row - and only the browser can change
   // its side unannounced. When it does, the app reports push as on and
@@ -205,6 +212,14 @@ const VALID_GATE_SECTIONS = new Set([
   "odds_compare",
   "past_matchups",
   "boxscore",
+]);
+
+// The three places a share can be started: the game card's own button,
+// the Add to League sheet's success state, and the league week entry.
+const VALID_SHARE_SURFACES = new Set([
+  "game_card",
+  "pick",
+  "week",
 ]);
 
 // Best-effort extraction of Netlify's built-in geolocation (derived from the
@@ -454,6 +469,23 @@ export default async (req: Request, context: Context) => {
       if (typeof section === "string" && VALID_GATE_SECTIONS.has(section)) {
         record.section = section;
       }
+    }
+
+    // Sharing. `surface` and `action` are allowlisted rather than passed
+    // through, same reasoning as gate_cta's section: a spoofed body
+    // shouldn't be able to open a new dimension in the dashboard's bar
+    // list. `state` separates a pre-kickoff share from a result brag,
+    // which is the interesting split - it's the same question the follow
+    // bell's own data-state answers.
+    if (type === "share_open") {
+      if (VALID_SHARE_SURFACES.has(String(surface))) record.surface = String(surface);
+      if (state === "final" || state === "live" || state === "started") record.state = state;
+      if (away) record.away = String(away).slice(0, 64);
+      if (home) record.home = String(home).slice(0, 64);
+    }
+
+    if (type === "share_action") {
+      if (action === "image" || action === "text") record.action = action;
     }
 
     // Historical archive events (see js/analytics.js header comment for

@@ -400,6 +400,10 @@ function emptySummary(now: number, range: Range) {
     termsGateAccepted: 0,
     termsGateSignouts: 0,
     bookCompareOpens: 0,
+    shareOpens: 0,
+    shareOpensBySurface: {},
+    shareOpensByState: {},
+    shareActions: {},
     pushDesyncs: 0,
     pushRepairs: 0,
     pushRepairFailures: 0,
@@ -743,6 +747,25 @@ export default async (req: Request, _context: Context) => {
     // --- bookCompareOpens: how often anyone opens the per-book price
     // comparison. Worth knowing before any affiliate work is wired to it ---
     const bookCompareOpens = validRecords.filter((r) => r.type === "book_compare").length;
+
+    // --- sharing. Two counts, deliberately: shareOpens is whether an
+    // entry point earns a tap, shareActions is whether an opened sheet
+    // produces an actual share. The gap between them is the sheet failing
+    // to convert, and with only one number that failure is invisible.
+    //
+    // bySurface answers which of the three entry points carries the
+    // feature - if the post-submit button dwarfs the card's own, the card
+    // button is chrome nobody needed. byState splits a pre-kickoff share
+    // from a result brag, which is the split that decides whether this is
+    // a picks feature or a bragging feature ---
+    const shareOpenRecords = validRecords.filter((r) => r.type === "share_open");
+    const shareOpens = shareOpenRecords.length;
+    const shareOpensBySurface = sortedCounts(shareOpenRecords, (r) => r.surface);
+    const shareOpensByState = sortedCounts(shareOpenRecords, (r) => r.state);
+    const shareActions = sortedCounts(
+      validRecords.filter((r) => r.type === "share_action"),
+      (r) => r.action
+    );
 
     // --- push registration health. A browser can rotate its push endpoint
     // whenever it likes, which orphans the device row the server holds and
@@ -1160,6 +1183,10 @@ export default async (req: Request, _context: Context) => {
         termsGateAccepted,
         termsGateSignouts,
         bookCompareOpens,
+        shareOpens,
+        shareOpensBySurface,
+        shareOpensByState,
+        shareActions,
         pushDesyncs,
         pushRepairs,
         pushRepairFailures,

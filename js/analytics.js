@@ -742,6 +742,47 @@
           return;
         }
 
+        // Opening a share sheet, and then which route was taken out of it.
+        // Two events rather than one because they answer different
+        // questions: share_open says the entry point earned a tap, and
+        // share_action says whether an opened sheet actually produced a
+        // share. A gap between them is the sheet failing to convert, which
+        // is invisible if only one is recorded.
+        var shareOpenEl = target.closest('[data-tour="share-game"], [data-share-open]');
+        if (shareOpenEl) {
+          var shareOpenBody = {
+            type: "share_open",
+            visitorId: visitorId,
+            ts: Date.now(),
+            page: getCurrentPageLabel(),
+          };
+          // Which entry point: the card's own button (with the game's
+          // state, so a pre-kickoff share is separable from a result
+          // brag), the post-submit sheet, or the week entry.
+          if (shareOpenEl.getAttribute("data-tour") === "share-game") {
+            shareOpenBody.surface = "game_card";
+            shareOpenBody.state = shareOpenEl.getAttribute("data-state") || "unknown";
+            shareOpenBody.away = shareOpenEl.getAttribute("data-away") || "";
+            shareOpenBody.home = shareOpenEl.getAttribute("data-home") || "";
+          } else {
+            shareOpenBody.surface = shareOpenEl.getAttribute("data-share-open") || "unknown";
+          }
+          sendEvent(shareOpenBody);
+          return;
+        }
+
+        var shareActEl = target.closest("[data-share-action]");
+        if (shareActEl) {
+          sendEvent({
+            type: "share_action",
+            visitorId: visitorId,
+            ts: Date.now(),
+            action: shareActEl.getAttribute("data-share-action") || "unknown",
+            page: getCurrentPageLabel(),
+          });
+          return;
+        }
+
         // Opening the per-book price comparison - the affiliate surface, so
         // worth knowing whether anyone uses it before wiring money to it.
         var booksEl = target.closest(".pba-books-toggle");

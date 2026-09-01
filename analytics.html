@@ -611,6 +611,14 @@
         { title: "Gate CTA by section", sub: "Which gate earns the signup", html: barListHtml(relabel(d.gateCtaBySection, { playbook: "Playbook", edge_writeup: "Blitz Edge write-up", odds_compare: "Compare Sportsbooks", past_matchups: "Past Matchups", boxscore: "Full box score" })) },
         { title: "Tour funnel", sub: (d.tourStarts || 0) ? fmtNum(d.tourStarts) + " runs started · " + fmtNum(d.tourCompletions || 0) + " finished (" + (d.tourCompletionRate == null ? "–" : d.tourCompletionRate + "%") + ")" : "First-run tour, step by step", html: tourFunnelHtml(d) },
         { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" },
+        // Opens vs. completions side by side, since the interesting number
+        // is the gap: a sheet that opens often and shares rarely is a
+        // preview people don't like, not a feature nobody wants.
+        { title: "Share sheets opened", sub: "Taps on any share entry point", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.shareOpens || 0) + "</div>" },
+        { title: "Shares completed", sub: "Image or copied text", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(Object.values(d.shareActions || {}).reduce(function (a, b) { return a + b; }, 0)) + "</div>" },
+        { title: "Share entry point", sub: "Card button vs. post-submit vs. week entry", html: barListHtml(d.shareOpensBySurface, null, { empty: "No shares in this range yet" }) },
+        { title: "Share by game state", sub: "Pre-kickoff pick vs. result brag", html: barListHtml(d.shareOpensByState, null, { empty: "No shares in this range yet" }) },
+        { title: "Share route taken", sub: "Native image share vs. copied text", html: barListHtml(d.shareActions, null, { empty: "No shares in this range yet" }) },
         { title: "Terms consent before Google", sub: "What the interstitial costs the OAuth route", html: termsOauthHtml(d) },
         { title: "Blocking terms gate", sub: "Accounts stopped until they accept the current terms", html: termsGateHtml(d) },
         { title: "Consent flow steps", sub: "Every action in the terms flow, including failed writes", html: barListHtml(relabel(d.termsConsentActions, { signup_checked: "Signup box ticked", signup_unchecked: "Signup box un-ticked", oauth_prompt: "OAuth dialog shown", oauth_accepted: "OAuth dialog accepted", oauth_declined: "OAuth dialog dismissed", gate_shown: "Gate shown", gate_accepted: "Gate accepted", gate_signout: "Signed out at gate", record_failed: "Save failed" })) }
@@ -1053,6 +1061,7 @@
       playbookSubtabViews: {}, playbookFormatViews: {},
       tourStepViews: {}, tourSkips: {}, tourStarts: 0, tourCompletions: 0, tourCompletionRate: null,
       gateCtaClicks: {}, gateCtaBySurface: {}, bookCompareOpens: 0,
+      shareOpens: 0, shareOpensBySurface: {}, shareOpensByState: {}, shareActions: {},
       termsConsentActions: {}, termsSignupChecked: 0, termsOauthPrompts: 0, termsOauthAccepted: 0, termsOauthAcceptRate: null,
       termsGateShown: 0, termsGateAccepted: 0, termsGateSignouts: 0,
       pushDesyncs: 0, pushRepairs: 0, pushRepairFailures: 0,

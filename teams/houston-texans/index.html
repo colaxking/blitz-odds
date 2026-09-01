@@ -2575,6 +2575,46 @@
   .gc-follow.is-following { color: var(--blitz-orange); }
   .gc-follow:disabled { opacity: 0.5; cursor: default; }
   .gc-follow-bell { display: inline-flex; align-items: center; }
+
+  /* ---- Share picks -----------------------------------------------
+     The sheet reuses .add-to-league-sheet's chrome (backdrop, radius,
+     padding) because one opens straight into the other and they should
+     read as the same surface; only what's inside differs. */
+  .share-sheet .share-preview {
+    border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden;
+    background: #0b1220; margin-bottom: 14px; min-height: 120px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .share-sheet .share-preview img { display: block; width: 100%; }
+  .share-preview-loading { font-size: 0.78rem; color: var(--text-dim); padding: 32px 16px; text-align: center; }
+  .share-opt {
+    display: block; width: 100%; text-align: left; padding: 11px 13px; margin-bottom: 8px;
+    border-radius: 10px; border: 1px solid var(--card-border); background: none; color: var(--text);
+    font-family: inherit; cursor: pointer;
+  }
+  .share-opt:hover { border-color: var(--accent); background: rgba(var(--accent-rgb),0.07); }
+  .share-opt-primary { border-color: var(--accent); background: rgba(var(--accent-rgb),0.1); }
+  .share-opt:disabled { opacity: 0.45; cursor: default; }
+  .share-opt:disabled:hover { border-color: var(--card-border); background: none; }
+  .share-opt-name { display: block; font-size: 0.84rem; font-weight: 700; }
+  .share-opt-desc { display: block; font-size: 0.7rem; color: var(--text-dim); margin-top: 1px; }
+  .share-copied { font-size: 0.74rem; color: var(--accent); font-weight: 700; margin-top: 2px; }
+
+  /* Share sits in the slot Add to League vacates once a game is live or
+     final, so it inherits that slot's accent treatment and divider
+     rather than needing chrome of its own. */
+  .gc-action[data-tour="share-game"] { border-right: 1px solid var(--card-border); color: var(--accent); }
+
+  /* Week-entry share, on the picks progress card. flex:0 0 auto so it
+     never steals width from the count, which is the reason that card
+     exists. */
+  .picks-progress-share {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+    border-radius: 9px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),0.1);
+    color: var(--accent); font-family: inherit; font-size: 0.75rem; font-weight: 800; cursor: pointer;
+  }
+  .picks-progress-share:hover { background: rgba(var(--accent-rgb),0.18); }
+  @media (max-width: 380px) { .picks-progress-share span { display: none; } }
   /* Below 360px three controls genuinely don't fit. The label is what goes,
      not the button: the bell keeps its aria-label, and it stays a 40px-wide
      tap target rather than being dropped to a smaller one. */
@@ -19446,7 +19486,481 @@ function ShortBoxScore({ week, awayAbbr, homeAbbr, awayId, homeId, live, auth })
  *  confidence-format league from a compact sheet isn't a great UX; players
  *  who want to set confidence can still do it from the league's own week
  *  panel afterward. */
-function AddToLeagueSheet({ game, away, home, week, auth, onClose }) {
+/* ============================================================
+   SHARE PICKS
+   ============================================================
+   Renders a pick (or a whole week's entry) to a PNG on a canvas and
+   hands it to the platform share sheet.
+
+   Two rules the card design is built around, both deliberate:
+
+   1. NOTHING GATED LEAVES THE APP. No win %, no model-vs-market verdict,
+      no write-up teaser, and no sportsbook lines. The verdict is already
+      hasFullAccess-gated in Full Details; the win % isn't, but a share
+      image reaches people who never sign in, so it goes too. Blitz Edge
+      appears as a brand lockup over a line saying a read exists, without
+      saying what it is - the card advertises the gate rather than leaking
+      through it. The spread and O/U are SportsGameOdds data and baking
+      them into a file that travels off-platform is closer to
+      redistribution than displaying them here is, so they're out.
+
+   2. THE RESULT BADGE IS THE USER'S OWN CALL, not the model's. "MY PICK
+      GOT IT" says whether *they* were right. The card's "Called it"
+      ribbon is Blitz Edge's own accuracy and stays in the app.
+
+   Everything the canvas draws is same-origin (/team-badges, /branding),
+   so it never taints and toBlob() works with no server round trip. */
+
+const SHARE_CARD_W = 1080;
+const SHARE_ORANGE = "#fd7f01";
+const SHARE_TEAL = "#4fd1c5";
+const SHARE_DIM = "#9fb0c9";
+const SHARE_TEXT = "#eef2f8";
+const SHARE_CARD_BG = "#131c2e";
+const SHARE_BORDER = "#223049";
+const SHARE_BG = "#0b1220";
+const SHARE_WIN = "#2ecc71";
+
+/* The card is always the dark treatment regardless of the app's theme.
+   A share image travels off-platform and should look the same for
+   everyone who sees it, and it's one set of assets instead of two. */
+function shareFont(weight, size) {
+  return weight + " " + size + 'px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+}
+
+const shareImgCache = {};
+function loadShareImg(src) {
+  if (shareImgCache[src]) return shareImgCache[src];
+  const p = new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Failed to load " + src));
+    img.src = src;
+  });
+  shareImgCache[src] = p;
+  return p;
+}
+
+function shareRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+async function shareHeader(ctx, W, H, rightLabel, subtitle) {
+  ctx.fillStyle = SHARE_BG;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(79,209,197,0.06)";
+  ctx.fillRect(0, 0, W, 196);
+  ctx.fillStyle = SHARE_TEAL;
+  ctx.fillRect(0, 193, W, 3);
+  const mark = await loadShareImg("/branding/blitz-odds-wordmark-dark-email.png");
+  ctx.drawImage(mark, 60, 54, 318, 86);
+  ctx.textAlign = "right";
+  ctx.font = shareFont(800, 30);
+  ctx.fillStyle = SHARE_DIM;
+  ctx.fillText(rightLabel, W - 60, 110);
+  if (subtitle) {
+    ctx.textAlign = "left";
+    ctx.font = shareFont(800, 32);
+    ctx.fillStyle = SHARE_TEXT;
+    ctx.fillText(subtitle, 60, 178);
+  }
+  ctx.textAlign = "left";
+}
+
+async function shareFooter(ctx, W, H, leftLabel) {
+  const FH = 104;
+  ctx.fillStyle = "rgba(79,209,197,0.08)";
+  ctx.fillRect(0, H - FH, W, FH);
+  ctx.fillStyle = SHARE_TEAL;
+  ctx.fillRect(0, H - FH, W, 3);
+  if (leftLabel) {
+    ctx.textAlign = "left";
+    ctx.font = shareFont(700, 27);
+    ctx.fillStyle = SHARE_DIM;
+    ctx.fillText(leftLabel, 60, H - 44);
+  }
+  ctx.textAlign = "right";
+  ctx.font = shareFont(800, 30);
+  ctx.fillStyle = SHARE_TEAL;
+  ctx.fillText("blitz-odds.com", W - 60, H - 44);
+}
+
+/* Brand mark only - the lockup over a line that says a read exists
+   without saying what it is. Past tense reads wrong on a finished game,
+   hence the two captions. */
+async function shareEdgeMark(ctx, W, y, isFinal) {
+  const logo = await loadShareImg("/branding/blitz-edge-logo.png");
+  const ew = 222;
+  const eh = ew * 415 / 1306;
+  ctx.drawImage(logo, W / 2 - ew / 2, y, ew, eh);
+  ctx.textAlign = "center";
+  ctx.font = shareFont(700, 26);
+  ctx.fillStyle = SHARE_DIM;
+  ctx.fillText(isFinal ? "breaks down every game, every week" : "has a read on this game", W / 2, y + eh + 40);
+}
+
+async function drawShareGameCard(ctx, spec) {
+  const W = SHARE_CARD_W;
+  const H = 1080;
+  const isFinal = !!spec.isFinal;
+  await shareHeader(ctx, W, H, "WEEK " + spec.week, null);
+
+  ctx.textAlign = "center";
+  const awayImg = await loadShareImg("/team-badges/" + spec.away.id + ".png");
+  const homeImg = await loadShareImg("/team-badges/" + spec.home.id + ".png");
+  ctx.drawImage(awayImg, 205, 240, 150, 150);
+  ctx.drawImage(homeImg, 725, 240, 150, 150);
+
+  const awayWon = isFinal && spec.awayScore > spec.homeScore;
+  const homeWon = isFinal && spec.homeScore > spec.awayScore;
+  ctx.font = shareFont(800, 36);
+  ctx.fillStyle = isFinal ? (awayWon ? SHARE_WIN : SHARE_DIM) : SHARE_TEXT;
+  ctx.fillText(spec.away.id, 280, 444);
+  ctx.fillStyle = isFinal ? (homeWon ? SHARE_WIN : SHARE_DIM) : SHARE_TEXT;
+  ctx.fillText(spec.home.id, 800, 444);
+
+  if (isFinal) {
+    ctx.font = shareFont(800, 54);
+    ctx.fillStyle = SHARE_TEXT;
+    ctx.fillText(spec.awayScore + "\u2013" + spec.homeScore, 540, 332);
+    ctx.font = shareFont(800, 22);
+    ctx.fillStyle = SHARE_DIM;
+    ctx.letterSpacing = "3px";
+    ctx.fillText("FINAL", 540, 372);
+    ctx.letterSpacing = "0px";
+  } else {
+    ctx.font = shareFont(700, 38);
+    ctx.fillStyle = SHARE_DIM;
+    ctx.fillText("@", 540, 336);
+    if (spec.dateText) {
+      ctx.font = shareFont(600, 26);
+      ctx.fillText(spec.dateText, 540, 506);
+    }
+  }
+
+  // The pick band. Green + "GOT IT" only once the game is final and the
+  // user's own pick matched the winner; a miss stays neutral rather than
+  // painting the card red, since nobody shares a loss they've been
+  // scolded for.
+  const bandY = isFinal ? 500 : 540;
+  const gotIt = isFinal && spec.pickCorrect === true;
+  const accent = gotIt ? SHARE_WIN : SHARE_ORANGE;
+  shareRoundRect(ctx, 60, bandY, W - 120, 212, 26);
+  ctx.fillStyle = SHARE_CARD_BG;
+  ctx.fill();
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.font = shareFont(800, 25);
+  ctx.fillStyle = accent;
+  ctx.letterSpacing = "3px";
+  ctx.fillText(gotIt ? "MY PICK  \u2713  GOT IT" : "MY PICK", 540, bandY + 56);
+  ctx.letterSpacing = "0px";
+
+  const pickImg = await loadShareImg("/team-badges/" + spec.pickId + ".png");
+  const label = spec.pickName;
+  ctx.font = shareFont(800, 48);
+  const textW = ctx.measureText(label).width;
+  const startX = 540 - (100 + textW) / 2;
+  ctx.drawImage(pickImg, startX, bandY + 86, 88, 88);
+  ctx.textAlign = "left";
+  ctx.fillStyle = SHARE_TEXT;
+  ctx.fillText(label, startX + 100, bandY + 146);
+
+  await shareEdgeMark(ctx, W, isFinal ? 790 : 822, isFinal);
+  await shareFooter(ctx, W, H, null);
+  return H;
+}
+
+async function drawShareSurvivorCard(ctx, spec) {
+  const W = SHARE_CARD_W;
+  const H = 1080;
+  const row = spec.rows[0];
+  await shareHeader(ctx, W, H, "WEEK " + spec.week + " PICK", spec.leagueName);
+
+  shareRoundRect(ctx, 60, 300, W - 120, 400, 26);
+  ctx.fillStyle = SHARE_CARD_BG;
+  ctx.fill();
+  ctx.strokeStyle = SHARE_ORANGE;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.font = shareFont(800, 25);
+  ctx.fillStyle = SHARE_ORANGE;
+  ctx.letterSpacing = "3px";
+  ctx.fillText("SURVIVOR PICK", W / 2, 364);
+  ctx.letterSpacing = "0px";
+  const pickImg = await loadShareImg("/team-badges/" + row.pick + ".png");
+  ctx.drawImage(pickImg, W / 2 - 85, 400, 170, 170);
+  ctx.font = shareFont(800, 50);
+  ctx.fillStyle = SHARE_TEXT;
+  ctx.fillText(row.pickName || row.pick, W / 2, 638);
+  if (row.opp) {
+    ctx.font = shareFont(700, 28);
+    ctx.fillStyle = SHARE_DIM;
+    ctx.fillText("over " + row.opp, W / 2, 682);
+  }
+  await shareEdgeMark(ctx, W, 800, false);
+  await shareFooter(ctx, W, H, null);
+  return H;
+}
+
+async function drawShareWeekCard(ctx, spec) {
+  const W = SHARE_CARD_W;
+  const rows = spec.rows;
+  const cols = 2;
+  const colW = (W - 120 - 24) / cols;
+  const rowH = 112;
+  const gap = 10;
+  const top = 250;
+  const lines = Math.ceil(rows.length / cols);
+  const H = top + lines * (rowH + gap) + 56 + 104;
+
+  ctx.canvas.height = H;
+  await shareHeader(ctx, W, H, "WEEK " + spec.week + " PICKS", spec.leagueName);
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const c = i % cols;
+    const r = Math.floor(i / cols);
+    const x = 60 + c * (colW + 24);
+    const y = top + r * (rowH + gap);
+    shareRoundRect(ctx, x, y, colW, rowH, 16);
+    ctx.fillStyle = SHARE_CARD_BG;
+    ctx.fill();
+    ctx.strokeStyle = SHARE_BORDER;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    const img = await loadShareImg("/team-badges/" + row.pick + ".png");
+    ctx.drawImage(img, x + 16, y + 24, 64, 64);
+    ctx.textAlign = "left";
+    ctx.font = shareFont(800, 29);
+    ctx.fillStyle = SHARE_TEXT;
+    ctx.fillText(row.pick, x + 96, y + 52);
+    ctx.font = shareFont(600, 22);
+    ctx.fillStyle = SHARE_DIM;
+    ctx.fillText("over " + row.opp, x + 96, y + 84);
+    if (row.confidence != null) {
+      ctx.textAlign = "right";
+      ctx.font = shareFont(800, 36);
+      ctx.fillStyle = SHARE_ORANGE;
+      ctx.fillText(String(row.confidence), x + colW - 20, y + 68);
+    }
+  }
+
+  await shareFooter(ctx, W, H, spec.complete + " of " + spec.total + " picks in");
+  return H;
+}
+
+/** Draws `spec` and resolves to { blob, url }. `url` is an object URL for
+ *  the preview <img> and must be revoked by the caller. */
+async function renderShareCard(spec) {
+  const canvas = document.createElement("canvas");
+  canvas.width = SHARE_CARD_W;
+  canvas.height = 1080;
+  const ctx = canvas.getContext("2d");
+  ctx.textBaseline = "alphabetic";
+
+  if (spec.kind === "week") {
+    if (spec.format === "survivor" && spec.rows.length === 1) {
+      await drawShareSurvivorCard(ctx, spec);
+    } else {
+      // drawShareWeekCard resizes the canvas for the row count, which
+      // clears it - so it redraws the background itself afterwards.
+      await drawShareWeekCard(ctx, spec);
+    }
+  } else {
+    await drawShareGameCard(ctx, spec);
+  }
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(b => (b ? resolve(b) : reject(new Error("Canvas export failed"))), "image/png");
+  });
+  return { blob: blob, url: URL.createObjectURL(blob) };
+}
+
+/** Plain-text fallback, and the text that rides along with the image on
+ *  targets that accept both. Deliberately carries no odds and no model
+ *  numbers, same rule as the card. */
+function shareTextFor(spec) {
+  const site = "https://blitz-odds.com";
+  if (spec.kind === "week") {
+    const head = "Week " + spec.week + " picks" + (spec.leagueName ? " \u2014 " + spec.leagueName : "");
+    if (spec.format === "survivor" && spec.rows.length === 1) {
+      return head + "\n\n" + (spec.rows[0].pickName || spec.rows[0].pick) + "\n\n" + site;
+    }
+    const body = spec.rows.map(r =>
+      (r.confidence != null ? String(r.confidence).padStart(2, " ") + "  " : "\u00b7 ") + r.pick + " over " + r.opp
+    ).join("\n");
+    return head + "\n\n" + body + "\n\n" + site;
+  }
+  const lines = ["My pick: " + spec.pickName];
+  lines.push(spec.away.id + " @ " + spec.home.id + (spec.dateText ? " \u2014 " + spec.dateText : ""));
+  if (spec.isFinal) {
+    lines.push("Final: " + spec.awayScore + "-" + spec.homeScore + (spec.pickCorrect ? " \u2014 called it" : ""));
+  }
+  return lines.join("\n") + "\n\n" + site;
+}
+
+/** Hands the card to the platform. Returns which route was taken so the
+ *  caller can say so, since the three feel different to the user.
+ *
+ *  `files` plus `text`/`url` in one call is deliberate: iMessage, WhatsApp,
+ *  Slack and Discord all render the link alongside the image, so the URL
+ *  is live without the PNG having to carry it. Targets that only take one
+ *  (Instagram Stories) keep the image, which is the right thing to drop
+ *  the text for. */
+async function performShare(blob, spec) {
+  const text = shareTextFor(spec);
+  const url = "https://blitz-odds.com";
+  const filename = (spec.kind === "week" ? "blitz-odds-week-" + spec.week : "blitz-odds-" + spec.away.id + "-" + spec.home.id) + ".png";
+  const file = typeof File !== "undefined" ? new File([blob], filename, { type: "image/png" }) : null;
+
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({ files: [file], text: text, url: url });
+    return "image";
+  }
+  if (navigator.share) {
+    await navigator.share({ text: text, url: url });
+    return "text";
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(text);
+    return "clipboard";
+  }
+  // Last resort on a browser with neither: hand over the PNG as a
+  // download so the user still ends up with something to post.
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  return "download";
+}
+
+/** The sheet itself. Mirrors AddToLeagueSheet's chrome so the two read as
+ *  the same kind of surface, since one opens straight into the other. */
+function ShareSheet({ spec, onClose }) {
+  const [state, setState] = useState({ status: "rendering" });
+  const [copied, setCopied] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    let madeUrl = null;
+    renderShareCard(spec).then(res => {
+      if (!alive) { URL.revokeObjectURL(res.url); return; }
+      madeUrl = res.url;
+      setState({ status: "ready", blob: res.blob, url: res.url });
+    }).catch(err => {
+      if (alive) setState({ status: "error", message: err.message || "Couldn't build the image" });
+    });
+    return () => {
+      alive = false;
+      if (madeUrl) URL.revokeObjectURL(madeUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    function onKeyDown(e) { if (e.key === "Escape" && !busy) onClose(); }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose, busy]);
+
+  async function handleShareImage() {
+    if (state.status !== "ready" || busy) return;
+    setBusy(true);
+    try {
+      const route = await performShare(state.blob, spec);
+      if (route === "clipboard") setCopied("Copied to your clipboard");
+      else if (route === "download") setCopied("Image saved");
+      else onClose();
+    } catch (err) {
+      // AbortError is the user dismissing the OS sheet - not a failure,
+      // and telling them their own cancellation went wrong is noise.
+      if (!err || err.name !== "AbortError") setCopied("Couldn't open the share sheet");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCopyText() {
+    try {
+      await navigator.clipboard.writeText(shareTextFor(spec));
+      setCopied("Copied to your clipboard");
+    } catch (err) {
+      setCopied("Couldn't copy \u2014 select the text below instead");
+    }
+  }
+
+  const title = spec.kind === "week"
+    ? "Share your Week " + spec.week + " entry"
+    : spec.isFinal ? "Share the result" : "Share your pick";
+  const sub = spec.kind === "week"
+    ? (spec.leagueName || "Your picks")
+    : spec.away.id + " @ " + spec.home.id + " \u2014 Week " + spec.week;
+
+  return ReactDOM.createPortal(
+    <React.Fragment>
+      <div className="add-to-league-sheet-backdrop" onClick={busy ? undefined : onClose} />
+      <div className="add-to-league-sheet share-sheet" role="dialog" aria-modal="true" aria-label="Share">
+        <h3>{title}</h3>
+        <p className="add-to-league-sub">{sub}</p>
+
+        <div className="share-preview">
+          {state.status === "rendering" && <div className="share-preview-loading">Building your card…</div>}
+          {state.status === "error" && <div className="share-preview-loading">{state.message}</div>}
+          {state.status === "ready" && <img src={state.url} alt="Your share card" />}
+        </div>
+
+        <button
+          type="button"
+          className="share-opt share-opt-primary"
+          data-share-action="image"
+          disabled={state.status !== "ready" || busy}
+          onClick={handleShareImage}
+        >
+          <span className="share-opt-name">{busy ? "Opening\u2026" : "Share image"}</span>
+          <span className="share-opt-desc">Sends the card and a link to blitz-odds.com</span>
+        </button>
+        <button type="button" className="share-opt" data-share-action="text" onClick={handleCopyText}>
+          <span className="share-opt-name">Copy as text</span>
+          <span className="share-opt-desc">Plain text plus a link — works anywhere</span>
+        </button>
+
+        {copied && <div className="share-copied">{copied}</div>}
+
+        <div className="add-to-league-cta" style={{ marginTop: 12 }}>
+          <button type="button" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </React.Fragment>,
+    document.body
+  );
+}
+
+/** Same 24px stroke grid as BellIcon so the two sit level in the
+ *  actions row. */
+function ShareIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
+      <path d="M12 16V3" />
+      <path d="m7 8 5-5 5 5" />
+    </svg>
+  );
+}
+
+function AddToLeagueSheet({ game, away, home, week, auth, onClose, onShare }) {
   const { leagues, error: leaguesError } = useMyLeagues(auth);
   const [selectedTeam, setSelectedTeam] = useState(away.id);
   const [checked, setChecked] = useState({});
@@ -19507,8 +20021,16 @@ function AddToLeagueSheet({ game, away, home, week, auth, onClose }) {
         {done ? (
           <>
             <div className="add-to-league-added-strip">✓ Pick submitted</div>
+            {/* Committing a pick is the moment someone wants to tell
+                somebody, so the offer belongs on this success state
+                rather than as another control on the card. The shared
+                card carries the team they just picked, not the model's -
+                unlike the card's own share, this sheet knows it. */}
             <div className="add-to-league-cta" style={{ marginTop: 14 }}>
-              <button type="button" className="primary" onClick={onClose}>Done</button>
+              <button type="button" className="primary" data-share-open="pick" onClick={() => onShare && onShare(selectedTeam)}>
+                Share this pick
+              </button>
+              <button type="button" onClick={onClose}>Done</button>
             </div>
           </>
         ) : (
@@ -19675,6 +20197,30 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
 
   const [fullDetailsOpen, setFullDetailsOpen] = useState(false);
   const [showAddToLeague, setShowAddToLeague] = useState(false);
+  const [shareSpec, setShareSpec] = useState(null);
+
+  /* Which team the card offers to share. Signed in with a submitted pick
+     this would be that pick, but the card doesn't know the user's league
+     entries - so it shares the model's pick, which is what the card is
+     already showing them. buildShareSpec is called at click time, not
+     render time, so a live score that arrives mid-session is included. */
+  function buildShareSpec() {
+    const pickedId = prediction.predictedWinner;
+    const picked = pickedId === home.id ? home : away;
+    return {
+      kind: "game",
+      week: week,
+      away: { id: away.id, name: away.name },
+      home: { id: home.id, name: home.name },
+      pickId: picked.id,
+      pickName: picked.name,
+      dateText: shownTime.date + (shownTime.time ? " \u00b7 " + shownTime.time : ""),
+      isFinal: isFinal,
+      awayScore: scoreInfo ? scoreInfo.awayScore : null,
+      homeScore: scoreInfo ? scoreInfo.homeScore : null,
+      pickCorrect: predictionCorrect,
+    };
+  }
 
   // Following one specific game, for this week only.
   //
@@ -19864,6 +20410,24 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         {canAddToLeague && (
           <button type="button" className="gc-action" data-tour="add-to-league" onClick={handleAddToLeagueClick}>
             {auth && auth.status === "in" ? "+ Add to League" : "Join a League"}
+          </button>
+        )}
+        {/* Add to League is removed entirely once a game is live or final,
+            which leaves that accent slot empty exactly when someone most
+            wants to post a result. Share takes it rather than adding a
+            fourth control to a row that's already tight at 390px. */}
+        {!canAddToLeague && (
+          <button
+            type="button"
+            className="gc-action"
+            data-tour="share-game"
+            data-away={game.away}
+            data-home={game.home}
+            data-state={isFinal ? "final" : isLive ? "live" : "started"}
+            onClick={() => setShareSpec(buildShareSpec())}
+          >
+            <ShareIcon />
+            {isFinal ? "Share Result" : "Share"}
           </button>
         )}
         <button
@@ -20085,6 +20649,8 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
         </div>
       )}
 
+      {shareSpec && <ShareSheet spec={shareSpec} onClose={() => setShareSpec(null)} />}
+
       {showAddToLeague && (
         <AddToLeagueSheet
           game={game}
@@ -20093,6 +20659,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           week={week}
           auth={auth}
           onClose={() => setShowAddToLeague(false)}
+          onShare={(teamId) => {
+            const picked = teamId === home.id ? home : away;
+            setShowAddToLeague(false);
+            setShareSpec(Object.assign(buildShareSpec(), { pickId: picked.id, pickName: picked.name }));
+          }}
         />
       )}
     </div>
@@ -27174,7 +27745,7 @@ function LeagueHeader({ auth, league, week, onWeekChange, onOpenLeagues, isOwner
 // counting it out of 16 read as "0 of 16 complete, 16 remaining" on a week
 // that was in fact untouched, and "1 of 16" on a week that was finished.
 // Everything else still counts every game.
-function PicksProgressRing({ complete, total, week, format }) {
+function PicksProgressRing({ complete, total, week, format, onShare }) {
   const isSurvivor = format === "survivor";
   const shownTotal = isSurvivor ? 1 : total;
   const shownComplete = isSurvivor ? Math.min(complete, 1) : complete;
@@ -27207,6 +27778,15 @@ function PicksProgressRing({ complete, total, week, format }) {
           </p>
         )}
       </div>
+      {/* Only once there's something worth showing. An entry with no picks
+          in it makes an empty card, and offering to share it invites the
+          user to find that out for themselves. */}
+      {onShare && shownComplete > 0 && (
+        <button type="button" className="picks-progress-share" data-share-open="week" onClick={onShare}>
+          <ShareIcon />
+          <span>Share</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -27533,6 +28113,7 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
   const [loadError, setLoadError] = useState(null);
   const [savingGameId, setSavingGameId] = useState(null);
   const [pickErrors, setPickErrors] = useState({});
+  const [shareSpec, setShareSpec] = useState(null);
   const loadSeqRef = useRef(0);
 
   // Every load() bumps this and only applies its result if it's still the
@@ -27721,9 +28302,46 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
   if (loadError) return <p className="leagues-error">{loadError}</p>;
   if (!data) return <p className="leagues-empty">Loading…</p>;
 
+  /* Only games the user has actually picked, in the order the panel
+     shows them - confidence formats read best highest-first, since that's
+     the ranking the format is about, and the other formats have no
+     ordering to honour so schedule order is kept. */
+  function buildWeekShareSpec() {
+    const picked = data.games.filter(g => g.pick && g.pick.team);
+    const rows = picked.map(g => {
+      const teams = getWeekContext(week);
+      const pickTeam = teams.getTeam(g.pick.team);
+      return {
+        pick: g.pick.team,
+        pickName: (pickTeam && pickTeam.name) || g.pick.team,
+        opp: g.pick.team === g.home ? g.away : g.home,
+        confidence: data.format === "confidence" ? g.pick.confidence : null,
+      };
+    });
+    if (data.format === "confidence") {
+      rows.sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
+    }
+    return {
+      kind: "week",
+      week: week,
+      leagueName: league.name || "",
+      format: data.format,
+      rows: rows,
+      complete: data.picksComplete,
+      total: data.format === "survivor" ? 1 : data.totalGames,
+    };
+  }
+
   return (
     <>
-      <PicksProgressRing complete={data.picksComplete} total={data.totalGames} week={week} format={data.format} />
+      {shareSpec && <ShareSheet spec={shareSpec} onClose={() => setShareSpec(null)} />}
+      <PicksProgressRing
+        complete={data.picksComplete}
+        total={data.totalGames}
+        week={week}
+        format={data.format}
+        onShare={() => setShareSpec(buildWeekShareSpec())}
+      />
       {isSurvivor && <SurvivorRuleNote />}
       <div className="pickem-grid">
         {data.games.map(game => (

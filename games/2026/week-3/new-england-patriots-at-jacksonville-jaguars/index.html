@@ -20185,8 +20185,9 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
     awayImpactPlayers: awayPlayers,
     weather: weather,
     homeIsDomeTeam: isDomeTeam(home.id),
-    awayIsDomeTeam: isDomeTeam(away.id)
-  }), [game.home, game.away, context.isHistorical, home, away, homePlayers, awayPlayers, weather]);
+    awayIsDomeTeam: isDomeTeam(away.id),
+    week: week
+  }), [game.home, game.away, context.isHistorical, home, away, homePlayers, awayPlayers, weather, week]);
 
   const homeIsWinner = prediction.predictedWinner === home.id;
   const allAdjustments = [
@@ -20950,6 +20951,7 @@ function playbookPredictions(week) {
       weather: getWeather(week, g.away, g.home),
       homeIsDomeTeam: isDomeTeam(home.id),
       awayIsDomeTeam: isDomeTeam(away.id),
+      week: week,
     });
   });
   playbookPredictionCache.set(week, map);
@@ -27328,6 +27330,7 @@ function survivorWeekProbabilities(week) {
       weather: getWeather(week, g.away, g.home),
       homeIsDomeTeam: isDomeTeam(home.id),
       awayIsDomeTeam: isDomeTeam(away.id),
+      week: week,
     });
     map[g.home] = { prob: prediction.homeWinProbability, opponent: g.away, isHome: true };
     map[g.away] = { prob: prediction.awayWinProbability, opponent: g.home, isHome: false };
@@ -28259,6 +28262,7 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
         weather: weather,
         homeIsDomeTeam: isDomeTeam(home.id),
         awayIsDomeTeam: isDomeTeam(away.id),
+        week: week,
       });
     });
     return map;
@@ -30841,7 +30845,8 @@ function TeamView({ teamId, favorites, onToggleFavorite, onBack, onGoHome, onSel
     const weather = getWeather(week, game.away, game.home);
     const prediction = PredictionEngine.predictMatchup({
       homeTeam, awayTeam, homeImpactPlayers: homePlayers, awayImpactPlayers: awayPlayers,
-      weather, homeIsDomeTeam: isDomeTeam(game.home), awayIsDomeTeam: isDomeTeam(game.away)
+      weather, homeIsDomeTeam: isDomeTeam(game.home), awayIsDomeTeam: isDomeTeam(game.away),
+      week
     });
     const teamWins = prediction.predictedWinner === teamId;
     const teamWinProb = isHome ? prediction.homeWinProbability : prediction.awayWinProbability;
@@ -31403,6 +31408,7 @@ function pickTopEdgeGame(week, sportsbookId) {
           weather: getWeather(week, g.away, g.home),
           homeIsDomeTeam: isDomeTeam(home.id),
           awayIsDomeTeam: isDomeTeam(away.id),
+          week: week,
         });
       } catch (e) { continue; }
       const homeIsPick = prediction.predictedWinner === home.id;
@@ -31776,6 +31782,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
             awayImpactPlayers: context.getPlayers(g.away),
             weather: getWeather(week, g.away, g.home),
             homeIsDomeTeam: isDomeTeam(home.id), awayIsDomeTeam: isDomeTeam(away.id),
+            week: week,
           });
           const homeIsPick = prediction.predictedWinner === home.id;
           return {

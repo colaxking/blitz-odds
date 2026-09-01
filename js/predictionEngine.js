@@ -215,8 +215,8 @@
    * unaffected: both curves are monotonic in edge, so the confidence ladder
    * hands out the same points in the same order.
    */
-  function marginToWinProbability(predictedHomeMargin) {
-    return normalCdf(predictedHomeMargin / MARGIN_SD);
+  function marginToWinProbability(predictedHomeMargin, week) {
+    return normalCdf(predictedHomeMargin / marginSdForWeek(week));
   }
 
   // ---- Margin / cover model -------------------------------------------------
@@ -244,6 +244,60 @@
   var MARGIN_PER_EDGE = 0.409;
   var MARGIN_INTERCEPT = 1.11;
   var MARGIN_SD = 12.77;
+
+  // Early-season residual spread. MARGIN_SD above was fit on games where the
+  // offense/defense ranks come from the season being played. In weeks 1-4 the
+  // ranks are still last season's finals (teams.json only rolls over once
+  // there are enough games to rank), so the same predicted margin carries
+  // less information than the fitted SD implies and the CDF turns it into far
+  // too much confidence.
+  //
+  // Backtest over 3,534 games in data/historical-games-index.json, scoring
+  // each season's weeks 1-4 using the PRIOR season's final ranks from
+  // data/historical-team-rankings.json (n=667):
+  //
+  //   residual SD, wk1-4 prior-season ranks .... 13.73  (bias -0.29)
+  //   residual SD, wk1-4 same-season ranks ..... 12.56  (bias -0.29)
+  //   residual SD, wk5+  same-season ranks ..... 12.84  (bias +0.08)
+  //   Brier-optimal SD, wk1-4 prior ranks ...... 18.75
+  //   Brier-optimal SD, wk5+  same ranks ....... 13.00  (MARGIN_SD is right)
+  //
+  // Calibration by confidence bin, wk1-4 on prior-season ranks:
+  //
+  //           SD=12.77            SD=18.75
+  //   bin     pred    actual      pred    actual
+  //   50-60%  54.8%   53.0%       54.8%   55.2%
+  //   60-70%  64.7%   61.7%       64.3%   65.6%
+  //   70-80%  74.4%   66.4%       74.1%   71.3%
+  //   80%+    85.4%   76.7%       (bin empties out)
+  //
+  // The margins themselves are near-unbiased either way - this only widens
+  // the win-probability curve, so predictedMargin, the confidence ORDER, and
+  // coverProbability are all unchanged. Caveat: the backtest ran with empty
+  // impact-player lists (no historical injury data in the repo), so both arms
+  // are apples-to-apples but the absolute SDs are mildly optimistic.
+  var EARLY_SEASON_MARGIN_SD = 18.75;
+  var EARLY_SEASON_LAST_WEEK = 4;
+
+  /**
+   * Residual SD to use for a given week. Weeks <= 4 of the regular season run
+   * on prior-season ranks and need the wider curve; anything else (including
+   * an unknown/omitted week) gets the fitted MARGIN_SD, so a missed call site
+   * degrades to exactly today's behaviour rather than throwing.
+   */
+  function marginSdForWeek(week) {
+    // Guard null explicitly: Number(null) is 0, which would otherwise slip
+    // through the <= 4 test and hand the wide curve to a call site that
+    // simply didn't pass a week. 0 isn't a real week either (preseason is
+    // -4..-1, regular season 1..18), so both fall back to MARGIN_SD.
+    if (week === null || week === undefined || week === "") return MARGIN_SD;
+    var w = Number(week);
+    if (!isFinite(w) || w === 0) return MARGIN_SD;
+    // Preseason weeks are negative (-4..-1) and also run on prior-season
+    // ranks, so they take the wide curve too.
+    if (w <= EARLY_SEASON_LAST_WEEK) return EARLY_SEASON_MARGIN_SD;
+    return MARGIN_SD;
+  }
 
   /** Standard normal CDF (Abramowitz & Stegun 7.1.26 erf approximation). */
   function normalCdf(z) {
@@ -309,7 +363,7 @@
     // One curve: the margin model, then the probability that margin implies.
     // Deriving one from the other is what stops them contradicting.
     var predictedMargin = edgeToMargin(edge);
-    var homeWinProb = marginToWinProbability(predictedMargin);
+    var homeWinProb = marginToWinProbability(predictedMargin, params.week);
 
     var winner = homeWinProb >= 0.5 ? homeTeam.id : awayTeam.id;
     var confidence = homeWinProb >= 0.5 ? homeWinProb : 1 - homeWinProb;
@@ -336,6 +390,7 @@
     applyInjuryAdjustments: applyInjuryAdjustments,
     applyWeatherAdjustments: applyWeatherAdjustments,
     marginToWinProbability: marginToWinProbability,
+    marginSdForWeek: marginSdForWeek,
     edgeToMargin: edgeToMargin,
     coverProbability: coverProbability,
     normalCdf: normalCdf,
@@ -354,7 +409,9 @@
       DOME_ACCLIMATION_PENALTY: DOME_ACCLIMATION_PENALTY,
       MARGIN_PER_EDGE: MARGIN_PER_EDGE,
       MARGIN_INTERCEPT: MARGIN_INTERCEPT,
-      MARGIN_SD: MARGIN_SD
+      MARGIN_SD: MARGIN_SD,
+      EARLY_SEASON_MARGIN_SD: EARLY_SEASON_MARGIN_SD,
+      EARLY_SEASON_LAST_WEEK: EARLY_SEASON_LAST_WEEK
     }
   };
 });

@@ -243,6 +243,11 @@ export default async (req: Request, _context: Context) => {
     report.depthFetched = depthFetched;
     report.covered = [];
     report.autoHandled = [];
+    // Rows this tick overwrote that a human had already cleared. Should be
+    // empty in normal operation - the dismissedByHand guard below exists to
+    // keep it that way - so anything appearing here is a row coming back
+    // after being ignored, and names the player it's happening to.
+    report.reopened = [];
 
     /** Down per ESPN right now. The running order comes from the depth
      *  snapshot (up to DEPTH_REFETCH_MS old, which is fine - charts move on a
@@ -395,6 +400,12 @@ export default async (req: Request, _context: Context) => {
         item.resolved = true;
         item.resolvedAt = now.toISOString();
         report.autoHandled.push(`${c.e.name} (${c.e.team}) → ${c.to} [${autoHandled}]`);
+      }
+      if (existing && existing.resolved === true && !autoHandled) {
+        report.reopened.push(
+          `${c.e.name} (${c.e.team}) → ${c.to} — was ${existing.supersededBy ? "superseded" : (existing as any).autoHandled ? "auto-handled" : "cleared by hand"}` +
+          `, ours ${existing.ours ?? "—"} vs ${ours ? ours.status : "—"}, to ${existing.to} vs ${c.to}`
+        );
       }
       if (!dryRun) await store.setJSON(key, item);
       if (!autoHandled) report.queued++;

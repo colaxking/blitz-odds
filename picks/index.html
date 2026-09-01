@@ -33066,6 +33066,13 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
   // panel asks for is really a question about where the player sits, so the
   // answer belongs one tap away rather than in another window.
   const [depthItem, setDepthItem] = useState(null);
+  // Ids cleared in this session. The row is dropped from the list the moment
+  // the write succeeds rather than waiting for the refetch to agree, and it
+  // stays dropped for as long as the panel is open. A resolve is a decision
+  // the server has already acknowledged with a 200 - if a later read still
+  // hands the row back, that's a bug to find in the dispatcher's `reopened`
+  // report, not a reason to make the same decision twice.
+  const dismissedRef = useRef(new Set());
   // espnId (and lowercased name) -> the curated record, so a queue row can show
   // the impact score already on file instead of asking for it again.
   const [tracked, setTracked] = useState({});
@@ -33075,7 +33082,7 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
     setError(null);
     try {
       const body = await adminCall(auth, "/.netlify/functions/injury-review");
-      const list = body.items || [];
+      const list = (body.items || []).filter(r => !dismissedRef.current.has(r.id));
       setItems(list);
       setAutoHandled(body.autoHandled || 0);
       setRetired(body.retired || 0);
@@ -33142,6 +33149,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: item.id, resolved: true }),
+      });
+      dismissedRef.current.add(item.id);
+      setItems(list => {
+        const next = (list || []).filter(r => r.id !== item.id);
+        onCount(next.length);
+        return next;
       });
       onToast(applied
         ? (item.name || "Player") + " set to " + (choice[item.id] || item.to)

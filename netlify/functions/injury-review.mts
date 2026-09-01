@@ -263,6 +263,13 @@ export default async (req: Request, _context: Context) => {
       // recognisable as a repeat rather than looking brand new.
       item.resolved = body.resolved !== false;
       item.resolvedAt = item.resolved ? new Date().toISOString() : null;
+
+      // WRITE FIRST, LOG SECOND. audit() swallows its own failures on the
+      // stated grounds that "the action already happened by the time this
+      // runs" - which was not true here, because it ran before the write.
+      // It's also a blob round-trip, so doing it first put avoidable latency
+      // in front of the only thing the caller is waiting for.
+      await store.setJSON(key, item);
       await audit(
         actor,
         item.resolved ? "injury.resolve" : "injury.reopen",
@@ -271,7 +278,6 @@ export default async (req: Request, _context: Context) => {
           : `reopened ${item.name || item.espnId} (${item.team}) in the injury queue`,
         { target: item.id, meta: { espnId: item.espnId, from: item.from, to: item.to } }
       );
-      await store.setJSON(key, item);
       return jsonResponse(200, { ok: true, item });
     }
 

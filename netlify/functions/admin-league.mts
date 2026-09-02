@@ -63,8 +63,16 @@ export default async (req: Request, context: Context) => {
 
     /* ---------------- delete ---------------- */
     if (action === "delete") {
+      // Case and repeated spaces ignored, matching normalizeConfirm() in
+      // index.html. The console's field label is uppercased by CSS, so what
+      // an admin reads on screen is not byte-identical to the stored name -
+      // an exact match here refused the exact thing the UI asked them to
+      // type. This box is a "did you mean it" check, not an authorisation
+      // one; requireAdmin above is what decides whether the caller may do
+      // this at all.
+      const norm = (v: unknown) => String(v ?? "").trim().replace(/\s+/g, " ").toLowerCase();
       const confirmName = String(body.confirmName || "").trim();
-      if (confirmName !== leagueName) {
+      if (norm(confirmName) !== norm(leagueName)) {
         return adminJson(400, { ok: false, error: "The name you typed doesn't match this league" });
       }
 

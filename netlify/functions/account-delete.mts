@@ -1,6 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { verifyToken, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
-import { identityAdminFetch } from "./lib/admin.mts";
+import { deleteIdentityUser } from "./lib/admin.mts";
 import { purgeUserData } from "./lib/account-purge.mts";
 import { sendTransactional } from "./lib/send-email.mts";
 import { emailShell, emailEyebrow, emailPanel, escapeHtml, EMAIL_COLORS, SITE_URL } from "./lib/email-shell.mts";
@@ -132,8 +132,13 @@ export default async (req: Request, context: Context) => {
     // being deleted came from a verified JWT and cannot be influenced by the
     // request body, and the only operation performed is a delete of that one
     // id. There is no path here that touches another account.
-    const delRes = await identityAdminFetch(req, context, `/admin/users/${userId}`, { method: "DELETE" });
-    if (!delRes.ok && delRes.status !== 404) {
+    //
+    // Shared with the admin path so the two can't drift, and it reads the
+    // account back afterwards rather than trusting the status code: someone
+    // told their account is deleted and then able to sign back in is a much
+    // worse outcome than an honest "try again".
+    const del = await deleteIdentityUser(req, context, userId);
+    if (!del.ok) {
       return jsonResponse(
         502,
         {

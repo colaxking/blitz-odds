@@ -4944,6 +4944,20 @@
     display: block; font-size: .68rem; font-weight: 700; color: var(--text-dim);
     margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em;
   }
+  /* The exact string a destructive confirm box expects, shown verbatim.
+     It CANNOT live inside .admin-field > span above, which uppercases
+     everything it contains: a league called "Sunday Money" was being
+     displayed as "SUNDAY MONEY" and then rejected when that was typed back,
+     because the match was case-sensitive. Hence text-transform:none, its own
+     row, and user-select:all so one tap grabs the whole thing on a phone. */
+  .admin-confirm-token {
+    display: block; margin: 0 0 6px; padding: 7px 9px; border-radius: 8px;
+    background: var(--surface-2); border: 1px dashed var(--card-border);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .8rem; font-weight: 700; color: var(--text);
+    text-transform: none; letter-spacing: 0; line-height: 1.4;
+    word-break: break-word; -webkit-user-select: all; user-select: all;
+  }
   .admin-filters { display: grid; gap: 8px; margin-bottom: 12px; }
   @media (min-width: 620px) { .admin-filters { grid-template-columns: repeat(3, 1fr); } }
 
@@ -32296,6 +32310,18 @@ async function adminCall(auth, path, options) {
   return body;
 }
 
+/** How every "type this to confirm" box compares what was typed.
+ *
+ *  Case and repeated whitespace are ignored deliberately. The label above
+ *  these inputs is uppercased by CSS, so what the admin reads on screen is
+ *  not byte-identical to the league name on file, and an exact match refused
+ *  the one thing the UI told them to type. The box is a "did you mean it"
+ *  check, not a security control - admin-league.mts re-checks it server-side
+ *  with this same normalisation. */
+function normalizeConfirm(value) {
+  return String(value == null ? "" : value).trim().replace(/\s+/g, " ").toLowerCase();
+}
+
 function AdminStatus({ busy, error, note }) {
   if (error) return <div className="admin-status admin-status-bad">{error}</div>;
   if (busy) return <div className="admin-status">Working…</div>;
@@ -32335,7 +32361,7 @@ function adminTourStepLabel(id) {
   return ADMIN_TOUR_STEP_LABELS[id] || id;
 }
 
-function AdminUsersPanel({ auth, data, reload, onToast }) {
+function AdminUsersPanel({ auth, data, reload, onToast, onUserDeleted }) {
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState(null);
 
@@ -32409,13 +32435,14 @@ function AdminUsersPanel({ auth, data, reload, onToast }) {
           onClose={() => setOpenId(null)}
           onChanged={reload}
           onToast={onToast}
+          onUserDeleted={onUserDeleted}
         />
       )}
     </div>
   );
 }
 
-function AdminUserSheet({ auth, user, leagues, actorId, termsCurrent, onClose, onChanged, onToast }) {
+function AdminUserSheet({ auth, user, leagues, actorId, termsCurrent, onClose, onChanged, onToast, onUserDeleted }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [name, setName] = useState(user.name || "");
@@ -32783,7 +32810,11 @@ function AdminUserSheet({ auth, user, leagues, actorId, termsCurrent, onClose, o
         ) : (
           <React.Fragment>
             <label className="admin-field">
-              <span>Type {user.email} to confirm</span>
+              <span>Type this address to confirm</span>
+              {/* Out of the label and into its own row: the label is
+                  uppercased by CSS, so an address shown inside it isn't the
+                  string being asked for. */}
+              <code className="admin-confirm-token">{user.email}</code>
               <input
                 type="text"
                 value={confirmEmail}
@@ -32795,7 +32826,7 @@ function AdminUserSheet({ auth, user, leagues, actorId, termsCurrent, onClose, o
             <button
               type="button"
               className="admin-btn admin-btn-danger admin-btn-block"
-              disabled={busy || confirmEmail.trim().toLowerCase() !== (user.email || "").toLowerCase()}
+              disabled={busy || normalizeConfirm(confirmEmail) !== normalizeConfirm(user.email)}
               onClick={() =>
                 run(async () => {
                   await adminCall(auth, "/.netlify/functions/admin-user-delete", {
@@ -32803,6 +32834,13 @@ function AdminUserSheet({ auth, user, leagues, actorId, termsCurrent, onClose, o
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ userId: user.id, confirmEmail: confirmEmail.trim() }),
                   });
+                  /* Only reached when the server has re-read the account and
+                     confirmed the login is gone - see admin-user-delete.mts.
+                     Told to the console directly because the Identity user
+                     list can still return the account for a few seconds
+                     afterwards, and the reload below was putting the row
+                     straight back as if the delete had done nothing. */
+                  if (onUserDeleted) onUserDeleted(user.id);
                   onClose();
                 }, user.name + " deleted")
               }
@@ -32964,13 +33002,27 @@ function AdminLeagueSheet({ auth, league, users, onClose, onChanged, onToast }) 
           Removes the league, its picks and its standings. Members keep their accounts.
         </p>
         <label className="admin-field">
-          <span>Type {league.name} to confirm</span>
-          <input type="text" value={confirmName} onChange={e => setConfirmName(e.target.value)} autoComplete="off" />
+          <span>Type the league name to confirm</span>
+          {/* The name has to sit outside the label. .admin-field > span
+              uppercases its contents, so "Type {league.name} to confirm" was
+              displaying a name nobody could type back - the comparison was
+              case-sensitive on both the client and in admin-league.mts, so
+              copying what was on screen was refused and the button never
+              enabled. Shown verbatim here, and both ends now compare with
+              normalizeConfirm. */}
+          <code className="admin-confirm-token">{league.name}</code>
+          <input
+            type="text"
+            value={confirmName}
+            onChange={e => setConfirmName(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+          />
         </label>
         <button
           type="button"
           className="admin-btn admin-btn-danger admin-btn-block"
-          disabled={busy || confirmName.trim() !== league.name}
+          disabled={busy || normalizeConfirm(confirmName) !== normalizeConfirm(league.name)}
           onClick={() => run(async () => {
             await call("delete", { confirmName: confirmName.trim() });
             onClose();
@@ -33932,6 +33984,16 @@ function AdminConsole({ auth, onClose }) {
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
   const [injuryCount, setInjuryCount] = useState(null);
+  /* Accounts a delete has PROVEN gone. admin-user-delete re-reads the login
+     before it reports success, so anything in here is definitely deleted -
+     but Identity's user list can keep returning it for a few seconds, and
+     the reload that runs straight after a delete was bringing the row back.
+     Filtering here keeps the row gone without ever hiding a delete that
+     actually failed, because a failure throws before this is called. */
+  const [deletedUserIds, setDeletedUserIds] = useState([]);
+  const noteUserDeleted = useCallback(id => {
+    setDeletedUserIds(prev => (prev.indexOf(id) === -1 ? prev.concat(id) : prev));
+  }, []);
 
   const reload = useCallback(async () => {
     try {
@@ -33944,6 +34006,15 @@ function AdminConsole({ auth, onClose }) {
   }, [auth]);
 
   useEffect(() => { reload(); }, [reload]);
+
+  /* One filtered copy for every tab, so a deleted person can't reappear in
+     the Picks dropdown or the Alerts recipient list either. */
+  const viewData = useMemo(() => {
+    if (!data || !deletedUserIds.length) return data;
+    return Object.assign({}, data, {
+      users: (data.users || []).filter(u => deletedUserIds.indexOf(u.id) === -1),
+    });
+  }, [data, deletedUserIds]);
 
   useEffect(() => {
     lockBodyScroll();
@@ -33994,20 +34065,26 @@ function AdminConsole({ auth, onClose }) {
               default. */}
           {!data && !error && ["users", "leagues", "picks"].includes(tab) && <AdminStatus busy />}
 
-          {data && tab === "users" && (
-            <AdminUsersPanel auth={auth} data={data} reload={reload} onToast={showToast} />
+          {viewData && tab === "users" && (
+            <AdminUsersPanel
+              auth={auth}
+              data={viewData}
+              reload={reload}
+              onToast={showToast}
+              onUserDeleted={noteUserDeleted}
+            />
           )}
-          {data && tab === "leagues" && (
-            <AdminLeaguesPanel auth={auth} data={data} reload={reload} onToast={showToast} />
+          {viewData && tab === "leagues" && (
+            <AdminLeaguesPanel auth={auth} data={viewData} reload={reload} onToast={showToast} />
           )}
-          {data && tab === "picks" && (
-            <AdminPicksPanel auth={auth} data={data} onToast={showToast} />
+          {viewData && tab === "picks" && (
+            <AdminPicksPanel auth={auth} data={viewData} onToast={showToast} />
           )}
           {tab === "injuries" && (
             <AdminInjuriesPanel auth={auth} onToast={showToast} onCount={setInjuryCount} />
           )}
-          {tab === "alerts" && <AdminAlertsPanel auth={auth} users={data && data.users} />}
-          {tab === "log" && <AdminActivityPanel auth={auth} users={data && data.users} />}
+          {tab === "alerts" && <AdminAlertsPanel auth={auth} users={viewData && viewData.users} />}
+          {tab === "log" && <AdminActivityPanel auth={auth} users={viewData && viewData.users} />}
         </div>
 
         {toast && <div className="admin-toast">{toast}</div>}

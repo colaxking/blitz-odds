@@ -218,6 +218,57 @@ export async function identityAdminFetch(
   return last as Response;
 }
 
+export interface IdentityDeleteResult {
+  /** True only when the login is provably no longer there. */
+  ok: boolean;
+  /** Whatever GoTrue answered the DELETE with, for the error message. */
+  status: number;
+  /** What a follow-up read of the same id found afterwards. */
+  verified: "gone" | "present" | "unknown";
+}
+
+/**
+ * Deletes an Identity login and then PROVES it went, by reading the account
+ * back.
+ *
+ * The check exists because "the DELETE returned 2xx" turned out not to be
+ * the same claim as "the account is gone", and the difference was invisible
+ * from the console: the delete reported success, the Users tab reloaded, and
+ * the person was still in the list with no error anywhere to explain it. A
+ * 404 was being counted as success too, which is right when the account was
+ * already deleted and wrong if the route itself is missing - either way it
+ * was believed rather than checked.
+ *
+ * Two reads, because the account list can lag a delete by a moment. A read
+ * that fails for its own reasons returns "unknown" rather than "present":
+ * the delete is still reported as successful in that case, since GoTrue
+ * accepted it and an unreadable verification is not evidence against it.
+ */
+export async function deleteIdentityUser(
+  req: Request,
+  context: any,
+  userId: string
+): Promise<IdentityDeleteResult> {
+  const del = await identityAdminFetch(req, context, `/admin/users/${userId}`, { method: "DELETE" });
+  if (!del.ok && del.status !== 404) {
+    return { ok: false, status: del.status, verified: "present" };
+  }
+
+  let verified: IdentityDeleteResult["verified"] = "unknown";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 800));
+    const check = await identityAdminFetch(req, context, `/admin/users/${userId}`);
+    if (check.status === 404) {
+      verified = "gone";
+      break;
+    }
+    if (!check.ok) break; // can't see - don't claim either way
+    verified = "present";
+  }
+
+  return { ok: verified !== "present", status: del.status, verified };
+}
+
 /** Pages through every Identity user. Netlify caps a page at 100. */
 export async function listIdentityUsers(req: Request, context: any): Promise<IdentityUser[]> {
   const all: IdentityUser[] = [];

@@ -1,6 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import {
-  requireAdmin, identityAdminFetch, adminJson, forbidden, audit, ADMIN_CORS,
+  requireAdmin, identityAdminFetch, deleteIdentityUser, adminJson, forbidden, audit, ADMIN_CORS,
 } from "./lib/admin.mts";
 import { purgeUserData } from "./lib/account-purge.mts";
 
@@ -70,13 +70,20 @@ export default async (req: Request, context: Context) => {
 
     const removed = await purgeUserData(userId);
 
-    // Only now, with the data provably gone, remove the login itself.
-    const delRes = await identityAdminFetch(req, context, `/admin/users/${userId}`, { method: "DELETE" });
-    if (!delRes.ok && delRes.status !== 404) {
-      return adminJson(delRes.status, {
+    // Only now, with the data provably gone, remove the login itself - and
+    // read it back, because a delete that GoTrue accepts and doesn't act on
+    // is otherwise indistinguishable here from one that worked. The console
+    // used to say "deleted", reload, and show the person again.
+    const del = await deleteIdentityUser(req, context, userId);
+    if (!del.ok) {
+      return adminJson(502, {
         ok: false,
-        error: `Their data was removed but Identity refused to delete the login (${delRes.status}). Retry to finish.`,
+        error:
+          del.verified === "present"
+            ? `Identity accepted the delete (${del.status}) but ${target.email} is still on the account list. Their data has been removed; the login itself needs deleting from the Netlify Identity dashboard.`
+            : `Their data was removed but Identity refused to delete the login (${del.status}). Retry to finish.`,
         removed,
+        identityStatus: del.status,
       });
     }
 
@@ -84,10 +91,20 @@ export default async (req: Request, context: Context) => {
       actor,
       "user.delete",
       `deleted ${target.email} and all their data`,
-      { target: userId, meta: { removed, leaguesAffected: removed.leaguesAffected } }
+      {
+        target: userId,
+        // identityVerified answers "did the login actually go" months later,
+        // when the account is gone and nothing else can be re-read to check.
+        meta: { removed, leaguesAffected: removed.leaguesAffected, identityVerified: del.verified },
+      }
     );
 
-    return adminJson(200, { ok: true, removed, leaguesAffected: removed.leaguesAffected });
+    return adminJson(200, {
+      ok: true,
+      removed,
+      leaguesAffected: removed.leaguesAffected,
+      identityVerified: del.verified,
+    });
   } catch (err) {
     return adminJson(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" });
   }

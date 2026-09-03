@@ -1,5 +1,5 @@
 import type { Context, Config } from "@netlify/functions";
-import { verifyToken, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
+import { verifyToken, jsonResponse, CORS_HEADERS_BASE, displayNameFromClaims } from "./lib/auth.mts";
 import { deleteIdentityUser } from "./lib/admin.mts";
 import { purgeUserData } from "./lib/account-purge.mts";
 import { sendTransactional } from "./lib/send-email.mts";
@@ -110,7 +110,7 @@ export default async (req: Request, context: Context) => {
   }
 
   const displayName =
-    (claims.user_metadata?.full_name as string) || (email ? email.split("@")[0] : "there");
+    (claims.user_metadata?.full_name as string) || (email ? displayNameFromClaims(claims) : "there");
 
   try {
     // ORDER MATTERS, same as the admin path. Blob data goes BEFORE the

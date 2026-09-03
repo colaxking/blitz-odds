@@ -1,6 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
-import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
+import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE, displayNameFromClaims } from "./lib/auth.mts";
 import {
   SITE_URL, APP_URL, FORMAT_LABELS, FORMAT_BADGE_URLS, escapeHtml,
   emailShell, emailButton, emailFormatBadge, EMAIL_COLORS as C, EMAIL_MONO,
@@ -136,8 +136,11 @@ export default async (req: Request, _context: Context) => {
   const claims = await getAuthenticatedUser(req);
   if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" }, CORS_HEADERS);
   const userId = claims.id;
-  const inviterName =
-    claims.user_metadata?.full_name || (claims.email ? claims.email.split("@")[0] : "A Blitz Odds player");
+  // Falls back to the derived first name rather than the email local-part.
+  // Overridden below by the inviter's own name on their membership row for
+  // this league, which is the one they chose and the one the recipient
+  // will see in standings.
+  let inviterName = displayNameFromClaims(claims) || "A Blitz Odds player";
 
   let body: any;
   try {
@@ -190,8 +193,14 @@ export default async (req: Request, _context: Context) => {
     if (!league) return jsonResponse(404, { ok: false, error: "League not found" }, CORS_HEADERS);
 
     const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
-    const isMember = !!membersDoc?.members?.some((m: any) => m.userId === userId);
-    if (!isMember) return jsonResponse(403, { ok: false, error: "Only league members can send invites" }, CORS_HEADERS);
+    const me = membersDoc?.members?.find((m: any) => m.userId === userId);
+    if (!me) return jsonResponse(403, { ok: false, error: "Only league members can send invites" }, CORS_HEADERS);
+
+    // The name this inviter shows under in this very league is the name the
+    // recipient will recognise, and it's the one the inviter chose. The
+    // claims-derived fallback above only applies if the membership row has
+    // no name on it. user-profile.mts keeps these rows in step on rename.
+    if (typeof me.displayName === "string" && me.displayName.trim()) inviterName = me.displayName;
 
     const { subject, html, text } = buildInviteEmail(league, inviterName);
 

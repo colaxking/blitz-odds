@@ -5288,7 +5288,7 @@
       <tr><td>9</td><td><strong>Baltimore Ravens</strong></td><td><a href="/games/2026/week-2/new-orleans-saints-at-baltimore-ravens/">New Orleans Saints at Baltimore Ravens</a></td><td>68%</td><td>BAL -7.5</td><td>Sun, Sep 20 · 1:00 PM ET</td></tr>
       <tr><td>8</td><td><strong>Seattle Seahawks</strong></td><td><a href="/games/2026/week-2/seattle-seahawks-at-arizona-cardinals/">Seattle Seahawks at Arizona Cardinals</a></td><td>67%</td><td>SEA -10</td><td>Sun, Sep 20 · 4:25 PM ET</td></tr>
       <tr><td>7</td><td><strong>Tampa Bay Buccaneers</strong></td><td><a href="/games/2026/week-2/cleveland-browns-at-tampa-bay-buccaneers/">Cleveland Browns at Tampa Bay Buccaneers</a></td><td>66%</td><td>TB -6.5</td><td>Sun, Sep 20 · 1:00 PM ET</td></tr>
-      <tr><td>6</td><td><strong>Kansas City Chiefs</strong></td><td><a href="/games/2026/week-2/indianapolis-colts-at-kansas-city-chiefs/">Indianapolis Colts at Kansas City Chiefs</a></td><td>65%</td><td>KC -6.5</td><td>Sun, Sep 20 · 8:20 PM ET</td></tr>
+      <tr><td>6</td><td><strong>Kansas City Chiefs</strong></td><td><a href="/games/2026/week-2/indianapolis-colts-at-kansas-city-chiefs/">Indianapolis Colts at Kansas City Chiefs</a></td><td>62%</td><td>KC -6.5</td><td>Sun, Sep 20 · 8:20 PM ET</td></tr>
       <tr><td>5</td><td><strong>Philadelphia Eagles</strong></td><td><a href="/games/2026/week-2/philadelphia-eagles-at-tennessee-titans/">Philadelphia Eagles at Tennessee Titans</a></td><td>59%</td><td>PHI -4.5</td><td>Sun, Sep 20 · 1:00 PM ET</td></tr>
       <tr><td>4</td><td><strong>Denver Broncos</strong></td><td><a href="/games/2026/week-2/jacksonville-jaguars-at-denver-broncos/">Jacksonville Jaguars at Denver Broncos</a></td><td>53%</td><td>DEN -3</td><td>Sun, Sep 20 · 4:05 PM ET</td></tr>
       <tr><td>3</td><td><strong>Miami Dolphins</strong></td><td><a href="/games/2026/week-2/miami-dolphins-at-san-francisco-49ers/">Miami Dolphins at San Francisco 49ers</a></td><td>52%</td><td>SF -10.5</td><td>Sun, Sep 20 · 4:25 PM ET</td></tr>
@@ -7060,15 +7060,11 @@
         "position": "WR",
         "espnId": "4360078",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Ankle surgery (March) - activated off PUP",
-          "since": "2026-03",
-          "note": "Opened camp on PUP after March ankle surgery, which followed a January platelet-rich plasma injection that failed. Indianapolis activated him off the PUP list on Aug. 27 and the ramp-up is underway. Pierce says \"Week 1 is the goal\"; GM Chris Ballard repeated Tuesday, Sept. 1 that the \"hope\" is he plays Sept. 13 vs. Baltimore. Signed a four-year, $114M extension before the surgery."
-        },
-        "statusUpdatedAt": "2026-09-01T20:15:00.000Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-03T18:50Z",
         "source": "auto",
-        "activatedDate": "2026-08-27"
+        "activatedDate": "2026-09-03"
       },
       {
         "name": "D.J. Montgomery",
@@ -25464,6 +25460,25 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
   );
 }
 
+/**
+ * Client-side mirror of displayNameFromClaims in netlify/functions/lib/auth.mts.
+ * Only used as a placeholder before a profile has loaded or been saved - the
+ * server is authoritative and derives the same value. Kept in step by hand;
+ * if the server rule changes, change this too, or a new user briefly sees a
+ * different name in Settings than the one their leagues will show.
+ */
+function deriveFirstName(user) {
+  const tidy = (n) => (!n || n !== n.toLowerCase() ? n : n.charAt(0).toUpperCase() + n.slice(1));
+  const full = user && user.user_metadata && user.user_metadata.full_name;
+  if (typeof full === "string" && full.trim()) return tidy(full.trim().split(/\s+/)[0]).slice(0, 40);
+  const local = ((user && user.email) || "").split("@")[0];
+  if (!local) return "Player";
+  const base = local.split("+")[0];
+  const first = base.split(/[._-]/).filter(Boolean)[0] || base;
+  const name = first.replace(/\d+$/, "") || first;
+  return name ? tidy(name).slice(0, 40) : "Player";
+}
+
 // Signed-in-only tab inside SettingsModal: avatar (branded icon/glyphs +
 // football emoji), display name, and email. Display name + avatar persist
 // to the user-profile blob (same record leagues/settings already use).
@@ -25471,6 +25486,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
 // (currentUser().update(...)) since Identity - not the blob - is the
 // source of truth for login, and an email change specifically triggers
 // GoTrue's own confirmation-link flow rather than applying immediately.
+
 function ProfileTab({ auth, profile, onProfileUpdated }) {
   // null means "no avatar saved", and it has to stay null rather than being
   // silently defaulted to blitz-edge. Defaulting here is what caused the
@@ -25482,9 +25498,7 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
   // the already-"selected" blitz-edge and hitting Save was a no-op and the
   // avatar could never actually be persisted.
   const storedAvatarId = (profile && profile.avatar) || null;
-  const initialName = (profile && profile.displayName) ||
-    (auth.user && auth.user.user_metadata && auth.user.user_metadata.full_name) ||
-    (auth.user && auth.user.email ? auth.user.email.split("@")[0] : "Player");
+  const initialName = (profile && profile.displayName) || deriveFirstName(auth.user);
   const currentEmail = (auth.user && auth.user.email) || "";
 
   const [avatarId, setAvatarId] = useState(storedAvatarId);

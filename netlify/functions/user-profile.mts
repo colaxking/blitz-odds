@@ -1,14 +1,7 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { TERMS_VERSION, VALID_TERMS_SOURCES, MAX_TERMS_HISTORY } from "./lib/terms.mts";
-import {
-  verifyToken,
-  isSuspended,
-  suspensionInfo,
-  suspendedResponse,
-  isUnverified,
-  unverifiedResponse,
-} from "./lib/auth.mts";
+import { verifyToken, isSuspended, suspensionInfo, suspendedResponse, isUnverified, unverifiedResponse, displayNameFromClaims } from "./lib/auth.mts";
 
 // Authenticated read/write for a single user's profile blob. This is the
 // unified record backing both the (future) Pro subscription gate and
@@ -103,9 +96,7 @@ function defaultProfile(claims: any) {
   return {
     id: claims.id,
     email: claims.email || null,
-    displayName:
-      (claims.user_metadata && claims.user_metadata.full_name) ||
-      (claims.email ? claims.email.split("@")[0] : "Player"),
+    displayName: displayNameFromClaims(claims),
     subscriptionTier: "free",
     leagues: [],
     settings: defaultSettings(),

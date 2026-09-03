@@ -4,6 +4,7 @@ import {
   requireAdmin, identityAdminFetch, adminJson, forbidden, audit, ADMIN_CORS,
 } from "./lib/admin.mts";
 import { USER_STORE } from "./lib/notif.mts";
+import { displayNameFromClaims } from "./lib/auth.mts";
 import { rescoreLeague, removeUserFromStandings } from "./lib/rescore.mts";
 
 // POST /.netlify/functions/admin-league
@@ -126,16 +127,21 @@ export default async (req: Request, context: Context) => {
       if (!idRes.ok) return adminJson(404, { ok: false, error: "No such user" });
       const target: any = await idRes.json();
 
-      let displayName = (target.user_metadata?.full_name as string) || "";
+      // The member's own saved profile name wins. It used to come second to
+      // the Identity full_name, which meant an admin-added member was
+      // entered under a name they had already changed away from - and, now
+      // that leagues can be public, under their full real name rather than
+      // the first name they chose to show.
+      let displayName = "";
       let avatar: string | null = null;
       try {
         const profile: any = await getStore(USER_STORE, { consistency: "strong" }).get(`users:${userId}`, { type: "json" });
-        displayName = displayName || profile?.displayName || "";
+        displayName = (typeof profile?.displayName === "string" && profile.displayName.trim()) ? profile.displayName : "";
         avatar = profile?.avatar || null;
       } catch {
         /* no profile row yet */
       }
-      displayName = displayName || (target.email || "").split("@")[0] || "Player";
+      displayName = displayName || displayNameFromClaims(target) || "Player";
 
       membersDoc.members.push({ userId, displayName, avatar, role: "member", joinedAt: now });
       league.memberCount = membersDoc.members.length;

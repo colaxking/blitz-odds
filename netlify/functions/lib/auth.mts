@@ -258,8 +258,61 @@ export async function getAuthenticatedUserIgnoringGates(req: Request): Promise<A
   return verifyToken(req);
 }
 
+/**
+ * Capitalizes a name only when it looks un-styled. "dan" -> "Dan", but
+ * "McDonald", "O'Neill" and "JT" are left exactly as they are - forcing
+ * title case on those produces "Mcdonald" / "O'neill" / "Jt", which is
+ * worse than doing nothing.
+ */
+function tidyCase(name: string): string {
+  if (!name) return name;
+  if (name !== name.toLowerCase()) return name; // already has capitals; trust them
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+/**
+ * A first name, not a full name and not an email local-part.
+ *
+ * This is the display name every new account starts with, and it is shown to
+ * other members of any league the account joins - including the official
+ * public pools, where "other members" is not a group the user chose. The old
+ * default was the whole local-part, so dan.smith@work.com published as
+ * "dan.smith": a person's actual full name, handed to strangers, from a
+ * field they never filled in. A first name is friendlier in standings and
+ * gives away materially less.
+ *
+ * Derivation, in order:
+ *   full_name (Google OAuth) -> first whitespace-separated word
+ *   email local-part         -> drop any +tag, split on . _ -, take the
+ *                               first segment, drop trailing digits
+ *   neither                  -> "Player"
+ *
+ * This is a heuristic and it is allowed to be wrong: "dsmith@" has no first
+ * name to find and becomes "Dsmith". That's fine - it is a starting value,
+ * not a commitment. Every account can change it in Settings, and
+ * user-profile.mts propagates a change into every league membership row.
+ */
 export function displayNameFromClaims(claims: AuthClaims): string {
-  return claims.user_metadata?.full_name || (claims.email ? claims.email.split("@")[0] : "Player");
+  const full = claims.user_metadata?.full_name;
+  if (typeof full === "string" && full.trim()) {
+    return tidyCase(full.trim().split(/\s+/)[0]).slice(0, 40);
+  }
+
+  const email = typeof claims.email === "string" ? claims.email : "";
+  const localPart = email.split("@")[0] || "";
+  if (!localPart) return "Player";
+
+  // Drop a +tag ("dan+nfl@" -> "dan"), then take the first separated segment.
+  const base = localPart.split("+")[0];
+  const first = base.split(/[._-]/).filter(Boolean)[0] || base;
+
+  // Trailing digits are almost always disambiguation, not part of a name
+  // ("john123" -> "John"). Leading digits are left alone: stripping them
+  // from "1234" leaves nothing, and there's no name in there to rescue.
+  const stripped = first.replace(/\d+$/, "");
+  const name = stripped || first;
+  if (!name) return "Player";
+  return tidyCase(name).slice(0, 40);
 }
 
 export const CORS_HEADERS_BASE: Record<string, string> = {

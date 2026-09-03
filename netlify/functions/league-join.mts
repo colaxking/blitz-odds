@@ -1,6 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
-import { getAuthenticatedUser } from "./lib/auth.mts";
+import { getAuthenticatedUser, displayNameFromClaims } from "./lib/auth.mts";
 
 // Joins the authenticated caller to a league, either via invite code (any
 // league) or by leagueId directly (public leagues only - this is what the
@@ -53,9 +53,7 @@ export default async (req: Request, _context: Context) => {
   if (!claims || !claims.id) return jsonResponse(401, { ok: false, error: "Unauthorized - sign in required" });
 
   const userId: string = claims.id;
-  const claimsDisplayName =
-    (claims.user_metadata && claims.user_metadata.full_name) ||
-    (claims.email ? claims.email.split("@")[0] : "Player");
+  const claimsDisplayName = displayNameFromClaims(claims);
 
   let body: any;
   try {

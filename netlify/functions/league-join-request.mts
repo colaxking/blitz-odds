@@ -1,6 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
-import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
+import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE, displayNameFromClaims } from "./lib/auth.mts";
 import { sendTransactional, emailForUser } from "./lib/send-email.mts";
 import { buildJoinRequestEmail } from "./lib/request-emails.mts";
 
@@ -98,8 +98,7 @@ export default async (req: Request, _context: Context) => {
     const displayName =
       (profile && typeof profile.displayName === "string" && profile.displayName.trim())
         ? profile.displayName
-        : ((claims.user_metadata && claims.user_metadata.full_name) ||
-           (claims.email ? claims.email.split("@")[0] : "Player"));
+        : displayNameFromClaims(claims);
 
     if (!alreadyPending) {
       await leagueStore.setJSON(key, {

@@ -775,6 +775,26 @@ export default async (req: Request, _context: Context) => {
     const leagueJoinsByFormat = sortedCounts(leagueJoinSuccesses, (r) => r.format);
     const officialLeagueJoins = leagueJoinSuccesses.filter((r) => r.official === true).length;
 
+    // --- invite-link shares. The sender's half of the join funnel, which
+    // until now had no event at all: league_join only fires once somebody
+    // has already been handed a link, so "nobody is joining" and "nobody is
+    // inviting" produced identical dashboards and needed opposite fixes.
+    //
+    // byMethod is the health check rather than a curiosity. "share" is the
+    // native sheet, "copy" the desktop clipboard fallback, and "none" means
+    // the tap produced nothing - a dismissed sheet, or a browser with
+    // neither API. A rising "none" is a button that looks like it works and
+    // doesn't, which is invisible from a single total.
+    //
+    // bySurface says which of the three entry points carries it; if the
+    // My Leagues row barely registers against the header, that icon is
+    // chrome nobody needed. ---
+    const leagueShareRecords = validRecords.filter((r) => r.type === "league_invite_share");
+    const leagueShares = leagueShareRecords.length;
+    const leagueSharesBySurface = sortedCounts(leagueShareRecords, (r) => r.surface);
+    const leagueSharesByMethod = sortedCounts(leagueShareRecords, (r) => r.method);
+    const leagueSharesByFormat = sortedCounts(leagueShareRecords, (r) => r.format);
+
     // --- sharing. Two counts, deliberately: shareOpens is whether an
     // entry point earns a tap, shareActions is whether an opened sheet
     // produces an actual share. The gap between them is the sheet failing
@@ -1216,6 +1236,10 @@ export default async (req: Request, _context: Context) => {
         leagueJoinFailures,
         leagueJoinsByFormat,
         officialLeagueJoins,
+        leagueShares,
+        leagueSharesBySurface,
+        leagueSharesByMethod,
+        leagueSharesByFormat,
         shareOpens,
         shareOpensBySurface,
         shareOpensByState,

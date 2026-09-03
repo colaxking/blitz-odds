@@ -3606,6 +3606,57 @@
   }
   .league-invite-chip:hover, .league-invite-chip:focus-visible { border-color: var(--accent); }
 
+  /* Share the join link. Separate from .league-invite-chip on purpose: the
+     chip displays and copies the CODE (which is still what somebody reads
+     out over the phone or types into the join box), and this shares the
+     URL. One control doing both would have to either hide the code or lie
+     about what it copies. Sized to .league-btn so the two sit level in the
+     header's action row. */
+  .league-share-btn {
+    flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 8px; padding: 9px 14px; font-size: 0.86rem; font-weight: 700; cursor: pointer;
+  }
+  .league-share-btn:hover:not(:disabled), .league-share-btn:focus-visible { border-color: var(--accent); color: var(--accent); }
+  .league-share-btn:disabled { opacity: 0.5; cursor: default; }
+  .league-share-btn svg { width: 15px; height: 15px; flex: none; }
+  .league-share-btn.is-done { border-color: var(--win); color: var(--win); }
+  .league-share-btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+  /* Icon-only, for the My Leagues row - that row already packs a name, a
+     meta line, Manage/Leave and the code chip, and a fourth word wrapped it
+     onto a second line on a phone. Confirmation is a checkmark swap rather
+     than a label change for the same reason: there's no room to grow. */
+  .league-share-btn-icon { padding: 6px 9px; position: relative; }
+  /* The visual box matches the code chip beside it (~35x29) so the row stays
+     level, but that's well under a 44px touch target. This expands the hit
+     area to a measured 46x46 without moving anything - the alternative, growing the
+     button itself, pushes the chip out of alignment on every row. */
+  .league-share-btn-icon::after { content: ""; position: absolute; inset: -10px -7px; }
+
+  /* The link, spelled out, above the email field in the invite panel.
+     Read-only text rather than an <input readonly>: nobody needs to edit
+     it, and a text input invites a tap that selects half the URL. */
+  .league-share-row { display: flex; gap: 8px; align-items: stretch; }
+  .league-share-url {
+    flex: 1; min-width: 0; display: flex; align-items: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem;
+    color: var(--text-dim); background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 8px; padding: 9px 12px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .league-share-url b { color: var(--accent); font-weight: 700; }
+  @media (max-width: 560px) {
+    .league-share-row { flex-direction: column; }
+    .league-share-row .league-share-btn { justify-content: center; }
+    /* The header's action row went from three controls to four, and four
+       overflow a 390px card: .league-header-actions is flex-shrink:0 with
+       flex-shrink:0 children, so it sized to max-content and pushed ~17px
+       past the card's padding rather than wrapping inside it. Claiming the
+       full line gives the existing flex-wrap something finite to wrap
+       against. */
+    .league-header-actions { flex: 1 1 100%; min-width: 0; }
+  }
+
   .league-form { display: flex; gap: 8px; }
   .league-input {
     flex: 1; min-width: 0; background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 8px;
@@ -26902,14 +26953,15 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
     }
   }
 
-  // Takes the league rather than the code: official house leagues have no
-  // invite code (they're joined by id), so they share a public join link
-  // instead. Keyed on league id rather than the copied string so the
-  // "Copied!" state can't be ambiguous between two leagues.
+  // Copies the CODE only, and the chip that calls it is only rendered when
+  // there is one - the old league-or-link fallback for codeless house
+  // leagues moved to LeagueShareButton, which sits beside the chip on every
+  // row and handles both kinds. Keyed on league id rather than the copied
+  // string so the "Copied!" state can't be ambiguous between two leagues.
   function copyInviteCode(league) {
-    const value = league.inviteCode || `${window.location.origin}/join/league/${league.id}`;
+    if (!league.inviteCode) return;
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(value).then(() => {
+      navigator.clipboard.writeText(league.inviteCode).then(() => {
         setCopiedCode(league.id);
         setTimeout(() => setCopiedCode(c => (c === league.id ? null : c)), 1500);
       });
@@ -27134,14 +27186,17 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
                               Leave
                             </button>
                           )}
-                          <button
-                            type="button"
-                            className="league-invite-chip"
-                            onClick={() => copyInviteCode(l)}
-                            title={l.inviteCode ? "Copy invite code" : "Copy join link"}
-                          >
-                            {copiedCode === l.id ? "Copied!" : (l.inviteCode || "Copy Join Link")}
-                          </button>
+                          {l.inviteCode && (
+                            <button
+                              type="button"
+                              className="league-invite-chip"
+                              onClick={() => copyInviteCode(l)}
+                              title="Copy invite code"
+                            >
+                              {copiedCode === l.id ? "Copied!" : l.inviteCode}
+                            </button>
+                          )}
+                          <LeagueShareButton league={l} surface="my_leagues_row" iconOnly small />
                         </div>
                       </>
                     )}
@@ -27805,6 +27860,140 @@ function computeSurvivorPath(startWeek, usedTeams) {
 // for why), from the "Invite by Email" toggle in LeagueHeader. Splits on
 // commas, spaces, semicolons, and newlines so pasting from a contacts
 // export or typing a quick list both just work.
+/** The URL that joins this league. Two forms, both already routed by
+ *  parseLocationPath and both already what league-invite.mts puts in its
+ *  emails: a private league goes by invite code, and an official house
+ *  league - which has no code at all (lib/house-leagues.mts) - goes by id.
+ *  Centralised because three surfaces build this string and they were
+ *  drifting apart; the email is the fourth, and it can't share this one
+ *  since it runs server-side with no window.location to read. */
+function leagueJoinUrl(league) {
+  const origin = (typeof window !== "undefined" && window.location) ? window.location.origin : "";
+  return league.inviteCode
+    ? `${origin}/join/${encodeURIComponent(league.inviteCode)}`
+    : `${origin}/join/league/${encodeURIComponent(league.id)}`;
+}
+
+/** How the share text names the format. Not LEAGUE_FORMAT_OPTIONS' labels
+ *  lowercased - that yields "a ats pool" and "a against the spread (ats)
+ *  pool" - so the sentence form is written out once here. */
+const LEAGUE_SHARE_PHRASE = {
+  straight_up: "straight-up pick'em",
+  confidence: "confidence pick'em",
+  survivor: "survivor",
+  ats: "ATS pick'em",
+};
+
+/** Hand the join link to whatever the device has.
+ *
+ *  navigator.share is the whole point of this on a phone: it drops the link
+ *  into iMessage or WhatsApp, which is how a pool actually gets filled.
+ *  Desktop browsers that don't implement it fall back to the clipboard.
+ *
+ *  Resolves to the route taken ("share" | "copy"), or null if the user
+ *  backed out or neither route existed - the caller needs that both to
+ *  word its confirmation and to report the split. A cancelled native sheet
+ *  rejects with AbortError, and that is deliberately NOT retried as a
+ *  clipboard copy: silently copying after somebody dismissed the sheet is
+ *  a side effect they didn't ask for. Any other rejection (a
+ *  NotAllowedError from a share that lost its user gesture, say) does fall
+ *  through, since there the sheet never opened. */
+async function shareLeagueLink(league) {
+  const url = leagueJoinUrl(league);
+  const phrase = LEAGUE_SHARE_PHRASE[league.format] || "pick'em";
+  if (typeof navigator !== "undefined" && navigator.share) {
+    try {
+      await navigator.share({
+        title: `Join ${league.name} on Blitz Odds`,
+        text: `I'm running a ${phrase} pool - free to join, picks lock at kickoff.`,
+        url,
+      });
+      return "share";
+    } catch (err) {
+      if (err && err.name === "AbortError") return null;
+    }
+  }
+  if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(url);
+    return "copy";
+  }
+  return null;
+}
+
+/** The share glyph, inline so it inherits currentColor through the button's
+ *  hover and .is-done states without a second asset to theme. */
+function ShareIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 16V3" /><path d="M8 7l4-4 4 4" />
+      <path d="M4 13v6a2 2 0 002 2h12a2 2 0 002-2v-6" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+
+/** The Share button itself, shared by the league header and the My Leagues
+ *  row so the two can't drift in behaviour the way the copy handlers did.
+ *  `surface` is passed straight to analytics: the two entry points answer
+ *  different questions (a header share is someone inside a league they
+ *  care about, a row share is someone triaging a list) and folding them
+ *  into one number would hide which one earns its place. */
+function LeagueShareButton({ league, surface, iconOnly = false, small = false }) {
+  const [done, setDone] = useState(null); // "share" | "copy"
+  const timerRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  async function handleShare() {
+    let method = null;
+    try {
+      method = await shareLeagueLink(league);
+    } catch (err) {
+      // A clipboard write can be refused outright (permissions policy in an
+      // embedded webview, mainly). Nothing useful to say about it, and the
+      // code chip is still right there as the manual path.
+      method = null;
+    }
+    trackEvent("league_invite_share", {
+      surface,
+      method: method || "none",
+      format: league.format,
+      official: !!league.official,
+    });
+    // The native sheet posts its own confirmation, so only the clipboard
+    // route needs one here.
+    if (method === "copy") {
+      setDone("copy");
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setDone(null), 1500);
+    }
+  }
+
+  const label = done ? (iconOnly ? "" : "Link copied!") : (iconOnly ? "" : "Share");
+  return (
+    <button
+      type="button"
+      className={"league-share-btn" + (small ? " league-share-btn-sm" : "")
+        + (iconOnly ? " league-share-btn-icon" : "") + (done ? " is-done" : "")}
+      onClick={handleShare}
+      title={done ? "Link copied" : "Share join link"}
+      aria-label={iconOnly ? (done ? "Link copied" : "Share join link") : undefined}
+    >
+      {done ? <CheckIcon /> : <ShareIcon />}
+      {label}
+    </button>
+  );
+}
+
 function parseInviteEmails(text) {
   const seen = new Set();
   const out = [];
@@ -27851,8 +28040,32 @@ function LeagueInvitePanel({ auth, league, onClose, showClose = true }) {
     }
   }
 
+  // Split so the code renders in the accent colour without the whole URL
+  // shouting. Falls back to the plain string for a house league, whose
+  // link is an opaque id rather than a code worth picking out.
+  const joinUrl = leagueJoinUrl(league);
+  const prettyUrl = joinUrl.replace(/^https?:\/\//, "");
+  const codeTail = league.inviteCode ? `/join/${league.inviteCode}` : null;
+
   return (
     <div className={"league-invite-panel" + (showClose ? "" : " league-invite-panel-standalone")}>
+      {/* The link sits above the email field because it's the path most
+          people take - handing someone a URL in a text message beats
+          typing their address in here, and the email invite sends this
+          very same URL anyway. */}
+      <div className="league-share-row">
+        <div className="league-share-url" title={joinUrl}>
+          {codeTail
+            ? <span>{prettyUrl.slice(0, prettyUrl.length - league.inviteCode.length)}<b>{league.inviteCode}</b></span>
+            : prettyUrl}
+        </div>
+        <LeagueShareButton league={league} surface="invite_panel" />
+      </div>
+      <p className="league-format-hint">
+        {league.inviteCode
+          ? "Anyone with this link joins straight away - no approval needed. It signs them in first if they don't have an account yet."
+          : "Anyone with this link joins straight away. It signs them in first if they don't have an account yet."}
+      </p>
       <form onSubmit={handleSend}>
         <label className="league-settings-row">
           <span>Invite by email</span>
@@ -27901,15 +28114,16 @@ function LeagueHeader({ auth, league, week, onWeekChange, onOpenLeagues, isOwner
   const minWeek = weeks.length ? weeks[0].week : 1;
   const maxWeek = weeks.length ? weeks[weeks.length - 1].week : 18;
 
-  // Official house leagues have no invite code (lib/house-leagues.mts) -
-  // they're joined by id, so minting one would be a secret nobody needs.
-  // Sharing still has to work, so the chip copies the public join link
-  // instead of an empty string. Both forms are handled by parseLocationPath.
-  const shareValue = league.inviteCode || `${window.location.origin}/join/league/${league.id}`;
-
+  // The chip copies the CODE, and only exists when there is one. Official
+  // house leagues have no invite code (lib/house-leagues.mts) - they're
+  // joined by id - and the chip used to degrade into a "Copy Join Link"
+  // button to cover that. It doesn't need to any more: LeagueShareButton
+  // beside it shares the link for both kinds of league, so the fallback
+  // was two controls doing one job depending on league type.
   function copyInvite() {
+    if (!league.inviteCode) return;
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(shareValue).then(() => {
+      navigator.clipboard.writeText(league.inviteCode).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       });
@@ -27943,12 +28157,18 @@ function LeagueHeader({ auth, league, week, onWeekChange, onOpenLeagues, isOwner
           </div>
         ) : (
           <div className="league-header-actions">
-            <button type="button" className="league-invite-chip" onClick={copyInvite}
-              title={league.inviteCode ? "Copy invite code" : "Copy join link"}>
-              {copied ? "Copied!" : (league.inviteCode || "Copy Join Link")}
-            </button>
+            {league.inviteCode && (
+              <button type="button" className="league-invite-chip" onClick={copyInvite}
+                title="Copy invite code">
+                {copied ? "Copied!" : league.inviteCode}
+              </button>
+            )}
+            <LeagueShareButton league={league} surface="league_header" />
+            {/* "Invite by Email" no longer describes the panel - it holds
+                the join link too - and the shorter label keeps four
+                controls on one row at desktop width. */}
             <button type="button" className="league-btn" onClick={() => setShowInvite(v => !v)}>
-              {showInvite ? "Close Invite" : "Invite by Email"}
+              {showInvite ? "Close Invite" : "Invite"}
             </button>
             {isOwner ? (
               <button type="button" className="league-btn" onClick={onOpenLeagues}>Manage</button>

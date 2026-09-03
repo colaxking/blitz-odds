@@ -652,6 +652,9 @@
         { title: "League joins", sub: "Completed joins from browse", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.leagueJoins || 0) + "</div>" },
         { title: "League join funnel", sub: "Attempt \u2192 result, plus the sign-in wall", html: leagueJoinFunnelHtml(d) },
         { title: "Joins by format", sub: "Which pool format people actually pick", html: barListHtml(relabel(d.leagueJoinsByFormat, { straight_up: "Straight-Up", confidence: "Confidence", survivor: "Survivor", ats: "ATS" }), null, { empty: "No joins in this range yet" }) },
+        { title: "Invite links shared", sub: "The sending half of the join funnel", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.leagueShares || 0) + "</div>" },
+        { title: "Share entry point", sub: "League header vs. My Leagues row vs. invite panel", html: barListHtml(relabel(d.leagueSharesBySurface, { league_header: "League header", my_leagues_row: "My Leagues row", invite_panel: "Invite panel" }), null, { empty: "No invite shares in this range yet" }) },
+        { title: "Share route taken", sub: '"Nothing" means a dismissed sheet or no Web Share \u2014 watch it rise', html: barListHtml(relabel(d.leagueSharesByMethod, { share: "Native share sheet", copy: "Copied to clipboard", none: "Nothing happened" }), null, { empty: "No invite shares in this range yet" }) },
         { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" },
         // Opens vs. completions side by side, since the interesting number
         // is the gap: a sheet that opens often and shares rarely is a
@@ -1105,6 +1108,7 @@
       gateCtaClicks: {}, gateCtaBySurface: {}, bookCompareOpens: 0,
       leagueJoinAttempts: 0, leagueJoinSignedOut: 0, leagueJoins: 0,
       leagueJoinFailures: 0, leagueJoinsByFormat: {}, officialLeagueJoins: 0,
+      leagueShares: 0, leagueSharesBySurface: {}, leagueSharesByMethod: {}, leagueSharesByFormat: {},
       shareOpens: 0, shareOpensBySurface: {}, shareOpensByState: {}, shareActions: {},
       termsConsentActions: {}, termsSignupChecked: 0, termsOauthPrompts: 0, termsOauthAccepted: 0, termsOauthAcceptRate: null,
       termsGateShown: 0, termsGateAccepted: 0, termsGateSignouts: 0,

@@ -60,6 +60,13 @@ const VALID_TYPES = new Set([
   // would make a league that refuses joins look like a league nobody wants.
   "league_join",
   "league_join_result",
+  // Sharing a league's join link out of the app. The invite email was the
+  // only measurable way into a league before this, and it was never the
+  // way most pools actually get filled - a link in a group chat is. Without
+  // this event the join funnel starts at league_join, which is the
+  // recipient's side: the sender's half of it is invisible, so "nobody is
+  // joining" and "nobody is inviting" look identical.
+  "league_invite_share",
   "playbook_subtab",
   "playbook_format",
   "gate_cta",
@@ -230,6 +237,30 @@ const VALID_SHARE_SURFACES = new Set([
   "week",
 ]);
 
+// The three places a join link can be shared from. Allowlisted rather than
+// passed through for the same reason as gate_cta's section: a spoofed body
+// must not be able to open a new dimension in the dashboard's bar list.
+const VALID_LEAGUE_SHARE_SURFACES = new Set([
+  "league_header",
+  "my_leagues_row",
+  "invite_panel",
+]);
+
+// Which route the browser took. "none" is a real outcome, not an error to
+// drop: it means the sheet was dismissed or neither Web Share nor the
+// clipboard was available, and a rising share of it is the signal that the
+// button looks like it works but doesn't.
+const VALID_LEAGUE_SHARE_METHODS = new Set(["share", "copy", "none"]);
+
+// League formats, allowlisted so `format` can be recorded from a client
+// body without becoming a free-text dimension.
+const VALID_LEAGUE_FORMATS = new Set([
+  "straight_up",
+  "confidence",
+  "survivor",
+  "ats",
+]);
+
 // Best-effort extraction of Netlify's built-in geolocation (derived from the
 // edge node that served the request, via the `x-nf-geo` header). This is
 // approximate (city-level at best) and never involves storing a raw IP.
@@ -343,7 +374,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index, official, ok, method } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -494,6 +525,31 @@ export default async (req: Request, context: Context) => {
 
     if (type === "share_action") {
       if (action === "image" || action === "text") record.action = action;
+    }
+
+    // Leagues. These fields were being read by analytics-summary.mts
+    // (leagueJoinAttempts, leagueJoinsByFormat, officialLeagueJoins and the
+    // whole join funnel tile) but never written here, so every one of those
+    // numbers has been reading zero since the events shipped - the records
+    // landed with nothing on them but type and visitorId. `outcome` was
+    // destructured but only recorded for the account-deletion types.
+    //
+    // `official` and `ok` are compared against true rather than coerced, so
+    // a body sending the string "true" doesn't silently become a real
+    // boolean in the store and read as a genuine success.
+    if (type === "league_join" || type === "league_join_result" || type === "league_invite_share") {
+      if (VALID_LEAGUE_FORMATS.has(String(format))) record.format = String(format);
+      if (official === true) record.official = true;
+    }
+    if (type === "league_join") {
+      if (outcome === "attempt" || outcome === "signed_out") record.outcome = outcome;
+    }
+    if (type === "league_join_result") {
+      record.ok = ok === true;
+    }
+    if (type === "league_invite_share") {
+      if (VALID_LEAGUE_SHARE_SURFACES.has(String(surface))) record.surface = String(surface);
+      if (VALID_LEAGUE_SHARE_METHODS.has(String(method))) record.method = String(method);
     }
 
     // Historical archive events (see js/analytics.js header comment for

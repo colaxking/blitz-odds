@@ -814,10 +814,16 @@ const TAB_PAGES = [
     description: "A finished pick sheet for your pool every week: a full confidence ladder, ranked spread plays, and a survivor pick planned around the rest of the season - with the model's reasoning behind each one.",
   },
   {
+    // Retargeted when the official public pools shipped. The old metadata
+    // only described running a pool with friends, which is the smaller
+    // intent and the one that needs a group already assembled - "join an
+    // NFL pick'em pool" is the higher-volume query and is now something the
+    // page can actually deliver on, since the house leagues are open to
+    // anyone without an invite.
     dir: "leagues",
     canonicalPath: "/leagues",
-    title: "Pick'em Leagues - Free NFL Pools | Blitz Odds",
-    description: "Run a free NFL pick'em pool with friends. Straight-up, confidence, survivor, and against-the-spread formats, with automatic scoring and standings.",
+    title: "Free NFL Pick'em Pools - Join a League or Run Your Own | Blitz Odds",
+    description: "Join a free NFL pick'em pool instantly - no invite needed - or run your own with friends. Confidence, survivor, straight-up, and against-the-spread formats, with automatic scoring and standings.",
   },
   {
     dir: "news",

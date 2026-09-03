@@ -84,3 +84,39 @@ export function isPastKickoff(seasonYear: number, dateStr: string, timeStr: stri
   if (!kickoff) return true;
   return now.getTime() >= kickoff.getTime();
 }
+
+/**
+ * True once the season's very first game has kicked off. Two callers rely on
+ * this and they must agree, which is why it lives here rather than in either
+ * of them: league-settings-update.mts freezes a survivor league's
+ * survivorStrikes at this instant, and house-leagues-maintain.mts closes
+ * entry to the house survivor pool at it. If those two used separate copies
+ * and one drifted, a league could take a new entrant after its elimination
+ * rules had already frozen.
+ *
+ * Deliberately season-wide rather than per-league: a league created in
+ * week 6 is joining a season already in progress, so its strike rule is
+ * fixed at creation the same way a week 1 league's is fixed at kickoff.
+ * A missing or unreadable schedule returns false (fail open) - the
+ * alternative would lock every league out of a setting because of a blob
+ * read failure.
+ *
+ * @param schedule - the raw schedule doc ({ weeks: [{ week, games: [...] }] })
+ * @param season - season starting year, e.g. 2026
+ */
+export function seasonHasStarted(schedule: any, season: number, now: Date = new Date()): boolean {
+  const weeks: any[] = schedule?.weeks || [];
+  if (!weeks.length) return false;
+  let earliest: any = null;
+  for (const w of weeks) {
+    for (const g of w?.games || []) {
+      if (!g?.date || !g?.time) continue;
+      if (!earliest || (w.week ?? Infinity) < (earliest.week ?? Infinity)) {
+        earliest = { week: w.week, game: g };
+      }
+      break; // games within a week are already in kickoff order
+    }
+  }
+  if (!earliest) return false;
+  return isPastKickoff(season, earliest.game.date, earliest.game.time, now);
+}

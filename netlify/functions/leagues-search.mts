@@ -47,6 +47,10 @@ function toSearchResult(league: any, ownerName: string | null) {
   return {
     id: league.id,
     name: league.name,
+    // Official (house) leagues are site-run public pools with no owner -
+    // see lib/house-leagues.mts. The client badges them and pins them to
+    // the top; nothing else about them is special-cased.
+    official: league.official === true,
     // Descriptions are omitted for private leagues on purpose. They were
     // written while private leagues were unlisted, so some carry things
     // their owners never expected a stranger to read - buy-in amounts,
@@ -60,7 +64,9 @@ function toSearchResult(league: any, ownerName: string | null) {
     maxMembers: league.maxMembers,
     season: league.season,
     createdAt: league.createdAt,
-    ownerName,
+    // House leagues have no ownerId to look a profile up by, so they carry
+    // their own display owner ("Blitz Odds") on the league record.
+    ownerName: ownerName || league.ownerName || null,
     full: typeof league.maxMembers === "number" && league.memberCount >= league.maxMembers,
   };
 }
@@ -101,7 +107,14 @@ export default async (req: Request, _context: Context) => {
     }
     // Public first, then by size - someone browsing can act on a public
     // league immediately, where a private one costs them a wait.
+    // Official house leagues first: they're the only ones a brand-new user
+    // with no invite can definitely join, so burying them under whichever
+    // private league happens to be biggest is backwards. Then public before
+    // private (a public league can be acted on immediately, a private one
+    // costs a wait), then by size.
     results.sort((a: any, b: any) => {
+      const aOfficial = a.official === true, bOfficial = b.official === true;
+      if (aOfficial !== bOfficial) return aOfficial ? -1 : 1;
       if (a.visibility !== b.visibility) return a.visibility === "public" ? -1 : 1;
       return (b.memberCount || 0) - (a.memberCount || 0);
     });

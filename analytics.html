@@ -501,6 +501,42 @@
         : "Every account shown the gate accepted") + "</div>";
   }
 
+  // Attempt -> result, with the sign-in wall broken out. Signed-out is
+  // deliberately NOT counted as a failure: it's someone who wanted in and
+  // was correctly asked to make an account first, which is the intended
+  // path. Folding it into failures would make a working funnel look broken,
+  // and hiding it entirely would lose the biggest expected drop in the
+  // whole flow. Failures are the ones worth alarming on - a join that was
+  // attempted while signed in and still didn't complete is a bug or a full
+  // league, not a user changing their mind.
+  function leagueJoinFunnelHtml(d) {
+    var attempts = d.leagueJoinAttempts || 0;
+    var signedOut = d.leagueJoinSignedOut || 0;
+    var joins = d.leagueJoins || 0;
+    var failures = d.leagueJoinFailures || 0;
+    var official = d.officialLeagueJoins || 0;
+    if (!attempts && !signedOut && !joins && !failures) {
+      return '<div class="empty">No join attempts in this range</div>';
+    }
+    var rate = attempts ? Math.round((joins / attempts) * 100) : null;
+    var officialShare = joins ? Math.round((official / joins) * 100) : null;
+    return '<div style="font-size:1.7rem;font-weight:650;">' +
+      fmtNum(attempts) + '</div>' +
+      '<div class="section-desc" style="margin-top:2px;">' +
+      fmtNum(joins) + " joined" + (rate == null ? "" : " (" + rate + "%)") +
+      " \u00b7 " + fmtNum(signedOut) + " hit the sign-in wall</div>" +
+      '<div class="section-desc" style="margin-top:8px;">' +
+      esc(joins
+        ? fmtNum(official) + " of those were official pools" +
+          (officialShare == null ? "" : " (" + officialShare + "%)")
+        : "No completed joins yet") + "</div>" +
+      (failures > 0
+        ? '<div class="section-desc" style="margin-top:6px;color:var(--bad, #d33a3a);">' +
+          esc(fmtNum(failures) + (failures === 1 ? " join failed while signed in" : " joins failed while signed in")) +
+          "</div>"
+        : "");
+  }
+
   // ---- Rendering --------------------------------------------------------
   function barListHtml(data, dim, opts) {
     opts = opts || {};
@@ -610,6 +646,12 @@
         { title: "Gate CTA by surface", sub: "Sign-in wall vs. Pro gate", html: barListHtml(relabel(d.gateCtaBySurface, { signin: "Sign-in wall", pro: "Pro gate" })) },
         { title: "Gate CTA by section", sub: "Which gate earns the signup", html: barListHtml(relabel(d.gateCtaBySection, { playbook: "Playbook", edge_writeup: "Blitz Edge write-up", odds_compare: "Compare Sportsbooks", past_matchups: "Past Matchups", boxscore: "Full box score" })) },
         { title: "Tour funnel", sub: (d.tourStarts || 0) ? fmtNum(d.tourStarts) + " runs started · " + fmtNum(d.tourCompletions || 0) + " finished (" + (d.tourCompletionRate == null ? "–" : d.tourCompletionRate + "%") + ")" : "First-run tour, step by step", html: tourFunnelHtml(d) },
+        // The house-league on-ramp. Signed-out is shown next to joins rather
+        // than hidden in a failure count: it's the sign-in wall doing its
+        // job, and it's the drop worth watching.
+        { title: "League joins", sub: "Completed joins from browse", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.leagueJoins || 0) + "</div>" },
+        { title: "League join funnel", sub: "Attempt \u2192 result, plus the sign-in wall", html: leagueJoinFunnelHtml(d) },
+        { title: "Joins by format", sub: "Which pool format people actually pick", html: barListHtml(relabel(d.leagueJoinsByFormat, { straight_up: "Straight-Up", confidence: "Confidence", survivor: "Survivor", ats: "ATS" }), null, { empty: "No joins in this range yet" }) },
         { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" },
         // Opens vs. completions side by side, since the interesting number
         // is the gap: a sheet that opens often and shares rarely is a
@@ -1061,6 +1103,8 @@
       playbookSubtabViews: {}, playbookFormatViews: {},
       tourStepViews: {}, tourSkips: {}, tourStarts: 0, tourCompletions: 0, tourCompletionRate: null,
       gateCtaClicks: {}, gateCtaBySurface: {}, bookCompareOpens: 0,
+      leagueJoinAttempts: 0, leagueJoinSignedOut: 0, leagueJoins: 0,
+      leagueJoinFailures: 0, leagueJoinsByFormat: {}, officialLeagueJoins: 0,
       shareOpens: 0, shareOpensBySurface: {}, shareOpensByState: {}, shareActions: {},
       termsConsentActions: {}, termsSignupChecked: 0, termsOauthPrompts: 0, termsOauthAccepted: 0, termsOauthAcceptRate: null,
       termsGateShown: 0, termsGateAccepted: 0, termsGateSignouts: 0,

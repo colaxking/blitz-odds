@@ -52,6 +52,14 @@ const VALID_TYPES = new Set([
   // Playbook. The tab has four sub-screens and a paywall gate, none of which
   // were observable before - gate_cta in particular is the conversion event
   // for every gated surface.
+  // Leagues. The house/official public pools exist to give a user with no
+  // invite somewhere to play, and the only way to know whether that works is
+  // the join funnel split by `official`. league_join fires on the attempt
+  // (including the signed-out bounce, which is the single biggest expected
+  // drop) and league_join_result on the outcome - one event on success alone
+  // would make a league that refuses joins look like a league nobody wants.
+  "league_join",
+  "league_join_result",
   "playbook_subtab",
   "playbook_format",
   "gate_cta",

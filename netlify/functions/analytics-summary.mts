@@ -400,6 +400,12 @@ function emptySummary(now: number, range: Range) {
     termsGateAccepted: 0,
     termsGateSignouts: 0,
     bookCompareOpens: 0,
+    leagueJoinAttempts: 0,
+    leagueJoinSignedOut: 0,
+    leagueJoins: 0,
+    leagueJoinFailures: 0,
+    leagueJoinsByFormat: {} as Record<string, number>,
+    officialLeagueJoins: 0,
     shareOpens: 0,
     shareOpensBySurface: {},
     shareOpensByState: {},
@@ -747,6 +753,27 @@ export default async (req: Request, _context: Context) => {
     // --- bookCompareOpens: how often anyone opens the per-book price
     // comparison. Worth knowing before any affiliate work is wired to it ---
     const bookCompareOpens = validRecords.filter((r) => r.type === "book_compare").length;
+
+    // --- league joins. The official house pools (lib/house-leagues.mts)
+    // exist for one reason: a new user with no invite and no friends on the
+    // site otherwise has nowhere to play. Whether that works is a funnel,
+    // not a total.
+    //
+    // signedOut is broken out because it isn't a failure - it's someone who
+    // wanted in and hit the sign-in wall, which is the intended path and the
+    // largest expected drop. Folding it into failures would make a working
+    // funnel look broken. officialJoins against total joins is the number
+    // that says whether the house pools are actually the on-ramp they were
+    // built to be, or whether people are finding user leagues anyway. ---
+    const leagueJoinRecords = validRecords.filter((r) => r.type === "league_join");
+    const leagueJoinSignedOut = leagueJoinRecords.filter((r) => r.outcome === "signed_out").length;
+    const leagueJoinAttempts = leagueJoinRecords.filter((r) => r.outcome === "attempt").length;
+    const leagueJoinResults = validRecords.filter((r) => r.type === "league_join_result");
+    const leagueJoinSuccesses = leagueJoinResults.filter((r) => r.ok === true);
+    const leagueJoins = leagueJoinSuccesses.length;
+    const leagueJoinFailures = leagueJoinResults.length - leagueJoins;
+    const leagueJoinsByFormat = sortedCounts(leagueJoinSuccesses, (r) => r.format);
+    const officialLeagueJoins = leagueJoinSuccesses.filter((r) => r.official === true).length;
 
     // --- sharing. Two counts, deliberately: shareOpens is whether an
     // entry point earns a tap, shareActions is whether an opened sheet
@@ -1183,6 +1210,12 @@ export default async (req: Request, _context: Context) => {
         termsGateAccepted,
         termsGateSignouts,
         bookCompareOpens,
+        leagueJoinAttempts,
+        leagueJoinSignedOut,
+        leagueJoins,
+        leagueJoinFailures,
+        leagueJoinsByFormat,
+        officialLeagueJoins,
         shareOpens,
         shareOpensBySurface,
         shareOpensByState,

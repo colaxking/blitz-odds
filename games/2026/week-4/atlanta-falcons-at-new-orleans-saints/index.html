@@ -1042,8 +1042,19 @@
   .lgx-lg { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .lgx-lg img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
   .lgx-lg .nm { min-width: 0; }
-  .lgx-lg .nm b { display: block; font-size: .92rem; font-weight: 800; overflow: hidden;
-    text-overflow: ellipsis; white-space: nowrap; }
+  /* Flex rather than block so the Official badge sits beside the name
+     instead of inside the name's own ellipsis - a truncated long league
+     name used to eat the badge with it. */
+  .lgx-lg .nm b { display: flex; align-items: center; gap: 6px; min-width: 0;
+    font-size: .92rem; font-weight: 800; }
+  .lgx-lg .nm b .lgx-lg-name { display: block; min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; font-size: .92rem; color: var(--text); }
+  /* Brand orange, same token and same reasoning as the game card's "Called
+     it" badge: this is a Blitz Odds signal, not a generic status colour. */
+  .lgx-lg .nm b .lgx-official { display: inline-block; flex-shrink: 0; font-size: .62rem;
+    font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1;
+    padding: 3px 6px; border-radius: 4px; white-space: nowrap;
+    color: var(--blitz-orange); border: 1px solid var(--blitz-orange); }
   .lgx-lg .nm span { display: block; font-size: .76rem; color: var(--text-dim); margin-top: 2px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lgx-vis { display: inline-flex; align-items: center; gap: 5px; font-size: .76rem;
@@ -26247,10 +26258,18 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
   }
 
   async function handleJoinPublic(league) {
-    if (auth.status !== "in") { onRequestLogin(); return; }
+    if (auth.status !== "in") {
+      trackEvent("league_join", { format: league.format, official: !!league.official, outcome: "signed_out" });
+      onRequestLogin();
+      return;
+    }
     if (joiningId) return;
     setJoiningId(league.id);
     setJoinErrorId(null);
+    // Fired before the request, not after: the gap between this and
+    // league_join_result is what a failing/refused join looks like, and an
+    // event only sent on success can't show it.
+    trackEvent("league_join", { format: league.format, official: !!league.official, outcome: "attempt" });
     try {
       const res = await auth.authenticatedFetch("/.netlify/functions/league-join", {
         method: "POST",
@@ -26259,8 +26278,10 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to join league");
+      trackEvent("league_join_result", { format: league.format, official: !!league.official, ok: true });
       onJoined(data.league);
     } catch (err) {
+      trackEvent("league_join_result", { format: league.format, official: !!league.official, ok: false });
       setJoinErrorId(league.id);
       setSearchError(err.message || "Failed to join league");
     } finally {
@@ -26387,6 +26408,7 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
             <span className="lgx-eyebrow" style={{ color: "var(--accent)" }}>Find a league</span>
             <p className="lgx-help" style={{ margin: "6px 0 0" }}>
               Search every league. Join a public one instantly, or ask to join a private one.
+              No invite? The official Blitz Odds pools at the top are open to everyone.
             </p>
           </div>
           <div className="lgx-tools">
@@ -26427,7 +26449,10 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
             <div className="lgx-lg">
               <img src={LEAGUE_FORMAT_ICON_URLS[l.format]} alt="" />
               <div className="nm">
-                <b>{l.name}</b>
+                <b>
+                  <span className="lgx-lg-name">{l.name}</span>
+                  {l.official && <span className="lgx-official" title="Run by Blitz Odds">Official</span>}
+                </b>
                 {l.description && <span>{l.description}</span>}
               </div>
             </div>
@@ -26868,11 +26893,16 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
     }
   }
 
-  function copyInviteCode(code) {
+  // Takes the league rather than the code: official house leagues have no
+  // invite code (they're joined by id), so they share a public join link
+  // instead. Keyed on league id rather than the copied string so the
+  // "Copied!" state can't be ambiguous between two leagues.
+  function copyInviteCode(league) {
+    const value = league.inviteCode || `${window.location.origin}/join/league/${league.id}`;
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(code).then(() => {
-        setCopiedCode(code);
-        setTimeout(() => setCopiedCode(c => (c === code ? null : c)), 1500);
+      navigator.clipboard.writeText(value).then(() => {
+        setCopiedCode(league.id);
+        setTimeout(() => setCopiedCode(c => (c === league.id ? null : c)), 1500);
       });
     }
   }
@@ -27098,10 +27128,10 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
                           <button
                             type="button"
                             className="league-invite-chip"
-                            onClick={() => copyInviteCode(l.inviteCode)}
-                            title="Copy invite code"
+                            onClick={() => copyInviteCode(l)}
+                            title={l.inviteCode ? "Copy invite code" : "Copy join link"}
                           >
-                            {copiedCode === l.inviteCode ? "Copied!" : l.inviteCode}
+                            {copiedCode === l.id ? "Copied!" : (l.inviteCode || "Copy Join Link")}
                           </button>
                         </div>
                       </>
@@ -27862,9 +27892,15 @@ function LeagueHeader({ auth, league, week, onWeekChange, onOpenLeagues, isOwner
   const minWeek = weeks.length ? weeks[0].week : 1;
   const maxWeek = weeks.length ? weeks[weeks.length - 1].week : 18;
 
+  // Official house leagues have no invite code (lib/house-leagues.mts) -
+  // they're joined by id, so minting one would be a secret nobody needs.
+  // Sharing still has to work, so the chip copies the public join link
+  // instead of an empty string. Both forms are handled by parseLocationPath.
+  const shareValue = league.inviteCode || `${window.location.origin}/join/league/${league.id}`;
+
   function copyInvite() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(league.inviteCode).then(() => {
+      navigator.clipboard.writeText(shareValue).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       });
@@ -27898,8 +27934,9 @@ function LeagueHeader({ auth, league, week, onWeekChange, onOpenLeagues, isOwner
           </div>
         ) : (
           <div className="league-header-actions">
-            <button type="button" className="league-invite-chip" onClick={copyInvite} title="Copy invite code">
-              {copied ? "Copied!" : league.inviteCode}
+            <button type="button" className="league-invite-chip" onClick={copyInvite}
+              title={league.inviteCode ? "Copy invite code" : "Copy join link"}>
+              {copied ? "Copied!" : (league.inviteCode || "Copy Join Link")}
             </button>
             <button type="button" className="league-btn" onClick={() => setShowInvite(v => !v)}>
               {showInvite ? "Close Invite" : "Invite by Email"}

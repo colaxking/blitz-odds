@@ -1,0 +1,55 @@
+name: Blitz Odds - House leagues maintenance
+
+# Keeps the official public leagues running all season: seeds any missing
+# series, recomputes member counts from the real members docs, opens the next
+# instance of a series once the current one is 80% full, and closes survivor
+# entry at the season opener.
+#
+# Idempotent - a run with nothing to do reports "No changes" and writes
+# nothing, so over-running it is harmless.
+#
+# Triggered externally, same pattern as odds-refresh.yml / hotpicks-snapshot.yml:
+# GitHub Actions' own `schedule:` cron is unreliable on low-traffic repos, so
+# this repo relies on cron-job.org calling GitHub's REST API to fire
+# workflow_dispatch instead. To wire this job up, add a cron-job.org job
+# pointing at:
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/house-leagues-maintain.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+#
+# Suggested cadence: hourly. Rollover is the time-sensitive part - a series
+# that fills up between runs leaves new users with no room to join - and the
+# survivor close wants to land near the opener rather than hours after it.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Report changes without writing them"
+        type: boolean
+        default: false
+
+concurrency:
+  group: blitz-odds-house-leagues
+  cancel-in-progress: false
+
+jobs:
+  maintain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Maintain house leagues
+        env:
+          HOUSE_LEAGUES_SECRET: ${{ secrets.HOUSE_LEAGUES_SECRET }}
+          HOUSE_LEAGUES_DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+          # ubuntu-latest runners have flaky IPv6 egress to some hosts and
+          # Node's fetch() tries IPv6 first - same ECONNRESET class of
+          # failure seen on the hotpicks/odds jobs.
+          NODE_OPTIONS: "--dns-result-order=ipv4first"
+        run: node scripts/house-leagues-maintain.mjs

@@ -1,7 +1,7 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
-import { isPastKickoff } from "./lib/kickoff.mts";
+import { seasonHasStarted } from "./lib/kickoff.mts";
 
 // Updates the editable settings of a league the caller owns. Owner-only -
 // every other member gets a 403, same as they'd get from any other write
@@ -40,32 +40,6 @@ import { isPastKickoff } from "./lib/kickoff.mts";
 
 const LEAGUE_STORE = "blitz-leagues";
 const SITE_DATA_STORE = "blitz-site-data";
-
-/**
- * True once the earliest game on the season's schedule has kicked off.
- * Deliberately season-wide rather than per-league: a league created in
- * week 6 is joining a season already in progress, so its strike rule is
- * fixed at creation the same way a week 1 league's is fixed at kickoff.
- * A missing or unreadable schedule returns false (fail open to editable) -
- * the alternative would lock every league out of a setting because of a
- * blob read failure.
- */
-function seasonHasStarted(schedule: any, season: number): boolean {
-  const weeks: any[] = schedule?.weeks || [];
-  if (!weeks.length) return false;
-  let earliest: any = null;
-  for (const w of weeks) {
-    for (const g of w?.games || []) {
-      if (!g?.date || !g?.time) continue;
-      if (!earliest || (w.week ?? Infinity) < (earliest.week ?? Infinity)) {
-        earliest = { week: w.week, game: g };
-      }
-      break; // games within a week are already in kickoff order
-    }
-  }
-  if (!earliest) return false;
-  return isPastKickoff(season, earliest.game.date, earliest.game.time);
-}
 
 const VALID_VISIBILITY = new Set(["private", "public"]);
 const VALID_TIE_BREAKERS = new Set(["most_correct", "fewest_incorrect", null]);

@@ -27930,19 +27930,14 @@ async function shareLeagueLink(league) {
   return null;
 }
 
-/** The share glyph, inline so it inherits currentColor through the button's
- *  hover and .is-done states without a second asset to theme. */
-function ShareIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 16V3" /><path d="M8 7l4-4 4 4" />
-      <path d="M4 13v6a2 2 0 002 2h12a2 2 0 002-2v-6" />
-    </svg>
-  );
-}
+/* The share glyph is the existing ShareIcon (declared above, next to
+   BellIcon, and already used by the pick-share button) - reused rather
+   than redeclared. Declaring a second one is a redeclaration that the
+   in-browser Babel transform rejects outright, which kills the entire
+   script and renders a blank page. */
 
-function CheckIcon() {
+/** Confirmation for the icon-only button, which has no room for a label. */
+function LeagueShareCheckIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -27998,7 +27993,7 @@ function LeagueShareButton({ league, surface, iconOnly = false, small = false })
       title={done ? "Link copied" : "Share join link"}
       aria-label={iconOnly ? (done ? "Link copied" : "Share join link") : undefined}
     >
-      {done ? <CheckIcon /> : <ShareIcon />}
+      {done ? <LeagueShareCheckIcon /> : <ShareIcon />}
       {label}
     </button>
   );

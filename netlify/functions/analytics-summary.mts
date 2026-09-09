@@ -387,6 +387,8 @@ function emptySummary(now: number, range: Range) {
     leagueGameDetailsReturns: 0,
     leagueGameDetailsByFormat: {} as Record<string, number>,
     leagueGameDetailsByPicked: {} as Record<string, number>,
+    h2hExpands: 0,
+    h2hExpandsByTeam: {} as Record<string, number>,
     gameFollowAdds: 0,
     gameFollowRemoves: 0,
     gameFollowsByGame: {} as Record<string, number>,
@@ -970,6 +972,25 @@ export default async (req: Request, _context: Context) => {
     const leagueGameDetailsByFormat = sortedCounts(leagueGameDetailsOpenRecords, (r) => r.format);
     const leagueGameDetailsByPicked = sortedCounts(leagueGameDetailsOpenRecords, (r) => r.picked);
 
+    /* --- Past Matchups expansions ---
+       Only five meetings show by default. This counts the taps on "Show all
+       N meetings", credited to both teams in the series the way box-score
+       opens are, so a divisional pair with a long history can be told from
+       a one-off interconference meeting. */
+    const h2hExpandRecords = validRecords.filter((r) => r.type === "h2h_expand");
+    const h2hExpands = h2hExpandRecords.length;
+    const h2hTeamMap = new Map<string, number>();
+    for (const r of h2hExpandRecords) {
+      for (const t of [r.away, r.home]) {
+        if (!t) continue;
+        h2hTeamMap.set(t as string, (h2hTeamMap.get(t as string) || 0) + 1);
+      }
+    }
+    const h2hExpandsByTeam: Record<string, number> = {};
+    for (const [team, count] of Array.from(h2hTeamMap.entries()).sort((a, b) => b[1] - a[1])) {
+      h2hExpandsByTeam[team] = count;
+    }
+
     // --- per-game follows: the "Alert me" bell on a game card ---
     // Adds and removes are counted separately rather than netted. A net
     // figure would hide the case worth knowing about - a lot of taps on and
@@ -1229,6 +1250,8 @@ export default async (req: Request, _context: Context) => {
         leagueGameDetailsReturns,
         leagueGameDetailsByFormat,
         leagueGameDetailsByPicked,
+        h2hExpands,
+        h2hExpandsByTeam: capTop(h2hExpandsByTeam),
         gameFollowAdds,
         gameFollowRemoves,
         gameFollowAddsInProgress,

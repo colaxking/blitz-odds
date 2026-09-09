@@ -630,6 +630,8 @@
       { id: "games", title: "Games & box scores", desc: "Live and final game engagement", tiles: [
         { title: "Box scores by team", sub: "Both teams credited per open", html: barListHtml(normTeams(d.boxscoreClicksByTeam), "boxscoreTeam", { valueFn: function (l) { return normTeams.raw[l] || l; } }) },
         { title: "Box scores by entry point", sub: "Full Details button vs. tappable score", html: barListHtml(relabel(d.boxscoreClicksBySource, { full_details: "Full Details", score_tap: "Score tap", unknown: "Before tracking" })) },
+        { title: "Past Matchups expanded", sub: "Taps on \"Show all N meetings\" \u2014 whether five is too few", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.h2hExpands || 0) + "</div>" },
+        { title: "Past Matchups expands by team", sub: "Both teams credited per expand", html: barListHtml(normTeams(d.h2hExpandsByTeam || {}), null, { empty: "No expands in this range yet" }) },
         { title: "Per-game alert follows", sub: fmtNum(d.gameFollowAdds || 0) + " turned on, " + fmtNum(d.gameFollowRemoves || 0) + " turned off" + ((d.gameFollowAddsInProgress || 0) + (d.gameFollowAddsScheduled || 0) > 0 ? " · " + fmtNum(d.gameFollowAddsInProgress || 0) + " of " + fmtNum((d.gameFollowAddsInProgress || 0) + (d.gameFollowAddsScheduled || 0)) + " placed mid-game" : ""), html: barListHtml(d.gameFollowsByGame, "followGame", { long: true }) }
       ]},
       { id: "content", title: "Content & archive", desc: "News ticker and the historical archive", tiles: [
@@ -976,6 +978,7 @@
       case "player_view": return { label: "Viewed player " + ev.player, detail: ev.source ? String(ev.source).replace(/_/g, " ") : "" };
       case "news_click": return { label: "Clicked " + (ev.newsSource || "a") + " headline", detail: [ev.placement === "team_news" ? "Team News panel" : ev.placement === "ticker" ? "ticker" : null, ev.headline].filter(Boolean).join(" · ") };
       case "boxscore_click": return { label: "Opened box score — " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: ev.source === "full_details" ? "from Full Details" : ev.source === "score_tap" ? "tapped the score" : "" };
+      case "h2h_expand": return { label: "Expanded past matchups \u2014 " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: ev.total ? ev.total + " meetings" : "" };
       case "league_game_details": return ev.source === "back_to_picks"
         ? { label: "Back to league picks", detail: ev.format ? String(ev.format).replace(/_/g, " ") : "" }
         : { label: "Opened game details from a pick sheet \u2014 " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: [ev.format ? String(ev.format).replace(/_/g, " ") : null, ev.picked === "yes" ? "pick already made" : ev.picked === "no" ? "no pick yet" : null].filter(Boolean).join(" \u00b7 ") };

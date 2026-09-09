@@ -2880,6 +2880,10 @@
   .h2h-toggle {
     flex: none; color: var(--accent); font-size: 0.7rem; font-weight: 700; white-space: nowrap;
   }
+  /* Sits inside a .game-page-section, which already provides the padding the
+     news feed's version of this button compensates for with its own top
+     margin. */
+  .h2h-more-btn { margin: 12px auto 0; font-size: 0.78rem; padding: 9px 18px; }
   .h2h-boxscore { padding: 4px 12px 14px; border-top: 1px dashed var(--card-border); }
   .h2h-teamstats { margin-top: 14px; }
   .h2h-fullpage-link {
@@ -23900,10 +23904,24 @@ function H2HRow({ game }) {
  *  has covered) rather than any single season's data. Shows nothing (not an
  *  empty-state box) on load error, so a slow/broken fetch doesn't leave a
  *  jarring error block on an otherwise-normal matchup page. */
+/* How many meetings show before the reader asks for the rest. Two teams in
+ * the same division have met twice a season since 2015, so the list runs to
+ * twenty-odd rows - long enough that Past Matchups, the last section on the
+ * page, buried anything below it and made the page feel like it never
+ * ended. Five is the most recent couple of seasons, which is the part
+ * anyone reads. */
+const H2H_COLLAPSED_COUNT = 5;
+
 function HeadToHeadHistory({ awayAbbr, homeAbbr, auth }) {
   const [status, setStatus] = useState("loading");
   const [games, setGames] = useState([]);
+  const [showAll, setShowAll] = useState(false);
   const fullAccess = hasFullAccess(auth);
+
+  // A different matchup is a different series - it must not inherit the
+  // previous one's expanded state (this component isn't remounted when the
+  // two abbreviations change, only re-rendered).
+  useEffect(() => { setShowAll(false); }, [awayAbbr, homeAbbr]);
 
   useEffect(() => {
     // Signed out, the fetch itself is skipped rather than fetched-then-hidden.
@@ -23967,8 +23985,30 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr, auth }) {
             {" "}({games.length} meeting{games.length === 1 ? "" : "s"})
           </p>
           <div className="h2h-list">
-            {games.map(g => <H2HRow key={g.canonicalPath} game={g} />)}
+            {(showAll ? games : games.slice(0, H2H_COLLAPSED_COUNT)).map(g => (
+              <H2HRow key={g.canonicalPath} game={g} />
+            ))}
           </div>
+          {/* One-way on purpose: nothing collapses the list again. Someone
+              who opened it is reading it, and having the rows they were
+              looking at vanish under them is worse than a long page. The
+              count is in the label so the tap is an informed one. */}
+          {!showAll && games.length > H2H_COLLAPSED_COUNT && (
+            <button
+              type="button"
+              className="news-load-more-btn h2h-more-btn"
+              onClick={() => {
+                setShowAll(true);
+                trackEvent("h2h_expand", {
+                  away: awayAbbr,
+                  home: homeAbbr,
+                  value: games.length,
+                });
+              }}
+            >
+              Show all {games.length} meetings
+            </button>
+          )}
         </>
       )}
     </div>

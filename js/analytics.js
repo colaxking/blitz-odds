@@ -59,6 +59,8 @@
  * the bottom of it (see the comment there):
  *  - "push_device_desync" / "push_device_repaired" /
  *    "push_device_repair_failed" - push registration health
+ *  - "h2h_expand" - the "Show all N meetings" button on Past Matchups,
+ *    with `value` carrying how long the series actually is
  *  - "league_game_details" - the route between a league's pick sheet and a
  *    game page. `source` is "pick_card" going out and "back_to_picks"
  *    coming home; opens without returns would mean the game page ends the

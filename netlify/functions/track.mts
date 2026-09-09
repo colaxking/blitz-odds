@@ -75,6 +75,11 @@ const VALID_TYPES = new Set([
   // with no returns would mean the trip is a dead end, which is the
   // failure mode worth watching.
   "league_game_details",
+  // Past Matchups shows five meetings and hides the rest behind one button.
+  // Divisional pairs run to twenty-odd rows, so the question the collapse
+  // raises is whether five is the right number - a high expand rate says
+  // it's too few, near-zero says the section was long for no reason.
+  "h2h_expand",
   "playbook_subtab",
   "playbook_format",
   "gate_cta",
@@ -465,6 +470,14 @@ export default async (req: Request, context: Context) => {
       // panel) and "score_tap" (the tappable score still on the
       // picks/results and team schedule views).
       if (source) record.source = String(source).slice(0, 32);
+    }
+
+    if (type === "h2h_expand") {
+      if (away) record.away = String(away).slice(0, 64);
+      if (home) record.home = String(home).slice(0, 64);
+      // How many meetings the series actually had - the interesting split
+      // is whether people expand a 7-game list as readily as a 22-game one.
+      if (typeof value === "number" && Number.isFinite(value)) record.total = Math.round(value);
     }
 
     if (type === "league_game_details") {

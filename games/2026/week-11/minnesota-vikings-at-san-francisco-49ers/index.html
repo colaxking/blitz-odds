@@ -4133,6 +4133,14 @@
     background: var(--accent); color: #062018; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 900;
   }
   .pickem-team-name { font-size: 0.78rem; font-weight: 700; text-align: center; line-height: 1.2; }
+  /* Sits directly under the abbreviation, dimmer and smaller than it, so
+     the button still reads as a team first and a record second. Tabular
+     figures keep the two sides' records aligned across the pair. */
+  .pickem-team-record {
+    font-size: 0.66rem; font-weight: 700; color: var(--text-dim);
+    font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .pickem-pick-option.selected .pickem-team-record { color: var(--text); }
   .pickem-team-spread { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
   .pickem-team-prob { font-size: 0.66rem; font-weight: 700; color: var(--text-dim); }
   .pickem-team-prob.is-favored { color: var(--win); }
@@ -5353,7 +5361,7 @@
   <p><strong>Odds (DraftKings):</strong> SF -3.5 · ML MIN +160 / SF -192 · O/U 46.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>San Francisco 49ers</strong> - MIN 41% / SF 59%</p>
+  <p>Predicted winner: <strong>San Francisco 49ers</strong> - MIN 42% / SF 58%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -5378,6 +5386,7 @@
 <li><strong>George Kittle</strong> (SF · TE) - questionable - Torn Achilles (recovery)</li>
 <li><strong>Nick Bosa</strong> (SF · Edge) - questionable - Knee - ACL</li>
 <li><strong>Dre Greenlaw</strong> (SF · LB) - questionable - Achilles</li>
+<li><strong>Romello Height</strong> (SF · DE) - questionable - Ankle</li>
 <li><strong>Dwight McGlothern Jr.</strong> (MIN · CB) - out - Undisclosed</li>
 <li><strong>Jamal Adams</strong> (MIN · S) - out - Torn right quadriceps tendon - season-ending</li>
 <li><strong>Jermar Jefferson</strong> (MIN · RB) - out - Undisclosed</li>
@@ -6388,6 +6397,20 @@
         "statusUpdatedAt": "2026-09-09T01:05:00.000Z",
         "source": "curated",
         "espnId": "3916903"
+      },
+      {
+        "name": "Romello Height",
+        "position": "DE",
+        "espnId": "4432244",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-09-09",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-09T04:20:25.567Z",
+        "source": "curated"
       }
     ],
     "LAR": [
@@ -17643,6 +17666,8 @@ function useLiveSiteData() {
         }
         if (fresh.history && Array.isArray(fresh.history.weeks)) {
           HISTORY_DATA = fresh.history;
+          // Derived from the snapshots above - stale the moment they change.
+          resetTeamRecordCache();
           changed = true;
         }
         if (fresh.preseason && Array.isArray(fresh.preseason.rounds)) {
@@ -18370,6 +18395,63 @@ function getSpreadCoverage(r, teamAbbr) {
 
 function getHistorySnapshot(week) {
   return (HISTORY_DATA.weeks || []).find(w => w.week === week) || null;
+}
+
+/* Season records, tallied off the frozen weekly snapshots that already back
+ * every other result the app shows (getWeekContext's getResult reads the
+ * same map). Regular season only - weeks below 1 are preseason and above 18
+ * are the playoffs, neither of which belongs in a W-L.
+ *
+ * Built for all 32 teams in one pass and cached, because the callers want it
+ * per team on a screen full of cards: recomputing per team per card is 32
+ * walks of the same snapshots to produce a table that was already complete
+ * after the first. resetTeamRecordCache() is called wherever HISTORY_DATA is
+ * rebound (see the site-data refresh), since the cache would otherwise
+ * outlive the data it was derived from.
+ */
+let teamRecordCache = null;
+function resetTeamRecordCache() { teamRecordCache = null; }
+function buildTeamRecords() {
+  const records = {};
+  for (const snap of (HISTORY_DATA.weeks || [])) {
+    if (!snap || snap.week < 1 || snap.week > 18) continue;
+    for (const key of Object.keys(snap.results || {})) {
+      const result = snap.results[key];
+      if (!result || !result.final) continue;
+      if (result.awayScore == null || result.homeScore == null) continue;
+      const sep = key.indexOf("-");
+      if (sep < 0) continue;
+      const away = key.slice(0, sep);
+      const home = key.slice(sep + 1);
+      for (const id of [away, home]) {
+        if (!records[id]) records[id] = { wins: 0, losses: 0, ties: 0 };
+      }
+      if (result.awayScore === result.homeScore) {
+        records[away].ties += 1;
+        records[home].ties += 1;
+      } else if (result.awayScore > result.homeScore) {
+        records[away].wins += 1;
+        records[home].losses += 1;
+      } else {
+        records[home].wins += 1;
+        records[away].losses += 1;
+      }
+    }
+  }
+  return records;
+}
+
+/** A team's regular-season record as a display string, or null before that
+ *  team has played a game this season - an 0-0 on every card in Week 1 is
+ *  noise, not information. Ties are only shown once one has happened. */
+function getTeamRecordLabel(teamId) {
+  if (!teamRecordCache) teamRecordCache = buildTeamRecords();
+  const record = teamRecordCache[teamId];
+  if (!record) return null;
+  if (record.wins + record.losses + record.ties === 0) return null;
+  return record.ties > 0
+    ? `${record.wins}-${record.losses}-${record.ties}`
+    : `${record.wins}-${record.losses}`;
 }
 
 function getWeekContext(week) {
@@ -28721,6 +28803,10 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
 
+  // Cached across all 32 teams behind getTeamRecordLabel, so calling it per
+  // button costs a lookup rather than a walk of the season's snapshots.
+  const recordFor = (teamId) => getTeamRecordLabel(teamId);
+
   return (
     <div className={"pickem-game-card" + (game.locked ? " is-locked" : "")}>
       <div className="pickem-game-meta">
@@ -28745,6 +28831,11 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
               {selected && <div className="pickem-pick-check">✓</div>}
               <TeamLogo teamId={teamId} size={40} />
               <div className="pickem-team-name">{teamId}</div>
+              {/* The record is the one piece of context a pick sheet was
+                  asking people to supply from memory. Hidden entirely until
+                  a team has played (see getTeamRecordLabel) rather than
+                  printing 0-0 on all 32 cards in Week 1. */}
+              {recordFor(teamId) && <div className="pickem-team-record">{recordFor(teamId)}</div>}
               {spread && <div className="pickem-team-spread">{spread}</div>}
               {usedElsewhere && <div className="pickem-team-used-tag">Used</div>}
             </button>

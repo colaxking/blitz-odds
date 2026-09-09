@@ -4133,6 +4133,14 @@
     background: var(--accent); color: #062018; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 900;
   }
   .pickem-team-name { font-size: 0.78rem; font-weight: 700; text-align: center; line-height: 1.2; }
+  /* Sits directly under the abbreviation, dimmer and smaller than it, so
+     the button still reads as a team first and a record second. Tabular
+     figures keep the two sides' records aligned across the pair. */
+  .pickem-team-record {
+    font-size: 0.66rem; font-weight: 700; color: var(--text-dim);
+    font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .pickem-pick-option.selected .pickem-team-record { color: var(--text); }
   .pickem-team-spread { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
   .pickem-team-prob { font-size: 0.66rem; font-weight: 700; color: var(--text-dim); }
   .pickem-team-prob.is-favored { color: var(--win); }
@@ -5362,27 +5370,27 @@
   <table>
     <thead><tr><th>Week</th><th>Opponent</th><th>Date</th><th>Prediction</th><th>Result</th></tr></thead>
     <tbody>
-      <tr><td><a href="/games/2026/preseason-week-1/tennessee-titans-at-san-francisco-49ers/">Preseason Week 1</a></td><td>vs <a href="/teams/tennessee-titans/">Tennessee Titans</a></td><td>Thu, Aug 13 9:00 PM ET</td><td>Model predicts San Francisco 49ers to win (67%)</td><td>L 13-19 (TEN 19 - 13 SF, prediction missed)</td></tr>
-      <tr><td><a href="/games/2026/preseason-week-2/san-francisco-49ers-at-los-angeles-chargers/">Preseason Week 2</a></td><td>@ <a href="/teams/los-angeles-chargers/">Los Angeles Chargers</a></td><td>Thu, Aug 20 10:00 PM ET</td><td>Model predicts Los Angeles Chargers to win (22%)</td><td>W 41-17 (SF 41 - 17 LAC, prediction missed)</td></tr>
-      <tr><td><a href="/games/2026/preseason-week-3/san-francisco-49ers-at-las-vegas-raiders/">Preseason Week 3</a></td><td>@ <a href="/teams/las-vegas-raiders/">Las Vegas Raiders</a></td><td>Thu, Aug 27 8:00 PM ET</td><td>Model predicts Las Vegas Raiders to win (49%)</td><td>W 18-12 (SF 18 - 12 LV, prediction missed)</td></tr>
-      <tr><td><a href="/games/2026/week-1/san-francisco-49ers-at-los-angeles-rams/">Week 1</a></td><td>@ <a href="/teams/los-angeles-rams/">Los Angeles Rams</a></td><td>Thu, Sep 10 8:35 PM ET</td><td>Model predicts Los Angeles Rams to win (22%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-2/miami-dolphins-at-san-francisco-49ers/">Week 2</a></td><td>vs <a href="/teams/miami-dolphins/">Miami Dolphins</a></td><td>Sun, Sep 20 4:25 PM ET</td><td>Model predicts Miami Dolphins to win (49%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-3/arizona-cardinals-at-san-francisco-49ers/">Week 3</a></td><td>vs <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Sep 27 4:05 PM ET</td><td>Model predicts San Francisco 49ers to win (62%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-4/denver-broncos-at-san-francisco-49ers/">Week 4</a></td><td>vs <a href="/teams/denver-broncos/">Denver Broncos</a></td><td>Sun, Oct 4 4:25 PM ET</td><td>Model predicts Denver Broncos to win (32%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-5/san-francisco-49ers-at-seattle-seahawks/">Week 5</a></td><td>@ <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Sun, Oct 11 4:25 PM ET</td><td>Model predicts Seattle Seahawks to win (32%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-6/washington-commanders-at-san-francisco-49ers/">Week 6</a></td><td>vs <a href="/teams/washington-commanders/">Washington Commanders</a></td><td>Mon, Oct 19 8:15 PM ET</td><td>Model predicts San Francisco 49ers to win (67%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-7/san-francisco-49ers-at-atlanta-falcons/">Week 7</a></td><td>@ <a href="/teams/atlanta-falcons/">Atlanta Falcons</a></td><td>Sun, Oct 25 1:00 PM ET</td><td>Model predicts Atlanta Falcons to win (35%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/preseason-week-1/tennessee-titans-at-san-francisco-49ers/">Preseason Week 1</a></td><td>vs <a href="/teams/tennessee-titans/">Tennessee Titans</a></td><td>Thu, Aug 13 9:00 PM ET</td><td>Model predicts San Francisco 49ers to win (65%)</td><td>L 13-19 (TEN 19 - 13 SF, prediction missed)</td></tr>
+      <tr><td><a href="/games/2026/preseason-week-2/san-francisco-49ers-at-los-angeles-chargers/">Preseason Week 2</a></td><td>@ <a href="/teams/los-angeles-chargers/">Los Angeles Chargers</a></td><td>Thu, Aug 20 10:00 PM ET</td><td>Model predicts Los Angeles Chargers to win (20%)</td><td>W 41-17 (SF 41 - 17 LAC, prediction missed)</td></tr>
+      <tr><td><a href="/games/2026/preseason-week-3/san-francisco-49ers-at-las-vegas-raiders/">Preseason Week 3</a></td><td>@ <a href="/teams/las-vegas-raiders/">Las Vegas Raiders</a></td><td>Thu, Aug 27 8:00 PM ET</td><td>Model predicts Las Vegas Raiders to win (47%)</td><td>W 18-12 (SF 18 - 12 LV, prediction missed)</td></tr>
+      <tr><td><a href="/games/2026/week-1/san-francisco-49ers-at-los-angeles-rams/">Week 1</a></td><td>@ <a href="/teams/los-angeles-rams/">Los Angeles Rams</a></td><td>Thu, Sep 10 8:35 PM ET</td><td>Model predicts Los Angeles Rams to win (20%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-2/miami-dolphins-at-san-francisco-49ers/">Week 2</a></td><td>vs <a href="/teams/miami-dolphins/">Miami Dolphins</a></td><td>Sun, Sep 20 4:25 PM ET</td><td>Model predicts Miami Dolphins to win (47%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-3/arizona-cardinals-at-san-francisco-49ers/">Week 3</a></td><td>vs <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Sep 27 4:05 PM ET</td><td>Model predicts San Francisco 49ers to win (60%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-4/denver-broncos-at-san-francisco-49ers/">Week 4</a></td><td>vs <a href="/teams/denver-broncos/">Denver Broncos</a></td><td>Sun, Oct 4 4:25 PM ET</td><td>Model predicts Denver Broncos to win (30%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-5/san-francisco-49ers-at-seattle-seahawks/">Week 5</a></td><td>@ <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Sun, Oct 11 4:25 PM ET</td><td>Model predicts Seattle Seahawks to win (30%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-6/washington-commanders-at-san-francisco-49ers/">Week 6</a></td><td>vs <a href="/teams/washington-commanders/">Washington Commanders</a></td><td>Mon, Oct 19 8:15 PM ET</td><td>Model predicts San Francisco 49ers to win (65%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-7/san-francisco-49ers-at-atlanta-falcons/">Week 7</a></td><td>@ <a href="/teams/atlanta-falcons/">Atlanta Falcons</a></td><td>Sun, Oct 25 1:00 PM ET</td><td>Model predicts Atlanta Falcons to win (33%)</td><td>Not played yet</td></tr>
       <tr><td>Week 8</td><td colspan="4">Bye week</td></tr>
-      <tr><td><a href="/games/2026/week-9/las-vegas-raiders-at-san-francisco-49ers/">Week 9</a></td><td>vs <a href="/teams/las-vegas-raiders/">Las Vegas Raiders</a></td><td>Sun, Nov 8 4:05 PM ET</td><td>Model predicts San Francisco 49ers to win (60%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-10/san-francisco-49ers-at-dallas-cowboys/">Week 10</a></td><td>@ <a href="/teams/dallas-cowboys/">Dallas Cowboys</a></td><td>Sun, Nov 15 4:25 PM ET</td><td>Model predicts Dallas Cowboys to win (34%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-11/minnesota-vikings-at-san-francisco-49ers/">Week 11</a></td><td>vs <a href="/teams/minnesota-vikings/">Minnesota Vikings</a></td><td>Sun, Nov 22 8:20 PM ET</td><td>Model predicts San Francisco 49ers to win (59%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-12/seattle-seahawks-at-san-francisco-49ers/">Week 12</a></td><td>vs <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Sun, Nov 29 4:25 PM ET</td><td>Model predicts Seattle Seahawks to win (42%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-13/san-francisco-49ers-at-new-york-giants/">Week 13</a></td><td>@ <a href="/teams/new-york-giants/">New York Giants</a></td><td>Sun, Dec 6 1:00 PM ET</td><td>Model predicts New York Giants to win (45%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-14/los-angeles-rams-at-san-francisco-49ers/">Week 14</a></td><td>vs <a href="/teams/los-angeles-rams/">Los Angeles Rams</a></td><td>Sun, Dec 13 4:25 PM ET</td><td>Model predicts Los Angeles Rams to win (30%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-15/san-francisco-49ers-at-los-angeles-chargers/">Week 15</a></td><td>@ <a href="/teams/los-angeles-chargers/">Los Angeles Chargers</a></td><td>Thu, Dec 17 8:15 PM ET</td><td>Model predicts Los Angeles Chargers to win (22%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-16/san-francisco-49ers-at-kansas-city-chiefs/">Week 16</a></td><td>@ <a href="/teams/kansas-city-chiefs/">Kansas City Chiefs</a></td><td>Sun, Dec 27 4:25 PM ET</td><td>Model predicts Kansas City Chiefs to win (30%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-17/philadelphia-eagles-at-san-francisco-49ers/">Week 17</a></td><td>vs <a href="/teams/philadelphia-eagles/">Philadelphia Eagles</a></td><td>Sun, Jan 3 8:20 PM ET</td><td>Model predicts San Francisco 49ers to win (53%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-18/san-francisco-49ers-at-arizona-cardinals/">Week 18</a></td><td>@ <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Jan 10 TBD</td><td>Model predicts San Francisco 49ers to win (51%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-9/las-vegas-raiders-at-san-francisco-49ers/">Week 9</a></td><td>vs <a href="/teams/las-vegas-raiders/">Las Vegas Raiders</a></td><td>Sun, Nov 8 4:05 PM ET</td><td>Model predicts San Francisco 49ers to win (58%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-10/san-francisco-49ers-at-dallas-cowboys/">Week 10</a></td><td>@ <a href="/teams/dallas-cowboys/">Dallas Cowboys</a></td><td>Sun, Nov 15 4:25 PM ET</td><td>Model predicts Dallas Cowboys to win (32%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-11/minnesota-vikings-at-san-francisco-49ers/">Week 11</a></td><td>vs <a href="/teams/minnesota-vikings/">Minnesota Vikings</a></td><td>Sun, Nov 22 8:20 PM ET</td><td>Model predicts San Francisco 49ers to win (58%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-12/seattle-seahawks-at-san-francisco-49ers/">Week 12</a></td><td>vs <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Sun, Nov 29 4:25 PM ET</td><td>Model predicts Seattle Seahawks to win (40%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-13/san-francisco-49ers-at-new-york-giants/">Week 13</a></td><td>@ <a href="/teams/new-york-giants/">New York Giants</a></td><td>Sun, Dec 6 1:00 PM ET</td><td>Model predicts New York Giants to win (43%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-14/los-angeles-rams-at-san-francisco-49ers/">Week 14</a></td><td>vs <a href="/teams/los-angeles-rams/">Los Angeles Rams</a></td><td>Sun, Dec 13 4:25 PM ET</td><td>Model predicts Los Angeles Rams to win (29%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-15/san-francisco-49ers-at-los-angeles-chargers/">Week 15</a></td><td>@ <a href="/teams/los-angeles-chargers/">Los Angeles Chargers</a></td><td>Thu, Dec 17 8:15 PM ET</td><td>Model predicts Los Angeles Chargers to win (20%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-16/san-francisco-49ers-at-kansas-city-chiefs/">Week 16</a></td><td>@ <a href="/teams/kansas-city-chiefs/">Kansas City Chiefs</a></td><td>Sun, Dec 27 4:25 PM ET</td><td>Model predicts Kansas City Chiefs to win (28%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-17/philadelphia-eagles-at-san-francisco-49ers/">Week 17</a></td><td>vs <a href="/teams/philadelphia-eagles/">Philadelphia Eagles</a></td><td>Sun, Jan 3 8:20 PM ET</td><td>Model predicts San Francisco 49ers to win (51%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-18/san-francisco-49ers-at-arizona-cardinals/">Week 18</a></td><td>@ <a href="/teams/arizona-cardinals/">Arizona Cardinals</a></td><td>Sun, Jan 10 TBD</td><td>Model predicts Arizona Cardinals to win (50%)</td><td>Not played yet</td></tr>
     </tbody>
   </table>
 
@@ -5391,6 +5399,7 @@
 <li><strong>George Kittle</strong> (TE) - questionable - Torn Achilles (recovery)</li>
 <li><strong>Nick Bosa</strong> (Edge) - questionable - Knee - ACL</li>
 <li><strong>Dre Greenlaw</strong> (LB) - questionable - Achilles</li>
+<li><strong>Romello Height</strong> (DE) - questionable - Ankle</li>
 <li><strong>Ricky Pearsall</strong> (WR) - out - PCL knee surgery - season-ending</li>
 <li><strong>Christian Kirk</strong> (WR) - out - Calf</li>
 <li><strong>Sam Okuayinonu</strong> (DE) - out - Foot injury - on injured reserve</li>
@@ -6392,6 +6401,20 @@
         "statusUpdatedAt": "2026-09-09T01:05:00.000Z",
         "source": "curated",
         "espnId": "3916903"
+      },
+      {
+        "name": "Romello Height",
+        "position": "DE",
+        "espnId": "4432244",
+        "impactScore": 4,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-09-09",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-09T04:20:25.567Z",
+        "source": "curated"
       }
     ],
     "LAR": [
@@ -17647,6 +17670,8 @@ function useLiveSiteData() {
         }
         if (fresh.history && Array.isArray(fresh.history.weeks)) {
           HISTORY_DATA = fresh.history;
+          // Derived from the snapshots above - stale the moment they change.
+          resetTeamRecordCache();
           changed = true;
         }
         if (fresh.preseason && Array.isArray(fresh.preseason.rounds)) {
@@ -18374,6 +18399,63 @@ function getSpreadCoverage(r, teamAbbr) {
 
 function getHistorySnapshot(week) {
   return (HISTORY_DATA.weeks || []).find(w => w.week === week) || null;
+}
+
+/* Season records, tallied off the frozen weekly snapshots that already back
+ * every other result the app shows (getWeekContext's getResult reads the
+ * same map). Regular season only - weeks below 1 are preseason and above 18
+ * are the playoffs, neither of which belongs in a W-L.
+ *
+ * Built for all 32 teams in one pass and cached, because the callers want it
+ * per team on a screen full of cards: recomputing per team per card is 32
+ * walks of the same snapshots to produce a table that was already complete
+ * after the first. resetTeamRecordCache() is called wherever HISTORY_DATA is
+ * rebound (see the site-data refresh), since the cache would otherwise
+ * outlive the data it was derived from.
+ */
+let teamRecordCache = null;
+function resetTeamRecordCache() { teamRecordCache = null; }
+function buildTeamRecords() {
+  const records = {};
+  for (const snap of (HISTORY_DATA.weeks || [])) {
+    if (!snap || snap.week < 1 || snap.week > 18) continue;
+    for (const key of Object.keys(snap.results || {})) {
+      const result = snap.results[key];
+      if (!result || !result.final) continue;
+      if (result.awayScore == null || result.homeScore == null) continue;
+      const sep = key.indexOf("-");
+      if (sep < 0) continue;
+      const away = key.slice(0, sep);
+      const home = key.slice(sep + 1);
+      for (const id of [away, home]) {
+        if (!records[id]) records[id] = { wins: 0, losses: 0, ties: 0 };
+      }
+      if (result.awayScore === result.homeScore) {
+        records[away].ties += 1;
+        records[home].ties += 1;
+      } else if (result.awayScore > result.homeScore) {
+        records[away].wins += 1;
+        records[home].losses += 1;
+      } else {
+        records[home].wins += 1;
+        records[away].losses += 1;
+      }
+    }
+  }
+  return records;
+}
+
+/** A team's regular-season record as a display string, or null before that
+ *  team has played a game this season - an 0-0 on every card in Week 1 is
+ *  noise, not information. Ties are only shown once one has happened. */
+function getTeamRecordLabel(teamId) {
+  if (!teamRecordCache) teamRecordCache = buildTeamRecords();
+  const record = teamRecordCache[teamId];
+  if (!record) return null;
+  if (record.wins + record.losses + record.ties === 0) return null;
+  return record.ties > 0
+    ? `${record.wins}-${record.losses}-${record.ties}`
+    : `${record.wins}-${record.losses}`;
 }
 
 function getWeekContext(week) {
@@ -28725,6 +28807,10 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
 
+  // Cached across all 32 teams behind getTeamRecordLabel, so calling it per
+  // button costs a lookup rather than a walk of the season's snapshots.
+  const recordFor = (teamId) => getTeamRecordLabel(teamId);
+
   return (
     <div className={"pickem-game-card" + (game.locked ? " is-locked" : "")}>
       <div className="pickem-game-meta">
@@ -28749,6 +28835,11 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
               {selected && <div className="pickem-pick-check">✓</div>}
               <TeamLogo teamId={teamId} size={40} />
               <div className="pickem-team-name">{teamId}</div>
+              {/* The record is the one piece of context a pick sheet was
+                  asking people to supply from memory. Hidden entirely until
+                  a team has played (see getTeamRecordLabel) rather than
+                  printing 0-0 on all 32 cards in Week 1. */}
+              {recordFor(teamId) && <div className="pickem-team-record">{recordFor(teamId)}</div>}
               {spread && <div className="pickem-team-spread">{spread}</div>}
               {usedElsewhere && <div className="pickem-team-used-tag">Used</div>}
             </button>

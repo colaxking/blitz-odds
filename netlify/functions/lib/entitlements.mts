@@ -21,6 +21,7 @@ export type Capability =
   | "alerts.scoring"
   | "alerts.final"
   | "alerts.injuries"
+  | "alerts.pick-reminder"
   | "alerts.last-call";
 
 /** Capabilities that will eventually require a paid plan. Listed - not

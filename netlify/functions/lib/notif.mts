@@ -37,6 +37,11 @@ export interface PushPrefs {
   injuries: "key" | "all" | "off";
   /** Someone going down mid-game, before any official designation exists. */
   inGameInjury: boolean;
+  /** The evening-before nudge, on this device instead of by email. Same
+   *  moment and same trigger as `emailPickReminders`; the dispatcher picks
+   *  one channel per reader rather than firing both (see the PICK REMINDER
+   *  block in notif-dispatch-background.mts). */
+  pickReminder: boolean;
   /** Final nudge before kickoff if picks are still open. */
   lastCall: boolean;
   /** Local hours. Null disables quiet hours entirely. */
@@ -62,7 +67,12 @@ export interface NotifPrefs {
  * week for someone with three starred teams. Scope "both" with every score
  * is closer to 190, which is the rate at which people turn notifications off
  * permanently and never come back. Anyone who wants more can opt up; nobody
- * gets buried by a default they didn't choose. */
+ * gets buried by a default they didn't choose.
+ *
+ * pickReminder defaults on despite that, because it adds nothing to the
+ * total: it REPLACES the evening-before email for anyone with a registered
+ * device rather than arriving alongside it. Same moment, same trigger, one
+ * fewer inbox. */
 export const DEFAULT_PUSH_PREFS: PushPrefs = {
   kickoff: true,
   scoring: "lead",
@@ -70,6 +80,7 @@ export const DEFAULT_PUSH_PREFS: PushPrefs = {
   scope: "fav",
   injuries: "key",
   inGameInjury: true,
+  pickReminder: true,
   lastCall: true,
   quietFrom: 23,
   quietTo: 7,
@@ -120,7 +131,7 @@ const INJURY_VALUES = new Set(["key", "all", "off"]);
 function sanitizePush(input: any, existing: PushPrefs): PushPrefs {
   const out: PushPrefs = { ...existing };
   if (!input || typeof input !== "object") return out;
-  for (const key of ["kickoff", "final", "inGameInjury", "lastCall"] as const) {
+  for (const key of ["kickoff", "final", "inGameInjury", "pickReminder", "lastCall"] as const) {
     if (typeof input[key] === "boolean") out[key] = input[key];
   }
   if (SCORING_VALUES.has(input.scoring)) out.scoring = input.scoring;

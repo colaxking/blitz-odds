@@ -25270,7 +25270,7 @@ const CLIENT_DEFAULT_NOTIF_PREFS = {
   timezone: "America/New_York",
   push: {
     kickoff: true, scoring: "lead", final: true, scope: "fav",
-    injuries: "key", inGameInjury: true, lastCall: true,
+    injuries: "key", inGameInjury: true, pickReminder: true, lastCall: true,
     quietFrom: 23, quietTo: 7,
   },
 };
@@ -25532,11 +25532,17 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
     }
   }
 
-  const toggleEmail = (key) => persist({ [key]: !prefs[key] }, { ...prefs, [key]: !prefs[key] });
-  const setPush = (key, value) => persist(
-    { push: { [key]: value } },
-    { ...prefs, push: { ...prefs.push, [key]: value } }
-  );
+  const toggleEmail = (key) => {
+    trackEvent("notif_pref_change", { channel: "email", pref: key, value: String(!prefs[key]) });
+    return persist({ [key]: !prefs[key] }, { ...prefs, [key]: !prefs[key] });
+  };
+  const setPush = (key, value) => {
+    trackEvent("notif_pref_change", { channel: "push", pref: key, value: String(value) });
+    return persist(
+      { push: { [key]: value } },
+      { ...prefs, push: { ...prefs.push, [key]: value } }
+    );
+  };
   const togglePush = (key) => setPush(key, !prefs.push[key]);
 
   async function handleEnablePush() {
@@ -25685,7 +25691,7 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
         <div className="notif-enable">
           <p className="notif-enable-title">Turn on push alerts</p>
           <p className="notif-enable-desc">
-            Scores, injuries, and last-call pick reminders arrive on this device as they happen. Email stays capped at two a week either way.
+            Scores, injuries, and pick reminders arrive on this device as they happen. Turning this on moves the pick reminder off email rather than adding to it.
           </p>
           <button type="button" className="notif-enable-btn" disabled={busy || !vapidKey} onClick={handleEnablePush}>
             {busy ? "Working\u2026" : vapidKey ? "Turn on push alerts" : "Push isn't set up on this site yet"}
@@ -25845,8 +25851,24 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
 
         <div className="notif-row">
           <div className="notif-row-body">
+            <p className="notif-row-name">Pick reminder <span className="notif-channel-tag push">Push</span></p>
+            <p className="notif-row-desc">
+              The evening-before nudge on this device instead of in your inbox. Sent only if you still
+              have games open in a league.
+            </p>
+            <span className="notif-when">Evening before the first kickoff</span>
+          </div>
+          <NotifSwitch checked={prefs.push.pickReminder} disabled={!pushLive || locked} label="Pick reminder push" onToggle={() => togglePush("pickReminder")} />
+        </div>
+
+        <div className="notif-row">
+          <div className="notif-row-body">
             <p className="notif-row-name">Pick reminder <span className="notif-channel-tag email">Email</span></p>
-            <p className="notif-row-desc">Sent only if you still have games open in a league. Skipped once your picks are in.</p>
+            <p className="notif-row-desc">
+              {pushLive && prefs.push.pickReminder
+                ? "Held back while the push version above is on \u2014 one reminder, not two. Still sent if the push can't reach any of your devices."
+                : "Sent only if you still have games open in a league. Skipped once your picks are in."}
+            </p>
             <span className="notif-when">Evening before the first kickoff</span>
           </div>
           <NotifSwitch checked={prefs.emailPickReminders} disabled={locked} label="Pick reminder email" onToggle={() => toggleEmail("emailPickReminders")} />
@@ -33609,6 +33631,7 @@ function AdminUserSheet({ auth, user, leagues, actorId, termsCurrent, onClose, o
             {[
               ["kickoff", "Kickoff reminders"],
               ["final", "Final score alerts"],
+              ["pickReminder", "Pick reminders"],
               ["lastCall", "Last-call warnings"],
             ].map(([key, label]) => (
               <label className="admin-toggle" key={key}>
@@ -34769,12 +34792,12 @@ const ALERT_OUTCOME_BAD = new Set(["no-devices", "failed", "not-entitled"]);
 
 const ALERT_TYPE_LABELS = {
   kick: "Kickoff", final: "Final score", lastcall: "Last call",
-  score: "Scoring", inj: "Injury",
+  pickrem: "Pick reminder", score: "Scoring", inj: "Injury",
 };
 
 const ALERT_SOURCES = [
   { id: "", label: "All alerts" },
-  { id: "dispatch", label: "Kickoff, final, last call" },
+  { id: "dispatch", label: "Kickoff, final, pick reminders, last call" },
   { id: "live", label: "Live scoring" },
   { id: "injury", label: "Injuries" },
 ];

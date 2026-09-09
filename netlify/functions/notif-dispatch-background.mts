@@ -29,7 +29,11 @@ const FOLLOW_SWEEP_LAG_WEEKS = 3;
 // POST /.netlify/functions/notif-dispatch-background
 // Header: x-notif-dispatch-secret
 // Body (all optional): { now?: ISO string, dryRun?: boolean, only?: "reminder"|"recap"|"push", userId?: string }
-//   -> { ok, at, reminder: {...}, recap: {...} }
+//   -> { ok, at, reminder: {...}, pickReminderPush: {...}, recap: {...}, ... }
+//
+// `only: "reminder"` covers the pick reminder on BOTH channels - the push
+// version and the email version are one nudge with a channel choice, not two
+// alerts, so they live in the same block (see PICK REMINDER below).
 //
 // A background function (the -background filename suffix is what Netlify
 // keys off) because the work is O(users x leagues x games) direct Blobs
@@ -196,6 +200,7 @@ export default async (req: Request, _context: Context) => {
   const report: any = {
     ok: true, at: now.toISOString(), dryRun,
     reminder: { sent: [], skipped: 0 },
+    pickReminderPush: { sent: 0, outcomes: {} },
     recap: { sent: [], skipped: 0 },
     kickoff: { sent: 0, outcomes: {}, games: [] },
     final: { sent: 0, outcomes: {}, games: [] },
@@ -299,9 +304,45 @@ export default async (req: Request, _context: Context) => {
       return resultsCache.get(k);
     };
 
+    // Rolls an outcome into a report bucket and, when given the context,
+    // into the delivery log. Skips decided at a call site never reach
+    // deliverAlert, so without the context argument they'd be missing from
+    // the log that exists to explain a silent alert - "off" and
+    // "not-followed" are two of the three most common answers.
+    //
+    // Declared here rather than beside the push phase because the pick
+    // reminder below is the first thing that tallies, and a `const` arrow
+    // defined later would be in its temporal dead zone.
+    const tally = (
+      bucket: any,
+      outcome: string,
+      ctx?: { userId: string; type: string; event: string; week: number; label?: string }
+    ) => {
+      bucket.outcomes[outcome] = (bucket.outcomes[outcome] || 0) + 1;
+      if (outcome === "sent") bucket.sent++;
+      if (ctx) alertLog.add({ ...ctx, outcome });
+    };
+
     // =======================================================================
-    // PICK REMINDER
+    // PICK REMINDER  (push first, email as the fallback)
     // =======================================================================
+    // One nudge per reader per week, delivered on the best channel they have
+    // rather than on every channel they have. Push and email fire at the
+    // same instant off the same trigger, so a reader with both switched on
+    // would otherwise get told twice about one thing - which is the exact
+    // shape of notification that gets a sender muted.
+    //
+    // Push wins when it can: it's the one that gets seen on a Wednesday
+    // evening. Email is the fallback for anyone with no registered device,
+    // with push turned off, or whose push genuinely failed to deliver -
+    // "no device" and "send failed" both fall through rather than leaving
+    // someone silently un-nudged.
+    //
+    // BOTH CHANNELS LIVE IN THIS BLOCK, which is why it isn't split across
+    // the reminder and push phases: the channel choice needs the same
+    // openLeaguesFor() result and the same `alreadySent` gate, and splitting
+    // it would mean deriving both twice and coordinating across them.
+    // `only: "reminder"` therefore covers push reminders too.
     if (reminderWeek && (!only || only === "reminder")) {
       const rw = reminderWeek;
       const tooLate = now.getTime() >= rw.kickoff.getTime() - REMINDER_CUTOFF_MS;
@@ -326,7 +367,11 @@ export default async (req: Request, _context: Context) => {
         if (!u.leagues.length) { report.reminder.skipped++; continue; }   // league-only alert
         try {
           const prefs = await getPrefs(u.userId);
-          if (!prefs.emailPickReminders) { report.reminder.skipped++; continue; }
+          if (!prefs.emailPickReminders && !prefs.push.pickReminder) { report.reminder.skipped++; continue; }
+          // The single "this reader has been nudged for week N" gate, shared
+          // by both channels. Written on a successful push as well as on a
+          // sent email, so someone who turns push off mid-week doesn't get
+          // the email version of a reminder they already received.
           if (await alreadySent("reminder", CURRENT_SEASON, rw.week, u.userId)) { report.reminder.skipped++; continue; }
 
           const due = now.getTime() >= reminderSendInstant(rw.kickoff, prefs.timezone).getTime();
@@ -334,6 +379,46 @@ export default async (req: Request, _context: Context) => {
 
           const open = await openLeaguesFor(u, rw.week, rw.games, { loadLeague, loadMembers, loadSurvivor, leagueStore });
           if (!open.length) { report.reminder.skipped++; continue; }
+
+          // ---- Push attempt -------------------------------------------------
+          if (prefs.push.pickReminder) {
+            const totalOpen = open.reduce((n, l) => n + l.missing, 0);
+            const noun = totalOpen === 1 ? "pick" : "picks";
+            const where = open.length === 1 ? open[0].name : `${open.length} leagues`;
+
+            const outcome = await deliverAlert({
+              user: u, prefs, type: "pickrem", event: `w${rw.week}`,
+              season: CURRENT_SEASON, week: rw.week,
+              capability: "alerts.pick-reminder", now, dryRun,
+              log: alertLog, label: `Week ${rw.week} pick reminder`,
+              // Not pierced, unlike last call. This is a courtesy nudge the
+              // evening before, not a deadline - if it lands inside someone's
+              // quiet hours the email is the better channel anyway, and the
+              // fallthrough below sends it.
+              payload: {
+                title: `Week ${rw.week}: ${totalOpen} ${noun} still open`,
+                body: `${where}. First kickoff ${kickoffLabel(rw.kickoff)}.`,
+                url: "/leagues",
+                collapseKey: `pickrem:${CURRENT_SEASON}:${rw.week}`,
+                data: { kind: "pick-reminder", week: rw.week },
+              },
+            });
+            tally(report.pickReminderPush, outcome);
+
+            // "duplicate" means the evt ledger already has this week - the
+            // push went out on an earlier tick and the shared `sent:` write
+            // below didn't land. Treat it as delivered rather than emailing
+            // on top of it.
+            if (outcome === "sent" || outcome === "duplicate" || outcome === "dry-run") {
+              if (!dryRun) await markSent("reminder", CURRENT_SEASON, rw.week, u.userId);
+              report.reminder.sent.push({ userId: u.userId, leagues: open.length, channel: "push" });
+              continue;
+            }
+            // quiet-hours / no-devices / failed / not-entitled all fall
+            // through to email below.
+          }
+
+          if (!prefs.emailPickReminders) { report.reminder.skipped++; continue; }
 
           const email = buildReminderEmail({
             season: CURRENT_SEASON,
@@ -354,7 +439,7 @@ export default async (req: Request, _context: Context) => {
             await markSent("reminder", CURRENT_SEASON, rw.week, u.userId);
             await sendEmail({ to: u.email, subject: email.subject, html: email.html, text: email.text, type: "reminders", userId: u.userId });
           }
-          report.reminder.sent.push({ userId: u.userId, leagues: open.length, subject: email.subject });
+          report.reminder.sent.push({ userId: u.userId, leagues: open.length, channel: "email", subject: email.subject });
         } catch (err) {
           report.errors.push({ userId: u.userId, stage: "reminder", error: err instanceof Error ? err.message : "unknown" });
         }
@@ -424,20 +509,6 @@ export default async (req: Request, _context: Context) => {
     // Candidate games are worked out FIRST, then per-user follow status.
     // The reverse - asking every user about every game - would be hundreds
     // of Blobs reads a tick to discover that one game is starting.
-
-    // Skips decided here never reach deliverAlert, so they'd be missing
-    // from the log that exists to explain a silent alert - "off" and
-    // "not-followed" are two of the three most common answers. The context
-    // argument is what puts them in it.
-    const tally = (
-      bucket: any,
-      outcome: string,
-      ctx?: { userId: string; type: string; event: string; week: number; label?: string }
-    ) => {
-      bucket.outcomes[outcome] = (bucket.outcomes[outcome] || 0) + 1;
-      if (outcome === "sent") bucket.sent++;
-      if (ctx) alertLog.add({ ...ctx, outcome });
-    };
 
     if (!only || only === "push") {
       // ---- Which games are candidates right now? -------------------------

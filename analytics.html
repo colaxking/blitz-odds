@@ -411,6 +411,25 @@
     return base + " · " + unknown + " of " + total + " missing a team (tracking gap)";
   }
 
+  /* Pref keys as they're stored, mapped to what the Settings screen calls
+     them, so the bar list reads the way the reader's own screen does
+     rather than in field names. */
+  var NOTIF_PREF_LABELS = {
+    pickReminder: "Pick reminder (push)",
+    emailPickReminders: "Pick reminder (email)",
+    lastCall: "Last call",
+    kickoff: "Kickoff",
+    final: "Final score",
+    scoring: "Live scoring",
+    scope: "Which games",
+    injuries: "Injuries",
+    inGameInjury: "In-game injuries",
+    emailWeeklyRecap: "Weekly recap",
+    emailRecapTeamNews: "Recap team news",
+    quietFrom: "Quiet hours start",
+    quietTo: "Quiet hours end"
+  };
+
   /* Three numbers with one conclusion. Desyncs alone read as alarming and
      repairs alone read as fine; what matters is whether they match, so the
      tile states the unrepaired count in words rather than leaving it to be
@@ -686,6 +705,14 @@
         { title: "Registration desyncs", sub: "Browser subscription no longer matching the stored device", html: pushHealthHtml(d) },
         { title: "Where they were caught", sub: "App load vs. Settings vs. the reader pressing repair", html: barListHtml(relabel(d.pushDesyncsByStage, { detected: "Settings check", rotated: "App load", load: "App load", auto: "Automatic", manual: "Repair button" })) },
         { title: "Repairs that failed", sub: "These are the ones still receiving nothing", html: barListHtml(relabel(d.pushRepairFailuresByStage, { load: "App load", auto: "Automatic", manual: "Repair button" })) },
+        /* Two tiles rather than one net figure, on purpose. A switch with
+           traffic in both directions is one people try and then reject,
+           which a single combined number would render as enthusiasm. The
+           off column is the early warning for a nudge that has become
+           nagging - and the stored prefs blob, holding only current state,
+           cannot show it at all. */
+        { title: "Alerts switched on", sub: "Which nudges people opt into", html: barListHtml(relabel(d.notifPrefsOn, NOTIF_PREF_LABELS), null, { empty: "No preference changes in this range" }) },
+        { title: "Alerts switched off", sub: "Which nudges people mute \u2014 the ones to watch", html: barListHtml(relabel(d.notifPrefsOff, NOTIF_PREF_LABELS), null, { empty: "Nothing muted in this range" }) },
         /* Sits under Push health rather than Preferences because it isn't a
            setting - it's the hard ceiling on push reach. iOS only delivers
            web push to a site added to the Home Screen, so the standalone
@@ -1130,6 +1157,7 @@
       termsGateShown: 0, termsGateAccepted: 0, termsGateSignouts: 0,
       pushDesyncs: 0, pushRepairs: 0, pushRepairFailures: 0,
       pushDesyncsByStage: {}, pushRepairFailuresByStage: {},
+      notifPrefsOn: {}, notifPrefsOff: {},
       historyPageviews: 0, historyGameClicksByTeam: {}, historyClicksByType: {},
       referrerBreakdown: {}, pageviewsByPath: {}, teamPageViews: 0, gamePageViews: 0,
       themeDistribution: {}, sportsbookDistribution: {}, tzPrefDistribution: {}, displayModeDistribution: {},

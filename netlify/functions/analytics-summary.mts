@@ -100,6 +100,10 @@ type EventRecord = {
   host?: string;
   /* Push-health events only: where the desync was caught/repaired. */
   stage?: string;
+  /* notif_pref_change only: which switch moved and on which channel. The
+     new setting itself rides on `value` above. */
+  pref?: string;
+  channel?: string;
   /* Playbook events. Read via sortedCounts long before they were typed
      here - listed now so a reader of this type isn't misled about what a
      record can hold. */
@@ -422,6 +426,8 @@ function emptySummary(now: number, range: Range) {
     pushRepairFailures: 0,
     pushDesyncsByStage: {} as Record<string, number>,
     pushRepairFailuresByStage: {} as Record<string, number>,
+    notifPrefsOn: {} as Record<string, number>,
+    notifPrefsOff: {} as Record<string, number>,
     historyPageviews: 0,
     archiveEntriesBySource: {} as Record<string, number>,
     historyGameClicksByTeam: {} as Record<string, number>,
@@ -835,6 +841,31 @@ export default async (req: Request, _context: Context) => {
     const pushRepairFailures = pushRepairFailureRecords.length;
     const pushDesyncsByStage = sortedCounts(pushDesyncRecords, (r) => r.stage);
     const pushRepairFailuresByStage = sortedCounts(pushRepairFailureRecords, (r) => r.stage);
+
+    // --- Which alert switches get moved, and which way ---
+    //
+    // Split by direction rather than counted together, because the two
+    // answer opposite questions and a combined total answers neither. Turns
+    // ON measure whether a nudge is wanted; turns OFF measure whether it
+    // outstayed its welcome. A pref with a healthy number of both is a
+    // reader population trying it and rejecting it, which is the case that
+    // looks like success in any single figure.
+    //
+    // The stored prefs blob cannot answer this at all: it holds only the
+    // current state, so a switch flipped on and off again a week later is
+    // indistinguishable from one never touched.
+    const notifPrefRecords = validRecords.filter((r) => r.type === "notif_pref_change");
+    // "false" and "off" both mean off - booleans arrive stringified and the
+    // segmented controls (scoring, injuries) use "off" as an enum member.
+    const OFF_VALUES = new Set(["false", "off"]);
+    const notifPrefsOn = sortedCounts(
+      notifPrefRecords.filter((r) => !OFF_VALUES.has(String(r.value))),
+      (r) => r.pref
+    );
+    const notifPrefsOff = sortedCounts(
+      notifPrefRecords.filter((r) => OFF_VALUES.has(String(r.value))),
+      (r) => r.pref
+    );
 
     // --- account lifecycle. Self-service deletion destroys every other
     // record of itself: the profile, the picks and the login are all gone by
@@ -1313,6 +1344,8 @@ export default async (req: Request, _context: Context) => {
         pushRepairFailures,
         pushDesyncsByStage,
         pushRepairFailuresByStage,
+        notifPrefsOn,
+        notifPrefsOff,
         accountDeleteStarts: deleteStarts,
         accountDeletes,
         accountDeleteAbandons,

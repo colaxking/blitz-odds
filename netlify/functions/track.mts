@@ -104,6 +104,15 @@ const VALID_TYPES = new Set([
   "push_device_desync",
   "push_device_repaired",
   "push_device_repair_failed",
+  // Which alert switches people actually move. Notification prefs are
+  // write-and-forget: the stored blob shows the current state of everyone
+  // who has ever saved, with no record of what they changed or when, so a
+  // pref that people turn OFF within a week of turning it on looks
+  // identical to one nobody ever touched. That distinction is the whole
+  // question for a nudge - a reminder people mute is worse than no
+  // reminder. Records the pref name and the direction only; no address, no
+  // device, no schedule.
+  "notif_pref_change",
   // Account lifecycle. Self-service deletion is irreversible and the account
   // is gone by the time it completes, so there is no after-the-fact way to
   // measure it: the profile, the picks and the login have all been removed,
@@ -391,7 +400,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index, official, ok, method, picked, locked } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, pref, channel, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index, official, ok, method, picked, locked } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -656,6 +665,17 @@ export default async (req: Request, context: Context) => {
     }
     if (type === "account_delete_complete") {
       if (typeof outcome === "string" && outcome) record.outcome = outcome.slice(0, 32);
+    }
+
+    // Notification pref toggles. `pref` is the field name from the prefs
+    // object (pickReminder, lastCall, emailWeeklyRecap...), `channel` is
+    // push or email, and `value` is the new setting - a boolean stringified
+    // client-side, or a segmented control's enum. All three are the app's
+    // own vocabulary, never anything typed.
+    if (type === "notif_pref_change") {
+      if (typeof pref === "string" && pref) record.pref = pref.slice(0, 40);
+      if (typeof channel === "string" && channel) record.channel = channel.slice(0, 16);
+      if (value) record.value = String(value).slice(0, 32);
     }
 
     // Signup and reset failures. `reason` is the endpoint's own stable code

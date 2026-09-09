@@ -62,10 +62,16 @@ export default async (req: Request, context: any) => {
   const currentPassword = String(body?.currentPassword || "");
   const newPassword = String(body?.newPassword || "");
   const email = String(claims.email || "").trim().toLowerCase();
-  const userId = String(claims.sub || "");
+  const userId = String(claims.id || "");
 
-  if (!email || !userId) {
+  // Split, because these are different failures and the combined message
+  // sent a Google user chasing an email address that was there all along.
+  if (!email) {
     return jsonResponse(400, { ok: false, error: "That account is missing an email address." });
+  }
+  if (!userId) {
+    console.error("[auth-password] claims carried no id", { hasEmail: !!email });
+    return jsonResponse(500, { ok: false, error: "Couldn't read that account. Try signing out and back in." });
   }
 
   if (newPassword.length < MIN_PASSWORD) {

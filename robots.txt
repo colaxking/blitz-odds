@@ -8,5 +8,7 @@ Allow: /
 Disallow: /g/
 Disallow: /join/
 Disallow: /leagues/
+# Netlify Identity email templates - raw Go-template HTML, not pages.
+Disallow: /email-templates/
 
 Sitemap: https://blitz-odds.com/sitemap.xml

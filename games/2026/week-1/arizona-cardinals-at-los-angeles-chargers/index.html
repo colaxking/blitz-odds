@@ -5375,7 +5375,7 @@
   <p>Sun, Sep 13 · 4:25 PM ET · CBS</p>
 
   
-  <p><strong>Odds (DraftKings):</strong> LAC -9.5 · ML ARI +390 / LAC -520 · O/U 47.5</p>
+  <p><strong>Odds (DraftKings):</strong> LAC -9.5 · ML ARI +380 / LAC -500 · O/U 47.5</p>
 
   <h2>Model prediction</h2>
   <p>Predicted winner: <strong>Los Angeles Chargers</strong> - ARI 17% / LAC 83%</p>
@@ -6200,16 +6200,15 @@
         "name": "Nick Emmanwori",
         "position": "S",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Right ankle (arthroscopic surgery)",
-          "since": "2026-07",
-          "note": "Emmanwori had arthroscopic surgery on his right ankle in July to clean up damage from an injury suffered days before Seattle's Super Bowl win, and opened camp on the PUP list. He appeared on the Seahawks' first official Week 1 injury report on Sunday, Sept. 6 as a limited participant (ankle) - his most concrete practice designation yet, but still short of a full session since the surgery. Local reporting (Gregg Bell of the Tacoma News Tribune, among others) has described him as uncertain to \"iffy\" for the Wednesday, Sept. 9 opener vs. New England, and teammates have talked as though he may not play."
+          "type": "Ankle",
+          "note": "inactive"
         },
         "activatedDate": "2026-08-10",
         "espnId": "4869523",
-        "statusUpdatedAt": "2026-09-06T13:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-09T22:52Z",
+        "source": "auto"
       },
       {
         "name": "Zach Charbonnet",
@@ -6515,14 +6514,12 @@
         "name": "D'Andre Swift",
         "position": "RB",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Abdomen",
-          "note": "Swift (abdomen) returned to practice Monday, Courtney Cronin of ESPN.com reports."
-        },
-        "statusUpdatedAt": "2026-09-07T18:43Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-09T20:14Z",
         "source": "auto",
-        "espnId": "4259545"
+        "espnId": "4259545",
+        "activatedDate": "2026-09-09"
       },
       {
         "name": "Coby Bryant",
@@ -6952,6 +6949,19 @@
         },
         "statusUpdatedAt": "2026-09-08T21:01:17.444Z",
         "source": "curated"
+      },
+      {
+        "name": "Cameron Jordan",
+        "position": "DE",
+        "espnId": "13971",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Hamstring",
+          "note": "out"
+        },
+        "statusUpdatedAt": "2026-09-09T20:35Z",
+        "source": "auto"
       }
     ],
     "DET": [
@@ -7333,9 +7343,12 @@
         "position": "WR",
         "espnId": "4360078",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-07T19:50Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Heel",
+          "note": "Pierce (heel) was a limited participant on Wednesday's practice report."
+        },
+        "statusUpdatedAt": "2026-09-09T20:48Z",
         "source": "auto",
         "activatedDate": "2026-09-07"
       },
@@ -7594,6 +7607,20 @@
         },
         "statusUpdatedAt": "2026-08-19T12:07Z",
         "source": "auto"
+      },
+      {
+        "name": "Joey Porter Jr.",
+        "position": "CB",
+        "espnId": "4426506",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Back",
+          "since": "2026-09-09",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-09T21:27:34.667Z",
+        "source": "curated"
       }
     ],
     "NYJ": [
@@ -29049,16 +29076,36 @@ function BlitzEdgeRow(props) {
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor, onOpenGame }) {
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidence, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor, onOpenGame }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   useEffect(() => {
     setPendingConfidence(game.pick?.confidence ?? "");
   }, [game.pick?.confidence]);
 
+  // Confidence-format only: the numbers this card can still take. When the
+  // league requires unique values (takenConfidence is an array), anything
+  // already spent on another game this week drops out of the dropdown -
+  // the card's own current value always stays so the select never shows a
+  // number it can't find. Leagues that allow duplicates get the full 1..N.
+  const availableConfidence = useMemo(() => {
+    if (format !== "confidence") return [];
+    const all = Array.from({ length: maxConfidence }, (_, i) => i + 1);
+    if (!Array.isArray(takenConfidence)) return all;
+    const own = game.pick?.confidence;
+    return all.filter(n => n === own || !takenConfidence.includes(n));
+  }, [format, maxConfidence, takenConfidence, game.pick?.confidence]);
+
   function selectTeam(team) {
     if (game.locked) return;
-    onPick(game.gameId, team, format === "confidence" ? (pendingConfidence || undefined) : undefined);
+    let confidence = format === "confidence" ? (pendingConfidence || undefined) : undefined;
+    // Last game of the week, one number left: there's no decision to make,
+    // so the team tap carries the remaining number in the same request
+    // rather than making the player open a one-item dropdown.
+    if (format === "confidence" && !confidence && Array.isArray(takenConfidence) && availableConfidence.length === 1) {
+      confidence = availableConfidence[0];
+    }
+    onPick(game.gameId, team, confidence);
   }
 
   function changeConfidence(e) {
@@ -29171,7 +29218,7 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
             disabled={game.locked || saving}
           >
             <option value="" disabled>—</option>
-            {Array.from({ length: maxConfidence }, (_, i) => i + 1).map(n => (
+            {availableConfidence.map(n => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
@@ -29337,6 +29384,71 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
 
   const isSurvivor = data?.format === "survivor";
 
+  // Confidence leagues default to unique values (league-create.mts) - only
+  // an explicit "Allow duplicates" turns the number-juggling below off.
+  const uniqueConfidence = data?.format === "confidence" && data.scoringSettings?.uniqueConfidence !== false;
+
+  // Numbers already assigned on OTHER games this week - what a given
+  // card's dropdown has to leave out.
+  function takenConfidenceFor(game) {
+    if (!uniqueConfidence) return null;
+    return data.games
+      .filter(g => g.gameId !== game.gameId && typeof g.pick?.confidence === "number")
+      .map(g => g.pick.confidence);
+  }
+
+  // 1..N minus every number currently assigned this week.
+  function freeConfidence(games) {
+    const used = new Set(games.map(g => g.pick?.confidence).filter(n => typeof n === "number"));
+    return Array.from({ length: games.length }, (_, i) => i + 1).filter(n => !used.has(n));
+  }
+
+  // Set while a multi-request pick sequence (see handlePick) is running, so
+  // the last-number autofill effect doesn't fire mid-sequence against a
+  // server that hasn't seen the earlier writes yet.
+  const [pickChainBusy, setPickChainBusy] = useState(false);
+  const autoFillTriedRef = useRef(new Set());
+
+  // Once every other game has its number, the one game still waiting on
+  // points can only take the one number left - fill it in rather than
+  // making the player pick from a one-item dropdown. Also what completes
+  // a swap: after handlePick frees a number off another game, that game
+  // is the lone unnumbered pick and the freed number is the lone gap.
+  // Each (game, number) pair is attempted once so a rejected save can't
+  // loop through load() and back here forever.
+  useEffect(() => {
+    if (!data || !uniqueConfidence || savingGameId || pickChainBusy) return;
+    const waiting = data.games.filter(g => g.pick?.team && typeof g.pick?.confidence !== "number" && !g.locked);
+    if (waiting.length !== 1) return;
+    const free = freeConfidence(data.games);
+    if (free.length !== 1) return;
+    const key = `${waiting[0].gameId}:${free[0]}`;
+    if (autoFillTriedRef.current.has(key)) return;
+    autoFillTriedRef.current.add(key);
+    submitPick(waiting[0].gameId, waiting[0].pick.team, free[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, uniqueConfidence, savingGameId, pickChainBusy]);
+
+  // Every pick from a card comes through here. In a unique-confidence
+  // league, choosing a number another game already holds takes it from
+  // that game: its points are cleared first (team kept), then the new
+  // value saves - the server 409s a collision, so the order matters and
+  // the two writes can't overlap. Once the dust settles the effect above
+  // hands the freed number to the cleared game if it's the only one left.
+  async function handlePick(gameId, team, confidence) {
+    if (!uniqueConfidence || typeof confidence !== "number") return submitPick(gameId, team, confidence);
+    const holder = data.games.find(g => g.gameId !== gameId && g.pick?.confidence === confidence);
+    if (!holder || holder.locked) return submitPick(gameId, team, confidence);
+    setPickChainBusy(true);
+    try {
+      autoFillTriedRef.current.clear();
+      const cleared = await submitPick(holder.gameId, holder.pick.team, undefined);
+      if (cleared) await submitPick(gameId, team, confidence);
+    } finally {
+      setPickChainBusy(false);
+    }
+  }
+
   async function submitPick(gameId, team, confidence) {
     setSavingGameId(gameId);
     setPickErrors(prev => ({ ...prev, [gameId]: null }));
@@ -29384,9 +29496,11 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
         ).length;
         return { ...prev, games, picksComplete };
       });
+      return true;
     } catch (err) {
       setPickErrors(prev => ({ ...prev, [gameId]: err.message || "Failed to save pick" }));
       await load(); // revert optimistic update to server truth
+      return false;
     } finally {
       setSavingGameId(null);
     }
@@ -29444,7 +29558,8 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
             format={data.format}
             maxConfidence={data.totalGames}
             usedTeams={data.usedTeams}
-            onPick={submitPick}
+            takenConfidence={takenConfidenceFor(game)}
+            onPick={handlePick}
             saving={savingGameId === game.gameId}
             error={pickErrors[game.gameId]}
             tz={tz}

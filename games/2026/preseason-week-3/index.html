@@ -2884,6 +2884,9 @@
      news feed's version of this button compensates for with its own top
      margin. */
   .h2h-more-btn { margin: 12px auto 0; font-size: 0.78rem; padding: 9px 18px; }
+  /* Same control inside a game card's Full Details panel, where the notes
+     above it are tighter, so it sits closer to them. */
+  .injury-more-btn { margin: 10px auto 2px; font-size: 0.74rem; padding: 8px 16px; }
   .h2h-boxscore { padding: 4px 12px 14px; border-top: 1px dashed var(--card-border); }
   .h2h-teamstats { margin-top: 14px; }
   .h2h-fullpage-link {
@@ -19781,6 +19784,14 @@ function LiveScoreFlash({ awayScore, homeScore, className, children }) {
  *  first, then questionable, then out (unrecognized statuses sort last). */
 const STATUS_ORDER = { active: 0, questionable: 1, out: 2 };
 
+/* How many injuries a game card shows before the reader asks for the rest.
+ * A bad week for both squads runs to a dozen notes, each two lines with its
+ * own source line, which pushed everything below the injury report off the
+ * end of Full Details. Four covers the absences that actually decide a game
+ * once the list is ordered by model impact (see sortedAdjustments in
+ * GameCard). */
+const INJURY_COLLAPSED_COUNT = 4;
+
 /** How long a recently-activated player stays visible in injury lists after
  *  coming off injured/questionable status. Only applies to players who
  *  actually have injury history (an `injury` object) - a player who's
@@ -20651,6 +20662,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   }), [game.home, game.away, context.isHistorical, home, away, homePlayers, awayPlayers, weather, week]);
 
   const homeIsWinner = prediction.predictedWinner === home.id;
+  // Injury report starts trimmed to the players the model weights heaviest -
+  // see INJURY_COLLAPSED_COUNT and sortedAdjustments just below. Declared
+  // here rather than with the card's other UI state because shownAdjustments,
+  // a few lines down, reads it.
+  const [injuriesExpanded, setInjuriesExpanded] = useState(false);
   const allAdjustments = [
     ...prediction.homeAdjustments.map(a => ({ ...a, teamId: home.id, teamName: home.name })),
     ...prediction.awayAdjustments.map(a => ({ ...a, teamId: away.id, teamName: away.name }))
@@ -20662,12 +20678,25 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
     // renders player injury notes, so drop the weather entries here rather
     // than rendering "(TEAM · ) is" with blank fields for them.
     .filter(a => a.player);
-  // Group by status - questionable players first, then out - rather than
-  // interleaving by team. Array.sort is stable, so within each status group
-  // the home-then-away order above is preserved.
-  const sortedAdjustments = [...allAdjustments].sort(
-    (a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
-  );
+  /* Ordered by how much each absence actually moves this game, not by
+   * status or by team. `ratingDelta` is already the model's own number for
+   * that (impactScore x the out/questionable multiplier, see
+   * applyInjuryAdjustments), so a starting quarterback ruled out leads and a
+   * questionable backup ends up at the bottom - which is the order someone
+   * skimming an injury report is reading for. It also folds status in
+   * without a separate key, since being out costs more than being
+   * questionable for the same player. Status breaks a tie so two equal
+   * deltas still put the ruled-out player first; Array.sort is stable, so
+   * the home-then-away order above survives a full tie.
+   */
+  const sortedAdjustments = [...allAdjustments].sort((a, b) => {
+    const byImpact = Math.abs(b.ratingDelta || 0) - Math.abs(a.ratingDelta || 0);
+    if (byImpact !== 0) return byImpact;
+    return (STATUS_ORDER[b.status] ?? -1) - (STATUS_ORDER[a.status] ?? -1);
+  });
+  const shownAdjustments = injuriesExpanded
+    ? sortedAdjustments
+    : sortedAdjustments.slice(0, INJURY_COLLAPSED_COUNT);
   const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
 
   // The combo row's recommendation, read through whichever game type the
@@ -21133,7 +21162,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           {sortedAdjustments.length > 0 && (
             <div>
               <div className="sec-label">Injury Report</div>
-              {sortedAdjustments.map((a, i) => (
+              {shownAdjustments.map((a, i) => (
                 <div key={i} className={"impact-note impact-" + a.status} data-tour={i === 0 ? "injury-notes" : undefined}>
                   <div className="impact-head">
                     <span>{a.status === "out" ? "⛔" : "⚠️"}</span>
@@ -21147,6 +21176,25 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
                   <InjurySourceLine player={{ espnId: a.espnId, status: a.status }} />
                 </div>
               ))}
+              {/* One-way, like Past Matchups: the rows someone is reading
+                  shouldn't disappear under them. The label carries the full
+                  count so the tap is an informed one. */}
+              {!injuriesExpanded && sortedAdjustments.length > INJURY_COLLAPSED_COUNT && (
+                <button
+                  type="button"
+                  className="news-load-more-btn injury-more-btn"
+                  onClick={() => {
+                    setInjuriesExpanded(true);
+                    trackEvent("injury_expand", {
+                      away: game.away,
+                      home: game.home,
+                      value: sortedAdjustments.length,
+                    });
+                  }}
+                >
+                  Show all {sortedAdjustments.length} injuries
+                </button>
+              )}
             </div>
           )}
 

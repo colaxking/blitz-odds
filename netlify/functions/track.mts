@@ -80,6 +80,10 @@ const VALID_TYPES = new Set([
   // raises is whether five is the right number - a high expand rate says
   // it's too few, near-zero says the section was long for no reason.
   "h2h_expand",
+  // The same collapse on a game card's injury report, which shows the four
+  // absences the model weights heaviest and hides the rest. Same question
+  // as h2h_expand: is four the right cut.
+  "injury_expand",
   "playbook_subtab",
   "playbook_format",
   "gate_cta",
@@ -470,6 +474,14 @@ export default async (req: Request, context: Context) => {
       // panel) and "score_tap" (the tappable score still on the
       // picks/results and team schedule views).
       if (source) record.source = String(source).slice(0, 32);
+    }
+
+    if (type === "injury_expand") {
+      if (away) record.away = String(away).slice(0, 64);
+      if (home) record.home = String(home).slice(0, 64);
+      // Total injuries in the game, so a four-of-five expand can be told
+      // from a four-of-fourteen one.
+      if (typeof value === "number" && Number.isFinite(value)) record.total = Math.round(value);
     }
 
     if (type === "h2h_expand") {

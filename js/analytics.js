@@ -59,6 +59,8 @@
  * the bottom of it (see the comment there):
  *  - "push_device_desync" / "push_device_repaired" /
  *    "push_device_repair_failed" - push registration health
+ *  - "injury_expand" - the "Show all N injuries" button on a game card's
+ *    injury report, with `value` carrying the total number of injuries
  *  - "h2h_expand" - the "Show all N meetings" button on Past Matchups,
  *    with `value` carrying how long the series actually is
  *  - "league_game_details" - the route between a league's pick sheet and a

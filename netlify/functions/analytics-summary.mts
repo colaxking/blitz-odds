@@ -389,6 +389,7 @@ function emptySummary(now: number, range: Range) {
     leagueGameDetailsByPicked: {} as Record<string, number>,
     h2hExpands: 0,
     h2hExpandsByTeam: {} as Record<string, number>,
+    injuryExpands: 0,
     gameFollowAdds: 0,
     gameFollowRemoves: 0,
     gameFollowsByGame: {} as Record<string, number>,
@@ -991,6 +992,10 @@ export default async (req: Request, _context: Context) => {
       h2hExpandsByTeam[team] = count;
     }
 
+    // --- injury report expansions: taps on "Show all N injuries" inside a
+    // game card's Full Details panel ---
+    const injuryExpands = validRecords.filter((r) => r.type === "injury_expand").length;
+
     // --- per-game follows: the "Alert me" bell on a game card ---
     // Adds and removes are counted separately rather than netted. A net
     // figure would hide the case worth knowing about - a lot of taps on and
@@ -1252,6 +1257,7 @@ export default async (req: Request, _context: Context) => {
         leagueGameDetailsByPicked,
         h2hExpands,
         h2hExpandsByTeam: capTop(h2hExpandsByTeam),
+        injuryExpands,
         gameFollowAdds,
         gameFollowRemoves,
         gameFollowAddsInProgress,

@@ -655,6 +655,12 @@
         { title: "Invite links shared", sub: "The sending half of the join funnel", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.leagueShares || 0) + "</div>" },
         { title: "Share entry point", sub: "League header vs. My Leagues row vs. invite panel", html: barListHtml(relabel(d.leagueSharesBySurface, { league_header: "League header", my_leagues_row: "My Leagues row", invite_panel: "Invite panel" }), null, { empty: "No invite shares in this range yet" }) },
         { title: "Share route taken", sub: '"Nothing" means a dismissed sheet or no Web Share \u2014 watch it rise', html: barListHtml(relabel(d.leagueSharesByMethod, { share: "Native share sheet", copy: "Copied to clipboard", none: "Nothing happened" }), null, { empty: "No invite shares in this range yet" }) },
+        // Opens without returns is the shape to watch: it means the game
+        // page is where a picking session ends rather than a detour inside
+        // it.
+        { title: "Pick sheet \u2192 game page", sub: fmtNum(d.leagueGameDetailsOpens || 0) + " opened, " + fmtNum(d.leagueGameDetailsReturns || 0) + " came back", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.leagueGameDetailsOpens || 0) + "</div>" },
+        { title: "Details opened by format", sub: "Which pool format sends people digging", html: barListHtml(relabel(d.leagueGameDetailsByFormat || {}, { straight_up: "Straight-Up", confidence: "Confidence", survivor: "Survivor", ats: "ATS" }), null, { empty: "No pick-sheet details opens in this range yet" }) },
+        { title: "Details opened before or after picking", sub: "Researching a pick vs. checking one already made", html: barListHtml(relabel(d.leagueGameDetailsByPicked || {}, { yes: "Pick already made", no: "No pick yet" }), null, { empty: "No pick-sheet details opens in this range yet" }) },
         { title: "Book comparisons opened", sub: "Worth knowing before affiliate work", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.bookCompareOpens || 0) + "</div>" },
         // Opens vs. completions side by side, since the interesting number
         // is the gap: a sheet that opens often and shares rarely is a
@@ -970,6 +976,9 @@
       case "player_view": return { label: "Viewed player " + ev.player, detail: ev.source ? String(ev.source).replace(/_/g, " ") : "" };
       case "news_click": return { label: "Clicked " + (ev.newsSource || "a") + " headline", detail: [ev.placement === "team_news" ? "Team News panel" : ev.placement === "ticker" ? "ticker" : null, ev.headline].filter(Boolean).join(" · ") };
       case "boxscore_click": return { label: "Opened box score — " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: ev.source === "full_details" ? "from Full Details" : ev.source === "score_tap" ? "tapped the score" : "" };
+      case "league_game_details": return ev.source === "back_to_picks"
+        ? { label: "Back to league picks", detail: ev.format ? String(ev.format).replace(/_/g, " ") : "" }
+        : { label: "Opened game details from a pick sheet \u2014 " + (ev.away || "?") + " @ " + (ev.home || "?"), detail: [ev.format ? String(ev.format).replace(/_/g, " ") : null, ev.picked === "yes" ? "pick already made" : ev.picked === "no" ? "no pick yet" : null].filter(Boolean).join(" \u00b7 ") };
       case "game_follow": return { label: (ev.adding ? "Followed game — " : "Unfollowed game — ") + (ev.away || "?") + " @ " + (ev.home || "?"), detail: [ev.week ? "week " + ev.week : null, ev.gameState === "live" || ev.gameState === "started" ? "mid-game" : null].filter(Boolean).join(" · ") };
       case "playbook_subtab": return { label: 'Opened Playbook — "' + ev.subtab + '"', detail: "" };
       case "playbook_format": return { label: "Switched pool format to " + ev.format, detail: "signed-out preview" };

@@ -2571,6 +2571,10 @@
      then have painted "Full Details" in accent and hung a divider on the
      wrong side of it. */
   .gc-action[data-tour="add-to-league"] { border-right: 1px solid var(--card-border); color: var(--accent); }
+  /* The league-return variant occupies the same slot and keeps the accent,
+     but reads as a confirmation rather than an invitation, so it doesn't
+     shout at the same volume as an unfilled Add to League. */
+  .gc-action.gc-league-return { font-size: 0.72rem; }
   .gc-action:hover { background: rgba(var(--accent-rgb),0.08); }
   .gc-chevron { transition: transform 0.2s ease; display: inline-block; }
   .gc-chevron.expanded { transform: rotate(180deg); }
@@ -4162,6 +4166,26 @@
   .pickem-confidence-needed { color: var(--accent); font-weight: 700; }
   .pickem-confidence-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); border-radius: 6px; padding: 4px 8px; font-size: 0.78rem; font-weight: 700; font-family: inherit; }
   .pickem-pick-error { font-size: 0.68rem; color: var(--out); background: rgba(var(--out-rgb),0.1); border: 1px solid rgba(var(--out-rgb),0.3); border-radius: 6px; padding: 5px 8px; }
+  /* Deliberately mirrors .gc-actions on the game card: full-bleed to the
+     card's edge, hairline above, same weight and size. A pick card and a
+     game card are the two places a matchup appears in this app, and the
+     link between them should read as the same control on both. The negative
+     margins match .pickem-game-card's 14px padding and its 14px radius. */
+  .pickem-details-link {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin: 2px -14px -14px; padding: 11px 8px;
+    border: none; border-top: 1px solid var(--card-border); border-radius: 0 0 14px 14px;
+    background: none; cursor: pointer; font: inherit; font-size: 0.76rem; font-weight: 700; color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pickem-details-link:hover { background: rgba(var(--accent-rgb),0.08); color: var(--accent); }
+  .pickem-details-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .pickem-details-chev { color: var(--accent); font-size: 0.9rem; line-height: 1; }
+  /* A game page opened from a pick sheet is long - card, compare table,
+     head-to-head - so the crumb back button at the top is off screen by the
+     time someone's finished reading. This repeats it at the bottom rather
+     than making them scroll back up or reach for the browser. */
+  .back-to-picks-bottom { display: flex; justify-content: center; margin-top: 18px; }
   .pickem-autosave-note { font-size: 0.68rem; color: var(--text-dim); display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
   .pickem-autosave-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--win); }
 
@@ -5326,7 +5350,7 @@
   <p>Sun, Oct 18 · 9:30 AM ET · NFL Network</p>
 
   
-  <p><strong>Odds (DraftKings):</strong> HOU -1.5 · ML HOU -112 / JAX -104 · O/U 40.5</p>
+  <p><strong>Odds (DraftKings):</strong> HOU -1.5 · ML HOU -116 / JAX -106 · O/U 41.5</p>
 
   <h2>Model prediction</h2>
   <p>Predicted winner: <strong>Jacksonville Jaguars</strong> - HOU 20% / JAX 80%</p>
@@ -6086,7 +6110,7 @@
 <script type="application/json" id="players-data">
 {
   "isDemoData": false,
-  "disclaimer": "Injury and roster statuses reflect reports as of the evening of Monday, Sept. 7, 2026. Newest in this update: Rams Edge Myles Garrett returned to practice Sunday, Sept. 6 - his first session since early August - with HC Sean McVay saying \"he's going to do some stuff\"; he is expected to be limited/questionable on Wednesday's first official report. Rams WR Puka Nacua did not practice Monday but did side work with a trainer, and McVay still expects him to play Sept. 10. The Giants released WR Darius Slayton on Monday, Sept. 7 after seven seasons - he was not among New York's listed impact players, so no entry changed. Earlier Monday: on the Monday official injury report for Wednesday's New England-Seattle opener, Patriots DT Christian Barmore (knee) returned as a full participant after Sunday's did-not-participate - consistent with reporting that Sunday was a rest day - so he is back to active, while RB TreVeyon Henderson (ankle) again did not participate, his second straight official DNP and roughly two weeks without practicing; Patriots reserve C Ben Brown (knee) also did not practice. Seattle's Monday report had S Nick Emmanwori (ankle) and WR Tory Horton (hamstring) limited again, S Ty Okada (hamstring) still not practicing, and G Anthony Bradford (knee) upgraded to full. Bengals WRs Ja'Marr Chase (left knee) and Tee Higgins (heel contusion) both returned to the practice field Monday, Sept. 7 after missing all of last week, with Chase described as limited - HC Zac Taylor still expects both for the Sept. 13 opener. In Melbourne, 49ers Edge Nick Bosa and RB Christian McCaffrey did not take part in Monday's first practice - Bosa was suited up for the unpadded session and it read as precautionary - while TE George Kittle practiced and WR Mike Evans (adductor) practiced with teammates and is now listed active; no official participation report is required for the international opener. Cardinals RB Jeremiyah Love is \"progressing really well\" per HC Mike LaFleur but is about 50/50 for Week 1. Carried over: Rams DT Aaron Donald, who came out of retirement in late August, remains questionable - HC Sean McVay said Friday that the whole roster flies to Australia but that there is no decision yet on whether Donald plays Sept. 10. 49ers WR Ricky Pearsall (PCL) is out for the season and DE Sam Okuayinonu went on injured reserve Sept. 4 with a broken foot. Texans WR Tank Dell is rehabbing a torn ACL and MCL with no public timetable; Texans RT Braden Smith is on IR with a partially torn plantar fascia. Packers RB Josh Jacobs remains on the Commissioner's Exempt List, with his initial court appearance set for Thursday, Sept. 10. Giants WR Malik Nabers is cleared for full contact and HC John Harbaugh says he is on track for Week 1, though Nabers himself has stayed noncommittal; the Colts activated WR Alec Pierce off PUP on Sept. 3 and he is expected to play Week 1. Cardinals RB James Conner is on injured reserve with a return designation (ankle), first eligible in Week 5 at Detroit. Commanders Edge Odafe Oweh (calf) is expected back at practice this week with Week 1 availability unclear. Buccaneers WRs Jalen McMillan (knee) and Emeka Egbuka (toe) are both trending toward Sept. 13. Bears RB Kyle Monangai remains week-to-week with a hyperextended knee; Bears WR Rome Odunze \"should be all good.\" Ravens DT Nnamdi Madubuike is day-to-day and WR Zay Flowers is back at practice. Chiefs QB Patrick Mahomes is a full participant off Dec. 2025 ACL/LCL surgery. Raiders RB Ashton Jeanty (ankle) is on the mend with HC Klint Kubiak optimistic for Week 1. Lions C Cade Mays (wrist) is on injured reserve with a return designation; Lions safeties Brian Branch and Kerby Joseph are on reserve/PUP for four games; Broncos Edge Jonathon Cooper is on the Commissioner's Exempt List; Packers Edge Micah Parsons is on reserve/PUP; Saints RB Alvin Kamara (MCL) is out at least a month; Raiders rookie Edge Keyron Crawford is out for the season with an Achilles injury. Every remaining Week 1 matchup still shows \"No Injuries Reported\" on NFL.com, with those first official reports due Wednesday, Sept. 9. Some depth/practice-squad entries may lag the transaction wire. Impact scores are editorial estimates, not official ratings.",
+  "disclaimer": "Injury and roster statuses reflect reports as of the night of Tuesday, Sept. 8, 2026. Newest in this update: the first official Week 1 injury reports for Thursday's 49ers-Rams opener in Melbourne are out - Rams CB Jaylen Watson (toe), a three-year, $51M offseason signing, did not practice Tuesday and is added as questionable, though nothing suggests he'll miss the game; 49ers LB Dre Greenlaw was limited with an Achilles designation and is added as questionable. Rams DT Aaron Donald remains OUT (McVay ruled him out and Schefter reported he did not travel to Australia; the official report lists him as limited, not injury related - a ramp-up decision, not an injury), while Edge Myles Garrett did not practice Tuesday with a knee designation but McVay says he will play. Rams TE Tyler Higbee, T Alaric Jackson and LB Byron Young were all listed as not-injury-related rest days. The Falcons released CB Darren Hall from injured reserve with an injury settlement on Sept. 8, so he is removed and replaced by RB Bijan Robinson. Carried over: 49ers TE George Kittle (Achilles) was limited Tuesday and stays questionable, with OC Klay Kubiak saying \"Kittle looks good\"; DC Raheem Morris confirmed Edge Nick Bosa will play; WR Puka Nacua is expected to play for the Rams. On the official report for Wednesday's New England-Seattle opener, Patriots RB TreVeyon Henderson (ankle) and C Ben Brown (knee) are OUT and DT Christian Barmore is a full participant; Seattle has S Ty Okada (hamstring) OUT with S Nick Emmanwori (ankle) and WR Tory Horton (hamstring) both limited and questionable. Cowboys LG Tyler Smith needs thumb surgery and is expected to miss four to six weeks. Bears WR Rome Odunze is day-to-day and did not practice Tuesday, though HC Ben Johnson is hopeful he plays Sept. 13. Bengals WRs Ja'Marr Chase (left knee) and Tee Higgins (heel contusion) are both back practicing and expected for the Sept. 13 opener; Chiefs QB Patrick Mahomes has a \"pretty good chance\" to start Sept. 14 per Andy Reid; Raiders RB Ashton Jeanty (ankle) did side work Tuesday with HC Klint Kubiak optimistic; Cardinals RB Jeremiyah Love (high ankle sprain) is about 50/50 for Week 1; 49ers WR Ricky Pearsall (PCL) is out for the season and DE Sam Okuayinonu is on IR with a broken foot; Texans WR Tank Dell (ACL/MCL) has no public timetable and RT Braden Smith is on IR with a partially torn plantar fascia; Packers RB Josh Jacobs remains on the Commissioner's Exempt List with a court appearance set for Thursday, Sept. 10; Giants WR Malik Nabers is cleared for full contact and on track for Week 1; Cardinals RB James Conner is on IR with a return designation, first eligible in Week 5; Commanders Edge Odafe Oweh (calf) has unclear Week 1 availability; Buccaneers WRs Jalen McMillan (knee) and Emeka Egbuka (toe) are trending toward Sept. 13; Bears RB Kyle Monangai is week-to-week; Ravens DT Nnamdi Madubuike is day-to-day and WR Zay Flowers is back at practice; Lions safeties Brian Branch and Kerby Joseph and C Cade Mays are unavailable for at least four games; Broncos Edge Jonathon Cooper is on the Commissioner's Exempt List; Packers Edge Micah Parsons is on reserve/PUP; Saints RB Alvin Kamara (MCL) is out at least a month; Raiders rookie Edge Keyron Crawford is out for the season. Every remaining Week 1 matchup still shows \"No Injuries Reported\" on NFL.com, with those first official reports due Wednesday, Sept. 9. Some depth/practice-squad entries may lag the transaction wire. Impact scores are editorial estimates, not official ratings.",
   "players": {
     "NE": [
       {
@@ -6102,14 +6126,13 @@
         "name": "TreVeyon Henderson",
         "position": "RB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Ankle injury",
-          "since": "2026-08-24",
-          "note": "Slipped and hurt his lower right ankle at practice on Aug. 24 and has not practiced since. He was again a did-not-participate on the Monday, Sept. 7 official injury report - his second straight official DNP and roughly two full weeks without practicing - with the Wednesday, Sept. 9 opener at Seattle two days away. He has been seen walking without a limp and the Boston Globe reported a league source believed he avoided anything serious. Rhamondre Stevenson and Corey Kiner are the alternatives."
+          "type": "Ankle",
+          "note": "The Patriots ruled out Henderson for Wednesday's season opener versus the Seahawks, Evan Lazar of the Patriots' official site reports."
         },
-        "statusUpdatedAt": "2026-09-07T21:05:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-08T21:05Z",
+        "source": "auto",
         "espnId": "4432710"
       },
       {
@@ -6133,10 +6156,11 @@
         "status": "out",
         "injury": {
           "type": "Knee",
-          "note": "out"
+          "since": "2026-09-07",
+          "note": "The reserve center did not participate in practice on either Monday or Tuesday and is listed as OUT on the Patriots' official Week 1 injury report for Wednesday's opener at Seattle."
         },
         "espnId": "4362890",
-        "statusUpdatedAt": "2026-09-07T20:18Z",
+        "statusUpdatedAt": "2026-09-08T23:45Z",
         "source": "auto"
       }
     ],
@@ -6237,15 +6261,15 @@
         "name": "Ty Okada",
         "position": "S",
         "impactScore": 4,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Hamstring",
           "since": "2026-09-06",
-          "note": "Did not practice with a hamstring injury on Seattle's first official Week 1 injury report, Sunday, Sept. 6. It compounds a thin safety picture for the Sept. 9 opener, with Nick Emmanwori still limited and Bud Clark on injured reserve."
+          "note": "Okada has not practiced during Week 1 preparations and is listed as OUT on Seattle's official injury report for the Sept. 9 opener vs. New England."
         },
         "espnId": "4247808",
-        "statusUpdatedAt": "2026-09-07T01:30:23.126Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-08T23:45Z",
+        "source": "auto"
       }
     ],
     "SF": [
@@ -6263,14 +6287,11 @@
         "name": "Christian McCaffrey",
         "position": "RB",
         "impactScore": 9,
-        "status": "questionable",
-        "injury": {
-          "type": "Undisclosed",
-          "note": "McCaffrey (undisclosed) was not participating in drills in the early portion of the 49ers' practice Monday morning in Australia, Matt Maiocco of NBC Sports Bay Area reports."
-        },
-        "activatedDate": "2026-08-23",
+        "status": "active",
+        "injury": null,
+        "activatedDate": "2026-09-08",
         "espnId": "3117251",
-        "statusUpdatedAt": "2026-09-07T05:57Z",
+        "statusUpdatedAt": "2026-09-08T22:39Z",
         "source": "auto"
       },
       {
@@ -6281,11 +6302,11 @@
         "injury": {
           "type": "Torn Achilles (recovery)",
           "since": "2026-08",
-          "note": "Activated off PUP on Aug. 23 after rupturing his Achilles on Jan. 11 in the playoff win at Philadelphia - back on the field in under eight months. He practiced three straight days before the flight and was a participant at the 49ers' first Melbourne practice on Monday, Sept. 7, a positive sign for the Sept. 10 opener vs. the Rams. GM John Lynch said Kittle has \"absolutely crushed\" his return benchmarks; he has not been formally ruled in, so he remains day-to-day."
+          "note": "Activated off PUP on Aug. 23, under eight months after rupturing his Achilles in the Jan. 11 playoff win at Philadelphia. He was a limited participant at the 49ers' Tuesday, Sept. 8 practice in Melbourne and is trending toward playing Thursday. \"We've got to see how he gets through the rest of the week. We've got two more practices, but Kittle looks good,\" OC Klay Kubiak said. He has not been formally ruled in, so he remains day-to-day."
         },
         "activatedDate": "2026-08-23",
         "espnId": "3040151",
-        "statusUpdatedAt": "2026-09-07T21:05:00.000Z",
+        "statusUpdatedAt": "2026-09-08T23:45Z",
         "source": "curated"
       },
       {
@@ -6307,14 +6328,11 @@
         "position": "WR",
         "impactScore": 8,
         "status": "active",
-        "injury": {
-          "type": "Adductor/groin strain (also missed time with a quad strain)",
-          "since": "2026-08-23",
-          "note": "Missed practice Aug. 31 and Sept. 1 and was not expected to practice again until the team reached Australia, but he beat that timeline by returning Sept. 2 before the flight and practiced with teammates at the 49ers' first Melbourne session Monday, Sept. 7 (per Nick Wagoner). He is expected to play the Sept. 10 opener vs. the Rams."
-        },
+        "injury": null,
         "espnId": "16737",
-        "statusUpdatedAt": "2026-09-07T21:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-08T22:21Z",
+        "source": "auto",
+        "activatedDate": "2026-09-08"
       },
       {
         "name": "Nick Bosa",
@@ -6322,13 +6340,12 @@
         "impactScore": 9,
         "status": "questionable",
         "injury": {
-          "type": "Knee soreness / tendinitis (surgically repaired right knee)",
-          "since": "2026-08-03",
-          "note": "Medically cleared entering camp after the ACL surgery that limited him to three games in 2025, but soreness and tendinitis in the repaired right knee cost him several weeks of practice. He returned to team drills last week and said afterward he was confident about playing the Sept. 10 opener. He did not practice at the 49ers' first Melbourne session Monday, Sept. 7, though he was suited up for the unpadded workout, which reporters read as precautionary rather than a setback. No official participation report is required for the international opener."
+          "type": "Knee - ACL",
+          "note": "Bosa (knee) was limited in Tuesday's practice, Matt Maiocco of NBC Sports Bay Area reports."
         },
         "espnId": "4040605",
-        "statusUpdatedAt": "2026-09-07T21:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-09T01:02Z",
+        "source": "auto"
       },
       {
         "name": "Christian Kirk",
@@ -6356,6 +6373,20 @@
         "statusUpdatedAt": "2026-09-05T21:05:00.000Z",
         "source": "curated",
         "espnId": "4569497"
+      },
+      {
+        "name": "Dre Greenlaw",
+        "position": "LB",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Achilles",
+          "since": "2026-09-08",
+          "note": "Greenlaw was a limited participant with an Achilles designation on San Francisco's first official Week 1 injury report, released Tuesday, Sept. 8 ahead of the team's final practice in Melbourne. No game-status designation has been issued for Thursday's opener vs. the Rams and the 49ers have not detailed the issue."
+        },
+        "statusUpdatedAt": "2026-09-09T01:05:00.000Z",
+        "source": "curated",
+        "espnId": "3916903"
       }
     ],
     "LAR": [
@@ -6372,13 +6403,9 @@
         "name": "Puka Nacua",
         "position": "WR",
         "impactScore": 9,
-        "status": "questionable",
-        "injury": {
-          "type": "Groin",
-          "note": "McVay had described Nacua as \"making good progress\" (per Sarah Barshop of ESPN.com). Nacua did not practice Monday, Sept. 7, but worked on a side field with a member of the Rams' training staff, and McVay said he still expects Nacua to play the Sept. 10 opener vs. the 49ers in Melbourne. Some reporting has described the issue as a psoas strain rather than a straight groin injury.",
-          "since": "2026-08"
-        },
-        "statusUpdatedAt": "2026-09-08T01:05:00.000Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-08T23:51:22.886Z",
         "source": "curated",
         "espnId": "4426515"
       },
@@ -6388,27 +6415,40 @@
         "impactScore": 8,
         "status": "questionable",
         "espnId": "3122132",
-        "statusUpdatedAt": "2026-09-08T01:05:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-09T00:39Z",
+        "source": "auto",
         "injury": {
-          "type": "Knee swelling",
-          "since": "2026-08",
-          "note": "Garrett missed roughly a month of practice - every session since early August - with what the Rams describe as swelling in the knee; HC Sean McVay had put him at about '85%' and said the club was erring on the side of caution with its new star edge rusher. Garrett returned to practice Sunday, Sept. 6, his first session back, with McVay saying beforehand, \"Yep, he's going to do some stuff.\" He is expected to be listed as limited (knee) and likely questionable on Wednesday's first official injury report ahead of the Sept. 10 opener vs. the 49ers in Melbourne. No structural diagnosis has been made public."
+          "type": "Knee",
+          "note": "Garrett (knee) did not practice Tuesday, Sarah Barshop of ESPN.com reports."
         }
       },
       {
         "name": "Aaron Donald",
         "position": "DT",
         "impactScore": 9,
-        "status": "questionable",
-        "statusUpdatedAt": "2026-09-05T21:05:00.000Z",
-        "source": "curated",
+        "status": "out",
+        "statusUpdatedAt": "2026-09-09T01:05:00.000Z",
+        "source": "auto",
         "espnId": "16716",
         "injury": {
-          "type": "Conditioning ramp-up after coming out of retirement (not an injury)",
-          "since": "2026-08-30",
-          "note": "Donald un-retired and rejoined the Rams in late August. He practiced the day after announcing his return but was held out Monday, Aug. 31 as the team eased him back, and HC Sean McVay said Friday, Sept. 4 that while every Rams player is flying to Australia, there is still no decision on whether Donald plays the Sept. 10 opener vs. the 49ers: the team is taking it 'day by day' as he works back into football shape and gets integrated into the defense. No injury has been reported - this is purely a conditioning/readiness question."
+          "type": "Not injury-related - ruled out while ramping up from unretirement",
+          "since": "2026-09-08",
+          "note": "HC Sean McVay told reporters Tuesday, Sept. 8 that Donald will not play in the Sept. 10 opener vs. the 49ers in Melbourne, and Adam Schefter reported Donald did not travel to Australia. McVay said the 16-hour flight factored into keeping him home to keep ramping up: \"I think he'll be ready to go sooner rather than later. But we're making a decision that we think is best for him and for our team.\" The official Week 1 report lists Donald as a limited participant, not injury related (resting player) - this is a workload/ramp-up decision, not an injury. He unretired Aug. 30 after two seasons away; a Week 2 debut vs. the Giants on Monday, Sept. 21 is the likely target."
         }
+      },
+      {
+        "name": "Jaylen Watson",
+        "position": "CB",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Toe injury",
+          "since": "2026-09-08",
+          "note": "Watson did not participate in the Rams' Tuesday, Sept. 8 practice in Melbourne because of a toe injury, his first appearance on the official Week 1 report. The severity has not been disclosed and the Rams have given no indication he is in danger of missing Thursday's opener vs. the 49ers. He signed a three-year, $51 million deal with Los Angeles this offseason and is a projected starting corner."
+        },
+        "statusUpdatedAt": "2026-09-09T01:05:00.000Z",
+        "source": "curated",
+        "espnId": "4697639"
       }
     ],
     "CHI": [
@@ -6429,9 +6469,9 @@
         "injury": {
           "type": "Right leg injury (minor)",
           "since": "2026-09-03",
-          "note": "Odunze limped off with trainers during Thursday's final preseason practice, but reporting Friday indicated he \"should be all good\" and avoided a serious setback. Chicago is being cautious given the right-foot stress fracture that bothered him for much of last season; he is expected back at practice before Sept. 13."
+          "note": "Odunze limped off with trainers during Chicago's final preseason practice; the Bears say it is unrelated to the right-foot stress fracture that bothered him last season. HC Ben Johnson called him \"day-to-day\" on Tuesday, Sept. 8 and Odunze did not practice as the Bears began prep for Carolina, but Johnson said he is hopeful Odunze plays the Sept. 13 opener."
         },
-        "statusUpdatedAt": "2026-09-04T01:05:00.000Z",
+        "statusUpdatedAt": "2026-09-08T23:45Z",
         "source": "curated",
         "espnId": "4431299"
       },
@@ -6861,6 +6901,20 @@
           "note": null
         },
         "statusUpdatedAt": "2026-09-01T20:20:12.728Z",
+        "source": "curated"
+      },
+      {
+        "name": "Quincy Riley",
+        "position": "CB",
+        "espnId": "4428350",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Groin",
+          "since": "2026-09-08",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-08T21:01:17.444Z",
         "source": "curated"
       }
     ],
@@ -7415,6 +7469,16 @@
         "source": "curated"
       },
       {
+        "name": "Bijan Robinson",
+        "position": "RB",
+        "impactScore": 9,
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-09T01:05:00.000Z",
+        "source": "curated",
+        "espnId": "4430807"
+      },
+      {
         "name": "Michael Penix Jr.",
         "position": "QB",
         "impactScore": 7,
@@ -7439,20 +7503,6 @@
         },
         "espnId": "4685597",
         "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
-      },
-      {
-        "name": "Darren Hall",
-        "position": "CB",
-        "espnId": "4261606",
-        "impactScore": 3,
-        "status": "out",
-        "injury": {
-          "type": "Undisclosed - placed on injured reserve",
-          "since": "2026-08-29",
-          "note": "Atlanta placed Hall on injured reserve Saturday, Aug. 29 as part of its roster reduction. The team has not disclosed the injury."
-        },
-        "statusUpdatedAt": "2026-08-29T21:25:36.403Z",
         "source": "curated"
       },
       {
@@ -7662,7 +7712,8 @@
           "note": "Arizona placed Conner on injured reserve with a designation to return on Aug. 30, per Tom Pelissero, as he continues to recover from the dislocated ankle that ended his 2025 season. He must miss at least the first four games (Chargers, Seahawks, 49ers, Giants) and is first eligible to return in Week 5 at Detroit on Oct. 11. With Trey Benson waived in August, rookie Jeremiyah Love and the remaining backs carry the load until Conner is back."
         },
         "statusUpdatedAt": "2026-09-04T17:05:00.000Z",
-        "source": "curated"
+        "source": "curated",
+        "espnId": "3045147"
       }
     ],
     "LAC": [
@@ -8090,6 +8141,19 @@
         "espnId": "4427816",
         "statusUpdatedAt": "2026-08-31T01:30:22.507Z",
         "source": "curated"
+      },
+      {
+        "name": "Tyler Smith",
+        "position": "LG",
+        "impactScore": 7,
+        "status": "out",
+        "injury": {
+          "type": "Thumb ligament injury - surgery, headed to injured reserve",
+          "since": "2026-09-07",
+          "note": "HC Brian Schottenheimer said Monday, Sept. 7 that the three-time Pro Bowl left guard will have surgery on a thumb ligament and is expected to miss four to six weeks; Dallas is placing him on injured reserve. Smith had been playing through the issue but it was affecting his grip strength. T.J. Bass replaces him at left guard, with a Week 5 or Week 6 return the target."
+        },
+        "statusUpdatedAt": "2026-09-08T23:45Z",
+        "espnId": "4568652"
       }
     ],
     "NYG": [
@@ -8244,15 +8308,14 @@
         "name": "Patrick Mahomes",
         "position": "QB",
         "impactScore": 10,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Torn ACL + LCL, left knee (surgically repaired) - cleared",
-          "since": "2025-12-14",
-          "note": "Tore the ACL and LCL in his left knee in the Dec. 14, 2025 game against the Chargers and had surgery in Dallas performed by Dr. Dan Cooper. Cleared for football activities in July and has not missed a training-camp practice, participating in full; Kansas City held him out of all four preseason games purely as a precaution. Mahomes said Tuesday, Sept. 1 that he feels \"great\" and is on track to start, and Ian Rapoport reported the same. He is expected to start the Sept. 14 opener vs. Denver."
+          "type": "Knee - ACL",
+          "note": "Chiefs head coach Andy Reid said Tuesday that Mahomes (knee) has a \"pretty good chance\" to start next Monday's season opener versus the Broncos, Sam McDowell of The Kansas City Star reports."
         },
         "activatedDate": "2026-07-28",
         "espnId": "3139477",
-        "statusUpdatedAt": "2026-09-03T21:05:00.000Z",
+        "statusUpdatedAt": "2026-09-08T17:14Z",
         "source": "auto"
       },
       {
@@ -20471,7 +20534,7 @@ function AddToLeagueSheet({ game, away, home, week, auth, onClose, onShare }) {
   );
 }
 
-function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGame, context, live, week, sportsbookId, tz, hideFullMatchupLink, auth, gameType, gameTypeContext }) {
+function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGame, context, live, week, sportsbookId, tz, hideFullMatchupLink, auth, gameType, gameTypeContext, leagueOrigin, onBackToLeague }) {
   const home = context.getTeam(game.home);
   const away = context.getTeam(game.away);
   if (!home || !away) return null;
@@ -20784,7 +20847,27 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
       </div>
 
       <div className="gc-actions">
-        {canAddToLeague && (
+        {/* Arrived here from a pool's pick sheet: that slot answers "what
+            did I pick in the pool I came from" instead of offering to add
+            the game to a league, which is the one action a reader on this
+            path has already taken. Tapping it returns to the sheet, where
+            the pick can be changed. Falls back to the normal Add to League
+            button everywhere else, and once the game locks (canAddToLeague
+            false) the row keeps its existing Share action. */}
+        {canAddToLeague && leagueOrigin && onBackToLeague && (
+          <button
+            type="button"
+            className="gc-action gc-league-return"
+            data-tour="add-to-league"
+            onClick={onBackToLeague}
+            title={`Back to your ${leagueOrigin.leagueName || "league"} picks`}
+          >
+            {leagueOrigin.pickTeam
+              ? `\u2713 Picked ${leagueOrigin.pickTeam}`
+              : `Pick in ${leagueOrigin.leagueName || "league"}`}
+          </button>
+        )}
+        {canAddToLeague && !(leagueOrigin && onBackToLeague) && (
           <button type="button" className="gc-action" data-tour="add-to-league" onClick={handleAddToLeagueClick}>
             {auth && auth.status === "in" ? "+ Add to League" : "Join a League"}
           </button>
@@ -23817,7 +23900,7 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr, auth }) {
  *  out of sync with what the week view shows for the same matchup.
  *  hideFullMatchupLink suppresses GameCard's own "Full matchup ->" link,
  *  since we're already on that page. */
-function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, onGoHome, sportsbookId, tz, auth, gameType }) {
+function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, onGoHome, sportsbookId, tz, auth, gameType, leagueOrigin, onBackToLeague }) {
   const game = useMemo(
     () => getGamesForWeek(week).find(g => g.away === awayAbbr && g.home === homeAbbr),
     [week, awayAbbr, homeAbbr]
@@ -23831,16 +23914,28 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
   const gameTypeContext = useMemo(() => buildGameTypeContext(week, gameType), [week, gameType]);
   useSportsEventJsonLd(game ? [game] : [], seasonYear);
 
+  /* Opened from a league's pick sheet, the trail has to lead back to that
+     pool rather than to the Games tab the reader never came from - and the
+     last crumb is what the crumb-back button repeats ("Back to Week 1
+     Picks"), which is the whole point of the route. */
+  const fromLeague = !!(leagueOrigin && leagueOrigin.leagueId && onBackToLeague);
+  const backToPicks = () => onBackToLeague(leagueOrigin);
+  const picksLabel = `${getPeriodLabel(leagueOrigin ? leagueOrigin.week : week)} Picks`;
+  const trail = fromLeague
+    ? [
+        { label: "Home", onClick: () => (onGoHome ? onGoHome() : onBack()) },
+        { label: leagueOrigin.leagueName || "League", onClick: backToPicks },
+        { label: picksLabel, onClick: backToPicks },
+      ]
+    : [
+        { label: "Home", onClick: () => (onGoHome ? onGoHome() : onBack()) },
+        { label: "Games", onClick: onBack },
+        { label: getPeriodLabel(week), onClick: onBack },
+      ];
+
   return (
     <div className="game-page">
-      <Breadcrumb
-        trail={[
-          { label: "Home", onClick: () => (onGoHome ? onGoHome() : onBack()) },
-          { label: "Games", onClick: onBack },
-          { label: getPeriodLabel(week), onClick: onBack },
-        ]}
-        current={`${awayAbbr} @ ${homeAbbr}`}
-      />
+      <Breadcrumb trail={trail} current={`${awayAbbr} @ ${homeAbbr}`} />
       {game ? (
         <>
           <GameCard
@@ -23857,9 +23952,21 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
             gameType={gameType}
             gameTypeContext={gameTypeContext}
             hideFullMatchupLink
+            leagueOrigin={fromLeague ? leagueOrigin : null}
+            onBackToLeague={fromLeague ? backToPicks : null}
           />
           <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} auth={auth} />
           <HeadToHeadHistory awayAbbr={game.away} homeAbbr={game.home} auth={auth} />
+          {/* See .back-to-picks-bottom - the crumb back button is far off
+              screen by the time someone has read all of this. */}
+          {fromLeague && (
+            <div className="back-to-picks-bottom">
+              <button type="button" className="back-btn" onClick={backToPicks}>
+                <ChevronIcon direction="left" size={13} />
+                <span>Back to {picksLabel}</span>
+              </button>
+            </div>
+          )}
         </>
       ) : (
         <p>This matchup isn't on the schedule.</p>
@@ -28564,7 +28671,7 @@ function BlitzEdgeRow(props) {
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor }) {
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor, onOpenGame }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   useEffect(() => {
@@ -28687,11 +28794,22 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
         <p className="pickem-replace-hint">Tapping here replaces your current pick</p>
       )}
       {error && <div className="pickem-pick-error">{error}</div>}
+      {/* The pick sheet gives you the model's read in one line; everything
+          behind it - the offense/defense tables, the injury report, the full
+          write-up, every book's line, the head-to-head - lives on the game
+          page and had no route from here at all. Rendered last so it can
+          bleed to the card's bottom edge the way .gc-actions does. */}
+      {onOpenGame && (
+        <button type="button" className="pickem-details-link" onClick={() => onOpenGame(game)}>
+          Full Details &amp; History
+          <span className="pickem-details-chev" aria-hidden="true">›</span>
+        </button>
+      )}
     </div>
   );
 }
 
-function LeagueWeekPanel({ auth, league, week, tz }) {
+function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
   // Seeded straight from the cache, so reopening a league or stepping back
   // to a week already visited paints immediately with the previous payload
   // and refreshes underneath. Only a genuinely uncached week shows a
@@ -28947,6 +29065,17 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
             suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
             survivor={isSurvivor ? survivorFor(game) : null}
             replacesPick={isSurvivor && !game.pick && data.games.some(g => g.pick)}
+            onOpenGame={onOpenGame ? (g => onOpenGame(g, {
+              leagueId: league.id,
+              leagueName: league.name,
+              week,
+              format: data.format,
+              // Carried so the game page can confirm the pick already on
+              // record without refetching the league week - it's the one
+              // piece of league state the game page shows.
+              pickTeam: (g.pick && g.pick.team) || null,
+              locked: !!g.locked,
+            })) : null}
           />
         ))}
       </div>
@@ -29529,7 +29658,7 @@ function LeagueRequestsPanel({ auth, league, onPendingChange }) {
   );
 }
 
-function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, initialWeek, onOpenLeagueRoute, onGoHome }) {
+function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, initialWeek, onOpenLeagueRoute, onGoHome, onOpenGame }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   // /leagues/{id} opens straight into that league. Initial value only -
   // once someone navigates inside the tab, their clicks own this, not the
@@ -29797,7 +29926,7 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
               </button>
             )}
           </div>
-          {subTab === "week" && <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} />}
+          {subTab === "week" && <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} onOpenGame={onOpenGame} />}
           {subTab === "picks" && <LeaguePicksPanel auth={auth} profile={profile} league={league} week={week} tz={tz} />}
           {subTab === "standings" && <LeagueStandingsPanel auth={auth} profile={profile} league={league} />}
           {subTab === "requests" && isOwner && league.visibility === "private" && (
@@ -37106,12 +37235,18 @@ function App() {
       if (route && route.view === "team") {
         setSelectedTeamId(route.teamId);
         setSelectedGame(null);
+        setGameOrigin(null);
         setTeamFocus(route.focus || null);
         setView("team");
         setActiveTab("games");
       } else if (route && route.view === "game") {
         setSelectedGame({ week: route.week, awayAbbr: route.awayAbbr, homeAbbr: route.homeAbbr });
         setSelectedWeek(route.week);
+        // The league trail this entry was pushed with, if any (see
+        // selectGame). Without it, stepping back into a game page opened
+        // from a pick sheet would show the Games breadcrumb and a back
+        // button pointing at the week view instead of the pool.
+        setGameOrigin((window.history.state && window.history.state.origin) || null);
         setView("game");
         setActiveTab("games");
       } else if (route && route.tab) {
@@ -37119,10 +37254,12 @@ function App() {
         // back as well as the view - otherwise the URL and the screen
         // disagree until the next click.
         setSelectedGame(null);
+        setGameOrigin(null);
         setView("week");
         setActiveTab(route.tab === "league" && !LEAGUES_UI_ENABLED ? "games" : route.tab);
       } else {
         setSelectedGame(null);
+        setGameOrigin(null);
         setView("week");
         setActiveTab("games");
       }
@@ -37269,6 +37406,7 @@ function App() {
   function selectTeam(teamId) {
     setSelectedTeamId(teamId);
     setSelectedGame(null);
+    setGameOrigin(null);
     setTeamFocus(null);
     setView("team");
     setActiveTab("games");
@@ -37280,12 +37418,50 @@ function App() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
-  function selectGame(week, awayAbbr, homeAbbr) {
+  /* Where the game page was opened from, when that wasn't the Games tab.
+     Today the only such caller is a league pick sheet; the page uses it for
+     its breadcrumb, its two back buttons and the pick confirmation in the
+     card footer. Stamped into history state as well as held here, so the
+     browser's own Back/Forward through a game page keeps the league trail
+     instead of silently reverting to "Home > Games". */
+  const [gameOrigin, setGameOrigin] = useState(null);
+
+  function selectGame(week, awayAbbr, homeAbbr, origin) {
     setSelectedGame({ week, awayAbbr, homeAbbr });
+    setGameOrigin(origin || null);
     setView("game");
     setActiveTab("games");
     const path = buildGamePath(week, awayAbbr, homeAbbr);
-    if (window.location.pathname !== path) stampAndPush({ view: "game", week, awayAbbr, homeAbbr }, path);
+    if (window.location.pathname !== path) {
+      stampAndPush({ view: "game", week, awayAbbr, homeAbbr, origin: origin || null }, path);
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
+  /** A game opened from a league's pick sheet. `game` is the picks-mine row
+   *  (away/home/gameId), `origin` the league context the pick card built. */
+  function openGameFromLeague(game, origin) {
+    if (!game || !origin) return;
+    trackEvent("league_game_details", {
+      source: "pick_card",
+      format: origin.format,
+      away: game.away,
+      home: game.home,
+      locked: !!origin.locked,
+      picked: origin.pickTeam ? "yes" : "no",
+    });
+    selectGame(origin.week, game.away, game.home, origin);
+  }
+
+  /** Return to the pick sheet a game page was opened from. */
+  function backToLeaguePicks(origin) {
+    const target = origin || gameOrigin;
+    if (!target) { backToWeek(); return; }
+    trackEvent("league_game_details", { source: "back_to_picks", format: target.format });
+    setSelectedGame(null);
+    setGameOrigin(null);
+    setView("week");
+    goToLeaguesTab({ leagueId: target.leagueId, leagueSubTab: "week", week: target.week });
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
@@ -37303,6 +37479,7 @@ function App() {
   function backToWeek() {
     setView("week");
     setSelectedGame(null);
+    setGameOrigin(null);
     const already = activeTab === "games";
     setActiveTab("games");
     const path = buildTabPath("games");
@@ -37581,6 +37758,8 @@ function App() {
               tz={resolvedTz}
               auth={auth}
               gameType={gameType}
+              leagueOrigin={gameOrigin}
+              onBackToLeague={backToLeaguePicks}
             />
           ) : (
             <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onGoHome={goHomeTab} onSelectTeam={selectTeam} onSelectGame={selectGame} sportsbookId={sportsbookId} tz={resolvedTz} focus={teamFocus} />
@@ -37616,6 +37795,7 @@ function App() {
           initialWeek={leagueIntent ? (leagueIntent.week || null) : null}
           onOpenLeagueRoute={syncLeagueRoute}
           onGoHome={goHomeTab}
+          onOpenGame={openGameFromLeague}
         />
       )}
 

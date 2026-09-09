@@ -2571,6 +2571,10 @@
      then have painted "Full Details" in accent and hung a divider on the
      wrong side of it. */
   .gc-action[data-tour="add-to-league"] { border-right: 1px solid var(--card-border); color: var(--accent); }
+  /* The league-return variant occupies the same slot and keeps the accent,
+     but reads as a confirmation rather than an invitation, so it doesn't
+     shout at the same volume as an unfilled Add to League. */
+  .gc-action.gc-league-return { font-size: 0.72rem; }
   .gc-action:hover { background: rgba(var(--accent-rgb),0.08); }
   .gc-chevron { transition: transform 0.2s ease; display: inline-block; }
   .gc-chevron.expanded { transform: rotate(180deg); }
@@ -4162,6 +4166,26 @@
   .pickem-confidence-needed { color: var(--accent); font-weight: 700; }
   .pickem-confidence-select { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); border-radius: 6px; padding: 4px 8px; font-size: 0.78rem; font-weight: 700; font-family: inherit; }
   .pickem-pick-error { font-size: 0.68rem; color: var(--out); background: rgba(var(--out-rgb),0.1); border: 1px solid rgba(var(--out-rgb),0.3); border-radius: 6px; padding: 5px 8px; }
+  /* Deliberately mirrors .gc-actions on the game card: full-bleed to the
+     card's edge, hairline above, same weight and size. A pick card and a
+     game card are the two places a matchup appears in this app, and the
+     link between them should read as the same control on both. The negative
+     margins match .pickem-game-card's 14px padding and its 14px radius. */
+  .pickem-details-link {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin: 2px -14px -14px; padding: 11px 8px;
+    border: none; border-top: 1px solid var(--card-border); border-radius: 0 0 14px 14px;
+    background: none; cursor: pointer; font: inherit; font-size: 0.76rem; font-weight: 700; color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pickem-details-link:hover { background: rgba(var(--accent-rgb),0.08); color: var(--accent); }
+  .pickem-details-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .pickem-details-chev { color: var(--accent); font-size: 0.9rem; line-height: 1; }
+  /* A game page opened from a pick sheet is long - card, compare table,
+     head-to-head - so the crumb back button at the top is off screen by the
+     time someone's finished reading. This repeats it at the bottom rather
+     than making them scroll back up or reach for the browser. */
+  .back-to-picks-bottom { display: flex; justify-content: center; margin-top: 18px; }
   .pickem-autosave-note { font-size: 0.68rem; color: var(--text-dim); display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
   .pickem-autosave-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--win); }
 
@@ -20473,7 +20497,7 @@ function AddToLeagueSheet({ game, away, home, week, auth, onClose, onShare }) {
   );
 }
 
-function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGame, context, live, week, sportsbookId, tz, hideFullMatchupLink, auth, gameType, gameTypeContext }) {
+function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGame, context, live, week, sportsbookId, tz, hideFullMatchupLink, auth, gameType, gameTypeContext, leagueOrigin, onBackToLeague }) {
   const home = context.getTeam(game.home);
   const away = context.getTeam(game.away);
   if (!home || !away) return null;
@@ -20786,7 +20810,27 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
       </div>
 
       <div className="gc-actions">
-        {canAddToLeague && (
+        {/* Arrived here from a pool's pick sheet: that slot answers "what
+            did I pick in the pool I came from" instead of offering to add
+            the game to a league, which is the one action a reader on this
+            path has already taken. Tapping it returns to the sheet, where
+            the pick can be changed. Falls back to the normal Add to League
+            button everywhere else, and once the game locks (canAddToLeague
+            false) the row keeps its existing Share action. */}
+        {canAddToLeague && leagueOrigin && onBackToLeague && (
+          <button
+            type="button"
+            className="gc-action gc-league-return"
+            data-tour="add-to-league"
+            onClick={onBackToLeague}
+            title={`Back to your ${leagueOrigin.leagueName || "league"} picks`}
+          >
+            {leagueOrigin.pickTeam
+              ? `\u2713 Picked ${leagueOrigin.pickTeam}`
+              : `Pick in ${leagueOrigin.leagueName || "league"}`}
+          </button>
+        )}
+        {canAddToLeague && !(leagueOrigin && onBackToLeague) && (
           <button type="button" className="gc-action" data-tour="add-to-league" onClick={handleAddToLeagueClick}>
             {auth && auth.status === "in" ? "+ Add to League" : "Join a League"}
           </button>
@@ -23819,7 +23863,7 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr, auth }) {
  *  out of sync with what the week view shows for the same matchup.
  *  hideFullMatchupLink suppresses GameCard's own "Full matchup ->" link,
  *  since we're already on that page. */
-function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, onGoHome, sportsbookId, tz, auth, gameType }) {
+function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSelectTeam, onBack, onGoHome, sportsbookId, tz, auth, gameType, leagueOrigin, onBackToLeague }) {
   const game = useMemo(
     () => getGamesForWeek(week).find(g => g.away === awayAbbr && g.home === homeAbbr),
     [week, awayAbbr, homeAbbr]
@@ -23833,16 +23877,28 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
   const gameTypeContext = useMemo(() => buildGameTypeContext(week, gameType), [week, gameType]);
   useSportsEventJsonLd(game ? [game] : [], seasonYear);
 
+  /* Opened from a league's pick sheet, the trail has to lead back to that
+     pool rather than to the Games tab the reader never came from - and the
+     last crumb is what the crumb-back button repeats ("Back to Week 1
+     Picks"), which is the whole point of the route. */
+  const fromLeague = !!(leagueOrigin && leagueOrigin.leagueId && onBackToLeague);
+  const backToPicks = () => onBackToLeague(leagueOrigin);
+  const picksLabel = `${getPeriodLabel(leagueOrigin ? leagueOrigin.week : week)} Picks`;
+  const trail = fromLeague
+    ? [
+        { label: "Home", onClick: () => (onGoHome ? onGoHome() : onBack()) },
+        { label: leagueOrigin.leagueName || "League", onClick: backToPicks },
+        { label: picksLabel, onClick: backToPicks },
+      ]
+    : [
+        { label: "Home", onClick: () => (onGoHome ? onGoHome() : onBack()) },
+        { label: "Games", onClick: onBack },
+        { label: getPeriodLabel(week), onClick: onBack },
+      ];
+
   return (
     <div className="game-page">
-      <Breadcrumb
-        trail={[
-          { label: "Home", onClick: () => (onGoHome ? onGoHome() : onBack()) },
-          { label: "Games", onClick: onBack },
-          { label: getPeriodLabel(week), onClick: onBack },
-        ]}
-        current={`${awayAbbr} @ ${homeAbbr}`}
-      />
+      <Breadcrumb trail={trail} current={`${awayAbbr} @ ${homeAbbr}`} />
       {game ? (
         <>
           <GameCard
@@ -23859,9 +23915,21 @@ function GameView({ week, awayAbbr, homeAbbr, favorites, onToggleFavorite, onSel
             gameType={gameType}
             gameTypeContext={gameTypeContext}
             hideFullMatchupLink
+            leagueOrigin={fromLeague ? leagueOrigin : null}
+            onBackToLeague={fromLeague ? backToPicks : null}
           />
           <SportsbookCompareSection week={week} awayAbbr={game.away} homeAbbr={game.home} auth={auth} />
           <HeadToHeadHistory awayAbbr={game.away} homeAbbr={game.home} auth={auth} />
+          {/* See .back-to-picks-bottom - the crumb back button is far off
+              screen by the time someone has read all of this. */}
+          {fromLeague && (
+            <div className="back-to-picks-bottom">
+              <button type="button" className="back-btn" onClick={backToPicks}>
+                <ChevronIcon direction="left" size={13} />
+                <span>Back to {picksLabel}</span>
+              </button>
+            </div>
+          )}
         </>
       ) : (
         <p>This matchup isn't on the schedule.</p>
@@ -28566,7 +28634,7 @@ function BlitzEdgeRow(props) {
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor }) {
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor, onOpenGame }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   useEffect(() => {
@@ -28689,11 +28757,22 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, onPick, saving
         <p className="pickem-replace-hint">Tapping here replaces your current pick</p>
       )}
       {error && <div className="pickem-pick-error">{error}</div>}
+      {/* The pick sheet gives you the model's read in one line; everything
+          behind it - the offense/defense tables, the injury report, the full
+          write-up, every book's line, the head-to-head - lives on the game
+          page and had no route from here at all. Rendered last so it can
+          bleed to the card's bottom edge the way .gc-actions does. */}
+      {onOpenGame && (
+        <button type="button" className="pickem-details-link" onClick={() => onOpenGame(game)}>
+          Full Details &amp; History
+          <span className="pickem-details-chev" aria-hidden="true">›</span>
+        </button>
+      )}
     </div>
   );
 }
 
-function LeagueWeekPanel({ auth, league, week, tz }) {
+function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
   // Seeded straight from the cache, so reopening a league or stepping back
   // to a week already visited paints immediately with the previous payload
   // and refreshes underneath. Only a genuinely uncached week shows a
@@ -28949,6 +29028,17 @@ function LeagueWeekPanel({ auth, league, week, tz }) {
             suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
             survivor={isSurvivor ? survivorFor(game) : null}
             replacesPick={isSurvivor && !game.pick && data.games.some(g => g.pick)}
+            onOpenGame={onOpenGame ? (g => onOpenGame(g, {
+              leagueId: league.id,
+              leagueName: league.name,
+              week,
+              format: data.format,
+              // Carried so the game page can confirm the pick already on
+              // record without refetching the league week - it's the one
+              // piece of league state the game page shows.
+              pickTeam: (g.pick && g.pick.team) || null,
+              locked: !!g.locked,
+            })) : null}
           />
         ))}
       </div>
@@ -29531,7 +29621,7 @@ function LeagueRequestsPanel({ auth, league, onPendingChange }) {
   );
 }
 
-function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, initialWeek, onOpenLeagueRoute, onGoHome }) {
+function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, initialWeek, onOpenLeagueRoute, onGoHome, onOpenGame }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   // /leagues/{id} opens straight into that league. Initial value only -
   // once someone navigates inside the tab, their clicks own this, not the
@@ -29799,7 +29889,7 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
               </button>
             )}
           </div>
-          {subTab === "week" && <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} />}
+          {subTab === "week" && <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} onOpenGame={onOpenGame} />}
           {subTab === "picks" && <LeaguePicksPanel auth={auth} profile={profile} league={league} week={week} tz={tz} />}
           {subTab === "standings" && <LeagueStandingsPanel auth={auth} profile={profile} league={league} />}
           {subTab === "requests" && isOwner && league.visibility === "private" && (
@@ -37108,12 +37198,18 @@ function App() {
       if (route && route.view === "team") {
         setSelectedTeamId(route.teamId);
         setSelectedGame(null);
+        setGameOrigin(null);
         setTeamFocus(route.focus || null);
         setView("team");
         setActiveTab("games");
       } else if (route && route.view === "game") {
         setSelectedGame({ week: route.week, awayAbbr: route.awayAbbr, homeAbbr: route.homeAbbr });
         setSelectedWeek(route.week);
+        // The league trail this entry was pushed with, if any (see
+        // selectGame). Without it, stepping back into a game page opened
+        // from a pick sheet would show the Games breadcrumb and a back
+        // button pointing at the week view instead of the pool.
+        setGameOrigin((window.history.state && window.history.state.origin) || null);
         setView("game");
         setActiveTab("games");
       } else if (route && route.tab) {
@@ -37121,10 +37217,12 @@ function App() {
         // back as well as the view - otherwise the URL and the screen
         // disagree until the next click.
         setSelectedGame(null);
+        setGameOrigin(null);
         setView("week");
         setActiveTab(route.tab === "league" && !LEAGUES_UI_ENABLED ? "games" : route.tab);
       } else {
         setSelectedGame(null);
+        setGameOrigin(null);
         setView("week");
         setActiveTab("games");
       }
@@ -37271,6 +37369,7 @@ function App() {
   function selectTeam(teamId) {
     setSelectedTeamId(teamId);
     setSelectedGame(null);
+    setGameOrigin(null);
     setTeamFocus(null);
     setView("team");
     setActiveTab("games");
@@ -37282,12 +37381,50 @@ function App() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
-  function selectGame(week, awayAbbr, homeAbbr) {
+  /* Where the game page was opened from, when that wasn't the Games tab.
+     Today the only such caller is a league pick sheet; the page uses it for
+     its breadcrumb, its two back buttons and the pick confirmation in the
+     card footer. Stamped into history state as well as held here, so the
+     browser's own Back/Forward through a game page keeps the league trail
+     instead of silently reverting to "Home > Games". */
+  const [gameOrigin, setGameOrigin] = useState(null);
+
+  function selectGame(week, awayAbbr, homeAbbr, origin) {
     setSelectedGame({ week, awayAbbr, homeAbbr });
+    setGameOrigin(origin || null);
     setView("game");
     setActiveTab("games");
     const path = buildGamePath(week, awayAbbr, homeAbbr);
-    if (window.location.pathname !== path) stampAndPush({ view: "game", week, awayAbbr, homeAbbr }, path);
+    if (window.location.pathname !== path) {
+      stampAndPush({ view: "game", week, awayAbbr, homeAbbr, origin: origin || null }, path);
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
+  /** A game opened from a league's pick sheet. `game` is the picks-mine row
+   *  (away/home/gameId), `origin` the league context the pick card built. */
+  function openGameFromLeague(game, origin) {
+    if (!game || !origin) return;
+    trackEvent("league_game_details", {
+      source: "pick_card",
+      format: origin.format,
+      away: game.away,
+      home: game.home,
+      locked: !!origin.locked,
+      picked: origin.pickTeam ? "yes" : "no",
+    });
+    selectGame(origin.week, game.away, game.home, origin);
+  }
+
+  /** Return to the pick sheet a game page was opened from. */
+  function backToLeaguePicks(origin) {
+    const target = origin || gameOrigin;
+    if (!target) { backToWeek(); return; }
+    trackEvent("league_game_details", { source: "back_to_picks", format: target.format });
+    setSelectedGame(null);
+    setGameOrigin(null);
+    setView("week");
+    goToLeaguesTab({ leagueId: target.leagueId, leagueSubTab: "week", week: target.week });
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
@@ -37305,6 +37442,7 @@ function App() {
   function backToWeek() {
     setView("week");
     setSelectedGame(null);
+    setGameOrigin(null);
     const already = activeTab === "games";
     setActiveTab("games");
     const path = buildTabPath("games");
@@ -37583,6 +37721,8 @@ function App() {
               tz={resolvedTz}
               auth={auth}
               gameType={gameType}
+              leagueOrigin={gameOrigin}
+              onBackToLeague={backToLeaguePicks}
             />
           ) : (
             <TeamView teamId={selectedTeamId} favorites={favorites} onToggleFavorite={toggleFavorite} onBack={backToWeek} onGoHome={goHomeTab} onSelectTeam={selectTeam} onSelectGame={selectGame} sportsbookId={sportsbookId} tz={resolvedTz} focus={teamFocus} />
@@ -37618,6 +37758,7 @@ function App() {
           initialWeek={leagueIntent ? (leagueIntent.week || null) : null}
           onOpenLeagueRoute={syncLeagueRoute}
           onGoHome={goHomeTab}
+          onOpenGame={openGameFromLeague}
         />
       )}
 

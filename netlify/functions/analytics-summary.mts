@@ -383,6 +383,10 @@ function emptySummary(now: number, range: Range) {
     teamClicksByOrigin: {} as Record<string, number>,
     boxscoreClicksByTeam: {} as Record<string, number>,
     boxscoreClicksBySource: {} as Record<string, number>,
+    leagueGameDetailsOpens: 0,
+    leagueGameDetailsReturns: 0,
+    leagueGameDetailsByFormat: {} as Record<string, number>,
+    leagueGameDetailsByPicked: {} as Record<string, number>,
     gameFollowAdds: 0,
     gameFollowRemoves: 0,
     gameFollowsByGame: {} as Record<string, number>,
@@ -951,6 +955,21 @@ export default async (req: Request, _context: Context) => {
     // predating the client-side tracking fix. ---
     const boxscoreClicksBySource = sortedCounts(boxscoreClicks, (r) => r.source);
 
+    /* --- the pick sheet <-> game page route ---
+       Opens are taps on a pick card's "Full Details & History"; returns are
+       taps on either back control on the game page it leads to. Counted
+       separately rather than as one total because the ratio is the whole
+       measure of the link: opens with few returns means the game page is
+       where the picking session ends, which would be the link costing
+       completions rather than informing them. byPicked splits the opens
+       into checking a pick already made vs. researching one not made yet. */
+    const leagueGameDetails = validRecords.filter((r) => r.type === "league_game_details");
+    const leagueGameDetailsOpenRecords = leagueGameDetails.filter((r) => r.source === "pick_card");
+    const leagueGameDetailsOpens = leagueGameDetailsOpenRecords.length;
+    const leagueGameDetailsReturns = leagueGameDetails.filter((r) => r.source === "back_to_picks").length;
+    const leagueGameDetailsByFormat = sortedCounts(leagueGameDetailsOpenRecords, (r) => r.format);
+    const leagueGameDetailsByPicked = sortedCounts(leagueGameDetailsOpenRecords, (r) => r.picked);
+
     // --- per-game follows: the "Alert me" bell on a game card ---
     // Adds and removes are counted separately rather than netted. A net
     // figure would hide the case worth knowing about - a lot of taps on and
@@ -1206,6 +1225,10 @@ export default async (req: Request, _context: Context) => {
         teamClicksByOrigin,
         boxscoreClicksByTeam: capTop(boxscoreClicksByTeam),
         boxscoreClicksBySource,
+        leagueGameDetailsOpens,
+        leagueGameDetailsReturns,
+        leagueGameDetailsByFormat,
+        leagueGameDetailsByPicked,
         gameFollowAdds,
         gameFollowRemoves,
         gameFollowAddsInProgress,

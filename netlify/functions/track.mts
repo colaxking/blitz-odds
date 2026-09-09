@@ -67,6 +67,14 @@ const VALID_TYPES = new Set([
   // recipient's side: the sender's half of it is invisible, so "nobody is
   // joining" and "nobody is inviting" look identical.
   "league_invite_share",
+  // The route between a league's pick sheet and a game page, both
+  // directions. The pick card carries one line of model output; everything
+  // that justifies it lives on the game page, and until this link existed
+  // there was no way there from inside a pool. `source` separates the two
+  // halves ("pick_card" out, "back_to_picks" home again) - an open rate
+  // with no returns would mean the trip is a dead end, which is the
+  // failure mode worth watching.
+  "league_game_details",
   "playbook_subtab",
   "playbook_format",
   "gate_cta",
@@ -374,7 +382,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index, official, ok, method } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index, official, ok, method, picked, locked } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -457,6 +465,18 @@ export default async (req: Request, context: Context) => {
       // panel) and "score_tap" (the tappable score still on the
       // picks/results and team schedule views).
       if (source) record.source = String(source).slice(0, 32);
+    }
+
+    if (type === "league_game_details") {
+      if (source) record.source = String(source).slice(0, 32);
+      if (format) record.format = String(format).slice(0, 32);
+      if (away) record.away = String(away).slice(0, 64);
+      if (home) record.home = String(home).slice(0, 64);
+      // Whether the reader had already made this pick when they went
+      // looking - the difference between checking a decision and making
+      // one, which is what decides where the link most earns its place.
+      if (picked === "yes" || picked === "no") record.picked = picked;
+      if (locked === true || locked === false) record.locked = locked;
     }
 
     if (type === "game_follow") {

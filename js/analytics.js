@@ -59,6 +59,10 @@
  * the bottom of it (see the comment there):
  *  - "push_device_desync" / "push_device_repaired" /
  *    "push_device_repair_failed" - push registration health
+ *  - "league_game_details" - the route between a league's pick sheet and a
+ *    game page. `source` is "pick_card" going out and "back_to_picks"
+ *    coming home; opens without returns would mean the game page ends the
+ *    picking session rather than informing it
  *  - "terms_consent" - the Terms of Service acceptance flow, with `action`
  *    naming the step. The email signup form carries the checkbox inline
  *    ("signup_checked" / "signup_unchecked"); the OAuth route gets an

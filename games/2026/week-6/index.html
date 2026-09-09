@@ -3276,6 +3276,16 @@
   .profile-input:focus { border-color: var(--accent); }
   .profile-input:disabled { color: var(--text-dim); cursor: not-allowed; }
   .profile-field-hint { font-size: 0.74rem; color: var(--text-dim); margin-top: 5px; line-height: 1.4; }
+  .profile-field-label { display: block; font-size: 0.78rem; color: var(--text-dim); margin-bottom: 5px; }
+  /* Inline validation for the password panel. Tinted rather than plain red
+     text so it reads as a state of the form, matching the delete panel's
+     error, and it sits above the button so it can't be missed by someone
+     already reaching for it. */
+  .profile-error {
+    margin: 10px 0 0; font-size: 0.8rem; font-weight: 600; line-height: 1.4;
+    color: var(--out); background: rgba(var(--out-rgb), 0.09);
+    border: 1px solid rgba(var(--out-rgb), 0.3); border-radius: 8px; padding: 9px 12px;
+  }
   .profile-row-inline { display: flex; gap: 8px; align-items: center; }
   .profile-row-inline .profile-input { flex: 1; }
   .link-btn {
@@ -25965,6 +25975,16 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
   // paragraph sitting permanently under a routine Save Profile screen reads
   // as a threat rather than an option.
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // Password change. Collapsed behind a button for the same reason the
+  // delete panel is: three password fields permanently open on a screen
+  // whose main job is picking an avatar reads as something being wrong.
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNext, setPwNext] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState(null);
+  const [pwSentReset, setPwSentReset] = useState(false);
   const [deleteEmail, setDeleteEmail] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
@@ -26026,6 +26046,89 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
       setToast(e && e.message ? e.message : "Couldn't save changes");
     } finally {
       setSaving(false);
+    }
+  }
+
+  // True when the account has a password to change at all. A Google signup
+  // has never set one, so the panel offers to ADD a password rather than
+  // asking for a current one that doesn't exist - which is also what
+  // auth-password.mts branches on server-side, from the same claim.
+  const authProvider = (auth.user && auth.user.app_metadata && auth.user.app_metadata.provider) || "email";
+  const hasPassword = authProvider === "email";
+
+  function resetPasswordForm() {
+    setPwCurrent("");
+    setPwNext("");
+    setPwConfirm("");
+    setPwError(null);
+  }
+
+  async function handleChangePassword() {
+    if (pwSaving) return;
+    setPwError(null);
+
+    // Checked here as well as server-side purely so the common typo costs a
+    // round trip instead of a request. The server is still the authority.
+    if (hasPassword && !pwCurrent) {
+      setPwError("Enter your current password.");
+      return;
+    }
+    if (pwNext.length < 8) {
+      setPwError("New password must be at least 8 characters.");
+      return;
+    }
+    if (pwNext !== pwConfirm) {
+      setPwError("Those two passwords don't match.");
+      return;
+    }
+
+    setPwSaving(true);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/auth-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: pwCurrent, newPassword: pwNext }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body.ok) {
+        trackEvent("password_change_complete", {
+          surface: "settings",
+          outcome: body.code || "error",
+        });
+        setPwError(body.error || "Couldn't update the password. Try again.");
+        setPwSaving(false);
+        return;
+      }
+      trackEvent("password_change_complete", { surface: "settings", outcome: "success" });
+      resetPasswordForm();
+      setChangingPassword(false);
+      setPwSaving(false);
+      setToast(hasPassword ? "Password updated" : "Password set");
+    } catch (e) {
+      trackEvent("password_change_complete", { surface: "settings", outcome: "error" });
+      setPwError(e && e.message ? e.message : "Couldn't reach the server. Try again.");
+      setPwSaving(false);
+    }
+  }
+
+  // The way out for someone signed in who can't remember the password they
+  // are being asked for. Reuses auth-forgot verbatim rather than adding a
+  // signed-in variant: it answers the same question (do you control this
+  // address) and it already exists.
+  async function handleEmailResetLink() {
+    if (pwSentReset) return;
+    setPwSentReset(true);
+    trackEvent("password_reset_from_profile", { surface: "settings" });
+    try {
+      await fetch("/.netlify/functions/auth-forgot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: currentEmail }),
+      });
+    } catch (e) {
+      // Deliberately swallowed. auth-forgot answers 202 regardless of
+      // outcome by design, so there is nothing truthful to report here
+      // beyond "check your inbox", which the UI already says.
     }
   }
 
@@ -26143,6 +26246,93 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
             We'll send a confirmation link to your new address before the change takes effect.
           </div>
         </div>
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Password</h3>
+        {!changingPassword ? (
+          <React.Fragment>
+            <div className="profile-field-hint" style={{ marginTop: 0, marginBottom: 10 }}>
+              {hasPassword
+                ? "Used when you sign in with your email address."
+                : "You sign in with Google, so there's no password on this account. You can add one as a second way in."}
+            </div>
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => {
+                resetPasswordForm();
+                setPwSentReset(false);
+                setChangingPassword(true);
+              }}
+            >
+              {hasPassword ? "Change password" : "Set a password"}
+            </button>
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            {hasPassword && (
+              <div className="profile-field">
+                <label className="profile-field-label" htmlFor="pw-current">Current password</label>
+                <input
+                  id="pw-current"
+                  className="profile-input"
+                  type="password"
+                  autoComplete="current-password"
+                  value={pwCurrent}
+                  onChange={(e) => setPwCurrent(e.target.value)}
+                />
+              </div>
+            )}
+            <div className="profile-field">
+              <label className="profile-field-label" htmlFor="pw-next">New password</label>
+              <input
+                id="pw-next"
+                className="profile-input"
+                type="password"
+                autoComplete="new-password"
+                placeholder="At least 8 characters"
+                value={pwNext}
+                onChange={(e) => setPwNext(e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <label className="profile-field-label" htmlFor="pw-confirm">Confirm password</label>
+              <input
+                id="pw-confirm"
+                className="profile-input"
+                type="password"
+                autoComplete="new-password"
+                placeholder="Repeat it"
+                value={pwConfirm}
+                onChange={(e) => setPwConfirm(e.target.value)}
+              />
+            </div>
+
+            {pwError && <div className="profile-error">{pwError}</div>}
+
+            <button type="button" className="save-btn" onClick={handleChangePassword} disabled={pwSaving}>
+              {pwSaving ? "Saving…" : hasPassword ? "Update password" : "Set password"}
+            </button>
+            <div className="profile-row-inline" style={{ marginTop: 10, justifyContent: "space-between" }}>
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => {
+                  resetPasswordForm();
+                  setChangingPassword(false);
+                }}
+              >
+                Cancel
+              </button>
+              {hasPassword && (
+                <button type="button" className="link-btn" onClick={handleEmailResetLink} disabled={pwSentReset}>
+                  {pwSentReset ? "Check your inbox" : "Email me a reset link"}
+                </button>
+              )}
+            </div>
+          </React.Fragment>
+        )}
       </div>
 
       <button type="button" className="save-btn" onClick={handleSave} disabled={saving}>

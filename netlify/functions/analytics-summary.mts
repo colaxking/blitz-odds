@@ -862,6 +862,18 @@ export default async (req: Request, _context: Context) => {
     // the thing worth seeing, and collapsing it to one would hide it.
     const suspendedBlocks = validRecords.filter((r) => r.type === "account_suspended_block").length;
 
+    // Password changes from the profile panel. The failure split is the
+    // reason this is here at all: `wrong_password` running high is someone
+    // who cannot remember a password they are signed in with, which is a
+    // prompt to make the "email me a reset link" fallback louder, while
+    // `error` or `rate_limited` showing up at all points at the endpoint.
+    const passwordChanges = validRecords.filter((r) => r.type === "password_change_complete");
+    const passwordChangesOk = passwordChanges.filter((r) => r.outcome === "success").length;
+    const passwordChangeFailuresByOutcome = sortedCounts(
+      passwordChanges.filter((r) => r.outcome !== "success"),
+      (r) => r.outcome
+    );
+
     // --- Signup + verification funnel ---
     //
     // The interesting number is not any single one of these, it's the drop
@@ -1307,6 +1319,8 @@ export default async (req: Request, _context: Context) => {
         accountDeleteFailures,
         accountDeleteFailuresByOutcome,
         suspendedBlocks,
+        passwordChanges: passwordChangesOk,
+        passwordChangeFailuresByOutcome,
         signupFunnel,
         loginFunnel,
         oauth,

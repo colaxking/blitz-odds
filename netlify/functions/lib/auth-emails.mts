@@ -215,3 +215,46 @@ export function buildResetEmail(args: { email: string; token: string }): BuiltEm
 
   return { subject: "Reset your Blitz Odds password", html, text };
 }
+
+/* ------------------------------------------------------------------------ */
+/* Password changed (notification, not an action)                            */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Sent after auth-password.mts changes a password. The only email here with
+ * no button and nothing to click: there is no action left to take, and the
+ * one thing it must not do is train people that a password email contains a
+ * link worth tapping. The route back for someone who DIDN'T do this is the
+ * ordinary Forgot Password flow on the site, described in words.
+ */
+export function buildPasswordChangedEmail(args: { email: string }): BuiltEmail {
+  const html = emailShell(
+    `
+      ${emailEyebrow("Security", C.warn)}
+      ${h1("Your password was changed.")}
+      ${p("The password on your Blitz Odds account was just updated. If that was you, there's nothing to do.")}
+      ${addressedTo(args.email)}
+      ${p(
+        `If it wasn't you, reset your password straight away from the sign-in screen at ${SITE_URL}, then reply to this email and we'll take a look at the account.`,
+        `font-size:13px;color:${C.muted};margin-bottom:0;`
+      )}
+    `,
+    { reason: "You're getting this because the password on this account was changed." },
+    "The password on your account was just updated."
+  );
+
+  const text = [
+    "Your password was changed",
+    "",
+    "The password on your Blitz Odds account was just updated. If that was you, there's nothing to do.",
+    "",
+    `This was sent to ${args.email}.`,
+    "",
+    `If it wasn't you, reset your password from the sign-in screen at ${SITE_URL}, then reply to this email.`,
+    "",
+    "Blitz Odds - free NFL pick'em confidence tool and odds analyzer.",
+    SITE_URL,
+  ].join("\n");
+
+  return { subject: "Your Blitz Odds password was changed", html, text };
+}

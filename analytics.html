@@ -707,7 +707,9 @@
            that keeps reopening the app appears repeatedly. That repetition
            is the point: it's the difference between a dormant suspension
            and someone actively trying to get back in. */
-        { title: "Blocked by suspension", sub: "Times a suspended session hit the notice", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.suspendedBlocks || 0) + "</div>" }
+        { title: "Blocked by suspension", sub: "Times a suspended session hit the notice", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.suspendedBlocks || 0) + "</div>" },
+        { title: "Passwords changed", sub: "From the profile panel, not a reset link", html: '<div style="font-size:1.7rem;font-weight:650;">' + fmtNum(d.passwordChanges || 0) + "</div>" },
+        { title: "Why a password change failed", sub: "Wrong-password dominating means the reset link needs to be louder", html: barListHtml(relabel(d.passwordChangeFailuresByOutcome, { wrong_password: "Wrong current password", weak_password: "New password too short", same_password: "Same as current", rate_limited: "Rate limited", error: "Server error" }), null, { empty: "No failed changes" }) }
       ]},
       /* Signup and verification. Split out from Account above because the
          question is different: that section is about accounts ending, this

@@ -22,10 +22,12 @@
  * quietly restated later would defeat the entire purpose.
  *
  * The frozen record deliberately includes that game's odds as well as the
- * model's straight-up call. Nothing reads the odds today, but an ATS league's
- * "did you follow the model" question needs a cover lean rather than a
- * winner, and that can't be reconstructed after the fact if the line was
- * never captured. Storing it now keeps that option open without a data gap.
+ * model's straight-up call, because an ATS read needs a cover lean rather
+ * than a winner and that can't be reconstructed after the fact if the line
+ * was never captured. The site reads both: once a game is live or final the
+ * card renders this record instead of recomputing, so the Blitz Edge number
+ * and the spread/O-U it was measured against stay what they were at kickoff
+ * rather than drifting with later injury and line moves.
  *
  * Scope: regular season and postseason (week >= 1). Preseason is excluded -
  * exhibition games where starters play a quarter aren't a meaningful test of
@@ -187,6 +189,12 @@ async function main() {
         weather: gameWeather,
         homeIsDomeTeam: isDomeTeam(home.id),
         awayIsDomeTeam: isDomeTeam(away.id),
+        // Load-bearing. Weeks 1-4 run on prior-season ranks and take the
+        // wider EARLY_SEASON_MARGIN_SD; omitting `week` silently falls back
+        // to MARGIN_SD and freezes a *more confident* number than the card
+        // ever showed. Snapshots written before this was passed are repaired
+        // on read - see the legacy branch in predictions-current.mts.
+        week,
       });
 
       const koMs = kickoffUtcMs(g.date, g.time, seasonYear);
@@ -196,9 +204,19 @@ async function main() {
         gameId: `${seasonYear}-w${week}-${g.away}-${g.home}`,
         away: g.away,
         home: g.home,
+        // schema 2 adds predictedMargin/confidence and is the first version
+        // written with `week` passed through. A record without this field is
+        // a schema-1 record and gets repaired on read.
+        schema: 2,
         predictedWinner: prediction.predictedWinner,
         homeWinProbability: prediction.homeWinProbability,
         awayWinProbability: prediction.awayWinProbability,
+        // The card's ats and confidence reads need the margin, not just the
+        // win probability: a model line can only be compared against the
+        // market's in points. Stored rather than re-derived so the frozen
+        // record can rebuild every format's recommendation on its own.
+        predictedMargin: prediction.predictedMargin,
+        confidence: prediction.confidence,
         kickoffUtcMs: koMs,
         frozenAt: new Date(nowMs).toISOString(),
         // Set when the freeze happened after kickoff rather than inside the

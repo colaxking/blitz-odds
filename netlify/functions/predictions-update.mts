@@ -45,6 +45,12 @@ interface IncomingPrediction {
   frozenAt: string;
   late?: boolean;
   odds?: unknown;
+  // schema 2 onward. Optional here rather than required so this endpoint
+  // keeps accepting a record from an older checkout of the snapshot script;
+  // predictions-current.mts fills both in for anything missing them.
+  schema?: number;
+  predictedMargin?: number;
+  confidence?: number;
 }
 
 function isValid(p: any): p is IncomingPrediction {
@@ -57,7 +63,11 @@ function isValid(p: any): p is IncomingPrediction {
     typeof p.predictedWinner === "string" &&
     Number.isFinite(p.homeWinProbability) &&
     Number.isFinite(p.awayWinProbability) &&
-    Number.isFinite(p.kickoffUtcMs)
+    Number.isFinite(p.kickoffUtcMs) &&
+    // Optional, but a non-numeric margin would reach the card as a broken
+    // ats read rather than as a missing one, so reject it at the door.
+    (p.predictedMargin === undefined || Number.isFinite(p.predictedMargin)) &&
+    (p.confidence === undefined || Number.isFinite(p.confidence))
   );
 }
 

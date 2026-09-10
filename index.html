@@ -2557,6 +2557,11 @@
     display: block; margin-top: 2px; text-transform: none; letter-spacing: 0;
     font-style: italic; font-size: 0.68rem;
   }
+  /* Only rendered once a game has started, where the spread above it is the
+     frozen kickoff line rather than the live market. Without this the row
+     reads as a stale number - the same line, checked against any book, now
+     disagrees, and nothing on the card says why. */
+  .cb-odds-asof { opacity: 0.75; }
 
   .gc-actions { display: flex; border-top: 1px solid var(--card-border); margin: 10px -14px -12px; }
   .gc-action {
@@ -16837,6 +16842,16 @@ const STADIUMS_DATA = JSON.parse(document.getElementById('stadiums-data').textCo
 // starts out empty/embedded, useLiveWeatherData() swaps it for fresher data
 // from weather-current, written by the weather-refresh scheduled script.
 let WEATHER_DATA = JSON.parse(document.getElementById('weather-data').textContent);
+// The model's call on each game as frozen just before that game's kickoff,
+// keyed by week then "away-home" (see getFrozenPrediction). Nothing is
+// embedded at deploy time - unlike odds and weather this has no useful
+// pre-kickoff value, since a game that hasn't started has nothing frozen -
+// so it starts empty and useFrozenPredictions() fills in whichever week is
+// on screen from predictions-current. A card for a live or final game reads
+// through this instead of recomputing, so the number it shows is what the
+// model said before kickoff rather than what it would say now, after that
+// game's injury report, weather and lines have all moved on.
+let PREDICTIONS_DATA = { weeks: {} };
 
 // Sportsbook preference: no sportsbook offers a public login/API for a
 // third-party site to pull an individual bettor's personal odds, so this is
@@ -17646,6 +17661,59 @@ function useLiveWeatherData() {
   }, []);
 }
 
+// Frozen predictions are append-only and never restated, so there's nothing
+// to re-poll for a game already in the map. The reason to poll at all is the
+// games still to come: prediction-snapshot freezes each one ~15 minutes
+// before its own kickoff, so a tab left open through a Sunday needs to pick
+// up each new freeze as the slate rolls over.
+const FROZEN_PREDICTIONS_REFRESH_MS = 5 * 60 * 1000;
+
+/**
+ * Fetches the kickoff-frozen predictions for whichever week is on screen and
+ * publishes them into PREDICTIONS_DATA for getFrozenPrediction() to read.
+ * Scoped to one week because the endpoint is (a week is ~16 blob objects, a
+ * season ~272) and because the app only ever renders one week at a time.
+ *
+ * Refetches on week change; already-fetched weeks stay in the map, so paging
+ * back and forth doesn't re-request. Same offline/file:// posture as the
+ * odds and weather hooks - on failure we simply have no frozen record, and
+ * every card falls back to computing live, which is what it did before this
+ * existed.
+ */
+function useFrozenPredictions(week) {
+  const [, forceRerender] = useState(0);
+
+  useEffect(() => {
+    // Preseason weeks are negative and are never snapshotted; week 0 isn't a
+    // real week. Skip the request rather than spend it on a known-empty
+    // answer.
+    if (week === null || week === undefined || !(Number(week) >= 1)) return;
+    let cancelled = false;
+
+    async function refresh() {
+      try {
+        const res = await fetch(`/.netlify/functions/predictions-current?week=${encodeURIComponent(week)}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const fresh = await res.json();
+        if (cancelled || !fresh || typeof fresh.games !== "object") return;
+        // Reassign the whole binding rather than mutating in place, for the
+        // same reason ODDS_DATA/WEATHER_DATA do: components read through the
+        // binding at call time, and a mutation without a new object makes
+        // "did this change" unanswerable for anything memoizing on it.
+        PREDICTIONS_DATA = { ...PREDICTIONS_DATA, weeks: { ...PREDICTIONS_DATA.weeks, [String(week)]: fresh.games } };
+        forceRerender(n => n + 1);
+      } catch (e) {
+        // Offline, file://, or the function isn't deployed yet - no frozen
+        // data means every card computes live, exactly as it used to.
+      }
+    }
+
+    refresh();
+    const timer = setInterval(refresh, FROZEN_PREDICTIONS_REFRESH_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [week]);
+}
+
 // ---- Preseason vs. regular season vs. playoff week routing -----------------
 // Preseason rounds (Hall of Fame Game, Preseason Weeks 1-3) use negative week
 // numbers so they sort before the fixed regular-season schedule (weeks 1-18).
@@ -18169,12 +18237,14 @@ function getEspnParams(week) {
 // simply have no entry yet - getOdds returns null and the UI shows a
 // "not yet posted" fallback instead of guessing.
 
-function getOdds(week, away, home, preferredBookId) {
-  const weekOdds = ODDS_DATA.weeks && ODDS_DATA.weeks[String(week)];
-  if (!weekOdds || !weekOdds.games) return null;
-  const game = weekOdds.games[`${away}-${home}`];
+/** One game's odds entry -> the single line to show, for the reader's chosen
+ *  book. Split out of getOdds() so a kickoff-frozen odds entry (which the
+ *  prediction snapshot stores in exactly this shape) resolves through the
+ *  same book preference and the same fallback labeling as a live one -
+ *  otherwise a final game's card could silently switch which book it was
+ *  quoting at the moment it started reading frozen data. */
+function resolveBookLine(game, preferredBookId) {
   if (!game) return null;
-
   const requestedId = preferredBookId || DEFAULT_SPORTSBOOK_ID;
 
   // If we have a real line for the requested book, use it.
@@ -18191,6 +18261,36 @@ function getOdds(week, away, home, preferredBookId) {
     sportsbook: getSportsbookLabel(DEFAULT_SPORTSBOOK_ID),
     isFallback: requestedId !== DEFAULT_SPORTSBOOK_ID,
   };
+}
+
+function getOdds(week, away, home, preferredBookId) {
+  const weekOdds = ODDS_DATA.weeks && ODDS_DATA.weeks[String(week)];
+  if (!weekOdds || !weekOdds.games) return null;
+  return resolveBookLine(weekOdds.games[`${away}-${home}`], preferredBookId);
+}
+
+/** The model's frozen pre-kickoff call for one game, or null if nothing was
+ *  ever frozen for it - a game that hasn't started, a week that hasn't been
+ *  fetched yet, preseason (never snapshotted), or a run of the snapshot job
+ *  that missed its window. Every caller treats null as "compute live",
+ *  which is also the correct pre-kickoff behavior, so no caller needs to
+ *  know which of those it is. Same lookup shape as getOdds()/getWeather(). */
+/** Whether a game has started, for the purpose of showing frozen rather than
+ *  live model numbers. The scheduled-kickoff clause carries the case ESPN
+ *  can't: a game that has kicked off but has no live feed yet is still a
+ *  game whose prediction should have stopped moving. Mirrors GameCard's
+ *  `hasStarted`, kept as its own function because the freeze decision has to
+ *  be made before that variable is in scope. */
+function hasStartedForFreeze(scoreInfo, game, seasonYear) {
+  if (scoreInfo && (scoreInfo.isLive || scoreInfo.isFinal)) return true;
+  const kickoffMs = gameKickoffUtcMs(game.date, game.time, seasonYear);
+  return kickoffMs != null && Date.now() >= kickoffMs;
+}
+
+function getFrozenPrediction(week, away, home) {
+  const weekPreds = PREDICTIONS_DATA.weeks && PREDICTIONS_DATA.weeks[String(week)];
+  if (!weekPreds) return null;
+  return weekPreds[`${away}-${home}`] || null;
 }
 
 /** Every sportsbook's line for one game, for the "Compare Sportsbooks" section
@@ -20529,7 +20629,53 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
     week: week
   }), [game.home, game.away, context.isHistorical, home, away, homePlayers, awayPlayers, weather, week]);
 
-  const homeIsWinner = prediction.predictedWinner === home.id;
+  /* Once a game is under way, what the model "predicts" is no longer a
+   * prediction - every input behind it has kept moving (injuries get
+   * confirmed, lines settle, and for a finished game the team ranks feeding
+   * it have since absorbed this very result). Recomputing then produces a
+   * number nobody was ever shown and quietly grades the model against
+   * hindsight. So from kickoff onward the card reads the snapshot frozen ~15
+   * minutes before that game started - see scripts/prediction-snapshot.mjs.
+   *
+   * Deliberately scoped to the recommendation itself: the predicted winner,
+   * the win/cover percentage, and the line those were measured against. The
+   * injury report and the offense-vs-defense tables further down stay live,
+   * because they're presented as current information about the two teams
+   * rather than as the model's call.
+   *
+   * Silent on both misses: a game with no frozen record (job missed its
+   * window, kickoff moved, or anything before this mechanism existed) just
+   * computes live, as does any past week, which already renders off the
+   * hand-authored history.json snapshot and has its own frozen inputs.
+   */
+  const frozenPrediction = context.isHistorical
+    ? null
+    : (hasStartedForFreeze(scoreInfo, game, seasonYear) ? getFrozenPrediction(week, game.away, game.home) : null);
+
+  // Merged onto the live object rather than replacing it: the frozen record
+  // holds the model's *output*, not the per-player adjustment lists behind
+  // it, which the injury section still reads from and which stay live by
+  // design (see above).
+  const displayPrediction = frozenPrediction
+    ? {
+        ...prediction,
+        predictedWinner: frozenPrediction.predictedWinner,
+        homeWinProbability: frozenPrediction.homeWinProbability,
+        awayWinProbability: frozenPrediction.awayWinProbability,
+        confidence: frozenPrediction.confidence,
+        predictedMargin: frozenPrediction.predictedMargin,
+      }
+    : prediction;
+
+  // The line as of kickoff, resolved through the same book preference as a
+  // live one. A record frozen before any book had posted carries no odds at
+  // all, in which case there's nothing to show but the current line.
+  const frozenOdds = frozenPrediction && frozenPrediction.odds
+    ? resolveBookLine(frozenPrediction.odds, sportsbookId)
+    : null;
+  const displayOdds = frozenOdds || odds;
+
+  const homeIsWinner = displayPrediction.predictedWinner === home.id;
   // Injury report starts trimmed to the players the model weights heaviest -
   // see INJURY_COLLAPSED_COUNT and sortedAdjustments just below. Declared
   // here rather than with the card's other UI state because shownAdjustments,
@@ -20565,7 +20711,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   const shownAdjustments = injuriesExpanded
     ? sortedAdjustments
     : sortedAdjustments.slice(0, INJURY_COLLAPSED_COUNT);
-  const modelAgreesWithMarket = odds ? prediction.predictedWinner === odds.favorite : null;
+  const modelAgreesWithMarket = displayOdds ? displayPrediction.predictedWinner === displayOdds.favorite : null;
 
   // The combo row's recommendation, read through whichever game type the
   // command bar is set to. Same computeBlitzEdge() a league pick card runs,
@@ -20576,10 +20722,10 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
     game: {
       home: game.home,
       away: game.away,
-      spread: odds ? odds.spread : null,
-      favorite: odds ? odds.favorite : null,
+      spread: displayOdds ? displayOdds.spread : null,
+      favorite: displayOdds ? displayOdds.favorite : null,
     },
-    prediction,
+    prediction: displayPrediction,
     maxConfidence: gameTypeContext?.confidence?.max,
     suggestedConfidence: gameTypeContext?.confidence?.byGame?.[`${game.away}-${game.home}`],
     survivor: gameTypeContext?.survivor
@@ -20592,7 +20738,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   // game type has to move both together (an ats reader was previously being
   // handed a straight-up paragraph under an ats recommendation).
   const rationale = buildRationale({
-    away, home, prediction, homeIsWinner, odds, modelAgreesWithMarket,
+    away, home, prediction: displayPrediction, homeIsWinner, odds: displayOdds, modelAgreesWithMarket,
     format: activeGameType,
     blitzEdge,
   });
@@ -20601,7 +20747,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   let predictionCorrect = null;
   if (scoreInfo && scoreInfo.isFinal) {
     actualWinnerId = scoreInfo.homeScore > scoreInfo.awayScore ? home.id : away.id;
-    predictionCorrect = actualWinnerId === prediction.predictedWinner;
+    predictionCorrect = actualWinnerId === displayPrediction.predictedWinner;
   }
 
   const divisionGame = isDivisionGame(home.id, away.id);
@@ -20629,7 +20775,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
      already showing them. buildShareSpec is called at click time, not
      render time, so a live score that arrives mid-session is included. */
   function buildShareSpec() {
-    const pickedId = prediction.predictedWinner;
+    const pickedId = displayPrediction.predictedWinner;
     const picked = pickedId === home.id ? home : away;
     return {
       kind: "game",
@@ -20795,22 +20941,28 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             {blitzEdge.note && <div className="cb-note">{blitzEdge.note}</div>}
           </>
         )}
+        {/* displayOdds, not odds: for a game that has started this is the
+            line as of kickoff, the one the Blitz Edge read beside it was
+            actually measured against. Showing a line that has moved since
+            next to a percentage that hasn't would make the pair read as a
+            comparison the model never made. Compare Sportsbooks inside Full
+            Details still shows today's real market. */}
         <div className="cb-odds">
-          {odds ? (
+          {displayOdds ? (
             <>
               <div className="cb-odds-line">
-                <span className="cb-stat"><b>{odds.favorite} {formatSpread(odds.spread)}</b> Spread</span>
-                <span className="cb-stat"><b>{odds.overUnder}</b> O/U</span>
+                <span className="cb-stat"><b>{displayOdds.favorite} {formatSpread(displayOdds.spread)}</b> Spread</span>
+                <span className="cb-stat"><b>{displayOdds.overUnder}</b> O/U</span>
               </div>
               {/* Both sides, since Full Details no longer carries the pair.
                   A book occasionally posts a spread with no moneyline at
                   all, so the row is skipped rather than printing "ML" over
                   two blanks. */}
-              {(odds.moneylineAway != null || odds.moneylineHome != null) && (
+              {(displayOdds.moneylineAway != null || displayOdds.moneylineHome != null) && (
                 <div className="cb-odds-line" data-tour="odds-ml">
                   <span className="cb-odds-k">ML</span>
-                  <span className="cb-stat"><b>{away.id} {formatMoneyline(odds.moneylineAway)}</b></span>
-                  <span className="cb-stat"><b>{home.id} {formatMoneyline(odds.moneylineHome)}</b></span>
+                  <span className="cb-stat"><b>{away.id} {formatMoneyline(displayOdds.moneylineAway)}</b></span>
+                  <span className="cb-stat"><b>{home.id} {formatMoneyline(displayOdds.moneylineHome)}</b></span>
                 </div>
               )}
             </>
@@ -20818,12 +20970,13 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             <span className="cb-odds-none">Odds not yet posted</span>
           )}
         </div>
-        {odds && (
+        {displayOdds && (
           <div className="cb-odds-src">
-            Line: {odds.sportsbook}
-            {odds.isFallback && (
+            Line: {displayOdds.sportsbook}
+            {frozenOdds && <span className="cb-odds-asof"> · at kickoff</span>}
+            {displayOdds.isFallback && (
               <span className="cb-odds-fallback">
-                No {getSportsbookLabel(sportsbookId)} line yet for this game — showing the {odds.sportsbook} default.
+                No {getSportsbookLabel(sportsbookId)} line yet for this game — showing the {displayOdds.sportsbook} default.
               </span>
             )}
           </div>
@@ -37542,6 +37695,13 @@ function App() {
   useLiveSiteData(); // background-refreshes teams/players/schedule/history/preseason/playoffs; re-renders the app when they change
   useLiveOddsData(); // background-refreshes odds from the live blob store; re-renders the app when they change
   useLiveWeatherData(); // background-refreshes weather from the live blob store; re-renders the app when they change
+  // Two calls, not one: a per-game page is reachable from a week other than
+  // the one the week nav is sitting on (selectedGame carries its own week),
+  // and a card there needs its frozen numbers just as much. Both are
+  // unconditional so the hook order never varies; the second no-ops when no
+  // game is open, and neither refetches a week already in the map.
+  useFrozenPredictions(selectedWeek); // pre-kickoff model calls for the week on screen, so live/final cards don't recompute
+  useFrozenPredictions(selectedGame ? selectedGame.week : null);
   useDocumentMeta(activeTab, view, selectedTeamId, selectedWeek, selectedGame); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);

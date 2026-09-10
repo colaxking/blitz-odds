@@ -81,6 +81,7 @@
 <link rel="manifest" href="/manifest.webmanifest" />
 <script src="/js/predictionEngine.js"></script>
 <script src="/js/hotPicksEngine.js"></script>
+<script src="/js/scoringEngine.js"></script>
 <script src="/js/gameId.js"></script>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -4135,8 +4136,46 @@
     padding: 14px; display: flex; flex-direction: column; gap: 10px;
   }
   .pickem-game-card.is-locked { opacity: 0.72; }
+  /* A final game is the one locked card people actually come back to read,
+     so the locked dimming lifts once there's a result to show. The border
+     carries the grade at a glance; the badge on the pick carries the word. */
+  .pickem-game-card.is-final { opacity: 1; }
+  .pickem-game-card.is-won { border-color: rgba(var(--win-rgb),0.45); }
+  .pickem-game-card.is-lost { border-color: rgba(var(--out-rgb),0.4); }
   .pickem-game-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--text-dim); }
   .pickem-lock-tag { display: inline-flex; align-items: center; gap: 4px; color: var(--text-dim); font-weight: 700; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.4px; }
+  .pickem-final-tag { display: inline-flex; align-items: center; gap: 4px; color: var(--text); font-weight: 800; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.4px; }
+  .pickem-pick-option.is-winner .pickem-team-name,
+  .pickem-pick-option.is-winner .pickem-team-score { color: var(--win); }
+  .pickem-pick-option.is-loser { opacity: 0.55; }
+  .pickem-pick-option.is-loser.selected { opacity: 0.8; }
+  .pickem-team-score { font-size: 1.35rem; font-weight: 800; line-height: 1; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .pickem-pick-badge {
+    position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 3px;
+    font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
+    padding: 2px 7px; border-radius: 6px; line-height: 1.3;
+  }
+  .pickem-pick-badge.won { background: var(--win); color: #062018; }
+  .pickem-pick-badge.lost { background: var(--out); color: #fff; }
+  .pickem-pick-badge.void { background: var(--lose); color: var(--text); }
+  .pickem-result-row {
+    display: flex; align-items: center; gap: 8px; background: var(--surface-2); border-radius: 8px;
+    padding: 8px 10px; font-size: 0.74rem; color: var(--text-dim);
+  }
+  .pickem-result-row b { color: var(--text); font-weight: 700; }
+  .pickem-result-icon { font-weight: 900; font-size: 0.85rem; width: 14px; text-align: center; flex-shrink: 0; }
+  .pickem-result-icon.won { color: var(--win); }
+  .pickem-result-icon.lost { color: var(--out); }
+  .pickem-result-icon.void { color: var(--text-dim); }
+  .pickem-result-pts { margin-left: auto; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pickem-result-pts.won { color: var(--win); }
+  .pickem-result-pts.lost { color: var(--out); }
+  .pickem-result-pts.void { color: var(--text-dim); }
+  .pickem-edge-value.is-called { color: var(--blitz-orange); }
+  .pickem-edge-value.is-missed { color: var(--text-dim); }
+  .picks-progress-record { font-size: 1rem; font-weight: 800; margin: 0; font-variant-numeric: tabular-nums; }
+  .picks-progress-record .dim { color: var(--text-dim); font-weight: 600; font-size: 0.82rem; }
+  .picks-progress-pending { font-size: 0.72rem; color: var(--text-dim); margin: 2px 0 0; font-weight: 600; }
   .pickem-pick-row { display: flex; align-items: stretch; gap: 8px; }
   .pickem-pick-option {
     flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -5393,16 +5432,16 @@
     <thead><tr><th>Week</th><th>Opponent</th><th>Date</th><th>Prediction</th><th>Result</th></tr></thead>
     <tbody>
       <tr><td><a href="/games/2026/preseason-week-1/cleveland-browns-at-chicago-bears/">Preseason Week 1</a></td><td>vs <a href="/teams/cleveland-browns/">Cleveland Browns</a></td><td>Sat, Aug 15 1:00 PM ET</td><td>Model predicts Chicago Bears to win (51%)</td><td>W 34-10 (CLE 10 - 34 CHI, prediction correct)</td></tr>
-      <tr><td><a href="/games/2026/preseason-week-2/chicago-bears-at-cincinnati-bengals/">Preseason Week 2</a></td><td>@ <a href="/teams/cincinnati-bengals/">Cincinnati Bengals</a></td><td>Sat, Aug 22 7:00 PM ET</td><td>Model predicts Cincinnati Bengals to win (36%)</td><td>L 9-27 (CHI 9 - 27 CIN, prediction correct)</td></tr>
+      <tr><td><a href="/games/2026/preseason-week-2/chicago-bears-at-cincinnati-bengals/">Preseason Week 2</a></td><td>@ <a href="/teams/cincinnati-bengals/">Cincinnati Bengals</a></td><td>Sat, Aug 22 7:00 PM ET</td><td>Model predicts Cincinnati Bengals to win (39%)</td><td>L 9-27 (CHI 9 - 27 CIN, prediction correct)</td></tr>
       <tr><td><a href="/games/2026/preseason-week-3/chicago-bears-at-tennessee-titans/">Preseason Week 3</a></td><td>@ <a href="/teams/tennessee-titans/">Tennessee Titans</a></td><td>Sat, Aug 29 6:00 PM ET</td><td>Model predicts Tennessee Titans to win (46%)</td><td>W 24-15 (CHI 24 - 15 TEN, prediction missed)</td></tr>
       <tr><td><a href="/games/2026/week-1/chicago-bears-at-carolina-panthers/">Week 1</a></td><td>@ <a href="/teams/carolina-panthers/">Carolina Panthers</a></td><td>Sun, Sep 13 1:00 PM ET</td><td>Model predicts Carolina Panthers to win (44%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-2/minnesota-vikings-at-chicago-bears/">Week 2</a></td><td>vs <a href="/teams/minnesota-vikings/">Minnesota Vikings</a></td><td>Sun, Sep 20 1:00 PM ET</td><td>Model predicts Chicago Bears to win (52%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-3/philadelphia-eagles-at-chicago-bears/">Week 3</a></td><td>vs <a href="/teams/philadelphia-eagles/">Philadelphia Eagles</a></td><td>Mon, Sep 28 8:15 PM ET</td><td>Model predicts Philadelphia Eagles to win (38%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-4/new-york-jets-at-chicago-bears/">Week 4</a></td><td>vs <a href="/teams/new-york-jets/">New York Jets</a></td><td>Sun, Oct 4 1:00 PM ET</td><td>Model predicts Chicago Bears to win (51%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-5/chicago-bears-at-green-bay-packers/">Week 5</a></td><td>@ <a href="/teams/green-bay-packers/">Green Bay Packers</a></td><td>Sun, Oct 11 4:25 PM ET</td><td>Model predicts Green Bay Packers to win (32%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-6/chicago-bears-at-atlanta-falcons/">Week 6</a></td><td>@ <a href="/teams/atlanta-falcons/">Atlanta Falcons</a></td><td>Sun, Oct 18 1:00 PM ET</td><td>Model predicts Atlanta Falcons to win (31%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-6/chicago-bears-at-atlanta-falcons/">Week 6</a></td><td>@ <a href="/teams/atlanta-falcons/">Atlanta Falcons</a></td><td>Sun, Oct 18 1:00 PM ET</td><td>Model predicts Atlanta Falcons to win (33%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-7/new-england-patriots-at-chicago-bears/">Week 7</a></td><td>vs <a href="/teams/new-england-patriots/">New England Patriots</a></td><td>Thu, Oct 22 8:15 PM ET</td><td>Model predicts New England Patriots to win (14%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-8/chicago-bears-at-seattle-seahawks/">Week 8</a></td><td>@ <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Mon, Nov 2 8:15 PM ET</td><td>Model predicts Seattle Seahawks to win (39%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-8/chicago-bears-at-seattle-seahawks/">Week 8</a></td><td>@ <a href="/teams/seattle-seahawks/">Seattle Seahawks</a></td><td>Mon, Nov 2 8:15 PM ET</td><td>Model predicts Seattle Seahawks to win (44%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-9/tampa-bay-buccaneers-at-chicago-bears/">Week 9</a></td><td>vs <a href="/teams/tampa-bay-buccaneers/">Tampa Bay Buccaneers</a></td><td>Sun, Nov 8 8:20 PM ET</td><td>Model predicts Tampa Bay Buccaneers to win (42%)</td><td>Not played yet</td></tr>
       <tr><td>Week 10</td><td colspan="4">Bye week</td></tr>
       <tr><td><a href="/games/2026/week-11/new-orleans-saints-at-chicago-bears/">Week 11</a></td><td>vs <a href="/teams/new-orleans-saints/">New Orleans Saints</a></td><td>Sun, Nov 22 1:00 PM ET</td><td>Model predicts Chicago Bears to win (54%)</td><td>Not played yet</td></tr>
@@ -6204,13 +6243,13 @@
         "name": "Sam Darnold",
         "position": "QB",
         "impactScore": 8,
-        "status": "questionable",
+        "status": "out",
         "espnId": "3912547",
-        "statusUpdatedAt": "2026-09-10T03:53Z",
+        "statusUpdatedAt": "2026-09-10T16:47Z",
         "source": "auto",
         "injury": {
           "type": "Hip",
-          "note": "Darnold underwent a CT scan on his hip and is expected to undergo an MRI on Thursday after the quarterback didn't return to Wednesday's win against the Patriots, Adam Schefter of ESPN.com reports."
+          "note": "Darnold (hip) is expected to miss Seattle's Week 2 game against the Cardinals, Ian Rapoport of ESPN and NFL Network reports."
         }
       },
       {
@@ -6802,15 +6841,14 @@
         "name": "Shemar Stewart",
         "position": "DE",
         "impactScore": 6,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Hyperextended knee (no ligament damage)",
-          "since": "2026-07-29",
-          "note": "Carted off Cincinnati's first padded practice July 29 with a hyperextended knee; testing showed no ligament damage and Zac Taylor said he'd miss 'several weeks.' Stewart was a FULL participant with no injury designation on the Wednesday, Sept. 9 report, a faster return than expected and clearing him for the Sept. 13 opener."
+          "type": "Knee",
+          "note": "questionable"
         },
         "espnId": "4685562",
-        "statusUpdatedAt": "2026-09-10T01:10:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-10T20:30Z",
+        "source": "auto"
       },
       {
         "name": "Ja'Sir Taylor",
@@ -7451,10 +7489,14 @@
         "name": "Tua Tagovailoa",
         "position": "QB",
         "impactScore": 7,
-        "status": "active",
+        "status": "questionable",
         "espnId": "4241479",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-10T17:49Z",
+        "source": "auto",
+        "injury": {
+          "type": "Back",
+          "note": "questionable"
+        }
       },
       {
         "name": "Michael Penix Jr.",
@@ -8144,15 +8186,14 @@
         "name": "Malik Nabers",
         "position": "WR",
         "impactScore": 8,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "ACL + meniscus recovery (right knee)",
-          "since": "2025-09",
-          "note": "Nabers was a FULL participant with no injury designation on the Giants' first official Week 1 report, Wednesday, Sept. 9 - his clearest signal yet for the Sept. 13 opener vs. Dallas. He had already shed the red non-contact jersey and been cleared for full contact, with HC John Harbaugh saying he was \"probably moving the best we've seen him look.\" He is roughly a year removed from surgery."
+          "type": "Knee - ACL",
+          "note": "Nabers (knee) logged another full practice Thursday, Connor Hughes of SNY.tv reports."
         },
         "espnId": "4595348",
-        "statusUpdatedAt": "2026-09-10T01:10:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-10T19:40Z",
+        "source": "auto"
       },
       {
         "name": "Calvin Austin III",
@@ -28897,10 +28938,15 @@ function LeagueHeader({ auth, league, week, onWeekChange, onOpenLeagues, isOwner
 // counting it out of 16 read as "0 of 16 complete, 16 remaining" on a week
 // that was in fact untouched, and "1 of 16" on a week that was finished.
 // Everything else still counts every game.
-function PicksProgressRing({ complete, total, week, format, onShare }) {
+function PicksProgressRing({ complete, total, week, format, onShare, record }) {
   const isSurvivor = format === "survivor";
   const shownTotal = isSurvivor ? 1 : total;
   const shownComplete = isSurvivor ? Math.min(complete, 1) : complete;
+  // Once anything has been graded the pick count has done its job (every
+  // graded pick was, by definition, made) and the record is what the week
+  // is about. Points only mean something beyond the record in confidence.
+  const hasRecord = !!(record && record.graded > 0);
+  const showPoints = hasRecord && format === "confidence";
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
   const pct = shownTotal > 0 ? shownComplete / shownTotal : 0;
@@ -28921,14 +28967,25 @@ function PicksProgressRing({ complete, total, week, format, onShare }) {
       </div>
       <div className="picks-progress-text">
         <p className="picks-progress-title">{isSurvivor ? "Survivor" : "NFL Pick'em"} — Week {week}</p>
-        <p className="picks-progress-count">
-          {shownComplete} <span className="dim">of {shownTotal} {shownTotal === 1 ? "pick" : "picks"} complete</span>
-        </p>
-        {shownComplete < shownTotal && (
+        {hasRecord ? (
+          <p className="picks-progress-record">
+            {record.correct}–{record.incorrect}
+            {showPoints && <span className="dim"> · {record.points} pts</span>}
+          </p>
+        ) : (
+          <p className="picks-progress-count">
+            {shownComplete} <span className="dim">of {shownTotal} {shownTotal === 1 ? "pick" : "picks"} complete</span>
+          </p>
+        )}
+        {shownComplete < shownTotal ? (
           <p className="picks-progress-deadline">
             {isSurvivor ? "Pick one team to survive the week" : `${shownTotal - shownComplete} remaining`}
           </p>
-        )}
+        ) : (hasRecord && record.pending > 0 && (
+          <p className="picks-progress-pending">
+            {record.pending} {record.pending === 1 ? "game" : "games"} still to play
+          </p>
+        ))}
       </div>
       {/* Only once there's something worth showing. An entry with no picks
           in it makes an empty card, and offering to share it invites the
@@ -29114,23 +29171,82 @@ function BlitzEdgeRow(props) {
   const edge = computeBlitzEdge(props);
   if (!edge) return null;
 
+  // Once the game is final the pre-kickoff number is history; whether the
+  // call was right is what's left to say. Straight-up winner calls only -
+  // an ats lean is a cover call, and grading it needs the frozen line the
+  // edge row doesn't carry, so the ats row keeps its number (same line
+  // results-process draws for follow rate).
+  const result = props.result;
+  const isTie = !!(result && result.final && result.tie && props.format !== "ats");
+  const called = result && result.final && !result.tie && result.winner && edge.teamId && props.format !== "ats"
+    ? edge.teamId === result.winner
+    : null;
+
   return (
-    <div className={"pickem-edge-row" + (edge.muted ? " is-muted" : "")}>
+    <div className={"pickem-edge-row" + (edge.muted || called === false || isTie ? " is-muted" : "")}>
       <div className="pickem-edge-main">
         {edge.muted
           ? <span className="pickem-edge-dash" aria-hidden="true">—</span>
           : <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="pickem-edge-icon" />}
         {edge.teamLabel && <span className="pickem-edge-team">{edge.teamLabel}</span>}
         {edge.noEdgeLabel && <span className="pickem-edge-team">No edge</span>}
-        <span className="pickem-edge-value">{edge.value}</span>
+        {isTie
+          ? <span className="pickem-edge-value is-missed">Tie</span>
+          : called === null
+            ? <span className="pickem-edge-value">{edge.value}</span>
+            : <span className={"pickem-edge-value " + (called ? "is-called" : "is-missed")}>{called ? "✓ Called it" : "✗ Missed"}</span>}
       </div>
-      {edge.note && <div className="pickem-edge-note">{edge.note}</div>}
+      {edge.note && called === null && !isTie && <div className="pickem-edge-note">{edge.note}</div>}
     </div>
   );
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidence, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor, onOpenGame }) {
+/* Everything the card needs to say about a finished game, in one place:
+ * the badge word on the picked team, the sentence under the buttons, and
+ * the points column. Built off ScoringEngine.scorePick's verdict so the
+ * word on the card can never disagree with the number in standings. */
+function describePickOutcome(format, game, result, scored) {
+  const pick = game.pick;
+  if (!pick || !pick.team || !scored) return null;
+  const state = scored.correct === true ? "won" : scored.correct === false ? "lost" : "void";
+  let badge, text, pts;
+  const pickIsHome = pick.team === result.home;
+  const margin = pickIsHome ? result.homeScore - result.awayScore : result.awayScore - result.homeScore;
+  const marginText = margin > 0 ? `won by ${margin}` : margin < 0 ? `lost by ${-margin}` : "tied";
+
+  if (format === "ats") {
+    const spreadText = typeof pick.spread === "number" ? ` ${pick.spread > 0 ? "+" : ""}${pick.spread}` : "";
+    text = <>You picked <b>{pick.team}{spreadText}</b> · {marginText}</>;
+    if (state === "won") { badge = "Covered"; pts = `+${scored.points} ${scored.points === 1 ? "pt" : "pts"}`; }
+    else if (state === "lost") { badge = "No cover"; pts = "0 pts"; }
+    else if (typeof pick.spread !== "number") { badge = "Void"; pts = "Not graded"; }
+    else { badge = "Push"; pts = "Push · void"; }
+  } else if (format === "survivor") {
+    text = <>You picked <b>{pick.team}</b> · {marginText}</>;
+    if (state === "won") { badge = "Won"; pts = "Survived"; }
+    else if (state === "lost") { badge = "Lost"; pts = "Strike"; }
+    else { badge = "Void"; pts = "Tie · void"; }
+  } else {
+    const conf = format === "confidence" && typeof pick.confidence === "number" ? ` at ${pick.confidence} ${pick.confidence === 1 ? "point" : "points"}` : "";
+    text = <>You picked <b>{pick.team}</b>{conf}</>;
+    if (state === "won") { badge = "Won"; pts = `+${scored.points} ${scored.points === 1 ? "pt" : "pts"}`; }
+    else if (state === "lost") { badge = "Lost"; pts = "0 pts"; }
+    else { badge = "Void"; pts = "Tie · void"; }
+  }
+  const icon = state === "won" ? "✓" : state === "lost" ? "✗" : "–";
+  return { state, badge, text, pts, icon };
+}
+
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidence, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor, onOpenGame, grade }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
+
+  // grade is { result, scored } once the game is final (see
+  // LeagueWeekPanel's gradeFor) and null until then. Nothing on the card
+  // claims a win or loss off an in-progress score.
+  const isFinal = !!(grade && grade.result && grade.result.final);
+  const result = isFinal ? grade.result : null;
+  const outcome = isFinal ? describePickOutcome(format, game, result, grade.scored) : null;
+  const cardState = outcome && outcome.state !== "void" ? " is-" + outcome.state : "";
 
   useEffect(() => {
     setPendingConfidence(game.pick?.confidence ?? "");
@@ -29203,10 +29319,12 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidenc
   const recordFor = (teamId) => getTeamRecordLabel(teamId);
 
   return (
-    <div className={"pickem-game-card" + (game.locked ? " is-locked" : "")}>
+    <div className={"pickem-game-card" + (game.locked ? " is-locked" : "") + (isFinal ? " is-final" : "") + cardState}>
       <div className="pickem-game-meta">
         <span>{shownTime.date} · {shownTime.time}</span>
-        {game.locked && <span className="pickem-lock-tag">🔒 Locked</span>}
+        {isFinal
+          ? <span className="pickem-final-tag">Final</span>
+          : (game.locked && <span className="pickem-lock-tag">🔒 Locked</span>)}
       </div>
       <div className="pickem-pick-row">
         {[game.away, game.home].map((teamId, i) => {
@@ -29214,16 +29332,23 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidenc
           const usedElsewhere = format === "survivor" && !selected && usedTeams?.includes(teamId);
           const disabled = (game.locked && !selected) || usedElsewhere;
           const spread = spreadLabel(teamId);
+          // Actual outcome, independent of the pick: the winner's name and
+          // score go win-green, the loser fades. A tie colors nobody.
+          const isWinner = isFinal && !result.tie && result.winner === teamId;
+          const isLoser = isFinal && !result.tie && result.winner !== teamId;
+          const score = isFinal ? (teamId === game.home ? result.homeScore : result.awayScore) : null;
           return (
             <button
               key={teamId}
               type="button"
-              className={"pickem-pick-option" + (selected ? " selected" : "") + (usedElsewhere ? " is-used" : "")}
+              className={"pickem-pick-option" + (selected ? " selected" : "") + (usedElsewhere ? " is-used" : "") + (isWinner ? " is-winner" : "") + (isLoser ? " is-loser" : "")}
               onClick={() => selectTeam(teamId)}
               disabled={disabled || saving}
               title={usedElsewhere ? `${teamId} already used this season` : undefined}
             >
-              {selected && <div className="pickem-pick-check">✓</div>}
+              {selected && (outcome
+                ? <div className={"pickem-pick-badge " + outcome.state}>{outcome.icon !== "–" && <span aria-hidden="true">{outcome.icon}</span>}{outcome.badge}</div>
+                : <div className="pickem-pick-check">✓</div>)}
               <TeamLogo teamId={teamId} size={40} />
               <div className="pickem-team-name">{teamId}</div>
               {/* The record is the one piece of context a pick sheet was
@@ -29233,10 +29358,18 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidenc
               {recordFor(teamId) && <div className="pickem-team-record">{recordFor(teamId)}</div>}
               {spread && <div className="pickem-team-spread">{spread}</div>}
               {usedElsewhere && <div className="pickem-team-used-tag">Used</div>}
+              {score !== null && <div className="pickem-team-score">{score}</div>}
             </button>
           );
         })}
       </div>
+      {outcome && (
+        <div className="pickem-result-row">
+          <span className={"pickem-result-icon " + outcome.state} aria-hidden="true">{outcome.icon}</span>
+          <span>{outcome.text}</span>
+          <span className={"pickem-result-pts " + outcome.state}>{outcome.pts}</span>
+        </div>
+      )}
       <BlitzEdgeRow
         format={format}
         game={game}
@@ -29244,8 +29377,12 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidenc
         maxConfidence={maxConfidence}
         suggestedConfidence={suggestedConfidence}
         survivor={survivor}
+        result={result}
       />
-      {format === "confidence" && (
+      {/* The points a confidence pick earned are in the result row once
+          the game is final; a disabled dropdown restating the number
+          underneath is noise. */}
+      {format === "confidence" && !isFinal && (
         <div className="pickem-confidence-row">
           <span className="pickem-confidence-label">
             Confidence points
@@ -29369,7 +29506,7 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
   // set of gameIds (not `data` itself) so submitting a pick, which mutates
   // `data.games[].pick`, doesn't trigger a pointless recompute.
   const gameIdsKey = data ? data.games.map(g => g.gameId).join(",") : "";
-  const predictions = useMemo(() => {
+  const livePredictions = useMemo(() => {
     if (!data) return {};
     const context = getWeekContext(week);
     const map = {};
@@ -29392,6 +29529,98 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameIdsKey, week]);
+
+  // Same ESPN feed the Games tab polls (fetchLiveScoresCached dedupes the
+  // two subscriptions), with the frozen history snapshot as the fallback
+  // for a week that's already been archived. resolveScore prefers live
+  // over historical for the same reason GameCard does.
+  const liveMap = useLiveScores(week);
+  const scoreInfoById = useMemo(() => {
+    if (!data) return {};
+    const context = getWeekContext(week);
+    const map = {};
+    data.games.forEach(g => {
+      const live = liveMap[`${g.away}-${g.home}`];
+      const info = resolveScore(live, context.getResult(g.away, g.home));
+      if (info) map[g.gameId] = info;
+    });
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameIdsKey, week, liveMap]);
+
+  // Once a game has kicked off the card shows the model's frozen pre-kickoff
+  // call rather than a live recompute, exactly as GameCard does - otherwise
+  // a "Called it" on a final game could be graded against a number the
+  // model only arrived at after the fact. Keyed on which games have
+  // started, not on the score map itself, so a score tick doesn't recompute.
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  const startedKey = data
+    ? data.games.filter(g => hasStartedForFreeze(scoreInfoById[g.gameId], g, seasonYear)).map(g => g.gameId).join(",")
+    : "";
+  const predictions = useMemo(() => {
+    if (!data) return livePredictions;
+    const context = getWeekContext(week);
+    if (context.isHistorical) return livePredictions;
+    const started = new Set(startedKey ? startedKey.split(",") : []);
+    const map = { ...livePredictions };
+    data.games.forEach(g => {
+      if (!started.has(g.gameId) || !map[g.gameId]) return;
+      const frozen = getFrozenPrediction(week, g.away, g.home);
+      if (!frozen) return;
+      map[g.gameId] = {
+        ...map[g.gameId],
+        predictedWinner: frozen.predictedWinner,
+        homeWinProbability: frozen.homeWinProbability,
+        awayWinProbability: frozen.awayWinProbability,
+        confidence: frozen.confidence,
+        predictedMargin: frozen.predictedMargin,
+      };
+    });
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [livePredictions, startedKey, week]);
+
+  // The verdict on one finished game: the result in the shape
+  // scoringEngine.js grades against, and scorePick's own read of the pick.
+  // Client-side, off the live final score, so the card can say won/lost
+  // the moment the game ends instead of an hour later when results-process
+  // runs - and through the same scorePick, so it can't say anything the
+  // standings won't. null until the game is final.
+  function gradeFor(game) {
+    const info = scoreInfoById[game.gameId];
+    if (!info || !info.isFinal || typeof info.homeScore !== "number" || typeof info.awayScore !== "number") return null;
+    const tie = info.homeScore === info.awayScore;
+    const result = {
+      final: true,
+      tie,
+      winner: tie ? null : (info.homeScore > info.awayScore ? game.home : game.away),
+      home: game.home,
+      away: game.away,
+      homeScore: info.homeScore,
+      awayScore: info.awayScore,
+    };
+    const scored = game.pick && game.pick.team && typeof ScoringEngine !== "undefined"
+      ? ScoringEngine.scorePick(data.format, data.scoringSettings || {}, game.pick, result)
+      : null;
+    return { result, scored };
+  }
+
+  // Week-to-date tally for the header. voided picks (ties, pushes) count
+  // as graded but sit in neither column, same as scoreUserWeek.
+  const weekRecord = useMemo(() => {
+    if (!data) return null;
+    let graded = 0, correct = 0, incorrect = 0, points = 0, pending = 0;
+    data.games.forEach(g => {
+      const grade = gradeFor(g);
+      if (!grade) { pending++; return; }
+      if (!grade.scored) return;
+      graded++;
+      if (grade.scored.correct === true) { correct++; points += grade.scored.points; }
+      else if (grade.scored.correct === false) incorrect++;
+    });
+    return { graded, correct, incorrect, points, pending };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, scoreInfoById]);
 
   // Confidence-format only: suggests a 1..N ranking by how lopsided the
   // model sees each game relative to the rest of the week (least lopsided
@@ -29601,6 +29830,7 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
         week={week}
         format={data.format}
         onShare={() => setShareSpec(buildWeekShareSpec())}
+        record={weekRecord}
       />
       {isSurvivor && <SurvivorRuleNote />}
       <div className="pickem-grid">
@@ -29619,6 +29849,7 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
             prediction={predictions[game.gameId] || null}
             suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
             survivor={isSurvivor ? survivorFor(game) : null}
+            grade={gradeFor(game)}
             replacesPick={isSurvivor && !game.pick && data.games.some(g => g.pick)}
             onOpenGame={onOpenGame ? (g => onOpenGame(g, {
               leagueId: league.id,

@@ -146,8 +146,33 @@ async function main() {
   const weather = await weatherRes.json();
   const stadiums = await stadiumsRes.json();
 
-  const teams = (siteData.teams && siteData.teams.teams) || [];
-  const players = (siteData.players && siteData.players.players) || {};
+  /* site-data-current only returns the docs that have actually been
+   * published to Blobs, and omits the rest - `teams` in particular has never
+   * been published, because the site gets its ranks from the copy embedded
+   * in index.html at deploy time and only *overlays* the blob when one
+   * exists (see useLiveSiteData). This script had no such fallback: it read
+   * the blob only, got an empty team list, failed to resolve either side of
+   * every game, and exited having frozen nothing - successfully, and every
+   * run, for as long as it had been scheduled. Resolve the same way the site
+   * does: published blob if there is one, the static file otherwise.
+   */
+  let teams = (siteData.teams && siteData.teams.teams) || [];
+  if (!teams.length) {
+    const res = await fetchWithRetry(`${SITE_BASE}/data/teams.json`);
+    if (!res.ok) throw new Error(`data/teams.json failed: ${res.status}`);
+    teams = ((await res.json()) || {}).teams || [];
+    log(`site-data-current published no teams doc - fell back to data/teams.json (${teams.length} teams).`);
+  }
+  if (!teams.length) throw new Error("No team data from either site-data-current or data/teams.json");
+
+  let players = (siteData.players && siteData.players.players) || {};
+  if (!Object.keys(players).length) {
+    const res = await fetchWithRetry(`${SITE_BASE}/data/impact-players.json`);
+    if (!res.ok) throw new Error(`data/impact-players.json failed: ${res.status}`);
+    players = ((await res.json()) || {}).players || {};
+    log("site-data-current published no players doc - fell back to data/impact-players.json.");
+  }
+
   const schedule = siteData.schedule || { season: new Date().getFullYear(), weeks: [] };
 
   const isDomeTeam = (teamId) => {
@@ -167,6 +192,11 @@ async function main() {
   }
 
   const predictions = [];
+  // Counted so an unresolvable slate fails the run instead of exiting 0. The
+  // freeze is invisible when it works, so a silent no-op is indistinguishable
+  // from success until someone goes looking - which is exactly how the empty
+  // teams list above went unnoticed.
+  let unresolved = 0;
   for (const { week, games, seasonYear } of scope) {
     const weekOdds = (odds.weeks && odds.weeks[String(week)]) || null;
     const weekWeather = (weather.weeks && weather.weeks[String(week)]) || null;
@@ -176,6 +206,7 @@ async function main() {
       const away = teams.find((t) => t.id === g.away);
       if (!home || !away) {
         log(`Week ${week} ${g.away}@${g.home}: team data missing, skipping.`);
+        unresolved += 1;
         continue;
       }
       const gameOdds = weekOdds && weekOdds.games ? weekOdds.games[`${g.away}-${g.home}`] || null : null;
@@ -230,6 +261,11 @@ async function main() {
   }
 
   if (!predictions.length) {
+    // Every game in scope is rebuilt on every run - the append-only skip
+    // happens server-side in predictions-update, not here - so an empty list
+    // against a non-empty scope means resolution failed, never "already
+    // done".
+    if (unresolved) throw new Error(`Could not resolve team data for ${unresolved} game(s) in scope - froze nothing.`);
     log("Nothing to freeze after resolving team data. Exiting.");
     return;
   }

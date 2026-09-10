@@ -18334,7 +18334,15 @@ function hasStartedForFreeze(scoreInfo, game, seasonYear) {
 function getFrozenPrediction(week, away, home) {
   const weekPreds = PREDICTIONS_DATA.weeks && PREDICTIONS_DATA.weeks[String(week)];
   if (!weekPreds) return null;
-  return weekPreds[`${away}-${home}`] || null;
+  const rec = weekPreds[`${away}-${home}`] || null;
+  // `late` means the freeze happened after kickoff rather than inside the
+  // lead window - the job was down, or the game moved. Such a record is
+  // worth keeping (results-process still grades follow rate against it) but
+  // it is not what this card promises: a number computed mid-game is no more
+  // "what the model said before kickoff" than a live recompute is. Fall back
+  // to live rather than present it as the pre-kickoff call.
+  if (!rec || rec.late) return null;
+  return rec;
 }
 
 /** Every sportsbook's line for one game, for the "Compare Sportsbooks" section

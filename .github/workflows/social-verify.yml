@@ -7,9 +7,10 @@ name: Blitz Odds - social verify
 #
 # Like every other scheduled job here this is workflow_dispatch-only and
 # fired by cron-job.org (GitHub's native cron is unreliable on low-traffic
-# repos). Intended triggers, Eastern time:
-#   - daily   22:00  (the night-before check; 02:00 UTC during EDT, 03:00 EST)
-#   - Sunday  08:00  (re-check before the Sunday-morning post; 12:00/13:00 UTC)
+# repos). Intended trigger: daily at 08:00 America/New_York, about an hour
+# before the ~9 AM post slot (12:00 UTC during EDT, 13:00 during EST). With
+# the default 26h lookahead each post is scheduled the morning before and
+# re-verified against fresh lines the morning it goes out.
 #
 # Secrets:
 #   BUFFER_TOKEN    - required; Buffer API key (Settings > API). Expires
@@ -17,7 +18,7 @@ name: Blitz Odds - social verify
 #                     driven by bufferTokenExpires in social/queue.json.
 #   RESEND_API_KEY  - optional; enables the alert email. Without it, a run
 #                     that has something to report fails on purpose so
-#                     GitHub's failed-workflow email carries the alert.
+#   
 
 on:
   workflow_dispatch:

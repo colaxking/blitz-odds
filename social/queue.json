@@ -1,0 +1,136 @@
+{
+  "_readme": "Posts for @RealBlitzOdds. scripts/social-verify.mjs (run by .github/workflows/social-verify.yml) renders each post against the live odds endpoint the night before it's due, checks `requires`, and schedules it in Buffer only if every assertion holds; otherwise it tries `fallback`, and if that fails too it leaves the slot empty and emails alertEmail. Placeholders: {{fav:AWAY-HOME}} {{spread:G}} {{ou:G}} {{time:G}} {{network:G}} {{line:G}} {{biggest:N[:Day]}} {{closest:N[:Day]}} {{countGte:X}} {{topFavs:N}} {{maxTotal[:Day]}} {{slot:TIME}} {{slotCount:TIME}} {{dow}}. Assertion kinds: fresh, weekOdds, spreadEq, spreadGte, spreadLte, favorite, maxTotal, countGte, kickoff, dayHasGame, siteContains. dueAt is Eastern with its UTC offset (-04:00 through Nov 1, then -05:00).",
+  "channelId": "6a975941065799be466dd6cb",
+  "organizationId": "6a97591171a917443b09bdd9",
+  "alertEmail": "dan@blitz-odds.com",
+  "bufferTokenExpires": "2027-09-11",
+  "posts": [
+    {
+      "id": "2026-w1-sat-deadline",
+      "dueAt": "2026-09-12T09:56:00-04:00",
+      "text": "Week 1 Sunday is tomorrow. Wednesday and Thursday are already in the books — if your pool locks at 1 PM ET, that's the real deadline.\n\nYour top confidence points belong on the games you'd feel dumb missing, not the ones you're excited about.\n\nblitz-odds.com",
+      "requires": []
+    },
+    {
+      "id": "2026-w1-sun-live",
+      "dueAt": "2026-09-13T09:07:00-04:00",
+      "text": "Kickoff in a few hours. Every game card has live score, down and distance, and last play once it starts — tap the bell on any game to get a push when it goes final.\n\nblitz-odds.com",
+      "requires": []
+    },
+    {
+      "id": "2026-w1-mon-grading",
+      "week": 1,
+      "dueAt": "2026-09-14T09:06:00-04:00",
+      "text": "New this week: the league My Picks tab grades every pick the moment a game goes final. Score, winner, Won/Lost per game, and your week record in the header.\n\nMonday night is the last one to land. Check it after.\n\nblitz-odds.com",
+      "requires": [
+        { "kind": "siteContains", "path": "/", "needle": "scoringEngine.js" },
+        { "kind": "dayHasGame", "day": "Mon" }
+      ]
+    },
+    {
+      "id": "2026-w2-tue-lines-up",
+      "week": 2,
+      "dueAt": "2026-09-15T09:52:00-04:00",
+      "text": "Week 2 lines are up. Lions at Bills opens it Thursday night — {{fav:DET-BUF}} {{spread:DET-BUF}}, O/U {{ou:DET-BUF}}, highest total on the board.\n\nSame reminder as last week: if your pool locks at first kickoff, that's Thursday, not Sunday.\n\nFull Week 2 confidence order: blitz-odds.com",
+      "requires": [
+        { "kind": "fresh", "maxAgeHours": 48 },
+        { "kind": "weekOdds", "minGames": 14 },
+        { "kind": "kickoff", "game": "DET-BUF", "date": "Thu, Sep 17" },
+        { "kind": "maxTotal", "game": "DET-BUF" }
+      ],
+      "fallback": {
+        "text": "Week 2 lines are up. Lions at Bills opens it Thursday night — {{fav:DET-BUF}} {{spread:DET-BUF}}, O/U {{ou:DET-BUF}}.\n\nSame reminder as last week: if your pool locks at first kickoff, that's Thursday, not Sunday.\n\nFull Week 2 confidence order: blitz-odds.com",
+        "requires": [
+          { "kind": "fresh", "maxAgeHours": 48 },
+          { "kind": "weekOdds", "minGames": 14 },
+          { "kind": "kickoff", "game": "DET-BUF", "date": "Thu, Sep 17" }
+        ]
+      }
+    },
+    {
+      "id": "2026-w2-wed-biggest-spreads",
+      "week": 2,
+      "dueAt": "2026-09-16T09:17:00-04:00",
+      "text": "Week 2's biggest spreads as of {{dow}}:\n\n{{biggest:4}}\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
+      "requires": [
+        { "kind": "fresh", "maxAgeHours": 48 },
+        { "kind": "weekOdds", "minGames": 14 }
+      ]
+    },
+    {
+      "id": "2026-w2-thu-tnf-coinflips",
+      "week": 2,
+      "dueAt": "2026-09-17T09:03:00-04:00",
+      "text": "Lions at Bills tonight, {{time:DET-BUF}} on {{network:DET-BUF}}.\n\nThree Sunday games are sitting on exactly 3:\n{{line:MIN-CHI}}\n{{line:CIN-HOU}}\n{{line:JAX-DEN}}\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
+      "requires": [
+        { "kind": "fresh", "maxAgeHours": 48 },
+        { "kind": "kickoff", "game": "DET-BUF", "date": "Thu, Sep 17" },
+        { "kind": "spreadEq", "game": "MIN-CHI", "value": 3 },
+        { "kind": "spreadEq", "game": "CIN-HOU", "value": 3 },
+        { "kind": "spreadEq", "game": "JAX-DEN", "value": 3 }
+      ],
+      "fallback": {
+        "text": "Lions at Bills tonight, {{time:DET-BUF}} on {{network:DET-BUF}}.\n\nThe three closest Sunday games right now:\n{{closest:3:Sun}}\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
+        "requires": [
+          { "kind": "fresh", "maxAgeHours": 48 },
+          { "kind": "weekOdds", "minGames": 14 },
+          { "kind": "kickoff", "game": "DET-BUF", "date": "Thu, Sep 17" }
+        ]
+      }
+    },
+    {
+      "id": "2026-w2-fri-one-data-point",
+      "dueAt": "2026-09-18T09:39:00-04:00",
+      "text": "One week of results is one data point.\n\nThe team that looked awful in Week 1 is still the roster the market liked in August. Lines move a point or two, not seven. Don't let one Sunday flip your whole confidence sheet.\n\nblitz-odds.com",
+      "requires": []
+    },
+    {
+      "id": "2026-w2-sat-survivor",
+      "week": 2,
+      "dueAt": "2026-09-19T09:56:00-04:00",
+      "text": "Survivor players: Week 2 has {{countGte:7.5}} favorites of 7.5 or more. Tempting.\n\nBefore you burn {{topFavs:2}}, look at who's still available to you in Week 5 and Week 8. The survivor path planner in the Playbook tab maps it out.\n\nblitz-odds.com",
+      "requires": [
+        { "kind": "fresh", "maxAgeHours": 48 },
+        { "kind": "weekOdds", "minGames": 14 },
+        { "kind": "countGte", "value": 7.5, "min": 3 }
+      ],
+      "fallback": {
+        "text": "Survivor players: the biggest favorite on the Week 2 board is {{topFavs:1}}. Tempting.\n\nBefore you burn it, look at who's still available to you in Week 5 and Week 8. The survivor path planner in the Playbook tab maps it out.\n\nblitz-odds.com",
+        "requires": [
+          { "kind": "fresh", "maxAgeHours": 48 },
+          { "kind": "weekOdds", "minGames": 14 }
+        ]
+      }
+    },
+    {
+      "id": "2026-w2-sun-slate",
+      "week": 2,
+      "dueAt": "2026-09-20T09:07:00-04:00",
+      "text": "Week 2 Sunday. {{slotCount:1:00 PM ET}} games at 1 PM ET, then {{slot:4:05 PM ET}} at 4:05, {{slot:4:25 PM ET}} at 4:25, Colts at Chiefs tonight.\n\nHighest Sunday total: {{maxTotal:Sun}}.\n\nPicks lock at 1. Full board: blitz-odds.com",
+      "requires": [
+        { "kind": "fresh", "maxAgeHours": 36 },
+        { "kind": "weekOdds", "minGames": 14 },
+        { "kind": "kickoff", "game": "IND-KC", "date": "Sun, Sep 20", "time": "8:20 PM ET" },
+        { "kind": "kickoff", "game": "MIN-CHI", "time": "1:00 PM ET" }
+      ]
+    },
+    {
+      "id": "2026-w2-mon-mnf",
+      "week": 2,
+      "dueAt": "2026-09-21T09:06:00-04:00",
+      "text": "Giants at Rams closes Week 2 tonight — {{fav:NYG-LAR}} {{spread:NYG-LAR}}, O/U {{ou:NYG-LAR}}.\n\nIf you're mid-pack after two weeks, that's normal. Confidence pools get decided in Weeks 10-17, when the favorites get obvious and everyone else gets bored.\n\nblitz-odds.com",
+      "requires": [
+        { "kind": "fresh", "maxAgeHours": 48 },
+        { "kind": "kickoff", "game": "NYG-LAR", "date": "Mon, Sep 21" },
+        { "kind": "favorite", "game": "NYG-LAR", "team": "LAR" }
+      ],
+      "fallback": {
+        "text": "Giants at Rams closes Week 2 tonight — {{line:NYG-LAR}}, O/U {{ou:NYG-LAR}}.\n\nIf you're mid-pack after two weeks, that's normal. Confidence pools get decided in Weeks 10-17, when the favorites get obvious and everyone else gets bored.\n\nblitz-odds.com",
+        "requires": [
+          { "kind": "fresh", "maxAgeHours": 48 },
+          { "kind": "kickoff", "game": "NYG-LAR", "date": "Mon, Sep 21" }
+        ]
+      }
+    }
+  ]
+}

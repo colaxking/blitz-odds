@@ -1,0 +1,69 @@
+name: Blitz Odds - social verify
+
+# Verifies and schedules the @RealBlitzOdds posts in social/queue.json
+# without Claude: renders each post due in the next ~26h against the live
+# odds endpoint, checks its assertions, and creates/edits/pulls the Buffer
+# post accordingly. See scripts/social-verify.mjs for the full contract.
+#
+# Like every other scheduled job here this is workflow_dispatch-only and
+# fired by cron-job.org (GitHub's native cron is unreliable on low-traffic
+# repos). Intended triggers, Eastern time:
+#   - daily   22:00  (the night-before check; 02:00 UTC during EDT, 03:00 EST)
+#   - Sunday  08:00  (re-check before the Sunday-morning post; 12:00/13:00 UTC)
+#
+# Secrets:
+#   BUFFER_TOKEN    - required; Buffer API key (Settings > API). Expires
+#                     yearly - the script emails a reminder 30 days out,
+#                     driven by bufferTokenExpires in social/queue.json.
+#   RESEND_API_KEY  - optional; enables the alert email. Without it, a run
+#                     that has something to report fails on purpose so
+#                     GitHub's failed-workflow email carries the alert.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Render and evaluate only; do not touch Buffer or the log"
+        type: boolean
+        default: false
+      lookahead_hours:
+        description: "Schedule posts due within this many hours (default 26)"
+        type: string
+        default: "26"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blitz-odds-social-verify
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify and schedule posts
+        env:
+          BUFFER_TOKEN: ${{ secrets.BUFFER_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+          LOOKAHEAD_HOURS: ${{ inputs.lookahead_hours || '26' }}
+          # See hotpicks-snapshot.yml - GitHub Actions runners have flaky
+          # IPv6 egress to Netlify that can cause ECONNRESET; force IPv4.
+          NODE_OPTIONS: "--dns-result-order=ipv4first"
+        run: node scripts/social-verify.mjs
+
+      # always(): the script writes the log before it decides its exit code,
+      # and a non-zero exit is how it raises an alert when no email key is
+      # configured - the log is still worth keeping in that case.
+      - name: Commit verify log if changed
+        if: always()
+        run: |
+          scripts/commit-and-push.sh "Social verify: automated run via GitHub Actions" social/verify-log.json

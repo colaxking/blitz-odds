@@ -34673,15 +34673,24 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
       || null;
   }
 
+  // The one answer to "what score is in this row's box". The input renders it
+  // and Apply sends it, so the two can't drift again: an untouched suggested
+  // score used to show in the box but go out as undefined, and the endpoint
+  // then rejected the new-player add for having no impactScore.
+  function scoreFor(item) {
+    if (scores[item.id] !== undefined) return scores[item.id];
+    const known = curatedFor(item);
+    if (known && known.impactScore !== undefined && known.impactScore !== null) return String(known.impactScore);
+    return item.suggestedImpact != null ? String(item.suggestedImpact) : "";
+  }
+
   async function resolve(item, applied) {
     setBusy(true);
     setError(null);
     try {
       if (applied) {
-        const known = curatedFor(item);
-        const score = scores[item.id] !== undefined && scores[item.id] !== ""
-          ? Number(scores[item.id])
-          : (known ? known.impactScore : undefined);
+        const raw = scoreFor(item);
+        const score = raw !== "" ? Number(raw) : undefined;
         await adminCall(auth, "/.netlify/functions/injury-player-add", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -34758,10 +34767,7 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
         // dispatcher's depth-chart suggestion, so Apply is a decision rather
         // than a research task. Rows queued before suggestedImpact shipped
         // carry neither and still fall back to blank.
-        const suggested = item.suggestedImpact != null ? String(item.suggestedImpact) : "";
-        const scoreValue = scores[item.id] !== undefined
-          ? scores[item.id]
-          : (known && known.impactScore !== undefined ? String(known.impactScore) : suggested);
+        const scoreValue = scoreFor(item);
         const scoreOk = scoreValue !== "" && Number(scoreValue) >= 1 && Number(scoreValue) <= 10;
         return (
           <div key={item.id} className={"admin-inj" + (downgrade ? " downgrade" : "")}>
@@ -34776,7 +34782,12 @@ function AdminInjuriesPanel({ auth, onToast, onCount }) {
                 {item.name || item.espnId}
               </button>
               <span className="admin-row-sub">{item.position || "?"} · {item.team}</span>
-              {item.kind === "untracked-candidate" && (
+              {/* Keyed off the live tracked list, not item.kind: kind is frozen
+                  when the row is queued, so a player added since (a sync, or an
+                  earlier Apply) kept reading "Not tracked" beside his own score.
+                  Still gated on kind so a slow or failed tracked-list fetch
+                  doesn't flash the pill onto players who were always tracked. */}
+              {item.kind === "untracked-candidate" && !known && (
                 <span className="admin-pill admin-pill-off">Not tracked</span>
               )}
               {item.standing === "next-man-up" && (

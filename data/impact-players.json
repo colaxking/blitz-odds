@@ -1,6 +1,6 @@
 {
   "isDemoData": false,
-  "disclaimer": "Injury and roster statuses reflect reports as of the evening of Friday, Sept. 11, 2026, including every team's final Week 1 injury report and game-status designations. Ruled OUT for Sunday: Falcons QB Tua Tagovailoa (oblique - he went down untouched at Thursday's practice, did not practice Friday, and third-stringer Cooper Rush will start at Pittsburgh with Michael Penix Jr. still finishing his ACL rehab and inactive); Ravens DT Nnamdi Madubuike (neck, though HC Jesse Minter called him \"really, really close\"); Eagles Edge Jonathan Greenard (pectoral); Raiders TE Brock Bowers (meniscus trim Sept. 8, expected to miss a game or two); and Saints DE Cameron Jordan (hamstring). Buccaneers WR Jalen McMillan (knee) and Bengals DE Shemar Stewart (knee) were listed doubtful and are not expected to play. Cleared on Friday's final report with no game designation and moved to active here: Commanders Edge Odafe Oweh (calf), Dolphins TE Will Kacmarek (calf) and Panthers RB Jonathon Brooks (groin, \"no limitations\" per HC Dave Canales). Raiders RB Ashton Jeanty (ankle), Jets RB Breece Hall (groin), Buccaneers WR Emeka Egbuka (toe) and Bengals WRs Ja'Marr Chase and Tee Higgins all carry no designation. Still questionable for Sunday: Bears WR Rome Odunze (calf - limited all week but says \"I'm feeling ready to go\"), Saints RB Alvin Kamara (MCL sprain - a full participant Friday, likely in a timeshare), Cardinals RB Jeremiyah Love (high ankle sprain - a game-time decision per HC Mike LaFleur, though ESPN reported Friday he is expected to play) and Giants WR Malik Nabers (knee - full participant all week, with HC John Harbaugh saying \"I think he's ready to go\"). Carried over from the Week 1 openers: Patriots WR A.J. Brown (high ankle sprain suffered Sept. 9 at Seattle, expected to miss at least four weeks) and Seahawks QB Sam Darnold (hip - fracture and long-term damage ruled out, expected to miss Seattle's next game, with HC Mike Macdonald calling the news \"positive\"). 49ers DT Alfred Collins (torn patellar tendon), 49ers WR Ricky Pearsall (PCL), Texans WR Jayden Higgins (ACL), Falcons Edge Jalon Walker (ACL), Giants WR Calvin Austin III (ACL), Commanders LT Laremy Tunsil (torn triceps), Cardinals RB James Conner (IR), Chargers C Tyler Biadasz, Saints DT Bryan Bresee and RB Ty Chandler, Vikings S Jamal Adams, Panthers OLB Nic Scourton and Raiders Edge Keyron Crawford remain out long-term or for the season; Cowboys LG Tyler Smith (thumb surgery) is on IR for four to six weeks; Packers Edge Micah Parsons is on reserve/PUP and RB Josh Jacobs on the Commissioner's Exempt List, as is Broncos Edge Jonathon Cooper; Lions safeties Brian Branch and Kerby Joseph and C Cade Mays are out at least four games. Players absent from their team's final Week 1 injury report are treated as active here. Some depth and practice-squad entries may lag the transaction wire. Impact scores are editorial estimates, not official ratings.",
+  "disclaimer": "Injury and roster statuses reflect reports as of the evening of Saturday, Sept. 12, 2026, including every team's final Week 1 injury report and game-status designations. Saturday moves: the Patriots placed WR A.J. Brown (high ankle sprain) on injured reserve, ruling him out at least four games, and the Jets placed WR Tim Patrick (groin) on IR. Falcons QB Cooper Rush - already starting for the ruled-out Tua Tagovailoa (oblique) - dealt with back spasms Saturday but is still expected to start at Pittsburgh, with Michael Penix Jr. (knee) inactive. Chiefs DT Chris Jones was limited to warm-ups Saturday with calf tightness but carries no game-status designation for Monday night. Also ruled OUT for Sunday: Raiders TE Brock Bowers (knee procedure), Saints DE Cameron Jordan (hamstring), Ravens DT Nnamdi Madubuike (neck) and LB Teddye Buchanan (knee), Eagles Edge Jonathan Greenard (pectoral) and Titans LB Cedric Gray (concussion); Chiefs LT Josh Simmons (back) is out for Monday. Key QUESTIONABLE calls: Saints RB Alvin Kamara (MCL), Giants WR Malik Nabers (knee), Bears WR Rome Odunze (calf), Seahawks S Nick Emmanwori (ankle) and WR Tory Horton (hamstring), Cardinals RB Jeremiyah Love (ankle), Chargers DE Tuli Tuipulotu (hip), Steelers CB Joey Porter Jr. (back) and Packers G Aaron Banks (knee). Seahawks QB Sam Darnold (hip) is expected to miss at least Week 2; Bears CB Kyler Gordon (calf) and Lions RB Isiah Pacheco (back) are on reserve/PUP and injured reserve respectively and must miss at least four games. Statuses can change up to kickoff; always confirm with the official inactives list.",
   "players": {
     "NE": [
       {
@@ -60,11 +60,11 @@
         "impactScore": 9,
         "status": "out",
         "injury": {
-          "type": "High ankle sprain (right)",
+          "type": "High ankle sprain (right) - on injured reserve",
           "since": "2026-09-09",
-          "note": "Brown hurt the ankle early in the third quarter of the Sept. 9 Kickoff Game at Seattle when Seahawks CB Nehemiah Pritchett's knee came down on it; he limped off and did not return. An MRI confirmed a high ankle sprain and he is expected to miss at least four weeks, per Ian Rapoport and ESPN, with IR a possibility. He had three catches for 26 yards in his Patriots debut after the offseason trade from Philadelphia."
+          "note": "Brown hurt the ankle early in the third quarter of the Sept. 9 Kickoff Game at Seattle when Seahawks CB Nehemiah Pritchett's knee came down on it; he limped off and did not return. An MRI confirmed a high ankle sprain, and New England officially placed him on injured reserve Saturday, Sept. 12, opening a roster spot to sign DT DaQuan Jones. He must miss at least four games - the Steelers, Jaguars, Bills and Raiders - and is not eligible to return until Week 6. He had three catches for 26 yards in his Patriots debut after the offseason trade from Philadelphia."
         },
-        "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
+        "statusUpdatedAt": "2026-09-13T01:05:00.000Z",
         "source": "curated",
         "espnId": "4047646"
       }
@@ -342,6 +342,19 @@
         },
         "statusUpdatedAt": "2026-09-10T23:38Z",
         "source": "auto"
+      },
+      {
+        "name": "De'Zhaun Stribling",
+        "position": "WR",
+        "impactScore": 4,
+        "status": "out",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-09-10",
+          "note": "Carted to the locker room after injuring his ankle in Thursday's Week 1 game against the Rams in Melbourne. HC Kyle Shanahan said the rookie's Achilles is intact."
+        },
+        "statusUpdatedAt": "2026-09-12T13:20:00.000Z",
+        "source": "final-week1-report"
       }
     ],
     "LAR": [
@@ -470,38 +483,38 @@
         "injury": {
           "type": "Calf strain (soft-tissue)",
           "since": "2026-07-25",
-          "note": "Opened training camp on the PUP list with a calf injury that also sidelined him for OTAs and minicamp. GM Ryan Poles said Aug. 6 there's been a frustrating 'delay' in his recovery with no firm return timetable; Gordon says he believes he'll be ready soon."
+          "note": "Opened training camp on the PUP list with a calf injury that also cost him OTAs and minicamp, and GM Ryan Poles cited a frustrating 'delay' in the recovery. Chicago carried him over to the reserve/PUP list to start the season, so he must miss at least the first four games."
         },
         "espnId": "4361093",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
+        "statusUpdatedAt": "2026-09-12T21:05:00.000Z",
         "source": "curated"
       },
       {
         "name": "Luther Burden III",
         "position": "WR",
         "impactScore": 6,
-        "status": "out",
+        "status": "active",
         "injury": {
-          "type": "Groin injury",
+          "type": "Groin injury (cleared)",
           "since": "2026-08-08",
-          "note": "Hurt getting tangled up with CB Tyrique Stevenson on the final rep of red-zone one-on-ones. Expected to miss the rest of the preseason (about a month) but the Bears believe he'll be ready for the Sept. 13 opener at Carolina. Poised for a bigger role after the DJ Moore trade to Buffalo; caught 47 passes for 652 yards and 2 TDs as a rookie in 2025."
+          "note": "Burden strained his groin on Aug. 8 in red-zone one-on-ones and missed the rest of the preseason, but he was left off Chicago's Week 1 injury report entirely and is expected to play at Carolina. Rome Odunze said this week he expects to line up alongside Burden as the Bears' top two receivers."
         },
         "espnId": "4685278",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
+        "statusUpdatedAt": "2026-09-12T21:05:00.000Z",
         "source": "curated"
       },
       {
         "name": "Kyle Monangai",
         "position": "RB",
         "impactScore": 6,
-        "status": "out",
+        "status": "active",
         "injury": {
-          "type": "Hyperextended knee",
+          "type": "Hyperextended knee (recovered)",
           "since": "2026-08-16",
-          "note": "Hurt getting tangled up with DT Grady Jarrett during an Aug. 16 practice. Initial tests suggested the knee was structurally sound, but a follow-up MRI confirmed the hyperextension. HC Ben Johnson said this week that Monangai remains \"week-to-week,\" per Chris Emma, leaving Week 1 in doubt. He was in line for a bigger role behind the injury-prone D'Andre Swift."
+          "note": "Monangai hyperextended the knee in an Aug. 16 practice and was called week-to-week through late August, but he recovered in time for the opener and was absent from Chicago's Week 1 injury report. He backs up D'Andre Swift."
         },
         "espnId": "4608686",
-        "statusUpdatedAt": "2026-09-04T01:05:00.000Z",
+        "statusUpdatedAt": "2026-09-12T21:05:00.000Z",
         "source": "curated"
       },
       {
@@ -619,6 +632,11 @@
         "espnId": "4678008",
         "impactScore": 5,
         "status": "active",
+        "injury": {
+          "type": "Groin",
+          "since": "2026-09-01",
+          "note": "Brooks was limited in practice Wednesday and Thursday of Week 1 prep with a groin injury, but practiced fully Friday and came off Carolina's injury report entirely with no game-status designation for the Sept. 13 opener vs. Chicago."
+        },
         "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
         "source": "curated"
       }
@@ -953,10 +971,11 @@
         "status": "out",
         "espnId": "4361529",
         "injury": {
-          "type": "Back",
-          "note": "The Lions placed Pacheco (back) on injured reserve Tuesday."
+          "type": "Back (plus MCL sprain)",
+          "since": "2026-09-01",
+          "note": "Detroit placed Pacheco on injured reserve Sept. 1 after a training-camp back issue compounded an MCL sprain. HC Dan Campbell had expected him ready for Week 1; instead he must sit at least the first four games, and the Lions have said they hope to have him back later this season."
         },
-        "statusUpdatedAt": "2026-09-01T20:28Z",
+        "statusUpdatedAt": "2026-09-12T21:05:00.000Z",
         "source": "auto"
       },
       {
@@ -1224,6 +1243,19 @@
         "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
         "source": "curated",
         "espnId": "4035245"
+      },
+      {
+        "name": "Teddye Buchanan",
+        "position": "LB",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Knee",
+          "since": "2026-09",
+          "note": "Practiced on a limited basis but was ruled OUT on Baltimore's final Week 1 injury report for Sunday's opener vs. Indianapolis."
+        },
+        "statusUpdatedAt": "2026-09-12T13:20:00.000Z",
+        "source": "final-week1-report"
       }
     ],
     "IND": [
@@ -1442,6 +1474,19 @@
         "espnId": "4430807"
       },
       {
+        "name": "Cooper Rush",
+        "position": "QB",
+        "impactScore": 5,
+        "status": "active",
+        "injury": {
+          "type": "Back spasms",
+          "since": "2026-09-12",
+          "note": "Named the Week 1 starter Friday after Tua Tagovailoa (oblique) was ruled out, then dealt with back spasms at Saturday's walkthrough. The Falcons announced he is still expected to start Sunday at Pittsburgh. With Michael Penix Jr. inactive, undrafted rookie Jack Strand would be the only other QB available if Rush cannot go."
+        },
+        "statusUpdatedAt": "2026-09-13T01:05:00.000Z",
+        "source": "curated"
+      },
+      {
         "name": "Michael Penix Jr.",
         "position": "QB",
         "impactScore": 7,
@@ -1481,6 +1526,19 @@
         },
         "statusUpdatedAt": "2026-09-11T17:58Z",
         "source": "auto"
+      },
+      {
+        "name": "Za'Darius Smith",
+        "position": "DE",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Shoulder",
+          "since": "2026-09",
+          "note": "A full participant in practice but still carries a questionable designation on Atlanta's final Week 1 injury report at Pittsburgh."
+        },
+        "statusUpdatedAt": "2026-09-12T13:20:00.000Z",
+        "source": "final-week1-report"
       }
     ],
     "PIT": [
@@ -1521,6 +1579,19 @@
         },
         "statusUpdatedAt": "2026-08-19T12:07Z",
         "source": "auto"
+      },
+      {
+        "name": "Joey Porter Jr.",
+        "position": "CB",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Back",
+          "since": "2026-09",
+          "note": "A limited participant in practice and the only Steeler listed on Pittsburgh's final Week 1 injury report; questionable for Sunday's home opener vs. Atlanta."
+        },
+        "statusUpdatedAt": "2026-09-12T13:20:00.000Z",
+        "source": "final-week1-report"
       }
     ],
     "NYJ": [
@@ -1545,6 +1616,19 @@
         },
         "statusUpdatedAt": "2026-08-20T00:23Z",
         "source": "auto"
+      },
+      {
+        "name": "Tim Patrick",
+        "position": "WR",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Groin - on injured reserve",
+          "since": "2026-09-06",
+          "note": "Did not practice at any point during Week 1 prep and was ruled OUT for Sunday's opener vs. Tennessee. The Jets then placed him on injured reserve Saturday, Sept. 12, per NFL.com's daily roundup, meaning he must miss at least four games."
+        },
+        "statusUpdatedAt": "2026-09-13T01:05:00.000Z",
+        "source": "final-week1-report"
       }
     ],
     "TEN": [
@@ -1611,6 +1695,19 @@
         },
         "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
         "source": "curated"
+      },
+      {
+        "name": "Cedric Gray",
+        "position": "LB",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Concussion",
+          "since": "2026-09",
+          "note": "Did not practice during Week 1 prep and is ruled OUT for Sunday's opener at the Jets."
+        },
+        "statusUpdatedAt": "2026-09-12T13:20:00.000Z",
+        "source": "final-week1-report"
       }
     ],
     "ARI": [
@@ -1729,6 +1826,19 @@
         },
         "statusUpdatedAt": "2026-09-01T02:29Z",
         "source": "auto"
+      },
+      {
+        "name": "Tuli Tuipulotu",
+        "position": "DE",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Hip",
+          "since": "2026-09",
+          "note": "Limited in practice and listed as questionable on the Chargers' final Week 1 injury report for Sunday's opener vs. Arizona."
+        },
+        "statusUpdatedAt": "2026-09-12T13:20:00.000Z",
+        "source": "final-week1-report"
       }
     ],
     "MIA": [
@@ -1747,6 +1857,11 @@
         "espnId": "4880236",
         "impactScore": 5,
         "status": "active",
+        "injury": {
+          "type": "Calf",
+          "since": "2026-08-29",
+          "note": "The rookie tight end was a limited participant in practice all week with a calf injury, but Miami issued no game-status designations on its final Week 1 report and Kacmarek told reporters he plans to play Sunday at Las Vegas."
+        },
         "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
         "source": "curated"
       },
@@ -1825,19 +1940,6 @@
         "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
         "source": "curated",
         "espnId": "4432665"
-      },
-      {
-        "name": "Dont'e Thornton Jr.",
-        "position": "WR",
-        "espnId": "4432775",
-        "impactScore": 6,
-        "status": "out",
-        "injury": {
-          "type": "Undisclosed",
-          "note": "ir"
-        },
-        "statusUpdatedAt": "2026-09-08T20:42Z",
-        "source": "auto"
       }
     ],
     "GB": [
@@ -1904,6 +2006,19 @@
         },
         "statusUpdatedAt": "2026-08-30T22:43Z",
         "source": "auto"
+      },
+      {
+        "name": "Aaron Banks",
+        "position": "G",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "since": "2026-09",
+          "note": "Limited in practice and questionable for Sunday's opener vs. Minnesota, part of a banged-up Packers offensive line that also carries a questionable designation at right tackle."
+        },
+        "statusUpdatedAt": "2026-09-12T13:20:00.000Z",
+        "source": "final-week1-report"
       }
     ],
     "MIN": [
@@ -2041,6 +2156,11 @@
         "position": "Edge",
         "impactScore": 7,
         "status": "active",
+        "injury": {
+          "type": "Calf strain",
+          "since": "2026-08",
+          "note": "Oweh missed the end of camp with a calf strain and returned to practice during Week 1 prep, logging limited participation all three days. Washington issued no game-status designations on its final report, clearing him to play the Sept. 13 opener at Philadelphia."
+        },
         "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
         "source": "curated",
         "espnId": "4361422"
@@ -2309,6 +2429,19 @@
         "source": "curated"
       },
       {
+        "name": "Chris Jones",
+        "position": "DT",
+        "impactScore": 9,
+        "status": "active",
+        "injury": {
+          "type": "Calf tightness (left)",
+          "since": "2026-09-11",
+          "note": "Jones' left calf tightened up Friday and he was held out of practice; he was limited to warm-ups in a compression sleeve at Saturday's session ahead of Monday night's opener vs. Denver. HC Andy Reid called sitting him precautionary and said \"I think he'll be all right.\" Kansas City has not attached a game-status designation to him."
+        },
+        "statusUpdatedAt": "2026-09-13T01:05:00.000Z",
+        "source": "curated"
+      },
+      {
         "name": "Jeff Caldwell",
         "position": "WR",
         "espnId": "4885466",
@@ -2320,6 +2453,19 @@
         },
         "statusUpdatedAt": "2026-08-25T23:12Z",
         "source": "auto"
+      },
+      {
+        "name": "Josh Simmons",
+        "position": "T",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Lower back injury",
+          "since": "2026-08",
+          "note": "Kansas City's starting left tackle and 2025 first-round pick has missed more than three weeks with a lower back injury suffered in training camp. He did not practice all week and the Chiefs officially ruled him out Saturday for Monday night's opener vs. Denver; undrafted rookie Kahlil Benson is set to make his first NFL start in his place."
+        },
+        "statusUpdatedAt": "2026-09-12T21:05:00.000Z",
+        "source": "curated"
       }
     ]
   }

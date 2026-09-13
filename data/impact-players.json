@@ -1457,14 +1457,12 @@
         "name": "Brian Thomas Jr.",
         "position": "WR",
         "impactScore": 8,
-        "status": "questionable",
-        "statusUpdatedAt": "2026-09-13T18:04Z",
+        "status": "active",
+        "statusUpdatedAt": "2026-09-13T19:01Z",
         "source": "auto",
         "espnId": "4432773",
-        "injury": {
-          "type": "Shoulder",
-          "note": "Thomas is questionable to return to Sunday's game against the Browns due to a shoulder injury."
-        }
+        "injury": null,
+        "activatedDate": "2026-09-13"
       },
       {
         "name": "Zach Durfee",
@@ -1951,6 +1949,19 @@
         "statusUpdatedAt": "2026-08-31T01:20:00.000Z",
         "source": "curated",
         "espnId": "4429160"
+      },
+      {
+        "name": "Jalen Tolbert",
+        "position": "WR",
+        "espnId": "4249417",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "Tolbert (coach's decision) is inactive for Sunday's game against the Raiders."
+        },
+        "statusUpdatedAt": "2026-09-13T19:09Z",
+        "source": "auto"
       }
     ],
     "LV": [
@@ -2102,14 +2113,13 @@
         "name": "Aaron Banks",
         "position": "G",
         "impactScore": 5,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Knee",
-          "since": "2026-09",
-          "note": "Limited in practice and questionable for Sunday's opener vs. Minnesota, part of a banged-up Packers offensive line that also carries a questionable designation at right tackle."
+          "note": "inactive"
         },
-        "statusUpdatedAt": "2026-09-12T13:20:00.000Z",
-        "source": "final-week1-report",
+        "statusUpdatedAt": "2026-09-13T19:03Z",
+        "source": "auto",
         "espnId": "4242390"
       }
     ],
@@ -2203,6 +2213,19 @@
         },
         "statusUpdatedAt": "2026-09-01T02:39Z",
         "source": "auto"
+      },
+      {
+        "name": "Elijah Williams",
+        "position": "DE",
+        "espnId": "4696782",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-13T19:10Z",
+        "source": "auto"
       }
     ],
     "WAS": [
@@ -2256,6 +2279,19 @@
         "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
         "source": "curated",
         "espnId": "4361422"
+      },
+      {
+        "name": "Treylon Burks",
+        "position": "WR",
+        "espnId": "4567156",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "Burks (coach's decision) is inactive for Sunday's game against the Eagles."
+        },
+        "statusUpdatedAt": "2026-09-13T19:16Z",
+        "source": "auto"
       }
     ],
     "PHI": [
@@ -2457,14 +2493,13 @@
         "position": "CB",
         "espnId": "4371946",
         "impactScore": 5,
-        "status": "active",
+        "status": "out",
         "injury": {
-          "type": "Concussion",
-          "since": "2026-08-29",
-          "note": null
+          "type": "Coach's Decision",
+          "note": "inactive"
         },
-        "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-13T19:01Z",
+        "source": "auto"
       },
       {
         "name": "Marvin Mims Jr.",

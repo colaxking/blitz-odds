@@ -1,0 +1,398 @@
+{
+  "weeks": {
+    "2": {
+      "week": 2,
+      "season": 2026,
+      "snapshotAt": "2026-09-15T21:00:28.272Z",
+      "picks": {
+        "topConfidence": [
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "SEA",
+              "homeId": "ARI",
+              "awayName": "Seattle Seahawks",
+              "homeName": "Arizona Cardinals"
+            },
+            "pickTeamId": "ARI",
+            "pick": "Arizona Cardinals",
+            "confidence": 0.9264319282594404,
+            "confidencePct": 93,
+            "summary": "Arizona Cardinals — 93% confidence",
+            "advantage": "Arizona Cardinals carries a 42.6-point rating edge over Seattle Seahawks once offense, defense, injuries, and weather are graded. Seattle Seahawks are without Sam Darnold (out), a real hit to their offense. The sportsbook favorite is actually Seattle Seahawks here - the model sees an edge this line doesn't fully reflect."
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "IND",
+              "homeId": "KC",
+              "awayName": "Indianapolis Colts",
+              "homeName": "Kansas City Chiefs"
+            },
+            "pickTeamId": "KC",
+            "pick": "Kansas City Chiefs",
+            "confidence": 0.9257594642140686,
+            "confidencePct": 93,
+            "summary": "Kansas City Chiefs — 93% confidence",
+            "advantage": "Kansas City Chiefs carries a 42.4-point rating edge over Indianapolis Colts once offense, defense, injuries, and weather are graded. Indianapolis Colts are without D.J. Montgomery (out), a real hit to their offense. The market agrees Kansas City Chiefs is favored, and 93% confidence shows how comfortably."
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "JAX",
+              "homeId": "DEN",
+              "awayName": "Jacksonville Jaguars",
+              "homeName": "Denver Broncos"
+            },
+            "pickTeamId": "JAX",
+            "pick": "Jacksonville Jaguars",
+            "confidence": 0.8367572981412726,
+            "confidencePct": 84,
+            "summary": "Jacksonville Jaguars — 84% confidence",
+            "advantage": "Jacksonville Jaguars carries a 33.3-point rating edge over Denver Broncos once offense, defense, injuries, and weather are graded. Denver Broncos are without Jonathon Cooper (out), a real hit to their defense. The sportsbook favorite is actually Denver Broncos here - the model sees an edge this line doesn't fully reflect."
+          }
+        ],
+        "spreadPicks": [
+          {
+            "market": "spread",
+            "game": {
+              "awayId": "SEA",
+              "homeId": "ARI",
+              "awayName": "Seattle Seahawks",
+              "homeName": "Arizona Cardinals"
+            },
+            "pickTeamId": "ARI",
+            "pick": "Arizona Cardinals +points",
+            "confidence": 0.9264319282594404,
+            "confidencePct": 93,
+            "summary": "Arizona Cardinals to cover as the underdog",
+            "advantage": "The model favors Arizona Cardinals outright even though the market has them getting points - that's the whole edge: a line the model thinks is priced wrong."
+          },
+          {
+            "market": "spread",
+            "game": {
+              "awayId": "JAX",
+              "homeId": "DEN",
+              "awayName": "Jacksonville Jaguars",
+              "homeName": "Denver Broncos"
+            },
+            "pickTeamId": "JAX",
+            "pick": "Jacksonville Jaguars +points",
+            "confidence": 0.8367572981412726,
+            "confidencePct": 84,
+            "summary": "Jacksonville Jaguars to cover as the underdog",
+            "advantage": "The model favors Jacksonville Jaguars outright even though the market has them getting points - that's the whole edge: a line the model thinks is priced wrong."
+          },
+          {
+            "market": "spread",
+            "game": {
+              "awayId": "CIN",
+              "homeId": "HOU",
+              "awayName": "Cincinnati Bengals",
+              "homeName": "Houston Texans"
+            },
+            "pickTeamId": "CIN",
+            "pick": "Cincinnati Bengals +points",
+            "confidence": 0.7919110066593723,
+            "confidencePct": 79,
+            "summary": "Cincinnati Bengals to cover as the underdog",
+            "advantage": "The model favors Cincinnati Bengals outright even though the market has them getting points - that's the whole edge: a line the model thinks is priced wrong."
+          }
+        ],
+        "moneylinePicks": [
+          {
+            "market": "moneyline",
+            "game": {
+              "awayId": "SEA",
+              "homeId": "ARI",
+              "awayName": "Seattle Seahawks",
+              "homeName": "Arizona Cardinals"
+            },
+            "pickTeamId": "ARI",
+            "pick": "Arizona Cardinals +185",
+            "confidence": 0.9264319282594404,
+            "confidencePct": 93,
+            "summary": "Arizona Cardinals +185",
+            "advantage": "The model gives Arizona Cardinals a 93% win probability, but that price only implies 35% - a 58-point gap between what the model sees and what the market's charging for it."
+          },
+          {
+            "market": "moneyline",
+            "game": {
+              "awayId": "NYG",
+              "homeId": "LAR",
+              "awayName": "New York Giants",
+              "homeName": "Los Angeles Rams"
+            },
+            "pickTeamId": "NYG",
+            "pick": "New York Giants +280",
+            "confidence": 0.7538195235332964,
+            "confidencePct": 75,
+            "summary": "New York Giants +280",
+            "advantage": "The model gives New York Giants a 75% win probability, but that price only implies 26% - a 49-point gap between what the model sees and what the market's charging for it."
+          },
+          {
+            "market": "moneyline",
+            "game": {
+              "awayId": "LV",
+              "homeId": "LAC",
+              "awayName": "Las Vegas Raiders",
+              "homeName": "Los Angeles Chargers"
+            },
+            "pickTeamId": "LV",
+            "pick": "Las Vegas Raiders +250",
+            "confidence": 0.6979140091165926,
+            "confidencePct": 70,
+            "summary": "Las Vegas Raiders +250",
+            "advantage": "The model gives Las Vegas Raiders a 70% win probability, but that price only implies 29% - a 41-point gap between what the model sees and what the market's charging for it."
+          }
+        ],
+        "totalPicks": [
+          {
+            "market": "total",
+            "game": {
+              "awayId": "PIT",
+              "homeId": "NE",
+              "awayName": "Pittsburgh Steelers",
+              "homeName": "New England Patriots"
+            },
+            "pick": "Under 41.5",
+            "lean": "under",
+            "summary": "Under 41.5",
+            "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total."
+          },
+          {
+            "market": "total",
+            "game": {
+              "awayId": "LV",
+              "homeId": "LAC",
+              "awayName": "Las Vegas Raiders",
+              "homeName": "Los Angeles Chargers"
+            },
+            "pick": "Under 43.5",
+            "lean": "under",
+            "summary": "Under 43.5",
+            "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total."
+          },
+          {
+            "market": "total",
+            "game": {
+              "awayId": "SEA",
+              "homeId": "ARI",
+              "awayName": "Seattle Seahawks",
+              "homeName": "Arizona Cardinals"
+            },
+            "pick": "Under 41.5",
+            "lean": "under",
+            "summary": "Under 41.5",
+            "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total."
+          }
+        ],
+        "spreadPick": {
+          "market": "spread",
+          "game": {
+            "awayId": "SEA",
+            "homeId": "ARI",
+            "awayName": "Seattle Seahawks",
+            "homeName": "Arizona Cardinals"
+          },
+          "pickTeamId": "ARI",
+          "pick": "Arizona Cardinals +points",
+          "confidence": 0.9264319282594404,
+          "confidencePct": 93,
+          "summary": "Arizona Cardinals to cover as the underdog",
+          "advantage": "The model favors Arizona Cardinals outright even though the market has them getting points - that's the whole edge: a line the model thinks is priced wrong."
+        },
+        "moneylinePick": {
+          "market": "moneyline",
+          "game": {
+            "awayId": "SEA",
+            "homeId": "ARI",
+            "awayName": "Seattle Seahawks",
+            "homeName": "Arizona Cardinals"
+          },
+          "pickTeamId": "ARI",
+          "pick": "Arizona Cardinals +185",
+          "confidence": 0.9264319282594404,
+          "confidencePct": 93,
+          "summary": "Arizona Cardinals +185",
+          "advantage": "The model gives Arizona Cardinals a 93% win probability, but that price only implies 35% - a 58-point gap between what the model sees and what the market's charging for it."
+        },
+        "totalPick": {
+          "market": "total",
+          "game": {
+            "awayId": "PIT",
+            "homeId": "NE",
+            "awayName": "Pittsburgh Steelers",
+            "homeName": "New England Patriots"
+          },
+          "pick": "Under 41.5",
+          "lean": "under",
+          "summary": "Under 41.5",
+          "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total."
+        }
+      },
+      "gradingContext": {
+        "SEA-ARI": {
+          "favorite": "SEA",
+          "spread": -4.5,
+          "moneylineHome": 185,
+          "moneylineAway": -225,
+          "overUnder": 41.5,
+          "asOf": "2026-09-15T15:15:33.809Z",
+          "books": {
+            "draftkings": {
+              "favorite": "SEA",
+              "spread": -4.5,
+              "moneylineHome": 185,
+              "moneylineAway": -225,
+              "overUnder": 41.5,
+              "asOf": "2026-09-15T15:15:33.809Z"
+            },
+            "fanduel": {
+              "favorite": "SEA",
+              "spread": -4.5,
+              "moneylineHome": 184,
+              "moneylineAway": -220,
+              "overUnder": 41.5,
+              "asOf": "2026-09-15T15:15:33.809Z"
+            },
+            "betmgm": {
+              "favorite": "SEA",
+              "spread": -4.5,
+              "moneylineHome": 180,
+              "moneylineAway": -220,
+              "overUnder": 41.5,
+              "asOf": "2026-09-15T15:15:33.809Z"
+            }
+          }
+        },
+        "IND-KC": {
+          "favorite": "KC",
+          "spread": -6.5,
+          "moneylineHome": -305,
+          "moneylineAway": 245,
+          "overUnder": 47.5,
+          "asOf": "2026-09-15T15:15:33.810Z",
+          "books": {
+            "draftkings": {
+              "favorite": "KC",
+              "spread": -6.5,
+              "moneylineHome": -305,
+              "moneylineAway": 245,
+              "overUnder": 47.5,
+              "asOf": "2026-09-15T15:15:33.810Z"
+            },
+            "fanduel": {
+              "favorite": "KC",
+              "spread": -6.5,
+              "moneylineHome": -335,
+              "moneylineAway": 270,
+              "overUnder": 47.5,
+              "asOf": "2026-09-15T15:15:33.810Z"
+            },
+            "betmgm": {
+              "favorite": "KC",
+              "spread": -6.5,
+              "moneylineHome": -300,
+              "moneylineAway": 250,
+              "overUnder": 47.5,
+              "asOf": "2026-09-15T15:15:33.810Z"
+            },
+            "caesars": {
+              "favorite": "KC",
+              "spread": -6.5,
+              "moneylineHome": -320,
+              "moneylineAway": 255,
+              "overUnder": 47.5,
+              "asOf": "2026-09-15T15:15:33.810Z"
+            }
+          }
+        },
+        "JAX-DEN": {
+          "favorite": "DEN",
+          "spread": -2.5,
+          "moneylineHome": -135,
+          "moneylineAway": 114,
+          "overUnder": 44.5,
+          "asOf": "2026-09-15T15:15:33.808Z",
+          "books": {
+            "draftkings": {
+              "favorite": "DEN",
+              "spread": -2.5,
+              "moneylineHome": -135,
+              "moneylineAway": 114,
+              "overUnder": 44.5,
+              "asOf": "2026-09-15T15:15:33.808Z"
+            },
+            "fanduel": {
+              "favorite": "DEN",
+              "spread": -2.5,
+              "moneylineHome": -142,
+              "moneylineAway": 120,
+              "overUnder": 44.5,
+              "asOf": "2026-09-15T15:15:33.808Z"
+            },
+            "betmgm": {
+              "favorite": "DEN",
+              "spread": -2.5,
+              "moneylineHome": -145,
+              "moneylineAway": 120,
+              "overUnder": 44.5,
+              "asOf": "2026-09-15T15:15:33.808Z"
+            },
+            "caesars": {
+              "favorite": "DEN",
+              "spread": -2.5,
+              "moneylineHome": -141,
+              "moneylineAway": 120,
+              "overUnder": 44.5,
+              "asOf": "2026-09-15T15:15:33.808Z"
+            }
+          }
+        },
+        "PIT-NE": {
+          "favorite": "NE",
+          "spread": -5.5,
+          "moneylineHome": -230,
+          "moneylineAway": 190,
+          "overUnder": 41.5,
+          "asOf": "2026-09-15T15:15:33.808Z",
+          "books": {
+            "draftkings": {
+              "favorite": "NE",
+              "spread": -5.5,
+              "moneylineHome": -230,
+              "moneylineAway": 190,
+              "overUnder": 41.5,
+              "asOf": "2026-09-15T15:15:33.808Z"
+            },
+            "fanduel": {
+              "favorite": "NE",
+              "spread": -4.5,
+              "moneylineHome": -250,
+              "moneylineAway": 205,
+              "overUnder": 42.5,
+              "asOf": "2026-09-15T15:15:33.808Z"
+            },
+            "betmgm": {
+              "favorite": "NE",
+              "spread": -5.5,
+              "moneylineHome": -235,
+              "moneylineAway": 195,
+              "overUnder": 41.5,
+              "asOf": "2026-09-15T15:15:33.808Z"
+            },
+            "caesars": {
+              "favorite": "NE",
+              "spread": -5.5,
+              "moneylineHome": -235,
+              "moneylineAway": 194,
+              "overUnder": 41.5,
+              "asOf": "2026-09-15T15:15:33.808Z"
+            }
+          }
+        }
+      }
+    }
+  }
+}

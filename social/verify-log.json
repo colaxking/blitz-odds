@@ -21,22 +21,33 @@
       "bufferStatus": "sent"
     },
     "2026-w1-mon-grading": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6aa69e667da3ee968d1662b9",
       "text": "New this week: the league My Picks tab grades every pick the moment a game goes final. Score, winner, Won/Lost per game, and your week record in the header.\n\nMonday night is the last one to land. Check it after.\n\nblitz-odds.com",
       "dueAt": "2026-09-14T13:06:00.000Z",
       "scheduledAt": "2026-09-13T13:00:19.093Z",
-      "lastCheckedAt": "2026-09-14T13:00:21.595Z"
+      "lastCheckedAt": "2026-09-14T13:00:21.595Z",
+      "bufferStatus": "sent"
     },
     "2026-w2-tue-lines-up": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6aa7efe87fe19e831d110c7d",
-      "text": "Week 2 lines are up. Lions at Bills opens it Thursday night — BUF -3, O/U 53.5, highest total on the board.\n\nSame reminder as last week: if your pool locks at first kickoff, that's Thursday, not Sunday.\n\nFull Week 2 confidence order: blitz-odds.com",
+      "text": "Week 2 lines are up. Lions at Bills opens it Thursday night — BUF -4.5, O/U 53.5, highest total on the board.\n\nSame reminder as last week: if your pool locks at first kickoff, that's Thursday, not Sunday.\n\nFull Week 2 confidence order: blitz-odds.com",
       "dueAt": "2026-09-15T13:52:00.000Z",
       "scheduledAt": "2026-09-14T13:00:21.595Z",
-      "lastCheckedAt": "2026-09-14T13:00:21.595Z"
+      "lastCheckedAt": "2026-09-15T13:00:21.984Z",
+      "updatedAt": "2026-09-15T13:00:21.984Z"
+    },
+    "2026-w2-wed-biggest-spreads": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6aa94169564ba52318a62aa8",
+      "text": "Week 2's biggest spreads as of Wednesday:\n\nMIA at SF — SF -13.5\nCLE at TB — TB -8.5\nNO at BAL — BAL -8.5\nLV at LAC — LAC -7\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
+      "dueAt": "2026-09-16T13:17:00.000Z",
+      "scheduledAt": "2026-09-15T13:00:21.984Z",
+      "lastCheckedAt": "2026-09-15T13:00:21.984Z"
     }
   },
   "runs": [
@@ -109,6 +120,28 @@
           "post": "2026-w2-tue-lines-up",
           "action": "scheduled",
           "detail": "primary for 2026-09-15T09:52:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-09-15T13:00:21.984Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w1-mon-grading",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w2-tue-lines-up",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w2-wed-biggest-spreads",
+          "action": "scheduled",
+          "detail": "primary for 2026-09-16T09:17:00-04:00"
         }
       ],
       "alerts": []

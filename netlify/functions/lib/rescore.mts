@@ -19,6 +19,11 @@ import ScoringEngine from "../../../js/scoringEngine.js";
 // A week with no stored results (never scored, or still in progress) is
 // skipped rather than zeroed. Writing an empty week would wipe real standings
 // for anyone whose results doc simply hasn't been written yet.
+//
+// Survivor leagues get their alive/eliminated state rebuilt too - see
+// rebuildSurvivorState below. That state used to be left untouched by a
+// rescore, which meant the one number an admin was most likely rescoring to
+// fix was the one number a rescore couldn't fix.
 
 const CURRENT_SEASON = 2026;
 
@@ -26,6 +31,8 @@ export interface RescoreResult {
   leagueId: string;
   weeksRescored: number[];
   weeksSkipped: number[];
+  /** Weeks replayed to rebuild survivor state; null for other formats. */
+  survivorWeeks?: number[] | null;
 }
 
 /**
@@ -58,6 +65,98 @@ export function rebuildSeason(standingsDoc: any, tieBreaker: string | undefined)
 }
 
 /**
+ * Reassembles { [userId]: { [gameId]: pick } } for one week. Picks live one
+ * key per game per member (picks:{leagueId}:{week}:{userId}:{gameId} - see
+ * picks-submit.mts), and list()'s index isn't safe for freshly-written keys,
+ * so every read here is a direct get on a key built from a known game id.
+ */
+async function readWeekPicks(
+  leagueStore: any,
+  leagueId: string,
+  week: number,
+  memberIds: string[],
+  gameIds: string[]
+): Promise<Record<string, any>> {
+  const weekPicksDoc: Record<string, any> = {};
+  await Promise.all(
+    memberIds.map(async (userId) => {
+      const userPicks: Record<string, any> = {};
+      await Promise.all(
+        gameIds.map(async (gid) => {
+          const pick = await leagueStore.get(`picks:${leagueId}:${week}:${userId}:${gid}`, { type: "json" });
+          if (pick) userPicks[gid] = pick;
+        })
+      );
+      if (Object.keys(userPicks).length > 0) weekPicksDoc[userId] = userPicks;
+    })
+  );
+  return weekPicksDoc;
+}
+
+/** Every week of a league with a stored results doc, ascending. */
+async function scoredWeeksOf(leagueStore: any, leagueId: string): Promise<number[]> {
+  const { blobs } = await leagueStore.list({ prefix: `results:${leagueId}:` });
+  return blobs
+    .map((b: any) => Number(b.key.split(":").pop()))
+    .filter((n: number) => Number.isFinite(n))
+    .sort((a: number, b: number) => a - b);
+}
+
+/**
+ * Rebuilds survivor:{leagueId} from scratch over every scored week.
+ *
+ * Survivor state is the one thing a rescore couldn't previously repair: it
+ * used to be skipped entirely, so an admin who fixed a pick, or who hit
+ * Rebuild standings because a league looked wrong, got corrected points and
+ * an untouched alive/eliminated record - the exact number most likely to be
+ * the thing that looked wrong.
+ *
+ * It can't be patched week by week the way standings can, because the state
+ * is cumulative: strikes, the used-teams list, and the week someone went out
+ * all depend on every week before them. So this replays the whole season
+ * from a clean base. That's safe now that applySurvivorWeek derives
+ * alive/strikes/eliminatedWeek from a per-week strike list rather than
+ * incrementing a counter (see js/scoringEngine.js) - replaying a week twice
+ * is a no-op, and replaying all of them from empty lands on the same answer.
+ *
+ * Rebuilding usedTeams as a side effect is a real fix too: an edited or
+ * deleted pick used to leave the old team stuck on the list, silently
+ * blocking it in the member's picker for the rest of the season.
+ */
+async function rebuildSurvivorState(
+  leagueStore: any,
+  leagueId: string,
+  league: any,
+  memberIds: string[]
+): Promise<number[]> {
+  const weeks = await scoredWeeksOf(leagueStore, leagueId);
+
+  let state: Record<string, any> = {};
+  for (const userId of memberIds) {
+    state[userId] = { alive: true, usedTeams: [], eliminatedWeek: null, strikes: 0, strikeWeeks: [] };
+  }
+
+  const replayed: number[] = [];
+  for (const week of weeks) {
+    const stored: any = await leagueStore.get(`results:${leagueId}:${week}`, { type: "json" });
+    if (!stored?.results) continue;
+    const weekPicks = await readWeekPicks(leagueStore, leagueId, week, memberIds, Object.keys(stored.results));
+    state = ScoringEngine.applySurvivorWeek(
+      state,
+      weekPicks,
+      stored.results,
+      week,
+      league.scoringSettings?.survivorTieHandling,
+      league.scoringSettings?.survivorStrikes
+    );
+    replayed.push(week);
+  }
+
+  await leagueStore.setJSON(`survivor:${leagueId}`, state);
+  return replayed;
+}
+
+/**
  * Re-scores specific weeks of one league from stored results and current
  * picks. Pass no weeks to rebuild every week that has a stored results doc -
  * that's the "this leaderboard looks wrong" button.
@@ -75,11 +174,7 @@ export async function rescoreLeague(
   if (weeks && weeks.length) {
     targetWeeks = weeks;
   } else {
-    const { blobs } = await leagueStore.list({ prefix: `results:${leagueId}:` });
-    targetWeeks = blobs
-      .map((b: any) => Number(b.key.split(":").pop()))
-      .filter((n: number) => Number.isFinite(n))
-      .sort((a: number, b: number) => a - b);
+    targetWeeks = await scoredWeeksOf(leagueStore, leagueId);
   }
 
   const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
@@ -103,19 +198,7 @@ export async function rescoreLeague(
     // Rebuilt from the results doc's own game list rather than the schedule:
     // the results are the record of what was actually scored that week, and
     // a schedule edit after the fact shouldn't retroactively change it.
-    const weekPicksDoc: Record<string, any> = {};
-    await Promise.all(
-      memberIds.map(async (userId) => {
-        const userPicks: Record<string, any> = {};
-        await Promise.all(
-          gameIds.map(async (gid) => {
-            const pick = await leagueStore.get(`picks:${leagueId}:${week}:${userId}:${gid}`, { type: "json" });
-            if (pick) userPicks[gid] = pick;
-          })
-        );
-        if (Object.keys(userPicks).length > 0) weekPicksDoc[userId] = userPicks;
-      })
-    );
+    const weekPicksDoc = await readWeekPicks(leagueStore, leagueId, week, memberIds, gameIds);
 
     const weekScores = ScoringEngine.scoreWeek(
       league.format,
@@ -151,7 +234,15 @@ export async function rescoreLeague(
   rebuildSeason(standingsDoc, league.tieBreaker);
   await leagueStore.setJSON(`standings:${leagueId}`, standingsDoc);
 
-  return { leagueId, weeksRescored, weeksSkipped };
+  // Survivor state is season-cumulative, so it's replayed in full rather
+  // than for targetWeeks only - rescoring week 2 alone can still change who
+  // is out in week 5. Non-survivor leagues have no such doc and skip it.
+  let survivorWeeks: number[] | null = null;
+  if (league.format === "survivor") {
+    survivorWeeks = await rebuildSurvivorState(leagueStore, leagueId, league, memberIds);
+  }
+
+  return { leagueId, weeksRescored, weeksSkipped, survivorWeeks };
 }
 
 /** Drops one user out of every stored week and re-totals the season. */

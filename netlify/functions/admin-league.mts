@@ -51,12 +51,15 @@ export default async (req: Request, context: Context) => {
     if (action === "rebuild-standings") {
       const weeks = Array.isArray(body.weeks) ? body.weeks.map(Number).filter(Number.isFinite) : undefined;
       const result = await rescoreLeague(leagueStore, leagueId, weeks);
+      const survivorNote = result.survivorWeeks
+        ? `; survivor state replayed over ${result.survivorWeeks.length} week${result.survivorWeeks.length === 1 ? "" : "s"}`
+        : "";
       await audit(
         actor,
         "league.rebuild",
         result.weeksRescored.length
-          ? `rebuilt standings for ${leagueName} (week${result.weeksRescored.length === 1 ? "" : "s"} ${result.weeksRescored.join(", ")})`
-          : `rebuilt standings for ${leagueName} — no scored weeks to rebuild`,
+          ? `rebuilt standings for ${leagueName} (week${result.weeksRescored.length === 1 ? "" : "s"} ${result.weeksRescored.join(", ")})${survivorNote}`
+          : `rebuilt standings for ${leagueName} — no scored weeks to rebuild${survivorNote}`,
         { target: leagueId, meta: result }
       );
       return adminJson(200, { ok: true, ...result });

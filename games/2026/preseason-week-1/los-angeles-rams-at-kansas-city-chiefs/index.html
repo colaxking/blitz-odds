@@ -38363,9 +38363,13 @@ function AdminLeagueSheet({ auth, league, users, onClose, onChanged, onToast }) 
           disabled={busy}
           onClick={() => run(async () => {
             const r = await call("rebuild-standings");
-            onToast(r.weeksRescored.length
+            // Survivor state is replayed from week 1 regardless of which
+            // weeks re-scored, so say so - an admin rebuilding because
+            // someone is wrongly eliminated needs to see that part ran.
+            const survNote = r.survivorWeeks ? " · survivor state replayed" : "";
+            onToast((r.weeksRescored.length
               ? "Rebuilt weeks " + r.weeksRescored.join(", ")
-              : "No scored weeks to rebuild");
+              : "No scored weeks to rebuild") + survNote);
           })}
         >
           Rebuild standings

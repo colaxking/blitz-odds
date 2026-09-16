@@ -219,6 +219,15 @@ export default async (req: Request, _context: Context) => {
 
           const survivorState: any = survivorRaw || {};
           const myS = survivorState[userId] || { alive: true, usedTeams: [], eliminatedWeek: null, strikes: 0 };
+          // A member is out only if the strikes back it up. State written by
+          // the old scoring engine over-counted strikes on every re-run of an
+          // already-final week, so it can carry alive:false in a league that
+          // allows more - see applySurvivorWeek in js/scoringEngine.js. Those
+          // docs repair themselves on the next results-process pass; until
+          // then neither this dashboard nor the alive count should act on
+          // them. Same check the client's survivorIsOut() makes.
+          const isOut = (s: any, allowed: number) =>
+            !!s && s.alive === false && (s.strikes || 0) >= allowed;
           // Defaults to 1 (classic) for leagues created before the setting existed.
           const strikesAllowed = league.scoringSettings?.survivorStrikes ?? 1;
           const scoredWeeks = Object.keys(standings.weeks || {}).map(Number).filter(Number.isFinite);
@@ -267,14 +276,14 @@ export default async (req: Request, _context: Context) => {
             survivor:
               league.format === "survivor"
                 ? {
-                    alive: myS.alive !== false,
+                    alive: !isOut(myS, strikesAllowed),
                     eliminatedWeek: myS.eliminatedWeek ?? null,
                     strikes: myS.strikes || 0,
                     strikesAllowed,
                     weeksSurvived: myS.alive === false && myS.eliminatedWeek != null
                       ? scoredWeeks.filter((w) => w < myS.eliminatedWeek).length
                       : scoredWeeks.length,
-                    aliveCount: members.filter((m) => survivorState[m.userId]?.alive !== false).length,
+                    aliveCount: members.filter((m) => !isOut(survivorState[m.userId], strikesAllowed)).length,
                   }
                 : null,
             week: weekProgress,
@@ -287,7 +296,7 @@ export default async (req: Request, _context: Context) => {
               correct: r.correct,
               incorrect: r.incorrect,
               isMe: r.userId === userId,
-              alive: league.format === "survivor" ? survivorState[r.userId]?.alive !== false : null,
+              alive: league.format === "survivor" ? !isOut(survivorState[r.userId], strikesAllowed) : null,
               eliminatedWeek: league.format === "survivor" ? (survivorState[r.userId]?.eliminatedWeek ?? null) : null,
               strikes: league.format === "survivor" ? (survivorState[r.userId]?.strikes || 0) : null,
               strikesAllowed: league.format === "survivor" ? strikesAllowed : null,

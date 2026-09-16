@@ -33838,16 +33838,37 @@ function StandingsIdentity({ row }) {
  * reads as 0 - correct, since under the old rule a miss eliminated you
  * outright and nothing ever accumulated.
  */
+/**
+ * Whether a survivor member is actually out, for every surface that says so
+ * (standings, the "me" card, the home dashboard tiles and leaderboard).
+ *
+ * The strike count decides it, not the stored `alive` flag alone. The two
+ * agree in freshly-written state, but a doc written by the old scoring engine
+ * can say eliminated while holding fewer strikes than the league allows - and
+ * telling someone with chances left that they're out is the one thing these
+ * labels must never do. Such a doc corrects itself the moment
+ * results-process replays that week (see applySurvivorWeek in
+ * js/scoringEngine.js); this just refuses to show the wrong thing meanwhile.
+ */
+function survivorIsOut(state, strikesAllowed) {
+  if (!state) return false;
+  const allowed = Number.isFinite(strikesAllowed) && strikesAllowed >= 1 ? Math.floor(strikesAllowed) : 1;
+  return state.alive === false && ((state.strikes || 0) >= allowed);
+}
+
 function survivorStatusLabel(state, strikesAllowed) {
   const allowed = Number.isFinite(strikesAllowed) && strikesAllowed >= 1 ? Math.floor(strikesAllowed) : 1;
   const strikes = (state && state.strikes) || 0;
-  if (state && state.alive === false) {
+  if (survivorIsOut(state, allowed)) {
     return { text: "Eliminated", className: "league-status-eliminated" };
   }
   // A one-strike league has nothing to count - you're alive or you're not.
   if (allowed > 1 && strikes > 0) {
     return {
-      text: `Alive \u00b7 ${strikes} strike${strikes === 1 ? "" : "s"}`,
+      // "1 of 3" rather than a bare "1 strike": the count alone means
+      // nothing without the allowance next to it, and the allowance is the
+      // whole point of a multi-chance pool.
+      text: `Alive \u00b7 ${strikes} of ${allowed}`,
       className: strikes >= allowed - 1 ? "league-status-warn" : "league-status-alive",
     };
   }
@@ -37019,7 +37040,7 @@ function useHomeSummary(auth, week) {
  *  is the whole story in a classic league. */
 function survivorFootnote(survivor) {
   if (!survivor) return "eliminated";
-  if (!survivor.alive) return "eliminated";
+  if (survivorIsOut(survivor, survivor.strikesAllowed)) return "eliminated";
   if (survivor.strikes > 0) {
     return `${survivor.strikesAllowed - survivor.strikes} ${survivor.strikesAllowed - survivor.strikes === 1 ? "strike" : "strikes"} left`;
   }
@@ -37075,8 +37096,8 @@ function HomeLeaderboard({ league }) {
               {isSurvivor ? (
                 <>
                   <span />
-                  <span className={"hd-lb-status " + (!r.alive ? "out" : (r.strikes > 0 ? "warn" : "alive"))}>
-                    {r.alive
+                  <span className={"hd-lb-status " + (survivorIsOut(r, r.strikesAllowed) ? "out" : (r.strikes > 0 ? "warn" : "alive"))}>
+                    {!survivorIsOut(r, r.strikesAllowed)
                       ? (r.strikes > 0 ? `Alive · ${r.strikes}` : "Alive")
                       : (r.eliminatedWeek != null ? `Out · W${r.eliminatedWeek}` : "Out")}
                   </span>
@@ -37294,7 +37315,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
               <HomePager index={streakIdx} total={leagues.length} onStep={step(setStreakIdx, leagues.length)} label="league" />
               {streakLeague.format === "survivor" ? (
                 <>
-                  <div className={"hd-val " + (streakLeague.survivor && streakLeague.survivor.alive ? "win" : "dim")}>
+                  <div className={"hd-val " + (streakLeague.survivor && !survivorIsOut(streakLeague.survivor, streakLeague.survivor.strikesAllowed) ? "win" : "dim")}>
                     {streakLeague.survivor ? streakLeague.survivor.weeksSurvived : 0}
                   </div>
                   <div className="hd-foot">
@@ -37363,8 +37384,8 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                         <div className="hd-col">
                           <span className="home-eyebrow">{isSurvivor ? "Status" : "Your rank"}</span>
                           {isSurvivor ? (
-                            <div className={"hd-big " + (l.survivor && l.survivor.alive ? "win" : "dim")}>
-                              {l.survivor && l.survivor.alive ? "Alive" : "Out"}
+                            <div className={"hd-big " + (l.survivor && !survivorIsOut(l.survivor, l.survivor.strikesAllowed) ? "win" : "dim")}>
+                              {l.survivor && !survivorIsOut(l.survivor, l.survivor.strikesAllowed) ? "Alive" : "Out"}
                             </div>
                           ) : (
                             <div className={"hd-big " + (l.me.rank === 1 ? "orange" : l.me.rank ? "accent" : "dim")}>
@@ -37378,7 +37399,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                           )}
                           <div className="hd-small">
                             {isSurvivor
-                              ? (l.survivor && l.survivor.alive && l.survivor.strikes > 0
+                              ? (l.survivor && !survivorIsOut(l.survivor, l.survivor.strikesAllowed) && l.survivor.strikes > 0
                                   ? `${l.survivor.strikes} of ${l.survivor.strikesAllowed} strikes used`
                                   : `${l.survivor ? l.survivor.weeksSurvived : 0} weeks survived`)
                               : `Out of ${l.memberCount}`}

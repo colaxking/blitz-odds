@@ -211,11 +211,74 @@
   }
 
   /**
-   * Applies one week's Survivor results on top of the running season state.
-   * A user already eliminated in an earlier week is left untouched (they
-   * don't get re-evaluated) so historical elimination weeks stay stable.
+   * Normalizes a user's strike record to the per-week list this engine now
+   * keeps, migrating the older running-counter shape in place.
    *
-   * @param {Object.<string,{alive:boolean, usedTeams:string[], eliminatedWeek:number|null}>} state
+   * Legacy docs carry a `strikes` number and no `strikeWeeks`, and that
+   * number can't be trusted - it was incremented on every re-processing pass
+   * of an already-final week, not once per week (see applySurvivorWeek). So
+   * the count itself is discarded. What IS trustworthy is that a doc marked
+   * `alive: false` with an `eliminatedWeek` did lose in that week, so that
+   * one week seeds the list: a genuinely eliminated one-strike member stays
+   * eliminated immediately rather than flickering back to Alive for the
+   * minutes before their week is re-posted, while an over-counted member in
+   * a multi-strike league drops straight back to the single real strike.
+   * Every other week rebuilds itself as results-process replays it.
+   */
+  function normalizeStrikeWeeks(entry) {
+    if (entry && Array.isArray(entry.strikeWeeks)) {
+      var seen = {};
+      var weeks = [];
+      entry.strikeWeeks.forEach(function (w) {
+        var n = Number(w);
+        if (!Number.isFinite(n) || seen[n]) return;
+        seen[n] = true;
+        weeks.push(n);
+      });
+      return weeks.sort(function (a, b) { return a - b; });
+    }
+    if (entry && entry.alive === false && entry.eliminatedWeek != null) {
+      return [Number(entry.eliminatedWeek)];
+    }
+    return [];
+  }
+
+  /** Derives alive/strikes/eliminatedWeek from the strike weeks. The week a
+   *  member went out is the one that produced their LAST allowed strike, so
+   *  it stays put no matter how many later weeks are replayed. */
+  function resolveSurvivorState(entry, strikesAllowed) {
+    var weeks = entry.strikeWeeks;
+    entry.strikes = weeks.length;
+    if (weeks.length >= strikesAllowed) {
+      entry.alive = false;
+      entry.eliminatedWeek = weeks[strikesAllowed - 1];
+    } else {
+      entry.alive = true;
+      entry.eliminatedWeek = null;
+    }
+    return entry;
+  }
+
+  /**
+   * Applies one week's Survivor results on top of the running season state.
+   *
+   * IDEMPOTENT PER WEEK, which is load-bearing rather than a nicety:
+   * scripts/results-process-trigger.mjs re-posts every already-final week on
+   * every run (hourly through the game window), so this function is called
+   * with the same week and the same results dozens of times. It used to
+   * increment a running `strikes` counter on each of those calls, which
+   * turned one Week 1 loss into an elimination a few hours later in any
+   * league allowing more than one strike. Classic one-strike leagues hid the
+   * bug, since the "already out" guard stopped the re-entry after the first
+   * pass.
+   *
+   * So a strike is now recorded as membership of `strikeWeeks`, not a count:
+   * re-running a week sets the same entry again, and a corrected result that
+   * flips a loss to a win removes it. alive/strikes/eliminatedWeek are
+   * derived from that list every time, which also means a late correction can
+   * un-eliminate someone instead of leaving them wrongly out.
+   *
+   * @param {Object.<string,{alive:boolean, usedTeams:string[], eliminatedWeek:number|null, strikes:number, strikeWeeks:number[]}>} state
    * @param {Object.<string,Object>} weekPicks - { [userId]: { [gameId]: {team} } } (Survivor: one game/team per user per week)
    * @param {Object.<string,Object>} weekResults - { [gameId]: result }
    * @param {number} week
@@ -224,12 +287,9 @@
    *   game is ambiguous for a knockout format specifically.
    * @param {number} [strikesAllowed=1] - How many losing picks it takes to
    *   eliminate a member. 1 is classic Survivor (first miss is fatal);
-   *   higher values give a cushion. A user's running `strikes` count is what
-   *   accumulates - `alive` still flips only when the count reaches the
-   *   limit, so every existing consumer of `alive`/`eliminatedWeek` keeps
-   *   working unchanged. State docs written before this setting existed have
-   *   no `strikes` field and read as 0, which is correct for them: they were
-   *   only ever eliminated on a miss under the old 1-strike rule.
+   *   higher values give a cushion. Leagues created before this setting
+   *   existed have no value stored and read as 1, which is the rule they were
+   *   actually played under.
    * @returns {Object} updated state (new object; does not mutate input)
    */
   function applySurvivorWeek(state, weekPicks, weekResults, week, tieHandling, strikesAllowed) {
@@ -238,16 +298,19 @@
       ? Math.floor(strikesAllowed)
       : 1;
     weekPicks = weekPicks || {};
+    week = Number(week);
     var next = {};
 
     Object.keys(state).forEach(function (userId) {
-      next[userId] = Object.assign({}, state[userId], { usedTeams: (state[userId].usedTeams || []).slice() });
+      next[userId] = Object.assign({}, state[userId], {
+        usedTeams: (state[userId].usedTeams || []).slice(),
+        strikeWeeks: normalizeStrikeWeeks(state[userId]),
+      });
     });
 
     Object.keys(weekPicks).forEach(function (userId) {
-      var userState = next[userId] || { alive: true, usedTeams: [], eliminatedWeek: null, strikes: 0 };
+      var userState = next[userId] || { alive: true, usedTeams: [], eliminatedWeek: null, strikes: 0, strikeWeeks: [] };
       if (!next[userId]) next[userId] = userState;
-      if (!userState.alive) return; // already out, no re-evaluation
 
       var gamePicks = weekPicks[userId];
       var gameIds = Object.keys(gamePicks);
@@ -275,13 +338,22 @@
         survived = pick.team === result.winner;
       }
 
-      if (!survived) {
-        userState.strikes = (userState.strikes || 0) + 1;
-        if (userState.strikes >= strikesAllowed) {
-          userState.alive = false;
-          userState.eliminatedWeek = week;
-        }
+      // Set membership for THIS week only. Both directions matter: a rerun
+      // of a loss is a no-op, and a rerun where the stored result has since
+      // been corrected clears the strike it previously earned.
+      var at = userState.strikeWeeks.indexOf(week);
+      if (!survived && at === -1) {
+        userState.strikeWeeks.push(week);
+        userState.strikeWeeks.sort(function (a, b) { return a - b; });
+      } else if (survived && at !== -1) {
+        userState.strikeWeeks.splice(at, 1);
       }
+    });
+
+    // Re-derive for everyone, not just members with a pick this week, so a
+    // migrated legacy doc settles onto the new shape on the first pass.
+    Object.keys(next).forEach(function (userId) {
+      resolveSurvivorState(next[userId], strikesAllowed);
     });
 
     return next;

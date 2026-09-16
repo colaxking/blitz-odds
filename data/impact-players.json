@@ -1,6 +1,6 @@
 {
   "isDemoData": false,
-  "disclaimer": "Injury and roster statuses reflect reports as of Monday evening, Sept. 14, 2026, after Week 1. Monday updates: Rams Edge Myles Garrett had arthroscopic knee surgery and HC Sean McVay says there is no timeline for his return; Ravens WR Zay Flowers' hamstring is not considered serious and he is day-to-day after an MRI, while rookie WR Ja'Kobi Lane fractured his wrist and is out several weeks; Eagles LG Landon Dickerson went on injured reserve with a knee bone bruise and must miss at least four games; Jets S Minkah Fitzpatrick (left groin) had an MRI Monday and is considered unlikely for Week 2; Cowboys S Malik Hooker fractured his forearm and is seeing specialists to set a timeline; Chargers WR Ladd McConkey is day-to-day with a rib injury and up in the air for Week 2; Falcons DT Da'Shawn Hand will have season-ending quad surgery; Patriots RB TreVeyon Henderson (ankle) returned to practice; Colts WR Alec Pierce was cleared after a hand/wrist bruise; and Seahawks QB Sam Darnold's injury has been clarified as a glute issue rather than a hip, with Week 2 expected to be missed. Vikings QB Kyler Murray remains in the concussion protocol with no timetable. Statuses can change daily with practice reports and official inactives, so always confirm with the official injury report before kickoff.",
+  "disclaimer": "Injury and roster statuses reflect reports as of Tuesday evening, Sept. 15, 2026, between Week 1 and Week 2. Tuesday updates: Texans LB Henry To'oTo'o went on injured reserve with the shoulder injury he suffered vs. Buffalo; Jets rookie WR Omar Cooper Jr. has a high ankle sprain and is week-to-week with hope of returning within four weeks; Jets S Minkah Fitzpatrick is now reported to be facing a two-to-three-week absence with a groin strain; Chiefs first-round CB Mansoor Delane had an MRI on his shoulder after negative X-rays and CT and is expected to miss minimal time; Lions RB Isiah Pacheco had back surgery Monday to remove a loose body pressing on a nerve and is looking at roughly 12 weeks; Dolphins LB Kyle Louis will miss a few weeks with an MCL sprain; Raiders TE Brock Bowers was called day-to-day and has a realistic chance to return in Week 2; Ravens WR Zay Flowers is day-to-day with a hamstring that is not considered serious, while rookie WR Ja'Kobi Lane is seeking second and third opinions on his fractured wrist; Saints RB Alvin Kamara is targeting his debut in Week 2 after sitting out the opener; Vikings QB Kyler Murray remains in the concussion protocol and is being evaluated day by day, with Carson Wentz in line to start if he is not cleared; Giants WR Malik Nabers is back from his 2025 ACL tear and played in Week 1. Newly tracked: Falcons G Chris Lindstrom (concussion), Commanders DT Jer'Zhan Newton (IR) and LB Frankie Luvu (groin), Cowboys LB DeMarvion Overshown (hamstring), Steelers S DeShon Elliott (IR), Browns RB Dylan Sampson (knee), 49ers TE Jake Tonges (knee), Vikings RB Jordan Mason (thumb) and Panthers WR Jalen Coker (ankle). Statuses can change daily with practice reports and official inactives, so always confirm with the official injury report before kickoff.",
   "players": {
     "NE": [
       {
@@ -349,6 +349,19 @@
         "statusUpdatedAt": "2026-09-14T01:05:00.000Z",
         "source": "curated",
         "espnId": "4710714"
+      },
+      {
+        "name": "Jake Tonges",
+        "position": "TE",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Knee",
+          "since": "2026-09-10",
+          "note": "Tonges hobbled off during the Sept. 10 win over the Rams in Melbourne and was ruled out. HC Kyle Shanahan said afterward that the injury \"does not look good.\" With George Kittle managing his own Achilles recovery, this thins out the 49ers' tight end room."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "LAR": [
@@ -642,6 +655,19 @@
         },
         "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
         "source": "curated"
+      },
+      {
+        "name": "Jalen Coker",
+        "position": "WR",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "since": "2026-09-13",
+          "note": "Coker rolled his ankle in the first quarter at Chicago and was in a walking boot Monday, but he called the injury minor and said he expects to play Sunday. He led Carolina in receiving in Week 1."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "TB": [
@@ -816,12 +842,13 @@
         "impactScore": 7,
         "status": "questionable",
         "injury": {
-          "type": "Knee - MCL",
-          "note": "questionable"
+          "type": "Knee - MCL sprain",
+          "since": "2026-08",
+          "note": "Kamara sprained his MCL in a joint practice in August. He recovered faster than expected but the Saints held him out as a precaution and he was inactive for the Sept. 13 opener at Detroit. He is targeting his season debut in Week 2 at Baltimore; this week's practice participation will decide it."
         },
         "espnId": "3054850",
-        "statusUpdatedAt": "2026-09-15T15:39Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       },
       {
         "name": "Ty Chandler",
@@ -905,13 +932,14 @@
         "position": "DE",
         "espnId": "13971",
         "impactScore": 5,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Hamstring",
-          "note": "questionable"
+          "since": "2026-09-11",
+          "note": "Jordan was limited in practice late in Week 1 prep and was ruled OUT for the Sept. 13 loss at Detroit. New Orleans has not set a Week 2 practice status; he is considered week-to-week."
         },
-        "statusUpdatedAt": "2026-09-15T15:39Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -987,12 +1015,12 @@
         "status": "out",
         "espnId": "4361529",
         "injury": {
-          "type": "Back (plus MCL sprain)",
+          "type": "Back - surgery (loose body pressing on a nerve), on injured reserve",
           "since": "2026-09-01",
-          "note": "Detroit placed Pacheco on injured reserve Sept. 1 after a training-camp back issue compounded an MCL sprain. HC Dan Campbell had expected him ready for Week 1; instead he must sit at least the first four games, and the Lions have said they hope to have him back later this season."
+          "note": "Detroit placed Pacheco on injured reserve Sept. 1. He underwent surgery Monday, Sept. 14 to remove a loose body that was pressing on a nerve in his back; ESPN reports a recovery of roughly 12 weeks, which points to a return in early December. Jahmyr Gibbs carried the full backfield workload in Week 1."
         },
-        "statusUpdatedAt": "2026-09-12T21:05:00.000Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       },
       {
         "name": "Cade Mays",
@@ -1152,6 +1180,19 @@
         },
         "statusUpdatedAt": "2026-08-31T23:05Z",
         "source": "auto"
+      },
+      {
+        "name": "Henry To'oTo'o",
+        "position": "LB",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Shoulder - on injured reserve",
+          "since": "2026-09-13",
+          "note": "To'oTo'o hurt the shoulder in the fourth quarter of Sunday's loss to Buffalo and was in a sling afterward. Houston placed him on injured reserve Tuesday, Sept. 15; reporting points to a recovery measured in months for a linebacker who had started 36 straight games."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "BAL": [
@@ -1217,9 +1258,9 @@
         "injury": {
           "type": "Hamstring strain (minor)",
           "since": "2026-09-13",
-          "note": "Flowers pulled up with a hamstring injury in Sunday's win at Indianapolis after five catches for a career-high 150 yards and a touchdown. Ian Rapoport reported Monday that the injury is not considered serious and that Flowers would likely have returned had it been a postseason game; he underwent an MRI and is considered day-to-day heading into Week 2."
+          "note": "Flowers pulled up with a hamstring injury late in Sunday's win over Indianapolis. Ian Rapoport reported he likely would have returned had it been a playoff game and that the injury is not considered serious; an MRI followed Monday. Ravens coaching confirmed Monday he is day-to-day."
         },
-        "statusUpdatedAt": "2026-09-14T01:05:00.000Z",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated",
         "activatedDate": "2026-08-27"
       },
@@ -1299,10 +1340,10 @@
         "injury": {
           "type": "Fractured wrist",
           "since": "2026-09-13",
-          "note": "The rookie receiver exited his NFL debut in Sunday's win at Indianapolis after one catch for 11 yards on three targets. Testing, including an MRI, confirmed a fractured wrist, and Ian Rapoport reported he is expected to miss several weeks. Baltimore has not set a return date."
+          "note": "The rookie receiver fractured his wrist in his NFL debut in Sunday's win at Indianapolis. Mike Garafolo reported the initial diagnosis and follow-up imaging; Baltimore is gathering second and third opinions this week before setting a return timeline, with injured reserve a possibility."
         },
         "espnId": "4870847",
-        "statusUpdatedAt": "2026-09-15T01:30:22.930Z",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated"
       }
     ],
@@ -1449,6 +1490,19 @@
         },
         "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
         "source": "curated"
+      },
+      {
+        "name": "Dylan Sampson",
+        "position": "RB",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "since": "2026-09-13",
+          "note": "Sampson was on crutches after Sunday's loss at Jacksonville. HC Todd Monken said Monday the team was still evaluating the severity and expected more information by Wednesday."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "JAX": [
@@ -1466,12 +1520,13 @@
         "position": "WR",
         "impactScore": 8,
         "status": "questionable",
-        "statusUpdatedAt": "2026-09-14T17:48Z",
-        "source": "auto",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated",
         "espnId": "4432773",
         "injury": {
           "type": "Shoulder",
-          "note": "Coach Liam Coen said Monday that Thomas (shoulder) will be limited in practice this week, Michael DiRocco of ESPN.com reports."
+          "since": "2026-09-13",
+          "note": "Thomas briefly left Sunday's win over Cleveland before returning, finishing with three catches for 40 yards. HC Liam Coen said Monday that Thomas will be limited in practice this week but that he expects him to play Sunday."
         },
         "activatedDate": "2026-09-13"
       },
@@ -1587,13 +1642,14 @@
         "position": "CB",
         "espnId": "4431194",
         "impactScore": 6,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Achilles",
-          "note": "questionable"
+          "since": "2026-09-09",
+          "note": "Bowman was limited in practice all week and carried an OUT game status for the Sept. 13 loss at Pittsburgh. No return timetable has been announced."
         },
-        "statusUpdatedAt": "2026-09-15T15:39Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       },
       {
         "name": "Za'Darius Smith",
@@ -1621,6 +1677,19 @@
         },
         "espnId": "3126352",
         "statusUpdatedAt": "2026-09-15T01:30:22.930Z",
+        "source": "curated"
+      },
+      {
+        "name": "Chris Lindstrom",
+        "position": "G",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Concussion",
+          "since": "2026-09-13",
+          "note": "The Pro Bowl right guard was diagnosed with a concussion during Sunday's loss at Pittsburgh. He has to clear the protocol to be available for Week 2 vs. Carolina."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated"
       }
     ],
@@ -1686,6 +1755,19 @@
         "statusUpdatedAt": "2026-09-13T16:16Z",
         "source": "auto",
         "activatedDate": "2026-09-13"
+      },
+      {
+        "name": "DeShon Elliott",
+        "position": "S",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Undisclosed - on injured reserve",
+          "since": "2026-09-13",
+          "note": "Pittsburgh placed its starting safety on injured reserve, so he must miss at least the first four games. The team has not specified the injury."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "NYJ": [
@@ -1744,13 +1826,13 @@
         "position": "WR",
         "espnId": "4723820",
         "impactScore": 5,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Ankle",
+          "type": "High ankle sprain (right)",
           "since": "2026-09-13",
-          "note": "Cooper was hurt in Sunday's opener vs. Tennessee. HC Aaron Glenn did not give a detailed update Monday, and reporting indicates Cooper, like S Minkah Fitzpatrick, is unlikely to play in Sunday's home opener vs. Green Bay."
+          "note": "The first-round rookie left Sunday's win at Tennessee in the first quarter after a 30-yard catch on the opening drive. X-rays were negative and Monday's MRI came back better than feared. Ian Rapoport reports Cooper is week-to-week with the hope he returns within the next four weeks. Isaiah Williams and Arian Smith absorb the snaps in the meantime."
         },
-        "statusUpdatedAt": "2026-09-14T14:22:55.681Z",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated"
       },
       {
@@ -1761,10 +1843,10 @@
         "injury": {
           "type": "Left groin strain",
           "since": "2026-09-13",
-          "note": "The five-time Pro Bowl safety, acquired from Miami to steady the Jets' secondary, strained his left groin roughly six plays into Sunday's opener vs. Tennessee and did not return. HC Aaron Glenn said the team would know more after an MRI on Monday, Sept. 14; reporting indicates he is unlikely to play in Sunday's home opener vs. Green Bay. Status is listed as out pending the MRI result."
+          "note": "The five-time Pro Bowl safety, acquired to steady the Jets' secondary, exited Sunday's win over Tennessee after roughly six snaps. An MRI Monday confirmed a groin strain and he is now reported to be facing a two-to-three-week absence, making him unlikely for Week 2 vs. Green Bay."
         },
         "espnId": "3925345",
-        "statusUpdatedAt": "2026-09-15T01:30:22.930Z",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated"
       }
     ],
@@ -1840,11 +1922,11 @@
         "status": "out",
         "injury": {
           "type": "Concussion",
-          "since": "2026-09",
-          "note": "Did not practice during Week 1 prep and is ruled OUT for Sunday's opener at the Jets."
+          "since": "2026-09-07",
+          "note": "Gray was concussed in a UTV accident over Labor Day weekend, did not practice during Week 1 prep and was ruled OUT for the Sept. 13 loss to the Jets. Coaching said Monday he is trending toward playing in Week 2 but still has to clear the concussion protocol."
         },
-        "statusUpdatedAt": "2026-09-12T13:20:00.000Z",
-        "source": "final-week1-report",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated",
         "espnId": "4429834"
       }
     ],
@@ -1998,16 +2080,15 @@
         "injury": {
           "type": "Rib injury",
           "since": "2026-09-13",
-          "note": "McConkey took a hard, legal hit from Cardinals LB Mack Wilson late in the third quarter of Sunday's 26-14 loss to Arizona and did not return, finishing with a team-high 82 receiving yards and a touchdown. He underwent testing Monday; HC Jim Harbaugh said McConkey is day-to-day and will be monitored through the week, leaving Week 2 vs. Las Vegas up in the air."
+          "note": "McConkey took a hard hit in the third quarter of Sunday's loss to Arizona, stayed down for a stretch but walked off on his own. HC Jim Harbaugh labeled him day-to-day on Monday and said the Chargers will monitor him through the week ahead of Week 2 vs. Las Vegas."
         },
         "espnId": "4612826",
-        "statusUpdatedAt": "2026-09-15T01:30:22.930Z",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated"
       },
       {
         "name": "KeAndre Lambert-Smith",
         "position": "WR",
-        "espnId": "4430870",
         "impactScore": 6,
         "status": "out",
         "injury": {
@@ -2015,7 +2096,8 @@
           "note": "The Chargers placed Lambert-Smith (hamstring) on injured reserve Tuesday."
         },
         "statusUpdatedAt": "2026-09-15T23:20Z",
-        "source": "auto"
+        "source": "auto",
+        "espnId": "4430870"
       }
     ],
     "MIA": [
@@ -2063,6 +2145,19 @@
         },
         "statusUpdatedAt": "2026-09-13T19:09Z",
         "source": "auto"
+      },
+      {
+        "name": "Kyle Louis",
+        "position": "LB",
+        "impactScore": 4,
+        "status": "out",
+        "injury": {
+          "type": "MCL sprain (knee)",
+          "since": "2026-09-13",
+          "note": "The rookie linebacker sprained his MCL in Miami's Week 1 loss to Las Vegas and is expected to miss a few weeks."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "LV": [
@@ -2125,9 +2220,9 @@
         "injury": {
           "type": "Meniscus (knee) - arthroscopic trim",
           "since": "2026-09-08",
-          "note": "Bowers had a meniscus trim in Dallas on Tuesday, Sept. 8 and was officially ruled out Friday for the Sept. 13 opener vs. Miami. The knee issue dated to training camp but was not diagnosed until the week before the procedure. He is expected to miss \"a game or two\" per ESPN and NFL Network; HC Klint Kubiak has said he hopes the absence is not long-term."
+          "note": "Bowers had a meniscus trim on Sept. 8 and missed the Week 1 win over Miami. Adam Schefter reports the Raiders believe there is a realistic chance he misses only the one game, and HC Kubiak labeled him day-to-day on Monday, so a Week 2 return at the Chargers is in play. Michael Mayer handles the TE work if he sits."
         },
-        "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated",
         "espnId": "4432665"
       },
@@ -2245,12 +2340,12 @@
         "impactScore": 7,
         "status": "questionable",
         "espnId": "3917315",
-        "statusUpdatedAt": "2026-09-14T01:05:00.000Z",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated",
         "injury": {
           "type": "Concussion",
           "since": "2026-09-13",
-          "note": "Murray was evaluated for a concussion and ruled out of Sunday's win over the Packers in the first quarter after going 3-of-5 for 18 yards with an interception; Carson Wentz finished the game. HC Kevin O'Connell said Monday that Murray \"came in feeling pretty good\" but that there is no timetable and the Vikings will take it a day at a time while he works through the league's concussion protocol, leaving his Week 2 status unsettled."
+          "note": "Murray took a hit to the head while sliding on Minnesota's third drive of the Sept. 13 win over Green Bay, with his helmet coming off in the process, and did not return. He entered the concussion protocol and, per HC Kevin O'Connell on Sept. 14-15, reported to the facility feeling good and has handled meetings and film without symptoms returning. O'Connell says Murray is being evaluated day by day and there is no read yet on Sunday at Chicago; Carson Wentz would start if Murray is not cleared."
         }
       },
       {
@@ -2344,6 +2439,19 @@
         "statusUpdatedAt": "2026-09-14T15:19Z",
         "source": "auto",
         "activatedDate": "2026-09-14"
+      },
+      {
+        "name": "Jordan Mason",
+        "position": "RB",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Thumb",
+          "since": "2026-09-13",
+          "note": "Mason was being further evaluated after thumb soreness during Sunday's win over Green Bay. He split backfield snaps close to evenly with Aaron Jones in Week 1."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "WAS": [
@@ -2423,6 +2531,32 @@
           "note": null
         },
         "statusUpdatedAt": "2026-09-14T14:21:21.200Z",
+        "source": "curated"
+      },
+      {
+        "name": "Jer'Zhan Newton",
+        "position": "DT",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Pectoral - on injured reserve",
+          "since": "2026-09-13",
+          "note": "Washington placed Newton on injured reserve with a pectoral injury; reporting points to a return around November."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
+      },
+      {
+        "name": "Frankie Luvu",
+        "position": "LB",
+        "impactScore": 7,
+        "status": "questionable",
+        "injury": {
+          "type": "Groin",
+          "since": "2026-09-13",
+          "note": "Luvu did not return after halftime of Sunday's loss at Philadelphia. The Commanders have not put a severity or timeline on it yet, so his Week 2 status depends on practice participation."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated"
       }
     ],
@@ -2543,6 +2677,19 @@
         "espnId": "3121415",
         "statusUpdatedAt": "2026-09-15T01:30:22.930Z",
         "source": "curated"
+      },
+      {
+        "name": "DeMarvion Overshown",
+        "position": "LB",
+        "impactScore": 7,
+        "status": "out",
+        "injury": {
+          "type": "Hamstring",
+          "since": "2026-09-13",
+          "note": "HC Brian Schottenheimer said Monday that Overshown is expected to miss one to two weeks with a hamstring injury suffered in the Sept. 13 loss at the Giants."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "NYG": [
@@ -2558,15 +2705,15 @@
       {
         "name": "Malik Nabers",
         "position": "WR",
-        "impactScore": 8,
+        "impactScore": 9,
         "status": "active",
         "injury": {
-          "type": "Knee (returning from 2025 season-ending injury)",
-          "since": "2025-09-28",
-          "note": "Nabers' 2025 season ended with a knee injury on Sept. 28, 2025. He practiced in full all of Week 1, was listed as questionable and treated as a game-time decision, then went through pregame warm-ups at MetLife Stadium and told the Giants he was ready. He is active for Sunday night against Dallas - his first game action in nearly a year - though his snap count may be managed."
+          "type": "Knee - ACL/meniscus recovery",
+          "since": "2025-09",
+          "note": "Nabers tore his ACL and meniscus in Week 4 of 2025 and had a second cleanup procedure this summer to remove scar tissue. He was listed questionable for the Sept. 13 opener but played, catching six of nine targets for 69 yards in the win over Dallas. He is expected to keep carrying a spot on the injury report as the Giants manage his workload."
         },
         "espnId": "4595348",
-        "statusUpdatedAt": "2026-09-14T01:05:00.000Z",
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated"
       },
       {
@@ -2754,6 +2901,19 @@
         "statusUpdatedAt": "2026-09-12T21:05:00.000Z",
         "source": "curated",
         "espnId": "4569659"
+      },
+      {
+        "name": "Mansoor Delane",
+        "position": "CB",
+        "impactScore": 6,
+        "status": "questionable",
+        "injury": {
+          "type": "Shoulder",
+          "since": "2026-09-14",
+          "note": "The first-round rookie intercepted Bo Nix on the third play of his NFL debut Monday night, then left during Denver's next possession and was ruled out. X-rays and a CT scan were negative and he had an MRI Tuesday; Mike Garafolo reported the shoulder is stable and the belief is he misses minimal time. Delane dealt with a hairline scapula fracture in the spring."
+        },
+        "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
+        "source": "curated"
       }
     ]
   }

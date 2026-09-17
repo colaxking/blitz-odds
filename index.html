@@ -26324,7 +26324,11 @@ function PlaybookSheetCard({ league, sheetState, week, sportsbookId, tz, auth, o
           </span>
         </span>
         <span className={"pb-sheet-status " + (complete ? "pb-status-done" : "pb-status-todo")}>
-          {total > 0 ? `${picked} of ${total} in` : "Not picked"}
+          {/* Survivor's denominator is always 1, and "1 of 1 in" reads like
+              a counter that stopped working. */}
+          {league.format === "survivor"
+            ? (complete ? "Pick in" : "Not picked")
+            : (total > 0 ? `${picked} of ${total} in` : "Not picked")}
         </span>
         <span className="pb-chev"><ChevronIcon direction="down" size={12} /></span>
       </button>

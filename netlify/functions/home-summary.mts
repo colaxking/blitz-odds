@@ -245,7 +245,19 @@ export default async (req: Request, _context: Context) => {
                   .catch(() => null)
               )
             );
-            weekProgress = { picked: picks.filter(Boolean).length, total: weekGames.length };
+            const madePicks = picks.filter(Boolean).length;
+            weekProgress = league.format === "survivor"
+              // Survivor is one pick per week, not one per game, so the
+              // slate size is the wrong denominator - "1 / 16" on the home
+              // tile reads as fifteen picks still owed when the week is
+              // actually done. The client renders whatever this says, so
+              // this is the only place it can be fixed.
+              // Capped rather than counted for the same reason picks-submit
+              // and picks-mine resolve a week to a single pick: replacing a
+              // survivor pick deletes the old key, and that delete can lag
+              // just long enough for both to read back.
+              ? { picked: Math.min(madePicks, 1), total: 1 }
+              : { picked: madePicks, total: weekGames.length };
           }
 
           const streak = computeWeekStreak(standings.weeks || {}, userId);

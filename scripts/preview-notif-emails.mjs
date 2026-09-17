@@ -80,6 +80,49 @@ const recapOut = buildRecapEmail({
   unsubUrl: UNSUB,
 });
 
+// The states that used to be invisible: a league the reader sat a week out
+// of, and one whose week hasn't been scored yet. Both used to be dropped
+// from the email entirely - and if every league was in one of those states,
+// the reader got a recap with nothing in it at all. Week 1 is the worst case
+// and the easiest one to reproduce.
+const recapWeek1 = buildRecapEmail({
+  season: 2026, week: 1,
+  intro: "You went 11-5 in 1 of your 3 leagues.",
+  leagues: [
+    {
+      format: "confidence", name: "Office Pool 2026", seasonLabel: "2026 season",
+      headline: "11-5 - 84 pts", headlineTone: "neutral", rank: 3, total: 14, delta: 0,
+      standings: [
+        { rank: 2, name: "J. Kim", value: "91" },
+        { rank: 3, name: "You", value: "84", isMe: true },
+        { rank: 4, name: "T. Boone", value: "80" },
+      ],
+      foot: "7 pts back of 1st",
+    },
+    {
+      format: "straight_up", name: "Work Pick'em", seasonLabel: "2026 season",
+      headline: "No picks in Week 1", headlineTone: "loss", rank: 9, total: 9, delta: 0,
+      standings: [
+        { rank: 8, name: "M. Ortiz", value: "\u2014" },
+        { rank: 9, name: "You", value: "\u2014", isMe: true },
+      ],
+      foot: "You sat Week 1 out. Nothing scored for you yet this season.",
+    },
+    {
+      format: "ats", name: "Degens Anonymous", seasonLabel: "2026 season",
+      headline: "Week 1 not scored yet", headlineTone: "neutral", rank: "\u2014", total: null, delta: 0,
+      standings: [
+        { rank: 1, name: "R. Patel", value: "\u2014" },
+        { rank: 1, name: "You", value: "\u2014", isMe: true },
+        { rank: 1, name: "C. Duffy", value: "\u2014" },
+      ],
+      foot: "Results post once every game is final. Nothing scored for you yet this season.",
+    },
+  ],
+  highlights: [],
+  unsubUrl: UNSUB,
+});
+
 const page = (title, email) => `<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>${title}</title></head>
 <body style="margin:0;background:#eef1f5;padding:24px 12px;">
@@ -92,8 +135,9 @@ ${email.html}
 writeFileSync(`${outDir}/reminder.html`, page("Pick reminder", reminder));
 writeFileSync(`${outDir}/recap-alive.html`, page("Weekly recap", recapAlive));
 writeFileSync(`${outDir}/recap-eliminated.html`, page("Weekly recap (eliminated)", recapOut));
+writeFileSync(`${outDir}/recap-week1.html`, page("Weekly recap (week 1 / unscored)", recapWeek1));
 
-for (const [name, e] of [["reminder", reminder], ["recap-alive", recapAlive], ["recap-eliminated", recapOut]]) {
+for (const [name, e] of [["reminder", reminder], ["recap-alive", recapAlive], ["recap-eliminated", recapOut], ["recap-week1", recapWeek1]]) {
   console.log(`${name.padEnd(18)} subject: ${e.subject}`);
   console.log(`${"".padEnd(18)} html: ${(e.html.length / 1024).toFixed(1)}kb  text: ${e.text.length}b`);
 }

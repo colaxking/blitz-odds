@@ -457,9 +457,9 @@ export default async (req: Request, _context: Context) => {
         try {
           const prefs = await getPrefs(u.userId);
           if (!prefs.emailWeeklyRecap) { report.recap.skipped++; continue; }
-          // BUG 3 (see below): the recap is no longer league-only, so a
-          // user with favourites but no league is still eligible if they
-          // asked for the team-news block.
+          // Favourites-only readers are still let through here so that the
+          // day the team-news block lands they're already in scope - but see
+          // the guard below, which drops them again until it does.
           const wantsTeamNews = prefs.emailRecapTeamNews && u.favorites.length > 0;
           if (!u.leagues.length && !wantsTeamNews) { report.recap.skipped++; continue; }
           if (await alreadySent("recap", CURRENT_SEASON, rw, u.userId)) { report.recap.skipped++; continue; }
@@ -470,13 +470,14 @@ export default async (req: Request, _context: Context) => {
           const built = await buildRecapFor(u, rw, weekGames, {
             loadLeague, loadMembers, loadStandings, loadSurvivor, loadResults, leagueStore, nameOf,
           });
-          // Nothing scored for this reader in any league. An empty recap is
-          // worse than no recap - but "empty" now depends on what they asked
-          // for. Someone who opted into favourite-team news and has no
-          // league (or has one that hasn't scored yet) still has an email
-          // worth sending; before this, they'd have opted in and then
-          // received nothing, forever, with nothing to indicate why.
-          if (!built && !wantsTeamNews) { report.recap.skipped++; continue; }
+          // An empty recap is worse than no recap, and right now "empty" is
+          // the only thing a reader with no league can get: emailRecapTeamNews
+          // is offered in Settings and gates eligibility here, but no
+          // team-news block was ever added to buildRecapEmail, so letting a
+          // favourites-only reader through sent a header, a title and a
+          // button with nothing between them. Until that block exists, a
+          // recap with no league in it doesn't go out.
+          if (!built) { report.recap.skipped++; continue; }
 
           const email = buildRecapEmail({
             season: CURRENT_SEASON, week: rw,
@@ -928,7 +929,49 @@ async function openGamesFor(
 // Recap: standings, movement, survivor pick, highlights
 // ---------------------------------------------------------------------------
 
-async function buildRecapFor(
+/**
+ * Ranks a league's FULL roster, not just the slice results-process has
+ * scored, using the same rule standings-get.mts renders on the site:
+ * scored members keep the rank the scoring engine gave them, and everyone
+ * else is appended tied at the next rank with hasResults:false, so the
+ * client shows a dash rather than a fabricated 0-0.
+ *
+ * The recap needs this for the same reason the league table does. Scored
+ * rows only exist for members who actually submitted picks in a week that
+ * has finished, so before this the recap dropped - silently, with no line
+ * anywhere saying why - any league the reader had missed a week of, any
+ * league whose week hadn't been scored when Tuesday 9am came round, and
+ * every league in a season whose first Sunday hadn't finished. With no
+ * league left standing the whole email collapsed to a header, a title and
+ * a button, which is what a reader in three live leagues was getting.
+ */
+function rosterStandings(
+  seasonRows: any[],
+  members: any[]
+): Array<{ userId: string; rank: number; points: number; correct: number; incorrect: number; hasResults: boolean }> {
+  const memberIds = new Set(members.map((m: any) => m.userId));
+  const scored = (seasonRows || [])
+    .filter((r: any) => memberIds.has(r.userId))
+    .map((r: any) => ({ ...r, hasResults: true }));
+
+  const scoredIds = new Set(scored.map((r: any) => r.userId));
+  const tiedRank = scored.length + 1;
+  const unscored = members
+    .filter((m: any) => !scoredIds.has(m.userId))
+    .map((m: any) => ({
+      userId: m.userId,
+      rank: tiedRank,
+      points: 0,
+      correct: 0,
+      incorrect: 0,
+      hasResults: false,
+    }))
+    .sort((a: any, b: any) => String(a.userId).localeCompare(String(b.userId)));
+
+  return [...scored, ...unscored];
+}
+
+export async function buildRecapFor(
   u: { userId: string; leagues: string[] },
   week: number,
   games: ScheduleGame[],
@@ -936,35 +979,46 @@ async function buildRecapFor(
 ): Promise<{ intro: string; leagues: RecapLeague[]; highlights: RecapHighlight[] } | null> {
   const leagues: RecapLeague[] = [];
   const highlights: RecapHighlight[] = [];
-  let totalCorrect = 0, totalIncorrect = 0, anyScored = false;
+  let totalCorrect = 0, totalIncorrect = 0, scoredLeagues = 0;
 
   for (const leagueId of u.leagues) {
     const league = await io.loadLeague(leagueId);
-    if (!league || league.season !== 2026) continue;
+    if (!league || league.season !== CURRENT_SEASON) continue;
 
     const members = await io.loadMembers(leagueId);
     if (!members?.members?.some((m: any) => m.userId === u.userId)) continue;
 
     const standings = await io.loadStandings(leagueId);
-    const weekScores = standings?.weeks?.[week];
-    if (!weekScores || !weekScores[u.userId]) continue; // nothing scored for this reader
-    anyScored = true;
+    const weekScores = standings?.weeks?.[week] || null;
+    // Three different things, and the reader is owed a different sentence
+    // for each: the week scored and they played it, the week scored and
+    // they sat it out, or the week isn't scored yet. None of them is a
+    // reason to leave the league out of the email.
+    const mine = weekScores?.[u.userId] || null;
+    const weekIsScored = !!weekScores && Object.keys(weekScores).length > 0;
+    if (mine) {
+      scoredLeagues++;
+      totalCorrect += mine.correct || 0;
+      totalIncorrect += mine.incorrect || 0;
+    }
 
-    const mine = weekScores[u.userId];
-    totalCorrect += mine.correct || 0;
-    totalIncorrect += mine.incorrect || 0;
-
+    const memberList: any[] = members?.members || [];
+    const memberCount = memberList.length;
     const nameById = new Map<string, string>(
-      (members?.members || []).map((m: any) => [m.userId, m.displayName || "Player"])
+      memberList.map((m: any) => [m.userId, m.displayName || "Player"])
     );
+
+    const rosterRows = rosterStandings(standings?.season || [], memberList);
+    const leagueHasAnyScore = rosterRows.some((r) => r.hasResults);
+    const myIdx = rosterRows.findIndex((r) => r.userId === u.userId);
+    const myRow = myIdx >= 0 ? rosterRows[myIdx] : null;
+    const currentRank = myRow?.rank ?? memberCount;
 
     // Rank movement without a stored snapshot: standings.weeks holds every
     // scored week, so last week's table is just the same sum over weeks < W,
-    // ranked by the same engine. One less thing to keep in sync.
-    const seasonRows: any[] = standings?.season || [];
-    const myRow = seasonRows.find((r: any) => r.userId === u.userId);
-    const currentRank = myRow?.rank ?? seasonRows.length + 1;
-
+    // ranked by the same engine. One less thing to keep in sync. Padded to
+    // the same full roster as the current table, so a member who has never
+    // scored is compared like with like instead of against a shorter list.
     const priorTotals: Record<string, { points: number; correct: number; incorrect: number }> = {};
     for (const wk of Object.keys(standings?.weeks || {})) {
       if (Number(wk) >= week) continue;
@@ -976,14 +1030,14 @@ async function buildRecapFor(
         t.incorrect += wkScores[uid].incorrect;
       }
     }
-    const priorRanked: any[] = Object.keys(priorTotals).length
-      ? ScoringEngine.rankStandings(priorTotals, league.tieBreaker)
-      : [];
-    const priorRank = priorRanked.find((r: any) => r.userId === u.userId)?.rank ?? null;
+    const hasPriorWeek = Object.keys(priorTotals).length > 0;
+    const priorRank = hasPriorWeek
+      ? rosterStandings(ScoringEngine.rankStandings(priorTotals, league.tieBreaker), memberList)
+          .find((r) => r.userId === u.userId)?.rank ?? null
+      : null;
     // Positive = moved up the table (rank number went down).
     const delta = priorRank === null ? 0 : priorRank - currentRank;
 
-    const memberCount = (members?.members || []).length;
     const results = await io.loadResults(leagueId, week);
     const weekResults: Record<string, any> = results?.results || {};
 
@@ -1011,60 +1065,111 @@ async function buildRecapFor(
 
       const eliminatedThisWeek = mineState.alive === false && mineState.eliminatedWeek === week;
       const alreadyOut = mineState.alive === false && mineState.eliminatedWeek !== week;
-      if (alreadyOut) continue; // out weeks ago; nothing new to report
+
+      // An entry knocked out weeks ago used to be skipped outright. That was
+      // defensible while the recap was a what-happened-this-week digest, and
+      // isn't now that it answers "where do I stand in each of my leagues" -
+      // "out since Week 4" is an answer, and a league vanishing from the
+      // list reads as a bug.
+      let headline: string, headlineTone: RecapLeague["headlineTone"], rank: string, total: number | null, foot: string;
+      if (alreadyOut) {
+        headline = `Out since Week ${mineState.eliminatedWeek}`;
+        headlineTone = "loss";
+        rank = "Out";
+        total = null;
+        foot = `${aliveCount} of ${memberCount} still alive.`;
+      } else if (eliminatedThisWeek) {
+        headline = `Eliminated in Week ${week}`;
+        headlineTone = "loss";
+        rank = "Out";
+        total = null;
+        foot = `${aliveCount} of ${memberCount} still alive. You lasted ${week} week${week === 1 ? "" : "s"}.`;
+      } else if (!weekIsScored) {
+        headline = `Week ${week} not scored yet`;
+        headlineTone = "neutral";
+        rank = String(aliveCount);
+        total = memberCount;
+        foot = `${aliveCount} of ${memberCount} still alive. Results post once every game is final.`;
+      } else {
+        headline = "Survived";
+        headlineTone = "win";
+        rank = String(aliveCount);
+        total = memberCount;
+        foot = `${memberCount - aliveCount} knocked out in Week ${week}`;
+      }
 
       leagues.push({
         format: league.format,
         name: league.name,
         seasonLabel: `${league.season} season`,
-        headline: eliminatedThisWeek ? `Eliminated in Week ${week}` : "Survived",
-        headlineTone: eliminatedThisWeek ? "loss" : "win",
-        rank: eliminatedThisWeek ? "Out" : String(aliveCount),
-        total: eliminatedThisWeek ? null : memberCount,
+        headline,
+        headlineTone,
+        rank,
+        total,
         delta: 0,
         pick: pickRow,
         stripLabel: pickRow ? "Your pick" : undefined,
-        foot: eliminatedThisWeek
-          ? `${aliveCount} of ${memberCount} still alive. You lasted ${week} week${week === 1 ? "" : "s"}.`
-          : `${memberCount - aliveCount} knocked out in Week ${week}`,
+        foot,
       });
       continue;
     }
 
     // ---- Everything else: a three-row slice around the reader ----------
+    const isAts = league.format === "ats";
     const window: any[] = [];
-    const myIdx = seasonRows.findIndex((r: any) => r.userId === u.userId);
     if (myIdx >= 0) {
       const start = Math.max(0, myIdx - 1);
-      window.push(...seasonRows.slice(start, start + 3));
+      window.push(...rosterRows.slice(start, start + 3));
     } else {
-      window.push(...seasonRows.slice(0, 3));
+      window.push(...rosterRows.slice(0, 3));
     }
 
-    const isAts = league.format === "ats";
     const standingRows = window.map((r: any) => ({
       rank: r.rank,
       name: r.userId === u.userId ? "You" : (nameById.get(r.userId) || "Player"),
-      value: isAts ? `${r.correct}-${r.incorrect}` : String(r.points),
+      // A member with nothing scored gets a dash, same as the league table
+      // on the site - a real 0-0 and "hasn't played" look identical
+      // otherwise, and only one of them is true.
+      value: r.hasResults ? (isAts ? `${r.correct}-${r.incorrect}` : String(r.points)) : "\u2014",
       isMe: r.userId === u.userId,
     }));
 
-    const leader = seasonRows[0];
-    const gap = leader && myRow ? (leader.points || 0) - (myRow.points || 0) : 0;
-    const foot = myIdx === 0
-      ? "You're leading the league"
-      : gap > 0
-        ? `${gap} pt${gap === 1 ? "" : "s"} back of 1st`
-        : "Tied at the top";
+    const leader = rosterRows[0];
+    const gap = leader?.hasResults && myRow?.hasResults ? (leader.points || 0) - (myRow.points || 0) : 0;
+    const standingFoot = !myRow?.hasResults
+      ? "Nothing scored for you yet this season"
+      : myIdx === 0
+        ? "You're leading the league"
+        : gap > 0
+          ? `${gap} pt${gap === 1 ? "" : "s"} back of 1st`
+          : "Tied at the top";
+
+    let headline: string, headlineTone: RecapLeague["headlineTone"], foot: string;
+    if (mine) {
+      headline = `${mine.correct}-${mine.incorrect}${isAts ? " ATS" : ` - ${mine.points} pts`}`;
+      headlineTone = "neutral";
+      foot = standingFoot;
+    } else if (weekIsScored) {
+      headline = `No picks in Week ${week}`;
+      headlineTone = "loss";
+      foot = `You sat Week ${week} out. ${standingFoot}.`;
+    } else {
+      headline = `Week ${week} not scored yet`;
+      headlineTone = "neutral";
+      foot = `Results post once every game is final. ${standingFoot}.`;
+    }
 
     leagues.push({
       format: league.format,
       name: league.name,
       seasonLabel: `${league.season} season`,
-      headline: `${mine.correct}-${mine.incorrect}${isAts ? " ATS" : ` - ${mine.points} pts`}`,
-      headlineTone: "neutral",
-      rank: currentRank,
-      total: memberCount,
+      headline,
+      headlineTone,
+      // "1 / 12" in a league where nobody has been scored yet reads as
+      // "you're winning". Until someone is on the board there is no
+      // position to report, so the figure is a dash with no denominator.
+      rank: leagueHasAnyScore ? currentRank : "\u2014",
+      total: leagueHasAnyScore ? memberCount : null,
       delta,
       standings: standingRows,
       foot,
@@ -1074,7 +1179,7 @@ async function buildRecapFor(
     // In a confidence league, the size of a hit or miss is the whole story.
     // In straight-up or ATS every pick is worth the same, so "best call"
     // would just be an arbitrary correct one - omitted rather than faked.
-    if (league.format === "confidence" && !highlights.length) {
+    if (league.format === "confidence" && mine && !highlights.length) {
       let best: { conf: number; team: string } | null = null;
       let worst: { conf: number; team: string } | null = null;
       for (const g of games) {
@@ -1104,12 +1209,24 @@ async function buildRecapFor(
     }
   }
 
-  if (!anyScored || !leagues.length) return null;
+  // One league is enough to be worth sending. The old bar was "something
+  // scored for this reader somewhere," which is a different question and
+  // the reason an empty email could go out at all.
+  if (!leagues.length) return null;
 
+  // The record only covers the leagues that actually scored this reader, so
+  // it says so rather than claiming a 11-5 "across 4 leagues" when three of
+  // them contributed nothing to it.
+  const plural = (n: number) => (n === 1 ? "" : "s");
   const moved = leagues.filter((l) => l.delta > 0).length;
-  const intro = moved
-    ? `You went ${totalCorrect}-${totalIncorrect} across ${leagues.length} league${leagues.length === 1 ? "" : "s"} and moved up in ${moved}.`
-    : `You went ${totalCorrect}-${totalIncorrect} across ${leagues.length} league${leagues.length === 1 ? "" : "s"}.`;
+  const scope = scoredLeagues === leagues.length
+    ? `across ${leagues.length} league${plural(leagues.length)}`
+    : `in ${scoredLeagues} of your ${leagues.length} leagues`;
+  const intro = !scoredLeagues
+    ? `Here's where you stand in your ${leagues.length} league${plural(leagues.length)}.`
+    : moved
+      ? `You went ${totalCorrect}-${totalIncorrect} ${scope} and moved up in ${moved}.`
+      : `You went ${totalCorrect}-${totalIncorrect} ${scope}.`;
 
   return { intro, leagues, highlights };
 }

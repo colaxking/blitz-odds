@@ -29,6 +29,18 @@
  * and the spread/O-U it was measured against stay what they were at kickoff
  * rather than drifting with later injury and line moves.
  *
+ * Schema 3 also freezes the model's *inputs* - both teams' stat blocks, both
+ * impact-player lists and the weather entry exactly as the engine saw them -
+ * under `inputs`. The weekly archive in data/history.json is a per-week
+ * snapshot taken after the week is over, and Week 1 of 2026 showed why that
+ * isn't enough: its team stats were the season-to-date numbers *including*
+ * that week's games and its injury statuses included injuries suffered in
+ * them, so a finished card recomputed against hindsight (DEN@KC read "KC
+ * 86%, called it" when the model had DEN 57% at kickoff). With the inputs on
+ * the record, a card for a finished game can show the same ranks, injury
+ * report and write-up factors the call was actually made on, independent of
+ * whatever the archive later says.
+ *
  * Scope: regular season and postseason (week >= 1). Preseason is excluded -
  * exhibition games where starters play a quarter aren't a meaningful test of
  * whether someone follows the model.
@@ -156,11 +168,13 @@ async function main() {
    * run, for as long as it had been scheduled. Resolve the same way the site
    * does: published blob if there is one, the static file otherwise.
    */
-  let teams = (siteData.teams && siteData.teams.teams) || [];
+  let teamsDoc = siteData.teams || null;
+  let teams = (teamsDoc && teamsDoc.teams) || [];
   if (!teams.length) {
     const res = await fetchWithRetry(`${SITE_BASE}/data/teams.json`);
     if (!res.ok) throw new Error(`data/teams.json failed: ${res.status}`);
-    teams = ((await res.json()) || {}).teams || [];
+    teamsDoc = (await res.json()) || {};
+    teams = teamsDoc.teams || [];
     log(`site-data-current published no teams doc - fell back to data/teams.json (${teams.length} teams).`);
   }
   if (!teams.length) throw new Error("No team data from either site-data-current or data/teams.json");
@@ -174,6 +188,12 @@ async function main() {
   }
 
   const schedule = siteData.schedule || { season: new Date().getFullYear(), weeks: [] };
+  // Which week the stats doc runs through: the weekly update stamps
+  // `asOfWeek`; a prior-season final doc (what weeks 1-4 run on) has none and
+  // reports 0. Mirrors teamStatsThroughWeekOf() in history-results-refresh.mjs.
+  const teamStatsThroughWeek = Number.isFinite(Number(teamsDoc.asOfWeek))
+    ? Number(teamsDoc.asOfWeek)
+    : (Number(teamsDoc.season) < Number(schedule.season || new Date().getFullYear()) ? 0 : null);
 
   const isDomeTeam = (teamId) => {
     const entry = stadiums.teamStadiums && stadiums.teamStadiums[teamId];
@@ -235,10 +255,11 @@ async function main() {
         gameId: `${seasonYear}-w${week}-${g.away}-${g.home}`,
         away: g.away,
         home: g.home,
-        // schema 2 adds predictedMargin/confidence and is the first version
-        // written with `week` passed through. A record without this field is
-        // a schema-1 record and gets repaired on read.
-        schema: 2,
+        // schema 2 added predictedMargin/confidence and was the first version
+        // written with `week` passed through; a record without this field is
+        // a schema-1 record and gets repaired on read. schema 3 adds `inputs`
+        // (below).
+        schema: 3,
         predictedWinner: prediction.predictedWinner,
         homeWinProbability: prediction.homeWinProbability,
         awayWinProbability: prediction.awayWinProbability,
@@ -256,6 +277,24 @@ async function main() {
         // shouldn't be presented as though it were.
         late: koMs != null && nowMs > koMs,
         odds: gameOdds,
+        // Everything predictMatchup() above was handed, so a finished game's
+        // card can render the ranks, injury report and write-up factors the
+        // call was made on rather than whatever the data says later. Stored
+        // as-is (no trimming): the card's injury section reads the same
+        // player fields the live path does, and a week of records is well
+        // under a megabyte.
+        inputs: {
+          homeStats: home.stats || null,
+          awayStats: away.stats || null,
+          homeImpactPlayers: players[g.home] || [],
+          awayImpactPlayers: players[g.away] || [],
+          weather: gameWeather,
+          // Which stats doc the ranks came from, for anyone auditing a
+          // record later. asOfWeek is set by the weekly update; a prior-season
+          // final doc (weeks 1-4 run on it) reports 0.
+          teamStatsThroughWeek: teamStatsThroughWeek,
+          teamStatsSeason: teamsDoc.season != null ? teamsDoc.season : null,
+        },
       });
     }
   }

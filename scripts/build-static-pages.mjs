@@ -271,6 +271,10 @@ function buildGameSnapshotHtml(data, period, game) {
     weather: null,
     homeIsDomeTeam: isDomeTeam(data.stadiums, game.home),
     awayIsDomeTeam: isDomeTeam(data.stadiums, game.away),
+    // Weeks 1-4 (and preseason) run on prior-season ranks and take the
+    // wider early-season curve; without this the crawler text reads more
+    // confident than the app does for the same game.
+    week: period.week,
   });
   const homePct = Math.round(prediction.homeWinProbability * 100);
   const awayPct = Math.round(prediction.awayWinProbability * 100);
@@ -416,6 +420,7 @@ function buildLadder(data, period) {
       weather: null,
       homeIsDomeTeam: isDomeTeam(data.stadiums, game.home),
       awayIsDomeTeam: isDomeTeam(data.stadiums, game.away),
+      week: period.week,
     });
     const pickIsHome = prediction.predictedWinner === home.id;
     const winPct = Math.round(
@@ -578,6 +583,10 @@ function buildScheduleRow(data, period, teamId, game) {
     weather: null,
     homeIsDomeTeam: isDomeTeam(data.stadiums, game.home),
     awayIsDomeTeam: isDomeTeam(data.stadiums, game.away),
+    // Weeks 1-4 (and preseason) run on prior-season ranks and take the
+    // wider early-season curve; without this the crawler text reads more
+    // confident than the app does for the same game.
+    week: period.week,
   });
   const teamWins = prediction.predictedWinner === teamId;
   const teamWinProb = Math.round((isHome ? prediction.homeWinProbability : prediction.awayWinProbability) * 100);

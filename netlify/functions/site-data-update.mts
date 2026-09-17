@@ -88,6 +88,69 @@ function stripDemoWeeks(incoming: any): { value: any; dropped: number[] } {
   return { value: { ...incoming, weeks }, dropped };
 }
 
+// The fields of a weekly history entry that describe what the model was
+// running on when that week's games kicked off. Once a week has been seeded
+// at kickoff (see seedWeekSnapshots() in scripts/history-results-refresh.mjs,
+// which stamps `inputsFrozenAt`), these are a record of the past and must
+// not be restated by a later publish - the whole reason the entry exists is
+// so a finished card can show the ranks and injury report its call was made
+// on, not the ones that absorbed that week's results.
+//
+// Week 1 of 2026 is the cautionary tale: the Tuesday archive wrote the
+// season-to-date stats *through* Week 1 (DEN's offense at #32 was literally
+// that game's stat line) and Monday-night injury statuses (Darnold out,
+// Garrett to IR - hurt *in* Week 1), so every Week 1 card recomputed
+// against hindsight and DEN@KC read "KC 86%, called it" when the model had
+// DEN 57% at kickoff. The weekly-update task refreshes teams.json to
+// through-week-N and archives week N in the same breath, which is exactly
+// how the wrong numbers land in the archive. This guard keeps them out at
+// the choke point, the same way stripDemoWeeks keeps the sample week out.
+const FROZEN_INPUT_FIELDS = ["teamStats", "impactPlayers", "inputsFrozenAt", "teamStatsThroughWeek", "inputsNote", "note"] as const;
+
+/** For every incoming week entry that the stored history doc already holds
+ *  with `inputsFrozenAt` set, carry the stored kickoff inputs forward and
+ *  take only the rest (results, above all) from the incoming entry. Weeks
+ *  the store has never seen, and stored weeks that were never seeded, pass
+ *  through untouched. `force` (body.forceHistoryInputs === true) is the
+ *  deliberate escape hatch for correcting a seeded week by hand. */
+async function preserveFrozenHistoryInputs(
+  store: ReturnType<typeof getStore>,
+  incoming: any,
+  force: boolean
+): Promise<{ value: any; preserved: number[] }> {
+  if (force || !incoming || typeof incoming !== "object" || !Array.isArray(incoming.weeks)) {
+    return { value: incoming, preserved: [] };
+  }
+  let existing: any = null;
+  try {
+    existing = await store.get("history", { type: "json" });
+  } catch {
+    existing = null;
+  }
+  const storedWeeks: any[] = existing && Array.isArray(existing.weeks) ? existing.weeks : [];
+  if (!storedWeeks.length) return { value: incoming, preserved: [] };
+  const storedByWeek = new Map<number, any>(
+    storedWeeks.filter((w) => w && typeof w === "object" && typeof w.week === "number").map((w) => [w.week, w])
+  );
+
+  const preserved: number[] = [];
+  const weeks = incoming.weeks.map((w: any) => {
+    if (!w || typeof w !== "object" || typeof w.week !== "number") return w;
+    const stored = storedByWeek.get(w.week);
+    if (!stored || !stored.inputsFrozenAt) return w;
+    let changed = false;
+    const out: any = { ...w };
+    for (const field of FROZEN_INPUT_FIELDS) {
+      if (JSON.stringify(out[field]) !== JSON.stringify(stored[field])) changed = true;
+      if (stored[field] === undefined) delete out[field];
+      else out[field] = stored[field];
+    }
+    if (changed) preserved.push(w.week);
+    return out;
+  });
+  return { value: { ...incoming, weeks }, preserved };
+}
+
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -135,7 +198,9 @@ export default async (req: Request, _context: Context) => {
     return jsonResponse(400, { ok: false, error: "Body must be a JSON object" });
   }
 
-  const providedKeys = Object.keys(body).filter((k) => body[k] !== undefined);
+  // Control flags ride alongside the data keys and aren't published.
+  const CONTROL_KEYS = new Set(["forceHistoryInputs"]);
+  const providedKeys = Object.keys(body).filter((k) => body[k] !== undefined && !CONTROL_KEYS.has(k));
   const unknownKeys = providedKeys.filter((k) => !VALID_KEYS.has(k));
   if (unknownKeys.length > 0) {
     return jsonResponse(400, { ok: false, error: `Unknown key(s): ${unknownKeys.join(", ")}. Valid keys: ${[...VALID_KEYS].join(", ")}` });
@@ -167,7 +232,13 @@ export default async (req: Request, _context: Context) => {
           `site-data-update: dropped ${dropped.length} demo week(s) from history payload: ${dropped.join(", ")}`
         );
       }
-      value = cleaned;
+      const { value: kept, preserved } = await preserveFrozenHistoryInputs(store, cleaned, body.forceHistoryInputs === true);
+      if (preserved.length) {
+        console.warn(
+          `site-data-update: kept the kickoff-frozen team stats / injury lists for week(s) ${preserved.join(", ")}; the incoming copies were ignored (send forceHistoryInputs: true to override)`
+        );
+      }
+      value = kept;
     }
     await store.setJSON(key, value);
     updated.push(key);

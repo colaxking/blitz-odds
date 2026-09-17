@@ -86,12 +86,20 @@ nfl-matchup-analyzer/
   ranks in each of the 6 categories (e.g. "Total offense rank gap: KC by 12"), not just
   each team's individual rank.
 - **Predicted vs. actual (history)** — any week that has a `data/history.json` snapshot
-  shows the team stats and prediction *as they were that week*, plus the real final
-  score and a ✓/✗ on whether the model called it right — both on the week view and on
-  a team's full-season schedule. Weeks without a snapshot just show today's live
-  prediction (there's nothing to compare yet). Right now only Week 1 has a snapshot,
-  and it's clearly marked as a **sample** (fictional scores) since the real 2026 season
-  hasn't been played yet.
+  shows the team stats, injury report and prediction *as they stood at kickoff*, plus
+  the real final score and a ✓/✗ on whether the model called it right — both on the
+  week view and on a team's full-season schedule. Weeks without a snapshot just show
+  today's live prediction (there's nothing to compare yet). Two layers keep a finished
+  game honest: `scripts/prediction-snapshot.mjs` freezes each game's call *and the
+  inputs behind it* ~15 minutes before that game's own kickoff (served by
+  `predictions-current`; the card, My Picks and the team schedule all prefer this
+  record from kickoff onward), and `scripts/history-results-refresh.mjs` seeds the
+  week's `history.json` entry from the live site's team/injury docs at the week's
+  first kickoff, re-capturing each team until its own game starts. A week's entry
+  therefore holds the stats the model ran on *during* that week (through week N-1,
+  or the prior season's finals for weeks 1-4) - never the refreshed through-week-N
+  numbers - and `site-data-update` refuses to let a later publish restate a seeded
+  week's inputs (`forceHistoryInputs: true` is the deliberate override).
 - **Preseason** — the week dropdown also lists the Hall of Fame Game and Preseason
   Weeks 1-3 ahead of Week 1, with real matchups (`data/schedule-preseason-2026.json`),
   predictions, and odds just like the regular season. Preseason predictions use the
@@ -214,10 +222,15 @@ picks up current odds.
 that touches git. It archives completed preseason rounds (Hall of Fame Game, Preseason
 Weeks 1-3) as soon as they finish, and once the regular season starts (Sept 9, 2026),
 each run checks whether a new week has finished, and if so: pulls that week's final
-scores and updated team stats/injury report from public sources, archives a
-`data/history.json` snapshot for that week (replacing the Week 1 sample once real Week 1
-is played), and refreshes `data/teams.json` and `data/impact-players.json` with current
-numbers. Once Week 18 wraps up, the same task also researches and fills in each playoff
+scores, and refreshes `data/teams.json` and `data/impact-players.json` with current
+numbers for the *upcoming* week. **The finished week's `data/history.json` entry is not
+this task's to write any more**: `history-results-refresh` seeds it at kickoff (see
+above) and fills in the scores, and `site-data-update` keeps the seeded `teamStats` /
+`impactPlayers` regardless of what a later publish sends. If the task does carry an
+entry forward it must leave those two fields exactly as it found them - week N's entry
+holds the numbers the site was running on *during* week N, and refreshing them to
+"through week N" is precisely the mistake that made Week 1's cards grade the model
+against its own results. Once Week 18 wraps up, the same task also researches and fills in each playoff
 round as it's announced, and continues archiving results for weeks 19-22 (Wild Card
 through Super Bowl). Whatever changed gets `POST`ed to `netlify/functions/site-data-update.mts`
 first — live within seconds — *then* the task rebuilds `index.html`'s embedded fallback

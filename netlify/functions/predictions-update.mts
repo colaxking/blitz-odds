@@ -51,6 +51,12 @@ interface IncomingPrediction {
   schema?: number;
   predictedMargin?: number;
   confidence?: number;
+  // schema 3 onward: the stat blocks, impact-player lists and weather the
+  // engine was handed, so a finished game's card can show the inputs behind
+  // the call. Stored verbatim; not validated beyond being an object, since
+  // the card treats a missing or malformed block as "no frozen inputs" and
+  // falls back to the weekly archive.
+  inputs?: unknown;
 }
 
 function isValid(p: any): p is IncomingPrediction {
@@ -67,7 +73,8 @@ function isValid(p: any): p is IncomingPrediction {
     // Optional, but a non-numeric margin would reach the card as a broken
     // ats read rather than as a missing one, so reject it at the door.
     (p.predictedMargin === undefined || Number.isFinite(p.predictedMargin)) &&
-    (p.confidence === undefined || Number.isFinite(p.confidence))
+    (p.confidence === undefined || Number.isFinite(p.confidence)) &&
+    (p.inputs === undefined || (p.inputs !== null && typeof p.inputs === "object"))
   );
 }
 

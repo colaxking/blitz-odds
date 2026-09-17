@@ -15,6 +15,12 @@ import { getStore } from "@netlify/blobs";
 // means a read has to list-then-get; a week is ~16 objects, a season is
 // ~272. The site only ever renders one week at a time, so the week scope
 // keeps the common request cheap.
+//
+// The one screen that spans weeks is a team page's full-season schedule,
+// which grades every finished game's call. `?team=KC` serves that: the
+// season's keys are listed (metadata only, cheap) and just the ~18 that
+// name the team are fetched, returned keyed week -> "away-home" so the
+// client can merge them into the same per-week map the week reads fill.
 
 const STORE_NAME = "blitz-predictions";
 const DEFAULT_SEASON = 2026;
@@ -104,6 +110,9 @@ export default async (req: Request, _context: Context) => {
   const url = new URL(req.url);
   const week = Number(url.searchParams.get("week"));
   const season = Number(url.searchParams.get("season")) || DEFAULT_SEASON;
+  const team = (url.searchParams.get("team") || "").trim().toUpperCase();
+
+  if (team) return readTeam(season, team);
 
   // Preseason is never frozen (see predictions-update), so an out-of-range
   // week is an empty answer rather than an error - the client treats "no
@@ -144,6 +153,48 @@ export default async (req: Request, _context: Context) => {
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" });
   }
 };
+
+/** Every frozen record for one team across the season, keyed week ->
+ *  "away-home". gameId is `{season}-w{week}-{away}-{home}`, so the storage
+ *  key ends in `-{AWAY}-{HOME}`: a team is in the game iff the key ends
+ *  with `-{team}` or contains `-{team}-` after the week segment. Matching
+ *  on the key means only that team's ~18 blobs are read, not all ~272. */
+async function readTeam(season: number, team: string) {
+  if (!/^[A-Z]{2,4}$/.test(team)) {
+    return jsonResponse(400, { ok: false, error: "team must be a 2-4 letter abbreviation" });
+  }
+  try {
+    const store = getStore(STORE_NAME);
+    const prefix = `pred:${season}:`;
+    const { blobs } = await store.list({ prefix });
+    const mine = (blobs || []).filter((b: { key: string }) => {
+      // "pred:2026:1:2026-w1-DEN-KC" -> "DEN-KC"
+      const m = /-w\d+-([A-Z]+)-([A-Z]+)$/.exec(b.key);
+      return !!m && (m[1] === team || m[2] === team);
+    });
+    const entries = await Promise.all(
+      mine.map(async (b: { key: string }) => {
+        try {
+          const raw: any = await store.get(b.key, { type: "json" });
+          const wk = raw && Number(raw.week);
+          return Number.isFinite(wk) ? normalizeRecord(raw, wk) : null;
+        } catch {
+          return null;
+        }
+      })
+    );
+    const weeks: Record<string, Record<string, unknown>> = {};
+    for (const rec of entries as any[]) {
+      if (!rec) continue;
+      const wk = String(rec.week);
+      if (!weeks[wk]) weeks[wk] = {};
+      weeks[wk][`${rec.away}-${rec.home}`] = rec;
+    }
+    return jsonResponse(200, { season, team, weeks });
+  } catch (err) {
+    return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" });
+  }
+}
 
 export const config: Config = {
   path: "/.netlify/functions/predictions-current",

@@ -42,25 +42,36 @@
       "bufferStatus": "sent"
     },
     "2026-w2-wed-biggest-spreads": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6aa94169564ba52318a62aa8",
       "text": "Week 2's biggest spreads as of Wednesday:\n\nMIA at SF — SF -13.5\nCLE at TB — TB -8.5\nNO at BAL — BAL -8.5\nLV at LAC — LAC -7\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
       "dueAt": "2026-09-16T13:17:00.000Z",
       "scheduledAt": "2026-09-15T13:00:21.984Z",
-      "lastCheckedAt": "2026-09-16T13:00:20.870Z"
+      "lastCheckedAt": "2026-09-16T13:00:20.870Z",
+      "bufferStatus": "sent"
     },
     "2026-w2-thu-tnf-coinflips": {
       "status": "scheduled",
       "variant": "fallback",
       "bufferPostId": "6aaa92e7260ced176a4aa75a",
-      "text": "Lions at Bills tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nCAR at ATL — CAR -2.5\nCIN at HOU — HOU -2.5\nJAX at DEN — DEN -2.5\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
+      "text": "Lions at Bills tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nCAR at ATL — CAR -2.5\nJAX at DEN — DEN -2.5\nCIN at HOU — HOU -3\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
       "dueAt": "2026-09-17T13:03:00.000Z",
       "scheduledAt": "2026-09-16T13:00:20.870Z",
-      "lastCheckedAt": "2026-09-16T13:00:20.870Z",
+      "lastCheckedAt": "2026-09-17T13:00:18.998Z",
       "reasons": [
         "primary: spreadEq: MIN-CHI is -5.5, wanted -3; spreadEq: CIN-HOU is -2.5, wanted -3; spreadEq: JAX-DEN is -2.5, wanted -3"
-      ]
+      ],
+      "updatedAt": "2026-09-17T13:00:18.998Z"
+    },
+    "2026-w2-fri-one-data-point": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6aabe4655d0d0b2e17a765d6",
+      "text": "One week of results is one data point.\n\nThe team that looked awful in Week 1 is still the roster the market liked in August. Lines move a point or two, not seven. Don't let one Sunday flip your whole confidence sheet.\n\nblitz-odds.com",
+      "dueAt": "2026-09-18T13:39:00.000Z",
+      "scheduledAt": "2026-09-17T13:00:18.998Z",
+      "lastCheckedAt": "2026-09-17T13:00:18.998Z"
     }
   },
   "runs": [
@@ -182,6 +193,31 @@
       "notified": "email",
       "alerts": [
         "FALLBACK used for \"2026-w2-thu-tnf-coinflips\" (due 2026-09-17T09:03:00-04:00) - primary failed:\n  primary: spreadEq: MIN-CHI is -5.5, wanted -3; spreadEq: CIN-HOU is -2.5, wanted -3; spreadEq: JAX-DEN is -2.5, wanted -3\n  Scheduled text:\n    Lions at Bills tonight, 8:15 PM ET on Prime Video.\n    \n    The three closest Sunday games right now:\n    CAR at ATL — CAR -2.5\n    CIN at HOU — HOU -2.5\n    JAX at DEN — DEN -2.5\n    \n    Coin flips. In a confidence pool, those are your 1s, 2s and 3s.\n    \n    blitz-odds.com"
+      ]
+    },
+    {
+      "at": "2026-09-17T13:00:18.998Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w2-wed-biggest-spreads",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w2-thu-tnf-coinflips",
+          "action": "updated",
+          "detail": "fallback; text changed"
+        },
+        {
+          "post": "2026-w2-fri-one-data-point",
+          "action": "scheduled",
+          "detail": "primary for 2026-09-18T09:39:00-04:00"
+        }
+      ],
+      "notified": "email",
+      "alerts": [
+        "FALLBACK used for \"2026-w2-thu-tnf-coinflips\" (due 2026-09-17T09:03:00-04:00) - primary failed:\n  primary: spreadEq: MIN-CHI is -4.5, wanted -3; spreadEq: JAX-DEN is -2.5, wanted -3\n  Scheduled text:\n    Lions at Bills tonight, 8:15 PM ET on Prime Video.\n    \n    The three closest Sunday games right now:\n    CAR at ATL — CAR -2.5\n    JAX at DEN — DEN -2.5\n    CIN at HOU — HOU -3\n    \n    Coin flips. In a confidence pool, those are your 1s, 2s and 3s.\n    \n    blitz-odds.com"
       ]
     }
   ],

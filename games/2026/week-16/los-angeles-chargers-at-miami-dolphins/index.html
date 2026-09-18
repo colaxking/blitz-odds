@@ -25609,6 +25609,22 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
   const byeTeams = useMemo(() => getByeTeams(week), [week]);
   const gameTypeContext = useMemo(() => buildGameTypeContext(week, gameType), [week, gameType]);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  // A week gets its history.json entry seeded at the first kickoff, not at
+  // the last whistle, so `context.isHistorical` goes true while most of the
+  // slate is still unplayed - and the banner was announcing a "historical
+  // snapshot" above a card for a game three days away. The frozen-inputs
+  // behaviour that same flag drives is still right per-game (a game that has
+  // kicked off should stop recomputing), so this gates only the banner:
+  // every game in the week has to be done before the week reads as history.
+  // Live data wins over the snapshot inside resolveScore, so a game in
+  // progress correctly counts as not finished.
+  const weekComplete = useMemo(
+    () => games.length > 0 && games.every((g) => {
+      const score = resolveScore(liveMap && liveMap[`${g.away}-${g.home}`], context.getResult(g.away, g.home));
+      return !!(score && score.isFinal);
+    }),
+    [games, liveMap, context]
+  );
   useSportsEventJsonLd(games, seasonYear);
   if (!games.length) return <p>No schedule data for this week yet.</p>;
   return (
@@ -25629,12 +25645,11 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           </div>
         </div>
       )}
-      {context.isHistorical && (
+      {context.isHistorical && weekComplete && (
         <div className="demo-banner">
           <strong>Historical snapshot</strong> — showing {getPeriodLabel(week)} as it stood at kickoff: the
           model's call, team stats and injury report are what it was running on before each game started, not
-          today's numbers, alongside the final result (live scores, when a game is in progress, will override
-          this automatically).{" "}
+          today's numbers, alongside the final result.{" "}
           {context.note}
         </div>
       )}

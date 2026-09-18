@@ -49,6 +49,53 @@ if [ -z "$(git status --porcelain -- "$@")" ]; then
   exit 0
 fi
 
+# index.html has now been silently gutted three times (9abf65c65, 4786004,
+# and once before that) by a job or a session that wrote a data blob back
+# into a STALE copy of the file - dropping ~900KB of app code while leaving
+# a file that still parses, still contains every marker, and still deploys.
+# Production kept serving the last good publish, so nothing looked broken
+# until someone cloned the repo. The tell in every case was size: 1.83MB
+# down to ~930KB, a 49% cut, in a commit whose message said it was syncing
+# a few injury lines.
+#
+# So: refuse to commit an index.html that has lost more than SHRINK_PCT of
+# its bytes, or that is missing a structural marker. Override with
+# ALLOW_INDEX_SHRINK=1 for a deliberate large deletion - that should be a
+# decision someone makes on purpose, not something a cron job does at 2am.
+guard_index_html() {
+  # Driven by what's actually about to be committed, not by how the caller
+  # spelled its arguments - a job that passes "." or a directory still gets
+  # checked.
+  git status --porcelain -- "$@" | grep -qE ' index\.html$' || return 0
+  [ -f index.html ] || return 0
+
+  local marker
+  for marker in '<script type="text/babel"' 'id="players-data"' 'function TabBar('; do
+    if ! grep -qF -- "$marker" index.html; then
+      echo "index.html guard: the file no longer contains $marker - refusing to commit a truncated app. Nothing has been committed." >&2
+      exit 1
+    fi
+  done
+
+  local old new floor pct
+  old=$(git show "HEAD:index.html" 2>/dev/null | wc -c)
+  new=$(wc -c < index.html)
+  [ "$old" -gt 0 ] || return 0
+
+  pct=${SHRINK_PCT:-10}
+  floor=$(( old * (100 - pct) / 100 ))
+  if [ "$new" -lt "$floor" ]; then
+    if [ "${ALLOW_INDEX_SHRINK:-0}" = "1" ]; then
+      echo "index.html guard: ${old} -> ${new} bytes is past the ${pct}% floor, but ALLOW_INDEX_SHRINK=1 - continuing."
+      return 0
+    fi
+    echo "index.html guard: ${old} -> ${new} bytes ($(( 100 - new * 100 / old ))% smaller) is past the ${pct}% floor." >&2
+    echo "This is what a stale copy of index.html overwriting the current one looks like - see 9abf65c65 and 4786004. Re-pull main, re-apply the change to the CURRENT file, and try again. Set ALLOW_INDEX_SHRINK=1 if the deletion is deliberate. Nothing has been committed." >&2
+    exit 1
+  fi
+}
+guard_index_html "$@"
+
 git config user.name "${GIT_BOT_NAME:-blitz-odds-bot}"
 git config user.email "${GIT_BOT_EMAIL:-actions@users.noreply.github.com}"
 git add -A -- "$@"

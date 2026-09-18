@@ -38648,7 +38648,13 @@ function AdminPicksPanel({ auth, data, onToast }) {
 
   const [leagueId, setLeagueId] = useState(leagues.length ? leagues[0].id : "");
   const [userId, setUserId] = useState("");
-  const [week, setWeek] = useState(1);
+  // Week 1 was the default, so every visit opened on a week that's long
+  // over - the point of this panel is almost always fixing a pick for the
+  // week in play. Lazy initialiser so getDefaultWeek() runs once rather than
+  // on every render, and clamped the same way LeagueView does it:
+  // getDefaultWeek() also returns preseason (< 1) and playoff (> 18)
+  // periods, and this selector only lists the regular season.
+  const [week, setWeek] = useState(() => clampToRegularSeasonWeek(getDefaultWeek()));
   const [loaded, setLoaded] = useState(null);
   const [draft, setDraft] = useState({});
   const [busy, setBusy] = useState(false);

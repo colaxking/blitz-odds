@@ -31015,7 +31015,7 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted, onGo
 // search/browse for signed-out visitors (search is open to everyone; join,
 // create, and "My Leagues" require sign-in - enforced both here and
 // server-side by the functions themselves).
-function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, initialError }) {
+function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myLeagues, initialCode, initialError }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null); // null = not searched yet
   const [total, setTotal] = useState(0);
@@ -31192,7 +31192,29 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
   const formatLabel = (f) => (LEAGUE_FORMAT_OPTIONS.find((o) => o.value === f) || {}).label || f;
   const shortLabel = (f) => (f === "ats" ? "ATS" : formatLabel(f));
 
+  // Leagues this viewer is already in. leagues-search doesn't annotate
+  // membership (it only reports a private league's request status), so the
+  // check is client-side against useMyLeagues' list, which the landing page
+  // already has loaded. null/undefined while that's still loading - treated
+  // as "not a member" rather than blocking the row, since the server
+  // refuses a duplicate join anyway.
+  const memberIds = useMemo(
+    () => new Set((myLeagues || []).map((l) => l.id)),
+    [myLeagues]
+  );
+
   function renderAction(l) {
+    // Membership is checked before anything else, including `full`: a league
+    // you're already in being at capacity is irrelevant to you, and
+    // "League full" on your own league reads as a lockout.
+    if (memberIds.has(l.id)) {
+      return (
+        <button type="button" className="league-btn league-btn-primary"
+          onClick={() => onViewLeague && onViewLeague(l.id)}>
+          View League
+        </button>
+      );
+    }
     if (l.full) {
       return <button type="button" className="league-btn" disabled>League full</button>;
     }
@@ -31209,8 +31231,16 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, initialCode, init
     if (state === "pending") {
       return <button type="button" className="league-btn" disabled>Requested ✓</button>;
     }
+    // The server answered that they're already in (or their request has been
+    // approved) but useMyLeagues hasn't refreshed yet, so memberIds above
+    // missed it. Same destination either way.
     if (state === "member" || state === "approved") {
-      return <button type="button" className="league-btn" disabled>Already a member</button>;
+      return (
+        <button type="button" className="league-btn league-btn-primary"
+          onClick={() => onViewLeague && onViewLeague(l.id)}>
+          View League
+        </button>
+      );
     }
     // A decline is final server-side (league-join-request returns 403), so
     // say so here rather than offering a button that only produces an error.
@@ -31794,6 +31824,8 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
           auth={auth}
           onRequestLogin={onRequestLogin}
           onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
+          onViewLeague={onSelectLeague}
+          myLeagues={leagues}
           initialCode={autoJoinCode}
           initialError={autoJoinCodeError}
         />
@@ -32024,6 +32056,8 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
               auth={auth}
               onRequestLogin={onRequestLogin}
               onJoined={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
+              onViewLeague={onSelectLeague}
+              myLeagues={leagues}
               initialCode={autoJoinCode}
               initialError={autoJoinCodeError}
             />
@@ -40761,12 +40795,17 @@ function AuthOverlay({ onClose, label, children }) {
     function onKey(e) { if (e.key === "Escape") onClose(); }
     document.addEventListener("keydown", onKey);
     // Locking the page behind a modal is what stops a phone scrolling the
-    // app under the card while someone types into it.
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // app under the card while someone types into it. This has to go
+    // through lockBodyScroll rather than setting overflow:hidden directly -
+    // iOS Safari doesn't honour the overflow lock, and removing it leaves
+    // the viewport metrics out of sync, which drops the fixed bottom tab
+    // bar and the sticky header out of the viewport and into document flow
+    // for the rest of the session. Every other modal already uses the
+    // helper; this one was the last holdout.
+    lockBodyScroll();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      unlockBodyScroll();
     };
   }, [onClose]);
 

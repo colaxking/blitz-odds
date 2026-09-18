@@ -22555,6 +22555,33 @@ function getHistorySnapshot(week) {
   return (HISTORY_DATA.weeks || []).find(w => w.week === week) || null;
 }
 
+/** Whether a week has a *complete* set of results - every game on its
+ *  schedule carries a final score in the snapshot.
+ *
+ *  Existence of the snapshot alone doesn't mean that: history-results-refresh
+ *  seeds a week's entry at the first kickoff and fills the scores in as games
+ *  finish, so a week with one Thursday game played and fifteen still to come
+ *  on Sunday has an entry with an empty (or partial) results map. Badging
+ *  that week "Results" in the week picker promises a finished week and lands
+ *  the reader on a slate that's mostly unplayed.
+ *
+ *  Snapshot-only on purpose: the picker renders every week in the season at
+ *  once and only the selected week has live ESPN scores fetched, so there is
+ *  no live signal available for the other 21 rows. That leaves a short window
+ *  on a Sunday night - between the last whistle and the refresh job writing
+ *  the score - where WeekView's banner (which does see live data) is up and
+ *  this badge hasn't appeared yet. It closes itself on the next refresh. */
+function weekResultsComplete(week) {
+  const snap = getHistorySnapshot(week);
+  if (!snap || !snap.results) return false;
+  const games = getGamesForWeek(week);
+  if (!games.length) return false;
+  return games.every((g) => {
+    const r = snap.results[`${g.away}-${g.home}`];
+    return !!(r && r.awayScore != null && r.homeScore != null);
+  });
+}
+
 /* Season records, tallied off the frozen weekly snapshots that already back
  * every other result the app shows (getWeekContext's getResult reads the
  * same map). Regular season only - weeks below 1 are preseason and above 18
@@ -39867,7 +39894,7 @@ function WeekNavPanel({ periods, selectedWeek, onPick, className }) {
           key={p.week}
           period={p}
           active={p.week === selectedWeek}
-          hasResults={!!getHistorySnapshot(p.week)}
+          hasResults={weekResultsComplete(p.week)}
           onClick={() => onPick(p.week)}
         />
       ))}
@@ -39981,7 +40008,7 @@ function WeekNav({ periods, selectedWeek, onSelectWeek }) {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        {current && getHistorySnapshot(current.week) && <span className="week-nav-result-dot" title="Has results" />}
+        {current && weekResultsComplete(current.week) && <span className="week-nav-result-dot" title="Has results" />}
         <span>{current ? current.label : "Select week"}</span>
         <span className={"week-nav-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
       </button>

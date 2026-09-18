@@ -9000,38 +9000,38 @@
       "snapshotDate": "2026-09-17T23:00:15.058Z",
       "inputsFrozenAt": "2026-09-17T23:00:15.058Z",
       "inputsCapturedAt": {
-        "ARI": "2026-09-18T17:00:17.584Z",
+        "ARI": "2026-09-18T18:00:19.231Z",
         "ATL": "2026-09-17T23:00:15.058Z",
-        "BAL": "2026-09-18T17:00:17.584Z",
+        "BAL": "2026-09-18T18:00:19.231Z",
         "BUF": "2026-09-17T23:00:15.058Z",
         "CAR": "2026-09-17T23:00:15.058Z",
         "CHI": "2026-09-17T23:00:15.058Z",
         "CIN": "2026-09-17T23:00:15.058Z",
-        "CLE": "2026-09-18T17:00:17.584Z",
-        "DAL": "2026-09-18T17:00:17.584Z",
-        "DEN": "2026-09-18T17:00:17.584Z",
+        "CLE": "2026-09-18T18:00:19.231Z",
+        "DAL": "2026-09-18T18:00:19.231Z",
+        "DEN": "2026-09-18T18:00:19.231Z",
         "DET": "2026-09-17T23:00:15.058Z",
         "GB": "2026-09-17T23:00:15.058Z",
         "HOU": "2026-09-17T23:00:15.058Z",
-        "IND": "2026-09-18T17:00:17.584Z",
-        "JAX": "2026-09-18T17:00:17.584Z",
-        "KC": "2026-09-18T17:00:17.584Z",
-        "LV": "2026-09-18T17:00:17.584Z",
-        "LAC": "2026-09-18T17:00:17.584Z",
-        "LAR": "2026-09-18T17:00:17.584Z",
-        "MIA": "2026-09-18T17:00:17.584Z",
+        "IND": "2026-09-18T18:00:19.231Z",
+        "JAX": "2026-09-18T18:00:19.231Z",
+        "KC": "2026-09-18T18:00:19.231Z",
+        "LV": "2026-09-18T18:00:19.231Z",
+        "LAC": "2026-09-18T18:00:19.231Z",
+        "LAR": "2026-09-18T18:00:19.231Z",
+        "MIA": "2026-09-18T18:00:19.231Z",
         "MIN": "2026-09-17T23:00:15.058Z",
         "NE": "2026-09-17T23:00:15.058Z",
-        "NO": "2026-09-18T17:00:17.584Z",
-        "NYG": "2026-09-18T17:00:17.584Z",
+        "NO": "2026-09-18T18:00:19.231Z",
+        "NYG": "2026-09-18T18:00:19.231Z",
         "NYJ": "2026-09-17T23:00:15.058Z",
         "PHI": "2026-09-17T23:00:15.058Z",
         "PIT": "2026-09-17T23:00:15.058Z",
-        "SF": "2026-09-18T17:00:17.584Z",
-        "SEA": "2026-09-18T17:00:17.584Z",
-        "TB": "2026-09-18T17:00:17.584Z",
-        "TEN": "2026-09-18T17:00:17.584Z",
-        "WAS": "2026-09-18T17:00:17.584Z"
+        "SF": "2026-09-18T18:00:19.231Z",
+        "SEA": "2026-09-18T18:00:19.231Z",
+        "TB": "2026-09-18T18:00:19.231Z",
+        "TEN": "2026-09-18T18:00:19.231Z",
+        "WAS": "2026-09-18T18:00:19.231Z"
       },
       "teamStatsThroughWeek": 1,
       "teamStatsSeason": 2026,
@@ -11025,6 +11025,19 @@
             },
             "statusUpdatedAt": "2026-08-31T06:41:32.195Z",
             "source": "curated"
+          },
+          {
+            "name": "Ashton Dulin",
+            "position": "WR",
+            "espnId": "4061956",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Ankle",
+              "note": "out"
+            },
+            "statusUpdatedAt": "2026-09-18T16:54Z",
+            "source": "auto"
           }
         ],
         "JAX": [
@@ -12316,9 +12329,13 @@
             "position": "DE",
             "espnId": "4039029",
             "impactScore": 4,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-18T13:05:00.000Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Shoulder",
+              "since": "2026-09-16",
+              "note": null
+            },
+            "statusUpdatedAt": "2026-09-17T17:20:22.103Z",
             "source": "curated"
           }
         ],
@@ -12667,14 +12684,13 @@
             "position": "TE",
             "espnId": "4360635",
             "impactScore": 3,
-            "status": "questionable",
+            "status": "out",
             "injury": {
               "type": "Hamstring",
-              "since": "2026-09-13",
-              "note": "Okonkwo did not practice on either Wednesday, Sept. 16 or Thursday, Sept. 17. HC Dan Quinn said he would know more later in the week about his availability for Sunday at Dallas."
+              "note": "Okonkwo (hamstring) won't play Sunday at Dallas, Tashan Reed of The Athletic reports."
             },
-            "statusUpdatedAt": "2026-09-17T21:05:55.000Z",
-            "source": "curated"
+            "statusUpdatedAt": "2026-09-18T16:59Z",
+            "source": "auto"
           },
           {
             "name": "Jer'Zhan Newton",
@@ -12694,14 +12710,13 @@
             "name": "Frankie Luvu",
             "position": "LB",
             "impactScore": 7,
-            "status": "questionable",
+            "status": "out",
             "injury": {
-              "type": "Groin strain (minor)",
-              "since": "2026-09-13",
-              "note": "Luvu did not return after halftime of the Sept. 13 loss at Philadelphia. ESPN reported the strain is minor and injured reserve is not expected, but he did not practice on either Wednesday, Sept. 16 or Thursday, Sept. 17 and HC Dan Quinn said his status for Sunday at Dallas is still uncertain."
+              "type": "Groin",
+              "note": "out"
             },
-            "statusUpdatedAt": "2026-09-17T21:05:55.000Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-09-18T16:42Z",
+            "source": "auto",
             "espnId": "3127273"
           }
         ]

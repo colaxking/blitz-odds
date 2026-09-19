@@ -66,13 +66,14 @@
       "bufferStatus": "sent"
     },
     "2026-w2-fri-one-data-point": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6aabe4655d0d0b2e17a765d6",
       "text": "One week of results is one data point.\n\nThe team that looked awful in Week 1 is still the roster the market liked in August. Lines move a point or two, not seven. Don't let one Sunday flip your whole confidence sheet.\n\nblitz-odds.com",
       "dueAt": "2026-09-18T13:39:00.000Z",
       "scheduledAt": "2026-09-17T13:00:18.998Z",
-      "lastCheckedAt": "2026-09-18T13:00:23.216Z"
+      "lastCheckedAt": "2026-09-18T13:00:23.216Z",
+      "bufferStatus": "sent"
     },
     "2026-w2-sat-survivor": {
       "status": "scheduled",
@@ -81,7 +82,14 @@
       "text": "Survivor players: Week 2 has three favorites of 7.5 or more. Tempting.\n\nBefore you burn SF or TB, look at who's still available to you in Week 5 and Week 8. The survivor path planner in the Playbook tab maps it out.\n\nblitz-odds.com",
       "dueAt": "2026-09-19T13:56:00.000Z",
       "scheduledAt": "2026-09-18T13:00:23.216Z",
-      "lastCheckedAt": "2026-09-18T13:00:23.216Z"
+      "lastCheckedAt": "2026-09-19T13:00:19.508Z"
+    },
+    "2026-w2-sun-slate": {
+      "status": "blocked",
+      "reasons": [
+        "primary: fresh: 1 line(s) older than 36h (e.g. DET-BUF)"
+      ],
+      "lastCheckedAt": "2026-09-19T13:00:19.508Z"
     }
   },
   "runs": [
@@ -251,6 +259,31 @@
         }
       ],
       "alerts": []
+    },
+    {
+      "at": "2026-09-19T13:00:19.508Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w2-fri-one-data-point",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w2-sat-survivor",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w2-sun-slate",
+          "action": "blocked",
+          "detail": "primary: fresh: 1 line(s) older than 36h (e.g. DET-BUF)"
+        }
+      ],
+      "notified": "email",
+      "alerts": [
+        "BLOCKED \"2026-w2-sun-slate\" (due 2026-09-20T09:07:00-04:00) - nothing scheduled:\n  primary: fresh: 1 line(s) older than 36h (e.g. DET-BUF)"
+      ]
     }
   ],
   "lastTokenWarningAt": null

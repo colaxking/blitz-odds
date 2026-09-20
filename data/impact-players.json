@@ -1768,9 +1768,12 @@
         "position": "DE",
         "espnId": "4832922",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-14T15:15Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-20T18:49Z",
         "source": "auto",
         "activatedDate": "2026-09-14"
       },
@@ -3226,14 +3229,13 @@
         "name": "RJ Harvey",
         "position": "RB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "espnId": "4568490",
-        "statusUpdatedAt": "2026-09-19T17:10:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-20T18:39Z",
+        "source": "auto",
         "injury": {
           "type": "Hamstring",
-          "since": "2026-09-17",
-          "note": "Harvey was limited in practice Thursday and Friday (Sept. 17-18) with a hamstring injury and is officially QUESTIONABLE for Sunday's home opener vs. Jacksonville, per the Broncos."
+          "note": "Harvey (hamstring) is inactive for Sunday's game against the Jaguars, Susanna Weir of the Broncos' official site reports."
         }
       }
     ],

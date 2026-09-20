@@ -9000,7 +9000,7 @@
       "snapshotDate": "2026-09-17T23:00:15.058Z",
       "inputsFrozenAt": "2026-09-17T23:00:15.058Z",
       "inputsCapturedAt": {
-        "ARI": "2026-09-20T19:00:14.192Z",
+        "ARI": "2026-09-20T20:00:16.148Z",
         "ATL": "2026-09-20T04:00:16.281Z",
         "BAL": "2026-09-20T04:00:16.281Z",
         "BUF": "2026-09-17T23:00:15.058Z",
@@ -9008,30 +9008,30 @@
         "CHI": "2026-09-20T04:00:16.281Z",
         "CIN": "2026-09-20T04:00:16.281Z",
         "CLE": "2026-09-20T04:00:16.281Z",
-        "DAL": "2026-09-20T19:00:14.192Z",
-        "DEN": "2026-09-20T19:00:14.192Z",
+        "DAL": "2026-09-20T20:00:16.148Z",
+        "DEN": "2026-09-20T20:00:16.148Z",
         "DET": "2026-09-17T23:00:15.058Z",
         "GB": "2026-09-20T04:00:16.281Z",
         "HOU": "2026-09-20T04:00:16.281Z",
-        "IND": "2026-09-20T19:00:14.192Z",
-        "JAX": "2026-09-20T19:00:14.192Z",
-        "KC": "2026-09-20T19:00:14.192Z",
-        "LV": "2026-09-20T19:00:14.192Z",
-        "LAC": "2026-09-20T19:00:14.192Z",
-        "LAR": "2026-09-20T19:00:14.192Z",
-        "MIA": "2026-09-20T19:00:14.192Z",
+        "IND": "2026-09-20T20:00:16.148Z",
+        "JAX": "2026-09-20T20:00:16.148Z",
+        "KC": "2026-09-20T20:00:16.148Z",
+        "LV": "2026-09-20T20:00:16.148Z",
+        "LAC": "2026-09-20T20:00:16.148Z",
+        "LAR": "2026-09-20T20:00:16.148Z",
+        "MIA": "2026-09-20T20:00:16.148Z",
         "MIN": "2026-09-20T04:00:16.281Z",
         "NE": "2026-09-20T04:00:16.281Z",
         "NO": "2026-09-20T04:00:16.281Z",
-        "NYG": "2026-09-20T19:00:14.192Z",
+        "NYG": "2026-09-20T20:00:16.148Z",
         "NYJ": "2026-09-20T04:00:16.281Z",
         "PHI": "2026-09-20T04:00:16.281Z",
         "PIT": "2026-09-20T04:00:16.281Z",
-        "SF": "2026-09-20T19:00:14.192Z",
-        "SEA": "2026-09-20T19:00:14.192Z",
+        "SF": "2026-09-20T20:00:16.148Z",
+        "SEA": "2026-09-20T20:00:16.148Z",
         "TB": "2026-09-20T04:00:16.281Z",
         "TEN": "2026-09-20T04:00:16.281Z",
-        "WAS": "2026-09-20T19:00:14.192Z"
+        "WAS": "2026-09-20T20:00:16.148Z"
       },
       "teamStatsThroughWeek": 1,
       "teamStatsSeason": 2026,
@@ -9685,9 +9685,12 @@
             "position": "WR",
             "espnId": "4869132",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-14T15:05Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "Virgil (coach's decision) is inactive for Sunday's game against the Seahawks."
+            },
+            "statusUpdatedAt": "2026-09-20T19:13Z",
             "source": "auto",
             "activatedDate": "2026-09-14"
           },
@@ -10597,14 +10600,13 @@
             "name": "RJ Harvey",
             "position": "RB",
             "impactScore": 7,
-            "status": "questionable",
+            "status": "out",
             "espnId": "4568490",
-            "statusUpdatedAt": "2026-09-19T17:10:00.000Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-09-20T18:39Z",
+            "source": "auto",
             "injury": {
               "type": "Hamstring",
-              "since": "2026-09-17",
-              "note": "Harvey was limited in practice Thursday and Friday (Sept. 17-18) with a hamstring injury and is officially QUESTIONABLE for Sunday's home opener vs. Jacksonville, per the Broncos."
+              "note": "Harvey (hamstring) is inactive for Sunday's game against the Jaguars, Susanna Weir of the Broncos' official site reports."
             }
           }
         ],
@@ -11127,9 +11129,12 @@
             "position": "DE",
             "espnId": "4832922",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-14T15:15Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-09-20T18:49Z",
             "source": "auto",
             "activatedDate": "2026-09-14"
           },
@@ -12366,9 +12371,12 @@
             "position": "WR",
             "espnId": "4431466",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-14T15:22Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-09-20T19:06Z",
             "source": "auto",
             "activatedDate": "2026-09-14"
           },
@@ -12525,9 +12533,12 @@
             "position": "DE",
             "espnId": "4572055",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-14T15:23Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-09-20T19:00Z",
             "source": "auto",
             "activatedDate": "2026-09-14"
           },
@@ -12808,6 +12819,19 @@
             "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
             "source": "curated",
             "espnId": "3127273"
+          },
+          {
+            "name": "Luke McCaffrey",
+            "position": "WR",
+            "espnId": "4426948",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "McCaffrey (coach's decision) is inactive for Sunday's game against the Cowboys."
+            },
+            "statusUpdatedAt": "2026-09-20T19:06Z",
+            "source": "auto"
           }
         ]
       },
@@ -12815,6 +12839,16 @@
         "DET-BUF": {
           "awayScore": 31,
           "homeScore": 41,
+          "final": true
+        },
+        "PIT-NE": {
+          "awayScore": 3,
+          "homeScore": 20,
+          "final": true
+        },
+        "NO-BAL": {
+          "awayScore": 24,
+          "homeScore": 17,
           "final": true
         }
       }

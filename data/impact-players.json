@@ -195,8 +195,12 @@
         "espnId": "4572055",
         "impactScore": 5,
         "status": "out",
-        "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
-        "source": "curated",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-20T19:00Z",
+        "source": "auto",
         "activatedDate": "2026-09-14"
       },
       {
@@ -210,7 +214,8 @@
           "note": "Bradford was limited all week with knee and hip injuries, was listed as questionable Friday, and the Seahawks downgraded him to OUT on Saturday, Sept. 19 for Sunday at Arizona. HC Mike Macdonald said Christian Haynes would start at right guard in his place - Haynes' first career start."
         },
         "statusUpdatedAt": "2026-09-20T01:05:00.000Z",
-        "source": "curated"
+        "source": "curated",
+        "espnId": "4429211"
       }
     ],
     "SF": [
@@ -268,10 +273,13 @@
         "name": "Mike Evans",
         "position": "WR",
         "impactScore": 8,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Hip",
+          "note": "questionable"
+        },
         "espnId": "16737",
-        "statusUpdatedAt": "2026-09-08T22:21Z",
+        "statusUpdatedAt": "2026-09-20T22:42Z",
         "source": "auto",
         "activatedDate": "2026-09-08"
       },
@@ -354,8 +362,12 @@
         "espnId": "4431466",
         "impactScore": 6,
         "status": "out",
-        "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
-        "source": "curated",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-20T19:06Z",
+        "source": "auto",
         "activatedDate": "2026-09-14"
       },
       {
@@ -615,9 +627,12 @@
         "position": "DE",
         "espnId": "4372463",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-14T15:10Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-20T15:34Z",
         "source": "auto",
         "activatedDate": "2026-09-14"
       }
@@ -693,14 +708,13 @@
         "position": "RB",
         "espnId": "4678008",
         "impactScore": 5,
-        "status": "active",
+        "status": "questionable",
         "injury": {
           "type": "Groin",
-          "since": "2026-09-01",
-          "note": "Brooks was limited in practice Wednesday and Thursday of Week 1 prep with a groin injury, but practiced fully Friday and came off Carolina's injury report entirely with no game-status designation for the Sept. 13 opener vs. Chicago."
+          "note": "Brooks exited Sunday's game against the Falcons in the fourth quarter due to a groin injury and is questionable to return, Joe Person of The Athletic reports."
         },
-        "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-20T19:53Z",
+        "source": "auto"
       },
       {
         "name": "Jalen Coker",
@@ -959,14 +973,13 @@
         "position": "RB",
         "espnId": "4599739",
         "impactScore": 4,
-        "status": "active",
+        "status": "out",
         "injury": {
-          "type": "Undisclosed",
-          "since": "2026-09-01",
-          "note": null
+          "type": "Coach's Decision",
+          "note": "inactive"
         },
-        "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-20T15:40Z",
+        "source": "auto"
       },
       {
         "name": "Quincy Riley",
@@ -1758,8 +1771,12 @@
         "espnId": "4832922",
         "impactScore": 5,
         "status": "out",
-        "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
-        "source": "curated",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-20T18:49Z",
+        "source": "auto",
         "activatedDate": "2026-09-14"
       },
       {
@@ -1973,9 +1990,12 @@
         "position": "DE",
         "espnId": "4431533",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-13T16:16Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-20T15:38Z",
         "source": "auto",
         "activatedDate": "2026-09-13"
       },
@@ -2248,8 +2268,12 @@
         "espnId": "4869132",
         "impactScore": 6,
         "status": "out",
-        "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
-        "source": "curated",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "Virgil (coach's decision) is inactive for Sunday's game against the Seahawks."
+        },
+        "statusUpdatedAt": "2026-09-20T19:13Z",
+        "source": "auto",
         "activatedDate": "2026-09-14"
       },
       {
@@ -2768,9 +2792,12 @@
         "position": "DE",
         "espnId": "4696782",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-14T15:19Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-20T15:32Z",
         "source": "auto",
         "activatedDate": "2026-09-14"
       },
@@ -2900,6 +2927,19 @@
         "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
         "source": "curated",
         "espnId": "3127273"
+      },
+      {
+        "name": "Luke McCaffrey",
+        "position": "WR",
+        "espnId": "4426948",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "McCaffrey (coach's decision) is inactive for Sunday's game against the Cowboys."
+        },
+        "statusUpdatedAt": "2026-09-20T19:06Z",
+        "source": "auto"
       },
       {
         "name": "Marcus Mariota",
@@ -3149,6 +3189,20 @@
           "since": "2026-09-13",
           "note": "Adebo hurt his knee in the Week 1 win over Dallas on Sept. 13 (10 defensive snaps before exiting) and was placed on injured reserve Friday, Sept. 18, so he misses at least four games. HC John Harbaugh called it a short-term knee issue, not a long-term one, expected to keep him out a few weeks. The Giants signed CB Nikko Reed from the Chargers' practice squad in the corresponding move."
         }
+      },
+      {
+        "name": "Chauncey Golston",
+        "position": "DE",
+        "espnId": "4036132",
+        "impactScore": 5,
+        "status": "questionable",
+        "injury": {
+          "type": "Neck",
+          "since": "2026-09-17",
+          "note": null
+        },
+        "statusUpdatedAt": "2026-09-20T13:58:58.806Z",
+        "source": "curated"
       }
     ],
     "DEN": [
@@ -3233,12 +3287,11 @@
         "impactScore": 7,
         "status": "out",
         "espnId": "4568490",
-        "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-20T18:39Z",
+        "source": "auto",
         "injury": {
           "type": "Hamstring",
-          "since": "2026-09-17",
-          "note": "Harvey was limited in practice Thursday and Friday, listed questionable, and was inactive Sunday vs. Jacksonville."
+          "note": "Harvey (hamstring) is inactive for Sunday's game against the Jaguars, Susanna Weir of the Broncos' official site reports."
         }
       }
     ],

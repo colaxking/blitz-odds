@@ -1,0 +1,165 @@
+{
+  "grades": {
+    "weeks": {
+      "2": {
+        "week": 2,
+        "season": 2026,
+        "gradedAt": "2026-09-21T04:00:26.024Z",
+        "confidencePicks": [
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "SEA",
+              "homeId": "ARI",
+              "awayName": "Seattle Seahawks",
+              "homeName": "Arizona Cardinals"
+            },
+            "pickTeamId": "ARI",
+            "pick": "Arizona Cardinals",
+            "confidence": 0.9264319282594404,
+            "confidencePct": 93,
+            "summary": "Arizona Cardinals — 93% confidence",
+            "advantage": "Arizona Cardinals carries a 42.6-point rating edge over Seattle Seahawks once offense, defense, injuries, and weather are graded. Seattle Seahawks are without Sam Darnold (out), a real hit to their offense. The sportsbook favorite is actually Seattle Seahawks here - the model sees an edge this line doesn't fully reflect.",
+            "result": "loss",
+            "finalScore": {
+              "awayScore": 31,
+              "homeScore": 7
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "IND",
+              "homeId": "KC",
+              "awayName": "Indianapolis Colts",
+              "homeName": "Kansas City Chiefs"
+            },
+            "pickTeamId": "KC",
+            "pick": "Kansas City Chiefs",
+            "confidence": 0.9257594642140686,
+            "confidencePct": 93,
+            "summary": "Kansas City Chiefs — 93% confidence",
+            "advantage": "Kansas City Chiefs carries a 42.4-point rating edge over Indianapolis Colts once offense, defense, injuries, and weather are graded. Indianapolis Colts are without D.J. Montgomery (out), a real hit to their offense. The market agrees Kansas City Chiefs is favored, and 93% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 30,
+              "homeScore": 33
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "JAX",
+              "homeId": "DEN",
+              "awayName": "Jacksonville Jaguars",
+              "homeName": "Denver Broncos"
+            },
+            "pickTeamId": "JAX",
+            "pick": "Jacksonville Jaguars",
+            "confidence": 0.8367572981412726,
+            "confidencePct": 84,
+            "summary": "Jacksonville Jaguars — 84% confidence",
+            "advantage": "Jacksonville Jaguars carries a 33.3-point rating edge over Denver Broncos once offense, defense, injuries, and weather are graded. Denver Broncos are without Jonathon Cooper (out), a real hit to their defense. The sportsbook favorite is actually Denver Broncos here - the model sees an edge this line doesn't fully reflect.",
+            "result": "loss",
+            "finalScore": {
+              "awayScore": 13,
+              "homeScore": 20
+            }
+          }
+        ],
+        "spreadPick": {
+          "market": "spread",
+          "game": {
+            "awayId": "SEA",
+            "homeId": "ARI",
+            "awayName": "Seattle Seahawks",
+            "homeName": "Arizona Cardinals"
+          },
+          "pickTeamId": "ARI",
+          "pick": "Arizona Cardinals +points",
+          "confidence": 0.9264319282594404,
+          "confidencePct": 93,
+          "summary": "Arizona Cardinals to cover as the underdog",
+          "advantage": "The model favors Arizona Cardinals outright even though the market has them getting points - that's the whole edge: a line the model thinks is priced wrong.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 31,
+            "homeScore": 7
+          }
+        },
+        "moneylinePick": {
+          "market": "moneyline",
+          "game": {
+            "awayId": "SEA",
+            "homeId": "ARI",
+            "awayName": "Seattle Seahawks",
+            "homeName": "Arizona Cardinals"
+          },
+          "pickTeamId": "ARI",
+          "pick": "Arizona Cardinals +185",
+          "confidence": 0.9264319282594404,
+          "confidencePct": 93,
+          "summary": "Arizona Cardinals +185",
+          "advantage": "The model gives Arizona Cardinals a 93% win probability, but that price only implies 35% - a 58-point gap between what the model sees and what the market's charging for it.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 31,
+            "homeScore": 7
+          }
+        },
+        "totalPick": {
+          "market": "total",
+          "game": {
+            "awayId": "PIT",
+            "homeId": "NE",
+            "awayName": "Pittsburgh Steelers",
+            "homeName": "New England Patriots"
+          },
+          "pick": "Under 41.5",
+          "lean": "under",
+          "summary": "Under 41.5",
+          "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total.",
+          "result": "win",
+          "finalScore": {
+            "awayScore": 3,
+            "homeScore": 20
+          }
+        }
+      }
+    }
+  },
+  "aggregate": {
+    "season": 2026,
+    "updatedAt": "2026-09-21T04:00:26.025Z",
+    "confidencePicks": {
+      "wins": 1,
+      "losses": 2
+    },
+    "spreadPicks": {
+      "wins": 0,
+      "losses": 1,
+      "pushes": 0
+    },
+    "moneylinePicks": {
+      "wins": 0,
+      "losses": 1
+    },
+    "totalPicks": {
+      "wins": 1,
+      "losses": 0,
+      "pushes": 0
+    },
+    "byWeek": [
+      {
+        "week": 2,
+        "confidencePicks": {
+          "wins": 1,
+          "losses": 2
+        },
+        "spreadPick": "loss",
+        "moneylinePick": "loss",
+        "totalPick": "win"
+      }
+    ]
+  }
+}

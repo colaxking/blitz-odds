@@ -668,14 +668,11 @@
         "position": "DE",
         "espnId": "4372463",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-20T15:34Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-21T18:25Z",
         "source": "auto",
-        "activatedDate": "2026-09-14"
+        "activatedDate": "2026-09-21"
       },
       {
         "name": "Tyrique Stevenson Sr.",
@@ -1868,14 +1865,13 @@
         "name": "Tua Tagovailoa",
         "position": "QB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "espnId": "4241479",
-        "statusUpdatedAt": "2026-09-21T01:15:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-21T18:13Z",
+        "source": "auto",
         "injury": {
-          "type": "Oblique strain",
-          "since": "2026-09-10",
-          "note": "Tagovailoa was inactive Sunday vs. Carolina, his second straight missed game. Per Rapoport and Schefter, he is expected to practice this week and could be active as Michael Penix Jr.'s backup for Thursday night's Week 3 game at Green Bay; the Falcons are not expected to release or trade him."
+          "type": "Oblique",
+          "note": "out"
         }
       },
       {
@@ -1906,15 +1902,14 @@
         "name": "Michael Penix Jr.",
         "position": "QB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Knee - ACL recovery (~10 months post-injury)",
-          "since": "2025-11",
-          "note": "Penix was a full practice participant again in Week 2 but was ruled out vs. Carolina (Cooper Rush made his second straight start). Per Ian Rapoport and Adam Schefter on Sept. 20, Penix could make his first 2026 start Thursday night in Week 3 at Green Bay, just over 10 months after his ACL tear."
+          "type": "Knee - ACL",
+          "note": "out"
         },
         "espnId": "4360423",
-        "statusUpdatedAt": "2026-09-21T01:15:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-21T18:13Z",
+        "source": "auto"
       },
       {
         "name": "Jalon Walker",

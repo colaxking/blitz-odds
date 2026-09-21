@@ -5,6 +5,7 @@ import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/aut
 // GET /.netlify/functions/standings-get?leagueId={id}[&week={n}]
 //   -> { ok, format, memberCount,
 //        season: [{userId,rank,points,correct,incorrect,hasResults,...profile}],
+//        weeks: { [week]: { [userId]: {points,correct,incorrect,voided,accuracy,...} } },
 //        week?: {...} (only if ?week= was passed),
 //        survivor?: { [userId]: {alive, usedTeams, eliminatedWeek} } }
 //
@@ -127,11 +128,32 @@ export default async (req: Request, _context: Context) => {
       }))
       .sort((a: any, b: any) => String(a.displayName || "").localeCompare(String(b.displayName || "")));
 
+    // Every scored week, not just the season totals. The client derives
+    // three things from this that nothing stores: each member's finishing
+    // position in a given week, the season order as it stood after each
+    // week (which is what the movement arrows compare against), and the
+    // weeks-won / best-finish / form figures. All three are a sum and a
+    // sort over data that already exists, so returning the map is cheaper
+    // than adding stored fields results-process would have to maintain -
+    // and it keeps a single source of truth for what a week was worth.
+    // Members who have since left are dropped for the same reason they're
+    // dropped from `season`: the members doc is the roster of record.
+    const weeks: Record<string, any> = {};
+    for (const wk of Object.keys(standingsDoc.weeks || {})) {
+      const wkScores = standingsDoc.weeks[wk] || {};
+      const kept: Record<string, any> = {};
+      for (const uid of Object.keys(wkScores)) {
+        if (memberById.has(uid)) kept[uid] = wkScores[uid];
+      }
+      if (Object.keys(kept).length > 0) weeks[wk] = kept;
+    }
+
     const responseBody: any = {
       ok: true,
       format: league.format,
       memberCount: (membersDoc?.members || []).length,
       season: [...scoredWithNames, ...unscored],
+      weeks,
     };
 
     if (week) {

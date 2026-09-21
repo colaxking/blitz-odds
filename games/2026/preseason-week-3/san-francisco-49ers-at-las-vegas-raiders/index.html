@@ -4265,7 +4265,12 @@
   }
   .league-standings-table td { padding: 9px 8px; border-bottom: 1px solid var(--card-border); }
   .league-standings-table tr.is-me { background: rgba(var(--accent-rgb),0.08); }
-  .league-standings-rank { font-weight: 800; width: 28px; }
+  .league-standings-rank {
+    font-weight: 800; width: 28px; white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Wide enough for "10 ▼2" without wrapping the arrow under the number. */
+  .standings-table-block .league-standings-rank { width: 52px; }
   .league-standings-rank.gold { color: var(--star); }
   .league-standings-user { display: flex; align-items: center; gap: 8px; font-weight: 700; }
   .league-standings-avatar {
@@ -4327,10 +4332,99 @@
     font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.4px;
     color: var(--text-dim); font-weight: 700;
   }
-  .standings-me-stat-value { font-size: 1rem; font-weight: 800; line-height: 1.1; }
+  .standings-me-stat-value {
+    font-size: 1rem; font-weight: 800; line-height: 1.15;
+    display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;
+    font-variant-numeric: tabular-nums;
+  }
   .standings-me-stat-value.gold { color: var(--star); }
   .standings-me-stat-value .dim { color: var(--text-dim); font-weight: 600; font-size: 0.78rem; }
   .standings-me-note { margin: 0; font-size: 0.68rem; color: var(--text-dim); line-height: 1.45; }
+
+  /* ---- Standings scope switch (This Week / Overall) --------------------
+     Standings open on This Week by default (see readStandingsScope): the
+     season table tells a Week 6 joiner they're last with a dash, which is
+     the least inviting thing a pool can show someone on their first visit.
+     The weekly table resets every Sunday and puts them level. */
+  .standings-scope {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap; margin-bottom: 4px;
+  }
+  .standings-scope-toggle {
+    display: inline-flex; gap: 4px; background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 999px; padding: 4px;
+  }
+  .standings-scope-btn {
+    border: 1px solid transparent; background: none; cursor: pointer; border-radius: 999px;
+    padding: 6px 15px; font-size: 0.76rem; font-weight: 800; color: var(--text-dim);
+    font-family: inherit; transition: background 0.12s, color 0.12s;
+  }
+  .standings-scope-btn[aria-pressed="true"] {
+    background: var(--card-bg); color: var(--text); border-color: var(--card-border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .standings-scope-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .standings-scope-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.7rem; font-weight: 700; color: var(--text-dim);
+  }
+  .standings-scope-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--win); flex-shrink: 0; }
+  .standings-scope-status.is-live { color: var(--live); }
+  .standings-scope-status.is-live .standings-scope-dot { background: var(--live); animation: standings-live-pulse 1.6s ease-in-out infinite; }
+  @keyframes standings-live-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @media (prefers-reduced-motion: reduce) {
+    .standings-scope-status.is-live .standings-scope-dot { animation: none; }
+  }
+  .standings-week-progress {
+    height: 4px; border-radius: 999px; background: var(--surface-2);
+    border: 1px solid var(--card-border); overflow: hidden; margin-bottom: 4px;
+  }
+  .standings-week-progress span { display: block; height: 100%; background: var(--accent); }
+
+  /* Secondary line on the "you" card - the context that doesn't earn a
+     headline slot but answers the next question (how far back am I, what's
+     my best week). */
+  .standings-me-secondary {
+    display: flex; flex-wrap: wrap; gap: 6px 8px;
+    padding-top: 10px; border-top: 1px dashed rgba(var(--accent-rgb),0.3);
+  }
+  .standings-me-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.68rem; font-weight: 700; color: var(--text-dim);
+    background: rgba(var(--accent-rgb),0.08); border: 1px solid rgba(var(--accent-rgb),0.22);
+    border-radius: 999px; padding: 4px 10px; font-variant-numeric: tabular-nums;
+  }
+  .standings-me-chip b { color: var(--text); font-weight: 800; }
+
+  .standings-move { font-size: 0.68rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .standings-move.up { color: var(--win); }
+  .standings-move.down { color: var(--out); }
+  .standings-move.flat { color: var(--text-dim); opacity: 0.6; }
+
+  /* One bar per scored week, tallest for a week won. Read as a shape, not
+     as individual values - the exact finish is in the title/aria label. */
+  .standings-form { display: inline-flex; align-items: flex-end; gap: 3px; height: 17px; }
+  .standings-form-bar { width: 6px; border-radius: 2px; background: var(--lose); flex-shrink: 0; }
+  .standings-form-bar.good { background: var(--accent); }
+  .standings-form-bar.best { background: var(--star); }
+  .standings-form-bar.none { background: var(--card-border); height: 3px; }
+
+  .standings-mark-ok { color: var(--win); font-weight: 800; font-size: 0.74rem; white-space: nowrap; }
+  .standings-mark-no { color: var(--out); font-weight: 800; font-size: 0.74rem; white-space: nowrap; }
+  .standings-teams-used { font-size: 0.72rem; color: var(--text-dim); font-weight: 600; }
+  .standings-legend { margin: 8px 0 0; font-size: 0.66rem; color: var(--text-dim); line-height: 1.5; }
+
+  /* The season table carries eight columns; on a phone it scrolls rather
+     than crushing the name column. Win % and Weeks won drop out first -
+     both are derivable from what's left, unlike Avg / wk, which is the
+     column that makes a mid-season joiner comparable at all. */
+  .standings-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .league-standings-table th.num, .league-standings-table td.num {
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 620px) {
+    .league-standings-table .standings-col-wide { display: none; }
+  }
 
   /* ---- League Picks sub-tab (who picked what, post-kickoff) ------------ */
   .league-picks-intro {
@@ -34482,10 +34576,11 @@ function survivorStatusLabel(state, strikesAllowed) {
   return { text: "Alive", className: "league-status-alive" };
 }
 
-function StandingsMeCard({ row, rankOf, total, format, survivorStatus, survivorStrikes }) {
-  const survivorLabel = survivorStatusLabel(survivorStatus, survivorStrikes);
-  const played = row.correct + row.incorrect;
-  const winPct = played > 0 ? Math.round((row.correct / played) * 100) : null;
+/** The signed-in user's own line, lifted above whichever table is showing.
+ *  Same card for both scopes - the caller supplies four headline stats and
+ *  an optional row of secondary chips, so a weekly line and a season line
+ *  can never drift apart visually. */
+function StandingsMeCard({ row, stats, chips, note }) {
   return (
     <div className="standings-me-card">
       <div className="standings-me-head">
@@ -34493,44 +34588,108 @@ function StandingsMeCard({ row, rankOf, total, format, survivorStatus, survivorS
         <span className="standings-me-you">You</span>
       </div>
       <div className="standings-me-stats">
-        <div className="standings-me-stat">
-          <span className="standings-me-stat-label">Rank</span>
-          <span className={"standings-me-stat-value" + (row.hasResults && row.rank === 1 ? " gold" : "")}>
-            {row.hasResults ? <>{rankOf}<span className="dim"> / {total}</span></> : "—"}
-          </span>
-        </div>
-        {format === "survivor" ? (
-          <div className="standings-me-stat">
-            <span className="standings-me-stat-label">Status</span>
-            <span className="standings-me-stat-value">
-              <span className={survivorLabel.className}>{survivorLabel.text}</span>
-            </span>
+        {stats.map((s, i) => (
+          <div className="standings-me-stat" key={i}>
+            <span className="standings-me-stat-label">{s.label}</span>
+            <span className={"standings-me-stat-value" + (s.gold ? " gold" : "")}>{s.value}</span>
           </div>
-        ) : (
-          <div className="standings-me-stat">
-            <span className="standings-me-stat-label">{format === "confidence" ? "Conf. Pts" : "Points"}</span>
-            <span className="standings-me-stat-value">{row.hasResults ? row.points : "—"}</span>
-          </div>
-        )}
-        <div className="standings-me-stat">
-          <span className="standings-me-stat-label">Record</span>
-          <span className="standings-me-stat-value">{row.hasResults ? `${row.correct}-${row.incorrect}` : "—"}</span>
-        </div>
-        <div className="standings-me-stat">
-          <span className="standings-me-stat-label">Win %</span>
-          <span className="standings-me-stat-value">{winPct === null ? "—" : `${winPct}%`}</span>
-        </div>
+        ))}
       </div>
-      {!row.hasResults && (
-        <p className="standings-me-note">No games scored yet — your record shows up once results are processed.</p>
+      {chips && chips.length > 0 && (
+        <div className="standings-me-secondary">
+          {chips.map((c, i) => <span className="standings-me-chip" key={i}>{c}</span>)}
+        </div>
       )}
+      {note && <p className="standings-me-note">{note}</p>}
     </div>
   );
 }
 
-function LeagueStandingsPanel({ auth, profile, league }) {
+/** Places moved in the season order as a result of one week (weekly view),
+ *  or over the most recent scored week (season view). Renders nothing at
+ *  all when there's no previous position to compare against - a first
+ *  scored week, or a member who joined after it - since "unchanged" and
+ *  "never had a rank" are different things and a dash reads as the former. */
+function StandingsMove({ delta }) {
+  if (delta === null || delta === undefined) return null;
+  if (delta > 0) return <span className="standings-move up" title={`Up ${delta}`}>{"▲" + delta}</span>;
+  if (delta < 0) return <span className="standings-move down" title={`Down ${Math.abs(delta)}`}>{"▼" + Math.abs(delta)}</span>;
+  return <span className="standings-move flat" title="Unchanged">{"–"}</span>;
+}
+
+function standingsOrdinal(n) {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+/** One bar per scored week, tallest for a win. The whole point of it is the
+ *  shape, not the individual bars, so it's a single labelled image to a
+ *  screen reader rather than a row of anonymous spans. */
+function StandingsForm({ finishes, weeks, field }) {
+  const played = finishes.filter(f => f !== null);
+  const label = played.length === 0
+    ? "No weeks played yet"
+    : "Weekly finishes: " + finishes.map((f, i) => f === null ? null : `Week ${weeks[i]} ${standingsOrdinal(f)}`).filter(Boolean).join(", ");
+  return (
+    <span className="standings-form" role="img" aria-label={label}>
+      {finishes.map((f, i) => {
+        if (f === null) {
+          return <span key={i} className="standings-form-bar none" title={`Week ${weeks[i]}: not in the league`}></span>;
+        }
+        const frac = field > 1 ? 1 - (f - 1) / (field - 1) : 1;
+        const height = Math.max(4, Math.round(4 + frac * 13));
+        const cls = f === 1 ? " best" : (f <= 3 ? " good" : "");
+        return (
+          <span
+            key={i}
+            className={"standings-form-bar" + cls}
+            style={{ height: height + "px" }}
+            title={`Week ${weeks[i]}: ${standingsOrdinal(f)}`}
+          ></span>
+        );
+      })}
+    </span>
+  );
+}
+
+// Which scope the standings open on, per league. This Week is the default
+// on purpose: a member who joined in Week 6 opens the season table to a
+// dash and last place, which reads as "you can't win this" - the weekly
+// table resets every Sunday and puts them level with everyone. Somebody
+// who prefers the season view shouldn't have to re-pick it every visit,
+// hence the remembered choice. Per-viewer convenience only - nothing here
+// needs to survive a cleared browser.
+const STANDINGS_SCOPE_KEY = "blitz-standings-scope";
+
+function readStandingsScope(leagueId) {
+  try {
+    return localStorage.getItem(`${STANDINGS_SCOPE_KEY}:${leagueId}`) === "season" ? "season" : "week";
+  } catch (e) {
+    return "week";
+  }
+}
+
+function writeStandingsScope(leagueId, scope) {
+  try {
+    localStorage.setItem(`${STANDINGS_SCOPE_KEY}:${leagueId}`, scope);
+  } catch (e) {
+    // Private mode / blocked storage - the choice just doesn't persist.
+  }
+}
+
+function LeagueStandingsPanel({ auth, profile, league, week }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [scope, setScope] = useState(() => readStandingsScope(league.id));
+
+  // Switching leagues without unmounting this panel would otherwise carry
+  // the previous league's remembered scope over.
+  useEffect(() => { setScope(readStandingsScope(league.id)); }, [league.id]);
+
+  function chooseScope(next) {
+    setScope(next);
+    writeStandingsScope(league.id, next);
+  }
 
   // Editing your avatar or display name in Settings updates `profile` in
   // App, but nothing here depended on it, so an already-open standings
@@ -34560,13 +34719,72 @@ function LeagueStandingsPanel({ auth, profile, league }) {
     return () => { cancelled = true; };
   }, [auth, league.id, identityKey]);
 
+  // How far through the selected week we are, off the same ESPN feed the
+  // rest of the app polls (fetchLiveScoresCached dedupes the subscriptions).
+  // This is deliberately measured against the schedule rather than against
+  // the stored standings: results-process runs on a cron, so for a few
+  // minutes after a game ends the score is on the screen and the points
+  // aren't - and a progress line that said "16 of 16" while the table still
+  // showed 14 games' worth of points would be the confusing half of that.
+  const liveMap = useLiveScores(week);
+  const weekProgress = useMemo(() => {
+    const games = getGamesForWeek(week) || [];
+    if (games.length === 0) return { total: 0, final: 0, live: false };
+    const context = getWeekContext(week);
+    let final = 0;
+    let inProgress = 0;
+    games.forEach(g => {
+      const info = resolveScore(liveMap[`${g.away}-${g.home}`], context.getResult(g.away, g.home));
+      if (!info) return;
+      if (info.isFinal) final++;
+      else if (info.isLive) inProgress++;
+    });
+    return { total: games.length, final, live: inProgress > 0 || (final > 0 && final < games.length) };
+  }, [week, liveMap]);
+
+  // Everything the two views need that isn't already in the response:
+  // per-week finishing positions, and the season order as it stood after
+  // each week. standings:{leagueId}.weeks holds every scored week, so both
+  // are a sum and a sort here rather than a new stored field - and they go
+  // through ScoringEngine.rankStandings with the league's own tie-breaker,
+  // so a weekly rank can't disagree with how results-process ranks a season.
+  const derived = useMemo(() => {
+    const weeksMap = (data && data.weeks) || {};
+    const weekNums = Object.keys(weeksMap)
+      .map(Number)
+      .filter(n => Number.isFinite(n))
+      .sort((a, b) => a - b);
+    const tieBreaker = league.tieBreaker;
+    const weekRank = {};
+    const cumRank = {};
+    const running = {};
+    weekNums.forEach(w => {
+      const scores = weeksMap[w] || {};
+      const ranked = ScoringEngine.rankStandings(scores, tieBreaker);
+      const wMap = {};
+      ranked.forEach(r => { wMap[r.userId] = r.rank; });
+      weekRank[w] = wMap;
+
+      Object.keys(scores).forEach(userId => {
+        const t = running[userId] || (running[userId] = { points: 0, correct: 0, incorrect: 0 });
+        t.points += scores[userId].points || 0;
+        t.correct += scores[userId].correct || 0;
+        t.incorrect += scores[userId].incorrect || 0;
+      });
+      const cumMap = {};
+      ScoringEngine.rankStandings(running, tieBreaker).forEach(r => { cumMap[r.userId] = r.rank; });
+      cumRank[w] = cumMap;
+    });
+    return { weeksMap, weekNums, weekRank, cumRank };
+  }, [data, league.tieBreaker]);
+
   if (error) return <p className="leagues-error">{error}</p>;
   if (!data) return <p className="leagues-empty">Loading…</p>;
 
-  // standings-get now returns the league's whole roster, not just the
-  // members results-process has scored - people with nothing scored yet
-  // carry hasResults:false and are rendered as "not played yet" rather
-  // than as a real 0-0, 0% record.
+  // standings-get returns the league's whole roster, not just the members
+  // results-process has scored - people with nothing scored yet carry
+  // hasResults:false and are rendered as "not played yet" rather than as a
+  // real 0-0, 0% record.
   const meId = auth.user && auth.user.id;
 
   // The refetch above eventually brings the new name/icon back from the
@@ -34586,81 +34804,463 @@ function LeagueStandingsPanel({ auth, profile, league }) {
         : r))
     : rawRows;
   const survivor = data.survivor || null;
-  const meRow = rows.find(r => r.userId === meId) || null;
-  const scoredCount = rows.filter(r => r.hasResults).length;
-  const anyResults = scoredCount > 0;
-  // Only survivor has a column that isn't already covered elsewhere in the
-  // row. The old layout rendered a format-specific column *and* fixed
-  // Correct/Season columns, which meant straight-up leagues showed
-  // "Correct" twice with identical numbers in both, and confidence leagues
-  // showed the same points figure under both "Conf. Pts" and "Season".
-  // Record collapses correct/incorrect into one W-L cell instead.
   const isSurvivor = league.format === "survivor";
   const pointsLabel = league.format === "confidence" ? "Conf. Pts" : "Points";
+  const survivorStrikes = league.scoringSettings?.survivorStrikes;
+  const identityOf = (userId) => rows.find(r => r.userId === userId) || { userId, displayName: "Player", avatar: null };
+
+  const { weeksMap, weekNums, weekRank, cumRank } = derived;
+  const lastScoredWeek = weekNums.length ? weekNums[weekNums.length - 1] : null;
+  const prevScoredWeek = weekNums.length > 1 ? weekNums[weekNums.length - 2] : null;
+  const weekScores = weeksMap[week] || null;
+  const weekHasScores = !!weekScores && Object.keys(weekScores).length > 0;
+  // The week's own "as of this week" season order, and the one before it -
+  // so the weekly table can say where the week left you, not just how the
+  // week itself went.
+  const weekBefore = weekNums.filter(w => w < week).pop() || null;
+  const seasonRankAtWeek = (weekHasScores && cumRank[week]) || {};
+  const seasonRankBefore = (weekBefore && cumRank[weekBefore]) || {};
+
+  const dash = <span className="standings-dash">—</span>;
+
+  function seasonMoveFor(userId) {
+    if (!lastScoredWeek || !prevScoredWeek) return null;
+    const now = cumRank[lastScoredWeek] && cumRank[lastScoredWeek][userId];
+    const before = cumRank[prevScoredWeek] && cumRank[prevScoredWeek][userId];
+    if (!now || !before) return null;
+    return before - now;
+  }
+
+  function weekMoveFor(userId) {
+    const now = seasonRankAtWeek[userId];
+    const before = seasonRankBefore[userId];
+    if (!now || !before) return null;
+    return before - now;
+  }
+
+  function finishesFor(userId) {
+    return weekNums.map(w => (weekRank[w] && weekRank[w][userId] != null ? weekRank[w][userId] : null));
+  }
+
+  function winPct(correct, incorrect) {
+    const played = correct + incorrect;
+    return played > 0 ? Math.round((correct / played) * 100) : null;
+  }
+
+  // ---- Scope switch ------------------------------------------------------
+  let statusText;
+  if (scope === "season") {
+    statusText = lastScoredWeek ? `Through Week ${lastScoredWeek}` : "No weeks scored";
+  } else if (weekProgress.total === 0) {
+    // Nothing scheduled (an unannounced playoff round) - nothing to say.
+    statusText = null;
+  } else if (weekProgress.final === 0) {
+    // The live feed can come back empty on an archived week or a failed
+    // fetch. Saying "no games final yet" over a week whose points are
+    // already in the table below would be flatly wrong, so say nothing.
+    statusText = weekHasScores ? null : "No games final yet";
+  } else if (weekProgress.final < weekProgress.total) {
+    statusText = `${weekProgress.final} of ${weekProgress.total} final`;
+  } else {
+    statusText = "Week complete";
+  }
+  const showLiveStatus = scope === "week" && weekProgress.live;
+
+  const scopeBar = (
+    <>
+      <div className="standings-scope">
+        <div className="standings-scope-toggle" role="group" aria-label="Standings scope">
+          <button
+            type="button"
+            className="standings-scope-btn"
+            aria-pressed={scope === "week"}
+            onClick={() => chooseScope("week")}
+          >
+            This Week
+          </button>
+          <button
+            type="button"
+            className="standings-scope-btn"
+            aria-pressed={scope === "season"}
+            onClick={() => chooseScope("season")}
+          >
+            Overall
+          </button>
+        </div>
+        {statusText && (
+          <span className={"standings-scope-status" + (showLiveStatus ? " is-live" : "")}>
+            <span className="standings-scope-dot"></span>{statusText}
+          </span>
+        )}
+      </div>
+      {showLiveStatus && weekProgress.total > 0 && (
+        <div className="standings-week-progress">
+          <span style={{ width: Math.round((weekProgress.final / weekProgress.total) * 100) + "%" }}></span>
+        </div>
+      )}
+    </>
+  );
+
+  // ---- Roster-only table, for a scope with nothing scored yet ------------
+  function renderRoster(note) {
+    return (
+      <>
+        <p className="standings-pending-note">{note}</p>
+        <div className="standings-table-block">
+          <div className="standings-table-head">
+            <h3>Members</h3>
+            <span className="standings-table-count">{rows.length} {rows.length === 1 ? "member" : "members"}</span>
+          </div>
+          <div className="standings-table-scroll">
+            <table className="league-standings-table">
+              <thead>
+                <tr><th className="league-standings-rank">#</th><th>Player</th><th className="num">Record</th><th className="num">{pointsLabel}</th></tr>
+              </thead>
+              <tbody>
+                {rows.length === 0 && (
+                  <tr><td colSpan={4} className="leagues-empty" style={{ padding: "12px 8px" }}>No members yet.</td></tr>
+                )}
+                {rows.map(row => (
+                  <tr key={row.userId} className={(row.userId === meId ? "is-me" : "") + " is-unplayed"}>
+                    <td className="league-standings-rank">{dash}</td>
+                    <td><StandingsIdentity row={row} /></td>
+                    <td className="num">{dash}</td>
+                    <td className="num">{dash}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ---- This Week ---------------------------------------------------------
+  function renderWeek() {
+    if (!weekHasScores) {
+      const note = weekProgress.final > 0
+        ? `Week ${week} scores are in but points haven't been posted yet — standings catch up within a few minutes of each game ending.`
+        : `Nothing scored for Week ${week} yet. Points appear here as games go final.`;
+      return renderRoster(note);
+    }
+
+    const weekRows = rows.map(row => {
+      const s = weekScores[row.userId];
+      if (!s) return { ...row, played: false };
+      return {
+        ...row,
+        played: true,
+        rank: weekRank[week][row.userId],
+        points: s.points || 0,
+        correct: s.correct || 0,
+        incorrect: s.incorrect || 0,
+      };
+    });
+    weekRows.sort((a, b) => {
+      if (a.played !== b.played) return a.played ? -1 : 1;
+      if (a.played && a.rank !== b.rank) return a.rank - b.rank;
+      return String(a.displayName || "").localeCompare(String(b.displayName || ""));
+    });
+
+    const playedRows = weekRows.filter(r => r.played);
+    const meRow = weekRows.find(r => r.userId === meId) || null;
+    const leader = playedRows[0] || null;
+
+    let meCard = null;
+    if (meRow && meRow.played) {
+      if (isSurvivor) {
+        const label = survivorStatusLabel(survivor && survivor[meId], survivorStrikes);
+        const aliveCount = rows.filter(r => !survivorIsOut(survivor && survivor[r.userId], survivorStrikes)).length;
+        meCard = (
+          <StandingsMeCard
+            row={meRow}
+            stats={[
+              { label: "This week", value: meRow.correct > 0
+                ? <span className="standings-mark-ok">✓ Survived</span>
+                : (meRow.incorrect > 0 ? <span className="standings-mark-no">✗ Lost</span> : "—") },
+              { label: "Status", value: <span className={label.className}>{label.text}</span> },
+              { label: "Weeks survived", value: weekNums.filter(w => (weeksMap[w][meId] || {}).correct > 0).length },
+              { label: "Still alive", value: <>{aliveCount}<span className="dim"> / {rows.length}</span></> },
+            ]}
+          />
+        );
+      } else {
+        const pct = winPct(meRow.correct, meRow.incorrect);
+        const gap = leader ? leader.points - meRow.points : 0;
+        const seasonRank = seasonRankAtWeek[meId];
+        const move = weekMoveFor(meId);
+        const chips = [];
+        chips.push(
+          <>Season rank <b>{seasonRank ? `${seasonRank} of ${rows.length}` : "—"}</b> <StandingsMove delta={move} /></>
+        );
+        chips.push(
+          gap === 0
+            ? <>Leading the week</>
+            : <><b>{gap}</b> back of the week leader</>
+        );
+        if (weekProgress.live && weekProgress.total > weekProgress.final) {
+          chips.push(<>Still to play <b>{weekProgress.total - weekProgress.final} games</b></>);
+        }
+        meCard = (
+          <StandingsMeCard
+            row={meRow}
+            stats={[
+              { label: "Week rank", value: <>{meRow.rank}<span className="dim"> / {playedRows.length}</span></>, gold: meRow.rank === 1 },
+              { label: pointsLabel, value: meRow.points },
+              { label: "Record", value: `${meRow.correct}-${meRow.incorrect}` },
+              { label: "Win %", value: pct === null ? "—" : `${pct}%` },
+            ]}
+            chips={chips}
+          />
+        );
+      }
+    }
+
+    return (
+      <>
+        {meCard}
+        {weekProgress.live && weekProgress.final < weekProgress.total && (
+          <p className="standings-pending-note">
+            Week {week} is still being played — {weekProgress.final} of {weekProgress.total} games final.
+            Points update within a few minutes of each game ending, and the season table doesn't move until the week is done.
+          </p>
+        )}
+        <div className="standings-table-block">
+          <div className="standings-table-head">
+            <h3>Week {week} finish</h3>
+            <span className="standings-table-count">{playedRows.length} of {rows.length} played</span>
+          </div>
+          <div className="standings-table-scroll">
+            <table className="league-standings-table">
+              <thead>
+                {isSurvivor ? (
+                  <tr><th>Player</th><th>Result</th><th className="num">Strikes</th><th>Status</th></tr>
+                ) : (
+                  <tr>
+                    <th className="league-standings-rank">#</th><th>Player</th>
+                    <th className="num">Record</th><th className="num">{pointsLabel}</th>
+                    <th className="num">Season</th>
+                  </tr>
+                )}
+              </thead>
+              <tbody>
+                {weekRows.map(row => {
+                  const cls = (row.userId === meId ? "is-me" : "") + (row.played ? "" : " is-unplayed");
+                  if (isSurvivor) {
+                    const state = survivor && survivor[row.userId];
+                    const label = survivorStatusLabel(state, survivorStrikes);
+                    return (
+                      <tr key={row.userId} className={cls}>
+                        <td><StandingsIdentity row={row} /></td>
+                        <td>
+                          {!row.played ? dash : (row.correct > 0
+                            ? <span className="standings-mark-ok">✓ Survived</span>
+                            : (row.incorrect > 0 ? <span className="standings-mark-no">✗ Lost</span> : dash))}
+                        </td>
+                        <td className="num">{state ? (state.strikes || 0) : dash}</td>
+                        <td><span className={label.className}>{label.text}</span></td>
+                      </tr>
+                    );
+                  }
+                  if (!row.played) {
+                    return (
+                      <tr key={row.userId} className={cls}>
+                        <td className="league-standings-rank">{dash}</td>
+                        <td><StandingsIdentity row={row} /></td>
+                        <td className="num">{dash}</td>
+                        <td className="num">{dash}</td>
+                        <td className="num">{dash}</td>
+                      </tr>
+                    );
+                  }
+                  const seasonRank = seasonRankAtWeek[row.userId];
+                  return (
+                    <tr key={row.userId} className={cls}>
+                      <td className={"league-standings-rank" + (row.rank === 1 ? " gold" : "")}>{row.rank}</td>
+                      <td><StandingsIdentity row={row} /></td>
+                      <td className="num league-standings-record">{row.correct}-{row.incorrect}</td>
+                      <td className="num league-standings-points">{row.points}</td>
+                      <td className="num">
+                        {seasonRank ? <>{seasonRank} <StandingsMove delta={weekMoveFor(row.userId)} /></> : dash}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ---- Overall -----------------------------------------------------------
+  function renderSeason() {
+    const scoredCount = rows.filter(r => r.hasResults).length;
+    if (scoredCount === 0) {
+      return renderRoster("No results processed yet — everyone starts level. Records fill in after each week's games are final.");
+    }
+
+    if (isSurvivor) {
+      const survivorRows = rows.map(row => {
+        const state = (survivor && survivor[row.userId]) || null;
+        const survived = weekNums.filter(w => ((weeksMap[w] || {})[row.userId] || {}).correct > 0).length;
+        return { ...row, state, survived, out: survivorIsOut(state, survivorStrikes) };
+      });
+      survivorRows.sort((a, b) => {
+        if (a.out !== b.out) return a.out ? 1 : -1;
+        if (b.survived !== a.survived) return b.survived - a.survived;
+        const sa = (a.state && a.state.strikes) || 0;
+        const sb = (b.state && b.state.strikes) || 0;
+        if (sa !== sb) return sa - sb;
+        return String(a.displayName || "").localeCompare(String(b.displayName || ""));
+      });
+      const meRow = survivorRows.find(r => r.userId === meId) || null;
+      const aliveCount = survivorRows.filter(r => !r.out).length;
+
+      return (
+        <>
+          {meRow && (
+            <StandingsMeCard
+              row={meRow}
+              stats={[
+                { label: "Status", value: (() => { const l = survivorStatusLabel(meRow.state, survivorStrikes); return <span className={l.className}>{l.text}</span>; })() },
+                { label: "Strikes", value: <>{(meRow.state && meRow.state.strikes) || 0}<span className="dim"> / {Number.isFinite(survivorStrikes) && survivorStrikes >= 1 ? Math.floor(survivorStrikes) : 1}</span></> },
+                { label: "Weeks survived", value: meRow.survived },
+                { label: "Still alive", value: <>{aliveCount}<span className="dim"> / {rows.length}</span></> },
+              ]}
+              chips={meRow.state && (meRow.state.usedTeams || []).length > 0
+                ? [<>Teams used <b>{meRow.state.usedTeams.join(", ")}</b></>]
+                : null}
+            />
+          )}
+          <div className="standings-table-block">
+            <div className="standings-table-head">
+              <h3>Season standings</h3>
+              <span className="standings-table-count">{aliveCount} alive · {rows.length} members</span>
+            </div>
+            <div className="standings-table-scroll">
+              <table className="league-standings-table">
+                <thead>
+                  <tr>
+                    <th className="league-standings-rank">#</th><th>Player</th><th>Status</th>
+                    <th className="num">Weeks survived</th><th>Teams used</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {survivorRows.map((row, i) => {
+                    const label = survivorStatusLabel(row.state, survivorStrikes);
+                    return (
+                      <tr key={row.userId} className={(row.userId === meId ? "is-me" : "") + (row.out ? " is-unplayed" : "")}>
+                        <td className="league-standings-rank">{row.out ? dash : i + 1}</td>
+                        <td><StandingsIdentity row={row} /></td>
+                        <td><span className={label.className}>{label.text}</span></td>
+                        <td className="num">{row.survived}</td>
+                        <td className="standings-teams-used">
+                          {row.state && (row.state.usedTeams || []).length > 0 ? row.state.usedTeams.join(", ") : dash}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    const seasonRows = rows.map(row => {
+      const finishes = finishesFor(row.userId);
+      const weeksPlayed = finishes.filter(f => f !== null).length;
+      return {
+        ...row,
+        finishes,
+        weeksPlayed,
+        wins: finishes.filter(f => f === 1).length,
+        best: weeksPlayed > 0 ? Math.min.apply(null, finishes.filter(f => f !== null)) : null,
+        avg: weeksPlayed > 0 ? row.points / weeksPlayed : null,
+      };
+    });
+    const meRow = seasonRows.find(r => r.userId === meId) || null;
+    const joinedLate = seasonRows.some(r => r.hasResults && r.weeksPlayed > 0 && r.weeksPlayed < weekNums.length);
+
+    return (
+      <>
+        {meRow && (
+          <StandingsMeCard
+            row={meRow}
+            stats={[
+              { label: "Rank", value: meRow.hasResults ? <>{meRow.rank}<span className="dim"> / {rows.length}</span> <StandingsMove delta={seasonMoveFor(meId)} /></> : "—", gold: meRow.hasResults && meRow.rank === 1 },
+              { label: pointsLabel, value: meRow.hasResults ? meRow.points : "—" },
+              { label: "Record", value: meRow.hasResults ? `${meRow.correct}-${meRow.incorrect}` : "—" },
+              { label: "Win %", value: (() => { const p = winPct(meRow.correct, meRow.incorrect); return p === null ? "—" : `${p}%`; })() },
+            ]}
+            chips={meRow.hasResults ? [
+              <>Best finish <b>{meRow.best ? standingsOrdinal(meRow.best) : "—"}</b></>,
+              <>Weeks won <b>{meRow.wins}</b></>,
+              <>Avg / wk <b>{meRow.avg === null ? "—" : meRow.avg.toFixed(1)}</b></>,
+              <>Form <StandingsForm finishes={meRow.finishes} weeks={weekNums} field={rows.length} /></>,
+            ] : null}
+            note={meRow.hasResults ? null : "No games scored yet — your record shows up once results are processed."}
+          />
+        )}
+
+        <div className="standings-table-block">
+          <div className="standings-table-head">
+            <h3>Season standings</h3>
+            <span className="standings-table-count">
+              {rows.length} {rows.length === 1 ? "member" : "members"}
+              {lastScoredWeek ? ` · through Week ${lastScoredWeek}` : ""}
+            </span>
+          </div>
+          <div className="standings-table-scroll">
+            <table className="league-standings-table">
+              <thead>
+                <tr>
+                  <th className="league-standings-rank">#</th><th>Player</th>
+                  <th className="num">Record</th><th className="num">{pointsLabel}</th>
+                  <th className="num standings-col-wide">Win %</th>
+                  <th className="num">Avg / wk</th>
+                  <th className="num standings-col-wide">Wks won</th>
+                  <th>Form</th>
+                </tr>
+              </thead>
+              <tbody>
+                {seasonRows.map(row => {
+                  const pct = winPct(row.correct, row.incorrect);
+                  return (
+                    <tr key={row.userId} className={(row.userId === meId ? "is-me" : "") + (row.hasResults ? "" : " is-unplayed")}>
+                      <td className={"league-standings-rank" + (row.hasResults && row.rank === 1 ? " gold" : "")}>
+                        {row.hasResults ? <>{row.rank} <StandingsMove delta={seasonMoveFor(row.userId)} /></> : dash}
+                      </td>
+                      <td><StandingsIdentity row={row} /></td>
+                      <td className="num league-standings-record">{row.hasResults ? `${row.correct}-${row.incorrect}` : dash}</td>
+                      <td className="num league-standings-points">{row.hasResults ? row.points : dash}</td>
+                      <td className="num standings-col-wide">{pct === null ? dash : `${pct}%`}</td>
+                      <td className="num">{row.avg === null ? dash : row.avg.toFixed(1)}</td>
+                      <td className="num standings-col-wide">{row.wins > 0 ? row.wins : dash}</td>
+                      <td><StandingsForm finishes={row.finishes} weeks={weekNums} field={rows.length} /></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="standings-legend">
+            Form is each week's finish — taller is better, gold is a week won, a flat tick is a week before that member joined.
+            {joinedLate ? " Avg / wk is points per week played, so a mid-season joiner can be read against everyone else." : ""}
+          </p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
-      {meRow && (
-        <StandingsMeCard
-          row={meRow}
-          rankOf={meRow.rank}
-          total={rows.length}
-          format={league.format}
-          survivorStatus={survivor && survivor[meId]}
-          survivorStrikes={league.scoringSettings?.survivorStrikes}
-        />
-      )}
-
-      <div className="standings-table-block">
-        <div className="standings-table-head">
-          <h3>Full Standings</h3>
-          <span className="standings-table-count">{rows.length} {rows.length === 1 ? "member" : "members"}</span>
-        </div>
-
-        {!anyResults && (
-          <p className="standings-pending-note">
-            No results processed yet — everyone starts level. Records fill in after each week's games are final.
-          </p>
-        )}
-
-      <table className="league-standings-table">
-        <thead>
-          <tr>
-            <th>#</th><th>User</th>
-            {isSurvivor && <th>Status</th>}
-            <th>Record</th><th>{pointsLabel}</th><th>Win %</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 && (
-            <tr><td colSpan={isSurvivor ? 6 : 5} className="leagues-empty" style={{ padding: "12px 8px" }}>No members yet.</td></tr>
-          )}
-          {rows.map(row => {
-            const played = row.correct + row.incorrect;
-            const winPct = played > 0 ? Math.round((row.correct / played) * 100) : null;
-            const survivorStatus = survivor && survivor[row.userId];
-            const rowLabel = survivorStatusLabel(survivorStatus, league.scoringSettings?.survivorStrikes);
-            const dash = <span className="standings-dash">—</span>;
-            return (
-              <tr key={row.userId} className={(row.userId === meId ? "is-me" : "") + (row.hasResults ? "" : " is-unplayed")}>
-                <td className={"league-standings-rank" + (row.hasResults && row.rank === 1 ? " gold" : "")}>
-                  {row.hasResults ? row.rank : dash}
-                </td>
-                <td><StandingsIdentity row={row} /></td>
-                {isSurvivor && (
-                  <td>
-                    <span className={rowLabel.className}>{rowLabel.text}</span>
-                  </td>
-                )}
-                <td className="league-standings-record">{row.hasResults ? `${row.correct}-${row.incorrect}` : dash}</td>
-                <td className="league-standings-points">{row.hasResults ? row.points : dash}</td>
-                <td>{winPct === null ? dash : `${winPct}%`}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      </div>
+      {scopeBar}
+      {scope === "week" ? renderWeek() : renderSeason()}
     </>
   );
 }
@@ -35280,7 +35880,7 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
           </div>
           {subTab === "week" && <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} onOpenGame={onOpenGame} />}
           {subTab === "picks" && <LeaguePicksPanel auth={auth} profile={profile} league={league} week={week} tz={tz} />}
-          {subTab === "standings" && <LeagueStandingsPanel auth={auth} profile={profile} league={league} />}
+          {subTab === "standings" && <LeagueStandingsPanel auth={auth} profile={profile} league={league} week={week} />}
           {subTab === "requests" && isOwner && league.visibility === "private" && (
             <LeagueRequestsPanel auth={auth} league={league} onPendingChange={(n) => setPendingRequests(n)} />
           )}

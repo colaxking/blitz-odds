@@ -93,7 +93,7 @@
       "lastCheckedAt": "2026-09-20T13:00:21.407Z"
     },
     "2026-w2-mon-mnf": {
-      "status": "blocked",
+      "status": "expired",
       "reasons": [
         "primary: fresh: 1 line(s) older than 48h (e.g. DET-BUF)",
         "fallback: fresh: 1 line(s) older than 48h (e.g. DET-BUF)"
@@ -339,6 +339,18 @@
       "alerts": [
         "BLOCKED \"2026-w2-mon-mnf\" (due 2026-09-21T09:06:00-04:00) - nothing scheduled:\n  primary: fresh: 1 line(s) older than 48h (e.g. DET-BUF)\n  fallback: fresh: 1 line(s) older than 48h (e.g. DET-BUF)"
       ]
+    },
+    {
+      "at": "2026-09-22T13:00:20.608Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w2-mon-mnf",
+          "action": "closed",
+          "detail": "expired"
+        }
+      ],
+      "alerts": []
     }
   ],
   "lastTokenWarningAt": null

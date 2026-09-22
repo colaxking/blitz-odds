@@ -1,7 +1,7 @@
 {
   "season": 2026,
   "seasonType": "regular_season_in_progress",
-  "sourceNote": "Team offense/defense yards-per-game stats from The Football Database (footballdb.com), 2026 NFL regular season through Week 1 (1 game played per team). Ranks: 1 = best. Single-game sample - per-game figures equal that week's totals and will stabilize as the season progresses. Ties in yards-per-game are broken alphabetically by team id when assigning ranks.",
+  "sourceNote": "Team offense/defense yards-per-game stats from The Football Database (footballdb.com), 2026 NFL regular season through Week 2 (2 games played per team; includes Monday night Giants-Rams). Ranks: 1 = best. Two-game sample - figures will stabilize as the season progresses. Ties in yards-per-game are broken alphabetically by team id when assigning ranks.",
   "sourceUrl": "https://www.footballdb.com/statistics/nfl/team-stats/offense-totals",
   "teams": [
     {
@@ -9,20 +9,20 @@
       "name": "Arizona Cardinals",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 116,
-          "passYdsPerGame": 277,
-          "totalYdsPerGame": 393,
-          "rankRush": 16,
-          "rankPass": 6,
-          "rankTotal": 8
+          "rushYdsPerGame": 93,
+          "passYdsPerGame": 179,
+          "totalYdsPerGame": 272,
+          "rankRush": 24,
+          "rankPass": 28,
+          "rankTotal": 26
         },
         "defense": {
-          "rushYdsAllowedPerGame": 81,
-          "passYdsAllowedPerGame": 187,
-          "totalYdsAllowedPerGame": 268,
-          "rankRush": 7,
-          "rankPass": 15,
-          "rankTotal": 9
+          "rushYdsAllowedPerGame": 121.5,
+          "passYdsAllowedPerGame": 203,
+          "totalYdsAllowedPerGame": 324.5,
+          "rankRush": 22,
+          "rankPass": 14,
+          "rankTotal": 14
         }
       }
     },
@@ -31,20 +31,20 @@
       "name": "Atlanta Falcons",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 120,
-          "passYdsPerGame": 118,
-          "totalYdsPerGame": 238,
-          "rankRush": 15,
-          "rankPass": 31,
-          "rankTotal": 30
+          "rushYdsPerGame": 138.5,
+          "passYdsPerGame": 123.5,
+          "totalYdsPerGame": 262,
+          "rankRush": 7,
+          "rankPass": 32,
+          "rankTotal": 29
         },
         "defense": {
-          "rushYdsAllowedPerGame": 58,
-          "passYdsAllowedPerGame": 206,
-          "totalYdsAllowedPerGame": 264,
+          "rushYdsAllowedPerGame": 63,
+          "passYdsAllowedPerGame": 239,
+          "totalYdsAllowedPerGame": 302,
           "rankRush": 1,
-          "rankPass": 20,
-          "rankTotal": 8
+          "rankPass": 23,
+          "rankTotal": 12
         }
       }
     },
@@ -53,19 +53,19 @@
       "name": "Baltimore Ravens",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 202,
-          "passYdsPerGame": 304,
-          "totalYdsPerGame": 506,
-          "rankRush": 3,
-          "rankPass": 5,
-          "rankTotal": 2
+          "rushYdsPerGame": 155,
+          "passYdsPerGame": 254,
+          "totalYdsPerGame": 409,
+          "rankRush": 4,
+          "rankPass": 6,
+          "rankTotal": 4
         },
         "defense": {
-          "rushYdsAllowedPerGame": 102,
-          "passYdsAllowedPerGame": 149,
-          "totalYdsAllowedPerGame": 251,
-          "rankRush": 13,
-          "rankPass": 5,
+          "rushYdsAllowedPerGame": 83.5,
+          "passYdsAllowedPerGame": 191,
+          "totalYdsAllowedPerGame": 274.5,
+          "rankRush": 5,
+          "rankPass": 12,
           "rankTotal": 6
         }
       }
@@ -75,20 +75,20 @@
       "name": "Buffalo Bills",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 86,
-          "passYdsPerGame": 323,
-          "totalYdsPerGame": 409,
-          "rankRush": 25,
+          "rushYdsPerGame": 144.5,
+          "passYdsPerGame": 283,
+          "totalYdsPerGame": 427.5,
+          "rankRush": 5,
           "rankPass": 4,
-          "rankTotal": 6
+          "rankTotal": 2
         },
         "defense": {
-          "rushYdsAllowedPerGame": 124,
-          "passYdsAllowedPerGame": 257,
-          "totalYdsAllowedPerGame": 381,
-          "rankRush": 20,
-          "rankPass": 25,
-          "rankTotal": 23
+          "rushYdsAllowedPerGame": 95,
+          "passYdsAllowedPerGame": 273,
+          "totalYdsAllowedPerGame": 368,
+          "rankRush": 12,
+          "rankPass": 30,
+          "rankTotal": 28
         }
       }
     },
@@ -97,20 +97,20 @@
       "name": "Carolina Panthers",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 125,
-          "passYdsPerGame": 353,
-          "totalYdsPerGame": 478,
-          "rankRush": 12,
-          "rankPass": 2,
-          "rankTotal": 3
+          "rushYdsPerGame": 96.5,
+          "passYdsPerGame": 312.5,
+          "totalYdsPerGame": 409,
+          "rankRush": 20,
+          "rankPass": 1,
+          "rankTotal": 5
         },
         "defense": {
-          "rushYdsAllowedPerGame": 291,
-          "passYdsAllowedPerGame": 261,
-          "totalYdsAllowedPerGame": 552,
+          "rushYdsAllowedPerGame": 224,
+          "passYdsAllowedPerGame": 195,
+          "totalYdsAllowedPerGame": 419,
           "rankRush": 32,
-          "rankPass": 26,
-          "rankTotal": 32
+          "rankPass": 13,
+          "rankTotal": 30
         }
       }
     },
@@ -119,20 +119,20 @@
       "name": "Chicago Bears",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 291,
-          "passYdsPerGame": 261,
-          "totalYdsPerGame": 552,
+          "rushYdsPerGame": 212.5,
+          "passYdsPerGame": 212,
+          "totalYdsPerGame": 424.5,
           "rankRush": 1,
-          "rankPass": 7,
-          "rankTotal": 1
+          "rankPass": 15,
+          "rankTotal": 3
         },
         "defense": {
-          "rushYdsAllowedPerGame": 125,
-          "passYdsAllowedPerGame": 353,
-          "totalYdsAllowedPerGame": 478,
-          "rankRush": 21,
-          "rankPass": 30,
-          "rankTotal": 30
+          "rushYdsAllowedPerGame": 122,
+          "passYdsAllowedPerGame": 240,
+          "totalYdsAllowedPerGame": 362,
+          "rankRush": 23,
+          "rankPass": 24,
+          "rankTotal": 26
         }
       }
     },
@@ -141,20 +141,20 @@
       "name": "Cincinnati Bengals",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 106,
-          "passYdsPerGame": 245,
-          "totalYdsPerGame": 351,
-          "rankRush": 19,
-          "rankPass": 9,
-          "rankTotal": 15
+          "rushYdsPerGame": 95.5,
+          "passYdsPerGame": 213.5,
+          "totalYdsPerGame": 309,
+          "rankRush": 21,
+          "rankPass": 14,
+          "rankTotal": 16
         },
         "defense": {
-          "rushYdsAllowedPerGame": 89,
-          "passYdsAllowedPerGame": 193,
-          "totalYdsAllowedPerGame": 282,
-          "rankRush": 10,
-          "rankPass": 17,
-          "rankTotal": 12
+          "rushYdsAllowedPerGame": 74.5,
+          "passYdsAllowedPerGame": 253.5,
+          "totalYdsAllowedPerGame": 328,
+          "rankRush": 3,
+          "rankPass": 27,
+          "rankTotal": 16
         }
       }
     },
@@ -163,20 +163,20 @@
       "name": "Cleveland Browns",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 87,
-          "passYdsPerGame": 185,
-          "totalYdsPerGame": 272,
-          "rankRush": 24,
-          "rankPass": 19,
-          "rankTotal": 23
+          "rushYdsPerGame": 65.5,
+          "passYdsPerGame": 204,
+          "totalYdsPerGame": 269.5,
+          "rankRush": 31,
+          "rankPass": 16,
+          "rankTotal": 28
         },
         "defense": {
-          "rushYdsAllowedPerGame": 126,
-          "passYdsAllowedPerGame": 234,
-          "totalYdsAllowedPerGame": 360,
-          "rankRush": 22,
-          "rankPass": 23,
-          "rankTotal": 19
+          "rushYdsAllowedPerGame": 131.5,
+          "passYdsAllowedPerGame": 205,
+          "totalYdsAllowedPerGame": 336.5,
+          "rankRush": 26,
+          "rankPass": 16,
+          "rankTotal": 20
         }
       }
     },
@@ -185,20 +185,20 @@
       "name": "Dallas Cowboys",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 69,
-          "passYdsPerGame": 175,
-          "totalYdsPerGame": 244,
-          "rankRush": 28,
-          "rankPass": 22,
-          "rankTotal": 28
+          "rushYdsPerGame": 67.5,
+          "passYdsPerGame": 220.5,
+          "totalYdsPerGame": 288,
+          "rankRush": 30,
+          "rankPass": 11,
+          "rankTotal": 23
         },
         "defense": {
-          "rushYdsAllowedPerGame": 165,
-          "passYdsAllowedPerGame": 229,
-          "totalYdsAllowedPerGame": 394,
-          "rankRush": 27,
-          "rankPass": 22,
-          "rankTotal": 26
+          "rushYdsAllowedPerGame": 173.5,
+          "passYdsAllowedPerGame": 218,
+          "totalYdsAllowedPerGame": 391.5,
+          "rankRush": 30,
+          "rankPass": 17,
+          "rankTotal": 29
         }
       }
     },
@@ -207,20 +207,20 @@
       "name": "Denver Broncos",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 61,
-          "passYdsPerGame": 115,
-          "totalYdsPerGame": 176,
-          "rankRush": 31,
-          "rankPass": 32,
-          "rankTotal": 32
+          "rushYdsPerGame": 82.5,
+          "passYdsPerGame": 201.5,
+          "totalYdsPerGame": 284,
+          "rankRush": 27,
+          "rankPass": 20,
+          "rankTotal": 25
         },
         "defense": {
-          "rushYdsAllowedPerGame": 220,
-          "passYdsAllowedPerGame": 172,
-          "totalYdsAllowedPerGame": 392,
-          "rankRush": 31,
-          "rankPass": 10,
-          "rankTotal": 24
+          "rushYdsAllowedPerGame": 157.5,
+          "passYdsAllowedPerGame": 172.5,
+          "totalYdsAllowedPerGame": 330,
+          "rankRush": 29,
+          "rankPass": 8,
+          "rankTotal": 17
         }
       }
     },
@@ -229,20 +229,20 @@
       "name": "Detroit Lions",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 165,
-          "passYdsPerGame": 204,
-          "totalYdsPerGame": 369,
-          "rankRush": 5,
-          "rankPass": 15,
-          "rankTotal": 12
+          "rushYdsPerGame": 115.5,
+          "passYdsPerGame": 246.5,
+          "totalYdsPerGame": 362,
+          "rankRush": 11,
+          "rankPass": 7,
+          "rankTotal": 10
         },
         "defense": {
-          "rushYdsAllowedPerGame": 91,
-          "passYdsAllowedPerGame": 378,
-          "totalYdsAllowedPerGame": 469,
-          "rankRush": 11,
-          "rankPass": 32,
-          "rankTotal": 29
+          "rushYdsAllowedPerGame": 147,
+          "passYdsAllowedPerGame": 310.5,
+          "totalYdsAllowedPerGame": 457.5,
+          "rankRush": 28,
+          "rankPass": 31,
+          "rankTotal": 31
         }
       }
     },
@@ -251,20 +251,20 @@
       "name": "Green Bay Packers",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 66,
-          "passYdsPerGame": 353,
-          "totalYdsPerGame": 419,
-          "rankRush": 30,
-          "rankPass": 3,
-          "rankTotal": 5
+          "rushYdsPerGame": 64.5,
+          "passYdsPerGame": 244.5,
+          "totalYdsPerGame": 309,
+          "rankRush": 32,
+          "rankPass": 9,
+          "rankTotal": 17
         },
         "defense": {
-          "rushYdsAllowedPerGame": 107,
-          "passYdsAllowedPerGame": 132,
-          "totalYdsAllowedPerGame": 239,
-          "rankRush": 15,
-          "rankPass": 4,
-          "rankTotal": 4
+          "rushYdsAllowedPerGame": 87,
+          "passYdsAllowedPerGame": 175,
+          "totalYdsAllowedPerGame": 262,
+          "rankRush": 8,
+          "rankPass": 9,
+          "rankTotal": 5
         }
       }
     },
@@ -273,20 +273,20 @@
       "name": "Houston Texans",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 124,
-          "passYdsPerGame": 257,
-          "totalYdsPerGame": 381,
-          "rankRush": 13,
-          "rankPass": 8,
-          "rankTotal": 10
+          "rushYdsPerGame": 92,
+          "passYdsPerGame": 285.5,
+          "totalYdsPerGame": 377.5,
+          "rankRush": 25,
+          "rankPass": 3,
+          "rankTotal": 9
         },
         "defense": {
-          "rushYdsAllowedPerGame": 86,
-          "passYdsAllowedPerGame": 323,
-          "totalYdsAllowedPerGame": 409,
-          "rankRush": 8,
-          "rankPass": 29,
-          "rankTotal": 27
+          "rushYdsAllowedPerGame": 85.5,
+          "passYdsAllowedPerGame": 252.5,
+          "totalYdsAllowedPerGame": 338,
+          "rankRush": 6,
+          "rankPass": 26,
+          "rankTotal": 21
         }
       }
     },
@@ -295,20 +295,20 @@
       "name": "Indianapolis Colts",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 102,
-          "passYdsPerGame": 149,
-          "totalYdsPerGame": 251,
-          "rankRush": 20,
-          "rankPass": 28,
-          "rankTotal": 27
+          "rushYdsPerGame": 110.5,
+          "passYdsPerGame": 179.5,
+          "totalYdsPerGame": 290,
+          "rankRush": 15,
+          "rankPass": 25,
+          "rankTotal": 21
         },
         "defense": {
-          "rushYdsAllowedPerGame": 202,
-          "passYdsAllowedPerGame": 304,
-          "totalYdsAllowedPerGame": 506,
-          "rankRush": 30,
-          "rankPass": 28,
-          "rankTotal": 31
+          "rushYdsAllowedPerGame": 177,
+          "passYdsAllowedPerGame": 337.5,
+          "totalYdsAllowedPerGame": 514.5,
+          "rankRush": 31,
+          "rankPass": 32,
+          "rankTotal": 32
         }
       }
     },
@@ -317,20 +317,20 @@
       "name": "Jacksonville Jaguars",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 126,
-          "passYdsPerGame": 234,
-          "totalYdsPerGame": 360,
-          "rankRush": 11,
-          "rankPass": 10,
-          "rankTotal": 14
+          "rushYdsPerGame": 110.5,
+          "passYdsPerGame": 203.5,
+          "totalYdsPerGame": 314,
+          "rankRush": 16,
+          "rankPass": 18,
+          "rankTotal": 15
         },
         "defense": {
-          "rushYdsAllowedPerGame": 87,
-          "passYdsAllowedPerGame": 185,
-          "totalYdsAllowedPerGame": 272,
-          "rankRush": 9,
-          "rankPass": 13,
-          "rankTotal": 10
+          "rushYdsAllowedPerGame": 95.5,
+          "passYdsAllowedPerGame": 236.5,
+          "totalYdsAllowedPerGame": 332,
+          "rankRush": 13,
+          "rankPass": 22,
+          "rankTotal": 18
         }
       }
     },
@@ -339,20 +339,20 @@
       "name": "Kansas City Chiefs",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 220,
-          "passYdsPerGame": 172,
-          "totalYdsPerGame": 392,
+          "rushYdsPerGame": 186,
+          "passYdsPerGame": 271.5,
+          "totalYdsPerGame": 457.5,
           "rankRush": 2,
-          "rankPass": 23,
-          "rankTotal": 9
+          "rankPass": 5,
+          "rankTotal": 1
         },
         "defense": {
-          "rushYdsAllowedPerGame": 61,
-          "passYdsAllowedPerGame": 115,
-          "totalYdsAllowedPerGame": 176,
-          "rankRush": 2,
-          "rankPass": 1,
-          "rankTotal": 1
+          "rushYdsAllowedPerGame": 90,
+          "passYdsAllowedPerGame": 162.5,
+          "totalYdsAllowedPerGame": 252.5,
+          "rankRush": 10,
+          "rankPass": 4,
+          "rankTotal": 3
         }
       }
     },
@@ -361,20 +361,20 @@
       "name": "Las Vegas Raiders",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 130,
-          "passYdsPerGame": 160,
-          "totalYdsPerGame": 290,
-          "rankRush": 10,
-          "rankPass": 27,
+          "rushYdsPerGame": 93.5,
+          "passYdsPerGame": 204,
+          "totalYdsPerGame": 297.5,
+          "rankRush": 23,
+          "rankPass": 17,
           "rankTotal": 19
         },
         "defense": {
-          "rushYdsAllowedPerGame": 74,
-          "passYdsAllowedPerGame": 185,
-          "totalYdsAllowedPerGame": 259,
-          "rankRush": 6,
-          "rankPass": 14,
-          "rankTotal": 7
+          "rushYdsAllowedPerGame": 100.5,
+          "passYdsAllowedPerGame": 184,
+          "totalYdsAllowedPerGame": 284.5,
+          "rankRush": 15,
+          "rankPass": 11,
+          "rankTotal": 9
         }
       }
     },
@@ -383,20 +383,20 @@
       "name": "Los Angeles Chargers",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 81,
-          "passYdsPerGame": 187,
-          "totalYdsPerGame": 268,
-          "rankRush": 26,
-          "rankPass": 18,
-          "rankTotal": 24
+          "rushYdsPerGame": 104,
+          "passYdsPerGame": 185,
+          "totalYdsPerGame": 289,
+          "rankRush": 19,
+          "rankPass": 21,
+          "rankTotal": 22
         },
         "defense": {
-          "rushYdsAllowedPerGame": 116,
-          "passYdsAllowedPerGame": 277,
-          "totalYdsAllowedPerGame": 393,
-          "rankRush": 17,
-          "rankPass": 27,
-          "rankTotal": 25
+          "rushYdsAllowedPerGame": 86.5,
+          "passYdsAllowedPerGame": 262.5,
+          "totalYdsAllowedPerGame": 349,
+          "rankRush": 7,
+          "rankPass": 29,
+          "rankTotal": 23
         }
       }
     },
@@ -405,20 +405,20 @@
       "name": "Los Angeles Rams",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 122,
-          "passYdsPerGame": 168,
-          "totalYdsPerGame": 290,
-          "rankRush": 14,
-          "rankPass": 24,
-          "rankTotal": 18
+          "rushYdsPerGame": 142.5,
+          "passYdsPerGame": 243,
+          "totalYdsPerGame": 385.5,
+          "rankRush": 6,
+          "rankPass": 10,
+          "rankTotal": 6
         },
         "defense": {
-          "rushYdsAllowedPerGame": 174,
-          "passYdsAllowedPerGame": 205,
-          "totalYdsAllowedPerGame": 379,
-          "rankRush": 29,
-          "rankPass": 19,
-          "rankTotal": 22
+          "rushYdsAllowedPerGame": 113,
+          "passYdsAllowedPerGame": 167.5,
+          "totalYdsAllowedPerGame": 280.5,
+          "rankRush": 19,
+          "rankPass": 7,
+          "rankTotal": 7
         }
       }
     },
@@ -427,20 +427,20 @@
       "name": "Miami Dolphins",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 74,
-          "passYdsPerGame": 185,
-          "totalYdsPerGame": 259,
-          "rankRush": 27,
-          "rankPass": 20,
-          "rankTotal": 26
+          "rushYdsPerGame": 88,
+          "passYdsPerGame": 183.5,
+          "totalYdsPerGame": 271.5,
+          "rankRush": 26,
+          "rankPass": 24,
+          "rankTotal": 27
         },
         "defense": {
-          "rushYdsAllowedPerGame": 130,
-          "passYdsAllowedPerGame": 160,
-          "totalYdsAllowedPerGame": 290,
-          "rankRush": 23,
-          "rankPass": 6,
-          "rankTotal": 14
+          "rushYdsAllowedPerGame": 112.5,
+          "passYdsAllowedPerGame": 223.5,
+          "totalYdsAllowedPerGame": 336,
+          "rankRush": 18,
+          "rankPass": 18,
+          "rankTotal": 19
         }
       }
     },
@@ -449,20 +449,20 @@
       "name": "Minnesota Vikings",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 107,
-          "passYdsPerGame": 132,
-          "totalYdsPerGame": 239,
-          "rankRush": 18,
-          "rankPass": 29,
-          "rankTotal": 29
+          "rushYdsPerGame": 113,
+          "passYdsPerGame": 129.5,
+          "totalYdsPerGame": 242.5,
+          "rankRush": 12,
+          "rankPass": 31,
+          "rankTotal": 32
         },
         "defense": {
-          "rushYdsAllowedPerGame": 66,
-          "passYdsAllowedPerGame": 353,
-          "totalYdsAllowedPerGame": 419,
-          "rankRush": 3,
-          "rankPass": 31,
-          "rankTotal": 28
+          "rushYdsAllowedPerGame": 100,
+          "passYdsAllowedPerGame": 258,
+          "totalYdsAllowedPerGame": 358,
+          "rankRush": 14,
+          "rankPass": 28,
+          "rankTotal": 25
         }
       }
     },
@@ -471,20 +471,20 @@
       "name": "New England Patriots",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 109,
-          "passYdsPerGame": 168,
-          "totalYdsPerGame": 277,
-          "rankRush": 17,
-          "rankPass": 25,
-          "rankTotal": 22
+          "rushYdsPerGame": 122.5,
+          "passYdsPerGame": 179.5,
+          "totalYdsPerGame": 302,
+          "rankRush": 10,
+          "rankPass": 26,
+          "rankTotal": 18
         },
         "defense": {
-          "rushYdsAllowedPerGame": 97,
-          "passYdsAllowedPerGame": 188,
-          "totalYdsAllowedPerGame": 285,
-          "rankRush": 12,
-          "rankPass": 16,
-          "rankTotal": 13
+          "rushYdsAllowedPerGame": 94,
+          "passYdsAllowedPerGame": 166,
+          "totalYdsAllowedPerGame": 260,
+          "rankRush": 11,
+          "rankPass": 5,
+          "rankTotal": 4
         }
       }
     },
@@ -493,20 +493,20 @@
       "name": "New Orleans Saints",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 91,
-          "passYdsPerGame": 378,
-          "totalYdsPerGame": 469,
-          "rankRush": 22,
-          "rankPass": 1,
-          "rankTotal": 4
+          "rushYdsPerGame": 78,
+          "passYdsPerGame": 305.5,
+          "totalYdsPerGame": 383.5,
+          "rankRush": 28,
+          "rankPass": 2,
+          "rankTotal": 7
         },
         "defense": {
-          "rushYdsAllowedPerGame": 165,
+          "rushYdsAllowedPerGame": 136.5,
           "passYdsAllowedPerGame": 204,
-          "totalYdsAllowedPerGame": 369,
-          "rankRush": 28,
-          "rankPass": 18,
-          "rankTotal": 21
+          "totalYdsAllowedPerGame": 340.5,
+          "rankRush": 27,
+          "rankPass": 15,
+          "rankTotal": 22
         }
       }
     },
@@ -515,20 +515,20 @@
       "name": "New York Giants",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 165,
-          "passYdsPerGame": 229,
-          "totalYdsPerGame": 394,
-          "rankRush": 6,
-          "rankPass": 11,
-          "rankTotal": 7
+          "rushYdsPerGame": 108.5,
+          "passYdsPerGame": 179.5,
+          "totalYdsPerGame": 288,
+          "rankRush": 18,
+          "rankPass": 27,
+          "rankTotal": 24
         },
         "defense": {
-          "rushYdsAllowedPerGame": 69,
-          "passYdsAllowedPerGame": 175,
-          "totalYdsAllowedPerGame": 244,
-          "rankRush": 5,
-          "rankPass": 11,
-          "rankTotal": 5
+          "rushYdsAllowedPerGame": 116,
+          "passYdsAllowedPerGame": 246.5,
+          "totalYdsAllowedPerGame": 362.5,
+          "rankRush": 20,
+          "rankPass": 25,
+          "rankTotal": 27
         }
       }
     },
@@ -537,20 +537,20 @@
       "name": "New York Jets",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 152,
-          "passYdsPerGame": 215,
-          "totalYdsPerGame": 367,
-          "rankRush": 7,
-          "rankPass": 12,
-          "rankTotal": 13
+          "rushYdsPerGame": 109.5,
+          "passYdsPerGame": 216.5,
+          "totalYdsPerGame": 326,
+          "rankRush": 17,
+          "rankPass": 13,
+          "rankTotal": 14
         },
         "defense": {
-          "rushYdsAllowedPerGame": 68,
-          "passYdsAllowedPerGame": 127,
-          "totalYdsAllowedPerGame": 195,
-          "rankRush": 4,
-          "rankPass": 3,
-          "rankTotal": 2
+          "rushYdsAllowedPerGame": 65.5,
+          "passYdsAllowedPerGame": 131.5,
+          "totalYdsAllowedPerGame": 197,
+          "rankRush": 2,
+          "rankPass": 2,
+          "rankTotal": 1
         }
       }
     },
@@ -559,20 +559,20 @@
       "name": "Philadelphia Eagles",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 136,
-          "passYdsPerGame": 182,
-          "totalYdsPerGame": 318,
-          "rankRush": 8,
-          "rankPass": 21,
-          "rankTotal": 16
+          "rushYdsPerGame": 112.5,
+          "passYdsPerGame": 217,
+          "totalYdsPerGame": 329.5,
+          "rankRush": 14,
+          "rankPass": 12,
+          "rankTotal": 13
         },
         "defense": {
-          "rushYdsAllowedPerGame": 132,
-          "passYdsAllowedPerGame": 163,
-          "totalYdsAllowedPerGame": 295,
+          "rushYdsAllowedPerGame": 127,
+          "passYdsAllowedPerGame": 166,
+          "totalYdsAllowedPerGame": 293,
           "rankRush": 24,
-          "rankPass": 7,
-          "rankTotal": 16
+          "rankPass": 6,
+          "rankTotal": 11
         }
       }
     },
@@ -581,20 +581,20 @@
       "name": "Pittsburgh Steelers",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 58,
-          "passYdsPerGame": 206,
-          "totalYdsPerGame": 264,
-          "rankRush": 32,
-          "rankPass": 13,
-          "rankTotal": 25
+          "rushYdsPerGame": 74.5,
+          "passYdsPerGame": 175,
+          "totalYdsPerGame": 249.5,
+          "rankRush": 29,
+          "rankPass": 29,
+          "rankTotal": 30
         },
         "defense": {
-          "rushYdsAllowedPerGame": 120,
-          "passYdsAllowedPerGame": 118,
-          "totalYdsAllowedPerGame": 238,
-          "rankRush": 18,
-          "rankPass": 2,
-          "rankTotal": 3
+          "rushYdsAllowedPerGame": 128,
+          "passYdsAllowedPerGame": 154.5,
+          "totalYdsAllowedPerGame": 282.5,
+          "rankRush": 25,
+          "rankPass": 3,
+          "rankTotal": 8
         }
       }
     },
@@ -603,20 +603,20 @@
       "name": "San Francisco 49ers",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 174,
-          "passYdsPerGame": 205,
-          "totalYdsPerGame": 379,
-          "rankRush": 4,
-          "rankPass": 14,
-          "rankTotal": 11
+          "rushYdsPerGame": 134.5,
+          "passYdsPerGame": 246,
+          "totalYdsPerGame": 380.5,
+          "rankRush": 8,
+          "rankPass": 8,
+          "rankTotal": 8
         },
         "defense": {
-          "rushYdsAllowedPerGame": 122,
-          "passYdsAllowedPerGame": 168,
-          "totalYdsAllowedPerGame": 290,
-          "rankRush": 19,
-          "rankPass": 9,
-          "rankTotal": 15
+          "rushYdsAllowedPerGame": 112,
+          "passYdsAllowedPerGame": 175,
+          "totalYdsAllowedPerGame": 287,
+          "rankRush": 17,
+          "rankPass": 10,
+          "rankTotal": 10
         }
       }
     },
@@ -625,20 +625,20 @@
       "name": "Seattle Seahawks",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 97,
-          "passYdsPerGame": 188,
-          "totalYdsPerGame": 285,
-          "rankRush": 21,
-          "rankPass": 17,
-          "rankTotal": 20
+          "rushYdsPerGame": 129.5,
+          "passYdsPerGame": 203.5,
+          "totalYdsPerGame": 333,
+          "rankRush": 9,
+          "rankPass": 19,
+          "rankTotal": 12
         },
         "defense": {
-          "rushYdsAllowedPerGame": 109,
-          "passYdsAllowedPerGame": 168,
-          "totalYdsAllowedPerGame": 277,
-          "rankRush": 16,
-          "rankPass": 8,
-          "rankTotal": 11
+          "rushYdsAllowedPerGame": 89.5,
+          "passYdsAllowedPerGame": 124.5,
+          "totalYdsAllowedPerGame": 214,
+          "rankRush": 9,
+          "rankPass": 1,
+          "rankTotal": 2
         }
       }
     },
@@ -647,20 +647,20 @@
       "name": "Tampa Bay Buccaneers",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 89,
-          "passYdsPerGame": 193,
-          "totalYdsPerGame": 282,
-          "rankRush": 23,
-          "rankPass": 16,
-          "rankTotal": 21
+          "rushYdsPerGame": 113,
+          "passYdsPerGame": 184.5,
+          "totalYdsPerGame": 297.5,
+          "rankRush": 13,
+          "rankPass": 23,
+          "rankTotal": 20
         },
         "defense": {
-          "rushYdsAllowedPerGame": 106,
-          "passYdsAllowedPerGame": 245,
-          "totalYdsAllowedPerGame": 351,
-          "rankRush": 14,
-          "rankPass": 24,
-          "rankTotal": 18
+          "rushYdsAllowedPerGame": 75,
+          "passYdsAllowedPerGame": 234,
+          "totalYdsAllowedPerGame": 309,
+          "rankRush": 4,
+          "rankPass": 21,
+          "rankTotal": 13
         }
       }
     },
@@ -669,20 +669,20 @@
       "name": "Tennessee Titans",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 68,
-          "passYdsPerGame": 127,
-          "totalYdsPerGame": 195,
-          "rankRush": 29,
+          "rushYdsPerGame": 95,
+          "passYdsPerGame": 148,
+          "totalYdsPerGame": 243,
+          "rankRush": 22,
           "rankPass": 30,
           "rankTotal": 31
         },
         "defense": {
-          "rushYdsAllowedPerGame": 152,
-          "passYdsAllowedPerGame": 215,
-          "totalYdsAllowedPerGame": 367,
-          "rankRush": 26,
-          "rankPass": 21,
-          "rankTotal": 20
+          "rushYdsAllowedPerGame": 120.5,
+          "passYdsAllowedPerGame": 233.5,
+          "totalYdsAllowedPerGame": 354,
+          "rankRush": 21,
+          "rankPass": 20,
+          "rankTotal": 24
         }
       }
     },
@@ -691,23 +691,23 @@
       "name": "Washington Commanders",
       "stats": {
         "offense": {
-          "rushYdsPerGame": 132,
-          "passYdsPerGame": 163,
-          "totalYdsPerGame": 295,
-          "rankRush": 9,
-          "rankPass": 26,
-          "rankTotal": 17
+          "rushYdsPerGame": 157,
+          "passYdsPerGame": 185,
+          "totalYdsPerGame": 342,
+          "rankRush": 3,
+          "rankPass": 22,
+          "rankTotal": 11
         },
         "defense": {
-          "rushYdsAllowedPerGame": 136,
-          "passYdsAllowedPerGame": 182,
-          "totalYdsAllowedPerGame": 318,
-          "rankRush": 25,
-          "rankPass": 12,
-          "rankTotal": 17
+          "rushYdsAllowedPerGame": 101,
+          "passYdsAllowedPerGame": 224,
+          "totalYdsAllowedPerGame": 325,
+          "rankRush": 16,
+          "rankPass": 19,
+          "rankTotal": 15
         }
       }
     }
   ],
-  "asOfWeek": 1
+  "asOfWeek": 2
 }

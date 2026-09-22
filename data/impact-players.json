@@ -104,7 +104,8 @@
           "note": "Carted off in the first half of the Sept. 20 win over Pittsburgh after T.J. Watt landed on the back of his legs on a sack; ESPN reported X-rays showed a broken right ankle. HC Mike Vrabel said Monday he won't be available 'in the short term' and doesn't anticipate him back in the next few weeks, promising an update if it proves longer. Greg Van Roten replaced him at right guard."
         },
         "statusUpdatedAt": "2026-09-22T01:25:00.000Z",
-        "source": "curated"
+        "source": "curated",
+        "espnId": "4046545"
       }
     ],
     "SEA": [
@@ -221,14 +222,11 @@
         "position": "DE",
         "espnId": "4572055",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-20T19:00Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-21T18:57Z",
         "source": "auto",
-        "activatedDate": "2026-09-14"
+        "activatedDate": "2026-09-21"
       },
       {
         "name": "Anthony Bradford",
@@ -380,9 +378,13 @@
         "position": "DE",
         "espnId": "4432244",
         "impactScore": 4,
-        "status": "active",
-        "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
-        "source": "curated"
+        "status": "questionable",
+        "statusUpdatedAt": "2026-09-22T00:47Z",
+        "source": "auto",
+        "injury": {
+          "type": "Hand",
+          "note": "Height will undergo hand surgery Tuesday, David Lombardi of SFStandard.com reported Monday."
+        }
       },
       {
         "name": "Alfred Collins",
@@ -403,14 +405,11 @@
         "position": "WR",
         "espnId": "4431466",
         "impactScore": 6,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-20T19:06Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-20T19:43Z",
         "source": "auto",
-        "activatedDate": "2026-09-14"
+        "activatedDate": "2026-09-20"
       },
       {
         "name": "De'Zhaun Stribling",
@@ -463,6 +462,19 @@
         "statusUpdatedAt": "2026-09-21T17:20:00.000Z",
         "source": "curated",
         "espnId": "3043116"
+      },
+      {
+        "name": "Brandon Aiyuk",
+        "position": "WR",
+        "espnId": "4360438",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Personal",
+          "note": "Head coach Kyle Shanahan said Sunday that he's not viewing Aiyuk as an option for the 49ers while the club contends with multiple injuries at receiver, Matt Barrows of The Athletic reports."
+        },
+        "statusUpdatedAt": "2026-09-21T15:27Z",
+        "source": "auto"
       }
     ],
     "LAR": [
@@ -529,9 +541,12 @@
         "position": "WR",
         "espnId": "4605951",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-14T15:19Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-21T22:56Z",
         "source": "auto",
         "activatedDate": "2026-09-14"
       }
@@ -541,14 +556,13 @@
         "name": "Caleb Williams",
         "position": "QB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "espnId": "4431611",
-        "statusUpdatedAt": "2026-09-21T17:20:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-21T20:18Z",
+        "source": "auto",
         "injury": {
-          "type": "Hamstring strain (right) - believed to be Grade 1",
-          "since": "2026-09-20",
-          "note": "Carted off late in the 9-3 loss to Minnesota after a non-contact injury on a scramble. Monday's MRI was \"somewhat encouraging\" per HC Ben Johnson, who called him week-to-week; he is not expected to practice this week and is likely to miss Monday night vs. Philadelphia, though Johnson has not ruled him out. Tyson Bagent would start."
+          "type": "Hamstring",
+          "note": "Bears head coach Ben Johnson said that he doesn't anticipate Williams (hamstring) practicing in Week 3, though Johnson was unwilling to officially rule out the quarterback from playing Monday against the Eagles, Sean Hammond of the Chicago Tribune reports."
         }
       },
       {
@@ -683,14 +697,11 @@
         "position": "DE",
         "espnId": "4372463",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-20T15:34Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-21T18:25Z",
         "source": "auto",
-        "activatedDate": "2026-09-14"
+        "activatedDate": "2026-09-21"
       },
       {
         "name": "Tyrique Stevenson Sr.",
@@ -710,7 +721,10 @@
         "name": "Tyson Bagent",
         "position": "QB",
         "impactScore": 4,
-        "status": "active"
+        "status": "active",
+        "espnId": "4434153",
+        "statusUpdatedAt": "2026-09-22T01:30:34.701Z",
+        "source": "curated"
       }
     ],
     "CAR": [
@@ -784,12 +798,12 @@
         "position": "RB",
         "espnId": "4678008",
         "impactScore": 5,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Groin",
-          "note": "Brooks exited Sunday's game against the Falcons in the fourth quarter due to a groin injury and is questionable to return, Joe Person of The Athletic reports."
+          "note": "Brooks is considered week-to-week while he receives further medical opinions on the groin injury he sustained in Sunday's 34-3 win over the Falcons, Tom Pelissero of Netflix reports."
         },
-        "statusUpdatedAt": "2026-09-20T19:53Z",
+        "statusUpdatedAt": "2026-09-21T20:47Z",
         "source": "auto"
       },
       {
@@ -1049,13 +1063,11 @@
         "position": "RB",
         "espnId": "4599739",
         "impactScore": 4,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-20T15:40Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-21T18:19Z",
+        "source": "auto",
+        "activatedDate": "2026-09-21"
       },
       {
         "name": "Quincy Riley",
@@ -1113,7 +1125,10 @@
           "type": "Severe high ankle sprain - surgery expected",
           "since": "2026-09-20",
           "note": "Carted off in the third quarter of Sunday's win over Baltimore when his left ankle got caught on a sack of Tyler Shough. Monday tests showed a severe high-ankle sprain; he is expected to have surgery and is out indefinitely, with a chance to return late in the season per Ian Rapoport."
-        }
+        },
+        "espnId": "4685260",
+        "statusUpdatedAt": "2026-09-22T01:30:34.701Z",
+        "source": "curated"
       }
     ],
     "DET": [
@@ -1261,7 +1276,10 @@
           "type": "Foot - season-ending surgery",
           "since": "2026-09-17",
           "note": "Hurt his foot in the second quarter Thursday night at Buffalo. HC Dan Campbell said Monday he will need season-ending surgery."
-        }
+        },
+        "espnId": "3123938",
+        "statusUpdatedAt": "2026-09-22T01:30:34.701Z",
+        "source": "curated"
       }
     ],
     "BUF": [
@@ -1278,14 +1296,13 @@
         "name": "Ed Oliver",
         "position": "DT",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Hip spasms",
-          "since": "2026-09-17",
-          "note": "Scratched minutes before kickoff Thursday vs. Detroit with hip spasms, per Ian Rapoport. Day-to-day with a chance to play Sunday vs. the Chargers."
+          "type": "Hip",
+          "note": "out"
         },
-        "statusUpdatedAt": "2026-09-18T01:05:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-21T18:07Z",
+        "source": "auto",
         "espnId": "4039303"
       },
       {
@@ -1732,7 +1749,10 @@
           "type": "Groin",
           "since": "2026-09-20",
           "note": "Left Sunday night's loss at Kansas City with a groin injury. No update yet."
-        }
+        },
+        "espnId": "4037361",
+        "statusUpdatedAt": "2026-09-22T01:30:34.701Z",
+        "source": "curated"
       }
     ],
     "CLE": [
@@ -1900,14 +1920,11 @@
         "position": "DE",
         "espnId": "4832922",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-20T18:49Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-21T18:49Z",
         "source": "auto",
-        "activatedDate": "2026-09-14"
+        "activatedDate": "2026-09-21"
       },
       {
         "name": "Jakobi Meyers",
@@ -2105,14 +2122,13 @@
         "name": "Joey Porter Jr.",
         "position": "CB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Back (medically cleared) - contract holdout",
-          "since": "2026-09",
-          "note": "Porter was inactive again Sunday at New England. Per CBS' Tracy Wolfson (Sept. 20), the Steelers have cleared him from the back injury and consider him in good enough football shape to play Week 3 vs. Cincinnati, but he is holding out for a new contract and the decision to suit up is his; the team does not negotiate in-season and says it has received no trade offers."
+          "type": "Back",
+          "note": "Porter will be evaluated Wednesday for a back injury he aggravated during practice last week, Alan Saunders of SteelersNow.com reports."
         },
-        "statusUpdatedAt": "2026-09-21T01:15:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-21T21:42Z",
+        "source": "auto",
         "espnId": "4426506"
       },
       {
@@ -2120,14 +2136,11 @@
         "position": "DE",
         "espnId": "4431533",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-20T15:38Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-21T18:32Z",
         "source": "auto",
-        "activatedDate": "2026-09-13"
+        "activatedDate": "2026-09-21"
       },
       {
         "name": "DeShon Elliott",
@@ -2168,7 +2181,8 @@
           "note": "Dowdle missed part of the first half of the Sept. 20 loss at New England with a toe injury, returned briefly after halftime, and was then downgraded to out for the rest of the game. No update yet on his Week 3 status."
         },
         "statusUpdatedAt": "2026-09-21T17:20:00.000Z",
-        "source": "curated"
+        "source": "curated",
+        "espnId": "4038815"
       }
     ],
     "NYJ": [
@@ -2451,14 +2465,13 @@
         "position": "CB",
         "espnId": "4685408",
         "impactScore": 5,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Neck",
-          "since": "2026-09-20",
-          "note": null
+          "note": "Johnson (neck) may be forced to miss the remainder of the 2026 season, Darren Urban of the Cardinals' official site reports."
         },
-        "statusUpdatedAt": "2026-09-21T14:33:07.361Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-21T23:17Z",
+        "source": "auto"
       }
     ],
     "LAC": [
@@ -2578,7 +2591,8 @@
           "note": "Placed on injured reserve Monday, Sept. 21 alongside David Njoku, per HC Jim Harbaugh. Must miss at least four games; eligible to return Week 8 after the bye."
         },
         "statusUpdatedAt": "2026-09-22T01:25:00.000Z",
-        "source": "curated"
+        "source": "curated",
+        "espnId": "4241263"
       }
     ],
     "MIA": [
@@ -2619,13 +2633,11 @@
         "position": "WR",
         "espnId": "4249417",
         "impactScore": 6,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "Tolbert (coach's decision) is inactive for Sunday's game against the Raiders."
-        },
-        "statusUpdatedAt": "2026-09-13T19:09Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-21T19:05Z",
+        "source": "auto",
+        "activatedDate": "2026-09-21"
       },
       {
         "name": "Kyle Louis",
@@ -2712,14 +2724,13 @@
         "name": "Brock Bowers",
         "position": "TE",
         "impactScore": 9,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Meniscus (knee) - arthroscopic trim",
-          "since": "2026-09-08",
-          "note": "Missed Weeks 1-2 after a minor meniscus trim on his left knee. Returned to practice on a limited basis late last week and is trending toward a Week 3 debut at New Orleans."
+          "type": "Knee - Meniscus",
+          "note": "Raiders head coach Klint Kubiak said that Bowers (knee) will practice this week and is gearing up to play Sunday against the Saints, Levi Edwards of the team's official site reports."
         },
-        "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-21T20:04Z",
+        "source": "auto",
         "espnId": "4432665"
       },
       {
@@ -2973,14 +2984,11 @@
         "position": "DE",
         "espnId": "4696782",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-20T15:32Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-21T18:23Z",
         "source": "auto",
-        "activatedDate": "2026-09-14"
+        "activatedDate": "2026-09-21"
       },
       {
         "name": "Jordan Mason",
@@ -3140,7 +3148,10 @@
           "type": "Concussion",
           "since": "2026-09-20",
           "note": "Exited Sunday's loss at Dallas and entered concussion protocol."
-        }
+        },
+        "espnId": "4262199",
+        "statusUpdatedAt": "2026-09-22T01:30:34.701Z",
+        "source": "curated"
       }
     ],
     "PHI": [
@@ -3323,10 +3334,14 @@
         "name": "Jaxson Dart",
         "position": "QB",
         "impactScore": 6,
-        "status": "active",
+        "status": "questionable",
         "espnId": "4689114",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-22T00:49Z",
+        "source": "auto",
+        "injury": {
+          "type": "Knee",
+          "note": "Dart (knee) is officially questionable to return to Monday's matchup against the Rams."
+        }
       },
       {
         "name": "Malik Nabers",

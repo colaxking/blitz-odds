@@ -12805,11 +12805,11 @@
         "BAL": "2026-09-27T20:00:14.564Z",
         "BUF": "2026-09-27T04:00:22.707Z",
         "CAR": "2026-09-27T04:00:22.707Z",
-        "CHI": "2026-09-27T20:00:14.564Z",
+        "CHI": "2026-09-27T21:00:15.873Z",
         "CIN": "2026-09-27T04:00:22.707Z",
         "CLE": "2026-09-27T04:00:22.707Z",
         "DAL": "2026-09-27T20:00:14.564Z",
-        "DEN": "2026-09-27T20:00:14.564Z",
+        "DEN": "2026-09-27T21:00:15.873Z",
         "DET": "2026-09-27T04:00:22.707Z",
         "GB": "2026-09-25T00:00:18.628Z",
         "HOU": "2026-09-27T04:00:22.707Z",
@@ -12818,14 +12818,14 @@
         "KC": "2026-09-27T04:00:22.707Z",
         "LV": "2026-09-27T20:00:14.564Z",
         "LAC": "2026-09-27T04:00:22.707Z",
-        "LAR": "2026-09-27T20:00:14.564Z",
+        "LAR": "2026-09-27T21:00:15.873Z",
         "MIA": "2026-09-27T04:00:22.707Z",
         "MIN": "2026-09-27T20:00:14.564Z",
         "NE": "2026-09-27T04:00:22.707Z",
         "NO": "2026-09-27T20:00:14.564Z",
         "NYG": "2026-09-27T04:00:22.707Z",
         "NYJ": "2026-09-27T04:00:22.707Z",
-        "PHI": "2026-09-27T20:00:14.564Z",
+        "PHI": "2026-09-27T21:00:15.873Z",
         "PIT": "2026-09-27T04:00:22.707Z",
         "SF": "2026-09-27T20:00:14.564Z",
         "SEA": "2026-09-27T04:00:22.707Z",
@@ -13499,22 +13499,27 @@
             "position": "CB",
             "espnId": "4698113",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-27T18:50Z",
-            "source": "auto",
-            "activatedDate": "2026-09-27"
+            "status": "questionable",
+            "injury": {
+              "type": "Toe",
+              "note": "Melton (toe) has been ruled out for the remainder of Sunday's game against the Seahawks, Darren Urban of the Cardinals' official site reports."
+            },
+            "statusUpdatedAt": "2026-09-20T22:40Z",
+            "source": "auto"
           },
           {
             "name": "Garrett Williams",
             "position": "CB",
             "impactScore": 6,
-            "status": "active",
+            "status": "out",
             "espnId": "4568506",
-            "statusUpdatedAt": "2026-09-26T00:34Z",
-            "source": "auto",
-            "injury": null,
-            "activatedDate": "2026-09-26"
+            "statusUpdatedAt": "2026-09-19T17:10:00.000Z",
+            "source": "curated",
+            "injury": {
+              "type": "Torn Achilles - recovering",
+              "since": "2025-12",
+              "note": "Williams is still working back from the Achilles tear he suffered in December 2025. He was limited in all three practices this week but was ruled OUT for Sunday vs. Seattle and has more rehab steps before he is cleared for his 2026 debut."
+            }
           },
           {
             "name": "Will Johnson",
@@ -13728,11 +13733,15 @@
             "position": "WR",
             "espnId": "4429615",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-27T18:57Z",
-            "source": "auto",
-            "activatedDate": "2026-09-27"
+            "status": "out",
+            "injury": {
+              "type": "Hamstring strain (minor)",
+              "since": "2026-09-13",
+              "note": "Flowers pulled up with a hamstring injury late in the Sept. 13 win at Indianapolis (5 catches, 150 yards, TD before halftime) and missed practice Wednesday and Thursday. He returned as a limited participant Friday, Sept. 18, but Baltimore downgraded him from doubtful to OUT on Saturday, Sept. 19 for Sunday vs. New Orleans."
+            },
+            "statusUpdatedAt": "2026-09-19T21:05:44Z",
+            "source": "curated",
+            "activatedDate": "2026-08-27"
           },
           {
             "name": "Bilhal Kone",
@@ -13765,23 +13774,29 @@
             "name": "Nnamdi Madubuike",
             "position": "DT",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-24T00:44Z",
-            "source": "auto",
-            "espnId": "4035245",
-            "activatedDate": "2026-09-24"
+            "status": "questionable",
+            "injury": {
+              "type": "Neck",
+              "since": "2026-09-06",
+              "note": "Madubuike missed the Week 1 opener at Indianapolis with the neck injury, was limited in practice this week, and was ruled OUT again on Friday, Sept. 18 for Sunday vs. New Orleans. Listed as a full participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
+            },
+            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
+            "source": "curated",
+            "espnId": "4035245"
           },
           {
             "name": "Teddye Buchanan",
             "position": "LB",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-24T23:36Z",
-            "source": "auto",
-            "espnId": "4698244",
-            "activatedDate": "2026-09-24"
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "since": "2026-09",
+              "note": "Buchanan missed the Week 1 opener with the knee injury and was limited in practice this week, but Baltimore ruled him OUT on Friday, Sept. 18 for Sunday vs. New Orleans. Listed as a full participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
+            },
+            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
+            "source": "curated",
+            "espnId": "4698244"
           },
           {
             "name": "Devontez Walker",
@@ -13812,24 +13827,27 @@
             "name": "Trey Hendrickson",
             "position": "Edge",
             "impactScore": 8,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-25T20:55Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Finger",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-09-23T20:49Z",
             "source": "auto",
-            "espnId": "3052743",
-            "activatedDate": "2026-09-25"
+            "espnId": "3052743"
           },
           {
             "name": "Ronnie Stanley",
             "position": "LT",
             "impactScore": 7,
-            "status": "out",
-            "statusUpdatedAt": "2026-09-25T20:55Z",
-            "source": "auto",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
+            "source": "curated",
             "espnId": "2980153",
             "injury": {
               "type": "Toe",
-              "note": "out"
+              "since": "2026-09-20",
+              "note": "Did not return to Sunday's loss to New Orleans after a toe injury. No timeline given yet."
             }
           }
         ],
@@ -15252,12 +15270,14 @@
             "name": "Brock Bowers",
             "position": "TE",
             "impactScore": 9,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-27T19:00Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Knee (meniscus)",
+              "note": "Limited in practice Wednesday, Sept. 23; reporting indicates it is 'more likely' than not he plays in Week 3 vs. New Orleans."
+            },
+            "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
             "source": "auto",
-            "espnId": "4432665",
-            "activatedDate": "2026-09-27"
+            "espnId": "4432665"
           },
           {
             "name": "Dont'e Thornton Jr.",
@@ -15277,11 +15297,14 @@
             "position": "CB",
             "espnId": "4430330",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-25T02:30Z",
-            "source": "auto",
-            "activatedDate": "2026-09-25"
+            "status": "out",
+            "injury": {
+              "type": "Foot",
+              "since": "2026-09-13",
+              "note": "Porter did not practice at all this week (Sept. 16-18) and was ruled OUT for Sunday at the Chargers."
+            },
+            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
+            "source": "curated"
           }
         ],
         "LAC": [
@@ -15645,12 +15668,9 @@
             "position": "DE",
             "espnId": "4696782",
             "impactScore": 5,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "inactive"
-            },
-            "statusUpdatedAt": "2026-09-27T19:01Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-21T18:23Z",
             "source": "auto",
             "activatedDate": "2026-09-21"
           },
@@ -15858,11 +15878,14 @@
             "position": "RB",
             "espnId": "4599739",
             "impactScore": 4,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-24T22:24Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Illness",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-09-24T20:48Z",
             "source": "auto",
-            "activatedDate": "2026-09-24"
+            "activatedDate": "2026-09-21"
           },
           {
             "name": "Quincy Riley",
@@ -15905,12 +15928,14 @@
             "name": "Chase Young",
             "position": "DE",
             "impactScore": 7,
-            "status": "active",
-            "statusUpdatedAt": "2026-09-25T02:11Z",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-09-24T00:59Z",
             "source": "auto",
-            "injury": null,
-            "espnId": "4241986",
-            "activatedDate": "2026-09-25"
+            "injury": {
+              "type": "Calf",
+              "note": "Young (calf) was a limited participant in Wednesday's practice."
+            },
+            "espnId": "4241986"
           },
           {
             "name": "Kelvin Banks Jr.",
@@ -15925,19 +15950,6 @@
             "espnId": "4685260",
             "statusUpdatedAt": "2026-09-22T01:30:34.701Z",
             "source": "curated"
-          },
-          {
-            "name": "Barion Brown",
-            "position": "WR",
-            "espnId": "4698597",
-            "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Hamstring",
-              "note": "out"
-            },
-            "statusUpdatedAt": "2026-09-25T19:34Z",
-            "source": "auto"
           }
         ],
         "NYG": [
@@ -16432,25 +16444,30 @@
             "name": "Mike Evans",
             "position": "WR",
             "impactScore": 8,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Hip",
+              "since": "2026-09-20",
+              "note": "Evans left late in the Sept. 20 win over Miami with a hip injury. HC Kyle Shanahan said it did not look serious, but Evans did not practice Wednesday, Sept. 23 ahead of Week 3 vs. Arizona."
+            },
             "espnId": "16737",
-            "statusUpdatedAt": "2026-09-27T18:52Z",
-            "source": "auto",
-            "activatedDate": "2026-09-27"
+            "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
+            "source": "curated",
+            "activatedDate": "2026-09-08"
           },
           {
             "name": "Nick Bosa",
             "position": "Edge",
             "impactScore": 9,
-            "status": "out",
+            "status": "active",
             "injury": {
-              "type": "Calf",
-              "note": "Bosa injured his calf during Thursday's practice and is expected to miss \"a few weeks,\" according to Adam Schefter of ESPN."
+              "type": "Knee soreness / tendinitis (surgically repaired right knee)",
+              "since": "2026-08-03",
+              "note": "Cleared entering camp after the ACL surgery that limited him to three games in 2025, but soreness and tendinitis in the repaired right knee cost him several weeks of practice and he sat out the 49ers' first Melbourne session. He was back as a limited participant on the Wednesday, Sept. 9 report with no injury designation listed and is expected to start the Sept. 10 opener vs. the Rams."
             },
             "espnId": "4040605",
-            "statusUpdatedAt": "2026-09-25T15:33Z",
-            "source": "auto"
+            "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
+            "source": "curated"
           },
           {
             "name": "Christian Kirk",
@@ -16493,12 +16510,12 @@
             "position": "DE",
             "espnId": "4432244",
             "impactScore": 4,
-            "status": "out",
-            "statusUpdatedAt": "2026-09-25T03:01Z",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-09-22T00:47Z",
             "source": "auto",
             "injury": {
               "type": "Hand",
-              "note": "Height (hand) did not participate in Thursday's practice, Jennifer Lee Chan of NBC Sports Bay Area reports."
+              "note": "Height will undergo hand surgery Tuesday, David Lombardi of SFStandard.com reported Monday."
             }
           },
           {
@@ -17054,6 +17071,46 @@
         "NYJ-DET": {
           "awayScore": 24,
           "homeScore": 31,
+          "final": true
+        },
+        "LAC-BUF": {
+          "awayScore": 16,
+          "homeScore": 24,
+          "final": true
+        },
+        "CAR-CLE": {
+          "awayScore": 18,
+          "homeScore": 21,
+          "final": true
+        },
+        "HOU-IND": {
+          "awayScore": 17,
+          "homeScore": 19,
+          "final": true
+        },
+        "KC-MIA": {
+          "awayScore": 24,
+          "homeScore": 10,
+          "final": true
+        },
+        "TEN-NYG": {
+          "awayScore": 7,
+          "homeScore": 12,
+          "final": true
+        },
+        "CIN-PIT": {
+          "awayScore": 27,
+          "homeScore": 30,
+          "final": true
+        },
+        "SEA-WAS": {
+          "awayScore": 31,
+          "homeScore": 33,
+          "final": true
+        },
+        "NE-JAX": {
+          "awayScore": 6,
+          "homeScore": 35,
           "final": true
         }
       }

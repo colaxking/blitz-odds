@@ -5168,19 +5168,13 @@
     padding: 9px 12px; cursor: pointer; white-space: nowrap;
   }
   .admin-tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
-  .admin-tab-dot {
-    display: inline-block; margin-left: 5px; min-width: 16px; height: 16px; line-height: 16px;
-    padding: 0 4px; border-radius: 8px; font-size: .6rem; font-weight: 800;
-    background: var(--out); color: #fff; vertical-align: 1px;
-  }
   .admin-body { padding-top: 14px; }
 
   .admin-search { margin-bottom: 10px; }
   .admin-search input,
   .admin-field input,
   .admin-field select,
-  .admin-inline select,
-  .admin-inj-act select {
+  .admin-inline select {
     width: 100%; background: var(--surface-2); border: 1px solid var(--card-border);
     color: var(--text); font-family: inherit; font-size: .85rem;
     padding: 9px 10px; border-radius: 8px;
@@ -5365,87 +5359,6 @@
   }
   .admin-savebar-text { flex: 1; font-size: .72rem; color: var(--text-dim); }
 
-  /* ---- injuries ---- */
-  .admin-inj {
-    background: var(--card-bg); border: 1px solid var(--card-border);
-    border-left: 2px solid var(--out); border-radius: 8px; padding: 12px; margin-bottom: 8px;
-  }
-  .admin-inj.downgrade { border-left-color: var(--warn); }
-  .admin-inj-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .admin-inj-name { font-size: .88rem; font-weight: 800; }
-  .admin-inj-move { display: flex; align-items: center; gap: 8px; margin: 9px 0 4px; font-size: .78rem; flex-wrap: wrap; }
-  .admin-inj-arrow { color: var(--text-dim); }
-  /* Whose statement each chip is. Without a label the row reads as one
-     transition when it's really two sources being compared. */
-  .admin-inj-who {
-    font-size: .6rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .admin-inj-mine {
-    display: flex; align-items: center; gap: 6px;
-    margin-left: 4px; padding-left: 10px; border-left: 1px solid var(--card-border);
-  }
-  .admin-inj-src { font-size: .7rem; color: var(--text-dim); line-height: 1.45; }
-  .admin-inj-warn { font-size: .7rem; color: var(--warn); font-weight: 700; margin-top: 7px; }
-  .admin-inj-act { display: flex; gap: 6px; margin-top: 10px; align-items: stretch; }
-  .admin-inj-act select { flex: 1 1 auto; min-width: 0; }
-  /* Scoped past the shared .admin-field input rule (width:100%), same
-     specificity trap the confidence box hit. */
-  .admin-inj-act .admin-inj-score {
-    flex: 0 0 56px; width: 56px; padding: 8px 6px; text-align: center;
-    background: var(--surface-2); border: 1px solid var(--card-border);
-    color: var(--text); font-family: inherit; font-size: .82rem; font-weight: 800;
-    border-radius: 8px;
-  }
-  .admin-inj-score-hint { font-size: .68rem; color: var(--text-dim); margin-top: 7px; line-height: 1.4; }
-  .admin-inj-purge {
-    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-border);
-  }
-  .admin-inj-purge-ask { flex: 1 1 220px; font-size: .72rem; color: var(--warn); font-weight: 700; line-height: 1.45; }
-  /* The queue row's player name is a button into the depth-chart sheet. It
-     has to keep looking like the heading it replaced, so it inherits
-     .admin-inj-name's type and only adds the affordance. */
-  .admin-inj-name-btn {
-    background: none; border: none; padding: 0; margin: 0; font: inherit;
-    color: var(--text); cursor: pointer; border-bottom: 1px dashed var(--card-border);
-  }
-  .admin-inj-name-btn:hover, .admin-inj-name-btn:focus-visible {
-    color: var(--accent); border-bottom-color: currentColor; outline: none;
-  }
-
-  /* ---- depth chart sheet ---- */
-  .admin-depth-sum {
-    font-size: .8rem; line-height: 1.5; background: var(--surface-2);
-    border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 11px; margin-bottom: 12px;
-  }
-  .admin-depth-sum strong { font-weight: 800; }
-  .admin-depth-slot {
-    border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 11px; margin-bottom: 8px;
-  }
-  .admin-depth-slot-hd { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .admin-depth-slot-label { font-size: .82rem; font-weight: 800; }
-  .admin-depth-slot-side {
-    font-size: .62rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim);
-  }
-  .admin-depth-pill {
-    margin-left: auto; font-size: .62rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
-    padding: 3px 7px; border-radius: 5px; white-space: nowrap;
-    color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border);
-  }
-  .admin-depth-pill.is-starter { color: var(--win); background: rgba(var(--win-rgb),.14); border-color: rgba(var(--win-rgb),.45); }
-  .admin-depth-list { list-style: none; margin: 9px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-  .admin-depth-row {
-    display: flex; align-items: center; gap: 8px; font-size: .8rem;
-    padding: 5px 7px; border-radius: 6px; min-width: 0;
-  }
-  .admin-depth-row.is-player {
-    background: rgba(var(--accent-rgb),.14); border: 1px solid rgba(var(--accent-rgb),.45); padding: 4px 6px; font-weight: 800;
-  }
-  .admin-depth-row .adr-n { flex: 0 0 14px; color: var(--text-dim); font-size: .7rem; font-weight: 700; }
-  .admin-depth-row .adr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .admin-depth-row .adr-tag { flex: 0 0 auto; font-size: .62rem; font-weight: 800; color: var(--warn); letter-spacing: .04em; text-transform: uppercase; }
-  .admin-depth-row .adr-jersey { margin-left: auto; flex: 0 0 auto; color: var(--text-dim); font-size: .72rem; }
   .admin-st {
     font-size: .64rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
     padding: 3px 7px; border-radius: 5px; white-space: nowrap;
@@ -43792,454 +43705,6 @@ function AdminPicksPanel({ auth, data, onToast }) {
   );
 }
 
-/* ---------------- Injuries ---------------- */
-
-function AdminInjuriesPanel({ auth, onToast, onCount }) {
-  const [items, setItems] = useState(null);
-  const [autoHandled, setAutoHandled] = useState(0);
-  const [retired, setRetired] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-  const [choice, setChoice] = useState({});
-  const [scores, setScores] = useState({});
-  // The queue row whose depth chart is open, if any. The impact score this
-  // panel asks for is really a question about where the player sits, so the
-  // answer belongs one tap away rather than in another window.
-  const [depthItem, setDepthItem] = useState(null);
-  // Ids cleared in this session. The row is dropped from the list the moment
-  // the write succeeds rather than waiting for the refetch to agree, and it
-  // stays dropped for as long as the panel is open. A resolve is a decision
-  // the server has already acknowledged with a 200 - if a later read still
-  // hands the row back, that's a bug to find in the dispatcher's `reopened`
-  // report, not a reason to make the same decision twice.
-  const dismissedRef = useRef(new Set());
-  // Two taps to empty the queue. Deleting every row is irreversible and the
-  // button sits next to Apply/Ignore, so it asks once rather than firing on
-  // a mis-tap.
-  const [confirmPurge, setConfirmPurge] = useState(false);
-  // espnId (and lowercased name) -> the curated record, so a queue row can show
-  // the impact score already on file instead of asking for it again.
-  const [tracked, setTracked] = useState({});
-
-  const load = useCallback(async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const body = await adminCall(auth, "/.netlify/functions/injury-review");
-      const list = (body.items || []).filter(r => !dismissedRef.current.has(r.id));
-      setItems(list);
-      setAutoHandled(body.autoHandled || 0);
-      setRetired(body.retired || 0);
-      onCount(list.length);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }, [auth, onCount]);
-
-  useEffect(() => { load(); }, [load]);
-
-  // The curated player list, read from the same public endpoint the app uses.
-  // A miss here is not fatal - it just means a tracked player's existing score
-  // isn't prefilled and has to be typed.
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/.netlify/functions/site-data-current")
-      .then(res => res.json())
-      .then(body => {
-        if (cancelled) return;
-        const byKey = {};
-        const teams = (body && body.players && body.players.players) || (body && body.players) || {};
-        Object.keys(teams).forEach(team => {
-          (teams[team] || []).forEach(p => {
-            if (p.espnId) byKey["id:" + p.espnId] = p;
-            if (p.name) byKey["name:" + String(p.name).toLowerCase()] = p;
-          });
-        });
-        setTracked(byKey);
-      })
-      .catch(() => { /* prefill is a convenience, not a requirement */ });
-    return () => { cancelled = true; };
-  }, []);
-
-  function curatedFor(item) {
-    return (item.espnId && tracked["id:" + item.espnId])
-      || (item.name && tracked["name:" + String(item.name).toLowerCase()])
-      || null;
-  }
-
-  // The one answer to "what score is in this row's box". The input renders it
-  // and Apply sends it, so the two can't drift again: an untouched suggested
-  // score used to show in the box but go out as undefined, and the endpoint
-  // then rejected the new-player add for having no impactScore.
-  function scoreFor(item) {
-    if (scores[item.id] !== undefined) return scores[item.id];
-    const known = curatedFor(item);
-    if (known && known.impactScore !== undefined && known.impactScore !== null) return String(known.impactScore);
-    return item.suggestedImpact != null ? String(item.suggestedImpact) : "";
-  }
-
-  async function resolve(item, applied) {
-    setBusy(true);
-    setError(null);
-    try {
-      if (applied) {
-        const raw = scoreFor(item);
-        const score = raw !== "" ? Number(raw) : undefined;
-        await adminCall(auth, "/.netlify/functions/injury-player-add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            reviewId: item.id,
-            status: choice[item.id] || item.to,
-            position: item.position,
-            impactScore: score,
-          }),
-        });
-      }
-      await adminCall(auth, "/.netlify/functions/injury-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: item.id, resolved: true }),
-      });
-      dismissedRef.current.add(item.id);
-      setItems(list => {
-        const next = (list || []).filter(r => r.id !== item.id);
-        onCount(next.length);
-        return next;
-      });
-      onToast(applied
-        ? (item.name || "Player") + " set to " + (choice[item.id] || item.to)
-        : "Ignored — " + (item.name || "player") + " unchanged");
-      await load();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function purge() {
-    setBusy(true);
-    setError(null);
-    try {
-      const body = await adminCall(auth, "/.netlify/functions/injury-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ purge: true }),
-      });
-      dismissedRef.current = new Set();
-      setConfirmPurge(false);
-      setItems([]);
-      onCount(0);
-      onToast("Queue cleared — " + (body.deleted || 0) + " row" + (body.deleted === 1 ? "" : "s") + " deleted");
-      await load();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div>
-      <AdminStatus busy={busy} error={error} />
-
-      <p className="admin-note">
-        Only changes that need a decision from you. A player whose absence doesn't change who
-        plays, and anything the sync script applies on its own, never reaches this list. Nothing
-        here touches the app or the prediction model until you apply it.
-        {autoHandled > 0 && " " + autoHandled + " handled automatically since the last sweep."}
-        {retired > 0 && " " + retired + " cleared just now — a healthy player is still ahead of them."}
-      </p>
-
-      {items && !items.length && <p className="admin-empty">Queue is clear.</p>}
-
-      {(items || []).map(item => {
-        const downgrade = STATUS_RANK[item.to] < STATUS_RANK[item.ours || item.from];
-        const known = curatedFor(item);
-        // Never an empty box. A tracked player's own number first, then the
-        // dispatcher's depth-chart suggestion, so Apply is a decision rather
-        // than a research task. Rows queued before suggestedImpact shipped
-        // carry neither and still fall back to blank.
-        const scoreValue = scoreFor(item);
-        const scoreOk = scoreValue !== "" && Number(scoreValue) >= 1 && Number(scoreValue) <= 10;
-        return (
-          <div key={item.id} className={"admin-inj" + (downgrade ? " downgrade" : "")}>
-            {/* Reason he's here at all, for a name you won't recognise. */}
-            <div className="admin-inj-top">
-              <button
-                type="button"
-                className="admin-inj-name admin-inj-name-btn"
-                onClick={() => setDepthItem(item)}
-                title="Where he sits on the depth chart"
-              >
-                {item.name || item.espnId}
-              </button>
-              <span className="admin-row-sub">{item.position || "?"} · {item.team}</span>
-              {/* Keyed off the live tracked list, not item.kind: kind is frozen
-                  when the row is queued, so a player added since (a sync, or an
-                  earlier Apply) kept reading "Not tracked" beside his own score.
-                  Still gated on kind so a slow or failed tracked-list fetch
-                  doesn't flash the pill onto players who were always tracked. */}
-              {item.kind === "untracked-candidate" && !known && (
-                <span className="admin-pill admin-pill-off">Not tracked</span>
-              )}
-              {item.standing === "next-man-up" && (
-                <span className="admin-pill admin-pill-off">Next man up</span>
-              )}
-              {item.standing === "unknown" && (
-                <span className="admin-pill admin-pill-off">Not on the depth chart</span>
-              )}
-            </div>
-            {/* Two different facts, and conflating them is what made rows read
-                "active → active". The arrow is ESPN's own move, which is what
-                the dispatcher actually diffed; the curated status is a separate
-                chip, because it's the thing the arrow is asking you to change. */}
-            <div className="admin-inj-move">
-              <span className="admin-inj-who">ESPN</span>
-              <span className={"admin-st st-" + (item.from || "active")}>{item.from || "—"}</span>
-              <span className="admin-inj-arrow">→</span>
-              <span className={"admin-st st-" + item.to}>{item.to}</span>
-              {item.ours && (
-                <span className="admin-inj-mine">
-                  <span className="admin-inj-who">on file</span>
-                  <span className={"admin-st st-" + item.ours}>{item.ours}</span>
-                </span>
-              )}
-            </div>
-            {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
-            {item.supersedes > 0 && (
-              <div className="admin-inj-src">
-                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
-                this player — clearing this row clears them all.
-              </div>
-            )}
-            {downgrade && item.ours && (
-              <div className="admin-inj-warn">
-                Your curated status is {item.ours}. Applying this downgrades your own call.
-              </div>
-            )}
-            <div className="admin-inj-act">
-              <select
-                value={choice[item.id] || item.to}
-                disabled={busy}
-                onChange={e => setChoice(c => Object.assign({}, c, { [item.id]: e.target.value }))}
-                aria-label="Status to apply"
-              >
-                {["active", "questionable", "doubtful", "out", "ir"].map(s =>
-                  <option key={s} value={s}>{s}</option>
-                )}
-              </select>
-              <input
-                className="admin-inj-score"
-                type="text"
-                inputMode="numeric"
-                placeholder="1-10"
-                aria-label="Impact score"
-                value={scoreValue}
-                disabled={busy}
-                onChange={e => {
-                  const v = e.target.value.replace(/[^0-9]/g, "").slice(0, 2);
-                  setScores(sc => Object.assign({}, sc, { [item.id]: v }));
-                }}
-              />
-              <button
-                type="button"
-                className="admin-btn admin-btn-sm"
-                disabled={busy || !scoreOk}
-                onClick={() => resolve(item, true)}
-              >
-                Apply
-              </button>
-              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => resolve(item, false)}>
-                Ignore
-              </button>
-            </div>
-            <div className="admin-inj-score-hint">
-              {known
-                ? "Impact " + known.impactScore + " on file — change it here if this injury shifts how much he matters."
-                : item.suggestedImpact != null
-                  ? "Suggested " + item.suggestedImpact +
-                    (item.depth && item.depth.label
-                      ? " — " + item.depth.label + " when healthy"
-                      : " — ESPN has no healthy depth-chart reading for him, so this is his position alone") +
-                    ". Change it if he's worth more."
-                  : "New to the tracked list, so he needs an impact score: 1 is a depth piece, 10 moves the line on his own."}
-            </div>
-          </div>
-        );
-      })}
-
-      {items && items.length > 0 && (
-        <div className="admin-inj-purge">
-          {confirmPurge ? (
-            <React.Fragment>
-              <span className="admin-inj-purge-ask">
-                Delete all {items.length} row{items.length === 1 ? "" : "s"}? This can't be undone.
-                ESPN's snapshot is untouched, so nothing reappears until a player actually moves.
-              </span>
-              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(false)}>
-                Cancel
-              </button>
-              <button type="button" className="admin-btn admin-btn-sm admin-btn-warn" disabled={busy} onClick={purge}>
-                Delete them
-              </button>
-            </React.Fragment>
-          ) : (
-            <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(true)}>
-              Clear the queue
-            </button>
-          )}
-        </div>
-      )}
-
-      {depthItem && (
-        <AdminDepthChartSheet item={depthItem} onClose={() => setDepthItem(null)} />
-      )}
-    </div>
-  );
-}
-
-const STATUS_RANK = { active: 0, questionable: 1, doubtful: 2, out: 3, ir: 4 };
-
-/** Plain-English name for a 0-based slot index. "Starter" and "backup" are
- *  spelled out because those two lines are what actually decide an impact
- *  score; anything deeper is just a number. */
-function depthRankWord(i) {
-  if (i === 0) return "Starter";
-  if (i === 1) return "Backup";
-  return ordinalSuffix(i + 1) + " string";
-}
-
-/**
- * Where a queued player sits on his team's ESPN depth chart, opened from the
- * queue row's name.
- *
- * The panel asks for a 1-10 impact score before it will apply anything, and
- * that number is mostly a depth-chart question: a starting QB and his third
- * stringer produce identical-looking rows in the queue. This reuses
- * useTeamRoster/fetchTeamRoster - the same session-cached ESPN roster +
- * depthcharts pair the team pages already run on - so opening a second row
- * for the same team costs nothing.
- *
- * Matching is by ESPN athlete id first (both sides of this are ESPN's own
- * ids, so it's exact), falling back to a normalised name match for the rare
- * record whose id didn't parse out of the injury feed's links.
- */
-function AdminDepthChartSheet({ item, onClose }) {
-  const { loading, error, data } = useTeamRoster(item.team);
-
-  const matches = useCallback(p => {
-    if (!p) return false;
-    if (item.espnId && p.id != null && String(p.id) === String(item.espnId)) return true;
-    const theirs = normalizePlayerName(p.displayName || p.fullName || p.shortName);
-    const ours = normalizePlayerName(item.name);
-    return !!ours && theirs === ours;
-  }, [item.espnId, item.name]);
-
-  let rosterEntry = null;
-  if (data) {
-    for (const group of data.fullRoster) {
-      const found = (group.players || []).find(matches);
-      if (found) { rosterEntry = found; break; }
-    }
-  }
-
-  const jersey = rosterEntry && rosterEntry.jersey;
-  const years = rosterEntry && rosterEntry.experience && rosterEntry.experience.years;
-  const rosterPos = rosterEntry && rosterEntry.position && rosterEntry.position.abbreviation;
-
-  // Every slot he appears in. A player legitimately shows up in more than
-  // one - a WR3 who's also the KR2 - and the extra slots are worth seeing,
-  // but the summary line has to lead with the one the injury is about, so
-  // slots are ranked: his own position first, then any non-special-teams
-  // slot, then returner/kicking duty, and only then by depth. Sorting on
-  // depth alone would announce a WR3 as "the backup punt returner".
-  const primaryPos = String(rosterPos || item.position || "").toUpperCase();
-  function slotTier(slot) {
-    if (primaryPos && String(slot.posAbbr || "").toUpperCase() === primaryPos) return 0;
-    return slot.side === "specialTeam" ? 2 : 1;
-  }
-  const hits = !data ? [] : data.depthChart
-    .map(slot => {
-      const idx = slot.athletes.findIndex(matches);
-      return idx === -1 ? null : { slot, idx, tier: slotTier(slot) };
-    })
-    .filter(Boolean)
-    .sort((a, b) => (a.tier - b.tier) || (a.idx - b.idx));
-
-  const best = hits[0] || null;
-  const behind = best && best.slot.athletes[best.idx + 1];
-  // "Jr." already ends the sentence; a second full stop reads as a typo.
-  const behindName = behind ? String(behind.displayName || behind.shortName || "").trim() : "";
-  const behindSentence = behindName + (/\.$/.test(behindName) ? "" : ".");
-
-  return (
-    <AdminSheet
-      title={item.name || item.espnId}
-      subtitle={(rosterPos || item.position || "?") + " · " + item.team +
-        (jersey ? " · #" + jersey : "") +
-        (years === 0 ? " · Rookie" : years ? " · " + ordinalSuffix(years + 1) + " season" : "")}
-      onClose={onClose}
-    >
-      {loading && <AdminStatus busy />}
-      {error && <AdminStatus error="ESPN's roster didn't come back — try again in a moment." />}
-
-      {data && (
-        <React.Fragment>
-          <p className="admin-depth-sum">
-            {best ? (
-              <React.Fragment>
-                <strong>{depthRankWord(best.idx)}</strong> at {best.slot.label} —{" "}
-                {ordinalSuffix(best.idx + 1)} of {best.slot.athletes.length}.
-                {behind
-                  ? " Next man up: " + behindSentence
-                  : " Nobody is listed behind him."}
-              </React.Fragment>
-            ) : rosterEntry ? (
-              "On the roster, but ESPN doesn't list him in any depth-chart formation — usually IR, practice squad, or a slot ESPN hasn't refreshed."
-            ) : (
-              "Not on " + item.team + "'s current ESPN roster. He may have been released or moved to a reserve list since this alert fired."
-            )}
-          </p>
-
-          {hits.map(({ slot, idx }) => (
-            <div className="admin-depth-slot" key={slot.slug}>
-              <div className="admin-depth-slot-hd">
-                <span className="admin-depth-slot-label">{slot.label}</span>
-                <span className="admin-depth-slot-side">{ROSTER_SIDE_LABELS[slot.side] || slot.side}</span>
-                <span className={"admin-depth-pill" + (idx === 0 ? " is-starter" : "")}>
-                  {depthRankWord(idx)}
-                </span>
-              </div>
-              <ul className="admin-depth-list">
-                {slot.athletes.map((p, i) => (
-                  <li className={"admin-depth-row" + (i === idx ? " is-player" : "")} key={(p && p.id) || i}>
-                    <span className="adr-n">{i + 1}</span>
-                    <span className="adr-name">{(p && (p.shortName || p.displayName)) || "—"}</span>
-                    {i === idx + 1 && <span className="adr-tag">Next up</span>}
-                    {p && p.jersey && <span className="adr-jersey">#{p.jersey}</span>}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
-          {hits.length > 0 && (
-            <p className="admin-hint">
-              Live from ESPN's depth chart, so it reflects where he was listed before this
-              designation — not the team's plan without him. A starter at a premium slot with
-              no real backup is the case for a high impact score.
-            </p>
-          )}
-        </React.Fragment>
-      )}
-    </AdminSheet>
-  );
-}
-
 /* ---------------- Activity ---------------- */
 
 function AdminActivityPanel({ auth, users }) {
@@ -44520,12 +43985,10 @@ function shortAdminUser(users, userId) {
   return userId.slice(0, 8);
 }
 
-// Injuries leads, and is the tab the console opens on. It's the only panel
-// here that's time-sensitive - a queue row is a question ESPN is asking right
-// now, and the answer stops being useful once kickoff passes. Users, leagues
-// and picks are all things that keep.
+// No Injuries tab: impact-players.json is kept in step with ESPN entirely by
+// scripts/injury-player-sync.mjs (escalations, recoveries and auto-adds), so
+// there's no review queue left to work through by hand.
 const ADMIN_TABS = [
-  { id: "injuries", label: "Injuries" },
   { id: "users", label: "Users" },
   { id: "leagues", label: "Leagues" },
   { id: "picks", label: "Picks" },
@@ -44541,7 +44004,6 @@ function AdminConsole({ auth, onClose }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
-  const [injuryCount, setInjuryCount] = useState(null);
   /* Accounts a delete has PROVEN gone. admin-user-delete re-reads the login
      before it reports success, so anything in here is definitely deleted -
      but Identity's user list can keep returning it for a few seconds, and
@@ -44609,7 +44071,6 @@ function AdminConsole({ auth, onClose }) {
                 onClick={() => setTab(t.id)}
               >
                 {t.label}
-                {t.id === "injuries" && injuryCount > 0 && <span className="admin-tab-dot">{injuryCount}</span>}
               </button>
             ))}
           </nav>
@@ -44617,10 +44078,8 @@ function AdminConsole({ auth, onClose }) {
 
         <div className="admin-body">
           {error && <AdminStatus error={error} />}
-          {/* Scoped to the tabs that actually read it. AdminInjuriesPanel runs
-              off its own fetch and has its own spinner, so a global one on top
-              of it is just a second thing loading on the tab that now opens by
-              default. */}
+          {/* Scoped to the tabs that actually read it; Alerts and Activity run
+              off their own fetches and spinners. */}
           {!data && !error && ["users", "leagues", "picks"].includes(tab) && <AdminStatus busy />}
 
           {viewData && tab === "users" && (
@@ -44637,9 +44096,6 @@ function AdminConsole({ auth, onClose }) {
           )}
           {viewData && tab === "picks" && (
             <AdminPicksPanel auth={auth} data={viewData} onToast={showToast} />
-          )}
-          {tab === "injuries" && (
-            <AdminInjuriesPanel auth={auth} onToast={showToast} onCount={setInjuryCount} />
           )}
           {tab === "alerts" && <AdminAlertsPanel auth={auth} users={viewData && viewData.users} />}
           {tab === "log" && <AdminActivityPanel auth={auth} users={viewData && viewData.users} />}

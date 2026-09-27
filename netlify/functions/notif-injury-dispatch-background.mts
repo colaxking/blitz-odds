@@ -4,17 +4,17 @@ import { getPrefs, notifStore, USER_STORE } from "./lib/notif.mts";
 import { deliverAlert, type AlertUser } from "./lib/alerts.mts";
 import { createAlertLog } from "./lib/alertlog.mts";
 import {
-  fetchEspnInjuries, detailPhrase, SEVERITY, PREMIUM_POSITIONS,
+  fetchEspnInjuries, detailPhrase, SEVERITY,
   type EspnInjury, type InjuryState,
 } from "./lib/espn-injuries.mts";
-import {
-  fetchTeamDepth, bestSpot, foldHealthyDepth, checkStanding, suggestImpactScore, describeSpot,
-  DEPTH_SNAPSHOT_KEY, DEPTH_REFETCH_MS, DOWN_SET_KEY,
-  type DepthSnapshot, type DepthSpot, type HealthyDepth,
-} from "./lib/espn-depth.mts";
 
-// Watches ESPN's injury feed for changes, alerts on the ones that matter,
-// and queues the rest for review.
+// Watches ESPN's injury feed for changes and alerts on the ones that matter.
+//
+// There is no review queue any more. It used to write a `review:` row per
+// change for the admin Injuries tab; that tab is gone, because
+// scripts/injury-player-sync.mjs now applies every ESPN move to the curated
+// file on its own (escalations, recoveries, and auto-adds of ruled-out
+// starters). Leftover `review:` rows are deleted once - see REVIEW_PURGED_KEY.
 //
 // POST /.netlify/functions/notif-injury-dispatch-background
 // Header: x-notif-dispatch-secret
@@ -40,6 +40,10 @@ import {
 const SITE_DATA_STORE = "blitz-site-data";
 const CURRENT_SEASON = 2026;
 
+/** Set once the leftover `review:` rows from the retired admin queue have
+ *  been deleted, so later ticks don't re-list an empty prefix. */
+const REVIEW_PURGED_KEY = "injury-review-purged";
+
 /** One document rather than 800 keys: a per-athlete key would be 800 reads
  *  and 800 writes a tick, against one of each. */
 const SNAPSHOT_KEY = "espn-injury-snapshot";
@@ -61,41 +65,6 @@ function jsonResponse(status: number, body: unknown) {
 
 interface SnapshotEntry { state: InjuryState; status: string | null; date: string | null; injuryId: string | null }
 interface Snapshot { updatedAt: string; players: Record<string, SnapshotEntry> }
-
-export interface ReviewItem {
-  id: string;
-  espnId: string;
-  name: string | null;
-  team: string;
-  position: string | null;
-  kind: "tracked-change" | "untracked-candidate";
-  /** What the curated file says today, for a tracked player. */
-  ours: InjuryState | null;
-  from: InjuryState | null;
-  to: InjuryState;
-  espnStatus: string | null;
-  detail: string | null;
-  returnDate: string | null;
-  comment: string | null;
-  reportedAt: string | null;
-  /** Where he sits when healthy, from the depth snapshot. Null when he has
-   *  no healthy reading on file - which is "unknown", never "buried". */
-  depth?: { index: number; size: number; pos: string | null; label: string | null } | null;
-  /** A starting number for the queue row's 1-10 box, so applying a row is
-   *  one tap instead of a research question. Always overridable. */
-  suggestedImpact?: number | null;
-  /** Where he stood when the change landed. Kept for the row's own copy so
-   *  the panel doesn't have to re-derive it from a chart that has since moved. */
-  standing?: "starter" | "next-man-up" | "covered" | "unknown";
-  /** Set when the dispatcher resolved this itself because
-   *  injury-player-sync.mjs is going to handle it. Never set by a human. */
-  autoHandled?: string;
-  seenAt: string;
-  resolved?: boolean;
-  resolvedAt?: string;
-}
-
-const reviewKey = (id: string) => `review:${id}`;
 
 export default async (req: Request, _context: Context) => {
   if (req.method !== "POST") return jsonResponse(405, { ok: false, error: "Method not allowed" });
@@ -121,8 +90,7 @@ export default async (req: Request, _context: Context) => {
 
   const report: any = {
     ok: true, at: now.toISOString(), dryRun,
-    fetched: 0, changes: [], alerts: { sent: 0, outcomes: {} }, queued: 0,
-    skippedDismissed: [], skippedAgreed: [], errors: [],
+    fetched: 0, changes: [], alerts: { sent: 0, outcomes: {} }, errors: [],
   };
 
   try {
@@ -148,15 +116,11 @@ export default async (req: Request, _context: Context) => {
     const playersDoc: any = await siteDataStore.get("players", { type: "json" });
     const curated = new Map<string, {
       name: string; team: string; status: InjuryState; impactScore: number;
-      statusUpdatedAt: string | null; source: string | null; pinned: boolean;
     }>();
     for (const [team, list] of Object.entries<any>(playersDoc?.players || {})) {
       for (const p of list || []) {
         if (p.espnId) curated.set(String(p.espnId), {
           name: p.name, team, status: p.status, impactScore: p.impactScore || 0,
-          // Read only to predict what injury-player-sync.mjs will do with
-          // this player on its next run - see autoHandledReason below.
-          statusUpdatedAt: p.statusUpdatedAt || null, source: p.source || null, pinned: p.pinned === true,
         });
       }
     }
@@ -185,236 +149,17 @@ export default async (req: Request, _context: Context) => {
     report.changes = changes.map((c) => `${c.e.name} (${c.e.team}) ${c.from ?? "—"} → ${c.to}${c.tracked ? " [tracked]" : ""}`);
 
     if (!changes.length) {
-      if (!dryRun) await store.setJSON(SNAPSHOT_KEY, nextSnapshot);
+      if (!dryRun) {
+        await store.setJSON(SNAPSHOT_KEY, nextSnapshot);
+        await purgeReviewRows(store, report);
+      }
       return jsonResponse(200, { ...report, note: "No changes this tick" });
-    }
-
-    // ---- Depth charts, for the teams that actually moved -----------------
-    // Two uses: filtering out genuine depth pieces before they reach the
-    // queue, and pre-filling the impact score each row asks for.
-    //
-    // ESPN DEMOTES AN INJURED PLAYER ON HIS OWN DEPTH CHART, at the same
-    // moment it designates him out. 44 of the 74 players impact-players.json
-    // carries as "out" are listed third-or-deeper with nobody behind them
-    // today - Josh Jacobs, Laremy Tunsil, Owusu-Koramoah among them - against
-    // 0 of the 71 carried active or questionable. So a live reading of an
-    // injured player says nothing about how much he matters, and everything
-    // about the designation that just landed.
-    //
-    // The snapshot therefore records a player ONLY on a tick where ESPN
-    // lists him healthy, and keeps the best index ever seen. That's "where
-    // he plays when he plays". A player with no healthy reading is unknown
-    // rather than buried, and is never filtered on that basis.
-    //
-    // Only teams with a change this tick are fetched, and each at most every
-    // DEPTH_REFETCH_MS, so a two-minute tick usually adds zero requests.
-    const depthSnapshot: DepthSnapshot =
-      ((await store.get(DEPTH_SNAPSHOT_KEY, { type: "json" })) as DepthSnapshot | null)
-      || { updatedAt: now.toISOString(), teams: {}, players: {} };
-    depthSnapshot.teams = depthSnapshot.teams || {};
-    depthSnapshot.players = depthSnapshot.players || {};
-
-    // Healthy per ESPN right now: either no injury record at all, or one
-    // that collapses to "active".
-    const isHealthy = (athleteId: string) => {
-      const rec = fresh[athleteId];
-      return !rec || rec.state === "active";
-    };
-
-    /** This tick's live readings, for players with no healthy reading on
-     *  file - used for scoring only, never for filtering. */
-    const liveDepth: Record<string, DepthSpot[]> = {};
-    let depthFetched = 0;
-    const changedTeams = [...new Set(changes.map((c) => c.e.team))];
-    for (const team of changedTeams) {
-      const last = Date.parse(depthSnapshot.teams[team] || "");
-      if (Number.isFinite(last) && now.getTime() - last < DEPTH_REFETCH_MS) continue;
-      try {
-        const { byAthlete, slots } = await fetchTeamDepth(team);
-        Object.assign(liveDepth, byAthlete);
-        foldHealthyDepth(depthSnapshot, team, byAthlete, isHealthy, now, slots);
-        depthFetched++;
-      } catch (err) {
-        // A missing depth chart costs a suggested score and a filter, not a
-        // queue row. Never a reason to lose the tick.
-        report.errors.push(`depth chart ${team}: ${err instanceof Error ? err.message : "failed"}`);
-      }
-    }
-    report.depthFetched = depthFetched;
-    report.covered = [];
-    report.autoHandled = [];
-    // Rows this tick overwrote that a human had already cleared. Should be
-    // empty in normal operation - the dismissedByHand guard below exists to
-    // keep it that way - so anything appearing here is a row coming back
-    // after being ignored, and names the player it's happening to.
-    report.reopened = [];
-
-    /** Down per ESPN right now. The running order comes from the depth
-     *  snapshot (up to DEPTH_REFETCH_MS old, which is fine - charts move on a
-     *  practice-report cadence); who can actually play comes from this
-     *  tick's feed, which is current. */
-    const isDown = (athleteId: string) => {
-      const rec = fresh[athleteId];
-      return !!rec && rec.state !== "active";
-    };
-
-    /**
-     * What injury-player-sync.mjs will do with this player unaided, mirroring
-     * its status pass exactly (scripts/injury-player-sync.mjs, "DIRECTION
-     * MATTERS"). If it's going to apply the change itself, the row is not a
-     * decision and shouldn't be sitting in front of Dan.
-     *
-     * IF THAT SCRIPT'S RULES CHANGE, CHANGE THESE.
-     */
-    const syncWillApply = (
-      ours: { status: InjuryState; statusUpdatedAt: string | null; source: string | null; pinned: boolean },
-      to: InjuryState,
-      reportedAt: string | null,
-    ): boolean => {
-      if (!reportedAt || !ours.statusUpdatedAt) return false;      // no date, no auto-apply
-      if (Date.parse(reportedAt) <= Date.parse(ours.statusUpdatedAt)) return false;  // our opinion is newer
-      if (ours.pinned) return false;                                // never auto-apply, permanently
-      return SEVERITY[to] > SEVERITY[ours.status] || ours.source === "auto";
-    };
-
-    // ---- Review queue ----------------------------------------------------
-    // Every change lands here, tracked or not. This is the half of the
-    // system that's for Dan rather than for readers: the curated file isn't
-    // slow because research is slow, it's slow because nothing says when to
-    // look. Untracked players are filtered to premium positions and real
-    // designations, or the queue becomes 800 rows of practice reports.
-    for (const c of changes) {
-      const isCandidate = !c.tracked
-        && c.to !== "active"
-        && PREMIUM_POSITIONS.has(String(c.e.position || "").toUpperCase());
-      if (!c.tracked && !isCandidate) continue;
-
-      const ours = curated.get(c.e.id);
-
-      // ESPN CAUGHT UP TO A CALL ALREADY MADE. The diff above is ESPN
-      // against ESPN, which is right for alerting - the feed genuinely
-      // moved - but a queue row is a question ("should the curated file say
-      // something else?"), and when ESPN's new state is what the file
-      // already says, there is no question. These are the rows that render
-      // as "active → active": Dan had the player active, ESPN spent a week
-      // calling him questionable, and has now agreed. Nothing to apply.
-      if (ours && ours.status === c.to) {
-        report.skippedAgreed.push(`${c.e.name} (${c.e.team}) — already ${c.to} on file`);
-        continue;
-      }
-
-      // A HEALTHY reading, never a live one, for the suggested score - see
-      // the depth-chart note above.
-      const healthySpot: HealthyDepth | null = depthSnapshot.players[c.e.id] || null;
-      const scoringSpot = healthySpot || bestSpot(liveDepth[c.e.id], c.e.position);
-
-      // DOES HIS ABSENCE CHANGE WHO PLAYS? For an unfamiliar name that's the
-      // whole question, and for 121 of 126 of them today the answer is no:
-      // somebody healthy is still ahead of him, so the snap gets taken and
-      // the line doesn't move. Tracked players are exempt - being in the
-      // curated file is Dan's own statement that the player matters, and it
-      // outranks a depth chart.
-      const standing = checkStanding(depthSnapshot.slots?.[c.e.team], c.e.id, isDown);
-      if (!c.tracked && standing.covered) {
-        report.covered.push(`${c.e.name} (${c.e.team}) — healthy body still ahead of him`);
-        continue;
-      }
-
-      // ---- Is this a decision, or something the automation already makes? --
-      // A row that injury-player-sync.mjs will apply on its own run is not a
-      // question for anyone. It is still WRITTEN, pre-resolved rather than
-      // skipped: if that script fails or a run is delayed, a skipped row is a
-      // change nobody ever sees, whereas a pre-resolved one is out of the
-      // default view and still there under ?all=1.
-      let autoHandled: string | null = null;
-      if (c.tracked && ours && syncWillApply(ours, c.to, c.e.date)) {
-        autoHandled = "sync-applies";
-      } else if (!c.tracked && standing.starter) {
-        // The sync auto-adds an untracked first-stringer at a premium
-        // position who's been ruled out. Questionable isn't in its remit, so
-        // that stays a real row.
-        if (c.to === "out") autoHandled = "sync-adds";
-      }
-
-      // The alert path above already refuses to fire twice for the same
-      // `{espnId}:{to}` (the evt ledger inside deliverAlert). The queue had no
-      // equivalent, and it needs one: `id` collapses to `{espnId}:{to}`
-      // whenever ESPN gives no injuryId, so a player who bounces
-      // questionable -> active -> questionable lands back on a key he has
-      // already been on. A blind setJSON writes a fresh object with no
-      // `resolved` field, which silently undoes a dismissal and puts him back
-      // in the queue looking brand new. Dan ignores him again, ESPN flips him
-      // again, and the row never stays gone.
-      //
-      // Three things have to line up before a repeat is treated as a repeat:
-      //   - the row was dismissed by hand, not folded away by collapseRepeats
-      //     (a superseded row's `to` is stale by definition, so a change back
-      //     to it is real news and must re-open);
-      //   - ESPN is asking for the same destination status as last time;
-      //   - the curated file still says what it said when it was dismissed -
-      //     if Dan has since changed his own call, the same ESPN report is a
-      //     different question and deserves asking again.
-      const key = reviewKey(`${c.e.id}:${c.e.injuryId || c.to}`);
-      const existing = (await store.get(key, { type: "json" })) as
-        (ReviewItem & { supersededBy?: string }) | null;
-      // `autoHandled` excluded deliberately: those rows are resolved by the
-      // dispatcher, not by Dan, so treating one as a dismissal would suppress
-      // the genuine row that follows when the sync's own rules stop covering
-      // the player.
-      const dismissedByHand = !!existing && existing.resolved === true
-        && !existing.supersededBy && !(existing as any).autoHandled;
-      if (dismissedByHand && existing!.to === c.to && (existing!.ours ?? null) === (ours ? ours.status : null)) {
-        report.skippedDismissed.push(`${c.e.name} (${c.e.team}) → ${c.to}`);
-        continue;
-      }
-
-      const item: ReviewItem = {
-        id: `${c.e.id}:${c.e.injuryId || c.to}`,
-        espnId: c.e.id,
-        name: c.e.name,
-        team: c.e.team,
-        position: c.e.position,
-        kind: c.tracked ? "tracked-change" : "untracked-candidate",
-        ours: ours ? ours.status : null,
-        from: c.from,
-        to: c.to,
-        espnStatus: c.e.status,
-        detail: detailPhrase(c.e),
-        returnDate: c.e.returnDate,
-        comment: c.e.comment,
-        reportedAt: c.e.date,
-        depth: scoringSpot
-          ? { index: scoringSpot.index, size: scoringSpot.size, pos: scoringSpot.pos, label: describeSpot(scoringSpot) }
-          : null,
-        // A tracked player already has a number Dan chose; suggesting one
-        // over the top of it would invite overwriting a real decision with a
-        // guess. Suggest only where there is nothing on file.
-        suggestedImpact: ours ? null : suggestImpactScore(c.e.position, scoringSpot),
-        standing: standing.starter ? "starter"
-          : standing.nextManUp ? "next-man-up"
-          : standing.unknown ? "unknown" : "covered",
-        seenAt: now.toISOString(),
-      };
-      if (autoHandled) {
-        item.autoHandled = autoHandled;
-        item.resolved = true;
-        item.resolvedAt = now.toISOString();
-        report.autoHandled.push(`${c.e.name} (${c.e.team}) → ${c.to} [${autoHandled}]`);
-      }
-      if (existing && existing.resolved === true && !autoHandled) {
-        report.reopened.push(
-          `${c.e.name} (${c.e.team}) → ${c.to} — was ${existing.supersededBy ? "superseded" : (existing as any).autoHandled ? "auto-handled" : "cleared by hand"}` +
-          `, ours ${existing.ours ?? "—"} vs ${ours ? ours.status : "—"}, to ${existing.to} vs ${c.to}`
-        );
-      }
-      if (!dryRun) await store.setJSON(key, item);
-      if (!autoHandled) report.queued++;
     }
 
     // ---- Alerts ----------------------------------------------------------
     // Tracked players only. An untracked name has no impact score, no
     // curated note, and no reason to believe the app's readers care - it
-    // goes to the queue and starts alerting once Dan adds it.
+    // starts alerting once injury-player-sync.mjs adds it to the file.
     const alertable = changes.filter((c) => c.tracked);
     if (alertable.length) {
       const users: AlertUser[] = [];
@@ -500,16 +245,7 @@ export default async (req: Request, _context: Context) => {
 
     if (!dryRun) {
       await store.setJSON(SNAPSHOT_KEY, nextSnapshot);
-      // Every tick, unconditionally: injury-review reads this to retire rows
-      // whose starter has since been cleared, and a stale copy would keep
-      // them sitting in the queue.
-      await store.setJSON(DOWN_SET_KEY, {
-        updatedAt: now.toISOString(),
-        ids: Object.entries(fresh).filter(([, e]) => e.state !== "active").map(([id]) => id),
-      });
-      // Only when a team was actually read this tick - otherwise this is a
-      // full rewrite of an unchanged document every couple of minutes.
-      if (depthFetched) await store.setJSON(DEPTH_SNAPSHOT_KEY, depthSnapshot);
+      await purgeReviewRows(store, report);
     }
     await alertLog.flush({ changes: report.changes?.length ?? undefined });
     return jsonResponse(200, report);
@@ -518,6 +254,26 @@ export default async (req: Request, _context: Context) => {
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error", report });
   }
 };
+
+/** One-time cleanup of the retired admin review queue. Safe to leave in:
+ *  after the first successful pass it's a single marker read per tick. */
+async function purgeReviewRows(store: ReturnType<typeof notifStore>, report: any) {
+  try {
+    if (await store.get(REVIEW_PURGED_KEY)) return;
+    let deleted = 0;
+    for await (const page of store.list({ prefix: "review:", paginate: true })) {
+      for (const b of page.blobs) { await store.delete(b.key); deleted++; }
+    }
+    for (const key of ["espn-depth-healthy", "espn-down-set"]) {
+      try { await store.delete(key); } catch { /* absent is fine */ }
+    }
+    await store.set(REVIEW_PURGED_KEY, new Date().toISOString());
+    report.reviewRowsPurged = deleted;
+  } catch (err) {
+    // Housekeeping only - never costs the tick. Retried next run.
+    report.errors.push(`review purge: ${err instanceof Error ? err.message : "failed"}`);
+  }
+}
 
 /** Team page slug. Falls back to the abbreviation, which degrades safely -
  *  parseLocationPath matches on the slugified team NAME, so an unknown abbr

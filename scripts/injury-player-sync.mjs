@@ -10,12 +10,10 @@
  *     player without an espnId never joins to the ESPN feed, so no second
  *     line on the page, no fast alert, and no error to notice.
  *
- *  2. AUTO-APPLY A STATUS CHANGE, when ESPN's report is newer than the last
- *     time this file's opinion was set AND the player is getting worse. A
- *     de-escalation against a human-set status is never applied - see the
- *     direction rule in the status pass, which is the difference between
- *     this being safe to leave running and it quietly destroying the
- *     judgment that makes the file worth having.
+ *  2. AUTO-APPLY A STATUS CHANGE, in either direction, whenever ESPN's report
+ *     is newer than the last time this file's status was set. There is no
+ *     manual review step: the admin Injuries tab was removed and this script
+ *     is the only thing that maintains the file.
  *
  *  3. AUTO-ADD an untracked FIRST-STRING player at a premium position who's
  *     just been ruled out, so the app isn't blind to him until someone
@@ -80,11 +78,6 @@ const COLLAPSE = {
   Active: "active", Questionable: "questionable", Doubtful: "out",
   Out: "out", "Injured Reserve": "out", Suspension: "out",
 };
-
-/** Severity ladder. Direction of travel decides whether a change can be
- *  applied without a human, which matters more than it sounds - see the
- *  de-escalation rule in the status pass. */
-const SEVERITY = { active: 0, questionable: 1, out: 2 };
 
 /** Positions where an unfamiliar name going down is worth tracking at all. */
 const PREMIUM = new Set(["QB", "RB", "WR", "TE", "LT", "RT", "OT", "EDGE", "DE", "CB", "K"]);
@@ -342,7 +335,7 @@ async function main() {
   log(`${starters.size} first-string players identified.`);
   const byId = new Map(all().map(([t, p]) => [p.espnId, { team: t, player: p }]));
 
-  const changes = { ids: [], bootstrapped: 0, applied: [], added: [], pinnedSkips: [], needsReview: [], unresolved: [] };
+  const changes = { ids: [], bootstrapped: 0, applied: [], added: [], pinnedSkips: [], unresolved: [] };
 
   // ---- 1. espnId ---------------------------------------------------------
   for (const [team, p] of all()) {
@@ -378,26 +371,12 @@ async function main() {
       continue;
     }
 
-    // DIRECTION MATTERS, and this is the rule that makes unattended running
-    // safe rather than actively harmful.
-    //
-    // Escalations - a player getting worse - are always applied. They're the
-    // timely ones, and ESPN is rarely wrong about someone being MORE hurt
-    // than we thought.
-    //
-    // De-escalations are only applied when we're following ESPN's own chain
-    // (source "auto"). When a human set the status, ESPN saying he's better
-    // is very often ESPN being behind: measured on the real file, 8 of the
-    // 13 standing disagreements were exactly this - a player carried as out
-    // whom ESPN still listed questionable. Letting the feed silently
-    // downgrade a human's "out" would throw away the judgment that makes
-    // this file worth having. Those go to review instead.
-    const escalating = SEVERITY[e.state] > SEVERITY[p.status];
-    if (!escalating && p.source !== "auto") {
-      changes.needsReview.push(`${p.name} (${team}) ours ${p.status} -> ESPN ${e.state} (de-escalation, human-set - not applied)`);
-      continue;
-    }
-
+    // ESPN's newest report wins, in either direction. This used to hold back
+    // a de-escalation against a human-set status and queue it for review in
+    // the admin Injuries tab; that tab is gone and nothing is curated by hand
+    // any more, so a recovery is applied the same way an escalation is. A
+    // hand edit still sticks until ESPN files a report dated AFTER it (the
+    // check above), and `pinned: true` still freezes a player outright.
     const from = p.status;
     p.status = e.state;
     p.statusUpdatedAt = e.date;
@@ -441,7 +420,6 @@ async function main() {
   section(`Auto-applied ${changes.applied.length} status change(s):`, changes.applied);
   section(`Auto-added ${changes.added.length} player(s):`, changes.added);
   section(`Skipped ${changes.pinnedSkips.length} pinned player(s):`, changes.pinnedSkips);
-  section(`${changes.needsReview.length} de-escalation(s) left for you - ESPN says better, a human said worse:`, changes.needsReview);
   section(`COULD NOT RESOLVE an espnId for ${changes.unresolved.length} player(s) - these will never join to ESPN:`, changes.unresolved);
 
   // ---- validate ----------------------------------------------------------

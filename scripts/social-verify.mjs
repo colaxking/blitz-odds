@@ -87,17 +87,20 @@ async function fetchLiveOdds() {
 function buildWeekContext(week, odds, schedule) {
   const sched = (schedule.weeks || []).find((w) => Number(w.week) === Number(week));
   if (!sched) throw new Error(`No schedule entry for week ${week}`);
-  const oddsWeek = (odds.weeks || {})[String(week)] || { games: {} };
+  const oddsWeek = (odds?.weeks || {})[String(week)] || { games: {} };
   const games = sched.games.map((g) => {
     const key = `${g.away}-${g.home}`;
     const o = oddsWeek.games?.[key] || null;
     const spread = o && typeof o.spread === "number" ? o.spread : null;
+    const kickoff = kickoffOf(g, schedule.season);
     return {
       key,
       away: g.away,
       home: g.home,
       date: g.date || "",
       day: (g.date || "").split(",")[0],
+      kickoff,
+      started: kickoff !== null && kickoff <= NOW,
       time: g.time || "",
       network: g.network || "",
       favorite: o?.favorite || null,
@@ -108,7 +111,113 @@ function buildWeekContext(week, odds, schedule) {
       hasOdds: !!o,
     };
   });
-  return { week, games, byKey: Object.fromEntries(games.map((g) => [g.key, g])) };
+  const byKey = Object.fromEntries(games.map((g) => [g.key, g]));
+  // Week-relative aliases, so a weekly template can say {{line:@MNF}} instead
+  // of naming a matchup. The last game on a day is the night game.
+  const chrono = [...games].sort((a, b) => (a.kickoff ?? 0) - (b.kickoff ?? 0));
+  const lastOn = (day) => chrono.filter((g) => g.day === day).pop();
+  const aliases = { "@OPENER": chrono[0], "@TNF": lastOn("Thu"), "@SNF": lastOn("Sun"), "@MNF": lastOn("Mon") };
+  for (const [k, g] of Object.entries(aliases)) if (g) byKey[k] = g;
+  return { week, games, byKey };
+}
+
+// ---------------------------------------------------------------------------
+// Eastern-time helpers
+// ---------------------------------------------------------------------------
+
+const MONTHS = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
+
+// Minutes America/New_York is ahead of UTC at a given instant (-240 EDT, -300 EST).
+function nyOffsetMinutes(ms) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" })
+      .formatToParts(new Date(ms)).map((p) => [p.type, p.value]),
+  );
+  const asUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour % 24, +parts.minute);
+  return Math.round((asUtc - Math.floor(ms / 60000) * 60000) / 60000);
+}
+
+// Wall-clock Eastern time -> epoch ms.
+function nyToMs(y, m, d, hh, mm) {
+  const guess = Date.UTC(y, m - 1, d, hh, mm);
+  let ms = guess - nyOffsetMinutes(guess) * 60000;
+  ms = guess - nyOffsetMinutes(ms) * 60000; // settle across a DST edge
+  return ms;
+}
+
+// Epoch ms -> "2026-10-04T09:07:00-04:00", the dueAt form the queue uses.
+function nyIso(ms) {
+  const off = nyOffsetMinutes(ms);
+  const local = new Date(ms + off * 60000).toISOString().slice(0, 19);
+  const sign = off < 0 ? "-" : "+";
+  const a = Math.abs(off);
+  return `${local}${sign}${String(Math.floor(a / 60)).padStart(2, "0")}:${String(a % 60).padStart(2, "0")}`;
+}
+
+// "Sun, Oct 4" in the 2026 season -> {y, m, d}. January and February belong to the next calendar year.
+function seasonDate(dateStr, season) {
+  const m = /([A-Z][a-z]{2})\s+(\d{1,2})/.exec(dateStr || "");
+  if (!m || !MONTHS[m[1]]) return null;
+  const month = MONTHS[m[1]];
+  return { y: Number(season) + (month <= 2 ? 1 : 0), m: month, d: Number(m[2]) };
+}
+
+// Kickoff in epoch ms. A TBD time counts as 1 PM ET that day, which is when a
+// flexed late-season game is earliest likely to start.
+function kickoffOf(g, season) {
+  const d = seasonDate(g.date, season);
+  if (!d) return null;
+  const t = /(\d{1,2}):(\d{2})\s*(AM|PM)/i.exec(g.time || "");
+  let hh = 13, mm = 0;
+  if (t) { hh = (Number(t[1]) % 12) + (/pm/i.test(t[3]) ? 12 : 0); mm = Number(t[2]); }
+  return nyToMs(d.y, d.m, d.d, hh, mm);
+}
+
+// ---------------------------------------------------------------------------
+// Weekly templates -> concrete posts
+// ---------------------------------------------------------------------------
+
+// queue.weekly.slots are rendered once per NFL week, so the account keeps
+// posting without anyone writing a new batch. Each slot is placed relative
+// to that week's Sunday (dayOffset -5 = Tuesday ... +1 = Monday) and rotates
+// through its variants by week number so the copy doesn't repeat every week.
+// A hand-written entry in queue.posts with the same week and slot wins.
+function expandWeekly(queue, schedule, logDoc) {
+  const cfg = queue.weekly;
+  if (!cfg?.slots?.length) return [];
+  const taken = new Set(queue.posts.filter((p) => p.slot).map((p) => `${p.week}:${p.slot}`));
+  const out = [];
+  for (const w of schedule.weeks || []) {
+    const week = Number(w.week);
+    if (week < (cfg.startWeek ?? 1) || week > (cfg.endWeek ?? 99)) continue;
+    const sunday = w.games.find((g) => (g.date || "").startsWith("Sun"));
+    const base = sunday && seasonDate(sunday.date, schedule.season);
+    if (!base) continue;
+    for (const slot of cfg.slots) {
+      if (taken.has(`${week}:${slot.slot}`)) continue;
+      if (slot.whenDay && !w.games.some((g) => (g.date || "").startsWith(slot.whenDay))) continue;
+      const [hh, mm] = slot.time.split(":").map(Number);
+      const day = new Date(Date.UTC(base.y, base.m - 1, base.d + slot.dayOffset));
+      const dueMs = nyToMs(day.getUTCFullYear(), day.getUTCMonth() + 1, day.getUTCDate(), hh, mm);
+      const id = `${schedule.season}-w${week}-${slot.slot}`;
+      // Only posts that are still ahead, or that an earlier run already touched
+      // (so it can be closed out as sent/expired). Keeps past weeks out of the log.
+      if (dueMs <= NOW.getTime() && !logDoc.posts[id]) continue;
+      const pick = slot.variants[week % slot.variants.length];
+      const v = typeof pick === "string" ? { text: pick } : pick;
+      out.push({
+        id,
+        week,
+        slot: slot.slot,
+        generated: true,
+        dueAt: nyIso(dueMs),
+        requires: v.requires ?? slot.requires ?? [],
+        text: v.text,
+        fallback: v.fallback ?? slot.fallback,
+      });
+    }
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -137,8 +246,32 @@ function joinList(items, conj = "and") {
   return `${items.slice(0, -1).join(", ")} ${conj} ${items[items.length - 1]}`;
 }
 
+// Games still ahead that have a line. A game that has kicked off keeps its
+// last pre-game line forever, so it must never count as a stale line (that is
+// what blocked the Week 2 Sunday and Monday posts) and must never show up in a
+// "biggest spreads" or "closest games" list after it's been played.
 function withOdds(ctx) {
+  return ctx.games.filter((g) => g.hasOdds && !g.started);
+}
+
+// Every game with a line, played or not - for counting how complete a week's board is.
+function withOddsAll(ctx) {
   return ctx.games.filter((g) => g.hasOdds);
+}
+
+const TEAM_NAMES = {
+  ARI: "Cardinals", ATL: "Falcons", BAL: "Ravens", BUF: "Bills", CAR: "Panthers", CHI: "Bears",
+  CIN: "Bengals", CLE: "Browns", DAL: "Cowboys", DEN: "Broncos", DET: "Lions", GB: "Packers",
+  HOU: "Texans", IND: "Colts", JAX: "Jaguars", KC: "Chiefs", LAC: "Chargers", LAR: "Rams",
+  LV: "Raiders", MIA: "Dolphins", MIN: "Vikings", NE: "Patriots", NO: "Saints", NYG: "Giants",
+  NYJ: "Jets", PHI: "Eagles", PIT: "Steelers", SEA: "Seahawks", SF: "49ers", TB: "Buccaneers",
+  TEN: "Titans", WAS: "Commanders",
+};
+const DAY_NAMES = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" };
+
+function fmtOdds(g) {
+  if (g.absSpread === 0) return "pick'em";
+  return `${g.favorite} ${fmtSpread(g.spread)}`;
 }
 
 function onDay(games, day) {
@@ -213,6 +346,24 @@ function renderTemplate(text, ctx, post) {
         return cap(numWord(onDay(ctx.games, "Sun").filter((g) => g.time === t).length));
       }
       case "dow": return dowOf(post.dueAt);
+      case "week": return String(ctx.week);
+      case "weekPlus": return String(ctx.week + Number(args[0] || 1));
+      case "matchup": {
+        const g = ctx.byKey[args[0]];
+        if (!g) throw new Error(`Unknown game ${args[0]} in week ${ctx.week}`);
+        return `${TEAM_NAMES[g.away] || g.away} at ${TEAM_NAMES[g.home] || g.home}`;
+      }
+      case "odds": return fmtOdds(need(args[0]));
+      case "day": {
+        const g = ctx.byKey[args[0]];
+        if (!g) throw new Error(`Unknown game ${args[0]} in week ${ctx.week}`);
+        return DAY_NAMES[g.day] || g.day;
+      }
+      case "count": return numWord(onDay(ctx.games, args[0]).length);
+      case "firstTime": {
+        const first = onDay(ctx.games, args[0]).filter((g) => g.kickoff !== null).sort((a, b) => a.kickoff - b.kickoff)[0];
+        return first ? first.time.replace(/\s*ET$/, " ET") : "?";
+      }
       default: throw new Error(`Unknown placeholder {{${raw}}} in post ${post.id}`);
     }
   });
@@ -240,8 +391,9 @@ async function evaluate(requires, ctx, rendered) {
         break;
       }
       case "weekOdds": {
-        const n = withOdds(ctx).length;
-        if (n < (r.minGames ?? ctx.games.length)) fail(`weekOdds: only ${n}/${ctx.games.length} games have lines`);
+        const n = withOddsAll(ctx).length;
+        const want = r.minShare !== undefined ? Math.ceil(ctx.games.length * r.minShare) : (r.minGames ?? ctx.games.length);
+        if (n < want) fail(`weekOdds: only ${n}/${ctx.games.length} games have lines`);
         break;
       }
       case "spreadEq":
@@ -423,7 +575,23 @@ async function main() {
 
   const horizon = new Date(NOW.getTime() + LOOKAHEAD_HOURS * 3600e3);
 
-  for (const post of queue.posts) {
+  const allPosts = [...queue.posts, ...expandWeekly(queue, schedule, logDoc)]
+    .sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+
+  // The queue ran dry after Week 2 and nobody noticed for a week. If nothing
+  // at all is due in the next 7 days, say so (at most once every 3 days).
+  const weekAhead = NOW.getTime() + 7 * 86400e3;
+  const upcoming = allPosts.filter((p) => { const t = new Date(p.dueAt).getTime(); return t > NOW.getTime() && t <= weekAhead; });
+  if (!upcoming.length) {
+    const last = logDoc.lastEmptyQueueWarningAt ? new Date(logDoc.lastEmptyQueueWarningAt) : null;
+    if (!last || (NOW - last) / 86400e3 >= 3) {
+      alerts.push(`Nothing is queued for @RealBlitzOdds in the next 7 days. The weekly templates in social/queue.json cover weeks ${queue.weekly?.startWeek ?? "?"}-${queue.weekly?.endWeek ?? "?"}; add posts or extend them.`);
+      logDoc.lastEmptyQueueWarningAt = run.at;
+      act({ action: "empty-queue-warning" });
+    }
+  }
+
+  for (const post of allPosts) {
     const state = logDoc.posts[post.id] || { status: "pending" };
     const dueAt = new Date(post.dueAt);
 

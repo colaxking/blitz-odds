@@ -12802,34 +12802,34 @@
       "inputsCapturedAt": {
         "ARI": "2026-09-27T04:00:22.707Z",
         "ATL": "2026-09-25T00:00:18.628Z",
-        "BAL": "2026-09-27T04:00:22.707Z",
+        "BAL": "2026-09-27T17:00:18.901Z",
         "BUF": "2026-09-27T04:00:22.707Z",
         "CAR": "2026-09-27T04:00:22.707Z",
-        "CHI": "2026-09-27T04:00:22.707Z",
+        "CHI": "2026-09-27T17:00:18.901Z",
         "CIN": "2026-09-27T04:00:22.707Z",
         "CLE": "2026-09-27T04:00:22.707Z",
-        "DAL": "2026-09-27T04:00:22.707Z",
-        "DEN": "2026-09-27T04:00:22.707Z",
+        "DAL": "2026-09-27T17:00:18.901Z",
+        "DEN": "2026-09-27T17:00:18.901Z",
         "DET": "2026-09-27T04:00:22.707Z",
         "GB": "2026-09-25T00:00:18.628Z",
         "HOU": "2026-09-27T04:00:22.707Z",
         "IND": "2026-09-27T04:00:22.707Z",
         "JAX": "2026-09-27T04:00:22.707Z",
         "KC": "2026-09-27T04:00:22.707Z",
-        "LV": "2026-09-27T04:00:22.707Z",
+        "LV": "2026-09-27T17:00:18.901Z",
         "LAC": "2026-09-27T04:00:22.707Z",
-        "LAR": "2026-09-27T04:00:22.707Z",
+        "LAR": "2026-09-27T17:00:18.901Z",
         "MIA": "2026-09-27T04:00:22.707Z",
-        "MIN": "2026-09-27T04:00:22.707Z",
+        "MIN": "2026-09-27T17:00:18.901Z",
         "NE": "2026-09-27T04:00:22.707Z",
-        "NO": "2026-09-27T04:00:22.707Z",
+        "NO": "2026-09-27T17:00:18.901Z",
         "NYG": "2026-09-27T04:00:22.707Z",
         "NYJ": "2026-09-27T04:00:22.707Z",
-        "PHI": "2026-09-27T04:00:22.707Z",
+        "PHI": "2026-09-27T17:00:18.901Z",
         "PIT": "2026-09-27T04:00:22.707Z",
-        "SF": "2026-09-27T04:00:22.707Z",
+        "SF": "2026-09-27T17:00:18.901Z",
         "SEA": "2026-09-27T04:00:22.707Z",
-        "TB": "2026-09-27T04:00:22.707Z",
+        "TB": "2026-09-27T17:00:18.901Z",
         "TEN": "2026-09-27T04:00:22.707Z",
         "WAS": "2026-09-27T04:00:22.707Z"
       },
@@ -14267,20 +14267,6 @@
             },
             "statusUpdatedAt": "2026-09-13T05:30:24.870Z",
             "source": "curated"
-          },
-          {
-            "name": "B.J. Hill",
-            "position": "DT",
-            "impactScore": 6,
-            "status": "questionable",
-            "espnId": "3116748",
-            "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-            "source": "curated",
-            "injury": {
-              "type": "Achilles injury",
-              "since": "2026-09",
-              "note": "Hill was in serious doubt earlier in the week but is listed questionable on Cincinnati's final Friday, Sept. 25 injury report for Sunday's game at Pittsburgh."
-            }
           }
         ],
         "CLE": [
@@ -15142,11 +15128,13 @@
             "position": "WR",
             "espnId": "3916433",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-24T22:15Z",
-            "source": "auto",
-            "activatedDate": "2026-09-24"
+            "status": "questionable",
+            "injury": {
+              "type": "Thumb",
+              "note": "Meyers (thumb) was listed as a limited participant for Wednesday's practice, Ryan O'Halloran of the Florida Times-Union reports."
+            },
+            "statusUpdatedAt": "2026-09-23T20:34Z",
+            "source": "auto"
           }
         ],
         "KC": [
@@ -15178,12 +15166,14 @@
             "name": "Chris Jones",
             "position": "DT",
             "impactScore": 9,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-25T21:01Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Calf",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-09-23T20:56Z",
             "source": "auto",
-            "espnId": "3044859",
-            "activatedDate": "2026-09-25"
+            "espnId": "3044859"
           },
           {
             "name": "Jeff Caldwell",
@@ -15372,12 +15362,14 @@
             "name": "Tuli Tuipulotu",
             "position": "DE",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-25T18:30Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-09-23T22:28Z",
             "source": "auto",
-            "espnId": "4431442",
-            "activatedDate": "2026-09-25"
+            "espnId": "4431442"
           },
           {
             "name": "Ladd McConkey",
@@ -15433,19 +15425,6 @@
             "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
             "source": "curated",
             "espnId": "4241263"
-          },
-          {
-            "name": "Brenen Thompson",
-            "position": "WR",
-            "espnId": "4685553",
-            "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Quadriceps",
-              "note": "Thompson (quadriceps) did not practice Thursday."
-            },
-            "statusUpdatedAt": "2026-09-25T02:25Z",
-            "source": "auto"
           }
         ],
         "LAR": [
@@ -15781,13 +15760,13 @@
             "position": "CB",
             "espnId": "3916923",
             "impactScore": 5,
-            "status": "active",
+            "status": "questionable",
             "injury": {
-              "type": "Neck (cleared)",
+              "type": "Neck",
               "since": "2026-09-16",
-              "note": "Davis was a full practice participant this week and is off New England's report entirely ahead of Sunday's game at Jacksonville, after missing Week 2 vs. Pittsburgh with a neck injury."
+              "note": "Davis was added to New England's report Wednesday, Sept. 16 with a neck injury, did not practice all week, and was downgraded from questionable to OUT on Saturday, Sept. 19 for Sunday vs. Pittsburgh - his first missed game as a Patriot. Third-year CB Charles Woods is expected to step in. Listed as a full participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
             },
-            "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
+            "statusUpdatedAt": "2026-09-19T21:05:44Z",
             "source": "curated"
           },
           {
@@ -15795,13 +15774,14 @@
             "position": "DE",
             "espnId": "3915525",
             "impactScore": 5,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Shoulder",
-              "note": "Jones (shoulder) did not practice Thursday."
+              "since": "2026-09-20",
+              "note": null
             },
-            "statusUpdatedAt": "2026-09-25T00:46Z",
-            "source": "auto"
+            "statusUpdatedAt": "2026-09-21T14:29:55.384Z",
+            "source": "curated"
           },
           {
             "name": "Mike Onwenu",
@@ -15999,27 +15979,17 @@
             }
           },
           {
-            "name": "Jameis Winston",
-            "position": "QB",
-            "impactScore": 6,
-            "status": "active",
-            "statusUpdatedAt": "2026-09-25T01:20:00.000Z",
-            "source": "curated",
-            "injury": null,
-            "espnId": "2969939"
-          },
-          {
             "name": "Malik Nabers",
             "position": "WR",
             "impactScore": 9,
-            "status": "active",
+            "status": "questionable",
             "injury": {
-              "type": "Dislocated shoulder (cleared)",
+              "type": "Dislocated shoulder",
               "since": "2026-09-21",
-              "note": "Nabers was cleared off the Giants' final Week 3 injury report Friday, Sept. 25, with no game-status designation, and is playing Sunday vs. Tennessee after dislocating the shoulder in the Sept. 21 loss to the Rams and popping it back in himself."
+              "note": "Nabers dislocated his shoulder in the first quarter of the Sept. 21 loss to the Rams, popped it back into the socket himself and returned (1 catch, 1 yard). He was sent for X-rays and an MRI to check for a fracture or labrum tear, per the New York Post; results and a Week 3 status have not been announced."
             },
             "espnId": "4595348",
-            "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
+            "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
             "source": "curated"
           },
           {
@@ -16310,6 +16280,19 @@
             },
             "statusUpdatedAt": "2026-09-22T01:25:00.000Z",
             "source": "curated"
+          },
+          {
+            "name": "Hollywood Brown",
+            "position": "WR",
+            "espnId": "4241372",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Ankle",
+              "note": "Brown (ankle) has been ruled out ahead of Monday's game against the Bears."
+            },
+            "statusUpdatedAt": "2026-09-26T20:25Z",
+            "source": "auto"
           }
         ],
         "PIT": [
@@ -16407,13 +16390,14 @@
             "name": "Rico Dowdle",
             "position": "RB",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Toe",
-              "note": "Dowdle (toe) has been ruled out for Sunday's gam at Cincinnati, Alan Saunders of Steelers Now reports."
+              "since": "2026-09-20",
+              "note": "Dowdle missed part of the first half of the Sept. 20 loss at New England with a toe injury and was downgraded to out for the rest of the game. Per Ian Rapoport, tests came back relatively OK and he is considered day-to-day; he did not practice Wednesday, Sept. 23."
             },
-            "statusUpdatedAt": "2026-09-25T20:01Z",
-            "source": "auto",
+            "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
+            "source": "curated",
             "espnId": "4038815"
           }
         ],
@@ -16775,13 +16759,13 @@
             "position": "RB",
             "espnId": "4685512",
             "impactScore": 6,
-            "status": "active",
+            "status": "questionable",
             "injury": {
-              "type": "Shoulder / chest (cleared)",
+              "type": "Shoulder / chest",
               "since": "2026-09-20",
-              "note": "Price's X-rays came back negative after leaving Week 2 vs. Arizona, and Tom Pelissero reported optimism he avoided a significant injury; he carries no Week 3 game-status designation for Sunday vs. Arizona."
+              "note": "Left Sunday's win at Arizona after 24 snaps (13 carries, 52 yards) and did not return; X-rays were negative. HC Mike Macdonald said Monday, Sept. 21 the rookie is dealing with a shoulder issue. No designation yet for Week 3."
             },
-            "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
+            "statusUpdatedAt": "2026-09-22T01:25:00.000Z",
             "source": "curated"
           }
         ],
@@ -17077,14 +17061,15 @@
             "name": "Sam Cosmi",
             "position": "G",
             "impactScore": 5,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Concussion",
-              "note": "out"
+              "since": "2026-09-20",
+              "note": "Exited Sunday's loss at Dallas and entered concussion protocol."
             },
             "espnId": "4262199",
-            "statusUpdatedAt": "2026-09-25T21:22Z",
-            "source": "auto"
+            "statusUpdatedAt": "2026-09-22T01:30:34.701Z",
+            "source": "curated"
           }
         ]
       },

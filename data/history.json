@@ -12800,36 +12800,36 @@
       "snapshotDate": "2026-09-24T23:00:21.255Z",
       "inputsFrozenAt": "2026-09-24T23:00:21.255Z",
       "inputsCapturedAt": {
-        "ARI": "2026-09-27T19:00:17.129Z",
+        "ARI": "2026-09-27T20:00:14.564Z",
         "ATL": "2026-09-25T00:00:18.628Z",
-        "BAL": "2026-09-27T19:00:17.129Z",
+        "BAL": "2026-09-27T20:00:14.564Z",
         "BUF": "2026-09-27T04:00:22.707Z",
         "CAR": "2026-09-27T04:00:22.707Z",
-        "CHI": "2026-09-27T19:00:17.129Z",
+        "CHI": "2026-09-27T20:00:14.564Z",
         "CIN": "2026-09-27T04:00:22.707Z",
         "CLE": "2026-09-27T04:00:22.707Z",
-        "DAL": "2026-09-27T19:00:17.129Z",
-        "DEN": "2026-09-27T19:00:17.129Z",
+        "DAL": "2026-09-27T20:00:14.564Z",
+        "DEN": "2026-09-27T20:00:14.564Z",
         "DET": "2026-09-27T04:00:22.707Z",
         "GB": "2026-09-25T00:00:18.628Z",
         "HOU": "2026-09-27T04:00:22.707Z",
         "IND": "2026-09-27T04:00:22.707Z",
         "JAX": "2026-09-27T04:00:22.707Z",
         "KC": "2026-09-27T04:00:22.707Z",
-        "LV": "2026-09-27T19:00:17.129Z",
+        "LV": "2026-09-27T20:00:14.564Z",
         "LAC": "2026-09-27T04:00:22.707Z",
-        "LAR": "2026-09-27T19:00:17.129Z",
+        "LAR": "2026-09-27T20:00:14.564Z",
         "MIA": "2026-09-27T04:00:22.707Z",
-        "MIN": "2026-09-27T19:00:17.129Z",
+        "MIN": "2026-09-27T20:00:14.564Z",
         "NE": "2026-09-27T04:00:22.707Z",
-        "NO": "2026-09-27T19:00:17.129Z",
+        "NO": "2026-09-27T20:00:14.564Z",
         "NYG": "2026-09-27T04:00:22.707Z",
         "NYJ": "2026-09-27T04:00:22.707Z",
-        "PHI": "2026-09-27T19:00:17.129Z",
+        "PHI": "2026-09-27T20:00:14.564Z",
         "PIT": "2026-09-27T04:00:22.707Z",
-        "SF": "2026-09-27T19:00:17.129Z",
+        "SF": "2026-09-27T20:00:14.564Z",
         "SEA": "2026-09-27T04:00:22.707Z",
-        "TB": "2026-09-27T19:00:17.129Z",
+        "TB": "2026-09-27T20:00:14.564Z",
         "TEN": "2026-09-27T04:00:22.707Z",
         "WAS": "2026-09-27T04:00:22.707Z"
       },
@@ -13499,13 +13499,11 @@
             "position": "CB",
             "espnId": "4698113",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Toe",
-              "note": "Melton (toe) has been ruled out for the remainder of Sunday's game against the Seahawks, Darren Urban of the Cardinals' official site reports."
-            },
-            "statusUpdatedAt": "2026-09-20T22:40Z",
-            "source": "auto"
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-27T18:50Z",
+            "source": "auto",
+            "activatedDate": "2026-09-27"
           },
           {
             "name": "Garrett Williams",
@@ -13730,15 +13728,11 @@
             "position": "WR",
             "espnId": "4429615",
             "impactScore": 6,
-            "status": "questionable",
-            "injury": {
-              "type": "Hamstring strain (minor)",
-              "since": "2026-09-13",
-              "note": "Flowers is listed questionable on Baltimore's Week 3 Friday report, an upgrade from out, after continuing to deal with the hamstring strain suffered Sept. 13 at Indianapolis."
-            },
-            "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-            "source": "curated",
-            "activatedDate": "2026-08-27"
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-27T18:57Z",
+            "source": "auto",
+            "activatedDate": "2026-09-27"
           },
           {
             "name": "Bilhal Kone",
@@ -15258,14 +15252,12 @@
             "name": "Brock Bowers",
             "position": "TE",
             "impactScore": 9,
-            "status": "questionable",
-            "injury": {
-              "type": "Knee (meniscus)",
-              "note": "Recovering from a left knee meniscus procedure (Sept. 8). Practiced a second straight day Thursday, Sept. 24, after being limited Wednesday; trending toward making his 2026 season debut Sunday at New Orleans, pending a final call from medical staff."
-            },
-            "statusUpdatedAt": "2026-09-25T01:20:00.000Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-27T19:00Z",
             "source": "auto",
-            "espnId": "4432665"
+            "espnId": "4432665",
+            "activatedDate": "2026-09-27"
           },
           {
             "name": "Dont'e Thornton Jr.",
@@ -15653,9 +15645,12 @@
             "position": "DE",
             "espnId": "4696782",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-21T18:23Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-09-27T19:01Z",
             "source": "auto",
             "activatedDate": "2026-09-21"
           },
@@ -16437,16 +16432,12 @@
             "name": "Mike Evans",
             "position": "WR",
             "impactScore": 8,
-            "status": "questionable",
-            "injury": {
-              "type": "Hip",
-              "since": "2026-09-20",
-              "note": "Evans left late in the Sept. 20 win over Miami with a hip injury. HC Kyle Shanahan said it did not look serious, but Evans did not practice Wednesday, Sept. 23 ahead of Week 3 vs. Arizona."
-            },
+            "status": "active",
+            "injury": null,
             "espnId": "16737",
-            "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
-            "source": "curated",
-            "activatedDate": "2026-09-08"
+            "statusUpdatedAt": "2026-09-27T18:52Z",
+            "source": "auto",
+            "activatedDate": "2026-09-27"
           },
           {
             "name": "Nick Bosa",
@@ -17058,6 +17049,11 @@
         "ATL-GB": {
           "awayScore": 35,
           "homeScore": 14,
+          "final": true
+        },
+        "NYJ-DET": {
+          "awayScore": 24,
+          "homeScore": 31,
           "final": true
         }
       }

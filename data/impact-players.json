@@ -822,14 +822,12 @@
         "name": "Jalen Coker",
         "position": "WR",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Ankle",
-          "note": "Coker (ankle) was limited in Wednesday's practice, Joe Person of The Athletic reports."
-        },
-        "statusUpdatedAt": "2026-09-23T19:41Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-27T15:39Z",
         "source": "auto",
-        "espnId": "4695883"
+        "espnId": "4695883",
+        "activatedDate": "2026-09-27"
       }
     ],
     "TB": [
@@ -994,14 +992,13 @@
         "name": "B.J. Hill",
         "position": "DT",
         "impactScore": 6,
-        "status": "questionable",
+        "status": "out",
         "espnId": "3116748",
-        "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-27T15:39Z",
+        "source": "auto",
         "injury": {
-          "type": "Achilles injury",
-          "since": "2026-09",
-          "note": "Hill was in serious doubt earlier in the week but is listed questionable on Cincinnati's final Friday, Sept. 25 injury report for Sunday's game at Pittsburgh."
+          "type": "Achilles",
+          "note": "inactive"
         }
       }
     ],
@@ -1335,14 +1332,12 @@
         "name": "Ed Oliver",
         "position": "DT",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Hip",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-09-22T20:56Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-27T15:50Z",
         "source": "auto",
-        "espnId": "4039303"
+        "espnId": "4039303",
+        "activatedDate": "2026-09-27"
       },
       {
         "name": "Tyrell Shavers",
@@ -1885,14 +1880,13 @@
         "position": "CB",
         "espnId": "4379397",
         "impactScore": 5,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Ankle",
-          "since": "2026-09-20",
-          "note": null
+          "type": "Hip",
+          "note": "inactive"
         },
-        "statusUpdatedAt": "2026-09-21T14:31:57.575Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-27T15:53Z",
+        "source": "auto"
       }
     ],
     "JAX": [
@@ -1953,9 +1947,12 @@
         "position": "DE",
         "espnId": "4832922",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-21T18:49Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-27T15:31Z",
         "source": "auto",
         "activatedDate": "2026-09-21"
       },
@@ -2152,12 +2149,12 @@
         "name": "Joey Porter Jr.",
         "position": "CB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Back",
-          "note": "Porter will be evaluated Wednesday for a back injury he aggravated during practice last week, Alan Saunders of SteelersNow.com reports. Listed as a limited participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
+          "type": "Undisclosed",
+          "note": "inactive"
         },
-        "statusUpdatedAt": "2026-09-21T21:42Z",
+        "statusUpdatedAt": "2026-09-27T15:38Z",
         "source": "auto",
         "espnId": "4426506"
       },
@@ -2166,9 +2163,12 @@
         "position": "DE",
         "espnId": "4431533",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-21T18:32Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-27T15:38Z",
         "source": "auto",
         "activatedDate": "2026-09-21"
       },

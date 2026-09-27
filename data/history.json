@@ -12800,36 +12800,36 @@
       "snapshotDate": "2026-09-24T23:00:21.255Z",
       "inputsFrozenAt": "2026-09-24T23:00:21.255Z",
       "inputsCapturedAt": {
-        "ARI": "2026-09-27T04:00:22.707Z",
+        "ARI": "2026-09-27T18:00:18.741Z",
         "ATL": "2026-09-25T00:00:18.628Z",
-        "BAL": "2026-09-27T17:00:18.901Z",
+        "BAL": "2026-09-27T18:00:18.741Z",
         "BUF": "2026-09-27T04:00:22.707Z",
         "CAR": "2026-09-27T04:00:22.707Z",
-        "CHI": "2026-09-27T17:00:18.901Z",
+        "CHI": "2026-09-27T18:00:18.741Z",
         "CIN": "2026-09-27T04:00:22.707Z",
         "CLE": "2026-09-27T04:00:22.707Z",
-        "DAL": "2026-09-27T17:00:18.901Z",
-        "DEN": "2026-09-27T17:00:18.901Z",
+        "DAL": "2026-09-27T18:00:18.741Z",
+        "DEN": "2026-09-27T18:00:18.741Z",
         "DET": "2026-09-27T04:00:22.707Z",
         "GB": "2026-09-25T00:00:18.628Z",
         "HOU": "2026-09-27T04:00:22.707Z",
         "IND": "2026-09-27T04:00:22.707Z",
         "JAX": "2026-09-27T04:00:22.707Z",
         "KC": "2026-09-27T04:00:22.707Z",
-        "LV": "2026-09-27T17:00:18.901Z",
+        "LV": "2026-09-27T18:00:18.741Z",
         "LAC": "2026-09-27T04:00:22.707Z",
-        "LAR": "2026-09-27T17:00:18.901Z",
+        "LAR": "2026-09-27T18:00:18.741Z",
         "MIA": "2026-09-27T04:00:22.707Z",
-        "MIN": "2026-09-27T17:00:18.901Z",
+        "MIN": "2026-09-27T18:00:18.741Z",
         "NE": "2026-09-27T04:00:22.707Z",
-        "NO": "2026-09-27T17:00:18.901Z",
+        "NO": "2026-09-27T18:00:18.741Z",
         "NYG": "2026-09-27T04:00:22.707Z",
         "NYJ": "2026-09-27T04:00:22.707Z",
-        "PHI": "2026-09-27T17:00:18.901Z",
+        "PHI": "2026-09-27T18:00:18.741Z",
         "PIT": "2026-09-27T04:00:22.707Z",
-        "SF": "2026-09-27T17:00:18.901Z",
+        "SF": "2026-09-27T18:00:18.741Z",
         "SEA": "2026-09-27T04:00:22.707Z",
-        "TB": "2026-09-27T17:00:18.901Z",
+        "TB": "2026-09-27T18:00:18.741Z",
         "TEN": "2026-09-27T04:00:22.707Z",
         "WAS": "2026-09-27T04:00:22.707Z"
       },
@@ -13511,15 +13511,12 @@
             "name": "Garrett Williams",
             "position": "CB",
             "impactScore": 6,
-            "status": "out",
+            "status": "active",
             "espnId": "4568506",
-            "statusUpdatedAt": "2026-09-19T17:10:00.000Z",
-            "source": "curated",
-            "injury": {
-              "type": "Torn Achilles - recovering",
-              "since": "2025-12",
-              "note": "Williams is still working back from the Achilles tear he suffered in December 2025. He was limited in all three practices this week but was ruled OUT for Sunday vs. Seattle and has more rehab steps before he is cleared for his 2026 debut."
-            }
+            "statusUpdatedAt": "2026-09-26T00:34Z",
+            "source": "auto",
+            "injury": null,
+            "activatedDate": "2026-09-26"
           },
           {
             "name": "Will Johnson",
@@ -13774,29 +13771,23 @@
             "name": "Nnamdi Madubuike",
             "position": "DT",
             "impactScore": 7,
-            "status": "questionable",
-            "injury": {
-              "type": "Neck",
-              "since": "2026-09-06",
-              "note": "Madubuike missed the Week 1 opener at Indianapolis with the neck injury, was limited in practice this week, and was ruled OUT again on Friday, Sept. 18 for Sunday vs. New Orleans. Listed as a full participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
-            },
-            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-            "source": "curated",
-            "espnId": "4035245"
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-24T00:44Z",
+            "source": "auto",
+            "espnId": "4035245",
+            "activatedDate": "2026-09-24"
           },
           {
             "name": "Teddye Buchanan",
             "position": "LB",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Knee",
-              "since": "2026-09",
-              "note": "Buchanan missed the Week 1 opener with the knee injury and was limited in practice this week, but Baltimore ruled him OUT on Friday, Sept. 18 for Sunday vs. New Orleans. Listed as a full participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
-            },
-            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-            "source": "curated",
-            "espnId": "4698244"
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-24T23:36Z",
+            "source": "auto",
+            "espnId": "4698244",
+            "activatedDate": "2026-09-24"
           },
           {
             "name": "Devontez Walker",
@@ -14148,27 +14139,23 @@
             "position": "CB",
             "espnId": "4426374",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Hamstring",
-              "since": "2026-09-20",
-              "note": "Left the Sept. 20 loss to Minnesota with a hamstring injury and did not return. HC Ben Johnson labeled him week-to-week on Wednesday, Sept. 23; Chicago re-signed CB Nick McCloud to the practice squad."
-            },
-            "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
-            "source": "curated"
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-26T19:17Z",
+            "source": "auto",
+            "activatedDate": "2026-09-26"
           },
           {
             "name": "Tyson Bagent",
             "position": "QB",
             "impactScore": 4,
-            "status": "out",
+            "status": "questionable",
             "espnId": "4434153",
-            "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-09-26T19:00Z",
+            "source": "auto",
             "injury": {
               "type": "Concussion",
-              "since": "2026-09-20",
-              "note": "Bagent returned to Halas Hall Friday but did not practice and remains in the concussion protocol; the Chicago Sun-Times reports he is out for Monday night vs. Philadelphia, with Case Keenum confirmed to start."
+              "note": "Bagent (concussion) was a full participant in Saturday's practice but is listed as questionable for Monday's game against the Eagles."
             }
           },
           {
@@ -15300,14 +15287,11 @@
             "position": "CB",
             "espnId": "4430330",
             "impactScore": 5,
-            "status": "out",
-            "injury": {
-              "type": "Foot",
-              "since": "2026-09-13",
-              "note": "Porter did not practice at all this week (Sept. 16-18) and was ruled OUT for Sunday at the Chargers."
-            },
-            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-            "source": "curated"
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-25T02:30Z",
+            "source": "auto",
+            "activatedDate": "2026-09-25"
           }
         ],
         "LAC": [
@@ -16194,15 +16178,14 @@
             "name": "Jonathan Greenard",
             "position": "Edge",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Pectoral",
-              "since": "2026-09-06",
-              "note": "Greenard missed the opener against Washington with the pectoral injury and was limited in practice this week, but Philadelphia ruled him OUT for a second straight week on Friday, Sept. 18 for Sunday at Tennessee."
+              "note": "Greenard (pectoral) is listed as questionable ahead of Monday's game against the Bears."
             },
             "espnId": "3916409",
-            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-            "source": "curated"
+            "statusUpdatedAt": "2026-09-26T20:29Z",
+            "source": "auto"
           },
           {
             "name": "DeVonta Smith",

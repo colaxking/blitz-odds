@@ -689,9 +689,12 @@
         "position": "DE",
         "espnId": "4372463",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-21T18:25Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-28T22:49Z",
         "source": "auto",
         "activatedDate": "2026-09-21"
       },
@@ -3223,14 +3226,12 @@
         "name": "Jonathan Greenard",
         "position": "Edge",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Pectoral",
-          "note": "Greenard (pectoral) is listed as questionable ahead of Monday's game against the Bears."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "3916409",
-        "statusUpdatedAt": "2026-09-26T20:29Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-09-28T22:47Z",
+        "source": "auto",
+        "activatedDate": "2026-09-28"
       },
       {
         "name": "DeVonta Smith",

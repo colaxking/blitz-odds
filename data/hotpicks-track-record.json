@@ -4,7 +4,7 @@
       "2": {
         "week": 2,
         "season": 2026,
-        "gradedAt": "2026-09-27T23:00:19.806Z",
+        "gradedAt": "2026-09-28T00:00:23.841Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -125,28 +125,153 @@
             "homeScore": 20
           }
         }
+      },
+      "3": {
+        "week": 3,
+        "season": 2026,
+        "gradedAt": "2026-09-28T00:00:23.918Z",
+        "confidencePicks": [
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "MIN",
+              "homeId": "TB",
+              "awayName": "Minnesota Vikings",
+              "homeName": "Tampa Bay Buccaneers"
+            },
+            "pickTeamId": "TB",
+            "pick": "Tampa Bay Buccaneers",
+            "confidence": 0.9005647892341677,
+            "confidencePct": 90,
+            "summary": "Tampa Bay Buccaneers — 90% confidence",
+            "advantage": "Tampa Bay Buccaneers carries a 37.4-point rating edge over Minnesota Vikings once offense, defense, injuries, and weather are graded. Minnesota Vikings are without Jeshaun Jones (out), a real hit to their offense. The sportsbook favorite is actually Minnesota Vikings here - the model sees an edge this line doesn't fully reflect.",
+            "result": "loss",
+            "finalScore": {
+              "awayScore": 23,
+              "homeScore": 16
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "NYJ",
+              "homeId": "DET",
+              "awayName": "New York Jets",
+              "homeName": "Detroit Lions"
+            },
+            "pickTeamId": "NYJ",
+            "pick": "New York Jets",
+            "confidence": 0.8724722373545124,
+            "confidencePct": 87,
+            "summary": "New York Jets — 87% confidence",
+            "advantage": "New York Jets carries a 38.3-point rating edge over Detroit Lions once offense, defense, injuries, and weather are graded. Detroit Lions are without Brian Branch (out), a real hit to their defense. The sportsbook favorite is actually Detroit Lions here - the model sees an edge this line doesn't fully reflect.",
+            "result": "loss",
+            "finalScore": {
+              "awayScore": 24,
+              "homeScore": 31
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "KC",
+              "homeId": "MIA",
+              "awayName": "Kansas City Chiefs",
+              "homeName": "Miami Dolphins"
+            },
+            "pickTeamId": "KC",
+            "pick": "Kansas City Chiefs",
+            "confidence": 0.8490722958234507,
+            "confidencePct": 85,
+            "summary": "Kansas City Chiefs — 85% confidence",
+            "advantage": "Kansas City Chiefs carries a 35-point rating edge over Miami Dolphins once offense, defense, injuries, and weather are graded. Miami Dolphins are without Chop Robinson (out), a real hit to their defense. The market agrees Kansas City Chiefs is favored, and 85% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 24,
+              "homeScore": 10
+            }
+          }
+        ],
+        "spreadPick": {
+          "market": "spread",
+          "game": {
+            "awayId": "MIN",
+            "homeId": "TB",
+            "awayName": "Minnesota Vikings",
+            "homeName": "Tampa Bay Buccaneers"
+          },
+          "pickTeamId": "TB",
+          "pick": "Tampa Bay Buccaneers +points",
+          "confidence": 0.9005647892341677,
+          "confidencePct": 90,
+          "summary": "Tampa Bay Buccaneers to cover as the underdog",
+          "advantage": "The model favors Tampa Bay Buccaneers outright even though the market has them getting points - that's the whole edge: a line the model thinks is priced wrong.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 23,
+            "homeScore": 16
+          }
+        },
+        "moneylinePick": {
+          "market": "moneyline",
+          "game": {
+            "awayId": "NYJ",
+            "homeId": "DET",
+            "awayName": "New York Jets",
+            "homeName": "Detroit Lions"
+          },
+          "pickTeamId": "NYJ",
+          "pick": "New York Jets +245",
+          "confidence": 0.8724722373545124,
+          "confidencePct": 87,
+          "summary": "New York Jets +245",
+          "advantage": "The model gives New York Jets a 87% win probability, but that price only implies 29% - a 58-point gap between what the model sees and what the market's charging for it.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 24,
+            "homeScore": 31
+          }
+        },
+        "totalPick": {
+          "market": "total",
+          "game": {
+            "awayId": "SEA",
+            "homeId": "WAS",
+            "awayName": "Seattle Seahawks",
+            "homeName": "Washington Commanders"
+          },
+          "pick": "Under 40.5",
+          "lean": "under",
+          "summary": "Under 40.5",
+          "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 31,
+            "homeScore": 33
+          }
+        }
       }
     }
   },
   "aggregate": {
     "season": 2026,
-    "updatedAt": "2026-09-27T23:00:19.882Z",
+    "updatedAt": "2026-09-28T00:00:23.918Z",
     "confidencePicks": {
-      "wins": 1,
-      "losses": 2
+      "wins": 2,
+      "losses": 4
     },
     "spreadPicks": {
       "wins": 0,
-      "losses": 1,
+      "losses": 2,
       "pushes": 0
     },
     "moneylinePicks": {
       "wins": 0,
-      "losses": 1
+      "losses": 2
     },
     "totalPicks": {
       "wins": 1,
-      "losses": 0,
+      "losses": 1,
       "pushes": 0
     },
     "byWeek": [
@@ -159,6 +284,16 @@
         "spreadPick": "loss",
         "moneylinePick": "loss",
         "totalPick": "win"
+      },
+      {
+        "week": 3,
+        "confidencePicks": {
+          "wins": 1,
+          "losses": 2
+        },
+        "spreadPick": "loss",
+        "moneylinePick": "loss",
+        "totalPick": "loss"
       }
     ]
   }

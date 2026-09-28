@@ -99,6 +99,24 @@
         "fallback: fresh: 1 line(s) older than 48h (e.g. DET-BUF)"
       ],
       "lastCheckedAt": "2026-09-21T13:00:20.321Z"
+    },
+    "2026-w3-mon": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6aba64eaedcd922aa3b5d5bb",
+      "text": "Eagles at Bears tonight, 8:15 PM ET on ESPN. PHI -4.5, O/U 41.5.\n\nOne game left in Week 3. Week 4 lines go up tomorrow.\n\nblitz-odds.com",
+      "dueAt": "2026-09-28T13:06:00.000Z",
+      "scheduledAt": "2026-09-28T13:00:23.370Z",
+      "lastCheckedAt": "2026-09-28T13:00:23.370Z"
+    },
+    "2026-w4-tue": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6aba64ea3f092d97033d7e50",
+      "text": "Week 4 lines are up. Steelers at Browns opens it Thursday — PIT -2.5, O/U 37.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 4 confidence order: blitz-odds.com",
+      "dueAt": "2026-09-29T13:52:00.000Z",
+      "scheduledAt": "2026-09-28T13:00:23.370Z",
+      "lastCheckedAt": "2026-09-28T13:00:23.370Z"
     }
   },
   "runs": [
@@ -380,6 +398,23 @@
       "at": "2026-09-27T13:00:21.198Z",
       "dryRun": false,
       "actions": [],
+      "alerts": []
+    },
+    {
+      "at": "2026-09-28T13:00:23.370Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w3-mon",
+          "action": "scheduled",
+          "detail": "primary for 2026-09-28T09:06:00-04:00"
+        },
+        {
+          "post": "2026-w4-tue",
+          "action": "scheduled",
+          "detail": "primary for 2026-09-29T09:52:00-04:00"
+        }
+      ],
       "alerts": []
     }
   ],

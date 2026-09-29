@@ -5168,13 +5168,19 @@
     padding: 9px 12px; cursor: pointer; white-space: nowrap;
   }
   .admin-tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .admin-tab-dot {
+    display: inline-block; margin-left: 5px; min-width: 16px; height: 16px; line-height: 16px;
+    padding: 0 4px; border-radius: 8px; font-size: .6rem; font-weight: 800;
+    background: var(--out); color: #fff; vertical-align: 1px;
+  }
   .admin-body { padding-top: 14px; }
 
   .admin-search { margin-bottom: 10px; }
   .admin-search input,
   .admin-field input,
   .admin-field select,
-  .admin-inline select {
+  .admin-inline select,
+  .admin-inj-act select {
     width: 100%; background: var(--surface-2); border: 1px solid var(--card-border);
     color: var(--text); font-family: inherit; font-size: .85rem;
     padding: 9px 10px; border-radius: 8px;
@@ -5359,6 +5365,87 @@
   }
   .admin-savebar-text { flex: 1; font-size: .72rem; color: var(--text-dim); }
 
+  /* ---- injuries ---- */
+  .admin-inj {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-left: 2px solid var(--out); border-radius: 8px; padding: 12px; margin-bottom: 8px;
+  }
+  .admin-inj.downgrade { border-left-color: var(--warn); }
+  .admin-inj-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .admin-inj-name { font-size: .88rem; font-weight: 800; }
+  .admin-inj-move { display: flex; align-items: center; gap: 8px; margin: 9px 0 4px; font-size: .78rem; flex-wrap: wrap; }
+  .admin-inj-arrow { color: var(--text-dim); }
+  /* Whose statement each chip is. Without a label the row reads as one
+     transition when it's really two sources being compared. */
+  .admin-inj-who {
+    font-size: .6rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .admin-inj-mine {
+    display: flex; align-items: center; gap: 6px;
+    margin-left: 4px; padding-left: 10px; border-left: 1px solid var(--card-border);
+  }
+  .admin-inj-src { font-size: .7rem; color: var(--text-dim); line-height: 1.45; }
+  .admin-inj-warn { font-size: .7rem; color: var(--warn); font-weight: 700; margin-top: 7px; }
+  .admin-inj-act { display: flex; gap: 6px; margin-top: 10px; align-items: stretch; }
+  .admin-inj-act select { flex: 1 1 auto; min-width: 0; }
+  /* Scoped past the shared .admin-field input rule (width:100%), same
+     specificity trap the confidence box hit. */
+  .admin-inj-act .admin-inj-score {
+    flex: 0 0 56px; width: 56px; padding: 8px 6px; text-align: center;
+    background: var(--surface-2); border: 1px solid var(--card-border);
+    color: var(--text); font-family: inherit; font-size: .82rem; font-weight: 800;
+    border-radius: 8px;
+  }
+  .admin-inj-score-hint { font-size: .68rem; color: var(--text-dim); margin-top: 7px; line-height: 1.4; }
+  .admin-inj-purge {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-border);
+  }
+  .admin-inj-purge-ask { flex: 1 1 220px; font-size: .72rem; color: var(--warn); font-weight: 700; line-height: 1.45; }
+  /* The queue row's player name is a button into the depth-chart sheet. It
+     has to keep looking like the heading it replaced, so it inherits
+     .admin-inj-name's type and only adds the affordance. */
+  .admin-inj-name-btn {
+    background: none; border: none; padding: 0; margin: 0; font: inherit;
+    color: var(--text); cursor: pointer; border-bottom: 1px dashed var(--card-border);
+  }
+  .admin-inj-name-btn:hover, .admin-inj-name-btn:focus-visible {
+    color: var(--accent); border-bottom-color: currentColor; outline: none;
+  }
+
+  /* ---- depth chart sheet ---- */
+  .admin-depth-sum {
+    font-size: .8rem; line-height: 1.5; background: var(--surface-2);
+    border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 11px; margin-bottom: 12px;
+  }
+  .admin-depth-sum strong { font-weight: 800; }
+  .admin-depth-slot {
+    border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 11px; margin-bottom: 8px;
+  }
+  .admin-depth-slot-hd { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .admin-depth-slot-label { font-size: .82rem; font-weight: 800; }
+  .admin-depth-slot-side {
+    font-size: .62rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim);
+  }
+  .admin-depth-pill {
+    margin-left: auto; font-size: .62rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 5px; white-space: nowrap;
+    color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--card-border);
+  }
+  .admin-depth-pill.is-starter { color: var(--win); background: rgba(var(--win-rgb),.14); border-color: rgba(var(--win-rgb),.45); }
+  .admin-depth-list { list-style: none; margin: 9px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .admin-depth-row {
+    display: flex; align-items: center; gap: 8px; font-size: .8rem;
+    padding: 5px 7px; border-radius: 6px; min-width: 0;
+  }
+  .admin-depth-row.is-player {
+    background: rgba(var(--accent-rgb),.14); border: 1px solid rgba(var(--accent-rgb),.45); padding: 4px 6px; font-weight: 800;
+  }
+  .admin-depth-row .adr-n { flex: 0 0 14px; color: var(--text-dim); font-size: .7rem; font-weight: 700; }
+  .admin-depth-row .adr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-depth-row .adr-tag { flex: 0 0 auto; font-size: .62rem; font-weight: 800; color: var(--warn); letter-spacing: .04em; text-transform: uppercase; }
+  .admin-depth-row .adr-jersey { margin-left: auto; flex: 0 0 auto; color: var(--text-dim); font-size: .72rem; }
   .admin-st {
     font-size: .64rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
     padding: 3px 7px; border-radius: 5px; white-space: nowrap;
@@ -5429,7 +5516,7 @@
   <p><strong>Odds (DraftKings):</strong> SEA -4.5 · ML DAL +185 / SEA -225 · O/U 48.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Seattle Seahawks</strong> - DAL 22% / SEA 78%</p>
+  <p>Predicted winner: <strong>Seattle Seahawks</strong> - DAL 17% / SEA 83%</p>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -5456,7 +5543,6 @@
 <li><strong>Tyler Smith</strong> (DAL · LG) - out - Thumb ligament injury - surgery, headed to injured reserve</li>
 <li><strong>Malik Hooker</strong> (DAL · S) - out - Fractured forearm</li>
 <li><strong>DeMarvion Overshown</strong> (DAL · LB) - out - Hamstring</li>
-<li><strong>Sam Darnold</strong> (SEA · QB) - out - Glute injury (soft-tissue)</li>
 <li><strong>Zach Charbonnet</strong> (SEA · RB) - out - Torn ACL (surgically repaired)</li>
 <li><strong>Bud Clark</strong> (SEA · S) - out - Broken ankle - on injured reserve</li>
 <li><strong>Irv Charles</strong> (SEA · WR) - out - Undisclosed</li>
@@ -6191,7 +6277,7 @@
 <script type="application/json" id="players-data">
 {
   "isDemoData": false,
-  "disclaimer": "Injury and roster statuses reflect reports as of Friday evening, Sept. 25, 2026 (Friday: Giants WR Malik Nabers (shoulder) and Patriots CB Carlton Davis III (neck) were both cleared off their teams' final Week 3 reports with no designation; Eagles RB Saquon Barkley (shoulder stinger) returned to full practice and is off Philadelphia's report for Monday night vs. Chicago; Bears QB Tyson Bagent remains in the concussion protocol and is out Monday night, joining Caleb Williams (hamstring) as Case Keenum is confirmed to start, with Miller Moss staying on the practice squad as the emergency option; Broncos RB J.K. Dobbins (hamstring) and Seahawks RB Jadarian Price (shoulder/chest) were both cleared with no designation, while Broncos WR Marvin Mims Jr. was upgraded from out to questionable (foot); Ravens WR Zay Flowers was upgraded from out to questionable (hamstring); Bengals DT B.J. Hill (Achilles), previously in serious doubt, is questionable for Sunday at Pittsburgh; Seahawks QB Sam Darnold (glute) was officially ruled out again for Sunday vs. Arizona). Earlier: Thursday afternoon, Sept. 24, 2026 (Thursday: Giants WR Malik Nabers got \"good\" results on his shoulder X-ray and expects to play Sunday vs. Tennessee; Bears QBs Caleb Williams (hamstring) and Tyson Bagent (concussion protocol) both missed practice again, leaving veteran Case Keenum (newly added to this list) as Chicago's only healthy QB on the 53-man roster, with practice-squad QB Miller Moss expected to be promoted by Monday; Eagles RB Saquon Barkley (shoulder) practiced and is expected to play Monday vs. Chicago; Packers ruled out LG Aaron Banks (knee/toe) for tonight's TNF vs. Atlanta, with DT Javon Hargrave (knee/concussion) questionable). Earlier: Wednesday afternoon, Sept. 23, 2026 (Wednesday afternoon, first Week 3 practice reports: Patriots CB Carlton Davis III and Ravens DT Nnamdi Madubuike and LB Teddye Buchanan were full participants, Dolphins OLB Chop Robinson (concussion) was a full participant, and Steelers WR Michael Pittman Jr. and CB Joey Porter Jr. plus Lions LG Christian Mahogany and RT Blake Miller were limited, so all move from out to questionable; Steelers RB Rico Dowdle (toe) did not practice). Earlier: Wednesday midday, Sept. 23, 2026 (Wednesday midday: Giants QB Jaxson Dart is expected to have season-ending surgery for meniscus, MCL and PCL damage; Jets WR Arian Smith has a torn ACL and is out for the season; Colts WR Alec Pierce (heel) and Falcons CB A.J. Terrell (groin) went on injured reserve; on the first Thursday-game practice reports, Falcons CB Billy Bowman Jr. (Achilles) was a full participant and Packers DT Javon Hargrave (knee/concussion) was limited, so both are now questionable, while Packers WR Jayden Reed and G Aaron Banks did not practice). Earlier: Wednesday morning, Sept. 23, 2026 (Wednesday: Panthers RB Jonathon Brooks is having core muscle surgery and heads to IR for at least six weeks; Jets TE Mason Taylor (thumb) is week-to-week and likely out Week 3; still no results shared on Giants WR Malik Nabers' shoulder X-rays or Eagles RB Saquon Barkley's MRI; Commanders QB Jayden Daniels' prognosis is not expected before Thursday). Earlier: Tuesday night, Sept. 22, 2026 (Tuesday: Commanders QB Jayden Daniels (elbow) is seeing specialists Tuesday-Wednesday with no prognosis expected before Thursday at the earliest; Giants WR Malik Nabers (shoulder, popped back in during the game) awaits X-ray results; Colts WR Alec Pierce ruled out several weeks with his heel, rehab over surgery and likely IR; Falcons QB Tua Tagovailoa practiced fully and is available as Michael Penix Jr.'s backup; Giants QB Jaxson Dart faces possible season-ending knee surgery; Eagles RB Saquon Barkley's MRI results still not shared), building on reports after Week 2's Sunday games and the Giants-Rams Monday night inactives (Rams WR Puka Nacua, hip, was inactive; Aaron Donald made his comeback debut). Monday's key developments: Commanders QB Jayden Daniels (dislocated left elbow, no fracture) is out with no timeline yet - he sees specialists Tuesday/Wednesday and Marcus Mariota starts Week 3 vs. Seattle. Bears QB Caleb Williams has a Grade 1 right hamstring strain; HC Ben Johnson calls him week-to-week, doesn't expect him to practice this week and hasn't ruled him out for Monday night vs. Philadelphia (Tyson Bagent would start). Vikings QB Kyler Murray cleared concussion protocol and starts Week 3 at Tampa Bay. Eagles TE Dallas Goedert has a sprained MCL and is expected to miss multiple weeks (Zach Ertz signed to the practice squad); RB Saquon Barkley (stinger) had an MRI Monday with no update yet. Saints LT Kelvin Banks Jr. (severe high ankle sprain) needs surgery and is out indefinitely. Lions CB Avonte Maddox (foot) needs season-ending surgery. Chargers TEs David Njoku (fibula) and Charlie Kolar (forearm) went on IR. Patriots RG Mike Onwenu (broken ankle) is out for at least the next few weeks. Packers WR Jayden Reed's injury is now reported as a back injury, not neck; he has movement in all extremities and is returning to Green Bay for evaluation, and RT Zach Bako-Bewele (knee) could be lost for the season. Players ruled out or inactive Sunday and not yet cleared for Week 3 (Ravens Zay Flowers, Nnamdi Madubuike, Teddye Buchanan; Texans Nico Collins, Jadeveon Clowney; Steelers Michael Pittman Jr., Joey Porter Jr.; Patriots Carlton Davis III; Falcons Billy Bowman Jr., A.J. Terrell; Commanders Frankie Luvu, Chig Okonkwo; Eagles Jonathan Greenard; Broncos Marvin Mims Jr., RJ Harvey; Packers Javon Hargrave; Raiders Darien Porter; Seahawks Sam Darnold) stay marked out until this week's practice reports; Raiders TE Brock Bowers is trending toward a Week 3 return. Depth players marked out solely as Sunday inactives with no listed injury may be re-activated on the next report. Always confirm with the official Wednesday-Friday practice reports and pregame inactives before kickoff. Latest: Thursday evening, Sept. 24, 2026 (Jameis Winston, the Giants' new starter since Jaxson Dart's season-ending knee injury, added to this list; Steelers RB Rico Dowdle was seen in a walking boot and remains out of practice ahead of Sunday's game at Cincinnati, still officially day-to-day; Raiders TE Brock Bowers practiced a second straight day and is trending toward his 2026 debut Sunday at New Orleans). Reconciliation note (Friday night, Sept. 25, 2026): merged in a prior update that had been written to file but not yet published live - Packers DT Javon Hargrave and Falcons CB Billy Bowman Jr. both played Thursday night and are upgraded to active; Packers LB Edgerrin Cooper (concussion evaluation) and RG Jacob Monk (quad) added as questionable after exiting that game.",
+  "disclaimer": "Injury and roster statuses reflect reports as of Monday evening, Sept. 28, 2026 (Monday: Dolphins RB De'Von Achane tore his ACL and is on IR; Giants OLB Brian Burns is believed to have torn his ACL; Panthers CB Jaycee Horn has a significant quad injury and is headed to IR; Buccaneers QB Baker Mayfield's MRI showed no fracture or ligament damage but he'll miss at least three weeks; Vikings WR Justin Jefferson has a chance to play Week 4; Jets RB Breece Hall is week-to-week with a thigh injury). Earlier: Injury and roster statuses reflect reports as of Friday evening, Sept. 25, 2026 (Friday: Giants WR Malik Nabers (shoulder) and Patriots CB Carlton Davis III (neck) were both cleared off their teams' final Week 3 reports with no designation; Eagles RB Saquon Barkley (shoulder stinger) returned to full practice and is off Philadelphia's report for Monday night vs. Chicago; Bears QB Tyson Bagent remains in the concussion protocol and is out Monday night, joining Caleb Williams (hamstring) as Case Keenum is confirmed to start, with Miller Moss staying on the practice squad as the emergency option; Broncos RB J.K. Dobbins (hamstring) and Seahawks RB Jadarian Price (shoulder/chest) were both cleared with no designation, while Broncos WR Marvin Mims Jr. was upgraded from out to questionable (foot); Ravens WR Zay Flowers was upgraded from out to questionable (hamstring); Bengals DT B.J. Hill (Achilles), previously in serious doubt, is questionable for Sunday at Pittsburgh; Seahawks QB Sam Darnold (glute) was officially ruled out again for Sunday vs. Arizona). Earlier: Thursday afternoon, Sept. 24, 2026 (Thursday: Giants WR Malik Nabers got \"good\" results on his shoulder X-ray and expects to play Sunday vs. Tennessee; Bears QBs Caleb Williams (hamstring) and Tyson Bagent (concussion protocol) both missed practice again, leaving veteran Case Keenum (newly added to this list) as Chicago's only healthy QB on the 53-man roster, with practice-squad QB Miller Moss expected to be promoted by Monday; Eagles RB Saquon Barkley (shoulder) practiced and is expected to play Monday vs. Chicago; Packers ruled out LG Aaron Banks (knee/toe) for tonight's TNF vs. Atlanta, with DT Javon Hargrave (knee/concussion) questionable). Earlier: Wednesday afternoon, Sept. 23, 2026 (Wednesday afternoon, first Week 3 practice reports: Patriots CB Carlton Davis III and Ravens DT Nnamdi Madubuike and LB Teddye Buchanan were full participants, Dolphins OLB Chop Robinson (concussion) was a full participant, and Steelers WR Michael Pittman Jr. and CB Joey Porter Jr. plus Lions LG Christian Mahogany and RT Blake Miller were limited, so all move from out to questionable; Steelers RB Rico Dowdle (toe) did not practice). Earlier: Wednesday midday, Sept. 23, 2026 (Wednesday midday: Giants QB Jaxson Dart is expected to have season-ending surgery for meniscus, MCL and PCL damage; Jets WR Arian Smith has a torn ACL and is out for the season; Colts WR Alec Pierce (heel) and Falcons CB A.J. Terrell (groin) went on injured reserve; on the first Thursday-game practice reports, Falcons CB Billy Bowman Jr. (Achilles) was a full participant and Packers DT Javon Hargrave (knee/concussion) was limited, so both are now questionable, while Packers WR Jayden Reed and G Aaron Banks did not practice). Earlier: Wednesday morning, Sept. 23, 2026 (Wednesday: Panthers RB Jonathon Brooks is having core muscle surgery and heads to IR for at least six weeks; Jets TE Mason Taylor (thumb) is week-to-week and likely out Week 3; still no results shared on Giants WR Malik Nabers' shoulder X-rays or Eagles RB Saquon Barkley's MRI; Commanders QB Jayden Daniels' prognosis is not expected before Thursday). Earlier: Tuesday night, Sept. 22, 2026 (Tuesday: Commanders QB Jayden Daniels (elbow) is seeing specialists Tuesday-Wednesday with no prognosis expected before Thursday at the earliest; Giants WR Malik Nabers (shoulder, popped back in during the game) awaits X-ray results; Colts WR Alec Pierce ruled out several weeks with his heel, rehab over surgery and likely IR; Falcons QB Tua Tagovailoa practiced fully and is available as Michael Penix Jr.'s backup; Giants QB Jaxson Dart faces possible season-ending knee surgery; Eagles RB Saquon Barkley's MRI results still not shared), building on reports after Week 2's Sunday games and the Giants-Rams Monday night inactives (Rams WR Puka Nacua, hip, was inactive; Aaron Donald made his comeback debut). Monday's key developments: Commanders QB Jayden Daniels (dislocated left elbow, no fracture) is out with no timeline yet - he sees specialists Tuesday/Wednesday and Marcus Mariota starts Week 3 vs. Seattle. Bears QB Caleb Williams has a Grade 1 right hamstring strain; HC Ben Johnson calls him week-to-week, doesn't expect him to practice this week and hasn't ruled him out for Monday night vs. Philadelphia (Tyson Bagent would start). Vikings QB Kyler Murray cleared concussion protocol and starts Week 3 at Tampa Bay. Eagles TE Dallas Goedert has a sprained MCL and is expected to miss multiple weeks (Zach Ertz signed to the practice squad); RB Saquon Barkley (stinger) had an MRI Monday with no update yet. Saints LT Kelvin Banks Jr. (severe high ankle sprain) needs surgery and is out indefinitely. Lions CB Avonte Maddox (foot) needs season-ending surgery. Chargers TEs David Njoku (fibula) and Charlie Kolar (forearm) went on IR. Patriots RG Mike Onwenu (broken ankle) is out for at least the next few weeks. Packers WR Jayden Reed's injury is now reported as a back injury, not neck; he has movement in all extremities and is returning to Green Bay for evaluation, and RT Zach Bako-Bewele (knee) could be lost for the season. Players ruled out or inactive Sunday and not yet cleared for Week 3 (Ravens Zay Flowers, Nnamdi Madubuike, Teddye Buchanan; Texans Nico Collins, Jadeveon Clowney; Steelers Michael Pittman Jr., Joey Porter Jr.; Patriots Carlton Davis III; Falcons Billy Bowman Jr., A.J. Terrell; Commanders Frankie Luvu, Chig Okonkwo; Eagles Jonathan Greenard; Broncos Marvin Mims Jr., RJ Harvey; Packers Javon Hargrave; Raiders Darien Porter; Seahawks Sam Darnold) stay marked out until this week's practice reports; Raiders TE Brock Bowers is trending toward a Week 3 return. Depth players marked out solely as Sunday inactives with no listed injury may be re-activated on the next report. Always confirm with the official Wednesday-Friday practice reports and pregame inactives before kickoff. Latest: Thursday evening, Sept. 24, 2026 (Jameis Winston, the Giants' new starter since Jaxson Dart's season-ending knee injury, added to this list; Steelers RB Rico Dowdle was seen in a walking boot and remains out of practice ahead of Sunday's game at Cincinnati, still officially day-to-day; Raiders TE Brock Bowers practiced a second straight day and is trending toward his 2026 debut Sunday at New Orleans). Reconciliation note (Friday night, Sept. 25, 2026): merged in a prior update that had been written to file but not yet published live - Packers DT Javon Hargrave and Falcons CB Billy Bowman Jr. both played Thursday night and are upgraded to active; Packers LB Edgerrin Cooper (concussion evaluation) and RG Jacob Monk (quad) added as questionable after exiting that game. Latest: Sunday night, Sept. 27, 2026 (49ers ruled out WR Mike Evans for the rest of Sunday's game vs. Arizona with a rib injury; Buccaneers QB Baker Mayfield dislocated his throwing thumb late in the fourth quarter vs. Minnesota and did not return - X-rays showed no fracture, MRI set for Monday, no timeline yet, with Jalon Daniels finishing the game; Jets RB Breece Hall was ruled out for the rest of Sunday's game at Detroit with a thigh injury after a hard tackle, Braelon Allen finishing at RB; Rams WR Puka Nacua was inactive for Sunday night's game at Denver, with Schefter reporting the injury is mainly a groin issue limiting his explosiveness and a possible return as soon as next week vs. the Eagles).",
   "players": {
     "NE": [
       {
@@ -6218,15 +6304,14 @@
         "name": "Christian Barmore",
         "position": "DT",
         "impactScore": 7,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Knee injury",
-          "since": "2026-09-06",
-          "note": "Listed as a did-not-participate (knee) on New England's first official injury report Sunday, Sept. 6, but he returned as a full participant on the Monday, Sept. 7 report ahead of Wednesday's opener at Seattle - consistent with local reporting that Sunday doubled as a rest day. No game-status designation has been issued."
+          "type": "Shoulder",
+          "note": "questionable"
         },
         "espnId": "4372030",
-        "statusUpdatedAt": "2026-09-07T21:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-27T17:49Z",
+        "source": "auto"
       },
       {
         "name": "Ben Brown",
@@ -6303,30 +6388,23 @@
         "name": "Sam Darnold",
         "position": "QB",
         "impactScore": 8,
-        "status": "out",
+        "status": "active",
         "espnId": "3912547",
-        "statusUpdatedAt": "2026-09-12T01:05:00.000Z",
-        "source": "curated",
-        "injury": {
-          "type": "Glute injury (soft-tissue)",
-          "since": "2026-09-09",
-          "note": "Darnold left the Sept. 9 opener vs. New England after one series; Drew Lock replaced him and won the game. A CT scan ruled out a hip fracture and an MRI ruled out long-term damage, and Ian Rapoport later clarified the injury is to the glute rather than the hip. Seattle has since described it as a 'very unique' soft-tissue injury with no firm timeline for his return. He did not practice Wednesday, Sept. 16 and is not expected to play in Week 2 vs. Arizona."
-        }
+        "statusUpdatedAt": "2026-09-24T23:28Z",
+        "source": "auto",
+        "injury": null,
+        "activatedDate": "2026-09-24"
       },
       {
         "name": "Nick Emmanwori",
         "position": "S",
         "impactScore": 7,
         "status": "active",
-        "injury": {
-          "type": "Ankle",
-          "since": "2026-09",
-          "note": "Emmanwori was limited in practice during the week and listed questionable, but was not among Seattle's inactives for Sunday at Arizona."
-        },
-        "activatedDate": "2026-08-10",
+        "injury": null,
+        "activatedDate": "2026-09-27",
         "espnId": "4869523",
-        "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-27T18:41Z",
+        "source": "auto"
       },
       {
         "name": "Zach Charbonnet",
@@ -6504,14 +6582,13 @@
         "impactScore": 8,
         "status": "questionable",
         "injury": {
-          "type": "Hip",
-          "since": "2026-09-20",
-          "note": "Evans left late in the Sept. 20 win over Miami with a hip injury. HC Kyle Shanahan said it did not look serious, but Evans did not practice Wednesday, Sept. 23 ahead of Week 3 vs. Arizona."
+          "type": "Ribs",
+          "note": "Evans is considered day-to-day after sustaining a rib strain during Sunday's 36-30 win over the Cardinals, Ian Rapoport of NFL Network reports."
         },
         "espnId": "16737",
-        "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
-        "source": "curated",
-        "activatedDate": "2026-09-08"
+        "statusUpdatedAt": "2026-09-28T20:31Z",
+        "source": "auto",
+        "activatedDate": "2026-09-27"
       },
       {
         "name": "Nick Bosa",
@@ -6557,10 +6634,14 @@
         "name": "Dre Greenlaw",
         "position": "LB",
         "impactScore": 6,
-        "status": "active",
-        "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
-        "source": "curated",
-        "espnId": "3916903"
+        "status": "questionable",
+        "statusUpdatedAt": "2026-09-27T22:58Z",
+        "source": "auto",
+        "espnId": "3916903",
+        "injury": {
+          "type": "Quadriceps",
+          "note": "Greenlaw (quadriceps) is questionable to return to Sunday's game against the Cardinals, Eric Branch of the San Francisco Chronicle reports."
+        }
       },
       {
         "name": "Romello Height",
@@ -6682,11 +6763,12 @@
         "impactScore": 9,
         "status": "out",
         "injury": {
-          "type": "Hip",
-          "note": "Coach Sean McVay said Friday that Nacua (hip) will be listed as doubtful for Sunday's game at Denver, Stu Jackson of the Rams' official site reports."
+          "type": "Groin (officially listed with hip)",
+          "since": "2026-09-21",
+          "note": "Nacua was inactive for Sunday night's game at Denver. Adam Schefter reports the injury is mainly a groin issue that's been limiting his explosiveness, beyond just the hip designation on the practice report; he could be back as soon as next week vs. the Eagles, per HC Sean McVay."
         },
-        "statusUpdatedAt": "2026-09-25T18:15Z",
-        "source": "auto",
+        "statusUpdatedAt": "2026-09-28T01:15:00.000Z",
+        "source": "curated",
         "espnId": "4426515"
       },
       {
@@ -6719,10 +6801,14 @@
         "name": "Jaylen Watson",
         "position": "CB",
         "impactScore": 6,
-        "status": "active",
-        "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
-        "source": "curated",
-        "espnId": "4697639"
+        "status": "out",
+        "statusUpdatedAt": "2026-09-28T23:53Z",
+        "source": "auto",
+        "espnId": "4697639",
+        "injury": {
+          "type": "Shoulder",
+          "note": "Coach Sean McVay said Monday that Watson suffered a dislocated shoulder in Sunday night's loss to the Broncos, and he's likely to miss next Sunday's game against the Eagles, Adam Grosbard of The Orange County Register reports."
+        }
       },
       {
         "name": "CJ Daniels",
@@ -6731,9 +6817,9 @@
         "impactScore": 6,
         "status": "active",
         "injury": null,
-        "statusUpdatedAt": "2026-09-22T21:00Z",
+        "statusUpdatedAt": "2026-09-28T18:39Z",
         "source": "auto",
-        "activatedDate": "2026-09-22"
+        "activatedDate": "2026-09-28"
       }
     ],
     "CHI": [
@@ -6880,9 +6966,12 @@
         "position": "DE",
         "espnId": "4372463",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-21T18:25Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-09-28T22:49Z",
         "source": "auto",
         "activatedDate": "2026-09-21"
       },
@@ -6891,28 +6980,22 @@
         "position": "CB",
         "espnId": "4426374",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Hamstring",
-          "since": "2026-09-20",
-          "note": "Left the Sept. 20 loss to Minnesota with a hamstring injury and did not return. HC Ben Johnson labeled him week-to-week on Wednesday, Sept. 23; Chicago re-signed CB Nick McCloud to the practice squad."
-        },
-        "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
-        "source": "curated"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-26T19:17Z",
+        "source": "auto",
+        "activatedDate": "2026-09-26"
       },
       {
         "name": "Tyson Bagent",
         "position": "QB",
         "impactScore": 4,
-        "status": "out",
+        "status": "active",
         "espnId": "4434153",
-        "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-        "source": "curated",
-        "injury": {
-          "type": "Concussion",
-          "since": "2026-09-20",
-          "note": "Bagent returned to Halas Hall Friday but did not practice and remains in the concussion protocol; the Chicago Sun-Times reports he is out for Monday night vs. Philadelphia, with Case Keenum confirmed to start."
-        }
+        "statusUpdatedAt": "2026-09-27T17:08Z",
+        "source": "auto",
+        "injury": null,
+        "activatedDate": "2026-09-27"
       },
       {
         "name": "Case Keenum",
@@ -7013,12 +7096,29 @@
         "name": "Jalen Coker",
         "position": "WR",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-27T15:39Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Quadriceps",
+          "note": "Coker (quadriceps) does not think his injury is serious, Joe Person of The Athletic reports."
+        },
+        "statusUpdatedAt": "2026-09-27T21:06Z",
         "source": "auto",
         "espnId": "4695883",
         "activatedDate": "2026-09-27"
+      },
+      {
+        "name": "Jaycee Horn",
+        "position": "CB",
+        "impactScore": 7,
+        "status": "out",
+        "statusUpdatedAt": "2026-09-29T01:05:00.000Z",
+        "source": "curated",
+        "injury": {
+          "type": "Quadriceps (significant) - headed to injured reserve",
+          "since": "2026-09-27",
+          "note": "HC Dave Canales called it a significant quad injury; Horn is headed to IR and could be sidelined for the season, per NFL.com's Sept. 28 roundup."
+        },
+        "espnId": "4362847"
       }
     ],
     "TB": [
@@ -7026,10 +7126,15 @@
         "name": "Baker Mayfield",
         "position": "QB",
         "impactScore": 7,
-        "status": "active",
+        "status": "out",
         "espnId": "3052587",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-29T01:05:00.000Z",
+        "source": "curated",
+        "injury": {
+          "type": "Dislocated right thumb",
+          "since": "2026-09-27",
+          "note": "Mayfield dislocated his throwing thumb late in Sunday's loss to Minnesota. Monday's MRI showed no fracture or ligament damage, but HC Todd Bowles said he will miss at least three weeks. Jalon Daniels finished Sunday's game at QB."
+        }
       },
       {
         "name": "Emeka Egbuka",
@@ -7086,14 +7191,13 @@
         "name": "Jalen McMillan",
         "position": "WR",
         "impactScore": 6,
-        "status": "active",
+        "status": "out",
         "injury": {
-          "type": "Knee",
-          "since": "2026-09",
-          "note": "McMillan missed Week 1 but practiced fully all week and made his 2026 debut Sunday vs. Cleveland."
+          "type": "Knee - PCL",
+          "note": "McMillan has been diagnosed with a PCL sprain in his left knee, Jenna Laine of ESPN.com reports."
         },
-        "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
-        "source": "curated",
+        "statusUpdatedAt": "2026-09-29T00:03Z",
+        "source": "auto",
         "espnId": "4430834"
       }
     ],
@@ -7456,15 +7560,12 @@
         "name": "Christian Mahogany",
         "position": "G",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Hip (knee injury that migrated to the hip)",
-          "since": "2026-09-13",
-          "note": "Detroit's starting left guard did not practice at any point on the short week and was officially ruled OUT for Thursday night at Buffalo. HC Dan Campbell has said it is not a serious long-term issue. Starting RT Blake Miller (knee) was also ruled out, leaving the Lions down two starting offensive linemen. Listed as a limited participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4427864",
-        "statusUpdatedAt": "2026-09-17T01:30:30.464Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-26T01:32Z",
+        "source": "auto",
+        "activatedDate": "2026-09-26"
       },
       {
         "name": "D.J. Reed",
@@ -7484,15 +7585,12 @@
         "name": "Blake Miller",
         "position": "RT",
         "impactScore": 4,
-        "status": "questionable",
-        "injury": {
-          "type": "Knee",
-          "since": "2026-09",
-          "note": "Detroit's starting right tackle did not practice on the short week and was ruled OUT for Thursday night at Buffalo, alongside starting LG Christian Mahogany. No return timeline has been given. Listed as a limited participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "5081450",
-        "statusUpdatedAt": "2026-09-17T01:30:30.464Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-26T01:34Z",
+        "source": "auto",
+        "activatedDate": "2026-09-26"
       },
       {
         "name": "Avonte Maddox",
@@ -7514,10 +7612,14 @@
         "name": "Josh Allen",
         "position": "QB",
         "impactScore": 10,
-        "status": "active",
+        "status": "questionable",
         "espnId": "3918298",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-28T21:03Z",
+        "source": "auto",
+        "injury": {
+          "type": "Knee",
+          "note": "Bills head coach Joe Brady downplayed any concern about Allen's health after the quarterback took a hit to his knee during the fourth quarter of Sunday's 24-16 win over the Chargers, Alex Brasky of SI.com reports. \"We're gonna have to see how [Allen] progresses these next couple days,\" Brady said. \"Josh is always a little [gimpy] after the game.\""
+        }
       },
       {
         "name": "Ed Oliver",
@@ -7548,14 +7650,11 @@
         "position": "WR",
         "espnId": "3915416",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "AC joint sprain (left shoulder)",
-          "since": "2026-09-17",
-          "note": "Landed hard on his shoulder in the end zone Thursday vs. Detroit; avoided a broken collarbone. Day-to-day and expected to practice this week, with his status for Sunday vs. the Chargers depending on how the shoulder responds."
-        },
-        "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-        "source": "curated"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-27T15:44Z",
+        "source": "auto",
+        "activatedDate": "2026-09-27"
       }
     ],
     "HOU": [
@@ -7766,15 +7865,11 @@
         "position": "WR",
         "espnId": "4429615",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Hamstring strain (minor)",
-          "since": "2026-09-13",
-          "note": "Flowers is listed questionable on Baltimore's Week 3 Friday report, an upgrade from out, after continuing to deal with the hamstring strain suffered Sept. 13 at Indianapolis."
-        },
-        "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-        "source": "curated",
-        "activatedDate": "2026-08-27"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-27T18:57Z",
+        "source": "auto",
+        "activatedDate": "2026-09-27"
       },
       {
         "name": "Bilhal Kone",
@@ -7807,29 +7902,23 @@
         "name": "Nnamdi Madubuike",
         "position": "DT",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Neck",
-          "since": "2026-09-06",
-          "note": "Madubuike missed the Week 1 opener at Indianapolis with the neck injury, was limited in practice this week, and was ruled OUT again on Friday, Sept. 18 for Sunday vs. New Orleans. Listed as a full participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
-        },
-        "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-        "source": "curated",
-        "espnId": "4035245"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-24T00:44Z",
+        "source": "auto",
+        "espnId": "4035245",
+        "activatedDate": "2026-09-24"
       },
       {
         "name": "Teddye Buchanan",
         "position": "LB",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Knee",
-          "since": "2026-09",
-          "note": "Buchanan missed the Week 1 opener with the knee injury and was limited in practice this week, but Baltimore ruled him OUT on Friday, Sept. 18 for Sunday vs. New Orleans. Listed as a full participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
-        },
-        "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-        "source": "curated",
-        "espnId": "4698244"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-24T23:36Z",
+        "source": "auto",
+        "espnId": "4698244",
+        "activatedDate": "2026-09-24"
       },
       {
         "name": "Devontez Walker",
@@ -7963,15 +8052,12 @@
         "name": "Charvarius Ward",
         "position": "CB",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Groin",
-          "since": "2026-09-20",
-          "note": "Left Sunday night's loss at Kansas City with a groin injury. No update yet."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4037361",
-        "statusUpdatedAt": "2026-09-22T01:30:34.701Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-27T15:49Z",
+        "source": "auto",
+        "activatedDate": "2026-09-27"
       }
     ],
     "CLE": [
@@ -8138,14 +8224,11 @@
         "position": "DE",
         "espnId": "4832922",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-27T15:31Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-28T18:34Z",
         "source": "auto",
-        "activatedDate": "2026-09-21"
+        "activatedDate": "2026-09-28"
       },
       {
         "name": "Jakobi Meyers",
@@ -8188,14 +8271,12 @@
         "name": "Cooper Rush",
         "position": "QB",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "Rush (coach's decision) is inactive for Thursday's game versus Green Bay."
-        },
-        "statusUpdatedAt": "2026-09-24T23:01Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-28T18:12Z",
         "source": "auto",
-        "espnId": "2972515"
+        "espnId": "2972515",
+        "activatedDate": "2026-09-28"
       },
       {
         "name": "Michael Penix Jr.",
@@ -8311,16 +8392,15 @@
         "name": "Jalen Ramsey",
         "position": "CB",
         "impactScore": 8,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Knee injury (activated off PUP)",
-          "since": "2026-06",
-          "note": "Activated off the PUP list and returned to practice Monday, Aug. 24, alongside rookie OL Max Iheanachor (neck). HC Mike McCarthy called it a positive step after Ramsey opened camp on PUP with a minicamp knee injury (no surgery required); he's expected to be limited/ramping up gradually. Barring a setback, he's on track to be Pittsburgh's top slot corner for the Sept. 13 regular-season opener vs. Atlanta."
+          "type": "Wrist",
+          "note": "questionable"
         },
         "activatedDate": "2026-08-24",
         "espnId": "3045373",
-        "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-28T22:12Z",
+        "source": "auto"
       },
       {
         "name": "Cole Burgess",
@@ -8340,28 +8420,23 @@
         "name": "Joey Porter Jr.",
         "position": "CB",
         "impactScore": 7,
-        "status": "out",
-        "injury": {
-          "type": "Undisclosed",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-27T15:38Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-28T22:12Z",
         "source": "auto",
-        "espnId": "4426506"
+        "espnId": "4426506",
+        "activatedDate": "2026-09-28"
       },
       {
         "name": "Gabriel Rubio",
         "position": "DE",
         "espnId": "4431533",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "inactive"
-        },
-        "statusUpdatedAt": "2026-09-27T15:38Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-28T19:00Z",
         "source": "auto",
-        "activatedDate": "2026-09-21"
+        "activatedDate": "2026-09-28"
       },
       {
         "name": "DeShon Elliott",
@@ -8382,14 +8457,11 @@
         "position": "WR",
         "espnId": "4035687",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Foot",
-          "since": "2026-09-16",
-          "note": "Pittman was limited Wednesday, Sept. 16 with a foot injury, did not practice Thursday or Friday, and was downgraded from questionable to OUT on Saturday, Sept. 19 for Sunday at New England. DK Metcalf and Roman Wilson start on the outside with rookie Germie Bernard in line for more snaps. Listed as a limited participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
-        },
-        "statusUpdatedAt": "2026-09-19T21:05:44Z",
-        "source": "curated"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-27T15:44Z",
+        "source": "auto",
+        "activatedDate": "2026-09-27"
       },
       {
         "name": "Rico Dowdle",
@@ -8520,6 +8592,19 @@
         "statusUpdatedAt": "2026-09-23T13:15:00.000Z",
         "source": "curated",
         "espnId": "4808766"
+      },
+      {
+        "name": "Breece Hall",
+        "position": "RB",
+        "impactScore": 8,
+        "status": "questionable",
+        "injury": {
+          "type": "Thigh",
+          "note": "Hall left Sunday's game at Detroit with a thigh injury and is considered week-to-week per NFL.com's Monday roundup; HC Aaron Glenn said no update until Wednesday."
+        },
+        "espnId": "4427366",
+        "statusUpdatedAt": "2026-09-29T01:05:00.000Z",
+        "source": "curated"
       }
     ],
     "TEN": [
@@ -8672,41 +8757,33 @@
         "position": "WR",
         "espnId": "4869132",
         "impactScore": 6,
-        "status": "out",
-        "injury": {
-          "type": "Coach's Decision",
-          "note": "Virgil (coach's decision) is inactive for Sunday's game against the Seahawks."
-        },
-        "statusUpdatedAt": "2026-09-20T19:13Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-28T18:12Z",
         "source": "auto",
-        "activatedDate": "2026-09-14"
+        "activatedDate": "2026-09-28"
       },
       {
         "name": "Max Melton",
         "position": "CB",
         "espnId": "4698113",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Toe",
-          "note": "Melton (toe) has been ruled out for the remainder of Sunday's game against the Seahawks, Darren Urban of the Cardinals' official site reports."
-        },
-        "statusUpdatedAt": "2026-09-20T22:40Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-27T18:50Z",
+        "source": "auto",
+        "activatedDate": "2026-09-27"
       },
       {
         "name": "Garrett Williams",
         "position": "CB",
         "impactScore": 6,
-        "status": "out",
+        "status": "active",
         "espnId": "4568506",
-        "statusUpdatedAt": "2026-09-19T17:10:00.000Z",
-        "source": "curated",
-        "injury": {
-          "type": "Torn Achilles - recovering",
-          "since": "2025-12",
-          "note": "Williams is still working back from the Achilles tear he suffered in December 2025. He was limited in all three practices this week but was ruled OUT for Sunday vs. Seattle and has more rehab steps before he is cleared for his 2026 debut."
-        }
+        "statusUpdatedAt": "2026-09-26T00:34Z",
+        "source": "auto",
+        "injury": null,
+        "activatedDate": "2026-09-26"
       },
       {
         "name": "Will Johnson",
@@ -8878,10 +8955,15 @@
         "name": "De'Von Achane",
         "position": "RB",
         "impactScore": 8,
-        "status": "active",
-        "statusUpdatedAt": "2026-08-31T01:20:00.000Z",
+        "status": "out",
+        "statusUpdatedAt": "2026-09-29T01:05:00.000Z",
         "source": "curated",
-        "espnId": "4429160"
+        "espnId": "4429160",
+        "injury": {
+          "type": "Torn ACL - season-ending, on injured reserve",
+          "since": "2026-09-27",
+          "note": "Achane suffered a torn ACL in Sunday's loss to the Chiefs, will miss the rest of the season and was placed on injured reserve, per NFL.com's Monday roundup."
+        }
       },
       {
         "name": "Jalen Tolbert",
@@ -8912,15 +8994,12 @@
         "name": "Chop Robinson",
         "position": "Edge",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Concussion",
-          "since": "2026-09-16",
-          "note": "Robinson's concussion surfaced on Wednesday's (Sept. 16) report - reportedly sustained in practice - and he did not practice Thursday or Friday. HC Jeff Hafley ruled him OUT for Sunday at San Francisco. Reports note it is his third concussion in roughly 10 months. Listed as a full participant on Wednesday's (Sept. 23) Week 3 practice report; game status pending."
-        },
-        "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-        "source": "curated",
-        "espnId": "4431586"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-25T02:07Z",
+        "source": "auto",
+        "espnId": "4431586",
+        "activatedDate": "2026-09-25"
       }
     ],
     "LV": [
@@ -8979,14 +9058,12 @@
         "name": "Brock Bowers",
         "position": "TE",
         "impactScore": 9,
-        "status": "questionable",
-        "injury": {
-          "type": "Knee (meniscus)",
-          "note": "Recovering from a left knee meniscus procedure (Sept. 8). Practiced a second straight day Thursday, Sept. 24, after being limited Wednesday; trending toward making his 2026 season debut Sunday at New Orleans, pending a final call from medical staff."
-        },
-        "statusUpdatedAt": "2026-09-25T01:20:00.000Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-27T19:00Z",
         "source": "auto",
-        "espnId": "4432665"
+        "espnId": "4432665",
+        "activatedDate": "2026-09-27"
       },
       {
         "name": "Dont'e Thornton Jr.",
@@ -9006,14 +9083,11 @@
         "position": "CB",
         "espnId": "4430330",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Foot",
-          "since": "2026-09-13",
-          "note": "Porter did not practice at all this week (Sept. 16-18) and was ruled OUT for Sunday at the Chargers."
-        },
-        "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-        "source": "curated"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-25T02:30Z",
+        "source": "auto",
+        "activatedDate": "2026-09-25"
       }
     ],
     "GB": [
@@ -9184,15 +9258,14 @@
         "name": "Justin Jefferson",
         "position": "WR",
         "impactScore": 8,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Hamstring strain (recovered)",
-          "since": "2026-07-24",
-          "note": "Returned to practice July 29 after a mild hamstring strain; fully participated with no limitations in Sunday's (Aug. 9) public training camp practice. On track for Week 1 vs. Chicago."
+          "type": "Ankle",
+          "note": "Jefferson sprained his ankle vs. Tampa Bay and avoided serious injury; HC Kevin O'Connell says he has a chance to play in Week 4 (NFL.com, Sept. 28)."
         },
         "activatedDate": "2026-07-29",
         "espnId": "4262921",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
+        "statusUpdatedAt": "2026-09-29T01:05:00.000Z",
         "source": "curated"
       },
       {
@@ -9240,13 +9313,11 @@
         "position": "WR",
         "espnId": "4360637",
         "impactScore": 6,
-        "status": "out",
-        "injury": {
-          "type": "Suspension",
-          "note": "The NFL suspended Jones three games Tuesday for violating the league's substance-abuse policy, Mike Garafolo of NFL Network reports."
-        },
-        "statusUpdatedAt": "2026-08-26T01:45Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-09-28T21:34Z",
+        "source": "auto",
+        "activatedDate": "2026-09-28"
       },
       {
         "name": "Dontae Fleming",
@@ -9268,9 +9339,9 @@
         "impactScore": 5,
         "status": "active",
         "injury": null,
-        "statusUpdatedAt": "2026-09-21T18:23Z",
+        "statusUpdatedAt": "2026-09-28T18:52Z",
         "source": "auto",
-        "activatedDate": "2026-09-21"
+        "activatedDate": "2026-09-28"
       },
       {
         "name": "Jordan Mason",
@@ -9447,15 +9518,12 @@
         "name": "Jonathan Greenard",
         "position": "Edge",
         "impactScore": 7,
-        "status": "out",
-        "injury": {
-          "type": "Pectoral",
-          "since": "2026-09-06",
-          "note": "Greenard missed the opener against Washington with the pectoral injury and was limited in practice this week, but Philadelphia ruled him OUT for a second straight week on Friday, Sept. 18 for Sunday at Tennessee."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "3916409",
-        "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-28T22:47Z",
+        "source": "auto",
+        "activatedDate": "2026-09-28"
       },
       {
         "name": "DeVonta Smith",
@@ -9723,6 +9791,20 @@
         },
         "statusUpdatedAt": "2026-09-20T13:58:58.806Z",
         "source": "curated"
+      },
+      {
+        "name": "Brian Burns",
+        "position": "Edge",
+        "impactScore": 7,
+        "status": "out",
+        "statusUpdatedAt": "2026-09-29T01:05:00.000Z",
+        "source": "curated",
+        "injury": {
+          "type": "Torn ACL (believed) - likely season-ending",
+          "since": "2026-09-27",
+          "note": "Burns is believed to have torn his ACL in the Giants' Week 3 win over Tennessee, per Monday reports (NFL.com/UPI); NFL.com cites HC John Harbaugh confirming the tear."
+        },
+        "espnId": "4035631"
       }
     ],
     "DEN": [
@@ -9778,14 +9860,13 @@
         "position": "WR",
         "espnId": "4686472",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Foot",
-          "since": "2026-09-14",
-          "note": "Mims is listed questionable (foot) on Denver's Week 3 Friday report for Sunday night vs. the Rams, an upgrade from the out designation he carried the past two weeks."
+          "note": "inactive"
         },
-        "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-09-27T22:55Z",
+        "source": "auto"
       },
       {
         "name": "Caleb Lohner",
@@ -43758,6 +43839,454 @@ function AdminPicksPanel({ auth, data, onToast }) {
   );
 }
 
+/* ---------------- Injuries ---------------- */
+
+function AdminInjuriesPanel({ auth, onToast, onCount }) {
+  const [items, setItems] = useState(null);
+  const [autoHandled, setAutoHandled] = useState(0);
+  const [retired, setRetired] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [choice, setChoice] = useState({});
+  const [scores, setScores] = useState({});
+  // The queue row whose depth chart is open, if any. The impact score this
+  // panel asks for is really a question about where the player sits, so the
+  // answer belongs one tap away rather than in another window.
+  const [depthItem, setDepthItem] = useState(null);
+  // Ids cleared in this session. The row is dropped from the list the moment
+  // the write succeeds rather than waiting for the refetch to agree, and it
+  // stays dropped for as long as the panel is open. A resolve is a decision
+  // the server has already acknowledged with a 200 - if a later read still
+  // hands the row back, that's a bug to find in the dispatcher's `reopened`
+  // report, not a reason to make the same decision twice.
+  const dismissedRef = useRef(new Set());
+  // Two taps to empty the queue. Deleting every row is irreversible and the
+  // button sits next to Apply/Ignore, so it asks once rather than firing on
+  // a mis-tap.
+  const [confirmPurge, setConfirmPurge] = useState(false);
+  // espnId (and lowercased name) -> the curated record, so a queue row can show
+  // the impact score already on file instead of asking for it again.
+  const [tracked, setTracked] = useState({});
+
+  const load = useCallback(async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = await adminCall(auth, "/.netlify/functions/injury-review");
+      const list = (body.items || []).filter(r => !dismissedRef.current.has(r.id));
+      setItems(list);
+      setAutoHandled(body.autoHandled || 0);
+      setRetired(body.retired || 0);
+      onCount(list.length);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }, [auth, onCount]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // The curated player list, read from the same public endpoint the app uses.
+  // A miss here is not fatal - it just means a tracked player's existing score
+  // isn't prefilled and has to be typed.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/.netlify/functions/site-data-current")
+      .then(res => res.json())
+      .then(body => {
+        if (cancelled) return;
+        const byKey = {};
+        const teams = (body && body.players && body.players.players) || (body && body.players) || {};
+        Object.keys(teams).forEach(team => {
+          (teams[team] || []).forEach(p => {
+            if (p.espnId) byKey["id:" + p.espnId] = p;
+            if (p.name) byKey["name:" + String(p.name).toLowerCase()] = p;
+          });
+        });
+        setTracked(byKey);
+      })
+      .catch(() => { /* prefill is a convenience, not a requirement */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  function curatedFor(item) {
+    return (item.espnId && tracked["id:" + item.espnId])
+      || (item.name && tracked["name:" + String(item.name).toLowerCase()])
+      || null;
+  }
+
+  // The one answer to "what score is in this row's box". The input renders it
+  // and Apply sends it, so the two can't drift again: an untouched suggested
+  // score used to show in the box but go out as undefined, and the endpoint
+  // then rejected the new-player add for having no impactScore.
+  function scoreFor(item) {
+    if (scores[item.id] !== undefined) return scores[item.id];
+    const known = curatedFor(item);
+    if (known && known.impactScore !== undefined && known.impactScore !== null) return String(known.impactScore);
+    return item.suggestedImpact != null ? String(item.suggestedImpact) : "";
+  }
+
+  async function resolve(item, applied) {
+    setBusy(true);
+    setError(null);
+    try {
+      if (applied) {
+        const raw = scoreFor(item);
+        const score = raw !== "" ? Number(raw) : undefined;
+        await adminCall(auth, "/.netlify/functions/injury-player-add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reviewId: item.id,
+            status: choice[item.id] || item.to,
+            position: item.position,
+            impactScore: score,
+          }),
+        });
+      }
+      await adminCall(auth, "/.netlify/functions/injury-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, resolved: true }),
+      });
+      dismissedRef.current.add(item.id);
+      setItems(list => {
+        const next = (list || []).filter(r => r.id !== item.id);
+        onCount(next.length);
+        return next;
+      });
+      onToast(applied
+        ? (item.name || "Player") + " set to " + (choice[item.id] || item.to)
+        : "Ignored — " + (item.name || "player") + " unchanged");
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function purge() {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = await adminCall(auth, "/.netlify/functions/injury-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purge: true }),
+      });
+      dismissedRef.current = new Set();
+      setConfirmPurge(false);
+      setItems([]);
+      onCount(0);
+      onToast("Queue cleared — " + (body.deleted || 0) + " row" + (body.deleted === 1 ? "" : "s") + " deleted");
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <AdminStatus busy={busy} error={error} />
+
+      <p className="admin-note">
+        Only changes that need a decision from you. A player whose absence doesn't change who
+        plays, and anything the sync script applies on its own, never reaches this list. Nothing
+        here touches the app or the prediction model until you apply it.
+        {autoHandled > 0 && " " + autoHandled + " handled automatically since the last sweep."}
+        {retired > 0 && " " + retired + " cleared just now — a healthy player is still ahead of them."}
+      </p>
+
+      {items && !items.length && <p className="admin-empty">Queue is clear.</p>}
+
+      {(items || []).map(item => {
+        const downgrade = STATUS_RANK[item.to] < STATUS_RANK[item.ours || item.from];
+        const known = curatedFor(item);
+        // Never an empty box. A tracked player's own number first, then the
+        // dispatcher's depth-chart suggestion, so Apply is a decision rather
+        // than a research task. Rows queued before suggestedImpact shipped
+        // carry neither and still fall back to blank.
+        const scoreValue = scoreFor(item);
+        const scoreOk = scoreValue !== "" && Number(scoreValue) >= 1 && Number(scoreValue) <= 10;
+        return (
+          <div key={item.id} className={"admin-inj" + (downgrade ? " downgrade" : "")}>
+            {/* Reason he's here at all, for a name you won't recognise. */}
+            <div className="admin-inj-top">
+              <button
+                type="button"
+                className="admin-inj-name admin-inj-name-btn"
+                onClick={() => setDepthItem(item)}
+                title="Where he sits on the depth chart"
+              >
+                {item.name || item.espnId}
+              </button>
+              <span className="admin-row-sub">{item.position || "?"} · {item.team}</span>
+              {/* Keyed off the live tracked list, not item.kind: kind is frozen
+                  when the row is queued, so a player added since (a sync, or an
+                  earlier Apply) kept reading "Not tracked" beside his own score.
+                  Still gated on kind so a slow or failed tracked-list fetch
+                  doesn't flash the pill onto players who were always tracked. */}
+              {item.kind === "untracked-candidate" && !known && (
+                <span className="admin-pill admin-pill-off">Not tracked</span>
+              )}
+              {item.standing === "next-man-up" && (
+                <span className="admin-pill admin-pill-off">Next man up</span>
+              )}
+              {item.standing === "unknown" && (
+                <span className="admin-pill admin-pill-off">Not on the depth chart</span>
+              )}
+            </div>
+            {/* Two different facts, and conflating them is what made rows read
+                "active → active". The arrow is ESPN's own move, which is what
+                the dispatcher actually diffed; the curated status is a separate
+                chip, because it's the thing the arrow is asking you to change. */}
+            <div className="admin-inj-move">
+              <span className="admin-inj-who">ESPN</span>
+              <span className={"admin-st st-" + (item.from || "active")}>{item.from || "—"}</span>
+              <span className="admin-inj-arrow">→</span>
+              <span className={"admin-st st-" + item.to}>{item.to}</span>
+              {item.ours && (
+                <span className="admin-inj-mine">
+                  <span className="admin-inj-who">on file</span>
+                  <span className={"admin-st st-" + item.ours}>{item.ours}</span>
+                </span>
+              )}
+            </div>
+            {item.detail && <div className="admin-inj-src">ESPN: {item.detail}</div>}
+            {item.supersedes > 0 && (
+              <div className="admin-inj-src">
+                Rolled up {item.supersedes} earlier report{item.supersedes === 1 ? "" : "s"} for
+                this player — clearing this row clears them all.
+              </div>
+            )}
+            {downgrade && item.ours && (
+              <div className="admin-inj-warn">
+                Your curated status is {item.ours}. Applying this downgrades your own call.
+              </div>
+            )}
+            <div className="admin-inj-act">
+              <select
+                value={choice[item.id] || item.to}
+                disabled={busy}
+                onChange={e => setChoice(c => Object.assign({}, c, { [item.id]: e.target.value }))}
+                aria-label="Status to apply"
+              >
+                {["active", "questionable", "doubtful", "out", "ir"].map(s =>
+                  <option key={s} value={s}>{s}</option>
+                )}
+              </select>
+              <input
+                className="admin-inj-score"
+                type="text"
+                inputMode="numeric"
+                placeholder="1-10"
+                aria-label="Impact score"
+                value={scoreValue}
+                disabled={busy}
+                onChange={e => {
+                  const v = e.target.value.replace(/[^0-9]/g, "").slice(0, 2);
+                  setScores(sc => Object.assign({}, sc, { [item.id]: v }));
+                }}
+              />
+              <button
+                type="button"
+                className="admin-btn admin-btn-sm"
+                disabled={busy || !scoreOk}
+                onClick={() => resolve(item, true)}
+              >
+                Apply
+              </button>
+              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => resolve(item, false)}>
+                Ignore
+              </button>
+            </div>
+            <div className="admin-inj-score-hint">
+              {known
+                ? "Impact " + known.impactScore + " on file — change it here if this injury shifts how much he matters."
+                : item.suggestedImpact != null
+                  ? "Suggested " + item.suggestedImpact +
+                    (item.depth && item.depth.label
+                      ? " — " + item.depth.label + " when healthy"
+                      : " — ESPN has no healthy depth-chart reading for him, so this is his position alone") +
+                    ". Change it if he's worth more."
+                  : "New to the tracked list, so he needs an impact score: 1 is a depth piece, 10 moves the line on his own."}
+            </div>
+          </div>
+        );
+      })}
+
+      {items && items.length > 0 && (
+        <div className="admin-inj-purge">
+          {confirmPurge ? (
+            <React.Fragment>
+              <span className="admin-inj-purge-ask">
+                Delete all {items.length} row{items.length === 1 ? "" : "s"}? This can't be undone.
+                ESPN's snapshot is untouched, so nothing reappears until a player actually moves.
+              </span>
+              <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(false)}>
+                Cancel
+              </button>
+              <button type="button" className="admin-btn admin-btn-sm admin-btn-warn" disabled={busy} onClick={purge}>
+                Delete them
+              </button>
+            </React.Fragment>
+          ) : (
+            <button type="button" className="admin-btn admin-btn-sm" disabled={busy} onClick={() => setConfirmPurge(true)}>
+              Clear the queue
+            </button>
+          )}
+        </div>
+      )}
+
+      {depthItem && (
+        <AdminDepthChartSheet item={depthItem} onClose={() => setDepthItem(null)} />
+      )}
+    </div>
+  );
+}
+
+const STATUS_RANK = { active: 0, questionable: 1, doubtful: 2, out: 3, ir: 4 };
+
+/** Plain-English name for a 0-based slot index. "Starter" and "backup" are
+ *  spelled out because those two lines are what actually decide an impact
+ *  score; anything deeper is just a number. */
+function depthRankWord(i) {
+  if (i === 0) return "Starter";
+  if (i === 1) return "Backup";
+  return ordinalSuffix(i + 1) + " string";
+}
+
+/**
+ * Where a queued player sits on his team's ESPN depth chart, opened from the
+ * queue row's name.
+ *
+ * The panel asks for a 1-10 impact score before it will apply anything, and
+ * that number is mostly a depth-chart question: a starting QB and his third
+ * stringer produce identical-looking rows in the queue. This reuses
+ * useTeamRoster/fetchTeamRoster - the same session-cached ESPN roster +
+ * depthcharts pair the team pages already run on - so opening a second row
+ * for the same team costs nothing.
+ *
+ * Matching is by ESPN athlete id first (both sides of this are ESPN's own
+ * ids, so it's exact), falling back to a normalised name match for the rare
+ * record whose id didn't parse out of the injury feed's links.
+ */
+function AdminDepthChartSheet({ item, onClose }) {
+  const { loading, error, data } = useTeamRoster(item.team);
+
+  const matches = useCallback(p => {
+    if (!p) return false;
+    if (item.espnId && p.id != null && String(p.id) === String(item.espnId)) return true;
+    const theirs = normalizePlayerName(p.displayName || p.fullName || p.shortName);
+    const ours = normalizePlayerName(item.name);
+    return !!ours && theirs === ours;
+  }, [item.espnId, item.name]);
+
+  let rosterEntry = null;
+  if (data) {
+    for (const group of data.fullRoster) {
+      const found = (group.players || []).find(matches);
+      if (found) { rosterEntry = found; break; }
+    }
+  }
+
+  const jersey = rosterEntry && rosterEntry.jersey;
+  const years = rosterEntry && rosterEntry.experience && rosterEntry.experience.years;
+  const rosterPos = rosterEntry && rosterEntry.position && rosterEntry.position.abbreviation;
+
+  // Every slot he appears in. A player legitimately shows up in more than
+  // one - a WR3 who's also the KR2 - and the extra slots are worth seeing,
+  // but the summary line has to lead with the one the injury is about, so
+  // slots are ranked: his own position first, then any non-special-teams
+  // slot, then returner/kicking duty, and only then by depth. Sorting on
+  // depth alone would announce a WR3 as "the backup punt returner".
+  const primaryPos = String(rosterPos || item.position || "").toUpperCase();
+  function slotTier(slot) {
+    if (primaryPos && String(slot.posAbbr || "").toUpperCase() === primaryPos) return 0;
+    return slot.side === "specialTeam" ? 2 : 1;
+  }
+  const hits = !data ? [] : data.depthChart
+    .map(slot => {
+      const idx = slot.athletes.findIndex(matches);
+      return idx === -1 ? null : { slot, idx, tier: slotTier(slot) };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (a.tier - b.tier) || (a.idx - b.idx));
+
+  const best = hits[0] || null;
+  const behind = best && best.slot.athletes[best.idx + 1];
+  // "Jr." already ends the sentence; a second full stop reads as a typo.
+  const behindName = behind ? String(behind.displayName || behind.shortName || "").trim() : "";
+  const behindSentence = behindName + (/\.$/.test(behindName) ? "" : ".");
+
+  return (
+    <AdminSheet
+      title={item.name || item.espnId}
+      subtitle={(rosterPos || item.position || "?") + " · " + item.team +
+        (jersey ? " · #" + jersey : "") +
+        (years === 0 ? " · Rookie" : years ? " · " + ordinalSuffix(years + 1) + " season" : "")}
+      onClose={onClose}
+    >
+      {loading && <AdminStatus busy />}
+      {error && <AdminStatus error="ESPN's roster didn't come back — try again in a moment." />}
+
+      {data && (
+        <React.Fragment>
+          <p className="admin-depth-sum">
+            {best ? (
+              <React.Fragment>
+                <strong>{depthRankWord(best.idx)}</strong> at {best.slot.label} —{" "}
+                {ordinalSuffix(best.idx + 1)} of {best.slot.athletes.length}.
+                {behind
+                  ? " Next man up: " + behindSentence
+                  : " Nobody is listed behind him."}
+              </React.Fragment>
+            ) : rosterEntry ? (
+              "On the roster, but ESPN doesn't list him in any depth-chart formation — usually IR, practice squad, or a slot ESPN hasn't refreshed."
+            ) : (
+              "Not on " + item.team + "'s current ESPN roster. He may have been released or moved to a reserve list since this alert fired."
+            )}
+          </p>
+
+          {hits.map(({ slot, idx }) => (
+            <div className="admin-depth-slot" key={slot.slug}>
+              <div className="admin-depth-slot-hd">
+                <span className="admin-depth-slot-label">{slot.label}</span>
+                <span className="admin-depth-slot-side">{ROSTER_SIDE_LABELS[slot.side] || slot.side}</span>
+                <span className={"admin-depth-pill" + (idx === 0 ? " is-starter" : "")}>
+                  {depthRankWord(idx)}
+                </span>
+              </div>
+              <ul className="admin-depth-list">
+                {slot.athletes.map((p, i) => (
+                  <li className={"admin-depth-row" + (i === idx ? " is-player" : "")} key={(p && p.id) || i}>
+                    <span className="adr-n">{i + 1}</span>
+                    <span className="adr-name">{(p && (p.shortName || p.displayName)) || "—"}</span>
+                    {i === idx + 1 && <span className="adr-tag">Next up</span>}
+                    {p && p.jersey && <span className="adr-jersey">#{p.jersey}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          {hits.length > 0 && (
+            <p className="admin-hint">
+              Live from ESPN's depth chart, so it reflects where he was listed before this
+              designation — not the team's plan without him. A starter at a premium slot with
+              no real backup is the case for a high impact score.
+            </p>
+          )}
+        </React.Fragment>
+      )}
+    </AdminSheet>
+  );
+}
+
 /* ---------------- Activity ---------------- */
 
 function AdminActivityPanel({ auth, users }) {
@@ -44038,10 +44567,12 @@ function shortAdminUser(users, userId) {
   return userId.slice(0, 8);
 }
 
-// No Injuries tab: impact-players.json is kept in step with ESPN entirely by
-// scripts/injury-player-sync.mjs (escalations, recoveries and auto-adds), so
-// there's no review queue left to work through by hand.
+// Injuries leads, and is the tab the console opens on. It's the only panel
+// here that's time-sensitive - a queue row is a question ESPN is asking right
+// now, and the answer stops being useful once kickoff passes. Users, leagues
+// and picks are all things that keep.
 const ADMIN_TABS = [
+  { id: "injuries", label: "Injuries" },
   { id: "users", label: "Users" },
   { id: "leagues", label: "Leagues" },
   { id: "picks", label: "Picks" },
@@ -44057,6 +44588,7 @@ function AdminConsole({ auth, onClose }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
+  const [injuryCount, setInjuryCount] = useState(null);
   /* Accounts a delete has PROVEN gone. admin-user-delete re-reads the login
      before it reports success, so anything in here is definitely deleted -
      but Identity's user list can keep returning it for a few seconds, and
@@ -44124,6 +44656,7 @@ function AdminConsole({ auth, onClose }) {
                 onClick={() => setTab(t.id)}
               >
                 {t.label}
+                {t.id === "injuries" && injuryCount > 0 && <span className="admin-tab-dot">{injuryCount}</span>}
               </button>
             ))}
           </nav>
@@ -44131,8 +44664,10 @@ function AdminConsole({ auth, onClose }) {
 
         <div className="admin-body">
           {error && <AdminStatus error={error} />}
-          {/* Scoped to the tabs that actually read it; Alerts and Activity run
-              off their own fetches and spinners. */}
+          {/* Scoped to the tabs that actually read it. AdminInjuriesPanel runs
+              off its own fetch and has its own spinner, so a global one on top
+              of it is just a second thing loading on the tab that now opens by
+              default. */}
           {!data && !error && ["users", "leagues", "picks"].includes(tab) && <AdminStatus busy />}
 
           {viewData && tab === "users" && (
@@ -44149,6 +44684,9 @@ function AdminConsole({ auth, onClose }) {
           )}
           {viewData && tab === "picks" && (
             <AdminPicksPanel auth={auth} data={viewData} onToast={showToast} />
+          )}
+          {tab === "injuries" && (
+            <AdminInjuriesPanel auth={auth} onToast={showToast} onCount={setInjuryCount} />
           )}
           {tab === "alerts" && <AdminAlertsPanel auth={auth} users={viewData && viewData.users} />}
           {tab === "log" && <AdminActivityPanel auth={auth} users={viewData && viewData.users} />}

@@ -14003,11 +14003,11 @@
             "impactScore": 7,
             "status": "out",
             "espnId": "4431611",
-            "statusUpdatedAt": "2026-09-24T21:10:00.000Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
+            "source": "auto",
             "injury": {
               "type": "Hamstring strain (Grade 1, right)",
-              "note": "Hurt in the fourth quarter of the Sept. 20 loss to Minnesota. HC Ben Johnson calls him week-to-week; Williams did not practice at all this week (Wed.-Thu., Sept. 23-24) and has not been ruled out for Monday night vs. Philadelphia, but with Tyson Bagent also out (concussion protocol), Case Keenum is the only healthy QB on Chicago's 53-man roster; the Bears are expected to promote practice-squad QB Miller Moss to the active roster by Monday for depth, per the Chicago Sun-Times.",
+              "note": "Hurt in the fourth quarter of the Sept. 20 loss to Minnesota. HC Ben Johnson calls him week-to-week; he did not practice Wednesday, Sept. 23 but took part in a walkthrough, and Johnson said he isn't sure who will start Monday night vs. Philadelphia (Williams, Tyson Bagent or Case Keenum).",
               "since": "2026-09-20"
             }
           },
@@ -14086,12 +14086,14 @@
             "name": "Kyle Monangai",
             "position": "RB",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Undisclosed",
+              "note": "Monangai (undisclosed) was not present during the portion of Wednesday's practice open to the media, Brad Biggs of the Chicago Tribune reports."
+            },
             "espnId": "4608686",
-            "statusUpdatedAt": "2026-09-25T19:39Z",
-            "source": "auto",
-            "activatedDate": "2026-09-25"
+            "statusUpdatedAt": "2026-09-23T20:17Z",
+            "source": "auto"
           },
           {
             "name": "Austin Booker",
@@ -14140,12 +14142,9 @@
             "position": "DE",
             "espnId": "4372463",
             "impactScore": 5,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "inactive"
-            },
-            "statusUpdatedAt": "2026-09-28T22:49Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-21T18:25Z",
             "source": "auto",
             "activatedDate": "2026-09-21"
           },
@@ -14154,35 +14153,27 @@
             "position": "CB",
             "espnId": "4426374",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-26T19:17Z",
-            "source": "auto",
-            "activatedDate": "2026-09-26"
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "since": "2026-09-20",
+              "note": "Left the Sept. 20 loss to Minnesota with a hamstring injury and did not return. HC Ben Johnson labeled him week-to-week on Wednesday, Sept. 23; Chicago re-signed CB Nick McCloud to the practice squad."
+            },
+            "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
+            "source": "curated"
           },
           {
             "name": "Tyson Bagent",
             "position": "QB",
             "impactScore": 4,
-            "status": "active",
+            "status": "questionable",
             "espnId": "4434153",
-            "statusUpdatedAt": "2026-09-27T17:08Z",
+            "statusUpdatedAt": "2026-09-24T01:10:00.000Z",
             "source": "auto",
-            "injury": null,
-            "activatedDate": "2026-09-27"
-          },
-          {
-            "name": "Case Keenum",
-            "position": "QB",
-            "impactScore": 4,
-            "status": "active",
-            "espnId": "15168",
-            "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-            "source": "curated",
             "injury": {
-              "type": "None (QB depth note)",
-              "since": "2026-09-24",
-              "note": "Keenum is confirmed to start Monday night vs. Philadelphia with both Caleb Williams (hamstring) and Tyson Bagent (concussion protocol) out; Miller Moss remains the emergency/practice-squad option behind him rather than being promoted."
+              "type": "Concussion",
+              "note": "Suffered a concussion after replacing Caleb Williams in the Sept. 20 loss to Minnesota. He is in the concussion protocol and was not practicing or in the building Wednesday, Sept. 23, per HC Ben Johnson; Case Keenum took the practice reps.",
+              "since": "2026-09-20"
             }
           }
         ],
@@ -16188,23 +16179,29 @@
             "name": "Jonathan Greenard",
             "position": "Edge",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
+            "status": "out",
+            "injury": {
+              "type": "Pectoral",
+              "since": "2026-09-06",
+              "note": "Greenard missed the opener against Washington with the pectoral injury and was limited in practice this week, but Philadelphia ruled him OUT for a second straight week on Friday, Sept. 18 for Sunday at Tennessee."
+            },
             "espnId": "3916409",
-            "statusUpdatedAt": "2026-09-28T22:47Z",
-            "source": "auto",
-            "activatedDate": "2026-09-28"
+            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
+            "source": "curated"
           },
           {
             "name": "DeVonta Smith",
             "position": "WR",
             "impactScore": 7,
             "status": "active",
-            "injury": null,
+            "injury": {
+              "type": "Hamstring strain (minor)",
+              "since": "2026-08-03",
+              "note": "Back at practice this week in a limited/individual-drills capacity as the Eagles ramp him up ahead of joint sessions with New England; team says the hamstring issue is not serious and there's no long-term concern, though a firm return-to-full timetable still hasn't been set."
+            },
             "espnId": "4241478",
-            "statusUpdatedAt": "2026-09-26T16:38Z",
-            "source": "auto",
-            "activatedDate": "2026-09-26"
+            "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
+            "source": "curated"
           },
           {
             "name": "Johnny Wilson",
@@ -16238,24 +16235,26 @@
             "position": "DT",
             "impactScore": 9,
             "status": "active",
-            "injury": null,
+            "injury": {
+              "type": "Wrist",
+              "since": "2026-09-16",
+              "note": "The All-Pro defensive tackle did not practice Wednesday, Sept. 16 with a wrist injury and was limited Thursday, but he carries no injury designation on Friday's report and is set to play Sunday at Tennessee."
+            },
             "espnId": "4685759",
-            "statusUpdatedAt": "2026-09-26T00:22Z",
-            "source": "auto",
-            "activatedDate": "2026-09-26"
+            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
+            "source": "curated"
           },
           {
             "name": "Saquon Barkley",
             "position": "RB",
             "impactScore": 9,
-            "status": "active",
+            "status": "questionable",
             "injury": {
-              "type": "Shoulder stinger (cleared)",
-              "since": "2026-09-14",
-              "note": "Barkley returned to a full practice Friday, Sept. 25 and carries no game-status designation into Monday night vs. Chicago after dealing with a shoulder stinger suffered Week 2 at Tennessee."
+              "type": "Shoulder",
+              "note": "Head coach Nick Sirianni said Thursday that he had no update on the status of Barkley (shoulder) heading into the Eagles' first practice of the week, Zach Berman of The Athletic reports."
             },
-            "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-09-24T16:59Z",
+            "source": "auto",
             "espnId": "3929630"
           },
           {
@@ -16271,19 +16270,6 @@
             },
             "statusUpdatedAt": "2026-09-22T01:25:00.000Z",
             "source": "curated"
-          },
-          {
-            "name": "Hollywood Brown",
-            "position": "WR",
-            "espnId": "4241372",
-            "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Ankle",
-              "note": "Brown (ankle) has been ruled out ahead of Monday's game against the Bears."
-            },
-            "statusUpdatedAt": "2026-09-26T20:25Z",
-            "source": "auto"
           }
         ],
         "PIT": [

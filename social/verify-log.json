@@ -111,14 +111,15 @@
       "bufferStatus": "sent"
     },
     "2026-w4-tue": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6aba64ea3f092d97033d7e50",
       "text": "Week 4 lines are up. Steelers at Browns opens it Thursday — PIT -2.5, O/U 38.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 4 confidence order: blitz-odds.com",
       "dueAt": "2026-09-29T13:52:00.000Z",
       "scheduledAt": "2026-09-28T13:00:23.370Z",
       "lastCheckedAt": "2026-09-29T13:00:21.694Z",
-      "updatedAt": "2026-09-29T13:00:21.694Z"
+      "updatedAt": "2026-09-29T13:00:21.694Z",
+      "bufferStatus": "sent"
     },
     "2026-w4-wed": {
       "status": "scheduled",
@@ -127,7 +128,16 @@
       "text": "Week 4's biggest spreads as of Wednesday:\n\nTEN at BAL — BAL -11.5\nMIA at MIN — MIN -10.5\nLAC at SEA — SEA -7\nNE at BUF — BUF -7\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
       "dueAt": "2026-09-30T13:17:00.000Z",
       "scheduledAt": "2026-09-29T13:00:21.694Z",
-      "lastCheckedAt": "2026-09-29T13:00:21.694Z"
+      "lastCheckedAt": "2026-09-30T13:00:19.430Z"
+    },
+    "2026-w4-thu": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6abd07e4db917fd8b8d165d8",
+      "text": "Steelers at Browns tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nARI at NYG — ARI -1.5\nDAL at HOU — HOU -2.5\nJAX at CIN — CIN -2.5\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
+      "dueAt": "2026-10-01T13:03:00.000Z",
+      "scheduledAt": "2026-09-30T13:00:19.430Z",
+      "lastCheckedAt": "2026-09-30T13:00:19.430Z"
     }
   },
   "runs": [
@@ -446,6 +456,28 @@
           "post": "2026-w4-wed",
           "action": "scheduled",
           "detail": "primary for 2026-09-30T09:17:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-09-30T13:00:19.430Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w4-tue",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w4-wed",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w4-thu",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-01T09:03:00-04:00"
         }
       ],
       "alerts": []

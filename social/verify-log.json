@@ -143,13 +143,14 @@
       "bufferStatus": "sent"
     },
     "2026-w4-fri": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6abe596c18a63ee6181522db",
       "text": "Blitz Odds is free. The full confidence order for every week is there without an account — you only need one to run a league.\n\nblitz-odds.com",
       "dueAt": "2026-10-02T13:39:00.000Z",
       "scheduledAt": "2026-10-01T13:00:22.181Z",
-      "lastCheckedAt": "2026-10-02T13:00:21.480Z"
+      "lastCheckedAt": "2026-10-02T13:00:21.480Z",
+      "bufferStatus": "sent"
     },
     "2026-w4-sat": {
       "status": "scheduled",
@@ -158,10 +159,19 @@
       "text": "Survivor check for Week 4: the biggest favorite on the board is BAL.\n\nThe easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n\nblitz-odds.com",
       "dueAt": "2026-10-03T13:56:00.000Z",
       "scheduledAt": "2026-10-02T13:00:21.480Z",
-      "lastCheckedAt": "2026-10-02T13:00:21.480Z",
+      "lastCheckedAt": "2026-10-03T13:00:24.251Z",
       "reasons": [
         "primary: countGte: 2 game(s) at 7.5+, wanted 3"
       ]
+    },
+    "2026-w4-sun": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ac0fc697d53b827e0dcd801",
+      "text": "Week 4 Sunday: fourteen games, first kickoff 9:30 AM ET.\n\nHighest total: JAX at CIN, 51.5\nClosest game: ARI at NYG — ARI -2.5\n\nIf your pool locks at the first Sunday kickoff, that's your clock. blitz-odds.com",
+      "dueAt": "2026-10-04T13:07:00.000Z",
+      "scheduledAt": "2026-10-03T13:00:24.251Z",
+      "lastCheckedAt": "2026-10-03T13:00:24.251Z"
     }
   },
   "runs": [
@@ -546,6 +556,31 @@
           "post": "2026-w4-sat",
           "action": "scheduled",
           "detail": "fallback for 2026-10-03T09:56:00-04:00"
+        }
+      ],
+      "notified": "email",
+      "alerts": [
+        "FALLBACK used for \"2026-w4-sat\" (due 2026-10-03T09:56:00-04:00) - primary failed:\n  primary: countGte: 2 game(s) at 7.5+, wanted 3\n  Scheduled text:\n    Survivor check for Week 4: the biggest favorite on the board is BAL.\n    \n    The easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n    \n    blitz-odds.com"
+      ]
+    },
+    {
+      "at": "2026-10-03T13:00:24.251Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w4-fri",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w4-sat",
+          "action": "verified",
+          "detail": "fallback unchanged"
+        },
+        {
+          "post": "2026-w4-sun",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-04T09:07:00-04:00"
         }
       ],
       "notified": "email",

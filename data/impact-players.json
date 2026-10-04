@@ -951,12 +951,12 @@
         "name": "Ja'Marr Chase",
         "position": "WR",
         "impactScore": 10,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Undisclosed",
-          "note": "questionable"
+          "type": "Concussion",
+          "note": "Chase (concussion) has been ruled out for the rest of Sunday's game against the Jaguars."
         },
-        "statusUpdatedAt": "2026-10-04T17:48Z",
+        "statusUpdatedAt": "2026-10-04T18:47Z",
         "source": "auto",
         "espnId": "4362628"
       },
@@ -1385,12 +1385,12 @@
         "position": "WR",
         "espnId": "3915416",
         "impactScore": 6,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Shoulder",
-          "note": "questionable"
+          "note": "Moore departed Sunday's contest against the Patriots due to a shoulder injury."
         },
-        "statusUpdatedAt": "2026-10-04T18:13Z",
+        "statusUpdatedAt": "2026-10-04T18:21Z",
         "source": "auto",
         "activatedDate": "2026-10-02"
       }
@@ -1556,11 +1556,14 @@
         "name": "Lamar Jackson",
         "position": "QB",
         "impactScore": 10,
-        "status": "active",
+        "status": "questionable",
         "espnId": "3916387",
-        "statusUpdatedAt": "2026-10-01T20:38Z",
+        "statusUpdatedAt": "2026-10-04T18:51Z",
         "source": "auto",
-        "injury": null,
+        "injury": {
+          "type": "Ankle",
+          "note": "questionable"
+        },
         "activatedDate": "2026-10-01"
       },
       {
@@ -3086,9 +3089,12 @@
         "position": "DE",
         "espnId": "4696782",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-28T18:52Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-04T18:39Z",
         "source": "auto",
         "activatedDate": "2026-09-28"
       },

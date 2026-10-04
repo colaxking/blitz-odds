@@ -196,13 +196,13 @@
         "name": "Ty Okada",
         "position": "S",
         "impactScore": 4,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Hamstring",
-          "note": "questionable"
+          "note": "inactive"
         },
         "espnId": "4247808",
-        "statusUpdatedAt": "2026-09-29T16:45Z",
+        "statusUpdatedAt": "2026-10-04T19:07Z",
         "source": "auto"
       },
       {
@@ -299,15 +299,12 @@
         "name": "Mike Evans",
         "position": "WR",
         "impactScore": 8,
-        "status": "questionable",
-        "injury": {
-          "type": "Ribs",
-          "note": "Evans is considered day-to-day after sustaining a rib strain during Sunday's 36-30 win over the Cardinals, Ian Rapoport of NFL Network reports."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "16737",
-        "statusUpdatedAt": "2026-09-28T20:31Z",
+        "statusUpdatedAt": "2026-10-04T19:02Z",
         "source": "auto",
-        "activatedDate": "2026-09-27"
+        "activatedDate": "2026-10-04"
       },
       {
         "name": "Nick Bosa",
@@ -353,14 +350,12 @@
         "name": "Dre Greenlaw",
         "position": "LB",
         "impactScore": 6,
-        "status": "questionable",
-        "statusUpdatedAt": "2026-09-27T22:58Z",
+        "status": "active",
+        "statusUpdatedAt": "2026-10-04T19:00Z",
         "source": "auto",
         "espnId": "3916903",
-        "injury": {
-          "type": "Quadriceps",
-          "note": "Greenlaw (quadriceps) is questionable to return to Sunday's game against the Cardinals, Eric Branch of the San Francisco Chronicle reports."
-        }
+        "injury": null,
+        "activatedDate": "2026-10-04"
       },
       {
         "name": "Romello Height",
@@ -1360,9 +1355,12 @@
         "name": "Ed Oliver",
         "position": "DT",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-27T15:50Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-10-04T19:04Z",
         "source": "auto",
         "espnId": "4039303",
         "activatedDate": "2026-09-27"
@@ -2280,14 +2278,13 @@
         "position": "CB",
         "espnId": "4426817",
         "impactScore": 3,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Calf",
-          "since": "2026-09-13",
-          "note": null
+          "type": "Head",
+          "note": "questionable"
         },
-        "statusUpdatedAt": "2026-09-14T14:22:25.801Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-10-04T19:19Z",
+        "source": "auto"
       },
       {
         "name": "Omar Cooper Jr.",
@@ -2622,14 +2619,12 @@
         "name": "Ladd McConkey",
         "position": "WR",
         "impactScore": 8,
-        "status": "questionable",
-        "injury": {
-          "type": "Foot",
-          "note": "McConkey was limited at Wednesday's practice due to a foot injury."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4612826",
-        "statusUpdatedAt": "2026-09-30T22:24Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-10-04T19:00Z",
+        "source": "auto",
+        "activatedDate": "2026-10-04"
       },
       {
         "name": "KeAndre Lambert-Smith",
@@ -2970,10 +2965,13 @@
         "name": "Edgerrin Cooper",
         "position": "LB",
         "impactScore": 6,
-        "status": "active",
-        "statusUpdatedAt": "2026-10-02T22:23Z",
+        "status": "questionable",
+        "statusUpdatedAt": "2026-10-04T19:07Z",
         "source": "auto",
-        "injury": null,
+        "injury": {
+          "type": "Achilles",
+          "note": "questionable"
+        },
         "espnId": "4430438",
         "activatedDate": "2026-10-02"
       },
@@ -3283,10 +3281,13 @@
         "name": "Jonathan Greenard",
         "position": "Edge",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "questionable"
+        },
         "espnId": "3916409",
-        "statusUpdatedAt": "2026-09-28T22:47Z",
+        "statusUpdatedAt": "2026-10-04T19:24Z",
         "source": "auto",
         "activatedDate": "2026-09-28"
       },

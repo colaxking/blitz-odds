@@ -83,13 +83,11 @@
         "position": "DE",
         "espnId": "3915525",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Shoulder",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-09-29T16:45Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-04T15:45Z",
+        "source": "auto",
+        "activatedDate": "2026-10-04"
       },
       {
         "name": "Mike Onwenu",
@@ -534,9 +532,12 @@
         "position": "WR",
         "espnId": "4605951",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-28T18:39Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-04T15:50Z",
         "source": "auto",
         "activatedDate": "2026-09-28"
       }
@@ -681,9 +682,12 @@
         "position": "DE",
         "espnId": "4372463",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-29T16:45Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-04T15:34Z",
         "source": "auto",
         "activatedDate": "2026-09-29"
       },
@@ -1011,13 +1015,13 @@
         "name": "B.J. Hill",
         "position": "DT",
         "impactScore": 6,
-        "status": "questionable",
+        "status": "out",
         "espnId": "3116748",
-        "statusUpdatedAt": "2026-09-29T16:45Z",
+        "statusUpdatedAt": "2026-10-04T15:38Z",
         "source": "auto",
         "injury": {
           "type": "Achilles",
-          "note": "questionable"
+          "note": "inactive"
         }
       },
       {
@@ -1431,13 +1435,11 @@
         "position": "DE",
         "espnId": "16734",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Knee",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-09-29T16:45Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-04T14:07Z",
+        "source": "auto",
+        "activatedDate": "2026-10-04"
       },
       {
         "name": "Braden Smith",
@@ -1532,6 +1534,19 @@
         "source": "auto",
         "espnId": "4258173",
         "activatedDate": "2026-10-02"
+      },
+      {
+        "name": "Chris Braswell",
+        "position": "DE",
+        "espnId": "4428989",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-04T15:39Z",
+        "source": "auto"
       }
     ],
     "BAL": [
@@ -1591,14 +1606,11 @@
         "position": "WR",
         "espnId": "4429615",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Hamstring",
-          "note": "Flowers (hamstring) is questionable for Sunday's game against the Titans after being limited in Friday's practice."
-        },
-        "statusUpdatedAt": "2026-10-02T20:16Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-04T15:36Z",
         "source": "auto",
-        "activatedDate": "2026-10-01"
+        "activatedDate": "2026-10-04"
       },
       {
         "name": "Bilhal Kone",
@@ -1692,14 +1704,25 @@
         "name": "Ronnie Stanley",
         "position": "LT",
         "impactScore": 7,
-        "status": "questionable",
-        "statusUpdatedAt": "2026-09-29T16:45Z",
+        "status": "active",
+        "statusUpdatedAt": "2026-10-04T15:37Z",
         "source": "auto",
         "espnId": "2980153",
+        "injury": null,
+        "activatedDate": "2026-10-04"
+      },
+      {
+        "name": "Chris Moore",
+        "position": "WR",
+        "espnId": "2576581",
+        "impactScore": 6,
+        "status": "out",
         "injury": {
-          "type": "Toe",
-          "note": "questionable"
-        }
+          "type": "Ankle",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-04T15:55Z",
+        "source": "auto"
       }
     ],
     "IND": [
@@ -1951,9 +1974,12 @@
         "position": "DE",
         "espnId": "4832922",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-28T18:34Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-04T15:33Z",
         "source": "auto",
         "activatedDate": "2026-09-28"
       },
@@ -2480,9 +2506,12 @@
         "position": "WR",
         "espnId": "4869132",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-28T18:12Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "Virgil (coach's decision) is inactive for Sunday's battle against the Giants."
+        },
+        "statusUpdatedAt": "2026-10-04T15:50Z",
         "source": "auto",
         "activatedDate": "2026-09-28"
       },

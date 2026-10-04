@@ -17106,10 +17106,10 @@
       "inputsFrozenAt": "2026-10-01T23:00:15.758Z",
       "inputsCapturedAt": {
         "ARI": "2026-10-04T04:00:23.700Z",
-        "ATL": "2026-10-04T20:00:17.453Z",
+        "ATL": "2026-10-04T21:00:19.127Z",
         "BAL": "2026-10-04T04:00:23.700Z",
         "BUF": "2026-10-04T04:00:23.700Z",
-        "CAR": "2026-10-04T20:00:17.453Z",
+        "CAR": "2026-10-04T21:00:19.127Z",
         "CHI": "2026-10-04T04:00:23.700Z",
         "CIN": "2026-10-04T04:00:23.700Z",
         "CLE": "2026-10-02T00:00:18.948Z",
@@ -17127,7 +17127,7 @@
         "MIA": "2026-10-04T04:00:23.700Z",
         "MIN": "2026-10-04T20:00:17.453Z",
         "NE": "2026-10-04T04:00:23.700Z",
-        "NO": "2026-10-04T20:00:17.453Z",
+        "NO": "2026-10-04T21:00:19.127Z",
         "NYG": "2026-10-04T04:00:23.700Z",
         "NYJ": "2026-10-04T04:00:23.700Z",
         "PHI": "2026-10-04T04:00:23.700Z",
@@ -19526,12 +19526,12 @@
             "name": "Josh Simmons",
             "position": "T",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Back",
-              "note": "out"
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-02T19:01Z",
+            "statusUpdatedAt": "2026-09-29T16:45Z",
             "source": "auto",
             "espnId": "4569659"
           },
@@ -19701,12 +19701,14 @@
             "name": "Ladd McConkey",
             "position": "WR",
             "impactScore": 8,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Foot",
+              "note": "McConkey was limited at Wednesday's practice due to a foot injury."
+            },
             "espnId": "4612826",
-            "statusUpdatedAt": "2026-10-04T19:00Z",
-            "source": "auto",
-            "activatedDate": "2026-10-04"
+            "statusUpdatedAt": "2026-09-30T22:24Z",
+            "source": "auto"
           },
           {
             "name": "KeAndre Lambert-Smith",
@@ -19754,12 +19756,12 @@
             "position": "WR",
             "espnId": "4685553",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Quadriceps",
-              "note": "Thompson (quadriceps) didn't practice Thursday."
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-02T01:06Z",
+            "statusUpdatedAt": "2026-09-29T16:45Z",
             "source": "auto"
           }
         ],
@@ -19934,15 +19936,15 @@
             "name": "Justin Jefferson",
             "position": "WR",
             "impactScore": 8,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Ankle",
-              "note": "Jefferson (ankle) has been ruled out for Sunday's game versus the Dolphins."
+              "note": "Jefferson sprained his ankle vs. Tampa Bay and avoided serious injury; HC Kevin O'Connell says he has a chance to play in Week 4 (NFL.com, Sept. 28)."
             },
             "activatedDate": "2026-07-29",
             "espnId": "4262921",
-            "statusUpdatedAt": "2026-10-02T18:35Z",
-            "source": "auto"
+            "statusUpdatedAt": "2026-09-29T01:05:00.000Z",
+            "source": "curated"
           },
           {
             "name": "Dwight McGlothern Jr.",
@@ -20013,12 +20015,9 @@
             "position": "DE",
             "espnId": "4696782",
             "impactScore": 5,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "inactive"
-            },
-            "statusUpdatedAt": "2026-10-04T18:39Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-28T18:52Z",
             "source": "auto",
             "activatedDate": "2026-09-28"
           },
@@ -20825,12 +20824,15 @@
             "name": "Mike Evans",
             "position": "WR",
             "impactScore": 8,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Ribs",
+              "note": "Evans is considered day-to-day after sustaining a rib strain during Sunday's 36-30 win over the Cardinals, Ian Rapoport of NFL Network reports."
+            },
             "espnId": "16737",
-            "statusUpdatedAt": "2026-10-04T19:02Z",
+            "statusUpdatedAt": "2026-09-28T20:31Z",
             "source": "auto",
-            "activatedDate": "2026-10-04"
+            "activatedDate": "2026-09-27"
           },
           {
             "name": "Nick Bosa",
@@ -20876,23 +20878,27 @@
             "name": "Dre Greenlaw",
             "position": "LB",
             "impactScore": 6,
-            "status": "active",
-            "statusUpdatedAt": "2026-10-04T19:00Z",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-09-27T22:58Z",
             "source": "auto",
             "espnId": "3916903",
-            "injury": null,
-            "activatedDate": "2026-10-04"
+            "injury": {
+              "type": "Quadriceps",
+              "note": "Greenlaw (quadriceps) is questionable to return to Sunday's game against the Cardinals, Eric Branch of the San Francisco Chronicle reports."
+            }
           },
           {
             "name": "Romello Height",
             "position": "DE",
             "espnId": "4432244",
             "impactScore": 4,
-            "status": "active",
-            "statusUpdatedAt": "2026-10-02T22:12Z",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-09-29T16:45Z",
             "source": "auto",
-            "injury": null,
-            "activatedDate": "2026-10-02"
+            "injury": {
+              "type": "Hand",
+              "note": "questionable"
+            }
           },
           {
             "name": "Alfred Collins",
@@ -21077,13 +21083,13 @@
             "name": "Ty Okada",
             "position": "S",
             "impactScore": 4,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "inactive"
+              "note": "questionable"
             },
             "espnId": "4247808",
-            "statusUpdatedAt": "2026-10-04T19:07Z",
+            "statusUpdatedAt": "2026-09-29T16:45Z",
             "source": "auto"
           },
           {
@@ -21116,12 +21122,12 @@
             "position": "RB",
             "espnId": "4685512",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Chest",
-              "note": "Coach Mike Macdonald said Friday that Price has been ruled out for Sunday's game against the Chargers, Curtis Crabtree of Fox 13 Seattle reports."
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-02T20:39Z",
+            "statusUpdatedAt": "2026-09-30T23:19Z",
             "source": "auto"
           }
         ],
@@ -21452,6 +21458,36 @@
         "GB-TB": {
           "awayScore": 17,
           "homeScore": 14,
+          "final": true
+        },
+        "NE-BUF": {
+          "awayScore": 29,
+          "homeScore": 26,
+          "final": true
+        },
+        "JAX-CIN": {
+          "awayScore": 22,
+          "homeScore": 17,
+          "final": true
+        },
+        "ARI-NYG": {
+          "awayScore": 24,
+          "homeScore": 36,
+          "final": true
+        },
+        "LAR-PHI": {
+          "awayScore": 24,
+          "homeScore": 20,
+          "final": true
+        },
+        "TEN-BAL": {
+          "awayScore": 18,
+          "homeScore": 24,
+          "final": true
+        },
+        "DAL-HOU": {
+          "awayScore": 34,
+          "homeScore": 30,
           "final": true
         }
       }

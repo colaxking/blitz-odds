@@ -17106,34 +17106,34 @@
       "inputsFrozenAt": "2026-10-01T23:00:15.758Z",
       "inputsCapturedAt": {
         "ARI": "2026-10-04T04:00:23.700Z",
-        "ATL": "2026-10-04T19:00:17.834Z",
+        "ATL": "2026-10-04T20:00:17.453Z",
         "BAL": "2026-10-04T04:00:23.700Z",
         "BUF": "2026-10-04T04:00:23.700Z",
-        "CAR": "2026-10-04T19:00:17.834Z",
+        "CAR": "2026-10-04T20:00:17.453Z",
         "CHI": "2026-10-04T04:00:23.700Z",
         "CIN": "2026-10-04T04:00:23.700Z",
         "CLE": "2026-10-02T00:00:18.948Z",
         "DAL": "2026-10-04T04:00:23.700Z",
-        "DEN": "2026-10-04T19:00:17.834Z",
-        "DET": "2026-10-04T19:00:17.834Z",
+        "DEN": "2026-10-04T20:00:17.453Z",
+        "DET": "2026-10-04T20:00:17.453Z",
         "GB": "2026-10-04T04:00:23.700Z",
         "HOU": "2026-10-04T04:00:23.700Z",
         "IND": "2026-10-02T00:00:18.948Z",
         "JAX": "2026-10-04T04:00:23.700Z",
-        "KC": "2026-10-04T19:00:17.834Z",
-        "LV": "2026-10-04T19:00:17.834Z",
-        "LAC": "2026-10-04T19:00:17.834Z",
+        "KC": "2026-10-04T20:00:17.453Z",
+        "LV": "2026-10-04T20:00:17.453Z",
+        "LAC": "2026-10-04T20:00:17.453Z",
         "LAR": "2026-10-04T04:00:23.700Z",
         "MIA": "2026-10-04T04:00:23.700Z",
-        "MIN": "2026-10-04T19:00:17.834Z",
+        "MIN": "2026-10-04T20:00:17.453Z",
         "NE": "2026-10-04T04:00:23.700Z",
-        "NO": "2026-10-04T19:00:17.834Z",
+        "NO": "2026-10-04T20:00:17.453Z",
         "NYG": "2026-10-04T04:00:23.700Z",
         "NYJ": "2026-10-04T04:00:23.700Z",
         "PHI": "2026-10-04T04:00:23.700Z",
         "PIT": "2026-10-02T00:00:18.948Z",
-        "SF": "2026-10-04T19:00:17.834Z",
-        "SEA": "2026-10-04T19:00:17.834Z",
+        "SF": "2026-10-04T20:00:17.453Z",
+        "SEA": "2026-10-04T20:00:17.453Z",
         "TB": "2026-10-04T04:00:23.700Z",
         "TEN": "2026-10-04T04:00:23.700Z",
         "WAS": "2026-10-04T04:00:23.700Z"
@@ -19701,14 +19701,12 @@
             "name": "Ladd McConkey",
             "position": "WR",
             "impactScore": 8,
-            "status": "questionable",
-            "injury": {
-              "type": "Foot",
-              "note": "McConkey was limited at Wednesday's practice due to a foot injury."
-            },
+            "status": "active",
+            "injury": null,
             "espnId": "4612826",
-            "statusUpdatedAt": "2026-09-30T22:24Z",
-            "source": "auto"
+            "statusUpdatedAt": "2026-10-04T19:00Z",
+            "source": "auto",
+            "activatedDate": "2026-10-04"
           },
           {
             "name": "KeAndre Lambert-Smith",
@@ -20015,9 +20013,12 @@
             "position": "DE",
             "espnId": "4696782",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-28T18:52Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-10-04T18:39Z",
             "source": "auto",
             "activatedDate": "2026-09-28"
           },
@@ -20824,15 +20825,12 @@
             "name": "Mike Evans",
             "position": "WR",
             "impactScore": 8,
-            "status": "questionable",
-            "injury": {
-              "type": "Ribs",
-              "note": "Evans is considered day-to-day after sustaining a rib strain during Sunday's 36-30 win over the Cardinals, Ian Rapoport of NFL Network reports."
-            },
+            "status": "active",
+            "injury": null,
             "espnId": "16737",
-            "statusUpdatedAt": "2026-09-28T20:31Z",
+            "statusUpdatedAt": "2026-10-04T19:02Z",
             "source": "auto",
-            "activatedDate": "2026-09-27"
+            "activatedDate": "2026-10-04"
           },
           {
             "name": "Nick Bosa",
@@ -20878,14 +20876,12 @@
             "name": "Dre Greenlaw",
             "position": "LB",
             "impactScore": 6,
-            "status": "questionable",
-            "statusUpdatedAt": "2026-09-27T22:58Z",
+            "status": "active",
+            "statusUpdatedAt": "2026-10-04T19:00Z",
             "source": "auto",
             "espnId": "3916903",
-            "injury": {
-              "type": "Quadriceps",
-              "note": "Greenlaw (quadriceps) is questionable to return to Sunday's game against the Cardinals, Eric Branch of the San Francisco Chronicle reports."
-            }
+            "injury": null,
+            "activatedDate": "2026-10-04"
           },
           {
             "name": "Romello Height",
@@ -21081,13 +21077,13 @@
             "name": "Ty Okada",
             "position": "S",
             "impactScore": 4,
-            "status": "questionable",
+            "status": "out",
             "injury": {
               "type": "Hamstring",
-              "note": "questionable"
+              "note": "inactive"
             },
             "espnId": "4247808",
-            "statusUpdatedAt": "2026-09-29T16:45Z",
+            "statusUpdatedAt": "2026-10-04T19:07Z",
             "source": "auto"
           },
           {
@@ -21446,6 +21442,16 @@
         "IND-WAS": {
           "awayScore": 30,
           "homeScore": 13,
+          "final": true
+        },
+        "NYJ-CHI": {
+          "awayScore": 12,
+          "homeScore": 23,
+          "final": true
+        },
+        "GB-TB": {
+          "awayScore": 17,
+          "homeScore": 14,
           "final": true
         }
       }

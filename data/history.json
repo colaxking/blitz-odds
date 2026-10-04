@@ -17106,34 +17106,34 @@
       "inputsFrozenAt": "2026-10-01T23:00:15.758Z",
       "inputsCapturedAt": {
         "ARI": "2026-10-04T04:00:23.700Z",
-        "ATL": "2026-10-04T04:00:23.700Z",
+        "ATL": "2026-10-04T17:00:15.716Z",
         "BAL": "2026-10-04T04:00:23.700Z",
         "BUF": "2026-10-04T04:00:23.700Z",
-        "CAR": "2026-10-04T04:00:23.700Z",
+        "CAR": "2026-10-04T17:00:15.716Z",
         "CHI": "2026-10-04T04:00:23.700Z",
         "CIN": "2026-10-04T04:00:23.700Z",
         "CLE": "2026-10-02T00:00:18.948Z",
         "DAL": "2026-10-04T04:00:23.700Z",
-        "DEN": "2026-10-04T04:00:23.700Z",
-        "DET": "2026-10-04T04:00:23.700Z",
+        "DEN": "2026-10-04T17:00:15.716Z",
+        "DET": "2026-10-04T17:00:15.716Z",
         "GB": "2026-10-04T04:00:23.700Z",
         "HOU": "2026-10-04T04:00:23.700Z",
         "IND": "2026-10-02T00:00:18.948Z",
         "JAX": "2026-10-04T04:00:23.700Z",
-        "KC": "2026-10-04T04:00:23.700Z",
-        "LV": "2026-10-04T04:00:23.700Z",
-        "LAC": "2026-10-04T04:00:23.700Z",
+        "KC": "2026-10-04T17:00:15.716Z",
+        "LV": "2026-10-04T17:00:15.716Z",
+        "LAC": "2026-10-04T17:00:15.716Z",
         "LAR": "2026-10-04T04:00:23.700Z",
         "MIA": "2026-10-04T04:00:23.700Z",
-        "MIN": "2026-10-04T04:00:23.700Z",
+        "MIN": "2026-10-04T17:00:15.716Z",
         "NE": "2026-10-04T04:00:23.700Z",
-        "NO": "2026-10-04T04:00:23.700Z",
+        "NO": "2026-10-04T17:00:15.716Z",
         "NYG": "2026-10-04T04:00:23.700Z",
         "NYJ": "2026-10-04T04:00:23.700Z",
         "PHI": "2026-10-04T04:00:23.700Z",
         "PIT": "2026-10-02T00:00:18.948Z",
-        "SF": "2026-10-04T04:00:23.700Z",
-        "SEA": "2026-10-04T04:00:23.700Z",
+        "SF": "2026-10-04T17:00:15.716Z",
+        "SEA": "2026-10-04T17:00:15.716Z",
         "TB": "2026-10-04T04:00:23.700Z",
         "TEN": "2026-10-04T04:00:23.700Z",
         "WAS": "2026-10-04T04:00:23.700Z"
@@ -18025,12 +18025,9 @@
             "position": "WR",
             "espnId": "4429615",
             "impactScore": 6,
-            "status": "questionable",
-            "injury": {
-              "type": "Hamstring",
-              "note": "Flowers (hamstring) is questionable for Sunday's game against the Titans after being limited in Friday's practice."
-            },
-            "statusUpdatedAt": "2026-10-02T20:16Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-10-01T20:42Z",
             "source": "auto",
             "activatedDate": "2026-10-01"
           },
@@ -18112,12 +18109,12 @@
             "name": "Trey Hendrickson",
             "position": "Edge",
             "impactScore": 8,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Finger",
-              "note": "out"
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-02T17:33Z",
+            "statusUpdatedAt": "2026-09-30T20:32Z",
             "source": "auto",
             "espnId": "3052743",
             "activatedDate": "2026-09-25"
@@ -18177,11 +18174,14 @@
             "position": "WR",
             "espnId": "3915416",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-02T17:03Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Shoulder",
+              "note": "Moore (shoulder) was limited in Wednesday's practice."
+            },
+            "statusUpdatedAt": "2026-09-30T21:19Z",
             "source": "auto",
-            "activatedDate": "2026-10-02"
+            "activatedDate": "2026-09-27"
           }
         ],
         "CAR": [
@@ -18316,8 +18316,8 @@
             "statusUpdatedAt": "2026-09-24T21:10:00.000Z",
             "source": "curated",
             "injury": {
-              "type": "Hamstring strain (Grade 2, right)",
-              "note": "Hurt in the fourth quarter of the Sept. 20 loss to Minnesota. Initially reported as Grade 1, but sources (ESPN, Yahoo) say it is a Grade 2 strain with a 3-4 week timeline; he is inactive for Week 4 and Case Keenum starts (Tyson Bagent is recovering from a concussion).",
+              "type": "Hamstring strain (Grade 1, right)",
+              "note": "Hurt in the fourth quarter of the Sept. 20 loss to Minnesota. HC Ben Johnson calls him week-to-week; Williams did not practice at all this week (Wed.-Thu., Sept. 23-24) and has not been ruled out for Monday night vs. Philadelphia, but with Tyson Bagent also out (concussion protocol), Case Keenum is the only healthy QB on Chicago's 53-man roster; the Bears are expected to promote practice-squad QB Miller Moss to the active roster by Monday for depth, per the Chicago Sun-Times.",
               "since": "2026-09-20"
             }
           },
@@ -18339,12 +18339,15 @@
             "name": "D'Andre Swift",
             "position": "RB",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-02T19:05Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "note": "Swift didn't participate in Thursday's practice due to a knee injury."
+            },
+            "statusUpdatedAt": "2026-10-01T20:09Z",
             "source": "auto",
             "espnId": "4259545",
-            "activatedDate": "2026-10-02"
+            "activatedDate": "2026-09-09"
           },
           {
             "name": "Coby Bryant",
@@ -18562,11 +18565,13 @@
             "position": "CB",
             "espnId": "4572036",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-02T20:17Z",
-            "source": "auto",
-            "activatedDate": "2026-10-02"
+            "status": "questionable",
+            "injury": {
+              "type": "Ankle",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-10-01T20:33Z",
+            "source": "auto"
           },
           {
             "name": "B.J. Hill",
@@ -18741,23 +18746,25 @@
             "name": "Malik Hooker",
             "position": "S",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Forearm",
+              "note": "questionable"
+            },
             "espnId": "3121415",
-            "statusUpdatedAt": "2026-10-02T21:33Z",
-            "source": "auto",
-            "activatedDate": "2026-10-02"
+            "statusUpdatedAt": "2026-09-29T16:45Z",
+            "source": "auto"
           },
           {
             "name": "DeMarvion Overshown",
             "position": "LB",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "out"
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-02T16:25Z",
+            "statusUpdatedAt": "2026-09-29T16:45Z",
             "source": "auto",
             "espnId": "4362088"
           }
@@ -19074,12 +19081,12 @@
             "name": "Aaron Banks",
             "position": "G",
             "impactScore": 5,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Toe",
-              "note": "Banks (toe/knee) did not practice Thursday."
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-02T01:27Z",
+            "statusUpdatedAt": "2026-09-29T16:45Z",
             "source": "auto",
             "espnId": "4242390"
           },
@@ -19088,11 +19095,13 @@
             "position": "DE",
             "espnId": "4686906",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-02T19:40Z",
-            "source": "auto",
-            "activatedDate": "2026-10-02"
+            "status": "questionable",
+            "injury": {
+              "type": "Shoulder",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-09-30T21:12Z",
+            "source": "auto"
           },
           {
             "name": "Javon Hargrave",
@@ -19126,23 +19135,27 @@
             "name": "Edgerrin Cooper",
             "position": "LB",
             "impactScore": 6,
-            "status": "active",
-            "statusUpdatedAt": "2026-10-02T22:23Z",
-            "source": "auto",
-            "injury": null,
-            "espnId": "4430438",
-            "activatedDate": "2026-10-02"
+            "status": "questionable",
+            "statusUpdatedAt": "2026-09-26T01:30:00.000Z",
+            "source": "curated",
+            "injury": {
+              "type": "Concussion evaluation",
+              "since": "2026-09-24",
+              "note": "Cooper left Thursday night's loss at Atlanta to be evaluated for a concussion; he is questionable for Week 3's home game vs. Tampa Bay pending the protocol."
+            },
+            "espnId": "4430438"
           },
           {
             "name": "Jacob Monk",
             "position": "RG",
             "impactScore": 5,
-            "status": "out",
-            "statusUpdatedAt": "2026-10-02T19:39Z",
-            "source": "auto",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-09-26T01:30:00.000Z",
+            "source": "curated",
             "injury": {
-              "type": "Quadriceps",
-              "note": "out"
+              "type": "Quad",
+              "since": "2026-09-24",
+              "note": "Monk exited Thursday night's loss at Atlanta late with a quad injury and is questionable for Week 3 vs. Tampa Bay."
             },
             "espnId": "4428037"
           }
@@ -19284,12 +19297,14 @@
             "name": "Nico Collins",
             "position": "WR",
             "impactScore": 9,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-02T20:07Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "note": "Head coach DeMeco Ryans said Monday that he's \"hopeful\" to have Collins available for the Texans' Week 4 game against the Cowboys, Aaron Wilson of KPRC 2 Houston reports."
+            },
+            "statusUpdatedAt": "2026-09-28T17:13Z",
             "source": "auto",
-            "espnId": "4258173",
-            "activatedDate": "2026-10-02"
+            "espnId": "4258173"
           }
         ],
         "IND": [
@@ -19448,11 +19463,14 @@
             "position": "WR",
             "espnId": "3916433",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-02T19:52Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Thumb",
+              "note": "Meyers (thumb) was limited in Wednesday's practice."
+            },
+            "statusUpdatedAt": "2026-09-30T20:19Z",
             "source": "auto",
-            "activatedDate": "2026-10-02"
+            "activatedDate": "2026-09-24"
           }
         ],
         "KC": [
@@ -19761,12 +19779,14 @@
             "name": "Puka Nacua",
             "position": "WR",
             "impactScore": 9,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-02T18:44Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Hip",
+              "note": "Head coach Sean McVay said Monday that the Rams are \"hopeful\" Nacua (hip) will return to action for Sunday's game at Philadelphia, Adam Grosbard of The Orange County Register reports."
+            },
+            "statusUpdatedAt": "2026-09-28T22:38Z",
             "source": "auto",
-            "espnId": "4426515",
-            "activatedDate": "2026-10-02"
+            "espnId": "4426515"
           },
           {
             "name": "Myles Garrett",
@@ -19787,13 +19807,13 @@
             "name": "Aaron Donald",
             "position": "DT",
             "impactScore": 9,
-            "status": "out",
-            "statusUpdatedAt": "2026-10-02T18:38Z",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-09-30T21:30Z",
             "source": "auto",
             "espnId": "16716",
             "injury": {
               "type": "Back",
-              "note": "Donald (back) has been ruled out for Sunday's game against the Eagles, Sarah Barshop of ESPN.com reports."
+              "note": "questionable"
             },
             "activatedDate": "2026-09-11"
           },
@@ -20041,13 +20061,13 @@
             "name": "Christian Barmore",
             "position": "DT",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Shoulder",
-              "note": "out"
+              "note": "questionable"
             },
             "espnId": "4372030",
-            "statusUpdatedAt": "2026-10-02T17:33Z",
+            "statusUpdatedAt": "2026-09-27T17:49Z",
             "source": "auto"
           },
           {
@@ -20341,11 +20361,13 @@
             "position": "RB",
             "espnId": "4360516",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-02T21:20Z",
-            "source": "auto",
-            "activatedDate": "2026-10-02"
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-09-30T20:17Z",
+            "source": "auto"
           },
           {
             "name": "Korie Black",
@@ -20555,13 +20577,13 @@
             "name": "DeVonta Smith",
             "position": "WR",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "Smith (hamstring) has been ruled out for Sunday's contest against the Rams."
+              "note": "Smith missed Wednesday's walkthrough due to a hamstring injury."
             },
             "espnId": "4241478",
-            "statusUpdatedAt": "2026-10-02T20:03Z",
+            "statusUpdatedAt": "2026-09-30T23:08Z",
             "source": "auto",
             "activatedDate": "2026-09-26"
           },
@@ -20636,12 +20658,12 @@
             "position": "WR",
             "espnId": "4241372",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Ankle",
-              "note": "out"
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-02T20:55Z",
+            "statusUpdatedAt": "2026-09-29T16:45Z",
             "source": "auto"
           }
         ],
@@ -21140,12 +21162,14 @@
             "name": "Bucky Irving",
             "position": "RB",
             "impactScore": 8,
-            "status": "active",
-            "statusUpdatedAt": "2026-10-02T19:42Z",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-09-30T20:45Z",
             "source": "auto",
             "espnId": "4596448",
-            "injury": null,
-            "activatedDate": "2026-10-02"
+            "injury": {
+              "type": "Lower Body",
+              "note": "Irving was limited at Wednesday's practice due to a glute injury."
+            }
           },
           {
             "name": "David Sills V",
@@ -21274,13 +21298,13 @@
             "name": "Jayden Daniels",
             "position": "QB",
             "impactScore": 8,
-            "status": "out",
+            "status": "questionable",
             "espnId": "4426348",
-            "statusUpdatedAt": "2026-10-02T14:09Z",
+            "statusUpdatedAt": "2026-09-29T16:03Z",
             "source": "auto",
             "injury": {
               "type": "Elbow",
-              "note": "Daniels (elbow), per head coach Dan Quinn, was ruled out for Sunday's game against the Colts in London, Nicki Jhabvala of The Athletic reports."
+              "note": "Daniels will avoid a procedure on his dislocated left elbow for the time being, but Adam Schefter of ESPN reports that the quarterback could undergo surgery after the season."
             }
           },
           {
@@ -21341,11 +21365,13 @@
             "position": "TE",
             "espnId": "4360635",
             "impactScore": 3,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-01T20:02Z",
-            "source": "auto",
-            "activatedDate": "2026-10-01"
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "note": "Commanders head coach Dan Quinn said that Okonkwo (hamstring) will make the trip to London and will practice in some capacity leading up to Sunday's game against the Colts, Nicki Jhabvala of The Athletic reports."
+            },
+            "statusUpdatedAt": "2026-09-28T21:07Z",
+            "source": "auto"
           },
           {
             "name": "Jer'Zhan Newton",
@@ -21365,12 +21391,14 @@
             "name": "Frankie Luvu",
             "position": "LB",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-02T17:10Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Groin",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-09-29T16:45Z",
             "source": "auto",
-            "espnId": "3127273",
-            "activatedDate": "2026-10-02"
+            "espnId": "3127273"
           },
           {
             "name": "Luke McCaffrey",
@@ -21406,19 +21434,6 @@
             "espnId": "4262199",
             "statusUpdatedAt": "2026-09-29T23:13Z",
             "source": "auto"
-          },
-          {
-            "name": "Terry McLaurin",
-            "position": "WR",
-            "espnId": "3121422",
-            "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Hamstring",
-              "note": "McLaurin (hamstring) is now likely to miss Sunday's game against the Colts in London, Ben Standig of The Athletic reports."
-            },
-            "statusUpdatedAt": "2026-10-03T14:42Z",
-            "source": "auto"
           }
         ]
       },
@@ -21426,6 +21441,11 @@
         "PIT-CLE": {
           "awayScore": 24,
           "homeScore": 27,
+          "final": true
+        },
+        "IND-WAS": {
+          "awayScore": 30,
+          "homeScore": 13,
           "final": true
         }
       }

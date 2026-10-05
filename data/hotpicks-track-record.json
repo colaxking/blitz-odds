@@ -4,7 +4,7 @@
       "2": {
         "week": 2,
         "season": 2026,
-        "gradedAt": "2026-10-04T23:00:22.412Z",
+        "gradedAt": "2026-10-05T00:00:21.622Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -129,7 +129,7 @@
       "3": {
         "week": 3,
         "season": 2026,
-        "gradedAt": "2026-10-04T23:00:22.503Z",
+        "gradedAt": "2026-10-05T00:00:21.707Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -250,28 +250,153 @@
             "homeScore": 33
           }
         }
+      },
+      "4": {
+        "week": 4,
+        "season": 2026,
+        "gradedAt": "2026-10-05T00:00:21.781Z",
+        "confidencePicks": [
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "LAC",
+              "homeId": "SEA",
+              "awayName": "Los Angeles Chargers",
+              "homeName": "Seattle Seahawks"
+            },
+            "pickTeamId": "SEA",
+            "pick": "Seattle Seahawks",
+            "confidence": 0.8389416395394242,
+            "confidencePct": 84,
+            "summary": "Seattle Seahawks — 84% confidence",
+            "advantage": "Seattle Seahawks carries a 28.2-point rating edge over Los Angeles Chargers once offense, defense, injuries, and weather are graded. Los Angeles Chargers are without Dalevon Campbell (out), a real hit to their offense. The market agrees Seattle Seahawks is favored, and 84% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 23,
+              "homeScore": 30
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "GB",
+              "homeId": "TB",
+              "awayName": "Green Bay Packers",
+              "homeName": "Tampa Bay Buccaneers"
+            },
+            "pickTeamId": "TB",
+            "pick": "Tampa Bay Buccaneers",
+            "confidence": 0.7953631591742952,
+            "confidencePct": 80,
+            "summary": "Tampa Bay Buccaneers — 80% confidence",
+            "advantage": "Tampa Bay Buccaneers carries a 23.1-point rating edge over Green Bay Packers once offense, defense, injuries, and weather are graded. Green Bay Packers are without Micah Parsons (out), a real hit to their defense. The sportsbook favorite is actually Green Bay Packers here - the model sees an edge this line doesn't fully reflect.",
+            "result": "loss",
+            "finalScore": {
+              "awayScore": 17,
+              "homeScore": 14
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "KC",
+              "homeId": "LV",
+              "awayName": "Kansas City Chiefs",
+              "homeName": "Las Vegas Raiders"
+            },
+            "pickTeamId": "KC",
+            "pick": "Kansas City Chiefs",
+            "confidence": 0.7603338518389793,
+            "confidencePct": 76,
+            "summary": "Kansas City Chiefs — 76% confidence",
+            "advantage": "Kansas City Chiefs carries a 24.8-point rating edge over Las Vegas Raiders once offense, defense, injuries, and weather are graded. Las Vegas Raiders are without Dont'e Thornton Jr. (out), a real hit to their offense. The market agrees Kansas City Chiefs is favored, and 76% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 30,
+              "homeScore": 27
+            }
+          }
+        ],
+        "spreadPick": {
+          "market": "spread",
+          "game": {
+            "awayId": "GB",
+            "homeId": "TB",
+            "awayName": "Green Bay Packers",
+            "homeName": "Tampa Bay Buccaneers"
+          },
+          "pickTeamId": "TB",
+          "pick": "Tampa Bay Buccaneers +points",
+          "confidence": 0.7953631591742952,
+          "confidencePct": 80,
+          "summary": "Tampa Bay Buccaneers to cover as the underdog",
+          "advantage": "The model favors Tampa Bay Buccaneers outright even though the market has them getting points - that's the whole edge: a line the model thinks is priced wrong.",
+          "result": "win",
+          "finalScore": {
+            "awayScore": 17,
+            "homeScore": 14
+          }
+        },
+        "moneylinePick": {
+          "market": "moneyline",
+          "game": {
+            "awayId": "MIA",
+            "homeId": "MIN",
+            "awayName": "Miami Dolphins",
+            "homeName": "Minnesota Vikings"
+          },
+          "pickTeamId": "MIA",
+          "pick": "Miami Dolphins +500",
+          "confidence": 0.6034104575674916,
+          "confidencePct": 60,
+          "summary": "Miami Dolphins +500",
+          "advantage": "The model gives Miami Dolphins a 60% win probability, but that price only implies 17% - a 44-point gap between what the model sees and what the market's charging for it.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 10,
+            "homeScore": 15
+          }
+        },
+        "totalPick": {
+          "market": "total",
+          "game": {
+            "awayId": "LAC",
+            "homeId": "SEA",
+            "awayName": "Los Angeles Chargers",
+            "homeName": "Seattle Seahawks"
+          },
+          "pick": "Under 42.5",
+          "lean": "under",
+          "summary": "Under 42.5",
+          "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 23,
+            "homeScore": 30
+          }
+        }
       }
     }
   },
   "aggregate": {
     "season": 2026,
-    "updatedAt": "2026-10-04T23:00:22.544Z",
+    "updatedAt": "2026-10-05T00:00:21.781Z",
     "confidencePicks": {
-      "wins": 2,
-      "losses": 4
+      "wins": 4,
+      "losses": 5
     },
     "spreadPicks": {
-      "wins": 0,
+      "wins": 1,
       "losses": 2,
       "pushes": 0
     },
     "moneylinePicks": {
       "wins": 0,
-      "losses": 2
+      "losses": 3
     },
     "totalPicks": {
       "wins": 1,
-      "losses": 1,
+      "losses": 2,
       "pushes": 0
     },
     "byWeek": [
@@ -292,6 +417,16 @@
           "losses": 2
         },
         "spreadPick": "loss",
+        "moneylinePick": "loss",
+        "totalPick": "loss"
+      },
+      {
+        "week": 4,
+        "confidencePicks": {
+          "wins": 2,
+          "losses": 1
+        },
+        "spreadPick": "win",
         "moneylinePick": "loss",
         "totalPick": "loss"
       }

@@ -89,27 +89,28 @@
      that's been added to the Home Screen, and it won't offer that unless a
      manifest with display:standalone is present. -->
 <link rel="manifest" href="/manifest.webmanifest" />
-<!-- Everything the app needs, in dependency order, all deferred: deferred
-     scripts download in parallel without blocking the HTML parser and run
-     in document order once it finishes, so the engines and React are all defined by the time the deferred /js/app.js at the
-     end of the document executes. As plain <script src> tags in <head> these were
-     seven render-blocking requests. The Netlify Identity widget is no
-     longer here at all: bootApp() in src/app.jsx injects it after the
-     first paint (it costs ~0.5 s of main thread on a phone). React and
-     ReactDOM are self-hosted
-     (js/vendor/, 18.2.0 UMD builds, byte-identical to the cdnjs copies that
-     used to load here) so a cold visit doesn't pay a DNS + TLS handshake to
-     a second origin before anything can render. -->
+<!-- The app's scripts are NOT loaded as <script> tags, and are NOT
+     preloaded either. The small loader at the end of <body> injects them, in
+     order, one frame AFTER the first paint. Two reasons:
+       1. With the files already in hand, Chrome finishes parsing and runs
+          deferred scripts - the engines, React, the 500 KB app bundle and the
+          whole first render - before it takes a paint opportunity, so the
+          prerendered content sitting in the DOM waited ~2 s to be drawn on a
+          phone. A requestAnimationFrame + setTimeout(0) hop guarantees one
+          frame in between: the static page paints, then the app takes over.
+       2. Every request that starts before the first paint - including
+          preloads - is charged against LCP by Lighthouse/PageSpeed, and
+          competes with the render-blocking stylesheet for bandwidth on a
+          slow connection. Starting them after the paint keeps the hero's
+          paint the only thing LCP depends on. The cost is one extra round
+          trip before the app is interactive on a cold load; js/app.js and
+          css/app.css are cached for a year after that.
+     The Netlify Identity widget is injected later still, by bootApp() in
+     src/app.jsx, after the first React commit. React and ReactDOM are
+     self-hosted (js/vendor/, 18.2.0 UMD builds, byte-identical to the cdnjs
+     copies) so a cold visit doesn't pay a DNS + TLS handshake to a second
+     origin. -->
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin />
-<link rel="preload" href="/js/app.js?v=f88ebea61a" as="script" />
-<link rel="preload" href="/data/history.json" as="fetch" crossorigin />
-<link rel="preload" href="/data/impact-players.json" as="fetch" crossorigin />
-<script defer src="/js/predictionEngine.js"></script>
-<script defer src="/js/hotPicksEngine.js"></script>
-<script defer src="/js/scoringEngine.js"></script>
-<script defer src="/js/gameId.js"></script>
-<script defer src="/js/vendor/react.production.min.js"></script>
-<script defer src="/js/vendor/react-dom.production.min.js"></script>
 <script>
   (function () {
     try {
@@ -3115,7 +3116,39 @@
 }</script>
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
-<script defer src="/js/app.js?v=f88ebea61a"></script>
-<script src="/js/analytics.js"></script>
+<script>
+  // App loader - see the comment above the preconnect tag in <head>. Injects
+  // the scripts in dependency order (async=false keeps dynamically inserted
+  // scripts in insertion order) one frame after the first paint.
+  (function () {
+    var SCRIPTS = [
+      "/js/predictionEngine.js",
+      "/js/hotPicksEngine.js",
+      "/js/scoringEngine.js",
+      "/js/gameId.js",
+      "/js/vendor/react.production.min.js",
+      "/js/vendor/react-dom.production.min.js",
+      "/js/app.js?v=f88ebea61a",
+      "/js/analytics.js"
+    ];
+    function inject() {
+      for (var i = 0; i < SCRIPTS.length; i++) {
+        var s = document.createElement("script");
+        s.src = SCRIPTS[i];
+        s.async = false;
+        document.head.appendChild(s);
+      }
+    }
+    function afterFirstPaint(fn) {
+      if (typeof requestAnimationFrame !== "function") return setTimeout(fn, 0);
+      requestAnimationFrame(function () { setTimeout(fn, 0); });
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function () { afterFirstPaint(inject); });
+    } else {
+      afterFirstPaint(inject);
+    }
+  })();
+</script>
 </body>
 </html>

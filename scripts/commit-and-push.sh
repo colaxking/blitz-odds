@@ -73,7 +73,7 @@ guard_index_html() {
   # (scripts/build-app.mjs) since October 2026; index.html is the ~85 KB
   # shell around it. These markers are the shell's load-bearing parts.
   local marker
-  for marker in '<script defer src="/js/app.js?v=' '<link rel="stylesheet" href="/css/app.css?v=' 'id="schedule-data"' '<div id="root">'; do
+  for marker in '"/js/app.js?v=' '<link rel="stylesheet" href="/css/app.css?v=' 'id="schedule-data"' '<div id="root">'; do
     if ! grep -qF -- "$marker" index.html; then
       echo "index.html guard: the file no longer contains $marker - refusing to commit a truncated app shell. Nothing has been committed." >&2
       exit 1

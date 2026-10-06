@@ -76,6 +76,7 @@ const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const SITE_BASE = "https://blitz-odds.com";
 
 const PredictionEngine = require(path.join(REPO_ROOT, "js/predictionEngine.js"));
+const HotPicksEngine = require(path.join(REPO_ROOT, "js/hotPicksEngine.js"));
 
 function log(...args) {
   console.log(new Date().toISOString(), ...args);
@@ -277,6 +278,157 @@ function rankRow(label, awayRank, homeRank) {
   return `<tr><td>${escapeHtml(label)}</td><td>#${escapeHtml(awayRank)}</td><td>#${escapeHtml(homeRank)}</td><td>${diff > 0 ? "away" : diff < 0 ? "home" : "even"} edge (${Math.abs(diff)})</td></tr>`;
 }
 
+// ---- Blitz Edge write-up ---------------------------------------------------
+// Mirrors src/app.jsx buildRationale() for the straight-up format: the same
+// sentences, in the same order, from the same inputs (computeCategoryEdges,
+// describeEdge, describeWeatherFactor, rationaleTeaser are copied line for
+// line). The write-up is the one piece of text that is genuinely different
+// on every game page - without it the 300+ game pages are the same
+// odds/rank/injury template with the names swapped, which is exactly what
+// Google files as "crawled, currently not indexed". Keep the two in sync.
+//
+// The app shows signed-out visitors only the first sentence or two
+// (rationaleTeaser) and gates the rest behind a free account. The
+// prerender does the same split: the teaser is plain text, the remainder
+// sits in a `.edge-writeup-full` element that the page's Article JSON-LD
+// declares as isAccessibleForFree:false via hasPart/cssSelector - Google's
+// documented way to index gated text without it reading as cloaking.
+// Set GATED_WRITEUP_IN_HTML to false to prerender the teaser only.
+const GATED_WRITEUP_IN_HTML = true;
+
+function computeCategoryEdges(away, home) {
+  const categories = [
+    { label: "Total", key: "rankTotal" },
+    { label: "Rush", key: "rankRush" },
+    { label: "Pass", key: "rankPass" },
+  ];
+  const edges = [];
+  categories.forEach(({ label, key }) => {
+    edges.push({ category: label, offTeamId: away.id, offRank: away.stats.offense[key], defTeamId: home.id, defRank: home.stats.defense[key] });
+    edges.push({ category: label, offTeamId: home.id, offRank: home.stats.offense[key], defTeamId: away.id, defRank: away.stats.defense[key] });
+  });
+  return edges.map((e) => {
+    const diff = e.defRank - e.offRank;
+    return { ...e, diff, favoredTeamId: diff === 0 ? null : diff > 0 ? e.offTeamId : e.defTeamId };
+  });
+}
+
+function describeEdge(e) {
+  const gap = Math.abs(e.diff);
+  const cat = e.category.toLowerCase();
+  return e.diff > 0
+    ? `${e.offTeamId}'s ${cat} offense (#${e.offRank}) has a ${gap}-spot edge over ${e.defTeamId}'s ${cat} defense (#${e.defRank})`
+    : `${e.defTeamId}'s ${cat} defense (#${e.defRank}) has a ${gap}-spot edge over ${e.offTeamId}'s ${cat} offense (#${e.offRank})`;
+}
+
+function describeWeatherFactor(a) {
+  switch (a.factor) {
+    case "cold": return `cold temps (${a.tempF}°F)`;
+    case "extreme-cold": return `extreme cold (${a.tempF}°F)`;
+    case "wind": return `wind (${a.windMph}mph)`;
+    case "severe-wind": return `heavy wind (${a.windMph}mph)`;
+    case "precipitation": return `a ${a.precipChance}% chance of precipitation`;
+    default: return a.factor;
+  }
+}
+
+function buildRationaleText({ away, home, prediction, odds }) {
+  const homeIsWinner = prediction.predictedWinner === home.id;
+  const winner = homeIsWinner ? home : away;
+  const loser = homeIsWinner ? away : home;
+  const loserAdjustments = homeIsWinner ? prediction.awayAdjustments : prediction.homeAdjustments;
+  const confidencePct = Math.round(prediction.confidence * 100);
+  const modelAgreesWithMarket = odds && odds.favorite ? odds.favorite === prediction.predictedWinner : null;
+
+  const winningEdges = computeCategoryEdges(away, home)
+    .filter((e) => e.favoredTeamId === winner.id)
+    .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+  const sentences = [`The model gives ${winner.name} a ${confidencePct}% chance to win this one.`];
+
+  if (winningEdges.length) {
+    const top = winningEdges.slice(0, 2).map(describeEdge);
+    sentences.push(top.length > 1 ? `The biggest factors: ${top[0]}, and ${top[1]}.` : `The biggest factor: ${top[0]}.`);
+  } else {
+    sentences.push(`${away.name} and ${home.name} grade out close to even across offense and defense.`);
+  }
+
+  if (homeIsWinner) sentences.push(`Home field adds a small extra boost on top of that.`);
+
+  const weatherFactors = (prediction.homeAdjustments || []).filter((a) => a.factor && a.factor !== "dome-team-acclimation");
+  if (weatherFactors.length) {
+    sentences.push(`Weather is a factor: ${weatherFactors.map(describeWeatherFactor).join(", ")}, which drags down offense for both sides.`);
+  }
+  const domeAdj = [...(prediction.homeAdjustments || []), ...(prediction.awayAdjustments || [])].find((a) => a.factor === "dome-team-acclimation");
+  if (domeAdj) {
+    const domeTeam = (prediction.homeAdjustments || []).includes(domeAdj) ? home : away;
+    sentences.push(`${domeTeam.id} plays its home games in a dome, which adds a small extra penalty on the road in these conditions.`);
+  }
+
+  if (loserAdjustments && loserAdjustments.length) {
+    const injuryAdjustments = loserAdjustments.filter((a) => a.player);
+    if (injuryAdjustments.length) {
+      const biggest = [...injuryAdjustments].sort((a, b) => Math.abs(b.ratingDelta) - Math.abs(a.ratingDelta))[0];
+      sentences.push(`${loser.id} is also dealing with ${biggest.player} (${biggest.position}) listed as ${biggest.status}, which tips things further ${winner.id}'s way.`);
+    }
+  }
+
+  if (odds && modelAgreesWithMarket === false) {
+    sentences.push(`Note: the sportsbook favorite (${odds.favorite}) disagrees with this pick.`);
+  }
+
+  return sentences.join(" ");
+}
+
+/** Same regex as the app: the first one or two sentences. */
+function rationaleTeaser(text) {
+  if (!text) return "";
+  const match = /^(?:[\s\S]*?[.!?](?=\s|$)\s*){1,2}/.exec(text);
+  return match ? match[0].trim() : text;
+}
+
+/** Teaser paragraph plus, when enabled, the gated remainder. Returns the
+ *  HTML and whether a gated part was emitted (the caller adds the Article
+ *  JSON-LD that declares it). */
+function buildGatedWriteupHtml(text, gatedClass) {
+  const teaser = rationaleTeaser(text);
+  const rest = text.slice(teaser.length).trim();
+  let html = `<p>${escapeHtml(teaser)}</p>`;
+  let gated = false;
+  if (rest && GATED_WRITEUP_IN_HTML) {
+    html += `\n  <div class="${gatedClass}"><p>${escapeHtml(rest)}</p></div>`;
+    gated = true;
+  }
+  if (rest && !GATED_WRITEUP_IN_HTML) {
+    html += `\n  <p><em>Sign in for the rest of this write-up.</em></p>`;
+  }
+  return { html, gated };
+}
+
+/** Article JSON-LD for a page whose prerendered text is partly behind the
+ *  free-account gate. hasPart/cssSelector + isAccessibleForFree:false is
+ *  the markup Google asks for on registration- or paywall-gated content;
+ *  it is what distinguishes "indexed but gated" from hidden text. */
+function buildGatedArticleJsonLd({ headline, description, canonicalPath, gatedClass, datePublished }) {
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline,
+    description,
+    mainEntityOfPage: `${SITE_BASE}${canonicalPath}`,
+    author: { "@type": "Organization", name: "Blitz Odds", url: SITE_BASE },
+    publisher: { "@type": "Organization", name: "Blitz Odds", url: SITE_BASE, logo: { "@type": "ImageObject", url: `${SITE_BASE}/branding/app-icon-512.png` } },
+    image: `${SITE_BASE}/branding/app-icon-512.png`,
+    isAccessibleForFree: false,
+    hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: `.${gatedClass}` },
+  };
+  if (datePublished) ld.datePublished = datePublished;
+  return `<script type="application/ld+json">${JSON.stringify(ld)}</script>`;
+}
+
+/** Set by the snapshot builders: did the last snapshot emit a gated part? */
+let lastSnapshotGated = false;
+
 function buildGameSnapshotHtml(data, period, game) {
   const away = teamForWeek(data, period.week, game.away);
   const home = teamForWeek(data, period.week, game.home);
@@ -309,6 +461,8 @@ function buildGameSnapshotHtml(data, period, game) {
   }
 
   const odds = getOdds(data, period.week, game.away, game.home);
+  const writeup = buildGatedWriteupHtml(buildRationaleText({ away, home, prediction, odds }), "edge-writeup-full");
+  lastSnapshotGated = writeup.gated;
   const oddsBlock = odds
     ? `<p><strong>Odds (DraftKings):</strong> ${escapeHtml(odds.favorite)} ${escapeHtml(formatSpread(odds.spread))} · ML ${escapeHtml(game.away)} ${escapeHtml(formatMoneyline(odds.moneylineAway))} / ${escapeHtml(game.home)} ${escapeHtml(formatMoneyline(odds.moneylineHome))} · O/U ${escapeHtml(odds.overUnder)}</p>`
     : `<p>Odds not yet posted for this game.</p>`;
@@ -333,6 +487,9 @@ function buildGameSnapshotHtml(data, period, game) {
 
   <h2>Model prediction</h2>
   <p>Predicted winner: <strong>${escapeHtml(predictedWinnerName)}</strong> - ${escapeHtml(game.away)} ${awayPct}% / ${escapeHtml(game.home)} ${homePct}%</p>
+
+  <h2>Blitz Edge: why the model likes ${escapeHtml(predictedWinnerName)}</h2>
+  ${writeup.html}
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -393,6 +550,15 @@ async function buildGamePage(template, data, period, game) {
   if (jsonLd) html = html.replace("</head>", `${jsonLd}\n</head>`);
 
   const snapshot = buildGameSnapshotHtml(data, period, game);
+  if (lastSnapshotGated) {
+    const articleLd = buildGatedArticleJsonLd({
+      headline: `${away.name} at ${home.name} - ${period.label} prediction and Blitz Edge write-up`,
+      description: `Why the Blitz Odds model picks its winner in ${away.name} at ${home.name}: the matchup edges, injuries and market read behind the number.`,
+      canonicalPath,
+      gatedClass: "edge-writeup-full",
+    });
+    html = html.replace("</head>", `${articleLd}\n</head>`);
+  }
   html = html.replace("<body>", `<body>\n${snapshot}`);
   // The snapshot is hidden by the app itself the moment React mounts (see
   // bootApp() in src/app.jsx) - no inline hide script here any more.
@@ -447,6 +613,7 @@ function buildLadder(data, period) {
       game,
       away,
       home,
+      prediction,
       pickName: pickIsHome ? home.name : away.name,
       pickAbbr: pickIsHome ? game.home : game.away,
       winPct,
@@ -804,9 +971,101 @@ async function buildTeamPage(template, data, team) {
  * gives each one a real, indexable document. /leagues doubles as the SEO
  * route that was already on the roadmap.
  *
- * No content snapshot here, unlike team and game pages - these screens are
- * driven by live per-user data (your leagues, this week's hot picks), so
- * there's nothing stable to bake in. The value is the metadata and the 200. */
+ * /picks carries a prerendered snapshot of the current week's sheets (a
+ * `snapshot` hook below); the other tab pages are driven by live per-user
+ * data (your leagues, the news feed), so for those the value is the
+ * metadata and the 200. */
+// ---- /picks (Pick'em Playbook) snapshot --------------------------------------
+// /picks is the page the product is positioned around and it had no
+// prerendered text at all - a 0-character page to anything that doesn't run
+// the bundle. This bakes in the current week's finished sheets: the
+// confidence ladder (compact - the week hub carries the full table and is
+// linked as the deeper page), the safest survivor spends, and the spread
+// sheet. The top spread play is open, like the app's "Betting angles"
+// preview; the rest sits in the same gated/Article-markup pattern the game
+// write-ups use, because the full sheet is a Blitz+ feature.
+
+/** The period a visitor opening /picks today wants: the first one that
+ *  still has an unplayed game, or the last period once the season is done. */
+function currentPeriod(data, periods) {
+  for (const period of periods) {
+    const unplayed = period.games.some((g) => {
+      const r = resultForWeek(data, period.week, g.away, g.home);
+      return !(r && r.final);
+    });
+    if (unplayed) return period;
+  }
+  return periods[periods.length - 1] || null;
+}
+
+function buildPlaybookSnapshotHtml(data, period, ladder) {
+  const seasonYear = data.seasonYear;
+  const weekSlug = slugify(period.label);
+  const hubUrl = `/games/${seasonYear}/${weekSlug}/`;
+  const gameUrl = (row) => `${hubUrl}${row.slug}/`;
+  const label = escapeHtml(period.label);
+
+  // Confidence ladder - points, pick, win%, with the matchup linked.
+  const ladderItems = ladder
+    .map((r) => `    <li><strong>${r.points} pts - ${escapeHtml(r.pickName)}</strong> (${r.winPct}%) - <a href="${gameUrl(r)}">${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}</a></li>`)
+    .join("\n");
+
+  // Survivor - the three safest wins on the slate. The app narrows this to
+  // the teams a member hasn't burned and weighs future weeks; the public
+  // version is the raw safety ranking.
+  const safest = ladder.slice(0, 3);
+  const survivorItems = safest
+    .map((r, i) => `    <li><strong>${escapeHtml(r.pickName)}</strong> - ${r.winPct}% to win${i === 0 ? " (safest play on the board)" : ""} - <a href="${gameUrl(r)}">vs ${escapeHtml(r.pickAbbr === r.game.home ? r.away.name : r.home.name)}</a></li>`)
+    .join("\n");
+
+  // Spread sheet via the same engine call the app's Playbook makes.
+  const input = ladder
+    .map((r) => ({
+      awayId: r.away.id, awayName: r.away.name, homeId: r.home.id, homeName: r.home.name,
+      prediction: r.prediction, odds: r.odds,
+    }))
+    .filter((g) => g.prediction && g.odds);
+  const hot = input.length ? HotPicksEngine.computeHotPicks(input, 5) : null;
+  const spreadPicks = hot ? hot.spreadPicks : [];
+  const spreadItem = (pk) => `    <li><strong>${escapeHtml(pk.summary)}</strong> - ${escapeHtml(pk.advantage)}</li>`;
+  let spreadBlock;
+  if (!spreadPicks.length) {
+    spreadBlock = `<p>Spread plays for ${label} post once sportsbook lines are up for the full slate.</p>`;
+  } else {
+    const [top, ...rest] = spreadPicks;
+    spreadBlock = `<ol>\n${spreadItem(top)}\n  </ol>`;
+    if (rest.length && GATED_WRITEUP_IN_HTML) {
+      spreadBlock += `\n  <div class="playbook-gated"><p>The rest of this week's spread sheet, in order:</p>\n  <ol start="2">\n${rest.map(spreadItem).join("\n")}\n  </ol></div>`;
+      lastSnapshotGated = true;
+    } else if (rest.length) {
+      spreadBlock += `\n  <p><em>${rest.length} more spread plays this week - sign in to see the full sheet.</em></p>`;
+    }
+  }
+
+  return `
+<div id="prerendered-content">
+  <h1>NFL Pick'em Playbook - ${label} Confidence, Survivor &amp; Spread Picks (${seasonYear})</h1>
+  <p>A finished pick sheet for your pool, every week, from the Blitz Odds model: every ${label} game ranked into a confidence ladder, the safest survivor spends, and the spread plays where the model's line is furthest from the market's. Win probabilities account for team rankings, injuries, home field and the betting line.</p>
+
+  <h2>${label} confidence ladder</h2>
+  <p>${ladder.length} games - assign ${ladder.length} points to the top pick down to 1 at the bottom. <a href="${hubUrl}">Full ${label} breakdown with spreads and kickoff times &raquo;</a></p>
+  <ol>
+${ladderItems}
+  </ol>
+
+  <h2>${label} survivor picks</h2>
+  <p>The safest wins on the slate. In a league, Blitz Odds narrows this to the teams you haven't used yet and flags when a team is worth holding for a better week.</p>
+  <ol>
+${survivorItems}
+  </ol>
+
+  <h2>${label} against the spread</h2>
+  ${spreadBlock}
+
+  <p><a href="/leagues">Join a free NFL pick'em pool</a> and these picks are one tap away in every format.</p>
+</div>`;
+}
+
 // canonicalPath carries the trailing slash on purpose: each of these is a
 // directory index (games/index.html etc.), and Netlify 301s the bare
 // "/games" to "/games/". A canonical that points at a redirecting URL is a
@@ -834,6 +1093,11 @@ const TAB_PAGES = [
     // rather than the betting keywords the old section chased.
     dir: "picks",
     canonicalPath: "/picks/",
+    // Prerendered sheets for the current week - see buildPlaybookSnapshotHtml.
+    snapshot: (data, periods) => {
+      const period = currentPeriod(data, periods);
+      return period ? { period, html: buildPlaybookSnapshotHtml(data, period, buildLadder(data, period)) } : null;
+    },
     title: "NFL Pick'em Playbook - Confidence, Survivor & ATS Sheets | Blitz Odds",
     description: "A finished pick sheet for your pool every week: a full confidence ladder, ranked spread plays, and a survivor pick planned around the rest of the season - with the model's reasoning behind each one.",
   },
@@ -857,8 +1121,24 @@ const TAB_PAGES = [
   },
 ];
 
-async function buildTabPage(template, page) {
-  const html = applyMeta(template, page);
+async function buildTabPage(template, page, data, periods) {
+  let html = applyMeta(template, page);
+  if (page.snapshot) {
+    lastSnapshotGated = false;
+    const snap = page.snapshot(data, periods);
+    if (snap) {
+      if (lastSnapshotGated) {
+        const articleLd = buildGatedArticleJsonLd({
+          headline: `NFL Pick'em Playbook - ${snap.period.label} confidence, survivor and spread picks`,
+          description: `The Blitz Odds model's ${snap.period.label} pick sheet: a full confidence ladder, the safest survivor spends and the week's ranked spread plays.`,
+          canonicalPath: page.canonicalPath,
+          gatedClass: "playbook-gated",
+        });
+        html = html.replace("</head>", `${articleLd}\n</head>`);
+      }
+      html = html.replace("<body>", `<body>\n${snap.html}`);
+    }
+  }
   const outPath = path.join(REPO_ROOT, page.dir, "index.html");
   const changed = await writeIfChanged(outPath, html);
   return { path: page.canonicalPath, changed };
@@ -1058,7 +1338,7 @@ async function main() {
   log(`Building ${TAB_PAGES.length} tab pages...`);
   const tabEntries = [];
   for (const page of TAB_PAGES) {
-    tabEntries.push(await buildTabPage(template, page));
+    tabEntries.push(await buildTabPage(template, page, data, periods));
   }
 
   const entries = [...tabEntries, ...teamEntries, ...weekEntries, ...gameEntries];

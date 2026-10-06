@@ -1683,13 +1683,22 @@ function weekResultsComplete(week) {
  * after the first. resetTeamRecordCache() is called wherever HISTORY_DATA is
  * rebound (see the site-data refresh), since the cache would otherwise
  * outlive the data it was derived from.
+ *
+ * The cache is keyed on the last week counted ("all" for the season to date,
+ * or a week number for the record *through* that week), because the two
+ * callers want different things: the Picks sheet shows the current record,
+ * while a game card shows each team's record entering that game - a Week 3
+ * archive card tallying results from Weeks 4-6 would be describing a team
+ * that didn't exist yet when that game was played. Same rule as the frozen
+ * prediction: a finished week shows what was true at kickoff.
  */
 let teamRecordCache = null;
 function resetTeamRecordCache() { teamRecordCache = null; }
-function buildTeamRecords() {
+function buildTeamRecords(throughWeek) {
   const records = {};
   for (const snap of (HISTORY_DATA.weeks || [])) {
     if (!snap || snap.week < 1 || snap.week > 18) continue;
+    if (throughWeek != null && snap.week > throughWeek) continue;
     for (const key of Object.keys(snap.results || {})) {
       const result = snap.results[key];
       if (!result || !result.final) continue;
@@ -1716,17 +1725,34 @@ function buildTeamRecords() {
   return records;
 }
 
-/** A team's regular-season record as a display string, or null before that
- *  team has played a game this season - an 0-0 on every card in Week 1 is
- *  noise, not information. Ties are only shown once one has happened. */
-function getTeamRecordLabel(teamId) {
-  if (!teamRecordCache) teamRecordCache = buildTeamRecords();
-  const record = teamRecordCache[teamId];
+function getTeamRecords(throughWeek) {
+  const key = throughWeek == null ? "all" : String(throughWeek);
+  if (!teamRecordCache) teamRecordCache = {};
+  if (!teamRecordCache[key]) teamRecordCache[key] = buildTeamRecords(throughWeek);
+  return teamRecordCache[key];
+}
+
+function formatTeamRecord(record) {
   if (!record) return null;
   if (record.wins + record.losses + record.ties === 0) return null;
   return record.ties > 0
     ? `${record.wins}-${record.losses}-${record.ties}`
     : `${record.wins}-${record.losses}`;
+}
+
+/** A team's regular-season record to date as a display string, or null before
+ *  that team has played a game this season - an 0-0 on every card in Week 1
+ *  is noise, not information. Ties are only shown once one has happened. */
+function getTeamRecordLabel(teamId) {
+  return formatTeamRecord(getTeamRecords(null)[teamId]);
+}
+
+/** The record a team carried *into* the given regular-season week - results
+ *  from Weeks 1 through week-1 only. Null in Week 1 (nothing played yet) and
+ *  for preseason/playoff week numbers, where a W-L isn't the right frame. */
+function getTeamRecordEnteringWeek(teamId, week) {
+  if (!(week >= 2 && week <= 18)) return null;
+  return formatTeamRecord(getTeamRecords(week - 1)[teamId]);
 }
 
 function getWeekContext(week) {
@@ -3948,6 +3974,11 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
     : null;
   const home = frozenInputs && frozenInputs.homeStats ? { ...baseHome, stats: frozenInputs.homeStats } : baseHome;
   const away = frozenInputs && frozenInputs.awayStats ? { ...baseAway, stats: frozenInputs.awayStats } : baseAway;
+  // Records entering this game - what each side was *going in*, not the
+  // season to date, so an archived week's card keeps describing that week
+  // (see getTeamRecordEnteringWeek). Null in Week 1, so nothing renders.
+  const awayRecord = getTeamRecordEnteringWeek(away.id, week);
+  const homeRecord = getTeamRecordEnteringWeek(home.id, week);
   const homePlayers = frozenInputs && Array.isArray(frozenInputs.homeImpactPlayers) ? frozenInputs.homeImpactPlayers : context.getPlayers(game.home);
   const awayPlayers = frozenInputs && Array.isArray(frozenInputs.awayImpactPlayers) ? frozenInputs.awayImpactPlayers : context.getPlayers(game.away);
   const weather = frozenInputs && frozenInputs.weather !== undefined ? frozenInputs.weather : getWeather(week, game.away, game.home);
@@ -4228,6 +4259,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           {actualWinnerId === away.id && <span className="won-check" title={away.name + " won"} aria-label={away.name + " won"}>&#10003;</span>}
           <TeamBadge team={away} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{away.name}</div>
+          {awayRecord && <div className="team-record">{awayRecord}</div>}
           <div className={"win-tag" + (!homeIsWinner ? "" : " win-tag-hidden")}>Blitz Pick</div>
         </div>
         {isFinal ? (
@@ -4242,6 +4274,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           {actualWinnerId === home.id && <span className="won-check" title={home.name + " won"} aria-label={home.name + " won"}>&#10003;</span>}
           <TeamBadge team={home} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
           <div className="team-name">{home.name}</div>
+          {homeRecord && <div className="team-record">{homeRecord}</div>}
           <div className={"win-tag" + (homeIsWinner ? "" : " win-tag-hidden")}>Blitz Pick</div>
         </div>
       </div>

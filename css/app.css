@@ -2324,6 +2324,17 @@
   }
   .star-btn.active { color: var(--star); border-color: var(--star); }
   .team-name { font-size: 0.8rem; text-align: center; color: var(--text); }
+  /* Season record entering the game, directly under the name - dimmer and
+     smaller so the block still reads as a team first (same treatment as
+     .pickem-team-record on the Picks sheet). Tabular figures keep the two
+     sides' records level with each other. Pulled up a little against the
+     block's 6px gap so name and record read as one unit, with the Blitz
+     Pick tag keeping its full spacing below. */
+  .team-record {
+    font-size: 0.66rem; font-weight: 700; color: var(--text-dim);
+    font-variant-numeric: tabular-nums; line-height: 1; margin-top: -3px;
+  }
+  .team-block.actual-winner .team-record { color: var(--text); }
   .win-tag {
     font-size: 0.55rem; color: var(--accent); font-weight: 800; text-transform: uppercase;
     letter-spacing: 0.4px; border: 1px solid rgba(var(--accent-rgb), 0.5); border-radius: 999px; padding: 1px 6px;

@@ -88,12 +88,16 @@ export async function buildApp({ check = false, log = console.log } = {}) {
   });
   for (const w of result.warnings) log(`esbuild warning: ${w.text}`);
 
-  const banner = "/* Built from src/app.jsx by scripts/build-app.mjs - do not edit; edit the source and rebuild. */\n";
+  // The banner records a hash of the SOURCE it was built from, so a build
+  // that can't run esbuild (CI, or a checkout without node_modules) can
+  // still tell whether the committed artifact matches the committed source
+  // instead of silently shipping a stale bundle - see assertArtifactsFresh().
+  const banner = `/* Built from src/app.jsx (source sha256:${hashOf(source)}) by scripts/build-app.mjs - do not edit; edit the source and rebuild. */\n`;
   const js = banner + result.code;
   const cssSource = await readFile(SRC_CSS, "utf8");
   const cssResult = await esbuild.transform(cssSource, { loader: "css", minify: true, sourcefile: "src/app.css" });
   for (const w of cssResult.warnings) log(`esbuild css warning: ${w.text}`);
-  const css = "/* Built from src/app.css by scripts/build-app.mjs - do not edit; edit the source and rebuild. */\n" + cssResult.code;
+  const css = `/* Built from src/app.css (source sha256:${hashOf(cssSource)}) by scripts/build-app.mjs - do not edit; edit the source and rebuild. */\n` + cssResult.code;
   const jsHash = hashOf(js);
   const cssHash = hashOf(css);
 
@@ -128,6 +132,22 @@ export async function buildApp({ check = false, log = console.log } = {}) {
   if (indexChanged) await writeFile(INDEX, nextIndex, "utf8");
   log(`build-app: js/app.js ${(js.length / 1024).toFixed(0)} KB (from ${(source.length / 1024).toFixed(0)} KB JSX) v=${jsHash}${jsChanged ? "" : " (unchanged)"}; css/app.css ${(css.length / 1024).toFixed(0)} KB (from ${(cssSource.length / 1024).toFixed(0)} KB) v=${cssHash}${cssChanged ? "" : " (unchanged)"}${indexChanged ? "; index.html tags updated" : ""}`);
   return { stale: false, jsHash, cssHash, jsChanged, cssChanged, indexChanged };
+}
+
+/** Without esbuild, verify the committed artifacts were built from the
+ *  current sources by comparing the source hash each banner records. Throws
+ *  with instructions when either is stale. */
+export async function assertArtifactsFresh() {
+  const pairs = [[SRC_JSX, OUT_JS, "src/app.jsx", "js/app.js"], [SRC_CSS, OUT_CSS, "src/app.css", "css/app.css"]];
+  for (const [src, out, srcName, outName] of pairs) {
+    let built;
+    try { built = await readFile(out, "utf8"); } catch { throw new Error(`${outName} is missing. Run \`npm install && node scripts/build-app.mjs\`.`); }
+    const m = /source sha256:([0-9a-f]+)/.exec(built.slice(0, 300));
+    const current = hashOf(await readFile(src, "utf8"));
+    if (!m || m[1] !== current) {
+      throw new Error(`${outName} was not built from the current ${srcName} (and esbuild is not installed to rebuild it). Run \`npm install && node scripts/build-app.mjs\`.`);
+    }
+  }
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

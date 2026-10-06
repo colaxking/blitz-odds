@@ -37,7 +37,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { buildApp } from "./build-app.mjs";
+import { buildApp, assertArtifactsFresh } from "./build-app.mjs";
 
 const require = createRequire(import.meta.url);
 /**
@@ -1404,12 +1404,12 @@ async function main() {
     log("Building app bundle...");
     await buildApp({ log });
   } else {
-    try {
-      await readFile(path.join(REPO_ROOT, "js", "app.js"));
-      log("esbuild not installed - reusing the committed js/app.js (run `npm install && node scripts/build-app.mjs` after editing src/app.jsx).");
-    } catch {
-      throw new Error("js/app.js is missing and esbuild is not installed. Run `npm install && node scripts/build-app.mjs`.");
-    }
+    // No esbuild: fine for CI, where source and bundle land in the same
+    // commit - but only if they actually match. A stale bundle once shipped
+    // this way; assertArtifactsFresh compares the source hash each built
+    // file records against the current source and refuses to continue.
+    await assertArtifactsFresh();
+    log("esbuild not installed - committed js/app.js and css/app.css verified against their sources, reusing them.");
   }
 
   log("Loading data...");

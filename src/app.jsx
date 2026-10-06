@@ -19862,12 +19862,36 @@ function useAuth() {
   const [authPanel, setAuthPanel] = useState(null);
 
   useEffect(() => {
+    // The widget script is injected by bootApp() AFTER the first render (it
+    // costs ~0.5 s of main thread on a mid-range phone, which used to sit in
+    // front of the first paint), so it is usually not here yet when this
+    // effect runs. bootApp fires blitz:identity-ready once it has loaded and
+    // blitz:identity-failed if it couldn't (ad blocker, offline); bind() is
+    // the previous body of this effect, run as soon as the widget exists.
+    let cancelled = false;
+    let unbind = null;
+    const onReady = () => { if (!cancelled && !unbind) unbind = bind(); };
+    const onFailed = () => { if (!cancelled) setStatus("out"); };
+    if (window.netlifyIdentity) {
+      unbind = bind();
+    } else {
+      window.addEventListener("blitz:identity-ready", onReady);
+      window.addEventListener("blitz:identity-failed", onFailed);
+    }
+    return () => {
+      cancelled = true;
+      window.removeEventListener("blitz:identity-ready", onReady);
+      window.removeEventListener("blitz:identity-failed", onFailed);
+      if (unbind) unbind();
+    };
+
+    function bind() {
     const identity = window.netlifyIdentity;
     if (!identity) {
       // Widget script failed to load (ad blocker, offline first paint, etc).
       // Fail open to "out" rather than leaving the UI stuck on "loading".
       setStatus("out");
-      return;
+      return null;
     }
 
     // netlify-identity-widget renders a full-page overlay
@@ -19937,6 +19961,7 @@ function useAuth() {
       identity.off("close", onWidgetClose);
       clearInterval(pollInterval);
     };
+    }
   }, []);
 
   // Every one of these reads window.netlifyIdentity at call time and closes
@@ -22618,6 +22643,24 @@ async function bootApp() {
   ReactDOM.flushSync(() => root.render(<App />));
   const prerendered = document.getElementById("prerendered-content");
   if (prerendered) prerendered.style.display = "none";
+  loadIdentityWidget();
+}
+
+// The Netlify Identity widget is its own bundled app (login modal, GoTrue
+// client) and costs ~0.5 s of main-thread time on a mid-range phone. It
+// used to be a deferred <script> in <head>, i.e. it ran before app.js and
+// in front of the first paint on every page. Now it's injected after the
+// first render; useAuth() waits for the event below and binds the moment
+// it lands, so a signed-in session still restores - just a beat after the
+// page is already readable.
+function loadIdentityWidget() {
+  if (window.netlifyIdentity) { window.dispatchEvent(new Event("blitz:identity-ready")); return; }
+  const s = document.createElement("script");
+  s.src = "https://identity.netlify.com/v1/netlify-identity-widget.js";
+  s.async = true;
+  s.onload = () => window.dispatchEvent(new Event("blitz:identity-ready"));
+  s.onerror = () => window.dispatchEvent(new Event("blitz:identity-failed"));
+  document.head.appendChild(s);
 }
 
 bootApp();

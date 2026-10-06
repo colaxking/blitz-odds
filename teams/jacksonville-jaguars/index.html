@@ -91,10 +91,12 @@
 <link rel="manifest" href="/manifest.webmanifest" />
 <!-- Everything the app needs, in dependency order, all deferred: deferred
      scripts download in parallel without blocking the HTML parser and run
-     in document order once it finishes, so the engines, the identity widget
-     and React are all defined by the time the deferred /js/app.js at the
+     in document order once it finishes, so the engines and React are all defined by the time the deferred /js/app.js at the
      end of the document executes. As plain <script src> tags in <head> these were
-     seven render-blocking requests. React and ReactDOM are self-hosted
+     seven render-blocking requests. The Netlify Identity widget is no
+     longer here at all: bootApp() in src/app.jsx injects it after the
+     first paint (it costs ~0.5 s of main thread on a phone). React and
+     ReactDOM are self-hosted
      (js/vendor/, 18.2.0 UMD builds, byte-identical to the cdnjs copies that
      used to load here) so a cold visit doesn't pay a DNS + TLS handshake to
      a second origin before anything can render. -->
@@ -106,7 +108,6 @@
 <script defer src="/js/hotPicksEngine.js"></script>
 <script defer src="/js/scoringEngine.js"></script>
 <script defer src="/js/gameId.js"></script>
-<script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script defer src="/js/vendor/react.production.min.js"></script>
 <script defer src="/js/vendor/react-dom.production.min.js"></script>
 <script>

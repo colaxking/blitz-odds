@@ -1077,6 +1077,99 @@ ${survivorItems}
 </div>`;
 }
 
+// ---- Homepage snapshot ---------------------------------------------------
+// "/" is index.html itself - the app shell every other page is cut from -
+// so it never had a prerendered block of its own, and on a phone nothing
+// painted until React had finished. Lighthouse (slow 4G, Moto G) put LCP at
+// 9.7 s with the hero paragraph as the LCP element.
+//
+// This stamps a static copy of the above-the-fold hero (the app's own
+// classes, so css/app.css renders it identically) into index.html between
+// the two markers below. The CSS is render-blocking anyway, so the hero
+// paints the moment it arrives, before any script runs. When React mounts
+// it draws the same hero at the same size and bootApp hides this one; LCP
+// stays pinned to the first paint because a later candidate only replaces
+// it when it is strictly larger.
+//
+// Every generated page strips the region out of its template copy first
+// (stripHomeSnapshot) and injects its own snapshot instead.
+const HOME_SNAPSHOT_START = "<!-- home-snapshot:start -->";
+const HOME_SNAPSHOT_END = "<!-- home-snapshot:end -->";
+
+function stripHomeSnapshot(html) {
+  const a = html.indexOf(HOME_SNAPSHOT_START);
+  const b = html.indexOf(HOME_SNAPSHOT_END);
+  if (a < 0 || b < 0) return html;
+  return html.slice(0, a) + html.slice(b + HOME_SNAPSHOT_END.length).replace(/^\n/, "");
+}
+
+function buildHomeSnapshotHtml(period) {
+  const label = period ? escapeHtml(period.label) : "this week";
+  return `${HOME_SNAPSHOT_START}
+<div id="prerendered-content" class="app">
+  <header class="top">
+    <div class="hdr-bar">
+      <div class="hdr-lead">
+        <a href="/" class="hdr-mark" aria-label="Blitz Odds home">
+          <span class="brand-logo-mini" style="display:inline-flex;align-items:center;flex-shrink:0">
+            <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" width="900" height="252" decoding="async" style="height:21px;width:auto;display:block" />
+            <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" width="900" height="252" loading="lazy" decoding="async" style="height:21px;width:auto;display:none" />
+          </span>
+        </a>
+      </div>
+      <div class="hdr-center"></div>
+      <div class="header-right-cluster"></div>
+    </div>
+    <div class="brand-row">
+      <span class="brand-logo" style="display:inline-flex;align-items:center;flex-shrink:0">
+        <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" width="900" height="252" decoding="async" style="height:76px;width:auto;display:block" />
+        <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" width="900" height="252" loading="lazy" decoding="async" style="height:76px;width:auto;display:none" />
+      </span>
+      <h1 class="sr-only">Blitz Odds</h1>
+    </div>
+  </header>
+  <div class="home-landing">
+    <div class="home-hero">
+      <div class="home-hero-copy">
+        <span class="home-eyebrow">NFL pick'em pools</span>
+        <h2 class="home-display">
+          Run your pool. <em>Win it too.</em>
+          <span class="sr-only"> Free NFL pick'em leagues, odds and model predictions — ${label}.</span>
+        </h2>
+        <p class="home-lede">
+          Blitz Odds gives every game a model win probability, then puts your whole pool on top of
+          it — straight-up, confidence, survivor, or against the spread. Set it up once and it
+          scores itself all season.
+        </p>
+        <div class="home-acts">
+          <a href="/leagues" class="home-btn primary">Create a free league</a>
+          <a href="/games" class="home-btn">Browse this week's games</a>
+        </div>
+        <div class="home-trust">
+          <span>⚡ Odds from 5 sportsbooks</span>
+          <span>📊 Injury &amp; weather adjusted</span>
+          <span>🏆 Four pool formats</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+${HOME_SNAPSHOT_END}`;
+}
+
+/** Writes the current week's home snapshot into index.html (between the
+ *  markers, creating them after <body> on first run). Returns whether the
+ *  file changed. */
+async function stampHomeSnapshot(period) {
+  const indexPath = path.join(REPO_ROOT, "index.html");
+  const current = await readFile(indexPath, "utf8");
+  const stripped = stripHomeSnapshot(current);
+  const next = injectAfterBody(stripped, buildHomeSnapshotHtml(period));
+  if (next === current) return false;
+  await writeFile(indexPath, next, "utf8");
+  return true;
+}
+
 // canonicalPath carries the trailing slash on purpose: each of these is a
 // directory index (games/index.html etc.), and Netlify 301s the bare
 // "/games" to "/games/". A canonical that points at a redirecting URL is a
@@ -1321,7 +1414,12 @@ async function main() {
 
   log("Loading data...");
   const data = await loadData();
-  const template = await readFile(path.join(REPO_ROOT, "index.html"), "utf8");
+  const periodsForHome = getPeriods(data);
+  const homeChanged = await stampHomeSnapshot(currentPeriod(data, periodsForHome));
+  if (homeChanged) log("Homepage snapshot in index.html updated.");
+  // Every other page is cut from the shell WITHOUT the homepage's own
+  // prerendered hero - each gets its own snapshot instead.
+  const template = stripHomeSnapshot(await readFile(path.join(REPO_ROOT, "index.html"), "utf8"));
 
   log(`Building ${data.teams.length} team pages...`);
   const teamEntries = [];
@@ -1362,7 +1460,7 @@ async function main() {
   log(`Sitemap: ${sitemap.kept} kept + ${sitemap.fresh} regenerated = ${sitemap.kept + sitemap.fresh} site URLs (${sitemap.restamped} restamped) in sitemap.xml; ${sitemap.archive} archive URLs in sitemap-archive.xml.`);
   // The line the workflow's git-diff guard cares about: nothing written
   // means nothing to commit, which means no production deploy.
-  log(sitemap.changed || changedCount > 0
+  log(sitemap.changed || changedCount > 0 || homeChanged
     ? "Changes on disk - static-pages-refresh will commit."
     : "No changes on disk - static-pages-refresh will skip the commit (no deploy).");
 }

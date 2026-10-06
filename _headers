@@ -8,6 +8,9 @@
   Cache-Control: public, max-age=31536000, immutable
 /css/app.css
   Cache-Control: public, max-age=31536000, immutable
+# Pinned React 18.2.0 UMD builds; the path changes if the version does.
+/js/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
 
 # The data seeds the app fetches at boot (see bootApp in src/app.jsx) change
 # with every refresh job commit, so they stay on revalidation - but allow a

@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B"></script>
+<!-- Google tag (gtag.js). The ~130 KB tag is injected after the load event
+     instead of as an async script in <head>: on a throttled mobile
+     connection it was competing with the app bundle, stylesheet and data
+     seeds for bandwidth on the critical path. dataLayer queues everything
+     pushed before it arrives, so nothing is lost - the config call below
+     is replayed the moment the tag loads. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
   gtag('config', 'G-1KHS0JK39B');
+  window.addEventListener("load", function () {
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B";
+    document.head.appendChild(s);
+  });
 </script>
 <meta charset="UTF-8" />
 <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to a real
@@ -79,13 +89,26 @@
      that's been added to the Home Screen, and it won't offer that unless a
      manifest with display:standalone is present. -->
 <link rel="manifest" href="/manifest.webmanifest" />
-<script src="/js/predictionEngine.js"></script>
-<script src="/js/hotPicksEngine.js"></script>
-<script src="/js/scoringEngine.js"></script>
-<script src="/js/gameId.js"></script>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<!-- Everything the app needs, in dependency order, all deferred: deferred
+     scripts download in parallel without blocking the HTML parser and run
+     in document order once it finishes, so the engines, the identity widget
+     and React are all defined by the time the deferred /js/app.js at the
+     end of the document executes. As plain <script src> tags in <head> these were
+     seven render-blocking requests. React and ReactDOM are self-hosted
+     (js/vendor/, 18.2.0 UMD builds, byte-identical to the cdnjs copies that
+     used to load here) so a cold visit doesn't pay a DNS + TLS handshake to
+     a second origin before anything can render. -->
+<link rel="preconnect" href="https://identity.netlify.com" crossorigin />
+<link rel="preload" href="/js/app.js?v=be9be91490" as="script" />
+<link rel="preload" href="/data/history.json" as="fetch" crossorigin />
+<link rel="preload" href="/data/impact-players.json" as="fetch" crossorigin />
+<script defer src="/js/predictionEngine.js"></script>
+<script defer src="/js/hotPicksEngine.js"></script>
+<script defer src="/js/scoringEngine.js"></script>
+<script defer src="/js/gameId.js"></script>
+<script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script defer src="/js/vendor/react.production.min.js"></script>
+<script defer src="/js/vendor/react-dom.production.min.js"></script>
 <script>
   (function () {
     try {
@@ -102,7 +125,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="/css/app.css?v=4d1d4cde04">
+<link rel="stylesheet" href="/css/app.css?v=747dbf1237">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Buffalo Bills at Los Angeles Rams","sport":"American Football","startDate":"2026-10-12T20:15:00-04:00","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","eventStatus":"https://schema.org/EventScheduled","homeTeam":{"@type":"SportsTeam","name":"Los Angeles Rams"},"awayTeam":{"@type":"SportsTeam","name":"Buffalo Bills"},"url":"https://blitz-odds.com/games/2026/week-5/buffalo-bills-at-los-angeles-rams/","location":{"@type":"Place","name":"SoFi Stadium"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Buffalo Bills at Los Angeles Rams - Week 5 prediction and Blitz Edge write-up","description":"Why the Blitz Odds model picks its winner in Buffalo Bills at Los Angeles Rams: the matchup edges, injuries and market read behind the number.","mainEntityOfPage":"https://blitz-odds.com/games/2026/week-5/buffalo-bills-at-los-angeles-rams/","author":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com"},"publisher":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com","logo":{"@type":"ImageObject","url":"https://blitz-odds.com/branding/app-icon-512.png"}},"image":"https://blitz-odds.com/branding/app-icon-512.png","isAccessibleForFree":false,"hasPart":{"@type":"WebPageElement","isAccessibleForFree":false,"cssSelector":".edge-writeup-full"}}</script>
 </head>
@@ -117,10 +140,10 @@
   <p><strong>Odds (DraftKings):</strong> LAR -2.5 · ML BUF +124 / LAR -148 · O/U 54.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Los Angeles Rams</strong> - BUF 25% / LAR 75%</p>
+  <p>Predicted winner: <strong>Los Angeles Rams</strong> - BUF 19% / LAR 81%</p>
 
   <h2>Blitz Edge: why the model likes Los Angeles Rams</h2>
-  <p>The model gives Los Angeles Rams a 75% chance to win this one. The biggest factors: LAR&#39;s total offense (#2) has a 25-spot edge over BUF&#39;s total defense (#27), and LAR&#39;s pass offense (#2) has a 25-spot edge over BUF&#39;s pass defense (#27).</p>
+  <p>The model gives Los Angeles Rams a 81% chance to win this one. The biggest factors: LAR&#39;s total offense (#2) has a 25-spot edge over BUF&#39;s total defense (#27), and LAR&#39;s pass offense (#2) has a 25-spot edge over BUF&#39;s pass defense (#27).</p>
   <div class="edge-writeup-full"><p>Home field adds a small extra boost on top of that. BUF is also dealing with Tyrell Shavers (WR) listed as out, which tips things further LAR&#39;s way.</p></div>
 
   <h2>Team stats comparison (rank out of 32)</h2>
@@ -145,10 +168,10 @@
   <ul>
 <li><strong>Ed Oliver</strong> (BUF · DT) - questionable - Knee</li>
 <li><strong>DJ Moore</strong> (BUF · WR) - questionable - Shoulder</li>
+<li><strong>Aaron Donald</strong> (LAR · DT) - questionable - Back</li>
+<li><strong>Jaylen Watson</strong> (LAR · CB) - questionable - Shoulder</li>
 <li><strong>Tyrell Shavers</strong> (BUF · WR) - out - Knee - ACL</li>
 <li><strong>Myles Garrett</strong> (LAR · Edge) - out - Knee - arthroscopic surgery, on injured reserve</li>
-<li><strong>Aaron Donald</strong> (LAR · DT) - out - Back</li>
-<li><strong>Jaylen Watson</strong> (LAR · CB) - out - Shoulder</li>
   </ul>
 
   <p>
@@ -3078,7 +3101,7 @@
 }</script>
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
-<script defer src="/js/app.js?v=0a5e8a9e2e"></script>
+<script defer src="/js/app.js?v=be9be91490"></script>
 <script src="/js/analytics.js"></script>
 </body>
 </html>

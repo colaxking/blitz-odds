@@ -27,9 +27,10 @@ import path from "node:path";
 
 const ROOT = path.resolve(new URL(".", import.meta.url).pathname, "..");
 const HISTORICAL_DIR = path.join(ROOT, "historical");
-// The app stylesheet moved out of index.html's <style> block into css/app.css
-// (October 2026, scripts/build-app.mjs). Same content, same two-space indent.
-const INDEX_HTML = path.join(ROOT, "css", "app.css");
+// The app stylesheet moved out of index.html's <style> block into src/app.css
+// (October 2026, scripts/build-app.mjs; css/app.css is the minified build).
+// Same content, same two-space indent.
+const INDEX_HTML = path.join(ROOT, "src", "app.css");
 
 /* The block in an archive page runs from the top-level `.tab-bar` rule to
  * the last line of its mobile media query.
@@ -66,7 +67,7 @@ async function canonicalCss() {
   const start = index.indexOf(INDEX_CSS_START);
   const end = index.indexOf(INDEX_CSS_END, start);
   if (start === -1 || end === -1) {
-    throw new Error("Could not locate the .tab-bar block in css/app.css - has it been renamed or moved?");
+    throw new Error("Could not locate the .tab-bar block in src/app.css - has it been renamed or moved?");
   }
   const block = index
     .slice(start, end)

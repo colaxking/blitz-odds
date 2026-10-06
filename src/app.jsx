@@ -2538,16 +2538,22 @@ function BrandWordmark({ height, className }) {
   const h = height || 76;
   return (
     <span className={className} style={{ display: "inline-flex", alignItems: "center", flexShrink: 0 }}>
+      {/* loading="lazy" on both: the one the theme hides (display:none) has
+          no box, so it is never fetched; the visible one sits in the
+          header, inside the viewport, and loads straight away. Before
+          this both ~45 KB wordmarks downloaded on every page. */}
       <img
         src="/branding/blitz-odds-wordmark-dark.svg"
         alt="Blitz Odds"
         className="brand-logo-img brand-logo-dark"
+        width="900" height="252" loading="lazy" decoding="async"
         style={{ height: h, width: "auto", display: "block" }}
       />
       <img
         src="/branding/blitz-odds-wordmark-light.svg"
         alt="Blitz Odds"
         className="brand-logo-img brand-logo-light"
+        width="900" height="252" loading="lazy" decoding="async"
         style={{ height: h, width: "auto", display: "none" }}
       />
     </span>
@@ -4285,7 +4291,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
             <div className={"cb-edge" + (blitzEdge.muted ? " is-muted" : "")}>
               {blitzEdge.muted
                 ? <span className="cb-dash" aria-hidden="true">—</span>
-                : <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="cb-logo" />}
+                : <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="cb-logo" width="378" height="120" decoding="async" />}
               <span className="cb-conf">
                 {blitzEdge.teamId && <TeamLogo teamId={blitzEdge.teamId} size={32} />}
                 {blitzEdge.teamLabel && <span className="cb-conf-team">{blitzEdge.teamLabel}</span>}
@@ -4464,7 +4470,7 @@ function GameCard({ game, favorites, onToggleFavorite, onSelectTeam, onSelectGam
               </span>
             </div>
             <div className="edge-detail" data-tour="blitz-verdict">
-              <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="edge-detail-logo" />
+              <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="edge-detail-logo" width="378" height="120" decoding="async" />
               {hasFullAccess(auth) ? (
                 <p>{rationale}</p>
               ) : (
@@ -7168,7 +7174,7 @@ function SportsbookCompareSection({ week, awayAbbr, homeAbbr, auth }) {
   if (!rows) {
     return (
       <div className="game-page-section">
-        <div className="section-title"><img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Compare Sportsbooks</div>
+        <div className="section-title"><img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" width="160" height="120" decoding="async" /> Compare Sportsbooks</div>
         <span className="hw-tag">Odds not yet posted for this game</span>
       </div>
     );
@@ -7183,7 +7189,7 @@ function SportsbookCompareSection({ week, awayAbbr, homeAbbr, auth }) {
   return (
     <div className="game-page-section">
       <div className="section-title">
-        <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Compare Sportsbooks
+        <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" width="160" height="120" decoding="async" /> Compare Sportsbooks
         {!fullAccess && <span className="gate-flag">Account</span>}
       </div>
       <div className="table-scroll">
@@ -7392,7 +7398,7 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr, auth }) {
     return (
       <div className="game-page-section">
         <div className="section-title">
-          <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Past Matchups
+          <img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" width="160" height="120" decoding="async" /> Past Matchups
           <span className="gate-flag">Account</span>
         </div>
         <AccountGate section="past_matchups" title="See every past meeting" auth={auth}>
@@ -7418,7 +7424,7 @@ function HeadToHeadHistory({ awayAbbr, homeAbbr, auth }) {
 
   return (
     <div className="game-page-section">
-      <div className="section-title"><img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" /> Past Matchups</div>
+      <div className="section-title"><img src="/branding/blitz-edge-icon.png" alt="Blitz Edge" className="section-title-icon" width="160" height="120" decoding="async" /> Past Matchups</div>
       {status === "loading" && <span className="hw-tag">Loading past meetings…</span>}
       {status === "ready" && games.length === 0 && (
         <span className="hw-tag">No prior meetings found in the archive (2015–present).</span>
@@ -16780,7 +16786,7 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
             </div>
             <div className="home-combo">
               <div className="hc-top">
-                <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="hc-logo" />
+                <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="hc-logo" width="378" height="120" decoding="async" />
                 <span className="hc-conf">
                   <TeamLogo teamId={(edge.homeIsPick ? edge.home : edge.away).id} size={30} />
                   <span className="hc-conf-lbl">confidence at</span>
@@ -20207,7 +20213,7 @@ function GameTypePicker({ gameType, setGameType }) {
         aria-expanded={open}
         aria-label={"Game type: " + current.label}
       >
-        <img src="/branding/blitz-edge-icon.png" alt="" className="gametype-icon" />
+        <img src="/branding/blitz-edge-icon.png" alt="" className="gametype-icon" width="160" height="120" decoding="async" />
         <span className="gametype-label-full">{current.label}</span>
         <span className="gametype-label-short">{current.short}</span>
         <span className={"week-nav-chevron" + (open ? " open" : "")}>
@@ -22604,9 +22610,14 @@ async function loadSeed([url, apply]) {
 async function bootApp() {
   await Promise.all(SEED_FILES.map(loadSeed));
   resetTeamRecordCache(); // derived from HISTORY_DATA, which may have just changed
+  // flushSync forces the first render to commit before we continue, so the
+  // snapshot is hidden only once the live app is actually painted in #root -
+  // React 18's createRoot().render() alone schedules the work and returns,
+  // which left a blank frame between hiding one and painting the other.
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  ReactDOM.flushSync(() => root.render(<App />));
   const prerendered = document.getElementById("prerendered-content");
   if (prerendered) prerendered.style.display = "none";
-  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 }
 
 bootApp();

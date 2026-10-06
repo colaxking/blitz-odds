@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B"></script>
+<!-- Google tag (gtag.js). The ~130 KB tag is injected after the load event
+     instead of as an async script in <head>: on a throttled mobile
+     connection it was competing with the app bundle, stylesheet and data
+     seeds for bandwidth on the critical path. dataLayer queues everything
+     pushed before it arrives, so nothing is lost - the config call below
+     is replayed the moment the tag loads. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
   gtag('config', 'G-1KHS0JK39B');
+  window.addEventListener("load", function () {
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B";
+    document.head.appendChild(s);
+  });
 </script>
 <meta charset="UTF-8" />
 <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to a real
@@ -79,13 +89,26 @@
      that's been added to the Home Screen, and it won't offer that unless a
      manifest with display:standalone is present. -->
 <link rel="manifest" href="/manifest.webmanifest" />
-<script src="/js/predictionEngine.js"></script>
-<script src="/js/hotPicksEngine.js"></script>
-<script src="/js/scoringEngine.js"></script>
-<script src="/js/gameId.js"></script>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<!-- Everything the app needs, in dependency order, all deferred: deferred
+     scripts download in parallel without blocking the HTML parser and run
+     in document order once it finishes, so the engines, the identity widget
+     and React are all defined by the time the deferred /js/app.js at the
+     end of the document executes. As plain <script src> tags in <head> these were
+     seven render-blocking requests. React and ReactDOM are self-hosted
+     (js/vendor/, 18.2.0 UMD builds, byte-identical to the cdnjs copies that
+     used to load here) so a cold visit doesn't pay a DNS + TLS handshake to
+     a second origin before anything can render. -->
+<link rel="preconnect" href="https://identity.netlify.com" crossorigin />
+<link rel="preload" href="/js/app.js?v=be9be91490" as="script" />
+<link rel="preload" href="/data/history.json" as="fetch" crossorigin />
+<link rel="preload" href="/data/impact-players.json" as="fetch" crossorigin />
+<script defer src="/js/predictionEngine.js"></script>
+<script defer src="/js/hotPicksEngine.js"></script>
+<script defer src="/js/scoringEngine.js"></script>
+<script defer src="/js/gameId.js"></script>
+<script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script defer src="/js/vendor/react.production.min.js"></script>
+<script defer src="/js/vendor/react-dom.production.min.js"></script>
 <script>
   (function () {
     try {
@@ -102,7 +125,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="/css/app.css?v=4d1d4cde04">
+<link rel="stylesheet" href="/css/app.css?v=747dbf1237">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Seattle Seahawks at Philadelphia Eagles","sport":"American Football","startDate":"2026-12-17T20:15:00-05:00","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","eventStatus":"https://schema.org/EventScheduled","homeTeam":{"@type":"SportsTeam","name":"Philadelphia Eagles"},"awayTeam":{"@type":"SportsTeam","name":"Seattle Seahawks"},"url":"https://blitz-odds.com/games/2026/week-15/seattle-seahawks-at-philadelphia-eagles/","location":{"@type":"Place","name":"Lincoln Financial Field"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Seattle Seahawks at Philadelphia Eagles - Week 15 prediction and Blitz Edge write-up","description":"Why the Blitz Odds model picks its winner in Seattle Seahawks at Philadelphia Eagles: the matchup edges, injuries and market read behind the number.","mainEntityOfPage":"https://blitz-odds.com/games/2026/week-15/seattle-seahawks-at-philadelphia-eagles/","author":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com"},"publisher":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com","logo":{"@type":"ImageObject","url":"https://blitz-odds.com/branding/app-icon-512.png"}},"image":"https://blitz-odds.com/branding/app-icon-512.png","isAccessibleForFree":false,"hasPart":{"@type":"WebPageElement","isAccessibleForFree":false,"cssSelector":".edge-writeup-full"}}</script>
 </head>
@@ -117,11 +140,11 @@
   <p><strong>Odds (DraftKings):</strong> PHI -1.5 · ML SEA +105 / PHI -125 · O/U 43.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Seattle Seahawks</strong> - SEA 80% / PHI 20%</p>
+  <p>Predicted winner: <strong>Seattle Seahawks</strong> - SEA 74% / PHI 26%</p>
 
   <h2>Blitz Edge: why the model likes Seattle Seahawks</h2>
-  <p>The model gives Seattle Seahawks a 80% chance to win this one. The biggest factors: SEA&#39;s pass defense (#1) has a 30-spot edge over PHI&#39;s pass offense (#31), and SEA&#39;s total defense (#1) has a 28-spot edge over PHI&#39;s total offense (#29).</p>
-  <div class="edge-writeup-full"><p>PHI is also dealing with DeVonta Smith (WR) listed as out, which tips things further SEA&#39;s way. Note: the sportsbook favorite (PHI) disagrees with this pick.</p></div>
+  <p>The model gives Seattle Seahawks a 74% chance to win this one. The biggest factors: SEA&#39;s pass defense (#1) has a 30-spot edge over PHI&#39;s pass offense (#31), and SEA&#39;s total defense (#1) has a 28-spot edge over PHI&#39;s total offense (#29).</p>
+  <div class="edge-writeup-full"><p>PHI is also dealing with Landon Dickerson (LG) listed as out, which tips things further SEA&#39;s way. Note: the sportsbook favorite (PHI) disagrees with this pick.</p></div>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -144,7 +167,9 @@
   <h2>Injury report</h2>
   <ul>
 <li><strong>Jonathan Greenard</strong> (PHI · Edge) - questionable - Ankle</li>
+<li><strong>DeVonta Smith</strong> (PHI · WR) - questionable - Hamstring</li>
 <li><strong>Saquon Barkley</strong> (PHI · RB) - questionable - Hamstring</li>
+<li><strong>Hollywood Brown</strong> (PHI · WR) - questionable - Ankle</li>
 <li><strong>Zach Charbonnet</strong> (SEA · RB) - out - Torn ACL (surgically repaired)</li>
 <li><strong>Bud Clark</strong> (SEA · S) - out - Broken ankle - on injured reserve</li>
 <li><strong>Irv Charles</strong> (SEA · WR) - out - Undisclosed</li>
@@ -152,11 +177,9 @@
 <li><strong>Ty Okada</strong> (SEA · S) - out - Hamstring</li>
 <li><strong>Anthony Bradford</strong> (SEA · RG) - out - Knee / hip</li>
 <li><strong>Jadarian Price</strong> (SEA · RB) - out - Chest</li>
-<li><strong>DeVonta Smith</strong> (PHI · WR) - out - Hamstring</li>
 <li><strong>Johnny Wilson</strong> (PHI · WR) - out - Knee</li>
 <li><strong>Landon Dickerson</strong> (PHI · LG) - out - Knee - bone bruise (right), on injured reserve</li>
 <li><strong>Dallas Goedert</strong> (PHI · TE) - out - Sprained MCL (right knee)</li>
-<li><strong>Hollywood Brown</strong> (PHI · WR) - out - Ankle</li>
   </ul>
 
   <p>
@@ -3086,7 +3109,7 @@
 }</script>
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
-<script defer src="/js/app.js?v=0a5e8a9e2e"></script>
+<script defer src="/js/app.js?v=be9be91490"></script>
 <script src="/js/analytics.js"></script>
 </body>
 </html>

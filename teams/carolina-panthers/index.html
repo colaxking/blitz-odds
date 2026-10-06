@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B"></script>
+<!-- Google tag (gtag.js). The ~130 KB tag is injected after the load event
+     instead of as an async script in <head>: on a throttled mobile
+     connection it was competing with the app bundle, stylesheet and data
+     seeds for bandwidth on the critical path. dataLayer queues everything
+     pushed before it arrives, so nothing is lost - the config call below
+     is replayed the moment the tag loads. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
   gtag('config', 'G-1KHS0JK39B');
+  window.addEventListener("load", function () {
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B";
+    document.head.appendChild(s);
+  });
 </script>
 <meta charset="UTF-8" />
 <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to a real
@@ -79,13 +89,26 @@
      that's been added to the Home Screen, and it won't offer that unless a
      manifest with display:standalone is present. -->
 <link rel="manifest" href="/manifest.webmanifest" />
-<script src="/js/predictionEngine.js"></script>
-<script src="/js/hotPicksEngine.js"></script>
-<script src="/js/scoringEngine.js"></script>
-<script src="/js/gameId.js"></script>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<!-- Everything the app needs, in dependency order, all deferred: deferred
+     scripts download in parallel without blocking the HTML parser and run
+     in document order once it finishes, so the engines, the identity widget
+     and React are all defined by the time the deferred /js/app.js at the
+     end of the document executes. As plain <script src> tags in <head> these were
+     seven render-blocking requests. React and ReactDOM are self-hosted
+     (js/vendor/, 18.2.0 UMD builds, byte-identical to the cdnjs copies that
+     used to load here) so a cold visit doesn't pay a DNS + TLS handshake to
+     a second origin before anything can render. -->
+<link rel="preconnect" href="https://identity.netlify.com" crossorigin />
+<link rel="preload" href="/js/app.js?v=be9be91490" as="script" />
+<link rel="preload" href="/data/history.json" as="fetch" crossorigin />
+<link rel="preload" href="/data/impact-players.json" as="fetch" crossorigin />
+<script defer src="/js/predictionEngine.js"></script>
+<script defer src="/js/hotPicksEngine.js"></script>
+<script defer src="/js/scoringEngine.js"></script>
+<script defer src="/js/gameId.js"></script>
+<script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script defer src="/js/vendor/react.production.min.js"></script>
+<script defer src="/js/vendor/react-dom.production.min.js"></script>
 <script>
   (function () {
     try {
@@ -102,7 +125,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="/css/app.css?v=4d1d4cde04">
+<link rel="stylesheet" href="/css/app.css?v=747dbf1237">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsTeam","name":"Carolina Panthers","url":"https://blitz-odds.com/teams/carolina-panthers/","sport":"American Football"}</script>
 </head>
 <body>
@@ -134,14 +157,14 @@
       <tr><td><a href="/games/2026/week-3/carolina-panthers-at-cleveland-browns/">Week 3</a></td><td>@ <a href="/teams/cleveland-browns/">Cleveland Browns</a></td><td>Sun, Sep 27 1:00 PM ET</td><td>Model predicts Cleveland Browns to win (44%)</td><td>L 18-21 (CAR 18 - 21 CLE, prediction correct)</td></tr>
       <tr><td><a href="/games/2026/week-4/detroit-lions-at-carolina-panthers/">Week 4</a></td><td>vs <a href="/teams/detroit-lions/">Detroit Lions</a></td><td>Sun, Oct 4 8:20 PM ET</td><td>Model predicts Carolina Panthers to win (53%)</td><td>W 32-26 (DET 26 - 32 CAR, prediction correct)</td></tr>
       <tr><td>Week 5</td><td colspan="4">Bye week</td></tr>
-      <tr><td><a href="/games/2026/week-6/carolina-panthers-at-philadelphia-eagles/">Week 6</a></td><td>@ <a href="/teams/philadelphia-eagles/">Philadelphia Eagles</a></td><td>Sun, Oct 18 1:00 PM ET</td><td>Model predicts Carolina Panthers to win (58%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-6/carolina-panthers-at-philadelphia-eagles/">Week 6</a></td><td>@ <a href="/teams/philadelphia-eagles/">Philadelphia Eagles</a></td><td>Sun, Oct 18 1:00 PM ET</td><td>Model predicts Carolina Panthers to win (51%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-7/tampa-bay-buccaneers-at-carolina-panthers/">Week 7</a></td><td>vs <a href="/teams/tampa-bay-buccaneers/">Tampa Bay Buccaneers</a></td><td>Sun, Oct 25 1:00 PM ET</td><td>Model predicts Tampa Bay Buccaneers to win (31%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-8/carolina-panthers-at-green-bay-packers/">Week 8</a></td><td>@ <a href="/teams/green-bay-packers/">Green Bay Packers</a></td><td>Thu, Oct 29 8:15 PM ET</td><td>Model predicts Carolina Panthers to win (57%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-8/carolina-panthers-at-green-bay-packers/">Week 8</a></td><td>@ <a href="/teams/green-bay-packers/">Green Bay Packers</a></td><td>Thu, Oct 29 8:15 PM ET</td><td>Model predicts Carolina Panthers to win (51%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-9/denver-broncos-at-carolina-panthers/">Week 9</a></td><td>vs <a href="/teams/denver-broncos/">Denver Broncos</a></td><td>Sun, Nov 8 1:00 PM ET</td><td>Model predicts Carolina Panthers to win (58%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-10/carolina-panthers-at-new-orleans-saints/">Week 10</a></td><td>@ <a href="/teams/new-orleans-saints/">New Orleans Saints</a></td><td>Sun, Nov 15 1:00 PM ET</td><td>Model predicts New Orleans Saints to win (36%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-11/baltimore-ravens-at-carolina-panthers/">Week 11</a></td><td>vs <a href="/teams/baltimore-ravens/">Baltimore Ravens</a></td><td>Sun, Nov 22 1:00 PM ET</td><td>Model predicts Baltimore Ravens to win (38%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-11/baltimore-ravens-at-carolina-panthers/">Week 11</a></td><td>vs <a href="/teams/baltimore-ravens/">Baltimore Ravens</a></td><td>Sun, Nov 22 1:00 PM ET</td><td>Model predicts Baltimore Ravens to win (30%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-12/carolina-panthers-at-tampa-bay-buccaneers/">Week 12</a></td><td>@ <a href="/teams/tampa-bay-buccaneers/">Tampa Bay Buccaneers</a></td><td>Mon, Nov 30 8:15 PM ET</td><td>Model predicts Tampa Bay Buccaneers to win (22%)</td><td>Not played yet</td></tr>
-      <tr><td><a href="/games/2026/week-13/carolina-panthers-at-minnesota-vikings/">Week 13</a></td><td>@ <a href="/teams/minnesota-vikings/">Minnesota Vikings</a></td><td>Sun, Dec 6 4:25 PM ET</td><td>Model predicts Minnesota Vikings to win (35%)</td><td>Not played yet</td></tr>
+      <tr><td><a href="/games/2026/week-13/carolina-panthers-at-minnesota-vikings/">Week 13</a></td><td>@ <a href="/teams/minnesota-vikings/">Minnesota Vikings</a></td><td>Sun, Dec 6 4:25 PM ET</td><td>Model predicts Minnesota Vikings to win (31%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-14/new-orleans-saints-at-carolina-panthers/">Week 14</a></td><td>vs <a href="/teams/new-orleans-saints/">New Orleans Saints</a></td><td>Sun, Dec 13 1:00 PM ET</td><td>Model predicts New Orleans Saints to win (46%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-15/cincinnati-bengals-at-carolina-panthers/">Week 15</a></td><td>vs <a href="/teams/cincinnati-bengals/">Cincinnati Bengals</a></td><td>Sun, Dec 20 1:00 PM ET</td><td>Model predicts Cincinnati Bengals to win (38%)</td><td>Not played yet</td></tr>
       <tr><td><a href="/games/2026/week-16/carolina-panthers-at-pittsburgh-steelers/">Week 16</a></td><td>@ <a href="/teams/pittsburgh-steelers/">Pittsburgh Steelers</a></td><td>Mon, Dec 28 8:15 PM ET</td><td>Model predicts Pittsburgh Steelers to win (18%)</td><td>Not played yet</td></tr>
@@ -3085,7 +3108,7 @@
 }</script>
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
-<script defer src="/js/app.js?v=0a5e8a9e2e"></script>
+<script defer src="/js/app.js?v=be9be91490"></script>
 <script src="/js/analytics.js"></script>
 </body>
 </html>

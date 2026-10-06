@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B"></script>
+<!-- Google tag (gtag.js). The ~130 KB tag is injected after the load event
+     instead of as an async script in <head>: on a throttled mobile
+     connection it was competing with the app bundle, stylesheet and data
+     seeds for bandwidth on the critical path. dataLayer queues everything
+     pushed before it arrives, so nothing is lost - the config call below
+     is replayed the moment the tag loads. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
   gtag('config', 'G-1KHS0JK39B');
+  window.addEventListener("load", function () {
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B";
+    document.head.appendChild(s);
+  });
 </script>
 <meta charset="UTF-8" />
 <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to a real
@@ -79,13 +89,26 @@
      that's been added to the Home Screen, and it won't offer that unless a
      manifest with display:standalone is present. -->
 <link rel="manifest" href="/manifest.webmanifest" />
-<script src="/js/predictionEngine.js"></script>
-<script src="/js/hotPicksEngine.js"></script>
-<script src="/js/scoringEngine.js"></script>
-<script src="/js/gameId.js"></script>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<!-- Everything the app needs, in dependency order, all deferred: deferred
+     scripts download in parallel without blocking the HTML parser and run
+     in document order once it finishes, so the engines, the identity widget
+     and React are all defined by the time the deferred /js/app.js at the
+     end of the document executes. As plain <script src> tags in <head> these were
+     seven render-blocking requests. React and ReactDOM are self-hosted
+     (js/vendor/, 18.2.0 UMD builds, byte-identical to the cdnjs copies that
+     used to load here) so a cold visit doesn't pay a DNS + TLS handshake to
+     a second origin before anything can render. -->
+<link rel="preconnect" href="https://identity.netlify.com" crossorigin />
+<link rel="preload" href="/js/app.js?v=be9be91490" as="script" />
+<link rel="preload" href="/data/history.json" as="fetch" crossorigin />
+<link rel="preload" href="/data/impact-players.json" as="fetch" crossorigin />
+<script defer src="/js/predictionEngine.js"></script>
+<script defer src="/js/hotPicksEngine.js"></script>
+<script defer src="/js/scoringEngine.js"></script>
+<script defer src="/js/gameId.js"></script>
+<script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script defer src="/js/vendor/react.production.min.js"></script>
+<script defer src="/js/vendor/react-dom.production.min.js"></script>
 <script>
   (function () {
     try {
@@ -102,7 +125,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="/css/app.css?v=4d1d4cde04">
+<link rel="stylesheet" href="/css/app.css?v=747dbf1237">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"New York Giants at Los Angeles Rams","sport":"American Football","startDate":"2026-09-21T20:15:00-04:00","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","eventStatus":"https://schema.org/EventScheduled","homeTeam":{"@type":"SportsTeam","name":"Los Angeles Rams"},"awayTeam":{"@type":"SportsTeam","name":"New York Giants"},"url":"https://blitz-odds.com/games/2026/week-2/new-york-giants-at-los-angeles-rams/","location":{"@type":"Place","name":"SoFi Stadium"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"New York Giants at Los Angeles Rams - Week 2 prediction and Blitz Edge write-up","description":"Why the Blitz Odds model picks its winner in New York Giants at Los Angeles Rams: the matchup edges, injuries and market read behind the number.","mainEntityOfPage":"https://blitz-odds.com/games/2026/week-2/new-york-giants-at-los-angeles-rams/","author":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com"},"publisher":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com","logo":{"@type":"ImageObject","url":"https://blitz-odds.com/branding/app-icon-512.png"}},"image":"https://blitz-odds.com/branding/app-icon-512.png","isAccessibleForFree":false,"hasPart":{"@type":"WebPageElement","isAccessibleForFree":false,"cssSelector":".edge-writeup-full"}}</script>
 </head>
@@ -117,11 +140,11 @@
   <p><strong>Odds (DraftKings):</strong> LAR -6.5 · ML NYG +240 / LAR -298 · O/U 47.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>New York Giants</strong> - NYG 60% / LAR 40%</p>
+  <p>Predicted winner: <strong>New York Giants</strong> - NYG 54% / LAR 46%</p>
 
   <h2>Blitz Edge: why the model likes New York Giants</h2>
-  <p>The model gives New York Giants a 60% chance to win this one. The biggest factors: NYG&#39;s rush offense (#6) has a 23-spot edge over LAR&#39;s rush defense (#29), and NYG&#39;s total offense (#7) has a 15-spot edge over LAR&#39;s total defense (#22).</p>
-  <div class="edge-writeup-full"><p>LAR is also dealing with Aaron Donald (DT) listed as out, which tips things further NYG&#39;s way. Note: the sportsbook favorite (LAR) disagrees with this pick.</p></div>
+  <p>The model gives New York Giants a 54% chance to win this one. The biggest factors: NYG&#39;s rush offense (#6) has a 23-spot edge over LAR&#39;s rush defense (#29), and NYG&#39;s total offense (#7) has a 15-spot edge over LAR&#39;s total defense (#22).</p>
+  <div class="edge-writeup-full"><p>LAR is also dealing with Myles Garrett (Edge) listed as out, which tips things further NYG&#39;s way. Note: the sportsbook favorite (LAR) disagrees with this pick.</p></div>
 
   <h2>Team stats comparison (rank out of 32)</h2>
   <table>
@@ -145,6 +168,8 @@
   <ul>
 <li><strong>Malik Nabers</strong> (NYG · WR) - active - Dislocated shoulder (cleared)</li>
 <li><strong>Chauncey Golston</strong> (NYG · DE) - questionable - Neck</li>
+<li><strong>Aaron Donald</strong> (LAR · DT) - questionable - Back</li>
+<li><strong>Jaylen Watson</strong> (LAR · CB) - questionable - Shoulder</li>
 <li><strong>Jaxson Dart</strong> (NYG · QB) - out - Torn meniscus, MCL and PCL (knee) - season-ending surgery expected</li>
 <li><strong>Calvin Austin III</strong> (NYG · WR) - out - Torn ACL (right knee) - season-ending</li>
 <li><strong>Korie Black</strong> (NYG · CB) - out - Undisclosed</li>
@@ -152,8 +177,6 @@
 <li><strong>Brian Burns</strong> (NYG · Edge) - out - Torn ACL (believed) - likely season-ending</li>
 <li><strong>Braxton Berrios</strong> (NYG · WR) - out - Foot</li>
 <li><strong>Myles Garrett</strong> (LAR · Edge) - out - Knee - arthroscopic surgery, on injured reserve</li>
-<li><strong>Aaron Donald</strong> (LAR · DT) - out - Back</li>
-<li><strong>Jaylen Watson</strong> (LAR · CB) - out - Shoulder</li>
   </ul>
 
   <p>
@@ -3083,7 +3106,7 @@
 }</script>
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
-<script defer src="/js/app.js?v=0a5e8a9e2e"></script>
+<script defer src="/js/app.js?v=be9be91490"></script>
 <script src="/js/analytics.js"></script>
 </body>
 </html>

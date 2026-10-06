@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B"></script>
+<!-- Google tag (gtag.js). The ~130 KB tag is injected after the load event
+     instead of as an async script in <head>: on a throttled mobile
+     connection it was competing with the app bundle, stylesheet and data
+     seeds for bandwidth on the critical path. dataLayer queues everything
+     pushed before it arrives, so nothing is lost - the config call below
+     is replayed the moment the tag loads. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
   gtag('config', 'G-1KHS0JK39B');
+  window.addEventListener("load", function () {
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B";
+    document.head.appendChild(s);
+  });
 </script>
 <meta charset="UTF-8" />
 <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to a real
@@ -79,13 +89,26 @@
      that's been added to the Home Screen, and it won't offer that unless a
      manifest with display:standalone is present. -->
 <link rel="manifest" href="/manifest.webmanifest" />
-<script src="/js/predictionEngine.js"></script>
-<script src="/js/hotPicksEngine.js"></script>
-<script src="/js/scoringEngine.js"></script>
-<script src="/js/gameId.js"></script>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<!-- Everything the app needs, in dependency order, all deferred: deferred
+     scripts download in parallel without blocking the HTML parser and run
+     in document order once it finishes, so the engines, the identity widget
+     and React are all defined by the time the deferred /js/app.js at the
+     end of the document executes. As plain <script src> tags in <head> these were
+     seven render-blocking requests. React and ReactDOM are self-hosted
+     (js/vendor/, 18.2.0 UMD builds, byte-identical to the cdnjs copies that
+     used to load here) so a cold visit doesn't pay a DNS + TLS handshake to
+     a second origin before anything can render. -->
+<link rel="preconnect" href="https://identity.netlify.com" crossorigin />
+<link rel="preload" href="/js/app.js?v=be9be91490" as="script" />
+<link rel="preload" href="/data/history.json" as="fetch" crossorigin />
+<link rel="preload" href="/data/impact-players.json" as="fetch" crossorigin />
+<script defer src="/js/predictionEngine.js"></script>
+<script defer src="/js/hotPicksEngine.js"></script>
+<script defer src="/js/scoringEngine.js"></script>
+<script defer src="/js/gameId.js"></script>
+<script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script defer src="/js/vendor/react.production.min.js"></script>
+<script defer src="/js/vendor/react-dom.production.min.js"></script>
 <script>
   (function () {
     try {
@@ -102,7 +125,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="/css/app.css?v=4d1d4cde04">
+<link rel="stylesheet" href="/css/app.css?v=747dbf1237">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Buffalo Bills at Green Bay Packers","sport":"American Football","startDate":"2026-12-13T20:20:00-05:00","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","eventStatus":"https://schema.org/EventScheduled","homeTeam":{"@type":"SportsTeam","name":"Green Bay Packers"},"awayTeam":{"@type":"SportsTeam","name":"Buffalo Bills"},"url":"https://blitz-odds.com/games/2026/week-14/buffalo-bills-at-green-bay-packers/","location":{"@type":"Place","name":"Lambeau Field"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Buffalo Bills at Green Bay Packers - Week 14 prediction and Blitz Edge write-up","description":"Why the Blitz Odds model picks its winner in Buffalo Bills at Green Bay Packers: the matchup edges, injuries and market read behind the number.","mainEntityOfPage":"https://blitz-odds.com/games/2026/week-14/buffalo-bills-at-green-bay-packers/","author":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com"},"publisher":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com","logo":{"@type":"ImageObject","url":"https://blitz-odds.com/branding/app-icon-512.png"}},"image":"https://blitz-odds.com/branding/app-icon-512.png","isAccessibleForFree":false,"hasPart":{"@type":"WebPageElement","isAccessibleForFree":false,"cssSelector":".edge-writeup-full"}}</script>
 </head>
@@ -117,10 +140,10 @@
   <p><strong>Odds (DraftKings):</strong> GB -1.5 · ML BUF +105 / GB -125 · O/U 49.5</p>
 
   <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>Buffalo Bills</strong> - BUF 83% / GB 17%</p>
+  <p>Predicted winner: <strong>Buffalo Bills</strong> - BUF 79% / GB 21%</p>
 
   <h2>Blitz Edge: why the model likes Buffalo Bills</h2>
-  <p>The model gives Buffalo Bills a 83% chance to win this one. The biggest factors: BUF&#39;s rush offense (#5) has a 23-spot edge over GB&#39;s rush defense (#28), and BUF&#39;s rush defense (#19) has a 13-spot edge over GB&#39;s rush offense (#32).</p>
+  <p>The model gives Buffalo Bills a 79% chance to win this one. The biggest factors: BUF&#39;s rush offense (#5) has a 23-spot edge over GB&#39;s rush defense (#28), and BUF&#39;s rush defense (#19) has a 13-spot edge over GB&#39;s rush offense (#32).</p>
   <div class="edge-writeup-full"><p>GB is also dealing with Micah Parsons (Edge) listed as out, which tips things further BUF&#39;s way. Note: the sportsbook favorite (GB) disagrees with this pick.</p></div>
 
   <h2>Team stats comparison (rank out of 32)</h2>
@@ -146,15 +169,15 @@
 <li><strong>Javon Hargrave</strong> (GB · DT) - active - Knee / concussion (cleared)</li>
 <li><strong>Ed Oliver</strong> (BUF · DT) - questionable - Knee</li>
 <li><strong>DJ Moore</strong> (BUF · WR) - questionable - Shoulder</li>
+<li><strong>Aaron Banks</strong> (GB · G) - questionable - Toe</li>
+<li><strong>Jacob Monk</strong> (GB · RG) - questionable - Quadriceps</li>
 <li><strong>Tyrell Shavers</strong> (BUF · WR) - out - Knee - ACL</li>
 <li><strong>Micah Parsons</strong> (GB · Edge) - out - Torn ACL + meniscus repair (left knee) - on reserve/PUP</li>
 <li><strong>Josh Jacobs</strong> (GB · RB) - out - Commissioner&#39;s Exempt List (non-injury)</li>
 <li><strong>Jayden Reed</strong> (GB · WR) - out - Back injury (initially feared to be neck)</li>
 <li><strong>Savion Williams</strong> (GB · WR) - out - Undisclosed</li>
-<li><strong>Aaron Banks</strong> (GB · G) - out - Toe</li>
 <li><strong>Zach Bako-Bewele</strong> (GB · RT) - out - Right knee injury - carted off with air cast</li>
 <li><strong>Edgerrin Cooper</strong> (GB · LB) - out - Achilles</li>
-<li><strong>Jacob Monk</strong> (GB · RG) - out - Quadriceps</li>
   </ul>
 
   <p>
@@ -3084,7 +3107,7 @@
 }</script>
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
-<script defer src="/js/app.js?v=0a5e8a9e2e"></script>
+<script defer src="/js/app.js?v=be9be91490"></script>
 <script src="/js/analytics.js"></script>
 </body>
 </html>

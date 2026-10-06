@@ -426,6 +426,17 @@ function buildGatedArticleJsonLd({ headline, description, canonicalPath, gatedCl
   return `<script type="application/ld+json">${JSON.stringify(ld)}</script>`;
 }
 
+/** Insert a prerendered snapshot right after the real <body> tag - the
+ *  first one AFTER </head>, so a "<body>" inside a <head> comment (which
+ *  once swallowed every snapshot) can never be mistaken for it. */
+function injectAfterBody(html, snapshot) {
+  const headEnd = html.indexOf("</head>");
+  const bodyAt = html.indexOf("<body>", headEnd < 0 ? 0 : headEnd);
+  if (bodyAt < 0) throw new Error("template has no <body> tag after </head>");
+  const insertAt = bodyAt + "<body>".length;
+  return html.slice(0, insertAt) + "\n" + snapshot + html.slice(insertAt);
+}
+
 /** Set by the snapshot builders: did the last snapshot emit a gated part? */
 let lastSnapshotGated = false;
 
@@ -559,7 +570,7 @@ async function buildGamePage(template, data, period, game) {
     });
     html = html.replace("</head>", `${articleLd}\n</head>`);
   }
-  html = html.replace("<body>", `<body>\n${snapshot}`);
+  html = injectAfterBody(html, snapshot);
   // The snapshot is hidden by the app itself the moment React mounts (see
   // bootApp() in src/app.jsx) - no inline hide script here any more.
 
@@ -734,7 +745,7 @@ async function buildWeekHubPage(template, data, period, prev, next) {
   const jsonLd = buildWeekHubJsonLd(data, period, ladder, canonicalPath);
   if (jsonLd) html = html.replace("</head>", `${jsonLd}\n</head>`);
 
-  html = html.replace("<body>", `<body>\n${buildWeekHubSnapshotHtml(data, period, ladder, prev, next)}`);
+  html = injectAfterBody(html, buildWeekHubSnapshotHtml(data, period, ladder, prev, next));
   // Hidden by bootApp() in src/app.jsx once React mounts.
 
   const outPath = path.join(REPO_ROOT, "games", String(data.seasonYear), weekSlug, "index.html");
@@ -953,7 +964,7 @@ async function buildTeamPage(template, data, team) {
   // React root div) so it's the first thing in the DOM a non-JS-executing
   // crawler or scraper sees.
   const snapshot = buildTeamSnapshotHtml(data, team);
-  html = html.replace("<body>", `<body>\n${snapshot}`);
+  html = injectAfterBody(html, snapshot);
 
   // The snapshot stays visible until React actually mounts into #root -
   // bootApp() in src/app.jsx hides it right before createRoot(...).render(),
@@ -1136,7 +1147,7 @@ async function buildTabPage(template, page, data, periods) {
         });
         html = html.replace("</head>", `${articleLd}\n</head>`);
       }
-      html = html.replace("<body>", `<body>\n${snap.html}`);
+      html = injectAfterBody(html, snap.html);
     }
   }
   const outPath = path.join(REPO_ROOT, page.dir, "index.html");

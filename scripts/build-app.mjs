@@ -16,7 +16,7 @@
  *
  * Now:
  *   src/app.jsx  --(esbuild, JSX -> JS, minified)-->  js/app.js
- *   css/app.css  --(hashed only)------------------->  css/app.css
+ *   src/app.css  --(esbuild, minified)------------->  css/app.css
  *
  * and index.html references both by URL with a content hash in the query
  * string (`/js/app.js?v=<hash>`), so a changed bundle is always fetched and an
@@ -28,7 +28,7 @@
  * app source and the bundle always land in the same commit. This script is
  * the one that has to run (directly, or via build-static-pages.mjs, which
  * calls it when esbuild is available) after any edit to src/app.jsx or
- * css/app.css.
+ * src/app.css.
  *
  * Why a plain transform and not a bundle: the app is a classic script. Its
  * top-level declarations are globals that the inline scripts in index.html
@@ -50,7 +50,8 @@ import { fileURLToPath } from "node:url";
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SRC_JSX = path.join(REPO_ROOT, "src", "app.jsx");
 const OUT_JS = path.join(REPO_ROOT, "js", "app.js");
-const CSS = path.join(REPO_ROOT, "css", "app.css");
+const SRC_CSS = path.join(REPO_ROOT, "src", "app.css");
+const OUT_CSS = path.join(REPO_ROOT, "css", "app.css");
 const INDEX = path.join(REPO_ROOT, "index.html");
 
 /** Short content hash, used as the cache-busting `?v=` on the asset URLs. */
@@ -60,8 +61,10 @@ function hashOf(text) {
 
 /** The `<script defer src="/js/app.js?v=...">` and
  *  `<link rel="stylesheet" href="/css/app.css?v=...">` tags in index.html. */
-const JS_TAG = /(<script defer src="\/js\/app\.js\?v=)([^"]*)(">)/;
-const CSS_TAG = /(<link rel="stylesheet" href="\/css\/app\.css\?v=)([^"]*)(">)/;
+// Global: the script tag at the end of <body> and the <link rel="preload">
+// in <head> both carry the hash.
+const JS_TAG = /(\/js\/app\.js\?v=)([^"]*)(")/g;
+const CSS_TAG = /(\/css\/app\.css\?v=)([^"]*)(")/g;
 
 export async function buildApp({ check = false, log = console.log } = {}) {
   let esbuild;
@@ -87,25 +90,31 @@ export async function buildApp({ check = false, log = console.log } = {}) {
 
   const banner = "/* Built from src/app.jsx by scripts/build-app.mjs - do not edit; edit the source and rebuild. */\n";
   const js = banner + result.code;
-  const css = await readFile(CSS, "utf8");
+  const cssSource = await readFile(SRC_CSS, "utf8");
+  const cssResult = await esbuild.transform(cssSource, { loader: "css", minify: true, sourcefile: "src/app.css" });
+  for (const w of cssResult.warnings) log(`esbuild css warning: ${w.text}`);
+  const css = "/* Built from src/app.css by scripts/build-app.mjs - do not edit; edit the source and rebuild. */\n" + cssResult.code;
   const jsHash = hashOf(js);
   const cssHash = hashOf(css);
 
   let index = await readFile(INDEX, "utf8");
-  if (!JS_TAG.test(index)) throw new Error("index.html has no <script defer src=\"/js/app.js?v=...\"> tag");
-  if (!CSS_TAG.test(index)) throw new Error("index.html has no <link rel=\"stylesheet\" href=\"/css/app.css?v=...\"> tag");
+  if (!index.match(JS_TAG)) throw new Error("index.html has no /js/app.js?v=... reference");
+  if (!index.match(CSS_TAG)) throw new Error("index.html has no /css/app.css?v=... reference");
   const nextIndex = index
     .replace(JS_TAG, `$1${jsHash}$3`)
     .replace(CSS_TAG, `$1${cssHash}$3`);
 
   let existingJs = null;
+  let existingCss = null;
   try { existingJs = await readFile(OUT_JS, "utf8"); } catch {}
+  try { existingCss = await readFile(OUT_CSS, "utf8"); } catch {}
   const jsChanged = existingJs !== js;
+  const cssChanged = existingCss !== css;
   const indexChanged = nextIndex !== index;
 
   if (check) {
-    if (jsChanged || indexChanged) {
-      log(`build-app --check: js/app.js or index.html is stale (${jsChanged ? "bundle differs" : ""}${jsChanged && indexChanged ? ", " : ""}${indexChanged ? "hash tags differ" : ""}). Run node scripts/build-app.mjs.`);
+    if (jsChanged || cssChanged || indexChanged) {
+      log(`build-app --check: stale (${[jsChanged && "js/app.js", cssChanged && "css/app.css", indexChanged && "index.html hash tags"].filter(Boolean).join(", ")}). Run node scripts/build-app.mjs.`);
       return { stale: true, jsHash, cssHash };
     }
     log("build-app --check: up to date.");
@@ -113,10 +122,12 @@ export async function buildApp({ check = false, log = console.log } = {}) {
   }
 
   await mkdir(path.dirname(OUT_JS), { recursive: true });
+  await mkdir(path.dirname(OUT_CSS), { recursive: true });
   if (jsChanged) await writeFile(OUT_JS, js, "utf8");
+  if (cssChanged) await writeFile(OUT_CSS, css, "utf8");
   if (indexChanged) await writeFile(INDEX, nextIndex, "utf8");
-  log(`build-app: js/app.js ${(js.length / 1024).toFixed(0)} KB (from ${(source.length / 1024).toFixed(0)} KB JSX) v=${jsHash}${jsChanged ? "" : " (unchanged)"}; css v=${cssHash}${indexChanged ? "; index.html tags updated" : ""}`);
-  return { stale: false, jsHash, cssHash, jsChanged, indexChanged };
+  log(`build-app: js/app.js ${(js.length / 1024).toFixed(0)} KB (from ${(source.length / 1024).toFixed(0)} KB JSX) v=${jsHash}${jsChanged ? "" : " (unchanged)"}; css/app.css ${(css.length / 1024).toFixed(0)} KB (from ${(cssSource.length / 1024).toFixed(0)} KB) v=${cssHash}${cssChanged ? "" : " (unchanged)"}${indexChanged ? "; index.html tags updated" : ""}`);
+  return { stale: false, jsHash, cssHash, jsChanged, cssChanged, indexChanged };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

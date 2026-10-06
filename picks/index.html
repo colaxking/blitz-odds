@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B"></script>
+<!-- Google tag (gtag.js). The ~130 KB tag is injected after the load event
+     instead of as an async script in <head>: on a throttled mobile
+     connection it was competing with the app bundle, stylesheet and data
+     seeds for bandwidth on the critical path. dataLayer queues everything
+     pushed before it arrives, so nothing is lost - the config call below
+     is replayed the moment the tag loads. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
   gtag('config', 'G-1KHS0JK39B');
+  window.addEventListener("load", function () {
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B";
+    document.head.appendChild(s);
+  });
 </script>
 <meta charset="UTF-8" />
 <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to a real
@@ -79,13 +89,26 @@
      that's been added to the Home Screen, and it won't offer that unless a
      manifest with display:standalone is present. -->
 <link rel="manifest" href="/manifest.webmanifest" />
-<script src="/js/predictionEngine.js"></script>
-<script src="/js/hotPicksEngine.js"></script>
-<script src="/js/scoringEngine.js"></script>
-<script src="/js/gameId.js"></script>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<!-- Everything the app needs, in dependency order, all deferred: deferred
+     scripts download in parallel without blocking the HTML parser and run
+     in document order once it finishes, so the engines, the identity widget
+     and React are all defined by the time the deferred /js/app.js at the
+     end of the document executes. As plain <script src> tags in <head> these were
+     seven render-blocking requests. React and ReactDOM are self-hosted
+     (js/vendor/, 18.2.0 UMD builds, byte-identical to the cdnjs copies that
+     used to load here) so a cold visit doesn't pay a DNS + TLS handshake to
+     a second origin before anything can render. -->
+<link rel="preconnect" href="https://identity.netlify.com" crossorigin />
+<link rel="preload" href="/js/app.js?v=be9be91490" as="script" />
+<link rel="preload" href="/data/history.json" as="fetch" crossorigin />
+<link rel="preload" href="/data/impact-players.json" as="fetch" crossorigin />
+<script defer src="/js/predictionEngine.js"></script>
+<script defer src="/js/hotPicksEngine.js"></script>
+<script defer src="/js/scoringEngine.js"></script>
+<script defer src="/js/gameId.js"></script>
+<script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script defer src="/js/vendor/react.production.min.js"></script>
+<script defer src="/js/vendor/react-dom.production.min.js"></script>
 <script>
   (function () {
     try {
@@ -102,7 +125,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="/css/app.css?v=4d1d4cde04">
+<link rel="stylesheet" href="/css/app.css?v=747dbf1237">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"NFL Pick'em Playbook - Week 5 confidence, survivor and spread picks","description":"The Blitz Odds model's Week 5 pick sheet: a full confidence ladder, the safest survivor spends and the week's ranked spread plays.","mainEntityOfPage":"https://blitz-odds.com/picks/","author":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com"},"publisher":{"@type":"Organization","name":"Blitz Odds","url":"https://blitz-odds.com","logo":{"@type":"ImageObject","url":"https://blitz-odds.com/branding/app-icon-512.png"}},"image":"https://blitz-odds.com/branding/app-icon-512.png","isAccessibleForFree":false,"hasPart":{"@type":"WebPageElement","isAccessibleForFree":false,"cssSelector":".playbook-gated"}}</script>
 </head>
 <body>
@@ -114,29 +137,29 @@
   <h2>Week 5 confidence ladder</h2>
   <p>15 games - assign 15 points to the top pick down to 1 at the bottom. <a href="/games/2026/week-5/">Full Week 5 breakdown with spreads and kickoff times &raquo;</a></p>
   <ol>
-    <li><strong>15 pts - Jacksonville Jaguars</strong> (91%) - <a href="/games/2026/week-5/philadelphia-eagles-at-jacksonville-jaguars/">Philadelphia Eagles at Jacksonville Jaguars</a></li>
-    <li><strong>14 pts - Chicago Bears</strong> (91%) - <a href="/games/2026/week-5/chicago-bears-at-green-bay-packers/">Chicago Bears at Green Bay Packers</a></li>
-    <li><strong>13 pts - Pittsburgh Steelers</strong> (80%) - <a href="/games/2026/week-5/indianapolis-colts-at-pittsburgh-steelers/">Indianapolis Colts at Pittsburgh Steelers</a></li>
-    <li><strong>12 pts - Los Angeles Rams</strong> (75%) - <a href="/games/2026/week-5/buffalo-bills-at-los-angeles-rams/">Buffalo Bills at Los Angeles Rams</a></li>
+    <li><strong>15 pts - Chicago Bears</strong> (89%) - <a href="/games/2026/week-5/chicago-bears-at-green-bay-packers/">Chicago Bears at Green Bay Packers</a></li>
+    <li><strong>14 pts - Jacksonville Jaguars</strong> (87%) - <a href="/games/2026/week-5/philadelphia-eagles-at-jacksonville-jaguars/">Philadelphia Eagles at Jacksonville Jaguars</a></li>
+    <li><strong>13 pts - Los Angeles Rams</strong> (81%) - <a href="/games/2026/week-5/buffalo-bills-at-los-angeles-rams/">Buffalo Bills at Los Angeles Rams</a></li>
+    <li><strong>12 pts - Pittsburgh Steelers</strong> (80%) - <a href="/games/2026/week-5/indianapolis-colts-at-pittsburgh-steelers/">Indianapolis Colts at Pittsburgh Steelers</a></li>
     <li><strong>11 pts - Tennessee Titans</strong> (71%) - <a href="/games/2026/week-5/houston-texans-at-tennessee-titans/">Houston Texans at Tennessee Titans</a></li>
     <li><strong>10 pts - Seattle Seahawks</strong> (67%) - <a href="/games/2026/week-5/san-francisco-49ers-at-seattle-seahawks/">San Francisco 49ers at Seattle Seahawks</a></li>
-    <li><strong>9 pts - Arizona Cardinals</strong> (66%) - <a href="/games/2026/week-5/detroit-lions-at-arizona-cardinals/">Detroit Lions at Arizona Cardinals</a></li>
-    <li><strong>8 pts - Atlanta Falcons</strong> (64%) - <a href="/games/2026/week-5/baltimore-ravens-at-atlanta-falcons/">Baltimore Ravens at Atlanta Falcons</a></li>
-    <li><strong>7 pts - New England Patriots</strong> (62%) - <a href="/games/2026/week-5/las-vegas-raiders-at-new-england-patriots/">Las Vegas Raiders at New England Patriots</a></li>
-    <li><strong>6 pts - Tampa Bay Buccaneers</strong> (58%) - <a href="/games/2026/week-5/tampa-bay-buccaneers-at-dallas-cowboys/">Tampa Bay Buccaneers at Dallas Cowboys</a></li>
-    <li><strong>5 pts - New York Giants</strong> (56%) - <a href="/games/2026/week-5/new-york-giants-at-washington-commanders/">New York Giants at Washington Commanders</a></li>
-    <li><strong>4 pts - New Orleans Saints</strong> (55%) - <a href="/games/2026/week-5/minnesota-vikings-at-new-orleans-saints/">Minnesota Vikings at New Orleans Saints</a></li>
-    <li><strong>3 pts - Miami Dolphins</strong> (54%) - <a href="/games/2026/week-5/cincinnati-bengals-at-miami-dolphins/">Cincinnati Bengals at Miami Dolphins</a></li>
-    <li><strong>2 pts - Los Angeles Chargers</strong> (52%) - <a href="/games/2026/week-5/denver-broncos-at-los-angeles-chargers/">Denver Broncos at Los Angeles Chargers</a></li>
-    <li><strong>1 pts - New York Jets</strong> (51%) - <a href="/games/2026/week-5/cleveland-browns-at-new-york-jets/">Cleveland Browns at New York Jets</a></li>
+    <li><strong>9 pts - New England Patriots</strong> (66%) - <a href="/games/2026/week-5/las-vegas-raiders-at-new-england-patriots/">Las Vegas Raiders at New England Patriots</a></li>
+    <li><strong>8 pts - Arizona Cardinals</strong> (66%) - <a href="/games/2026/week-5/detroit-lions-at-arizona-cardinals/">Detroit Lions at Arizona Cardinals</a></li>
+    <li><strong>7 pts - Tampa Bay Buccaneers</strong> (58%) - <a href="/games/2026/week-5/tampa-bay-buccaneers-at-dallas-cowboys/">Tampa Bay Buccaneers at Dallas Cowboys</a></li>
+    <li><strong>6 pts - New York Giants</strong> (56%) - <a href="/games/2026/week-5/new-york-giants-at-washington-commanders/">New York Giants at Washington Commanders</a></li>
+    <li><strong>5 pts - Atlanta Falcons</strong> (56%) - <a href="/games/2026/week-5/baltimore-ravens-at-atlanta-falcons/">Baltimore Ravens at Atlanta Falcons</a></li>
+    <li><strong>4 pts - Miami Dolphins</strong> (54%) - <a href="/games/2026/week-5/cincinnati-bengals-at-miami-dolphins/">Cincinnati Bengals at Miami Dolphins</a></li>
+    <li><strong>3 pts - Los Angeles Chargers</strong> (52%) - <a href="/games/2026/week-5/denver-broncos-at-los-angeles-chargers/">Denver Broncos at Los Angeles Chargers</a></li>
+    <li><strong>2 pts - New York Jets</strong> (51%) - <a href="/games/2026/week-5/cleveland-browns-at-new-york-jets/">Cleveland Browns at New York Jets</a></li>
+    <li><strong>1 pts - New Orleans Saints</strong> (50%) - <a href="/games/2026/week-5/minnesota-vikings-at-new-orleans-saints/">Minnesota Vikings at New Orleans Saints</a></li>
   </ol>
 
   <h2>Week 5 survivor picks</h2>
   <p>The safest wins on the slate. In a league, Blitz Odds narrows this to the teams you haven't used yet and flags when a team is worth holding for a better week.</p>
   <ol>
-    <li><strong>Jacksonville Jaguars</strong> - 91% to win (safest play on the board) - <a href="/games/2026/week-5/philadelphia-eagles-at-jacksonville-jaguars/">vs Philadelphia Eagles</a></li>
-    <li><strong>Chicago Bears</strong> - 91% to win - <a href="/games/2026/week-5/chicago-bears-at-green-bay-packers/">vs Green Bay Packers</a></li>
-    <li><strong>Pittsburgh Steelers</strong> - 80% to win - <a href="/games/2026/week-5/indianapolis-colts-at-pittsburgh-steelers/">vs Indianapolis Colts</a></li>
+    <li><strong>Chicago Bears</strong> - 89% to win (safest play on the board) - <a href="/games/2026/week-5/chicago-bears-at-green-bay-packers/">vs Green Bay Packers</a></li>
+    <li><strong>Jacksonville Jaguars</strong> - 87% to win - <a href="/games/2026/week-5/philadelphia-eagles-at-jacksonville-jaguars/">vs Philadelphia Eagles</a></li>
+    <li><strong>Los Angeles Rams</strong> - 81% to win - <a href="/games/2026/week-5/buffalo-bills-at-los-angeles-rams/">vs Buffalo Bills</a></li>
   </ol>
 
   <h2>Week 5 against the spread</h2>
@@ -146,9 +169,9 @@
   <div class="playbook-gated"><p>The rest of this week's spread sheet, in order:</p>
   <ol start="2">
     <li><strong>Arizona Cardinals to cover as the underdog</strong> - The model favors Arizona Cardinals outright even though the market has them getting points - that&#39;s the whole edge: a line the model thinks is priced wrong.</li>
-    <li><strong>Atlanta Falcons to cover as the underdog</strong> - The model favors Atlanta Falcons outright even though the market has them getting points - that&#39;s the whole edge: a line the model thinks is priced wrong.</li>
     <li><strong>Tampa Bay Buccaneers to cover as the underdog</strong> - The model favors Tampa Bay Buccaneers outright even though the market has them getting points - that&#39;s the whole edge: a line the model thinks is priced wrong.</li>
     <li><strong>New York Giants to cover as the underdog</strong> - The model favors New York Giants outright even though the market has them getting points - that&#39;s the whole edge: a line the model thinks is priced wrong.</li>
+    <li><strong>Miami Dolphins to cover as the underdog</strong> - The model favors Miami Dolphins outright even though the market has them getting points - that&#39;s the whole edge: a line the model thinks is priced wrong.</li>
   </ol></div>
 
   <p><a href="/leagues">Join a free NFL pick'em pool</a> and these picks are one tap away in every format.</p>
@@ -3074,7 +3097,7 @@
 }</script>
 <script type="application/json" id="weather-data">{"weeks": {}}</script>
 
-<script defer src="/js/app.js?v=0a5e8a9e2e"></script>
+<script defer src="/js/app.js?v=be9be91490"></script>
 <script src="/js/analytics.js"></script>
 </body>
 </html>

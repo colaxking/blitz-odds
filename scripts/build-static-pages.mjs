@@ -12,10 +12,12 @@
  * Approach - no real SSR/build framework, hand-rolled to fit the site's
  * existing "no build step, deploy index.html as-is" architecture (same
  * spirit as scripts/backfill-historical-season.mjs's static archive pages):
- *   1. Take the FULL production index.html as a template - same embedded
- *      JSON data blocks, same script tags - so the exact same React app can
- *      still boot on top and take over for live interactivity (scores,
- *      odds, the box score modal, etc).
+ *   1. Take the production index.html as a template - same embedded JSON
+ *      data blocks, same <script defer src="/js/app.js?v=..."> tag - so the
+ *      exact same React app can still boot on top and take over for live
+ *      interactivity (scores, odds, the box score modal, etc). The app
+ *      itself is a precompiled bundle (scripts/build-app.mjs), so a page
+ *      is ~85 KB of HTML plus one shared, cached bundle rather than 2 MB.
  *   2. Swap only the <head> tags that need to be page-specific (title,
  *      meta description, canonical, OG/Twitter mirrors) using the SAME
  *      copy useDocumentMeta() would set client-side, so there's no
@@ -24,9 +26,10 @@
  *      with predictions/results, injury report) right after <body> -
  *      this is what a non-JS-executing crawler or link-preview scraper
  *      actually sees.
- *   4. Insert a tiny inline script as the very last thing before </body>
- *      that hides the snapshot once the React app has mounted, so real
- *      visitors only ever see the one, fully-interactive version.
+ *   4. Leave the snapshot visible until the React app mounts - bootApp()
+ *      in src/app.jsx hides it at that moment, so real visitors only ever
+ *      see the one, fully-interactive version, and a slow connection shows
+ *      real content in the meantime instead of a blank page.
  *
  * Run: node scripts/build-static-pages.mjs
  */
@@ -34,6 +37,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { buildApp } from "./build-app.mjs";
 
 const require = createRequire(import.meta.url);
 /**
@@ -201,9 +205,24 @@ function formatMoneyline(ml) {
 }
 
 const MONTH_INDEX_BY_ABBR = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
-/** Mirrors index.html's iso8601GameStart exactly (fixed -05:00 ET offset,
- *  month<=5 rolls to seasonYear+1) - returns null for "TBD" kickoff times
- *  (unflexed weeks 16-18) rather than guessing, same as the client. */
+
+/** The UTC offset US Eastern time is actually on for a local date: -04:00
+ *  (EDT) from the second Sunday of March to the first Sunday of November,
+ *  -05:00 (EST) otherwise. The 2 AM switchover hour is ignored - no kickoff
+ *  lands there. Used only for the published SportsEvent startDate; the
+ *  app's own scheduling math keeps its fixed-offset convention untouched. */
+function easternOffset(year, month, day) {
+  const firstSunday = (m) => 1 + ((7 - new Date(Date.UTC(year, m, 1)).getUTCDay()) % 7);
+  const dstStart = firstSunday(2) + 7;   // second Sunday of March
+  const dstEnd = firstSunday(10);        // first Sunday of November
+  const dst = (month > 2 && month < 10) || (month === 2 && day >= dstStart) || (month === 10 && day < dstEnd);
+  return dst ? "-04:00" : "-05:00";
+}
+/** Mirrors src/app.jsx's iso8601GameStart exactly (real ET offset via
+ *  easternOffset, month<=5 rolls to seasonYear+1) - returns null for "TBD"
+ *  kickoff times (unflexed weeks 16-18) rather than guessing, same as the
+ *  client. Until October 2026 this used a fixed -05:00 all season, which
+ *  put every August-October kickoff an hour late in the structured data. */
 function iso8601GameStart(game, seasonYear) {
   if (!game || !game.date || !game.time) return null;
   const dm = /([A-Za-z]+)\s+(\d+)\s*$/.exec(game.date);
@@ -218,7 +237,7 @@ function iso8601GameStart(game, seasonYear) {
   if (/pm/i.test(tm[3])) hour += 12;
   const minute = parseInt(tm[2], 10);
   const pad = (n) => String(n).padStart(2, "0");
-  return `${year}-${pad(month + 1)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00-05:00`;
+  return `${year}-${pad(month + 1)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00${easternOffset(year, month, day)}`;
 }
 
 /** SportsEvent JSON-LD for one game - same shape as index.html's client-side
@@ -375,11 +394,9 @@ async function buildGamePage(template, data, period, game) {
 
   const snapshot = buildGameSnapshotHtml(data, period, game);
   html = html.replace("<body>", `<body>\n${snapshot}`);
+  // The snapshot is hidden by the app itself the moment React mounts (see
+  // bootApp() in src/app.jsx) - no inline hide script here any more.
 
-  html = html.replace(
-    "</body>",
-    `<script>(function(){var el=document.getElementById('prerendered-content');if(el)el.style.display='none';})();</script>\n</body>`
-  );
 
   const outPath = path.join(REPO_ROOT, "games", String(data.seasonYear), weekSlug, `${slugify(away.name)}-at-${slugify(home.name)}`, "index.html");
   const changed = await writeIfChanged(outPath, html);
@@ -551,10 +568,7 @@ async function buildWeekHubPage(template, data, period, prev, next) {
   if (jsonLd) html = html.replace("</head>", `${jsonLd}\n</head>`);
 
   html = html.replace("<body>", `<body>\n${buildWeekHubSnapshotHtml(data, period, ladder, prev, next)}`);
-  html = html.replace(
-    "</body>",
-    `<script>(function(){var el=document.getElementById('prerendered-content');if(el)el.style.display='none';})();</script>\n</body>`
-  );
+  // Hidden by bootApp() in src/app.jsx once React mounts.
 
   const outPath = path.join(REPO_ROOT, "games", String(data.seasonYear), weekSlug, "index.html");
   const changed = await writeIfChanged(outPath, html);
@@ -774,14 +788,10 @@ async function buildTeamPage(template, data, team) {
   const snapshot = buildTeamSnapshotHtml(data, team);
   html = html.replace("<body>", `<body>\n${snapshot}`);
 
-  // Hide the snapshot once React has mounted into #root. Placed as the very
-  // last script in <body> (after the app bundle and analytics.js), so by
-  // the time it runs, createRoot(...).render() has already painted the same
-  // content via the live, fully-interactive app.
-  html = html.replace(
-    "</body>",
-    `<script>(function(){var el=document.getElementById('prerendered-content');if(el)el.style.display='none';})();</script>\n</body>`
-  );
+  // The snapshot stays visible until React actually mounts into #root -
+  // bootApp() in src/app.jsx hides it right before createRoot(...).render(),
+  // so a slow connection shows real content rather than a blank page while
+  // the bundle and data seeds load.
 
   const outPath = path.join(REPO_ROOT, "teams", slug, "index.html");
   const changed = await writeIfChanged(outPath, html);
@@ -797,6 +807,11 @@ async function buildTeamPage(template, data, team) {
  * No content snapshot here, unlike team and game pages - these screens are
  * driven by live per-user data (your leagues, this week's hot picks), so
  * there's nothing stable to bake in. The value is the metadata and the 200. */
+// canonicalPath carries the trailing slash on purpose: each of these is a
+// directory index (games/index.html etc.), and Netlify 301s the bare
+// "/games" to "/games/". A canonical that points at a redirecting URL is a
+// "page with redirect" in Search Console; the sitemap entries come from the
+// same field and had the same problem.
 const TAB_PAGES = [
   {
     // The week view's own route since HOME_TAB_ENABLED moved "/" to the Home
@@ -806,7 +821,7 @@ const TAB_PAGES = [
     // preference to the non-forced `/games/* /index.html 200` rewrite, which
     // is the same precedence the game pages themselves already rely on.
     dir: "games",
-    canonicalPath: "/games",
+    canonicalPath: "/games/",
     title: "NFL Odds, Spreads & Model Predictions This Week | Blitz Odds",
     description: "Every NFL game this week with live sportsbook odds, model win probabilities, injury and weather adjustments, and the reasoning behind each pick.",
   },
@@ -818,7 +833,7 @@ const TAB_PAGES = [
     // targets the audience the product is positioned for (pick'em players)
     // rather than the betting keywords the old section chased.
     dir: "picks",
-    canonicalPath: "/picks",
+    canonicalPath: "/picks/",
     title: "NFL Pick'em Playbook - Confidence, Survivor & ATS Sheets | Blitz Odds",
     description: "A finished pick sheet for your pool every week: a full confidence ladder, ranked spread plays, and a survivor pick planned around the rest of the season - with the model's reasoning behind each one.",
   },
@@ -830,13 +845,13 @@ const TAB_PAGES = [
     // page can actually deliver on, since the house leagues are open to
     // anyone without an invite.
     dir: "leagues",
-    canonicalPath: "/leagues",
+    canonicalPath: "/leagues/",
     title: "Free NFL Pick'em Pools - Join a League or Run Your Own | Blitz Odds",
     description: "Join a free NFL pick'em pool instantly - no invite needed - or run your own with friends. Confidence, survivor, straight-up, and against-the-spread formats, with automatic scoring and standings.",
   },
   {
     dir: "news",
-    canonicalPath: "/news",
+    canonicalPath: "/news/",
     title: "NFL News | Blitz Odds",
     description: "The latest NFL headlines, injury news, and roster moves, alongside the odds and predictions they move.",
   },
@@ -852,108 +867,167 @@ async function buildTabPage(template, page) {
 /** Paths that once had a prerendered page and no longer should. */
 const RETIRED_PATHS = ["/archive"];
 
+// ---- Sitemaps --------------------------------------------------------------
+// Two files, since October 2026:
+//
+//   sitemap.xml          the live site: /, the tab pages, /privacy, /terms,
+//                        32 team pages, the week hubs and every game page
+//   sitemap-archive.xml  everything under /historical/ (~3,600 box scores
+//                        from 2015-2025, written by backfill-historical-season.mjs)
+//
+// robots.txt lists both. Before the split all ~4,000 URLs sat in one urlset,
+// 93% of them archive pages. On a domain this new, Google's crawl budget is a
+// few hundred fetches a day; one flat list meant it spent most of that on
+// decade-old box scores before reaching the week hub that could actually
+// rank this week. Separate files let Google weight the two sets
+// independently, let Search Console report coverage for each on its own,
+// and make dropping or thinning the archive later a one-file decision.
+//
+// sitemap.xml keeps its name and stays a plain <urlset> (not a sitemap index)
+// on purpose: static-pages-refresh commits exactly `teams/ games/ sitemap.xml`,
+// and indexnow-submit.mts reads the live sitemap.xml as a flat URL list.
+// Both keep working untouched, and the archive file only changes when the
+// backfill script runs.
+//
+// changefreq/priority are gone - Google ignores both - and lastmod is kept
+// honest: a URL is restamped only when its page content actually changed.
+
+const SITEMAP_SITE = "sitemap.xml";
+const SITEMAP_ARCHIVE = "sitemap-archive.xml";
+
+const isArchiveLoc = (loc) => /^https?:\/\/[^/]+\/historical\//.test(loc) || loc.startsWith("/historical/");
+
+/** Parse a <urlset> into an ordered Map of loc -> lastmod (or null). Entries
+ *  may be one-line or pretty-printed; changefreq/priority are dropped. */
+function parseUrlset(xml) {
+  const out = new Map();
+  if (!xml) return out;
+  const re = /<url>\s*<loc>([^<]*)<\/loc>([\s\S]*?)<\/url>/g;
+  let m;
+  while ((m = re.exec(xml))) {
+    const loc = m[1].trim();
+    const lm = m[2].match(/<lastmod>([^<]*)<\/lastmod>/);
+    if (!out.has(loc)) out.set(loc, lm ? lm[1].trim() : null);
+  }
+  return out;
+}
+
+function renderUrlset(map) {
+  const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'];
+  for (const [loc, lastmod] of map) {
+    lines.push(`  <url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}</url>`);
+  }
+  lines.push("</urlset>", "");
+  return lines.join("\n");
+}
+
+async function readIfExists(p) {
+  try { return await readFile(p, "utf8"); } catch { return null; }
+}
+
+/** Write only when the content differs - a write is a commit is a deploy. */
+async function writeIfDifferent(p, body) {
+  const existing = await readIfExists(p);
+  if (existing === body) return false;
+  await writeFile(p, body, "utf8");
+  return true;
+}
+
 /**
  * @param entries  [{ path, changed }] for every page regenerated this run.
  *                 `changed` decides whether the URL gets today's lastmod or
  *                 keeps the one it already had.
  */
 async function updateSitemap(entries) {
-  const sitemapPath = path.join(REPO_ROOT, "sitemap.xml");
-  const xml = await readFile(sitemapPath, "utf8");
   const today = new Date().toISOString().slice(0, 10);
+  const siteP = path.join(REPO_ROOT, SITEMAP_SITE);
+  const archiveP = path.join(REPO_ROOT, SITEMAP_ARCHIVE);
 
-  // Team and game pages get rebuilt every run (schedule/injuries/odds/
-  // predictions change week to week), so the previous run's entries have to
-  // come out before the fresh ones go in.
-  //
-  // This used to be two regexes matching a hardcoded
-  // https://blitz-odds.netlify.app/... prefix. SITE_BASE moved to the
-  // custom domain, and the strip patterns were never updated - so they
-  // stopped matching anything the script itself writes, and every run
-  // appended a full set of team + game URLs without removing the last one.
-  // By the time this was caught the sitemap had grown to 32,915 entries for
-  // 3,969 unique URLs: each team and game listed 83 times, once per run.
-  //
-  // Rebuilt as a parse-filter-rebuild rather than another prefix regex, so
-  // it can't silently no-op again if the domain changes: entries are
-  // matched on their *path* whatever the host, and the surviving entries
-  // are deduped by URL. That also clears out a legacy generation of
-  // /teams/{slug}/index.html URLs (duplicate content alongside the
-  // canonical directory form) and three relocated-franchise slugs
-  // (oak, sd, stl) that no longer have pages built for them.
-  const urlLine = /^\s*<url><loc>([^<]*)<\/loc>(?:<lastmod>[^<]*<\/lastmod>)?<\/url>\s*$/;
-  // Anchored at the path root on purpose: /historical/teams/... and
-  // /historical/games/... are a separate archive that this script does not
-  // generate and must not touch. Both branches resolve a pathname first so
-  // an unparseable URL can't fall through to a looser substring match.
-  const isTeamOrGame = (loc) => {
+  // sitemap.xml held the archive too before the split; any /historical/
+  // entry still found in it is moved across (that's the one-time migration,
+  // and it also catches a stray entry if anything ever appends one there again).
+  const site = parseUrlset(await readIfExists(siteP));
+  const archive = parseUrlset(await readIfExists(archiveP));
+
+  // Team, week-hub, game and tab pages are rebuilt every run, so the previous
+  // run's entries come out before the fresh ones go in. Matched on *path*
+  // whatever the host (a hardcoded-host regex once silently stopped matching
+  // and the sitemap grew to 32,915 entries for 3,969 URLs). RETIRED_PATHS
+  // covers routes that were briefly in TAB_PAGES and no longer are - a
+  // sitemap entry that 301s is a soft error in Search Console.
+  const isGenerated = (loc) => {
     let pathname;
-    try {
-      pathname = new URL(loc).pathname;
-    } catch {
-      pathname = loc.replace(/^https?:\/\/[^/]+/, "");
-    }
-    // Tab pages are rebuilt every run too, so they're stripped and
-    // regenerated alongside team and game pages rather than accumulating.
-    // RETIRED_PATHS covers routes that were briefly in TAB_PAGES and no
-    // longer are - without it they'd be silently "kept" forever, and a
-    // sitemap entry that 301s is a soft error in Search Console.
+    try { pathname = new URL(loc).pathname; } catch { pathname = loc.replace(/^https?:\/\/[^/]+/, ""); }
     const clean = pathname.replace(/\/$/, "");
     return /^\/(teams|games)\//.test(pathname)
-      || TAB_PAGES.some(t => t.canonicalPath === clean)
+      || TAB_PAGES.some((t) => t.canonicalPath.replace(/\/$/, "") === clean)
       || RETIRED_PATHS.includes(clean);
   };
 
-  const header = [];
-  const kept = [];
-  const seen = new Set();
-  // Prior lastmod per URL, captured before the strip loop throws those
-  // entries away. A page that didn't change this run keeps the date it
-  // already had rather than being restamped with today's.
-  const previousLastmod = new Map();
-  let inUrlSet = false;
-
-  for (const line of xml.split("\n")) {
-    if (line.includes("</urlset>")) break;
-    const m = line.match(urlLine);
-    if (!m) {
-      if (!inUrlSet) header.push(line);
-      continue;
-    }
-    inUrlSet = true;
-    const loc = m[1];
-    const priorDate = line.match(/<lastmod>([^<]*)<\/lastmod>/);
-    if (priorDate) previousLastmod.set(loc, priorDate[1]);
-    if (isTeamOrGame(loc)) continue;      // regenerated below
-    if (seen.has(loc)) continue;          // de-dupe anything already accumulated
-    seen.add(loc);
-    kept.push(line.replace(/\s+$/, ""));
+  const previousLastmod = new Map(site);
+  const kept = new Map();
+  let migrated = 0;
+  for (const [loc, lastmod] of site) {
+    if (isArchiveLoc(loc)) { if (!archive.has(loc)) { archive.set(loc, lastmod); migrated++; } continue; }
+    if (isGenerated(loc)) continue; // regenerated below
+    kept.set(loc, lastmod);
   }
+  if (migrated) log(`Sitemap: moved ${migrated} /historical/ entries out of sitemap.xml into ${SITEMAP_ARCHIVE}.`);
+  // The hand-maintained roots always belong here even if a previous file lost them.
+  for (const root of ["/", "/privacy/", "/terms/"]) {
+    const loc = `${SITE_BASE}${root}`;
+    if (!kept.has(loc)) kept.set(loc, previousLastmod.get(loc) || today);
+  }
+  // The homepage is the template every generated page is cut from and shows
+  // the same data, so if any page changed this run the homepage did too.
+  if (entries.some((e) => e.changed)) kept.set(`${SITE_BASE}/`, today);
 
-  const fresh = [];
   let restamped = 0;
+  let fresh = 0;
   for (const entry of entries) {
     const loc = `${SITE_BASE}${entry.path}`;
-    if (seen.has(loc)) continue;
-    seen.add(loc);
+    if (kept.has(loc)) continue;
     // Today only if the page really changed. Otherwise carry the existing
     // date forward - and fall back to today only for a URL that has never
     // been in the sitemap before, where there's nothing to carry.
     const lastmod = entry.changed ? today : (previousLastmod.get(loc) || today);
     if (entry.changed) restamped++;
-    fresh.push(`  <url><loc>${loc}</loc><lastmod>${lastmod}</lastmod></url>`);
+    kept.set(loc, lastmod);
+    fresh++;
   }
 
-  const body = [...header, ...kept, ...fresh, "</urlset>", ""].join("\n");
-  // Skip the write when the file is byte-identical. This is the whole point
-  // of the exercise: static-pages-refresh commits on any diff, and a commit
-  // is a push, which is a production deploy.
-  const changed = body !== xml;
-  if (changed) await writeFile(sitemapPath, body, "utf8");
-  return { kept: kept.length, fresh: fresh.length, restamped, changed };
+  const changedSite = await writeIfDifferent(siteP, renderUrlset(kept));
+  const changedArchive = await writeIfDifferent(archiveP, renderUrlset(archive));
+  return {
+    kept: kept.size - fresh,
+    fresh,
+    archive: archive.size,
+    restamped,
+    changed: changedSite || changedArchive,
+  };
 }
 
 async function main() {
+  // Compile src/app.jsx -> js/app.js and stamp the asset hashes into
+  // index.html BEFORE index.html is read as the template, so every generated
+  // page references the bundle that matches the source. Needs esbuild (a
+  // devDependency); the static-pages-refresh workflow runs this script in CI
+  // without `npm install`, and there it just reuses the committed bundle -
+  // correct, since src/app.jsx and js/app.js always land in the same commit.
+  let haveEsbuild = true;
+  try { await import("esbuild"); } catch { haveEsbuild = false; }
+  if (haveEsbuild) {
+    log("Building app bundle...");
+    await buildApp({ log });
+  } else {
+    try {
+      await readFile(path.join(REPO_ROOT, "js", "app.js"));
+      log("esbuild not installed - reusing the committed js/app.js (run `npm install && node scripts/build-app.mjs` after editing src/app.jsx).");
+    } catch {
+      throw new Error("js/app.js is missing and esbuild is not installed. Run `npm install && node scripts/build-app.mjs`.");
+    }
+  }
+
   log("Loading data...");
   const data = await loadData();
   const template = await readFile(path.join(REPO_ROOT, "index.html"), "utf8");
@@ -994,7 +1068,7 @@ async function main() {
   const sitemap = await updateSitemap(entries);
 
   log(`Done. ${entries.length} pages checked, ${changedCount} rewritten (${entries.length - changedCount} unchanged).`);
-  log(`Sitemap: ${sitemap.kept} kept + ${sitemap.fresh} regenerated = ${sitemap.kept + sitemap.fresh} URLs, ${sitemap.restamped} restamped.`);
+  log(`Sitemap: ${sitemap.kept} kept + ${sitemap.fresh} regenerated = ${sitemap.kept + sitemap.fresh} site URLs (${sitemap.restamped} restamped) in sitemap.xml; ${sitemap.archive} archive URLs in sitemap-archive.xml.`);
   // The line the workflow's git-diff guard cares about: nothing written
   // means nothing to commit, which means no production deploy.
   log(sitemap.changed || changedCount > 0

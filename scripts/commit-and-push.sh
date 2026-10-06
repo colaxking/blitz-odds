@@ -69,10 +69,13 @@ guard_index_html() {
   git status --porcelain -- "$@" | grep -qE ' index\.html$' || return 0
   [ -f index.html ] || return 0
 
+  # The app itself lives in src/app.jsx and ships as the compiled js/app.js
+  # (scripts/build-app.mjs) since October 2026; index.html is the ~85 KB
+  # shell around it. These markers are the shell's load-bearing parts.
   local marker
-  for marker in '<script type="text/babel"' 'id="players-data"' 'function TabBar('; do
+  for marker in '<script defer src="/js/app.js?v=' '<link rel="stylesheet" href="/css/app.css?v=' 'id="schedule-data"' '<div id="root">'; do
     if ! grep -qF -- "$marker" index.html; then
-      echo "index.html guard: the file no longer contains $marker - refusing to commit a truncated app. Nothing has been committed." >&2
+      echo "index.html guard: the file no longer contains $marker - refusing to commit a truncated app shell. Nothing has been committed." >&2
       exit 1
     fi
   done
@@ -94,7 +97,41 @@ guard_index_html() {
     exit 1
   fi
 }
+
+# Same idea for src/app.jsx, which is where the app code actually lives now
+# (index.html is only the shell - see scripts/build-app.mjs). A truncated
+# app.jsx compiles to a truncated js/app.js and blanks the site just as
+# surely as a truncated index.html used to.
+guard_app_jsx() {
+  git status --porcelain -- "$@" | grep -qE ' src/app\.jsx$' || return 0
+  [ -f src/app.jsx ] || return 0
+
+  local marker
+  for marker in 'function TabBar(' 'function App(' 'bootApp();'; do
+    if ! grep -qF -- "$marker" src/app.jsx; then
+      echo "src/app.jsx guard: the file no longer contains $marker - refusing to commit a truncated app. Nothing has been committed." >&2
+      exit 1
+    fi
+  done
+
+  local old new floor pct
+  old=$(git show "HEAD:src/app.jsx" 2>/dev/null | wc -c)
+  new=$(wc -c < src/app.jsx)
+  [ "$old" -gt 0 ] || return 0
+
+  pct=${SHRINK_PCT:-10}
+  floor=$(( old * (100 - pct) / 100 ))
+  if [ "$new" -lt "$floor" ]; then
+    if [ "${ALLOW_INDEX_SHRINK:-0}" = "1" ]; then
+      echo "src/app.jsx guard: ${old} -> ${new} bytes is past the ${pct}% floor, but ALLOW_INDEX_SHRINK=1 - continuing."
+      return 0
+    fi
+    echo "src/app.jsx guard: ${old} -> ${new} bytes ($(( 100 - new * 100 / old ))% smaller) is past the ${pct}% floor. Re-pull main, re-apply the change to the CURRENT file, and try again. Set ALLOW_INDEX_SHRINK=1 if the deletion is deliberate. Nothing has been committed." >&2
+    exit 1
+  fi
+}
 guard_index_html "$@"
+guard_app_jsx "$@"
 
 git config user.name "${GIT_BOT_NAME:-blitz-odds-bot}"
 git config user.email "${GIT_BOT_EMAIL:-actions@users.noreply.github.com}"

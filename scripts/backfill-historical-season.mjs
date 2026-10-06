@@ -38,7 +38,7 @@
  *   historical/{year}/{preseason|playoffs}/{round-slug}/{away}-at-{home}.html
  *   historical/{year}/{preseason|playoffs}/index.html   (per-phase season index)
  *   historical/index.html                                (root index, all years/phases)
- *   sitemap.xml                                           (appends new <url> entries)
+ *   sitemap-archive.xml                                   (appends new <url> entries)
  */
 
 import { writeFile, mkdir, readFile } from "node:fs/promises";
@@ -509,6 +509,7 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
 .breadcrumb a { color: var(--text-dim); }
 .archive-badge { display:inline-block; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
   padding: 3px 9px; border-radius: 999px; background: rgba(var(--demo-rgb),0.16); color: var(--demo); margin-bottom: 14px; }
+.archive-title { font-size:1.3rem; font-weight:800; line-height:1.3; margin:.6rem 0 .5rem; letter-spacing:-.01em; }
 .detail { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; margin-bottom: 24px; }
 .detail-header { display:flex; align-items:center; justify-content:center; gap: 26px; margin-bottom: 8px; flex-wrap:wrap; }
 .detail-team { display:flex; flex-direction:column; align-items:center; gap:6px; width: 180px; }
@@ -796,6 +797,15 @@ ${archiveTab("/picks", "Playbook", "playbook")}
 ${archiveTab("/news", "News", "news")}
   </nav>`;
 
+/** The on-page <h1>. Until October 2026 the only h1 on an archive page was a
+ *  screen-reader-only "Blitz Odds" in the brand link, and the matchup itself
+ *  had no heading element at all - so every one of ~3,600 pages told crawlers
+ *  its topic was the site name. The <title> already carries the right words;
+ *  the h1 is that minus the brand suffix. */
+function pageHeading(title) {
+  return String(title).replace(/\s*\|\s*Blitz Odds\s*$/, "");
+}
+
 function pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, jsonLd, pageScript }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -820,11 +830,12 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script
     ${SETTINGS_WIDGET_HTML}
     <a href="/" class="brand-row" aria-label="Blitz Odds home">
       ${brandWordmarkSvg(76)}
-      <h1 class="sr-only">Blitz Odds</h1>
+      <span class="sr-only">Blitz Odds</span>
     </a>
   </header>
   ${TAB_BAR_HTML}
   <div class="breadcrumb">${breadcrumb}</div>
+  <h1 class="archive-title">${escapeHtml(pageHeading(title))}</h1>
   ${bodyHtml}
   <footer class="app-footer">
     <p>Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</p>
@@ -1107,7 +1118,9 @@ async function writeFileEnsureDir(relPath, content) {
 }
 
 async function updateSitemap(newPaths) {
-  const sitemapPath = path.join(REPO_ROOT, "sitemap.xml");
+  // The archive has its own child sitemap since October 2026; sitemap.xml is
+  // now an index that points at it (see build-static-pages.mjs).
+  const sitemapPath = path.join(REPO_ROOT, "sitemap-archive.xml");
   let xml = await readFile(sitemapPath, "utf8");
   const today = new Date().toISOString().slice(0, 10);
   const newEntries = newPaths

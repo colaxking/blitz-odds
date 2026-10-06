@@ -57,7 +57,6 @@ import { fileURLToPath } from "node:url";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_PATH = path.join(REPO_ROOT, "data", "impact-players.json");
-const INDEX_PATH = path.join(REPO_ROOT, "index.html");
 const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.com";
 
 const ESPN_HEADERS = { "User-Agent": "curl/8.4.0", Accept: "application/json" };
@@ -203,19 +202,16 @@ async function fetchInjuries() {
   return out;
 }
 
-/** Writes the players doc into BOTH copies: data/impact-players.json and the
- *  embedded players-data seed in index.html. They are separate copies of the
- *  same thing and drift the moment either changes - which has silently
- *  broken the page twice. Anything that edits one must edit the other. */
+/** Writes the players doc to data/impact-players.json.
+ *
+ *  This used to also rewrite an embedded players-data seed inside index.html -
+ *  two copies of the same thing that drifted the moment either changed, which
+ *  silently broke the page twice. Since October 2026 the app fetches
+ *  /data/impact-players.json directly at boot (see bootApp() in src/app.jsx),
+ *  so the file is the only copy and there's nothing to keep in sync. */
 async function writeBothCopies(doc) {
   const json = JSON.stringify(doc, null, 2);
   await writeFile(DATA_PATH, json + "\n", "utf8");
-
-  const html = await readFile(INDEX_PATH, "utf8");
-  const re = /(<script[^>]*id="players-data"[^>]*>)([\s\S]*?)(<\/script>)/;
-  const m = re.exec(html);
-  if (!m) throw new Error('Could not find the players-data block in index.html');
-  await writeFile(INDEX_PATH, html.slice(0, m.index + m[1].length) + "\n" + json + "\n" + html.slice(m.index + m[1].length + m[2].length), "utf8");
 }
 
 /** The staging list behind the "Track player" button in analytics.html.
@@ -437,7 +433,7 @@ async function main() {
   if (dryRun) { log("Dry run - nothing written."); return; }
 
   await writeBothCopies(doc);
-  log("Wrote data/impact-players.json and the index.html seed.");
+  log("Wrote data/impact-players.json.");
   // Only now is it safe to clear the staging list. Note this leaves the
   // player on disk but not yet committed - the git push is still yours.
   await ackPendingAdds(staged.ack);

@@ -5,20 +5,23 @@
 # (consolidates link equity onto blitz-odds.com, avoids duplicate content).
 https://blitz-odds.netlify.app/*  https://blitz-odds.com/:splat  301!
 
-# Phase 3 SPA routes: /teams/* and /games/* are client-side (pushState)
-# routes handled by index.html's React router. Until the Stage 2 static
-# pre-rendering build script generates real HTML files at these exact
-# paths, a direct hit / shared link / crawler request needs to fall back
-# to index.html so the app can parse the URL and render the right view
-# client-side instead of getting a 404.
-/teams/*  /index.html  200
-/games/*  /index.html  200
-# /games itself (no trailing slash) is the week view's own route since the
-# Home tab took over "/". build-static-pages.mjs writes games/index.html, and
-# Netlify serves an existing file ahead of a non-forced rewrite, so this is
-# only the fallback for the moment between a routing deploy and the next
-# static-pages run.
-/games  /index.html  200
+# /teams/* and /games/* are REAL files now. build-static-pages.mjs writes
+# every team page, every week hub and every game page to disk (and the
+# static-pages-refresh job keeps them current), so there is nothing left for
+# a catch-all rewrite to serve except mistakes.
+#
+# The `/teams/* /index.html 200` and `/games/* /index.html 200` rules that
+# used to sit here predate that build script. Once the files existed the
+# rules only ever fired for URLs that DON'T exist - a flexed game's old slug,
+# a typo, anything a crawler guessed - and answered each one with a 200 and
+# the homepage, whose canonical points at "/". Search Console files that as
+# "Duplicate, Google chose different canonical", in bulk, and it teaches
+# Google to distrust the site's canonicals generally. A missing page must
+# 404 (see 404.html), so the rules are gone. Removed 2026-10.
+#
+# Direct hits on a not-yet-built page (a playoff matchup before the playoff
+# schedule lands in data/, say) 404 until the next static-pages run; in-app
+# navigation is pushState and never touches the server, so it's unaffected.
 
 # Notification / tab routes. These are all client-side (pushState) routes
 # handled by index.html's React router, so a direct hit, a shared link, or a

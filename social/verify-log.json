@@ -186,23 +186,34 @@
       "bufferStatus": "sent"
     },
     "2026-w5-tue": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ac39f6b0772037289fe7db8",
       "text": "Week 5 is on the board: fifteen games, ranked by confidence.\n\nBiggest favorite so far:\nTB at DAL — DAL -9.5\n\nClosest:\nMIN at NO — MIN -1.5\n\nLines move all week and the rankings move with them. blitz-odds.com",
       "dueAt": "2026-10-06T13:52:00.000Z",
       "scheduledAt": "2026-10-05T13:00:24.764Z",
       "lastCheckedAt": "2026-10-06T13:00:22.505Z",
-      "updatedAt": "2026-10-06T13:00:22.505Z"
+      "updatedAt": "2026-10-06T13:00:22.505Z",
+      "bufferStatus": "sent"
     },
     "2026-w5-wed": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6ac4f0eadd742d137c55a575",
-      "text": "Top of the Week 5 board as of Wednesday:\n\nTB at DAL — DAL -9.5\nCIN at MIA — CIN -7\nHOU at TEN — HOU -7\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
+      "text": "Top of the Week 5 board as of Wednesday:\n\nTB at DAL — DAL -8.5\nHOU at TEN — HOU -7.5\nCIN at MIA — CIN -7\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
       "dueAt": "2026-10-07T13:17:00.000Z",
       "scheduledAt": "2026-10-06T13:00:22.505Z",
-      "lastCheckedAt": "2026-10-06T13:00:22.505Z"
+      "lastCheckedAt": "2026-10-07T13:00:23.517Z",
+      "updatedAt": "2026-10-07T13:00:23.517Z"
+    },
+    "2026-w5-thu": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ac64269bedb264d97017513",
+      "text": "Thursday night: Buccaneers at Cowboys, DAL -8.5, O/U 47.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
+      "dueAt": "2026-10-08T13:03:00.000Z",
+      "scheduledAt": "2026-10-07T13:00:23.517Z",
+      "lastCheckedAt": "2026-10-07T13:00:23.517Z"
     }
   },
   "runs": [
@@ -681,6 +692,28 @@
           "post": "2026-w5-wed",
           "action": "scheduled",
           "detail": "primary for 2026-10-07T09:17:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-07T13:00:23.517Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w5-tue",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w5-wed",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w5-thu",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-08T09:03:00-04:00"
         }
       ],
       "alerts": []

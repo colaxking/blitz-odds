@@ -570,9 +570,12 @@
         "name": "D'Andre Swift",
         "position": "RB",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-02T19:05Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Hip",
+          "note": "Swift didn't practice Thursday due to hip and knee injuries."
+        },
+        "statusUpdatedAt": "2026-10-07T19:58Z",
         "source": "auto",
         "espnId": "4259545",
         "activatedDate": "2026-10-02"
@@ -1801,9 +1804,12 @@
         "position": "WR",
         "espnId": "4061956",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-04T12:10Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Hamstring",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-10-07T20:25Z",
         "source": "auto",
         "activatedDate": "2026-10-04"
       },
@@ -2164,11 +2170,14 @@
         "name": "Jalen Ramsey",
         "position": "CB",
         "impactScore": 8,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Wrist",
+          "note": "questionable"
+        },
         "activatedDate": "2026-10-01",
         "espnId": "3045373",
-        "statusUpdatedAt": "2026-10-01T23:14Z",
+        "statusUpdatedAt": "2026-10-07T20:10Z",
         "source": "auto"
       },
       {
@@ -3140,14 +3149,12 @@
         "name": "Jayden Daniels",
         "position": "QB",
         "impactScore": 8,
-        "status": "questionable",
+        "status": "active",
         "espnId": "4426348",
-        "statusUpdatedAt": "2026-10-06T18:21Z",
+        "statusUpdatedAt": "2026-10-07T20:13Z",
         "source": "auto",
-        "injury": {
-          "type": "Elbow",
-          "note": "questionable"
-        }
+        "injury": null,
+        "activatedDate": "2026-10-07"
       },
       {
         "name": "Laremy Tunsil",
@@ -3207,9 +3214,12 @@
         "position": "TE",
         "espnId": "4360635",
         "impactScore": 3,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-01T20:02Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Hamstring",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-10-07T20:05Z",
         "source": "auto",
         "activatedDate": "2026-10-01"
       },

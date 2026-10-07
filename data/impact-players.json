@@ -299,10 +299,13 @@
         "name": "Mike Evans",
         "position": "WR",
         "impactScore": 8,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Ribs",
+          "note": "Coach Kyle Shanahan said Evans (ribs) is expected to be limited at Wednesday's practice, Nick Wagoner of ESPN.com reports."
+        },
         "espnId": "16737",
-        "statusUpdatedAt": "2026-10-04T19:02Z",
+        "statusUpdatedAt": "2026-10-07T19:53Z",
         "source": "auto",
         "activatedDate": "2026-10-04"
       },
@@ -2853,6 +2856,19 @@
         "statusUpdatedAt": "2026-09-25T02:30Z",
         "source": "auto",
         "activatedDate": "2026-09-25"
+      },
+      {
+        "name": "Jack Bech",
+        "position": "WR",
+        "espnId": "4603186",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Forearm",
+          "note": "The Raiders placed Bech (forearm) on injured reserve Tuesday."
+        },
+        "statusUpdatedAt": "2026-09-29T22:27Z",
+        "source": "auto"
       }
     ],
     "GB": [
@@ -3494,15 +3510,14 @@
         "name": "Malik Nabers",
         "position": "WR",
         "impactScore": 9,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Dislocated shoulder (cleared)",
-          "since": "2026-09-21",
-          "note": "Nabers was cleared off the Giants' final Week 3 injury report Friday, Sept. 25, with no game-status designation, and is playing Sunday vs. Tennessee after dislocating the shoulder in the Sept. 21 loss to the Rams and popping it back in himself."
+          "type": "Undisclosed",
+          "note": "Nabers said he took on \"as much as I could\" at Wednesday's practice, after which he noted he's dealing with undisclosed soreness, Connor Hughes of SNY.tv reports."
         },
         "espnId": "4595348",
-        "statusUpdatedAt": "2026-09-26T01:15:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-10-07T19:26Z",
+        "source": "auto"
       },
       {
         "name": "Calvin Austin III",

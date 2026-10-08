@@ -45,26 +45,56 @@
     return (NUM_TEAMS + 1) - rank;
   }
 
+  function ratingsFromRanks(stats) {
+    var off = stats.offense;
+    var def = stats.defense;
+    return {
+      offRating:
+        rankToScore(off.rankTotal) * WEIGHTS.total +
+        rankToScore(off.rankRush) * WEIGHTS.run +
+        rankToScore(off.rankPass) * WEIGHTS.pass,
+      defRating:
+        rankToScore(def.rankTotal) * WEIGHTS.total +
+        rankToScore(def.rankRush) * WEIGHTS.run +
+        rankToScore(def.rankPass) * WEIGHTS.pass
+    };
+  }
+
+  // Prior-season blend. A yards-per-game rank built on one or two games is
+  // mostly noise: scored honestly (ranks as of each kickoff, 2015-2025, see
+  // scripts/model-backtest.mjs) the current-season ranks alone pick Week 3
+  // at 50.9% - a coin flip - and Week 2 at 57.7%. Shrinking each team's
+  // rating toward its prior-season rating with weight n / (n + K), n = games
+  // played this season, lifts those to 62.9% / 57.7% -> 59.4% and costs
+  // nothing from Week 7 on (61.2% vs 61.5% unblended). K = 4 was the best
+  // of 2, 3, 4, 6, 8 by Brier score. The blend is done in rating space, not
+  // on the yardage, so it needs only the two teams in hand and no re-rank
+  // of the league. Week 1 (n = 0) is pure prior, which is what the app ran
+  // on anyway before teams.json rolled over.
+  var SEASON_BLEND_K = 4;
+
   /**
    * Roll a team's raw rank data into single offense/defense ratings.
-   * @param {Object} team - entry from teams.json (has .stats.offense / .stats.defense with rankRush/rankPass/rankTotal)
-   * @returns {{offRating:number, defRating:number}}
+   * @param {Object} team - entry from teams.json (has .stats.offense / .stats.defense with rankRush/rankPass/rankTotal).
+   *   If the entry also carries .priorStats (last season's final ranks, same
+   *   shape) and .stats.gamesPlayed, the two are blended as described above;
+   *   without either, the current ranks are used as-is.
+   * @returns {{offRating:number, defRating:number, blendWeight:(number|null)}}
    */
   function computeBaseRatings(team) {
-    var off = team.stats.offense;
-    var def = team.stats.defense;
-
-    var offRating =
-      rankToScore(off.rankTotal) * WEIGHTS.total +
-      rankToScore(off.rankRush) * WEIGHTS.run +
-      rankToScore(off.rankPass) * WEIGHTS.pass;
-
-    var defRating =
-      rankToScore(def.rankTotal) * WEIGHTS.total +
-      rankToScore(def.rankRush) * WEIGHTS.run +
-      rankToScore(def.rankPass) * WEIGHTS.pass;
-
-    return { offRating: offRating, defRating: defRating };
+    var cur = ratingsFromRanks(team.stats);
+    var n = team.stats && typeof team.stats.gamesPlayed === "number" ? team.stats.gamesPlayed : null;
+    var hasPrior = !!(team.priorStats && team.priorStats.offense && team.priorStats.defense);
+    if (!hasPrior || n === null || !isFinite(n) || n < 0) {
+      return { offRating: cur.offRating, defRating: cur.defRating, blendWeight: null };
+    }
+    var prior = ratingsFromRanks(team.priorStats);
+    var w = n / (n + SEASON_BLEND_K);
+    return {
+      offRating: w * cur.offRating + (1 - w) * prior.offRating,
+      defRating: w * cur.defRating + (1 - w) * prior.defRating,
+      blendWeight: w
+    };
   }
 
   /**
@@ -185,35 +215,11 @@
 
   /**
    * Win probability for the home team, derived from the predicted margin.
-   *
-   * This used to be a separate logistic on edge (scale 36). That left the
-   * engine with two different curves from the same `edge` to a probability -
-   * this one, and the margin fit below that the ats cover numbers use - and
-   * they disagreed: the logistic read ~3.5 points low at edge 0 and ~2 points
-   * high at edge 30, so the same game could be described two ways depending
-   * on which sheet you were looking at.
-   *
-   * Scoring both against the 2,761 regular-season games in
-   * data/historical-games-index.json (2015 onward, each scored with that
-   * season's rankings from data/historical-team-rankings.json):
-   *
-   *   logistic scale 36   Brier 0.2184   logloss 0.6261   64.2% accurate
-   *   margin fit          Brier 0.2167   logloss 0.6220   64.4% accurate
-   *
-   * The margin route wins on all three, and re-fitting it against the same
-   * games lands on 0.405 * edge + 1.11 - within rounding of the 0.409 already
-   * shipped, i.e. it's already at its optimum. (The logistic, for what it's
-   * worth, wasn't even the best logistic: its own best-fit scale is 44, not
-   * 36.) So there is now one curve, and predictedMargin and confidence are
-   * the same number expressed two ways rather than two estimates that have
-   * to be kept in step by hand.
-   *
-   * Note this shifts which team is favored in the narrow band where the
-   * predicted margin crosses zero (edge between about -2.7 and 0 now favors
-   * the home team, on the residual home-field the intercept carries). That's
-   * the change that moves accuracy 64.2% -> 64.4%. Ranking by confidence is
-   * unaffected: both curves are monotonic in edge, so the confidence ladder
-   * hands out the same points in the same order.
+   * One curve: predictedMargin and confidence are the same number expressed
+   * two ways, so the straight-up, confidence, ats and survivor sheets can
+   * never disagree about a game. `week` is accepted for call-site symmetry
+   * with edgeToMargin; the residual SD is the same in every week (the
+   * early-season uncertainty lives in the margin fit, see below).
    */
   function marginToWinProbability(predictedHomeMargin, week) {
     return normalCdf(predictedHomeMargin / marginSdForWeek(week));
@@ -225,77 +231,78 @@
   // an ats pick needs is a *margin* in points, which can be compared against
   // the market's line.
   //
-  // These three numbers come from an ordinary least-squares fit over the
-  // 2,772 regular-season games in data/historical-games-index.json (2015
-  // onward), scoring each with that season's team rankings from
-  // data/historical-team-rankings.json:
+  //   actual home margin ~= perEdge * edge + intercept   (residual SD 13.5)
   //
-  //   actual home margin ~= 0.409 * edge + 1.11   (residual SD 12.77 pts)
+  // HOW THESE WERE FIT (and why the previous numbers were wrong). The earlier
+  // constants - 0.409 * edge + 1.11, SD 12.77, "64.4% accurate" - came from
+  // scoring every historical game with that season's FINAL rankings, i.e.
+  // ranks that already included the game being predicted. That leak made
+  // the edge look about 40% more predictive than it is live. Refit over the
+  // 2,895 regular-season games of 2015-2025 using the ranks that existed at
+  // each kickoff (per-game yardage in data/historical-team-game-yards.json,
+  // identical to footballdb's numbers; prior-season blend above applied;
+  // no injury/weather data in the backtest - see scripts/model-backtest.mjs
+  // to reproduce):
   //
-  // The intercept is small residual home-field the rating bonus doesn't
-  // already capture. The SD is close to the ~13.5 the market itself prices
-  // NFL margins at, which is the sanity check that the fit isn't overfit.
+  //   weeks 1-6    0.274 * edge + 1.04   residual SD 13.25   (n = 1,045)
+  //   weeks 7-18   0.360 * edge + 1.48   residual SD 13.58   (n = 1,850)
+  //   all weeks    0.329 * edge + 1.33   residual SD 13.47
   //
-  // Caveat for whoever revisits this: the *margin* fit is validated, but the
-  // resulting cover percentages are NOT backtested against real closing
-  // lines - data/odds-history.json only covers the current season, so there
-  // are no historical spreads to score against. Treat the cover number as
-  // calibrated-by-construction, not proven.
-  var MARGIN_PER_EDGE = 0.409;
-  var MARGIN_INTERCEPT = 1.11;
-  var MARGIN_SD = 12.77;
-
-  // Early-season residual spread. MARGIN_SD above was fit on games where the
-  // offense/defense ranks come from the season being played. In weeks 1-4 the
-  // ranks are still last season's finals (teams.json only rolls over once
-  // there are enough games to rank), so the same predicted margin carries
-  // less information than the fitted SD implies and the CDF turns it into far
-  // too much confidence.
+  // Straight-up accuracy 60.8% with leave-one-season-out cross-validation
+  // (the closing line is 66.2% on the same games). Calibration by confidence
+  // bin, all weeks: 50-55% bin hits 51.3%, 55-60% -> 57.7%, 60-65% -> 61.9%,
+  // 65-70% -> 68.9%, 70-75% -> 71.7%, 75%+ -> 79.9%. The old constants, on
+  // the same honest replay, hit 56.1% in their 65-70% bin and 80.2% in
+  // their 85%+ bin.
   //
-  // Backtest over 3,534 games in data/historical-games-index.json, scoring
-  // each season's weeks 1-4 using the PRIOR season's final ranks from
-  // data/historical-team-rankings.json (n=667):
+  // Weeks 1-6 get a flatter slope rather than a wider SD: the SD is the
+  // noise in NFL margins, which doesn't change with the calendar, while the
+  // slope is how much a rank gap is worth, which does. Shrinking the slope
+  // also shrinks predictedMargin itself, so the ats comparison against the
+  // market line is no more aggressive in September than in December - the
+  // old SD-widening left early-season margins at full size.
   //
-  //   residual SD, wk1-4 prior-season ranks .... 13.73  (bias -0.29)
-  //   residual SD, wk1-4 same-season ranks ..... 12.56  (bias -0.29)
-  //   residual SD, wk5+  same-season ranks ..... 12.84  (bias +0.08)
-  //   Brier-optimal SD, wk1-4 prior ranks ...... 18.75
-  //   Brier-optimal SD, wk5+  same ranks ....... 13.00  (MARGIN_SD is right)
-  //
-  // Calibration by confidence bin, wk1-4 on prior-season ranks:
-  //
-  //           SD=12.77            SD=18.75
-  //   bin     pred    actual      pred    actual
-  //   50-60%  54.8%   53.0%       54.8%   55.2%
-  //   60-70%  64.7%   61.7%       64.3%   65.6%
-  //   70-80%  74.4%   66.4%       74.1%   71.3%
-  //   80%+    85.4%   76.7%       (bin empties out)
-  //
-  // The margins themselves are near-unbiased either way - this only widens
-  // the win-probability curve, so predictedMargin, the confidence ORDER, and
-  // coverProbability are all unchanged. Caveat: the backtest ran with empty
-  // impact-player lists (no historical injury data in the repo), so both arms
-  // are apples-to-apples but the absolute SDs are mildly optimistic.
-  var EARLY_SEASON_MARGIN_SD = 18.75;
-  var EARLY_SEASON_LAST_WEEK = 4;
+  // What the model is NOT: an edge against the market. Scored against the
+  // closing spread (weeks 5-18, 2015-2025) the model's side covers 46-51%
+  // at every gap size; moneyline "value" picks at the posted price lose
+  // about 9%; the offense-vs-defense total lean hits 47-52%. The cover
+  // probability below is calibrated to the model's own residual, which is
+  // the right number for "how sure is the model" and the wrong number for
+  // "will this cover" - copy that shows it should say lean, not edge.
+  var MARGIN_SD = 13.5;
+  var EARLY_SEASON_LAST_WEEK = 6;
+  var MARGIN_FIT_EARLY = { perEdge: 0.274, intercept: 1.04 };
+  var MARGIN_FIT_REGULAR = { perEdge: 0.360, intercept: 1.48 };
+  // Kept for the constants export and any caller that read the old names;
+  // the regular-season pair is what runs from Week 7 on.
+  var MARGIN_PER_EDGE = MARGIN_FIT_REGULAR.perEdge;
+  var MARGIN_INTERCEPT = MARGIN_FIT_REGULAR.intercept;
+  // The old separate early-season SD is gone (see above); exported as equal
+  // to MARGIN_SD so predictions-current.mts's legacy repair path keeps
+  // compiling and now simply re-projects through the one curve.
+  var EARLY_SEASON_MARGIN_SD = MARGIN_SD;
 
   /**
-   * Residual SD to use for a given week. Weeks <= 4 of the regular season run
-   * on prior-season ranks and need the wider curve; anything else (including
-   * an unknown/omitted week) gets the fitted MARGIN_SD, so a missed call site
-   * degrades to exactly today's behaviour rather than throwing.
+   * Which margin fit a week runs on. Preseason weeks are negative (-4..-1)
+   * and take the early curve; null/undefined/0/non-numeric fall back to the
+   * regular fit so a missed call site degrades to the main-season behaviour
+   * rather than throwing.
+   */
+  function marginFitForWeek(week) {
+    if (week === null || week === undefined || week === "") return MARGIN_FIT_REGULAR;
+    var w = Number(week);
+    if (!isFinite(w) || w === 0) return MARGIN_FIT_REGULAR;
+    if (w <= EARLY_SEASON_LAST_WEEK) return MARGIN_FIT_EARLY;
+    return MARGIN_FIT_REGULAR;
+  }
+
+  /**
+   * Residual SD for a week. One value now (see the fit notes above), kept as
+   * a function because winProbabilityToMargin and predictions-current.mts
+   * call it with a week and the inverse must use the same SD the forward
+   * projection did.
    */
   function marginSdForWeek(week) {
-    // Guard null explicitly: Number(null) is 0, which would otherwise slip
-    // through the <= 4 test and hand the wide curve to a call site that
-    // simply didn't pass a week. 0 isn't a real week either (preseason is
-    // -4..-1, regular season 1..18), so both fall back to MARGIN_SD.
-    if (week === null || week === undefined || week === "") return MARGIN_SD;
-    var w = Number(week);
-    if (!isFinite(w) || w === 0) return MARGIN_SD;
-    // Preseason weeks are negative (-4..-1) and also run on prior-season
-    // ranks, so they take the wide curve too.
-    if (w <= EARLY_SEASON_LAST_WEEK) return EARLY_SEASON_MARGIN_SD;
     return MARGIN_SD;
   }
 
@@ -360,9 +367,10 @@
     return normalQuantile(homeWinProb) * marginSdForWeek(week);
   }
 
-  /** Rating-point edge -> expected home margin in points. */
-  function edgeToMargin(edge) {
-    return MARGIN_PER_EDGE * edge + MARGIN_INTERCEPT;
+  /** Rating-point edge -> expected home margin in points, on the week's fit. */
+  function edgeToMargin(edge, week) {
+    var fit = marginFitForWeek(week);
+    return fit.perEdge * edge + fit.intercept;
   }
 
   /**
@@ -414,7 +422,7 @@
     var edge = homeOverall - awayOverall; // positive favors home team
     // One curve: the margin model, then the probability that margin implies.
     // Deriving one from the other is what stops them contradicting.
-    var predictedMargin = edgeToMargin(edge);
+    var predictedMargin = edgeToMargin(edge, params.week);
     var homeWinProb = marginToWinProbability(predictedMargin, params.week);
 
     var winner = homeWinProb >= 0.5 ? homeTeam.id : awayTeam.id;
@@ -443,6 +451,7 @@
     applyWeatherAdjustments: applyWeatherAdjustments,
     marginToWinProbability: marginToWinProbability,
     marginSdForWeek: marginSdForWeek,
+    marginFitForWeek: marginFitForWeek,
     edgeToMargin: edgeToMargin,
     coverProbability: coverProbability,
     normalCdf: normalCdf,
@@ -464,6 +473,9 @@
       MARGIN_PER_EDGE: MARGIN_PER_EDGE,
       MARGIN_INTERCEPT: MARGIN_INTERCEPT,
       MARGIN_SD: MARGIN_SD,
+      MARGIN_FIT_EARLY: MARGIN_FIT_EARLY,
+      MARGIN_FIT_REGULAR: MARGIN_FIT_REGULAR,
+      SEASON_BLEND_K: SEASON_BLEND_K,
       EARLY_SEASON_MARGIN_SD: EARLY_SEASON_MARGIN_SD,
       EARLY_SEASON_LAST_WEEK: EARLY_SEASON_LAST_WEEK
     }

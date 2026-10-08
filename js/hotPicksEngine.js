@@ -4,7 +4,10 @@
  * Takes a week's worth of already-computed matchup predictions (from
  * PredictionEngine.predictMatchup) plus each game's odds, and selects the
  * week's featured picks: the model's most confident calls, and the single
- * best angle on each betting market (spread, moneyline, total).
+ * lean on each betting market (spread, moneyline, total). These are the
+ * model's reads, not edges: backtested against closing lines the model's
+ * spread picks cover ~48%, its moneyline "value" loses ~9%, and its total
+ * leans hit ~50% (see the fit notes in predictionEngine.js). The copy says so.
  *
  * Deliberately pure/framework-agnostic (no DOM, no React) for the same
  * reason predictionEngine.js is: this is meant to be the shared source of
@@ -92,7 +95,7 @@
         }
 
         if (marketAgrees === false) {
-          advantage += ` The sportsbook favorite is actually ${oppTeamName} here - the model sees an edge this line doesn't fully reflect.`;
+          advantage += ` The sportsbook favorite is actually ${oppTeamName} here. Read that as a split call, not an edge - when the model and the market disagree, the market has been right more often.`;
         } else if (marketAgrees === true) {
           advantage += ` The market agrees ${pickTeamName} is favored, and ${confidencePct}% confidence shows how comfortably.`;
         } else {
@@ -145,8 +148,8 @@
           ? `${pickTeamName} to cover as the underdog`
           : `${pickTeamName} ${spreadText}`,
         advantage: isUpset
-          ? `The model favors ${pickTeamName} outright even though the market has them getting points - that's the whole edge: a line the model thinks is priced wrong.`
-          : `The model gives ${pickTeamName} a ${confidencePct}% win probability as the favorite, well clear of a coin flip, suggesting room to cover the spread and not just win outright.`
+          ? `The model's own line favors ${pickTeamName} while the market has them getting points. That's a lean, not an edge: against closing spreads the model's side covers about half the time, so weigh it as one opinion on the number.`
+          : `The model gives ${pickTeamName} a ${confidencePct}% win probability and its own line lands on this side of the number. A lean, not an edge: the model's spread picks cover about half the time against the closing line.`
       };
     };
 
@@ -210,7 +213,7 @@
         confidence: p.confidence,
         confidencePct: confidencePct,
         summary: `${pickTeamName} ${mlText}`,
-        advantage: `The model gives ${pickTeamName} a ${confidencePct}% win probability, but that price only implies ${impliedPct}% - a ${edgePts}-point gap between what the model sees and what the market's charging for it.`
+        advantage: `The model gives ${pickTeamName} a ${confidencePct}% win probability against a price that implies ${impliedPct}% - a ${edgePts}-point gap. That's the model's lean, not betting value: backtested, picks like this have not beaten the market's price.`
       };
     });
   }
@@ -245,8 +248,8 @@
         lean: leanOver ? "over" : "under",
         summary: `${leanOver ? "Over" : "Under"} ${g.odds.overUnder}`,
         advantage: leanOver
-          ? `Both offenses grade out well above these two defenses once injuries and weather are factored in - a directional lean toward more scoring, not a projected total.`
-          : `Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total.`
+          ? `Both offenses grade out well above these two defenses once injuries and weather are factored in - a directional lean toward more scoring, not a projected total, and not a measured edge against the posted number.`
+          : `Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total, and not a measured edge against the posted number.`
       };
     });
   }

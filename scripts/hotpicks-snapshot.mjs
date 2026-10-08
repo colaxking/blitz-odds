@@ -171,6 +171,10 @@ async function main() {
         weather: gameWeather,
         homeIsDomeTeam: isDomeTeam(home.id),
         awayIsDomeTeam: isDomeTeam(away.id),
+        // Load-bearing: weeks 1-6 run on the flatter early-season margin
+        // fit. Omitting `week` fed the Playbook the full-season curve - the
+        // Week 2 snapshot carried Arizona at 93% that way.
+        week: targetWeek,
       });
       return { awayId: away.id, awayName: away.name, homeId: home.id, homeName: home.name, prediction, odds: gameOdds };
     })

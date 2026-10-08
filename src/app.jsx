@@ -12434,7 +12434,7 @@ function computeBlitzEdge({ format, game, prediction, maxConfidence, suggestedCo
         edgePoints = gap;
         coverPct = Math.round(PredictionEngine.coverProbability(modelMargin, game.home, game.favorite, game.spread, pick) * 100);
         value = `${coverPct}% to cover`;
-        note = `Model line ${modelLine} — ${gap.toFixed(1)} pts of value on ${pick === game.favorite ? "the favorite" : "the underdog"}.`;
+        note = `Model line ${modelLine} — leans ${gap.toFixed(1)} pts toward ${pick === game.favorite ? "the favorite" : "the underdog"}. A lean, not an edge.`;
       }
     }
 

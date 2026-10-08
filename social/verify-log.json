@@ -197,14 +197,15 @@
       "bufferStatus": "sent"
     },
     "2026-w5-wed": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ac4f0eadd742d137c55a575",
       "text": "Top of the Week 5 board as of Wednesday:\n\nTB at DAL — DAL -8.5\nHOU at TEN — HOU -7.5\nCIN at MIA — CIN -7\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
       "dueAt": "2026-10-07T13:17:00.000Z",
       "scheduledAt": "2026-10-06T13:00:22.505Z",
       "lastCheckedAt": "2026-10-07T13:00:23.517Z",
-      "updatedAt": "2026-10-07T13:00:23.517Z"
+      "updatedAt": "2026-10-07T13:00:23.517Z",
+      "bufferStatus": "sent"
     },
     "2026-w5-thu": {
       "status": "scheduled",
@@ -213,7 +214,16 @@
       "text": "Thursday night: Buccaneers at Cowboys, DAL -8.5, O/U 47.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
       "dueAt": "2026-10-08T13:03:00.000Z",
       "scheduledAt": "2026-10-07T13:00:23.517Z",
-      "lastCheckedAt": "2026-10-07T13:00:23.517Z"
+      "lastCheckedAt": "2026-10-08T13:00:19.635Z"
+    },
+    "2026-w5-fri": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ac793e6444a36d3be21062d",
+      "text": "Late-week injury news moves lines more than anything else. If your pool lets you change picks until kickoff, check the board again Sunday morning before you lock.\n\nblitz-odds.com",
+      "dueAt": "2026-10-09T13:39:00.000Z",
+      "scheduledAt": "2026-10-08T13:00:19.635Z",
+      "lastCheckedAt": "2026-10-08T13:00:19.635Z"
     }
   },
   "runs": [
@@ -714,6 +724,28 @@
           "post": "2026-w5-thu",
           "action": "scheduled",
           "detail": "primary for 2026-10-08T09:03:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-08T13:00:19.635Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w5-wed",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w5-thu",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w5-fri",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-09T09:39:00-04:00"
         }
       ],
       "alerts": []

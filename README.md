@@ -223,7 +223,14 @@ that touches git. It archives completed preseason rounds (Hall of Fame Game, Pre
 Weeks 1-3) as soon as they finish, and once the regular season starts (Sept 9, 2026),
 each run checks whether a new week has finished, and if so: pulls that week's final
 scores, and refreshes `data/teams.json` and `data/impact-players.json` with current
-numbers for the *upcoming* week. **The finished week's `data/history.json` entry is not
+numbers for the *upcoming* week. **Since the 2026-10-08 model refit every team in
+`teams.json` must also carry `priorStats` (last season's final ranks) and
+`stats.gamesPlayed` (games played this season - byes make it differ by team from
+Week 5); the prediction engine blends the two.** The task should set `gamesPlayed`
+alongside the stats and keep `priorStats` as it found it, but both choke points repair
+a doc that arrives without them - `site-data-update.mts` for the live copy, and
+`scripts/ensure-team-fields.mjs` (run by `build-static-pages.mjs`) for the committed
+file - so a run that forgets degrades to a logged warning, not an unblended week. **The finished week's `data/history.json` entry is not
 this task's to write any more**: `history-results-refresh` seeds it at kickoff (see
 above) and fills in the scores, and `site-data-update` keeps the seeded `teamStats` /
 `impactPlayers` regardless of what a later publish sends. If the task does carry an

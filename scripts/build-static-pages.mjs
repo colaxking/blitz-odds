@@ -97,6 +97,11 @@ function escapeHtml(s) {
 // ---- Load data (same files index.html embeds at deploy time) --------------
 
 async function loadData() {
+  // The engine's prior-season blend needs priorStats + stats.gamesPlayed on
+  // every team; the weekly-update task may rewrite teams.json without them.
+  // Repair the file first so the committed copy and these pages agree.
+  const { ensureTeamFieldsOnDisk } = await import("./ensure-team-fields.mjs");
+  ensureTeamFieldsOnDisk({ log: (m) => console.log(`${new Date().toISOString()} ${m}`) });
   const [teamsFile, scheduleFile, preseasonFile, playoffsFile, playersFile, historyFile, stadiumsFile, oddsFile] = await Promise.all([
     readJson("data/teams.json"),
     readJson("data/schedule-full-2026.json"),

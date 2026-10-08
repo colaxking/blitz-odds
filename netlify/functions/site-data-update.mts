@@ -1,5 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { PRIOR_SEASON, PRIOR_SEASON_RANKS } from "./lib/prior-season-ranks.mts";
 
 // Write endpoint for the nfl-matchup-analyzer-weekly-update scheduled task.
 // Same idea as odds-update.mts, applied to the rest of the app's data: team
@@ -157,6 +158,106 @@ const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Headers": "Content-Type, x-site-data-update-secret",
 };
 
+// The prediction engine (js/predictionEngine.js, refit 2026-10-08) blends each
+// team's current ranks with its prior-season ranks by gamesPlayed /
+// (gamesPlayed + 4). Both inputs ride on the teams doc: `priorStats` on the
+// team and `gamesPlayed` inside `stats`. The weekly-update task regenerates
+// teams.json from footballdb each Tuesday and may not know about either
+// field, so this fills whatever is missing at the choke point: priorStats
+// from the bundled prior-season finals, gamesPlayed from the stored schedule
+// (one game per listed matchup in weeks 1..asOfWeek - a bye week simply has
+// no entry for the team). A team the schedule can't account for is left
+// alone and logged; the engine then runs that team on its current ranks
+// unblended, which is exactly the pre-refit behaviour, never a crash.
+function gamesPlayedFromSchedule(schedule: any, asOfWeek: number): Record<string, number> | null {
+  const weeks = schedule && Array.isArray(schedule.weeks) ? schedule.weeks : null;
+  if (!weeks || !Number.isFinite(asOfWeek) || asOfWeek < 0) return null;
+  const counts: Record<string, number> = {};
+  for (const w of weeks) {
+    if (!w || typeof w.week !== "number" || w.week < 1 || w.week > asOfWeek) continue;
+    for (const g of Array.isArray(w.games) ? w.games : []) {
+      if (!g) continue;
+      if (typeof g.home === "string") counts[g.home] = (counts[g.home] || 0) + 1;
+      if (typeof g.away === "string") counts[g.away] = (counts[g.away] || 0) + 1;
+    }
+  }
+  return counts;
+}
+
+async function completeTeamsPayload(
+  store: ReturnType<typeof getStore>,
+  incoming: any
+): Promise<{ value: any; filledPrior: string[]; filledGames: string[]; unresolved: string[] }> {
+  const empty = { value: incoming, filledPrior: [] as string[], filledGames: [] as string[], unresolved: [] as string[] };
+  if (!incoming || typeof incoming !== "object" || !Array.isArray(incoming.teams)) return empty;
+  const needsPrior = incoming.teams.some((t: any) => t && !(t.priorStats && t.priorStats.offense && t.priorStats.defense));
+  const needsGames = incoming.teams.some((t: any) => t && t.stats && typeof t.stats.gamesPlayed !== "number");
+  if (!needsPrior && !needsGames) return empty;
+
+  let counts: Record<string, number> | null = null;
+  if (needsGames) {
+    const asOfWeek = typeof incoming.asOfWeek === "number" ? incoming.asOfWeek : NaN;
+    let schedule: any = null;
+    try {
+      schedule = await store.get("schedule", { type: "json" });
+    } catch {
+      schedule = null;
+    }
+    counts = gamesPlayedFromSchedule(schedule, asOfWeek);
+  }
+  // Only the configured prior season applies; a doc for any other season
+  // gets no priorStats rather than a wrong one.
+  const priorApplies = !incoming.season || incoming.season === PRIOR_SEASON + 1;
+
+  const filledPrior: string[] = [], filledGames: string[] = [], unresolved: string[] = [];
+  const teams = incoming.teams.map((t: any) => {
+    if (!t || typeof t !== "object") return t;
+    let out = t;
+    if (!(t.priorStats && t.priorStats.offense && t.priorStats.defense)) {
+      const prior = priorApplies ? PRIOR_SEASON_RANKS[t.id] : null;
+      if (prior) {
+        out = { ...out, priorStats: { season: PRIOR_SEASON, ...prior } };
+        filledPrior.push(t.id);
+      } else {
+        unresolved.push(`${t.id}:priorStats`);
+      }
+    }
+    if (out.stats && typeof out.stats.gamesPlayed !== "number") {
+      const n = counts ? counts[t.id] : undefined;
+      if (typeof n === "number") {
+        out = { ...out, stats: { ...out.stats, gamesPlayed: n } };
+        filledGames.push(t.id);
+      } else {
+        unresolved.push(`${t.id}:gamesPlayed`);
+      }
+    }
+    return out;
+  });
+  return { value: { ...incoming, teams }, filledPrior, filledGames, unresolved };
+}
+
+/** One-shot self-heal for a teams doc published before the fields existed:
+ *  if the STORED doc is incomplete, complete it in place on any authenticated
+ *  write that doesn't itself carry teams. Cheap (one strong read), idempotent,
+ *  and it means the blend goes live at the next cron'd history/players
+ *  publish instead of waiting for Tuesday's full teams publish. */
+async function healStoredTeamsDoc(store: ReturnType<typeof getStore>): Promise<void> {
+  let stored: any = null;
+  try {
+    stored = await store.get("teams", { type: "json" });
+  } catch {
+    return;
+  }
+  if (!stored || !Array.isArray(stored.teams)) return;
+  const done = await completeTeamsPayload(store, stored);
+  if (!done.filledPrior.length && !done.filledGames.length) return;
+  await store.setJSON("teams", done.value);
+  console.warn(
+    `site-data-update: completed the stored teams doc in place - priorStats for ${done.filledPrior.length}, gamesPlayed for ${done.filledGames.length}` +
+      (done.unresolved.length ? `; unresolved: ${done.unresolved.join(", ")}` : "")
+  );
+}
+
 function jsonResponse(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
     status,
@@ -225,6 +326,16 @@ export default async (req: Request, _context: Context) => {
     if (key === "players") {
       value = await mergePlayersPayload(store, value);
     }
+    if (key === "teams") {
+      const done = await completeTeamsPayload(store, value);
+      if (done.filledPrior.length || done.filledGames.length || done.unresolved.length) {
+        console.warn(
+          `site-data-update: teams payload arrived without engine fields - filled priorStats for ${done.filledPrior.length} team(s), gamesPlayed for ${done.filledGames.length}` +
+            (done.unresolved.length ? `; could not resolve: ${done.unresolved.join(", ")}` : "")
+        );
+      }
+      value = done.value;
+    }
     if (key === "history") {
       const { value: cleaned, dropped } = stripDemoWeeks(value);
       if (dropped.length) {
@@ -242,6 +353,10 @@ export default async (req: Request, _context: Context) => {
     }
     await store.setJSON(key, value);
     updated.push(key);
+  }
+
+  if (!relevantKeys.includes("teams")) {
+    await healStoredTeamsDoc(store);
   }
 
   return jsonResponse(200, { ok: true, updated });

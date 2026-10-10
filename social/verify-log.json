@@ -218,25 +218,36 @@
       "bufferStatus": "sent"
     },
     "2026-w5-fri": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ac793e6444a36d3be21062d",
       "text": "Late-week injury news moves lines more than anything else. If your pool lets you change picks until kickoff, check the board again Sunday morning before you lock.\n\nblitz-odds.com",
       "dueAt": "2026-10-09T13:39:00.000Z",
       "scheduledAt": "2026-10-08T13:00:19.635Z",
-      "lastCheckedAt": "2026-10-09T13:00:22.187Z"
+      "lastCheckedAt": "2026-10-09T13:00:22.187Z",
+      "bufferStatus": "sent"
     },
     "2026-w5-sat": {
       "status": "scheduled",
       "variant": "fallback",
       "bufferPostId": "6ac8e5686324418386b4df8c",
-      "text": "Survivor check for Week 5: the biggest favorite on the board is HOU.\n\nThe easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n\nblitz-odds.com",
+      "text": "Survivor check for Week 5: the biggest favorite on the board is JAX.\n\nThe easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n\nblitz-odds.com",
       "dueAt": "2026-10-10T13:56:00.000Z",
       "scheduledAt": "2026-10-09T13:00:22.187Z",
-      "lastCheckedAt": "2026-10-09T13:00:22.187Z",
+      "lastCheckedAt": "2026-10-10T13:00:20.742Z",
       "reasons": [
         "primary: countGte: 2 game(s) at 7.5+, wanted 3"
-      ]
+      ],
+      "updatedAt": "2026-10-10T13:00:20.742Z"
+    },
+    "2026-w5-sun": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6aca36e6ed92ed8fa5cc3fcb",
+      "text": "Kickoff in a few hours. Every game card has live score, down and distance, and last play once it starts — tap the bell on any game to get a push when it goes final.\n\nblitz-odds.com",
+      "dueAt": "2026-10-11T13:07:00.000Z",
+      "scheduledAt": "2026-10-10T13:00:20.742Z",
+      "lastCheckedAt": "2026-10-10T13:00:20.742Z"
     }
   },
   "runs": [
@@ -786,6 +797,31 @@
       "notified": "email",
       "alerts": [
         "FALLBACK used for \"2026-w5-sat\" (due 2026-10-10T09:56:00-04:00) - primary failed:\n  primary: countGte: 2 game(s) at 7.5+, wanted 3\n  Scheduled text:\n    Survivor check for Week 5: the biggest favorite on the board is HOU.\n    \n    The easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n    \n    blitz-odds.com"
+      ]
+    },
+    {
+      "at": "2026-10-10T13:00:20.742Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w5-fri",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w5-sat",
+          "action": "updated",
+          "detail": "fallback; text changed"
+        },
+        {
+          "post": "2026-w5-sun",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-11T09:07:00-04:00"
+        }
+      ],
+      "notified": "email",
+      "alerts": [
+        "FALLBACK used for \"2026-w5-sat\" (due 2026-10-10T09:56:00-04:00) - primary failed:\n  primary: countGte: 1 game(s) at 7.5+, wanted 3\n  Scheduled text:\n    Survivor check for Week 5: the biggest favorite on the board is JAX.\n    \n    The easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n    \n    blitz-odds.com"
       ]
     }
   ],

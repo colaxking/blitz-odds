@@ -21482,25 +21482,25 @@
       "snapshotDate": "2026-10-08T23:00:17.288Z",
       "inputsFrozenAt": "2026-10-08T23:00:17.288Z",
       "inputsCapturedAt": {
-        "ARI": "2026-10-11T04:00:14.616Z",
-        "ATL": "2026-10-11T04:00:14.616Z",
-        "BAL": "2026-10-11T04:00:14.616Z",
-        "BUF": "2026-10-11T04:00:14.616Z",
+        "ARI": "2026-10-11T17:00:13.723Z",
+        "ATL": "2026-10-11T17:00:13.723Z",
+        "BAL": "2026-10-11T17:00:13.723Z",
+        "BUF": "2026-10-11T17:00:13.723Z",
         "CAR": "2026-10-08T23:00:17.288Z",
-        "CHI": "2026-10-11T04:00:14.616Z",
+        "CHI": "2026-10-11T17:00:13.723Z",
         "CIN": "2026-10-11T04:00:14.616Z",
         "CLE": "2026-10-11T04:00:14.616Z",
         "DAL": "2026-10-09T00:00:16.411Z",
         "DEN": "2026-10-11T04:00:14.616Z",
-        "DET": "2026-10-11T04:00:14.616Z",
-        "GB": "2026-10-11T04:00:14.616Z",
+        "DET": "2026-10-11T17:00:13.723Z",
+        "GB": "2026-10-11T17:00:13.723Z",
         "HOU": "2026-10-11T04:00:14.616Z",
         "IND": "2026-10-11T04:00:14.616Z",
         "JAX": "2026-10-11T04:00:14.616Z",
         "KC": "2026-10-08T23:00:17.288Z",
         "LV": "2026-10-11T04:00:14.616Z",
-        "LAC": "2026-10-11T04:00:14.616Z",
-        "LAR": "2026-10-11T04:00:14.616Z",
+        "LAC": "2026-10-11T17:00:13.723Z",
+        "LAR": "2026-10-11T17:00:13.723Z",
         "MIA": "2026-10-11T04:00:14.616Z",
         "MIN": "2026-10-11T04:00:14.616Z",
         "NE": "2026-10-11T04:00:14.616Z",
@@ -21509,8 +21509,8 @@
         "NYJ": "2026-10-11T04:00:14.616Z",
         "PHI": "2026-10-11T04:00:14.616Z",
         "PIT": "2026-10-11T04:00:14.616Z",
-        "SF": "2026-10-11T04:00:14.616Z",
-        "SEA": "2026-10-11T04:00:14.616Z",
+        "SF": "2026-10-11T17:00:13.723Z",
+        "SEA": "2026-10-11T17:00:13.723Z",
         "TB": "2026-10-08T23:00:17.288Z",
         "TEN": "2026-10-11T04:00:14.616Z",
         "WAS": "2026-10-11T04:00:14.616Z"
@@ -22236,6 +22236,19 @@
             },
             "statusUpdatedAt": "2026-09-21T23:17Z",
             "source": "auto"
+          },
+          {
+            "name": "Marvin Harrison Jr.",
+            "position": "WR",
+            "espnId": "4432708",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "A trade for Harrison will not be completed \"until after Sunday's games are played,\" but the Cardinals \"feel comfortable enough\" knowing it will occur that they will deactivate him for Sunday's game against the Lions, Adam Schefter of ESPN reports."
+            },
+            "statusUpdatedAt": "2026-10-10T15:35Z",
+            "source": "auto"
           }
         ],
         "ATL": [
@@ -22753,13 +22766,13 @@
             "name": "Caleb Williams",
             "position": "QB",
             "impactScore": 7,
-            "status": "questionable",
+            "status": "out",
             "espnId": "4431611",
-            "statusUpdatedAt": "2026-10-09T19:03Z",
+            "statusUpdatedAt": "2026-10-11T15:47Z",
             "source": "auto",
             "injury": {
               "type": "Hamstring",
-              "note": "Williams (hamstring) was a limited practice participant Friday and is listed as questionable for Sunday's game at Green Bay."
+              "note": "Williams (hamstring) is listed as inactive Sunday in Green Bay."
             }
           },
           {
@@ -22890,9 +22903,12 @@
             "position": "DE",
             "espnId": "4372463",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-05T18:32Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-10-11T15:57Z",
             "source": "auto",
             "activatedDate": "2026-10-05"
           },
@@ -23014,12 +23030,15 @@
             "name": "B.J. Hill",
             "position": "DT",
             "impactScore": 6,
-            "status": "active",
+            "status": "questionable",
             "espnId": "3116748",
-            "statusUpdatedAt": "2026-10-09T20:32Z",
+            "statusUpdatedAt": "2026-10-08T00:27Z",
             "source": "auto",
-            "injury": null,
-            "activatedDate": "2026-10-09"
+            "injury": {
+              "type": "Achilles",
+              "note": "Hill (Achilles) was a full participant in Wednesday's practice, Jay Morrison of SI.com reports."
+            },
+            "activatedDate": "2026-10-07"
           },
           {
             "name": "Andrei Iosivas",
@@ -23538,14 +23557,12 @@
             "name": "Javon Hargrave",
             "position": "DT",
             "impactScore": 6,
-            "status": "questionable",
-            "injury": {
-              "type": "Toe",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-10-09T19:58Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-10-11T16:12Z",
             "source": "auto",
-            "espnId": "2983055"
+            "espnId": "2983055",
+            "activatedDate": "2026-10-11"
           },
           {
             "name": "Zach Bako-Bewele",
@@ -23812,12 +23829,12 @@
             "position": "WR",
             "espnId": "4061956",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "Dulin (hamstring) did not participate at practice Thursday."
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-08T23:17Z",
+            "statusUpdatedAt": "2026-10-07T20:25Z",
             "source": "auto",
             "activatedDate": "2026-10-04"
           },
@@ -24563,12 +24580,12 @@
             "position": "CB",
             "espnId": "3916923",
             "impactScore": 5,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Neck",
-              "note": "Davis (neck) did not participate at the Patriots' practice Thursday."
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-08T23:51Z",
+            "statusUpdatedAt": "2026-10-07T21:52Z",
             "source": "auto"
           },
           {
@@ -24717,12 +24734,14 @@
             "name": "Chris Olave",
             "position": "WR",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-09T18:22Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Foot",
+              "note": "Olave (rest/foot) practiced in a limited capacity Thursday."
+            },
+            "statusUpdatedAt": "2026-10-08T20:28Z",
             "source": "auto",
-            "espnId": "4361370",
-            "activatedDate": "2026-10-09"
+            "espnId": "4361370"
           },
           {
             "name": "Chase Young",
@@ -24793,12 +24812,14 @@
             "name": "Malik Nabers",
             "position": "WR",
             "impactScore": 9,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Undisclosed",
+              "note": "Nabers said he took on \"as much as I could\" at Wednesday's practice, after which he noted he's dealing with undisclosed soreness, Connor Hughes of SNY.tv reports."
+            },
             "espnId": "4595348",
-            "statusUpdatedAt": "2026-10-09T20:28Z",
-            "source": "auto",
-            "activatedDate": "2026-10-09"
+            "statusUpdatedAt": "2026-10-07T19:26Z",
+            "source": "auto"
           },
           {
             "name": "Calvin Austin III",
@@ -24921,23 +24942,28 @@
             "name": "Tim Patrick",
             "position": "WR",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-09T22:23Z",
-            "source": "auto",
-            "espnId": "3134353",
-            "activatedDate": "2026-10-09"
+            "status": "out",
+            "injury": {
+              "type": "Groin - on injured reserve",
+              "since": "2026-09-06",
+              "note": "Did not practice at any point during Week 1 prep and was ruled OUT for Sunday's opener vs. Tennessee. The Jets then placed him on injured reserve Saturday, Sept. 12, per NFL.com's daily roundup, meaning he must miss at least four games."
+            },
+            "statusUpdatedAt": "2026-09-13T01:05:00.000Z",
+            "source": "final-week1-report",
+            "espnId": "3134353"
           },
           {
             "name": "Jarvis Brownlee Jr.",
             "position": "CB",
             "espnId": "4426817",
             "impactScore": 3,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-08T23:27Z",
-            "source": "auto",
-            "activatedDate": "2026-10-08"
+            "status": "questionable",
+            "injury": {
+              "type": "Head",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-10-05T03:25Z",
+            "source": "auto"
           },
           {
             "name": "Omar Cooper Jr.",
@@ -24968,14 +24994,10 @@
             "name": "Will McDonald IV",
             "position": "Edge",
             "impactScore": 7,
-            "status": "questionable",
+            "status": "active",
             "espnId": "4361767",
-            "statusUpdatedAt": "2026-10-09T20:54Z",
-            "source": "auto",
-            "injury": {
-              "type": "Calf",
-              "note": "questionable"
-            }
+            "statusUpdatedAt": "2026-09-20T21:10:00.000Z",
+            "source": "curated"
           },
           {
             "name": "Arian Smith",
@@ -24997,10 +25019,10 @@
             "impactScore": 5,
             "status": "active",
             "injury": null,
-            "statusUpdatedAt": "2026-10-09T21:44Z",
+            "statusUpdatedAt": "2026-10-07T20:48Z",
             "source": "auto",
             "espnId": "4808766",
-            "activatedDate": "2026-10-09"
+            "activatedDate": "2026-10-07"
           },
           {
             "name": "Breece Hall",
@@ -25044,13 +25066,13 @@
             "name": "DeVonta Smith",
             "position": "WR",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "Smith (hamstring) has been ruled out for Sunday's contest in Jacksonville."
+              "note": "questionable"
             },
             "espnId": "4241478",
-            "statusUpdatedAt": "2026-10-09T20:18Z",
+            "statusUpdatedAt": "2026-10-06T18:21Z",
             "source": "auto",
             "activatedDate": "2026-09-26"
           },
@@ -25096,12 +25118,12 @@
             "name": "Saquon Barkley",
             "position": "RB",
             "impactScore": 9,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "Barkley (hamstring) has been ruled out for Sunday's contest at Jacksonville."
+              "note": "Barkley will undergo further testing Monday, but the hamstring injury he sustained in Sunday's 24-20 loss to the Rams isn't believed to be \"overly serious,\" Ian Rapoport of NFL Network reports."
             },
-            "statusUpdatedAt": "2026-10-09T20:17Z",
+            "statusUpdatedAt": "2026-10-05T13:44Z",
             "source": "auto",
             "espnId": "3929630"
           },
@@ -25110,23 +25132,25 @@
             "position": "TE",
             "espnId": "3121023",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-08T21:15Z",
-            "source": "auto",
-            "activatedDate": "2026-10-08"
+            "status": "questionable",
+            "injury": {
+              "type": "Knee - MCL",
+              "note": "Goedert (knee) is practicing Wednesday, Dave Zangaro of NBC Sports Philadelphia reports."
+            },
+            "statusUpdatedAt": "2026-10-07T18:38Z",
+            "source": "auto"
           },
           {
             "name": "Hollywood Brown",
             "position": "WR",
             "espnId": "4241372",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Ankle",
-              "note": "out"
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-09T20:01Z",
+            "statusUpdatedAt": "2026-10-06T18:21Z",
             "source": "auto"
           }
         ],
@@ -25172,12 +25196,9 @@
             "name": "Joey Porter Jr.",
             "position": "CB",
             "impactScore": 7,
-            "status": "out",
-            "injury": {
-              "type": "Illness",
-              "note": "out"
-            },
-            "statusUpdatedAt": "2026-10-08T22:38Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-10-02T00:24Z",
             "source": "auto",
             "espnId": "4426506",
             "activatedDate": "2026-10-02"
@@ -25729,11 +25750,10 @@
             "status": "questionable",
             "injury": {
               "type": "Back",
-              "note": "Tate (back) is listed as questionable for Sunday's game against the Texans."
+              "note": "Tate (back) was a limited participant at Thursday's practice, Jim Wyatt of the Titans' official site reports."
             },
-            "statusUpdatedAt": "2026-10-09T20:15Z",
-            "source": "auto",
-            "activatedDate": "2026-10-09"
+            "statusUpdatedAt": "2026-10-08T21:01Z",
+            "source": "auto"
           },
           {
             "name": "Cedric Gray",
@@ -25820,11 +25840,14 @@
             "position": "TE",
             "espnId": "4360635",
             "impactScore": 3,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-09T20:45Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-10-07T20:05Z",
             "source": "auto",
-            "activatedDate": "2026-10-09"
+            "activatedDate": "2026-10-01"
           },
           {
             "name": "Jer'Zhan Newton",
@@ -25844,12 +25867,15 @@
             "name": "Frankie Luvu",
             "position": "LB",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-09T21:46Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Groin",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-10-07T21:21Z",
             "source": "auto",
             "espnId": "3127273",
-            "activatedDate": "2026-10-09"
+            "activatedDate": "2026-10-02"
           },
           {
             "name": "Luke McCaffrey",
@@ -25879,12 +25905,14 @@
             "name": "Sam Cosmi",
             "position": "G",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Concussion",
+              "note": "questionable"
+            },
             "espnId": "4262199",
-            "statusUpdatedAt": "2026-10-09T21:45Z",
-            "source": "auto",
-            "activatedDate": "2026-10-09"
+            "statusUpdatedAt": "2026-10-06T18:21Z",
+            "source": "auto"
           },
           {
             "name": "Terry McLaurin",

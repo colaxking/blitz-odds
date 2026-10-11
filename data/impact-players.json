@@ -534,13 +534,13 @@
         "name": "Caleb Williams",
         "position": "QB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "espnId": "4431611",
-        "statusUpdatedAt": "2026-10-09T19:03Z",
+        "statusUpdatedAt": "2026-10-11T15:47Z",
         "source": "auto",
         "injury": {
           "type": "Hamstring",
-          "note": "Williams (hamstring) was a limited practice participant Friday and is listed as questionable for Sunday's game at Green Bay."
+          "note": "Williams (hamstring) is listed as inactive Sunday in Green Bay."
         }
       },
       {
@@ -937,27 +937,23 @@
         "name": "Ja'Marr Chase",
         "position": "WR",
         "impactScore": 10,
-        "status": "questionable",
-        "injury": {
-          "type": "Concussion",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-04T20:22Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-11T15:40Z",
         "source": "auto",
-        "espnId": "4362628"
+        "espnId": "4362628",
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Tee Higgins",
         "position": "WR",
         "impactScore": 8,
-        "status": "questionable",
-        "statusUpdatedAt": "2026-10-04T20:43Z",
+        "status": "active",
+        "statusUpdatedAt": "2026-10-11T15:41Z",
         "source": "auto",
-        "injury": {
-          "type": "Groin",
-          "note": "Higgins sustained an adductor issue during Sunday's 22-17 loss to the Jaguars, Ben Baby of ESPN.com reports."
-        },
-        "espnId": "4239993"
+        "injury": null,
+        "espnId": "4239993",
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Shemar Stewart",
@@ -1812,15 +1808,12 @@
         "name": "Charvarius Ward",
         "position": "CB",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Groin",
-          "note": "questionable"
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4037361",
-        "statusUpdatedAt": "2026-10-08T19:53Z",
+        "statusUpdatedAt": "2026-10-11T15:39Z",
         "source": "auto",
-        "activatedDate": "2026-09-27"
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Arden Key",
@@ -2171,14 +2164,11 @@
         "name": "Jalen Ramsey",
         "position": "CB",
         "impactScore": 8,
-        "status": "questionable",
-        "injury": {
-          "type": "Wrist",
-          "note": "questionable"
-        },
-        "activatedDate": "2026-10-01",
+        "status": "active",
+        "injury": null,
+        "activatedDate": "2026-10-11",
         "espnId": "3045373",
-        "statusUpdatedAt": "2026-10-07T20:10Z",
+        "statusUpdatedAt": "2026-10-11T15:41Z",
         "source": "auto"
       },
       {
@@ -2252,12 +2242,12 @@
         "name": "Rico Dowdle",
         "position": "RB",
         "impactScore": 6,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Toe",
-          "note": "questionable"
+          "note": "inactive"
         },
-        "statusUpdatedAt": "2026-10-06T18:21Z",
+        "statusUpdatedAt": "2026-10-11T15:40Z",
         "source": "auto",
         "espnId": "4038815"
       }
@@ -2440,14 +2430,11 @@
         "position": "WR",
         "espnId": "4871023",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Back",
-          "note": "Tate (back) is listed as questionable for Sunday's game against the Texans."
-        },
-        "statusUpdatedAt": "2026-10-09T20:15Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-11T15:47Z",
         "source": "auto",
-        "activatedDate": "2026-10-09"
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Cedric Gray",
@@ -2805,14 +2792,12 @@
         "name": "Ashton Jeanty",
         "position": "RB",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Ankle",
-          "note": "Jeanty was listed as a limited participant in Thursday's practice due to ankle and foot injuries, Anthony Galaviz of The Fresno Bee reports."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4890973",
-        "statusUpdatedAt": "2026-10-08T21:31Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-10-11T15:39Z",
+        "source": "auto",
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Keyron Crawford",
@@ -3054,14 +3039,11 @@
         "name": "Justin Jefferson",
         "position": "WR",
         "impactScore": 8,
-        "status": "questionable",
-        "injury": {
-          "type": "Ankle",
-          "note": "questionable"
-        },
-        "activatedDate": "2026-07-29",
+        "status": "active",
+        "injury": null,
+        "activatedDate": "2026-10-11",
         "espnId": "4262921",
-        "statusUpdatedAt": "2026-10-06T18:21Z",
+        "statusUpdatedAt": "2026-10-11T15:40Z",
         "source": "auto"
       },
       {
@@ -3133,9 +3115,12 @@
         "position": "DE",
         "espnId": "4696782",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-05T18:53Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-11T15:52Z",
         "source": "auto",
         "activatedDate": "2026-10-05"
       },
@@ -3295,13 +3280,11 @@
         "position": "WR",
         "espnId": "3121422",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Hamstring",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-06T18:21Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-11T15:24Z",
+        "source": "auto",
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Jaylin Lane",

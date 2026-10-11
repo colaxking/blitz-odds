@@ -21482,25 +21482,25 @@
       "snapshotDate": "2026-10-08T23:00:17.288Z",
       "inputsFrozenAt": "2026-10-08T23:00:17.288Z",
       "inputsCapturedAt": {
-        "ARI": "2026-10-11T19:00:14.942Z",
-        "ATL": "2026-10-11T19:00:14.942Z",
-        "BAL": "2026-10-11T19:00:14.942Z",
-        "BUF": "2026-10-11T19:00:14.942Z",
+        "ARI": "2026-10-11T20:00:14.259Z",
+        "ATL": "2026-10-11T20:00:14.259Z",
+        "BAL": "2026-10-11T20:00:14.259Z",
+        "BUF": "2026-10-11T20:00:14.259Z",
         "CAR": "2026-10-08T23:00:17.288Z",
-        "CHI": "2026-10-11T19:00:14.942Z",
+        "CHI": "2026-10-11T20:00:14.259Z",
         "CIN": "2026-10-11T04:00:14.616Z",
         "CLE": "2026-10-11T04:00:14.616Z",
         "DAL": "2026-10-09T00:00:16.411Z",
         "DEN": "2026-10-11T04:00:14.616Z",
-        "DET": "2026-10-11T19:00:14.942Z",
-        "GB": "2026-10-11T19:00:14.942Z",
+        "DET": "2026-10-11T20:00:14.259Z",
+        "GB": "2026-10-11T20:00:14.259Z",
         "HOU": "2026-10-11T04:00:14.616Z",
         "IND": "2026-10-11T04:00:14.616Z",
         "JAX": "2026-10-11T04:00:14.616Z",
         "KC": "2026-10-08T23:00:17.288Z",
         "LV": "2026-10-11T04:00:14.616Z",
-        "LAC": "2026-10-11T19:00:14.942Z",
-        "LAR": "2026-10-11T19:00:14.942Z",
+        "LAC": "2026-10-11T20:00:14.259Z",
+        "LAR": "2026-10-11T20:00:14.259Z",
         "MIA": "2026-10-11T04:00:14.616Z",
         "MIN": "2026-10-11T04:00:14.616Z",
         "NE": "2026-10-11T04:00:14.616Z",
@@ -21509,8 +21509,8 @@
         "NYJ": "2026-10-11T04:00:14.616Z",
         "PHI": "2026-10-11T04:00:14.616Z",
         "PIT": "2026-10-11T04:00:14.616Z",
-        "SF": "2026-10-11T19:00:14.942Z",
-        "SEA": "2026-10-11T19:00:14.942Z",
+        "SF": "2026-10-11T20:00:14.259Z",
+        "SEA": "2026-10-11T20:00:14.259Z",
         "TB": "2026-10-08T23:00:17.288Z",
         "TEN": "2026-10-11T04:00:14.616Z",
         "WAS": "2026-10-11T04:00:14.616Z"
@@ -22917,9 +22917,12 @@
             "position": "CB",
             "espnId": "4426374",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-26T19:17Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "note": "Stevenson (hamstring) is doubtful to return to Sunday's game against the Packers."
+            },
+            "statusUpdatedAt": "2026-10-11T19:00Z",
             "source": "auto",
             "activatedDate": "2026-09-26"
           },
@@ -24185,15 +24188,12 @@
             "name": "Ladd McConkey",
             "position": "WR",
             "impactScore": 8,
-            "status": "questionable",
-            "injury": {
-              "type": "Foot",
-              "note": "McConkey (foot), per head coach Jim Harbaugh, is \"week-to-week,\" Alex Insdorf of BoltBeat.com reports."
-            },
+            "status": "active",
+            "injury": null,
             "espnId": "4612826",
-            "statusUpdatedAt": "2026-10-05T22:41Z",
+            "statusUpdatedAt": "2026-10-11T18:49Z",
             "source": "auto",
-            "activatedDate": "2026-10-04"
+            "activatedDate": "2026-10-11"
           },
           {
             "name": "KeAndre Lambert-Smith",
@@ -24226,14 +24226,12 @@
             "name": "Charlie Kolar",
             "position": "TE",
             "impactScore": 4,
-            "status": "questionable",
-            "injury": {
-              "type": "Forearm",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-10-06T18:21Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-10-11T19:02Z",
             "source": "auto",
-            "espnId": "4241263"
+            "espnId": "4241263",
+            "activatedDate": "2026-10-11"
           },
           {
             "name": "Brenen Thompson",
@@ -25951,6 +25949,16 @@
         "PHI-JAX": {
           "awayScore": 17,
           "homeScore": 19,
+          "final": true
+        },
+        "HOU-TEN": {
+          "awayScore": 26,
+          "homeScore": 3,
+          "final": true
+        },
+        "MIN-NO": {
+          "awayScore": 23,
+          "homeScore": 13,
           "final": true
         }
       }

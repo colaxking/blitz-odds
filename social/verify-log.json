@@ -228,7 +228,7 @@
       "bufferStatus": "sent"
     },
     "2026-w5-sat": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "fallback",
       "bufferPostId": "6ac8e5686324418386b4df8c",
       "text": "Survivor check for Week 5: the biggest favorite on the board is JAX.\n\nThe easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n\nblitz-odds.com",
@@ -238,7 +238,8 @@
       "reasons": [
         "primary: countGte: 2 game(s) at 7.5+, wanted 3"
       ],
-      "updatedAt": "2026-10-10T13:00:20.742Z"
+      "updatedAt": "2026-10-10T13:00:20.742Z",
+      "bufferStatus": "sent"
     },
     "2026-w5-sun": {
       "status": "scheduled",
@@ -247,7 +248,16 @@
       "text": "Kickoff in a few hours. Every game card has live score, down and distance, and last play once it starts — tap the bell on any game to get a push when it goes final.\n\nblitz-odds.com",
       "dueAt": "2026-10-11T13:07:00.000Z",
       "scheduledAt": "2026-10-10T13:00:20.742Z",
-      "lastCheckedAt": "2026-10-10T13:00:20.742Z"
+      "lastCheckedAt": "2026-10-11T13:00:21.942Z"
+    },
+    "2026-w5-mon": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6acb8867d9cab260a7fa186f",
+      "text": "Bills at Rams tonight, 8:15 PM ET on ESPN. LAR -3.5, O/U 54.5.\n\nOne game left in Week 5. Week 6 lines go up tomorrow.\n\nblitz-odds.com",
+      "dueAt": "2026-10-12T13:06:00.000Z",
+      "scheduledAt": "2026-10-11T13:00:21.942Z",
+      "lastCheckedAt": "2026-10-11T13:00:21.942Z"
     }
   },
   "runs": [
@@ -823,6 +833,28 @@
       "alerts": [
         "FALLBACK used for \"2026-w5-sat\" (due 2026-10-10T09:56:00-04:00) - primary failed:\n  primary: countGte: 1 game(s) at 7.5+, wanted 3\n  Scheduled text:\n    Survivor check for Week 5: the biggest favorite on the board is JAX.\n    \n    The easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n    \n    blitz-odds.com"
       ]
+    },
+    {
+      "at": "2026-10-11T13:00:21.942Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w5-sat",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w5-sun",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w5-mon",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-12T09:06:00-04:00"
+        }
+      ],
+      "alerts": []
     }
   ],
   "lastTokenWarningAt": null

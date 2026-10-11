@@ -331,6 +331,18 @@ const TAB_BY_PATH = Object.entries(TAB_ROUTES).reduce((acc, [tab, path]) => {
 function buildTabPath(tab) {
   return TAB_ROUTES[tab] || "/";
 }
+/** True for a URL fragment that belongs to Netlify Identity rather than to
+ *  us: "#access_token=..." is what GoTrue sends the browser back with after
+ *  a Google sign-in, and "#confirmation_token=" / "#invite_token=" /
+ *  "#recovery_token=" / "#email_change_token=" / "#error=" are its email
+ *  flows. The Identity widget reads these off window.location when it
+ *  inits and clears them itself once consumed - so nothing of ours may
+ *  rewrite the URL without them in the meantime. Since bootApp() injects
+ *  the widget after the first render, "the meantime" now includes every
+ *  mount-time effect in App. */
+function isIdentityHash(hash) {
+  return /(^#\/?|&)(access_token|refresh_token|error|(confirmation|invite|recovery|email_change)_token)=/.test(hash || "");
+}
 function buildLeaguePath(leagueId, subTab) {
   const base = `/leagues/${encodeURIComponent(leagueId)}`;
   // "week" is the default subtab (My Picks) and stays implicit, so the plain
@@ -19466,6 +19478,14 @@ function useAuth() {
       setStatus("in");
       widgetShouldBeOpen = false;
       identity.close();
+      // Coming back from Google, the widget consumes "#access_token=..."
+      // with `document.location.hash = ""`, which leaves a bare "#" on the
+      // address bar. Nothing reads it; drop it so the URL is clean again.
+      try {
+        if (!window.location.hash && /#$/.test(window.location.href)) {
+          window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+        }
+      } catch (e) {}
     }
     function onLogout() {
       setUser(null);
@@ -21124,8 +21144,19 @@ function App() {
     try {
       const first = !tabRouteSyncedRef.current;
       tabRouteSyncedRef.current = true;
+      // The only hash this effect means to drop is the legacy tab form
+      // ("/#news"). A GoTrue fragment is not that: it's the access token the
+      // browser just carried back from Google, and the Identity widget -
+      // which bootApp() injects AFTER this first run - still has to read it
+      // off the URL. Dropping it here is exactly what broke "Continue with
+      // Google": the hash was gone before the widget script was even
+      // requested, so the sign-in round-trip landed back on Home signed out
+      // with no error. Keep it on the URL; the widget clears it itself once
+      // it has turned the token into a session.
+      const keepHash = isIdentityHash(window.location.hash) ? window.location.hash : "";
+      const staleHash = !!window.location.hash && !keepHash;
       const write = (path) => {
-        const url = path + window.location.search;
+        const url = path + window.location.search + keepHash;
         if (first) window.history.replaceState(window.history.state, "", url);
         else stampAndPush({ tab: activeTab }, url);
       };
@@ -21137,7 +21168,7 @@ function App() {
         const desired = buildTabPath(activeTab);
         const clean = window.location.pathname.replace(/\/$/, "") || "/";
         const want = desired.replace(/\/$/, "") || "/";
-        if (clean !== want || window.location.hash) write(desired);
+        if (clean !== want || staleHash) write(desired);
         return;
       }
 
@@ -21153,7 +21184,7 @@ function App() {
       const clean = window.location.pathname.replace(/\/$/, "") || "/";
       const want = desired.replace(/\/$/, "") || "/";
       if (clean === want) {
-        if (window.location.hash) write(desired);
+        if (staleHash) write(desired);
         return;
       }
       if (isTabPath(clean) || isRootPath(clean)) write(desired);

@@ -21482,25 +21482,25 @@
       "snapshotDate": "2026-10-08T23:00:17.288Z",
       "inputsFrozenAt": "2026-10-08T23:00:17.288Z",
       "inputsCapturedAt": {
-        "ARI": "2026-10-11T17:00:13.723Z",
-        "ATL": "2026-10-11T17:00:13.723Z",
-        "BAL": "2026-10-11T17:00:13.723Z",
-        "BUF": "2026-10-11T17:00:13.723Z",
+        "ARI": "2026-10-11T18:00:14.818Z",
+        "ATL": "2026-10-11T18:00:14.818Z",
+        "BAL": "2026-10-11T18:00:14.818Z",
+        "BUF": "2026-10-11T18:00:14.818Z",
         "CAR": "2026-10-08T23:00:17.288Z",
-        "CHI": "2026-10-11T17:00:13.723Z",
+        "CHI": "2026-10-11T18:00:14.818Z",
         "CIN": "2026-10-11T04:00:14.616Z",
         "CLE": "2026-10-11T04:00:14.616Z",
         "DAL": "2026-10-09T00:00:16.411Z",
         "DEN": "2026-10-11T04:00:14.616Z",
-        "DET": "2026-10-11T17:00:13.723Z",
-        "GB": "2026-10-11T17:00:13.723Z",
+        "DET": "2026-10-11T18:00:14.818Z",
+        "GB": "2026-10-11T18:00:14.818Z",
         "HOU": "2026-10-11T04:00:14.616Z",
         "IND": "2026-10-11T04:00:14.616Z",
         "JAX": "2026-10-11T04:00:14.616Z",
         "KC": "2026-10-08T23:00:17.288Z",
         "LV": "2026-10-11T04:00:14.616Z",
-        "LAC": "2026-10-11T17:00:13.723Z",
-        "LAR": "2026-10-11T17:00:13.723Z",
+        "LAC": "2026-10-11T18:00:14.818Z",
+        "LAR": "2026-10-11T18:00:14.818Z",
         "MIA": "2026-10-11T04:00:14.616Z",
         "MIN": "2026-10-11T04:00:14.616Z",
         "NE": "2026-10-11T04:00:14.616Z",
@@ -21509,8 +21509,8 @@
         "NYJ": "2026-10-11T04:00:14.616Z",
         "PHI": "2026-10-11T04:00:14.616Z",
         "PIT": "2026-10-11T04:00:14.616Z",
-        "SF": "2026-10-11T17:00:13.723Z",
-        "SEA": "2026-10-11T17:00:13.723Z",
+        "SF": "2026-10-11T18:00:14.818Z",
+        "SEA": "2026-10-11T18:00:14.818Z",
         "TB": "2026-10-08T23:00:17.288Z",
         "TEN": "2026-10-11T04:00:14.616Z",
         "WAS": "2026-10-11T04:00:14.616Z"
@@ -22766,13 +22766,13 @@
             "name": "Caleb Williams",
             "position": "QB",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "espnId": "4431611",
             "statusUpdatedAt": "2026-10-11T15:47Z",
             "source": "auto",
             "injury": {
-              "type": "Hamstring",
-              "note": "Williams (hamstring) is listed as inactive Sunday in Green Bay."
+              "type": "Hamstring (Grade 2)",
+              "note": "Missed the past two games; limited in Friday practice and listed questionable for Sunday vs. Green Bay (NFL.com roundup, Oct. 9)."
             }
           },
           {
@@ -24135,8 +24135,9 @@
             "impactScore": 8,
             "status": "out",
             "injury": {
-              "type": "Ankle",
-              "note": "doubtful"
+              "type": "High ankle sprain - surgery, headed to injured reserve",
+              "since": "2026-09-27",
+              "note": "Had ankle surgery Thursday (Oct. 8) and is to be placed on injured reserve, per Ian Rapoport. Hurt in the Week 4 loss to Seattle."
             },
             "espnId": "4242283",
             "statusUpdatedAt": "2026-10-05T16:40Z",
@@ -25946,6 +25947,11 @@
         "TB-DAL": {
           "awayScore": 24,
           "homeScore": 16,
+          "final": true
+        },
+        "PHI-JAX": {
+          "awayScore": 17,
+          "homeScore": 19,
           "final": true
         }
       }

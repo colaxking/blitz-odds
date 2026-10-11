@@ -27,14 +27,12 @@
         "name": "Christian Barmore",
         "position": "DT",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Shoulder",
-          "note": "questionable"
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4372030",
-        "statusUpdatedAt": "2026-10-06T18:21Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-10-11T16:07Z",
+        "source": "auto",
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Ben Brown",
@@ -82,14 +80,11 @@
         "position": "DE",
         "espnId": "3915525",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Shoulder",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-07T21:55Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-11T16:03Z",
         "source": "auto",
-        "activatedDate": "2026-10-04"
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Mike Onwenu",
@@ -671,9 +666,12 @@
         "position": "DE",
         "espnId": "4372463",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-05T18:32Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-11T15:57Z",
         "source": "auto",
         "activatedDate": "2026-10-05"
       },
@@ -1032,14 +1030,12 @@
         "name": "Alvin Kamara",
         "position": "RB",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Back",
-          "note": "Kamara (back) did not participate in Wednesday's walkthrough, Katherine Terrell of ESPN.com reports."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "3054850",
-        "statusUpdatedAt": "2026-10-07T20:30Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-10-11T15:50Z",
+        "source": "auto",
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Ty Chandler",
@@ -1170,14 +1166,11 @@
         "position": "WR",
         "espnId": "4698597",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Thigh",
-          "note": "Brown recorded one carry for a loss of five yards while also adding 130 kickoff-return yards and a two-yard punt return during Monday night's 45-24 loss to the Falcons."
-        },
-        "statusUpdatedAt": "2026-10-07T00:20Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-11T15:54Z",
         "source": "auto",
-        "activatedDate": "2026-10-03"
+        "activatedDate": "2026-10-11"
       }
     ],
     "DET": [
@@ -1536,11 +1529,27 @@
         "position": "DE",
         "espnId": "4428989",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-05T18:43Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-11T15:46Z",
         "source": "auto",
         "activatedDate": "2026-10-05"
+      },
+      {
+        "name": "Sabastian Harsh",
+        "position": "DE",
+        "espnId": "4699802",
+        "impactScore": 5,
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-10-11T15:46Z",
+        "source": "auto"
       }
     ],
     "BAL": [
@@ -2326,14 +2335,12 @@
         "name": "Will McDonald IV",
         "position": "Edge",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "active",
         "espnId": "4361767",
-        "statusUpdatedAt": "2026-10-09T20:54Z",
+        "statusUpdatedAt": "2026-10-11T15:58Z",
         "source": "auto",
-        "injury": {
-          "type": "Calf",
-          "note": "questionable"
-        }
+        "injury": null,
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Arian Smith",
@@ -2969,14 +2976,12 @@
         "name": "Javon Hargrave",
         "position": "DT",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Toe",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-09T19:58Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-11T16:12Z",
         "source": "auto",
-        "espnId": "2983055"
+        "espnId": "2983055",
+        "activatedDate": "2026-10-11"
       },
       {
         "name": "Zach Bako-Bewele",
@@ -3137,6 +3142,19 @@
         "statusUpdatedAt": "2026-09-16T01:05:00.000Z",
         "source": "curated",
         "espnId": "4360569"
+      },
+      {
+        "name": "Odell Beckham Jr.",
+        "position": "WR",
+        "espnId": "16733",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "Beckham (coach's decision) is inactive for Sunday's game in New Orleans."
+        },
+        "statusUpdatedAt": "2026-10-11T16:01Z",
+        "source": "auto"
       }
     ],
     "WAS": [

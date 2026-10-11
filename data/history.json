@@ -21483,9 +21483,9 @@
       "inputsFrozenAt": "2026-10-08T23:00:17.288Z",
       "inputsCapturedAt": {
         "ARI": "2026-10-11T20:00:14.259Z",
-        "ATL": "2026-10-11T20:00:14.259Z",
-        "BAL": "2026-10-11T20:00:14.259Z",
-        "BUF": "2026-10-11T20:00:14.259Z",
+        "ATL": "2026-10-11T21:00:14.724Z",
+        "BAL": "2026-10-11T21:00:14.724Z",
+        "BUF": "2026-10-11T21:00:14.724Z",
         "CAR": "2026-10-08T23:00:17.288Z",
         "CHI": "2026-10-11T20:00:14.259Z",
         "CIN": "2026-10-11T04:00:14.616Z",
@@ -21500,7 +21500,7 @@
         "KC": "2026-10-08T23:00:17.288Z",
         "LV": "2026-10-11T04:00:14.616Z",
         "LAC": "2026-10-11T20:00:14.259Z",
-        "LAR": "2026-10-11T20:00:14.259Z",
+        "LAR": "2026-10-11T21:00:14.724Z",
         "MIA": "2026-10-11T04:00:14.616Z",
         "MIN": "2026-10-11T04:00:14.616Z",
         "NE": "2026-10-11T04:00:14.616Z",
@@ -22143,12 +22143,14 @@
             "name": "Jeremiyah Love",
             "position": "RB",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Ankle",
+              "note": "Coach Mike LaFleur said Monday that Love is dealing with an ankle issue that's not related to the high-ankle sprain he tended to in August, Dani Sureck of the Cardinals' official site reports."
+            },
             "espnId": "4870808",
-            "statusUpdatedAt": "2026-10-09T21:08Z",
-            "source": "auto",
-            "activatedDate": "2026-10-09"
+            "statusUpdatedAt": "2026-10-05T22:03Z",
+            "source": "auto"
           },
           {
             "name": "Xavier Weaver",
@@ -22235,19 +22237,6 @@
               "note": "Johnson (neck) may be forced to miss the remainder of the 2026 season, Darren Urban of the Cardinals' official site reports."
             },
             "statusUpdatedAt": "2026-09-21T23:17Z",
-            "source": "auto"
-          },
-          {
-            "name": "Marvin Harrison Jr.",
-            "position": "WR",
-            "espnId": "4432708",
-            "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "A trade for Harrison will not be completed \"until after Sunday's games are played,\" but the Cardinals \"feel comfortable enough\" knowing it will occur that they will deactivate him for Sunday's game against the Lions, Adam Schefter of ESPN reports."
-            },
-            "statusUpdatedAt": "2026-10-10T15:35Z",
             "source": "auto"
           }
         ],
@@ -22768,11 +22757,12 @@
             "impactScore": 7,
             "status": "out",
             "espnId": "4431611",
-            "statusUpdatedAt": "2026-10-11T15:47Z",
-            "source": "auto",
+            "statusUpdatedAt": "2026-09-24T21:10:00.000Z",
+            "source": "curated",
             "injury": {
-              "type": "Hamstring",
-              "note": "Williams (hamstring) is listed as inactive Sunday in Green Bay."
+              "type": "Hamstring strain (Grade 2, right)",
+              "note": "Hurt in the fourth quarter of the Sept. 20 loss to Minnesota. Initially reported as Grade 1, but sources (ESPN, Yahoo) say it is a Grade 2 strain with a 3-4 week timeline; he is inactive for Week 4 and Case Keenum starts (Tyson Bagent is recovering from a concussion).",
+              "since": "2026-09-20"
             }
           },
           {
@@ -22793,12 +22783,15 @@
             "name": "D'Andre Swift",
             "position": "RB",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-09T19:01Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Hip",
+              "note": "Swift didn't practice Thursday due to hip and knee injuries."
+            },
+            "statusUpdatedAt": "2026-10-07T19:58Z",
             "source": "auto",
             "espnId": "4259545",
-            "activatedDate": "2026-10-09"
+            "activatedDate": "2026-10-02"
           },
           {
             "name": "Coby Bryant",
@@ -22846,13 +22839,13 @@
             "name": "Kyle Monangai",
             "position": "RB",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
-              "type": "Toe",
-              "note": "Monangai is tending to a turf toe injury that's making his status uncertain for the next 1-to-2 weeks, but the running back is aiming to play through it, Jeremy Fowler of ESPN.com reports."
+              "type": "Thumb",
+              "note": "questionable"
             },
             "espnId": "4608686",
-            "statusUpdatedAt": "2026-10-08T21:23Z",
+            "statusUpdatedAt": "2026-10-04T20:24Z",
             "source": "auto",
             "activatedDate": "2026-09-25"
           },
@@ -22903,12 +22896,9 @@
             "position": "DE",
             "espnId": "4372463",
             "impactScore": 5,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "inactive"
-            },
-            "statusUpdatedAt": "2026-10-11T15:57Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-10-05T18:32Z",
             "source": "auto",
             "activatedDate": "2026-10-05"
           },
@@ -22917,12 +22907,9 @@
             "position": "CB",
             "espnId": "4426374",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Hamstring",
-              "note": "Stevenson (hamstring) is doubtful to return to Sunday's game against the Packers."
-            },
-            "statusUpdatedAt": "2026-10-11T19:00Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-26T19:17Z",
             "source": "auto",
             "activatedDate": "2026-09-26"
           },
@@ -23536,12 +23523,12 @@
             "name": "Aaron Banks",
             "position": "G",
             "impactScore": 5,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Toe",
-              "note": "Banks (toe/knee) did not participate at practice Thursday."
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-09T00:54Z",
+            "statusUpdatedAt": "2026-10-06T18:21Z",
             "source": "auto",
             "espnId": "4242390"
           },
@@ -23550,22 +23537,28 @@
             "position": "DE",
             "espnId": "4686906",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-09T19:57Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Shoulder",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-10-07T21:47Z",
             "source": "auto",
-            "activatedDate": "2026-10-09"
+            "activatedDate": "2026-10-02"
           },
           {
             "name": "Javon Hargrave",
             "position": "DT",
             "impactScore": 6,
             "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-11T16:12Z",
-            "source": "auto",
-            "espnId": "2983055",
-            "activatedDate": "2026-10-11"
+            "injury": {
+              "type": "Knee / concussion (cleared)",
+              "since": "2026-09",
+              "note": "Hargrave was cleared off the questionable list and played in Thursday night's loss at Atlanta after dealing with knee and concussion evaluations during the week."
+            },
+            "statusUpdatedAt": "2026-09-26T01:30:00.000Z",
+            "source": "curated",
+            "espnId": "2983055"
           },
           {
             "name": "Zach Bako-Bewele",
@@ -23599,12 +23592,12 @@
             "name": "Jacob Monk",
             "position": "RG",
             "impactScore": 5,
-            "status": "out",
-            "statusUpdatedAt": "2026-10-09T00:55Z",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-10-06T18:21Z",
             "source": "auto",
             "injury": {
               "type": "Quadriceps",
-              "note": "Monk (quadriceps) did not participate at the Packers' practice Thursday."
+              "note": "questionable"
             },
             "espnId": "4428037"
           }
@@ -24188,12 +24181,15 @@
             "name": "Ladd McConkey",
             "position": "WR",
             "impactScore": 8,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Foot",
+              "note": "McConkey (foot), per head coach Jim Harbaugh, is \"week-to-week,\" Alex Insdorf of BoltBeat.com reports."
+            },
             "espnId": "4612826",
-            "statusUpdatedAt": "2026-10-11T18:49Z",
+            "statusUpdatedAt": "2026-10-05T22:41Z",
             "source": "auto",
-            "activatedDate": "2026-10-11"
+            "activatedDate": "2026-10-04"
           },
           {
             "name": "KeAndre Lambert-Smith",
@@ -24226,24 +24222,26 @@
             "name": "Charlie Kolar",
             "position": "TE",
             "impactScore": 4,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-11T19:02Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Forearm",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-10-06T18:21Z",
             "source": "auto",
-            "espnId": "4241263",
-            "activatedDate": "2026-10-11"
+            "espnId": "4241263"
           },
           {
             "name": "Brenen Thompson",
             "position": "WR",
             "espnId": "4685553",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Quadriceps",
-              "note": "out"
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-09T20:40Z",
+            "statusUpdatedAt": "2026-10-06T18:21Z",
             "source": "auto"
           }
         ],
@@ -25309,12 +25307,15 @@
             "name": "Mike Evans",
             "position": "WR",
             "impactScore": 8,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Ribs",
+              "note": "Coach Kyle Shanahan said Evans (ribs) is expected to be limited at Wednesday's practice, Nick Wagoner of ESPN.com reports."
+            },
             "espnId": "16737",
-            "statusUpdatedAt": "2026-10-09T21:04Z",
+            "statusUpdatedAt": "2026-10-07T19:53Z",
             "source": "auto",
-            "activatedDate": "2026-10-09"
+            "activatedDate": "2026-10-04"
           },
           {
             "name": "Nick Bosa",
@@ -25959,6 +25960,36 @@
         "MIN-NO": {
           "awayScore": 23,
           "homeScore": 13,
+          "final": true
+        },
+        "CHI-GB": {
+          "awayScore": 7,
+          "homeScore": 31,
+          "final": true
+        },
+        "CIN-MIA": {
+          "awayScore": 31,
+          "homeScore": 24,
+          "final": true
+        },
+        "LV-NE": {
+          "awayScore": 17,
+          "homeScore": 45,
+          "final": true
+        },
+        "CLE-NYJ": {
+          "awayScore": 12,
+          "homeScore": 17,
+          "final": true
+        },
+        "IND-PIT": {
+          "awayScore": 22,
+          "homeScore": 34,
+          "final": true
+        },
+        "NYG-WAS": {
+          "awayScore": 27,
+          "homeScore": 27,
           "final": true
         }
       }

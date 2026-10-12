@@ -4,7 +4,7 @@
       "2": {
         "week": 2,
         "season": 2026,
-        "gradedAt": "2026-10-11T23:00:20.298Z",
+        "gradedAt": "2026-10-12T00:00:19.406Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -129,7 +129,7 @@
       "3": {
         "week": 3,
         "season": 2026,
-        "gradedAt": "2026-10-11T23:00:20.363Z",
+        "gradedAt": "2026-10-12T00:00:19.472Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -254,7 +254,7 @@
       "4": {
         "week": 4,
         "season": 2026,
-        "gradedAt": "2026-10-11T23:00:20.374Z",
+        "gradedAt": "2026-10-12T00:00:19.545Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -375,28 +375,153 @@
             "homeScore": 30
           }
         }
+      },
+      "5": {
+        "week": 5,
+        "season": 2026,
+        "gradedAt": "2026-10-12T00:00:19.590Z",
+        "confidencePicks": [
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "CHI",
+              "homeId": "GB",
+              "awayName": "Chicago Bears",
+              "homeName": "Green Bay Packers"
+            },
+            "pickTeamId": "CHI",
+            "pick": "Chicago Bears",
+            "confidence": 0.8890381414505184,
+            "confidencePct": 89,
+            "summary": "Chicago Bears — 89% confidence",
+            "advantage": "Chicago Bears carries a 40.9-point rating edge over Green Bay Packers once offense, defense, injuries, and weather are graded. Green Bay Packers are without Micah Parsons (out), a real hit to their defense. The market agrees Chicago Bears is favored, and 89% confidence shows how comfortably.",
+            "result": "loss",
+            "finalScore": {
+              "awayScore": 7,
+              "homeScore": 31
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "PHI",
+              "homeId": "JAX",
+              "awayName": "Philadelphia Eagles",
+              "homeName": "Jacksonville Jaguars"
+            },
+            "pickTeamId": "JAX",
+            "pick": "Jacksonville Jaguars",
+            "confidence": 0.872992136569986,
+            "confidencePct": 87,
+            "summary": "Jacksonville Jaguars — 87% confidence",
+            "advantage": "Jacksonville Jaguars carries a 32.9-point rating edge over Philadelphia Eagles once offense, defense, injuries, and weather are graded. Philadelphia Eagles are without Landon Dickerson (out), a real hit to their offense. The market agrees Jacksonville Jaguars is favored, and 87% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 17,
+              "homeScore": 19
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "IND",
+              "homeId": "PIT",
+              "awayName": "Indianapolis Colts",
+              "homeName": "Pittsburgh Steelers"
+            },
+            "pickTeamId": "PIT",
+            "pick": "Pittsburgh Steelers",
+            "confidence": 0.8285576427535463,
+            "confidencePct": 83,
+            "summary": "Pittsburgh Steelers — 83% confidence",
+            "advantage": "Pittsburgh Steelers carries a 26.9-point rating edge over Indianapolis Colts once offense, defense, injuries, and weather are graded. Indianapolis Colts are without Alec Pierce (out), a real hit to their offense. The market agrees Pittsburgh Steelers is favored, and 83% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 22,
+              "homeScore": 34
+            }
+          }
+        ],
+        "spreadPick": {
+          "market": "spread",
+          "game": {
+            "awayId": "HOU",
+            "homeId": "TEN",
+            "awayName": "Houston Texans",
+            "homeName": "Tennessee Titans"
+          },
+          "pickTeamId": "TEN",
+          "pick": "Tennessee Titans +points",
+          "confidence": 0.7136714627291876,
+          "confidencePct": 71,
+          "summary": "Tennessee Titans to cover as the underdog",
+          "advantage": "The model favors Tennessee Titans outright even though the market has them getting points - that's the whole edge: a line the model thinks is priced wrong.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 26,
+            "homeScore": 3
+          }
+        },
+        "moneylinePick": {
+          "market": "moneyline",
+          "game": {
+            "awayId": "HOU",
+            "homeId": "TEN",
+            "awayName": "Houston Texans",
+            "homeName": "Tennessee Titans"
+          },
+          "pickTeamId": "TEN",
+          "pick": "Tennessee Titans +295",
+          "confidence": 0.7136714627291876,
+          "confidencePct": 71,
+          "summary": "Tennessee Titans +295",
+          "advantage": "The model gives Tennessee Titans a 71% win probability, but that price only implies 25% - a 46-point gap between what the model sees and what the market's charging for it.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 26,
+            "homeScore": 3
+          }
+        },
+        "totalPick": {
+          "market": "total",
+          "game": {
+            "awayId": "SF",
+            "homeId": "SEA",
+            "awayName": "San Francisco 49ers",
+            "homeName": "Seattle Seahawks"
+          },
+          "pick": "Under 47.5",
+          "lean": "under",
+          "summary": "Under 47.5",
+          "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 32,
+            "homeScore": 29
+          }
+        }
       }
     }
   },
   "aggregate": {
     "season": 2026,
-    "updatedAt": "2026-10-11T23:00:20.386Z",
+    "updatedAt": "2026-10-12T00:00:19.590Z",
     "confidencePicks": {
-      "wins": 4,
-      "losses": 5
+      "wins": 6,
+      "losses": 6
     },
     "spreadPicks": {
       "wins": 1,
-      "losses": 2,
+      "losses": 3,
       "pushes": 0
     },
     "moneylinePicks": {
       "wins": 0,
-      "losses": 3
+      "losses": 4
     },
     "totalPicks": {
       "wins": 1,
-      "losses": 2,
+      "losses": 3,
       "pushes": 0
     },
     "byWeek": [
@@ -427,6 +552,16 @@
           "losses": 1
         },
         "spreadPick": "win",
+        "moneylinePick": "loss",
+        "totalPick": "loss"
+      },
+      {
+        "week": 5,
+        "confidencePicks": {
+          "wins": 2,
+          "losses": 1
+        },
+        "spreadPick": "loss",
         "moneylinePick": "loss",
         "totalPick": "loss"
       }

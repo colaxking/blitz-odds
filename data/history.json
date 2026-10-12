@@ -21485,7 +21485,7 @@
         "ARI": "2026-10-11T20:00:14.259Z",
         "ATL": "2026-10-12T00:00:15.254Z",
         "BAL": "2026-10-12T00:00:15.254Z",
-        "BUF": "2026-10-12T00:00:15.254Z",
+        "BUF": "2026-10-12T01:00:16.385Z",
         "CAR": "2026-10-08T23:00:17.288Z",
         "CHI": "2026-10-11T20:00:14.259Z",
         "CIN": "2026-10-11T04:00:14.616Z",
@@ -21500,7 +21500,7 @@
         "KC": "2026-10-08T23:00:17.288Z",
         "LV": "2026-10-11T04:00:14.616Z",
         "LAC": "2026-10-11T20:00:14.259Z",
-        "LAR": "2026-10-12T00:00:15.254Z",
+        "LAR": "2026-10-12T01:00:16.385Z",
         "MIA": "2026-10-11T04:00:14.616Z",
         "MIN": "2026-10-11T04:00:14.616Z",
         "NE": "2026-10-11T04:00:14.616Z",
@@ -22329,9 +22329,9 @@
             "status": "out",
             "injury": {
               "type": "Concussion",
-              "note": "Smith (concussion/neck) has been downgraded to out for Sunday's game against the Ravens, Tori McElhaney of the Falcons' official site reports."
+              "note": "Smith (concussion) has been ruled out for the remainder of Monday night's game against the Saints, Tori McElhaney of the Falcons' official site reports."
             },
-            "statusUpdatedAt": "2026-10-11T01:12Z",
+            "statusUpdatedAt": "2026-10-06T01:24Z",
             "source": "auto",
             "espnId": "3043168"
           },
@@ -22383,13 +22383,13 @@
             "name": "Lamar Jackson",
             "position": "QB",
             "impactScore": 10,
-            "status": "out",
+            "status": "questionable",
             "espnId": "3916387",
-            "statusUpdatedAt": "2026-10-09T17:34Z",
+            "statusUpdatedAt": "2026-10-04T18:51Z",
             "source": "auto",
             "injury": {
               "type": "Ankle",
-              "note": "Jackson (ankle) has been ruled out for Sunday night's game against the Falcons, Cordell Woodland of 105.7 The Fan Baltimore reports."
+              "note": "questionable"
             },
             "activatedDate": "2026-10-01"
           },
@@ -22412,11 +22412,14 @@
             "name": "Marlon Humphrey",
             "position": "CB",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
-            "activatedDate": "2026-10-11",
+            "status": "questionable",
+            "injury": {
+              "type": "Calf",
+              "note": "questionable"
+            },
+            "activatedDate": "2026-10-01",
             "espnId": "3126356",
-            "statusUpdatedAt": "2026-10-11T23:14Z",
+            "statusUpdatedAt": "2026-10-04T17:49Z",
             "source": "auto"
           },
           {
@@ -22438,11 +22441,14 @@
             "position": "WR",
             "espnId": "4429615",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-11T23:01Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-10-07T19:05Z",
             "source": "auto",
-            "activatedDate": "2026-10-11"
+            "activatedDate": "2026-10-04"
           },
           {
             "name": "Bilhal Kone",
@@ -22522,12 +22528,12 @@
             "name": "Trey Hendrickson",
             "position": "Edge",
             "impactScore": 8,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Finger",
-              "note": "out"
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-09T20:14Z",
+            "statusUpdatedAt": "2026-10-06T18:21Z",
             "source": "auto",
             "espnId": "3052743",
             "activatedDate": "2026-09-25"
@@ -22548,9 +22554,12 @@
             "position": "WR",
             "espnId": "2576581",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-08T23:30Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Ankle",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-10-08T10:00Z",
             "source": "auto",
             "activatedDate": "2026-10-08"
           }

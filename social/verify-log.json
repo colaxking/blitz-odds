@@ -242,22 +242,33 @@
       "bufferStatus": "sent"
     },
     "2026-w5-sun": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6aca36e6ed92ed8fa5cc3fcb",
       "text": "Kickoff in a few hours. Every game card has live score, down and distance, and last play once it starts — tap the bell on any game to get a push when it goes final.\n\nblitz-odds.com",
       "dueAt": "2026-10-11T13:07:00.000Z",
       "scheduledAt": "2026-10-10T13:00:20.742Z",
-      "lastCheckedAt": "2026-10-11T13:00:21.942Z"
+      "lastCheckedAt": "2026-10-11T13:00:21.942Z",
+      "bufferStatus": "sent"
     },
     "2026-w5-mon": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6acb8867d9cab260a7fa186f",
-      "text": "Bills at Rams tonight, 8:15 PM ET on ESPN. LAR -3.5, O/U 54.5.\n\nOne game left in Week 5. Week 6 lines go up tomorrow.\n\nblitz-odds.com",
+      "text": "Bills at Rams tonight, 8:15 PM ET on ESPN. LAR -3, O/U 54.5.\n\nOne game left in Week 5. Week 6 lines go up tomorrow.\n\nblitz-odds.com",
       "dueAt": "2026-10-12T13:06:00.000Z",
       "scheduledAt": "2026-10-11T13:00:21.942Z",
-      "lastCheckedAt": "2026-10-11T13:00:21.942Z"
+      "lastCheckedAt": "2026-10-12T13:00:22.394Z",
+      "updatedAt": "2026-10-12T13:00:22.394Z"
+    },
+    "2026-w6-tue": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6accd9e77659eb754b6f8a6f",
+      "text": "Week 6 lines are up. Seahawks at Broncos opens it Thursday — SEA -3, O/U 42.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 6 confidence order: blitz-odds.com",
+      "dueAt": "2026-10-13T13:52:00.000Z",
+      "scheduledAt": "2026-10-12T13:00:22.394Z",
+      "lastCheckedAt": "2026-10-12T13:00:22.394Z"
     }
   },
   "runs": [
@@ -852,6 +863,28 @@
           "post": "2026-w5-mon",
           "action": "scheduled",
           "detail": "primary for 2026-10-12T09:06:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-12T13:00:22.394Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w5-sun",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w5-mon",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w6-tue",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-13T09:52:00-04:00"
         }
       ],
       "alerts": []

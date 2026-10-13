@@ -21485,7 +21485,7 @@
         "ARI": "2026-10-11T20:00:14.259Z",
         "ATL": "2026-10-12T00:00:15.254Z",
         "BAL": "2026-10-12T00:00:15.254Z",
-        "BUF": "2026-10-12T23:00:19.321Z",
+        "BUF": "2026-10-13T00:00:14.004Z",
         "CAR": "2026-10-08T23:00:17.288Z",
         "CHI": "2026-10-11T20:00:14.259Z",
         "CIN": "2026-10-11T04:00:14.616Z",
@@ -21500,7 +21500,7 @@
         "KC": "2026-10-08T23:00:17.288Z",
         "LV": "2026-10-11T04:00:14.616Z",
         "LAC": "2026-10-11T20:00:14.259Z",
-        "LAR": "2026-10-12T23:00:19.321Z",
+        "LAR": "2026-10-13T00:00:14.004Z",
         "MIA": "2026-10-11T04:00:14.616Z",
         "MIN": "2026-10-11T04:00:14.616Z",
         "NE": "2026-10-11T04:00:14.616Z",
@@ -22608,12 +22608,12 @@
             "position": "WR",
             "espnId": "3915416",
             "impactScore": 6,
-            "status": "questionable",
+            "status": "out",
             "injury": {
-              "type": "Shoulder",
-              "note": "Moore (shoulder) is considered doubtful to return to Sunday's contest versus the Patriots."
+              "type": "Shoulder - AC Joint",
+              "note": "inactive"
             },
-            "statusUpdatedAt": "2026-10-04T18:45Z",
+            "statusUpdatedAt": "2026-10-12T22:47Z",
             "source": "auto",
             "activatedDate": "2026-10-02"
           },
@@ -22628,6 +22628,19 @@
               "note": "Palmer (shoulder) has been ruled out for Monday's game against the Rams, Katherine Fitzgerald of The Buffalo News reports."
             },
             "statusUpdatedAt": "2026-10-10T18:00Z",
+            "source": "auto"
+          },
+          {
+            "name": "Landon Jackson",
+            "position": "DE",
+            "espnId": "4432715",
+            "impactScore": 5,
+            "status": "out",
+            "injury": {
+              "type": "Knee",
+              "note": "Jackson (knee) is inactive against the Rams on Monday."
+            },
+            "statusUpdatedAt": "2026-10-12T22:56Z",
             "source": "auto"
           }
         ],
@@ -24311,11 +24324,27 @@
             "position": "WR",
             "espnId": "4605951",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-05T18:50Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-10-12T22:55Z",
             "source": "auto",
             "activatedDate": "2026-10-05"
+          },
+          {
+            "name": "Larrell Murchison",
+            "position": "DE",
+            "espnId": "4240123",
+            "impactScore": 5,
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-10-12T22:55Z",
+            "source": "auto"
           }
         ],
         "MIA": [

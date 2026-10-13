@@ -252,23 +252,34 @@
       "bufferStatus": "sent"
     },
     "2026-w5-mon": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6acb8867d9cab260a7fa186f",
       "text": "Bills at Rams tonight, 8:15 PM ET on ESPN. LAR -3, O/U 54.5.\n\nOne game left in Week 5. Week 6 lines go up tomorrow.\n\nblitz-odds.com",
       "dueAt": "2026-10-12T13:06:00.000Z",
       "scheduledAt": "2026-10-11T13:00:21.942Z",
       "lastCheckedAt": "2026-10-12T13:00:22.394Z",
-      "updatedAt": "2026-10-12T13:00:22.394Z"
+      "updatedAt": "2026-10-12T13:00:22.394Z",
+      "bufferStatus": "sent"
     },
     "2026-w6-tue": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6accd9e77659eb754b6f8a6f",
-      "text": "Week 6 lines are up. Seahawks at Broncos opens it Thursday — SEA -3, O/U 42.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 6 confidence order: blitz-odds.com",
+      "text": "Week 6 lines are up. Seahawks at Broncos opens it Thursday — SEA -3, O/U 40.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 6 confidence order: blitz-odds.com",
       "dueAt": "2026-10-13T13:52:00.000Z",
       "scheduledAt": "2026-10-12T13:00:22.394Z",
-      "lastCheckedAt": "2026-10-12T13:00:22.394Z"
+      "lastCheckedAt": "2026-10-13T13:00:19.924Z",
+      "updatedAt": "2026-10-13T13:00:19.924Z"
+    },
+    "2026-w6-wed": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ace2b667a819fc95e493193",
+      "text": "Week 6's biggest spreads as of Wednesday:\n\nARI at LAR — LAR -13.5\nLAC at KC — KC -8.5\nNYJ at NE — NE -7.5\nWAS at SF — SF -7.5\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
+      "dueAt": "2026-10-14T13:17:00.000Z",
+      "scheduledAt": "2026-10-13T13:00:19.924Z",
+      "lastCheckedAt": "2026-10-13T13:00:19.924Z"
     }
   },
   "runs": [
@@ -885,6 +896,28 @@
           "post": "2026-w6-tue",
           "action": "scheduled",
           "detail": "primary for 2026-10-13T09:52:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-13T13:00:19.924Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w5-mon",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w6-tue",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w6-wed",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-14T09:17:00-04:00"
         }
       ],
       "alerts": []

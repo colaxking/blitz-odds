@@ -1625,11 +1625,14 @@
         "name": "Marlon Humphrey",
         "position": "CB",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Hamstring",
+          "note": "questionable"
+        },
         "activatedDate": "2026-10-11",
         "espnId": "3126356",
-        "statusUpdatedAt": "2026-10-11T23:14Z",
+        "statusUpdatedAt": "2026-10-14T22:25Z",
         "source": "auto"
       },
       {
@@ -1699,9 +1702,12 @@
         "name": "Teddye Buchanan",
         "position": "LB",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-24T23:36Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Groin",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-10-14T22:23Z",
         "source": "auto",
         "espnId": "4698244",
         "activatedDate": "2026-09-24"
@@ -1735,15 +1741,12 @@
         "name": "Trey Hendrickson",
         "position": "Edge",
         "impactScore": 8,
-        "status": "questionable",
-        "injury": {
-          "type": "Finger",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-13T17:10Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-14T22:23Z",
         "source": "auto",
         "espnId": "3052743",
-        "activatedDate": "2026-09-25"
+        "activatedDate": "2026-10-14"
       },
       {
         "name": "Ronnie Stanley",

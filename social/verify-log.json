@@ -274,23 +274,34 @@
       "bufferStatus": "sent"
     },
     "2026-w6-wed": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ace2b667a819fc95e493193",
       "text": "Week 6's biggest spreads as of Wednesday:\n\nARI at LAR — LAR -12.5\nLAC at KC — KC -8.5\nNYJ at NE — NE -7.5\nWAS at SF — SF -7.5\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
       "dueAt": "2026-10-14T13:17:00.000Z",
       "scheduledAt": "2026-10-13T13:00:19.924Z",
       "lastCheckedAt": "2026-10-14T13:00:20.812Z",
-      "updatedAt": "2026-10-14T13:00:20.812Z"
+      "updatedAt": "2026-10-14T13:00:20.812Z",
+      "bufferStatus": "sent"
     },
     "2026-w6-thu": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6acf7ce784dc0d12ded40309",
-      "text": "Seahawks at Broncos tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nCAR at PHI — PHI -1.5\nDAL at GB — GB -1.5\nNO at NYG — NO -1.5\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
+      "text": "Seahawks at Broncos tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nCAR at PHI — CAR -1.5\nCHI at ATL — CHI -1.5\nDAL at GB — GB -1.5\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
       "dueAt": "2026-10-15T13:03:00.000Z",
       "scheduledAt": "2026-10-14T13:00:20.812Z",
-      "lastCheckedAt": "2026-10-14T13:00:20.812Z"
+      "lastCheckedAt": "2026-10-15T13:00:26.061Z",
+      "updatedAt": "2026-10-15T13:00:26.061Z"
+    },
+    "2026-w6-fri": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ad0ce6c5d6d63b3aef8eb54",
+      "text": "Running a pool at work? Blitz Odds leagues handle straight-up, confidence, against the spread and survivor, and grade every pick the moment a game goes final.\n\nFree. blitz-odds.com",
+      "dueAt": "2026-10-16T13:39:00.000Z",
+      "scheduledAt": "2026-10-15T13:00:26.061Z",
+      "lastCheckedAt": "2026-10-15T13:00:26.061Z"
     }
   },
   "runs": [
@@ -951,6 +962,28 @@
           "post": "2026-w6-thu",
           "action": "scheduled",
           "detail": "primary for 2026-10-15T09:03:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-15T13:00:26.061Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w6-wed",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w6-thu",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w6-fri",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-16T09:39:00-04:00"
         }
       ],
       "alerts": []

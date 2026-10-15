@@ -298,10 +298,13 @@
         "name": "Mike Evans",
         "position": "WR",
         "impactScore": 8,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Ribs",
+          "note": "questionable"
+        },
         "espnId": "16737",
-        "statusUpdatedAt": "2026-10-09T21:04Z",
+        "statusUpdatedAt": "2026-10-15T19:47Z",
         "source": "auto",
         "activatedDate": "2026-10-09"
       },
@@ -547,14 +550,12 @@
         "name": "Caleb Williams",
         "position": "QB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "active",
         "espnId": "4431611",
-        "statusUpdatedAt": "2026-10-13T17:10Z",
+        "statusUpdatedAt": "2026-10-15T19:39Z",
         "source": "auto",
-        "injury": {
-          "type": "Hamstring",
-          "note": "questionable"
-        }
+        "injury": null,
+        "activatedDate": "2026-10-15"
       },
       {
         "name": "Rome Odunze",

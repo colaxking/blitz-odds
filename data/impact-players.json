@@ -1420,13 +1420,11 @@
         "position": "DE",
         "espnId": "4432715",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Knee",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-13T17:10Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-14T23:21Z",
+        "source": "auto",
+        "activatedDate": "2026-10-14"
       }
     ],
     "HOU": [
@@ -2906,9 +2904,12 @@
         "name": "Brock Bowers",
         "position": "TE",
         "impactScore": 9,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-08T21:22Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "note": "Bowers (knee) was listed as a limited participant on Wednesday's practice report, Anthony Galaviz of The Fresno Bee reports."
+        },
+        "statusUpdatedAt": "2026-10-14T23:42Z",
         "source": "auto",
         "espnId": "4432665",
         "activatedDate": "2026-10-08"

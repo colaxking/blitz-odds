@@ -1816,15 +1816,14 @@
         "name": "Tyler Warren",
         "position": "TE",
         "impactScore": 7,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Groin injury",
-          "since": "2026-08-19",
-          "note": "Left Wednesday's joint practice vs. Atlanta clutching his groin and did not return; HC Shane Steichen confirmed the injury. Per NFL insider Jordan Schultz, the Colts avoided a critical injury — Warren is expected to be out roughly a week, not weeks — though he'll be shut down for the rest of camp/preseason as a precaution. Second-year first-round pick coming off a strong rookie season (76 catches, 817 yards, 5 total TDs) and expected to be a lead target for Daniel Jones; trending toward being ready for the regular season."
+          "type": "Groin",
+          "note": "questionable"
         },
         "espnId": "4431459",
-        "statusUpdatedAt": "2026-09-11T01:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-10-16T19:49Z",
+        "source": "auto"
       },
       {
         "name": "Alec Pierce",
@@ -2319,9 +2318,12 @@
         "name": "Rico Dowdle",
         "position": "RB",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-15T20:13Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Toe",
+          "note": "Dowdle (toe) is listed as questionable for Sunday's game against the Buccaneers after being a full participant in practice Thursday and Friday."
+        },
+        "statusUpdatedAt": "2026-10-16T19:35Z",
         "source": "auto",
         "espnId": "4038815",
         "activatedDate": "2026-10-15"
@@ -3732,15 +3734,12 @@
         "name": "Jonathon Cooper",
         "position": "Edge",
         "impactScore": 7,
-        "status": "out",
-        "statusUpdatedAt": "2026-09-01T20:15:00.000Z",
-        "source": "curated",
-        "injury": {
-          "type": "Commissioner's Exempt List (non-injury)",
-          "since": "2026-09-01",
-          "note": "The NFL placed Cooper on the Commissioner's Exempt List while it reviews domestic-violence charges stemming from two June arrests in Parker, Colo., including a felony second-degree assault by strangulation count. He continues to be paid and may attend meetings and work out at the facility, but cannot practice or attend games. Cooper has posted at least eight sacks in each of the last three seasons (career-high 10.5 in 2024). No return timetable."
-        },
-        "espnId": "4040608"
+        "status": "active",
+        "statusUpdatedAt": "2026-10-16T19:45Z",
+        "source": "auto",
+        "injury": null,
+        "espnId": "4040608",
+        "activatedDate": "2026-10-16"
       },
       {
         "name": "Matt Henningsen",

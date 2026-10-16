@@ -285,14 +285,15 @@
       "bufferStatus": "sent"
     },
     "2026-w6-thu": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6acf7ce784dc0d12ded40309",
       "text": "Seahawks at Broncos tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nCAR at PHI — CAR -1.5\nCHI at ATL — CHI -1.5\nDAL at GB — GB -1.5\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
       "dueAt": "2026-10-15T13:03:00.000Z",
       "scheduledAt": "2026-10-14T13:00:20.812Z",
       "lastCheckedAt": "2026-10-15T13:00:26.061Z",
-      "updatedAt": "2026-10-15T13:00:26.061Z"
+      "updatedAt": "2026-10-15T13:00:26.061Z",
+      "bufferStatus": "sent"
     },
     "2026-w6-fri": {
       "status": "scheduled",
@@ -301,7 +302,16 @@
       "text": "Running a pool at work? Blitz Odds leagues handle straight-up, confidence, against the spread and survivor, and grade every pick the moment a game goes final.\n\nFree. blitz-odds.com",
       "dueAt": "2026-10-16T13:39:00.000Z",
       "scheduledAt": "2026-10-15T13:00:26.061Z",
-      "lastCheckedAt": "2026-10-15T13:00:26.061Z"
+      "lastCheckedAt": "2026-10-16T13:00:20.809Z"
+    },
+    "2026-w6-sat": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ad21fe663c879f9585ad11d",
+      "text": "Survivor players: Week 6 has four favorites of 7.5 or more. Tempting.\n\nBefore you burn LAR or KC, check who you'll still need later in the season. The survivor path planner in the Playbook tab maps it out.\n\nblitz-odds.com",
+      "dueAt": "2026-10-17T13:56:00.000Z",
+      "scheduledAt": "2026-10-16T13:00:20.809Z",
+      "lastCheckedAt": "2026-10-16T13:00:20.809Z"
     }
   },
   "runs": [
@@ -984,6 +994,28 @@
           "post": "2026-w6-fri",
           "action": "scheduled",
           "detail": "primary for 2026-10-16T09:39:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-16T13:00:20.809Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w6-thu",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w6-fri",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w6-sat",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-17T09:56:00-04:00"
         }
       ],
       "alerts": []

@@ -296,13 +296,14 @@
       "bufferStatus": "sent"
     },
     "2026-w6-fri": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ad0ce6c5d6d63b3aef8eb54",
       "text": "Running a pool at work? Blitz Odds leagues handle straight-up, confidence, against the spread and survivor, and grade every pick the moment a game goes final.\n\nFree. blitz-odds.com",
       "dueAt": "2026-10-16T13:39:00.000Z",
       "scheduledAt": "2026-10-15T13:00:26.061Z",
-      "lastCheckedAt": "2026-10-16T13:00:20.809Z"
+      "lastCheckedAt": "2026-10-16T13:00:20.809Z",
+      "bufferStatus": "sent"
     },
     "2026-w6-sat": {
       "status": "scheduled",
@@ -311,7 +312,16 @@
       "text": "Survivor players: Week 6 has four favorites of 7.5 or more. Tempting.\n\nBefore you burn LAR or KC, check who you'll still need later in the season. The survivor path planner in the Playbook tab maps it out.\n\nblitz-odds.com",
       "dueAt": "2026-10-17T13:56:00.000Z",
       "scheduledAt": "2026-10-16T13:00:20.809Z",
-      "lastCheckedAt": "2026-10-16T13:00:20.809Z"
+      "lastCheckedAt": "2026-10-17T13:00:18.121Z"
+    },
+    "2026-w6-sun": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ad37164769b45793479ff45",
+      "text": "Week 6 Sunday: twelve games, first kickoff 9:30 AM ET.\n\nHighest total: BUF at LV, 53.5\nClosest game: CHI at ATL — CHI -1.5\n\nIf your pool locks at the first Sunday kickoff, that's your clock. blitz-odds.com",
+      "dueAt": "2026-10-18T13:07:00.000Z",
+      "scheduledAt": "2026-10-17T13:00:18.121Z",
+      "lastCheckedAt": "2026-10-17T13:00:18.121Z"
     }
   },
   "runs": [
@@ -1016,6 +1026,28 @@
           "post": "2026-w6-sat",
           "action": "scheduled",
           "detail": "primary for 2026-10-17T09:56:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-17T13:00:18.121Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w6-fri",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w6-sat",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w6-sun",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-18T09:07:00-04:00"
         }
       ],
       "alerts": []

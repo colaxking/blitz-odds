@@ -605,14 +605,12 @@
         "name": "Kyler Gordon",
         "position": "CB",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Calf",
-          "note": "Gordon (calf) is listed as questionable for Sunday's game against the Falcons."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4361093",
-        "statusUpdatedAt": "2026-10-17T01:01Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-10-18T16:01Z",
+        "source": "auto",
+        "activatedDate": "2026-10-18"
       },
       {
         "name": "Luther Burden III",
@@ -2090,9 +2088,12 @@
         "name": "Cooper Rush",
         "position": "QB",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-11T23:16Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "Rush (coach's decision) is listed as inactive but will serve as the Falcons' emergency third quarterback for Sunday's game against the Bears."
+        },
+        "statusUpdatedAt": "2026-10-18T16:08Z",
         "source": "auto",
         "espnId": "2972515",
         "activatedDate": "2026-10-11"
@@ -2140,14 +2141,12 @@
         "name": "Za'Darius Smith",
         "position": "DE",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Concussion",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-13T17:10Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-18T16:10Z",
         "source": "auto",
-        "espnId": "3043168"
+        "espnId": "3043168",
+        "activatedDate": "2026-10-18"
       },
       {
         "name": "Da'Shawn Hand",

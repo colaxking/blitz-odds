@@ -25993,10 +25993,10 @@
         "CHI": "2026-10-18T04:00:13.930Z",
         "CIN": "2026-10-15T23:00:16.449Z",
         "CLE": "2026-10-18T04:00:13.930Z",
-        "DAL": "2026-10-18T23:00:14.975Z",
+        "DAL": "2026-10-19T00:00:16.355Z",
         "DEN": "2026-10-15T23:00:16.449Z",
         "DET": "2026-10-15T23:00:16.449Z",
-        "GB": "2026-10-18T23:00:14.975Z",
+        "GB": "2026-10-19T00:00:16.355Z",
         "HOU": "2026-10-18T04:00:13.930Z",
         "IND": "2026-10-18T04:00:13.930Z",
         "JAX": "2026-10-18T04:00:13.930Z",
@@ -26012,11 +26012,11 @@
         "NYJ": "2026-10-18T04:00:13.930Z",
         "PHI": "2026-10-18T04:00:13.930Z",
         "PIT": "2026-10-18T04:00:13.930Z",
-        "SF": "2026-10-18T23:00:14.975Z",
+        "SF": "2026-10-19T00:00:16.355Z",
         "SEA": "2026-10-15T23:00:16.449Z",
         "TB": "2026-10-18T04:00:13.930Z",
         "TEN": "2026-10-18T04:00:13.930Z",
-        "WAS": "2026-10-18T23:00:14.975Z"
+        "WAS": "2026-10-19T00:00:16.355Z"
       },
       "teamStatsThroughWeek": 5,
       "teamStatsSeason": 2026,
@@ -28028,24 +28028,22 @@
             "position": "WR",
             "espnId": "4431487",
             "impactScore": 6,
-            "status": "questionable",
-            "injury": {
-              "type": "Ankle",
-              "note": "Williams (ankle) is questionable for Sunday's game against the Cowboys, Wes Hodkiewicz of the Packers' official site reports."
-            },
-            "statusUpdatedAt": "2026-10-17T02:07Z",
-            "source": "auto"
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-10-18T01:53Z",
+            "source": "auto",
+            "activatedDate": "2026-10-18"
           },
           {
             "name": "Aaron Banks",
             "position": "G",
             "impactScore": 5,
-            "status": "questionable",
+            "status": "out",
             "injury": {
               "type": "Toe",
-              "note": "questionable"
+              "note": "Banks (toe) is inactive for Sunday night's game against Dallas."
             },
-            "statusUpdatedAt": "2026-10-13T17:10Z",
+            "statusUpdatedAt": "2026-10-18T23:11Z",
             "source": "auto",
             "espnId": "4242390"
           },
@@ -28106,14 +28104,12 @@
             "name": "Jacob Monk",
             "position": "RG",
             "impactScore": 5,
-            "status": "questionable",
-            "statusUpdatedAt": "2026-10-13T17:10Z",
+            "status": "active",
+            "statusUpdatedAt": "2026-10-18T23:13Z",
             "source": "auto",
-            "injury": {
-              "type": "Quadriceps",
-              "note": "questionable"
-            },
-            "espnId": "4428037"
+            "injury": null,
+            "espnId": "4428037",
+            "activatedDate": "2026-10-18"
           },
           {
             "name": "Skyy Moore",
@@ -30578,6 +30574,16 @@
         "ARI-LAR": {
           "awayScore": 18,
           "homeScore": 16,
+          "final": true
+        },
+        "LAC-KC": {
+          "awayScore": 6,
+          "homeScore": 22,
+          "final": true
+        },
+        "BUF-LV": {
+          "awayScore": 33,
+          "homeScore": 30,
           "final": true
         }
       }

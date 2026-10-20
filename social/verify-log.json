@@ -326,13 +326,14 @@
       "bufferStatus": "sent"
     },
     "2026-w6-mon": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ad4c2e4938409f1d0cf1d8b",
       "text": "Commanders at 49ers closes Week 6 tonight — SF -7.5, O/U 52.5.\n\nYour league's My Picks tab grades every game the moment it goes final. Tonight's is the last one to land.\n\nblitz-odds.com",
       "dueAt": "2026-10-19T13:06:00.000Z",
       "scheduledAt": "2026-10-18T13:00:18.159Z",
-      "lastCheckedAt": "2026-10-19T13:00:21.703Z"
+      "lastCheckedAt": "2026-10-19T13:00:21.703Z",
+      "bufferStatus": "sent"
     },
     "2026-w7-tue": {
       "status": "scheduled",
@@ -341,7 +342,16 @@
       "text": "Week 7 is on the board: fourteen games, ranked by confidence.\n\nBiggest favorite so far:\nNYG at HOU — HOU -9.5\n\nClosest:\nCLE at TEN — CLE -1.5\n\nLines move all week and the rankings move with them. blitz-odds.com",
       "dueAt": "2026-10-20T13:52:00.000Z",
       "scheduledAt": "2026-10-19T13:00:21.703Z",
-      "lastCheckedAt": "2026-10-19T13:00:21.703Z"
+      "lastCheckedAt": "2026-10-20T13:00:24.793Z"
+    },
+    "2026-w7-wed": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ad765eca154249523d04f70",
+      "text": "Top of the Week 7 board as of Wednesday:\n\nNYG at HOU — HOU -9.5\nIND at MIN — MIN -5.5\nDAL at PHI — DAL -4.5\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
+      "dueAt": "2026-10-21T13:17:00.000Z",
+      "scheduledAt": "2026-10-20T13:00:24.793Z",
+      "lastCheckedAt": "2026-10-20T13:00:24.793Z"
     }
   },
   "runs": [
@@ -1112,6 +1122,28 @@
           "post": "2026-w7-tue",
           "action": "scheduled",
           "detail": "primary for 2026-10-20T09:52:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-20T13:00:24.793Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w6-mon",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w7-tue",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w7-wed",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-21T09:17:00-04:00"
         }
       ],
       "alerts": []

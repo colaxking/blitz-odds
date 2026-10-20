@@ -2104,7 +2104,8 @@
         "status": "active",
         "injury": null,
         "statusUpdatedAt": "2026-10-20T01:00:00.000Z",
-        "source": "curated"
+        "source": "curated",
+        "espnId": "14012"
       },
       {
         "name": "Michael Penix Jr.",
@@ -3351,9 +3352,12 @@
         "position": "WR",
         "espnId": "3121422",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-17T19:19Z",
+        "status": "out",
+        "injury": {
+          "type": "Knee",
+          "note": "McLaurin left Monday night's game against the 49ers in the first quarter with a left knee injury, Nicki Jhabvala of The Athletic reports."
+        },
+        "statusUpdatedAt": "2026-10-20T00:58Z",
         "source": "auto",
         "activatedDate": "2026-10-17"
       },

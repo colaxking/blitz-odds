@@ -29879,24 +29879,27 @@
             "name": "Mike Evans",
             "position": "WR",
             "impactScore": 8,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Ribs",
+              "note": "questionable"
+            },
             "espnId": "16737",
-            "statusUpdatedAt": "2026-10-19T15:21Z",
+            "statusUpdatedAt": "2026-10-15T19:47Z",
             "source": "auto",
-            "activatedDate": "2026-10-19"
+            "activatedDate": "2026-10-09"
           },
           {
             "name": "Nick Bosa",
             "position": "Edge",
             "impactScore": 9,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Calf",
-              "note": "out"
+              "note": "questionable"
             },
             "espnId": "4040605",
-            "statusUpdatedAt": "2026-10-17T20:54Z",
+            "statusUpdatedAt": "2026-10-13T17:10Z",
             "source": "auto"
           },
           {
@@ -29946,10 +29949,10 @@
             "espnId": "4432244",
             "impactScore": 4,
             "status": "active",
-            "statusUpdatedAt": "2026-10-17T23:37Z",
+            "statusUpdatedAt": "2026-10-02T22:12Z",
             "source": "auto",
             "injury": null,
-            "activatedDate": "2026-10-17"
+            "activatedDate": "2026-10-02"
           },
           {
             "name": "Alfred Collins",
@@ -30040,20 +30043,6 @@
             },
             "statusUpdatedAt": "2026-09-21T15:27Z",
             "source": "auto"
-          },
-          {
-            "name": "Deebo Samuel Sr.",
-            "position": "WR",
-            "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Hamstring",
-              "since": "2026-10-11",
-              "note": "Left the Week 5 win over Seattle; expected to miss at least a couple of weeks."
-            },
-            "espnId": "3126486",
-            "statusUpdatedAt": "2026-10-16T01:30:21.841Z",
-            "source": "curated"
           }
         ],
         "SEA": [
@@ -30410,11 +30399,14 @@
             "position": "WR",
             "espnId": "4567156",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-17T19:11Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Shoulder",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-10-15T22:22Z",
             "source": "auto",
-            "activatedDate": "2026-10-17"
+            "activatedDate": "2026-09-23"
           },
           {
             "name": "Chig Okonkwo",
@@ -30492,11 +30484,14 @@
             "position": "WR",
             "espnId": "3121422",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-17T19:19Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "note": "McLaurin (hamstring) practiced in a limited capacity Thursday."
+            },
+            "statusUpdatedAt": "2026-10-15T22:18Z",
             "source": "auto",
-            "activatedDate": "2026-10-17"
+            "activatedDate": "2026-10-11"
           },
           {
             "name": "Jaylin Lane",

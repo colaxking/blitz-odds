@@ -336,22 +336,33 @@
       "bufferStatus": "sent"
     },
     "2026-w7-tue": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ad6146ae9e263ce8216e21b",
       "text": "Week 7 is on the board: fourteen games, ranked by confidence.\n\nBiggest favorite so far:\nNYG at HOU — HOU -9.5\n\nClosest:\nCLE at TEN — CLE -1.5\n\nLines move all week and the rankings move with them. blitz-odds.com",
       "dueAt": "2026-10-20T13:52:00.000Z",
       "scheduledAt": "2026-10-19T13:00:21.703Z",
-      "lastCheckedAt": "2026-10-20T13:00:24.793Z"
+      "lastCheckedAt": "2026-10-20T13:00:24.793Z",
+      "bufferStatus": "sent"
     },
     "2026-w7-wed": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6ad765eca154249523d04f70",
-      "text": "Top of the Week 7 board as of Wednesday:\n\nNYG at HOU — HOU -9.5\nIND at MIN — MIN -5.5\nDAL at PHI — DAL -4.5\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
+      "text": "Top of the Week 7 board as of Wednesday:\n\nNYG at HOU — HOU -10\nIND at MIN — MIN -6.5\nDAL at PHI — DAL -4.5\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
       "dueAt": "2026-10-21T13:17:00.000Z",
       "scheduledAt": "2026-10-20T13:00:24.793Z",
-      "lastCheckedAt": "2026-10-20T13:00:24.793Z"
+      "lastCheckedAt": "2026-10-21T13:00:22.281Z",
+      "updatedAt": "2026-10-21T13:00:22.281Z"
+    },
+    "2026-w7-thu": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ad8b769333aa27908527e60",
+      "text": "Thursday night: Patriots at Bears, CHI -3, O/U 50.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
+      "dueAt": "2026-10-22T13:03:00.000Z",
+      "scheduledAt": "2026-10-21T13:00:22.281Z",
+      "lastCheckedAt": "2026-10-21T13:00:22.281Z"
     }
   },
   "runs": [
@@ -1144,6 +1155,28 @@
           "post": "2026-w7-wed",
           "action": "scheduled",
           "detail": "primary for 2026-10-21T09:17:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-21T13:00:22.281Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w7-tue",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w7-wed",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w7-thu",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-22T09:03:00-04:00"
         }
       ],
       "alerts": []

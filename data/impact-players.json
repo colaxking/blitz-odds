@@ -2381,11 +2381,14 @@
         "name": "Will McDonald IV",
         "position": "Edge",
         "impactScore": 7,
-        "status": "active",
+        "status": "questionable",
         "espnId": "4361767",
-        "statusUpdatedAt": "2026-10-11T15:58Z",
+        "statusUpdatedAt": "2026-10-21T20:18Z",
         "source": "auto",
-        "injury": null,
+        "injury": {
+          "type": "Toe",
+          "note": "questionable"
+        },
         "activatedDate": "2026-10-11"
       },
       {
@@ -2939,10 +2942,14 @@
         "name": "Jordan Love",
         "position": "QB",
         "impactScore": 7,
-        "status": "active",
+        "status": "questionable",
         "espnId": "4036378",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-10-21T20:13Z",
+        "source": "auto",
+        "injury": {
+          "type": "Back",
+          "note": "Love was listed as a limited participant on Wednesday's practice estimate due to a back injury, Matt Schneidman of The Athletic reports."
+        }
       },
       {
         "name": "Micah Parsons",
@@ -2988,9 +2995,12 @@
         "position": "WR",
         "espnId": "4431487",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-18T01:53Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-10-21T20:10Z",
         "source": "auto",
         "activatedDate": "2026-10-18"
       },

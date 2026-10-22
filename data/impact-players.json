@@ -478,9 +478,12 @@
         "name": "Puka Nacua",
         "position": "WR",
         "impactScore": 9,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-02T18:44Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Calf",
+          "note": "Nacua suffered a calf injury during Thursday's practice and went down as a limited participant, Adam Grosbard of The Orange County Register reports."
+        },
+        "statusUpdatedAt": "2026-10-22T22:21Z",
         "source": "auto",
         "espnId": "4426515",
         "activatedDate": "2026-10-02"
@@ -743,11 +746,14 @@
         "name": "Case Keenum",
         "position": "QB",
         "impactScore": 4,
-        "status": "active",
+        "status": "out",
         "espnId": "15168",
-        "statusUpdatedAt": "2026-10-19T16:28Z",
+        "statusUpdatedAt": "2026-10-22T22:48Z",
         "source": "auto",
-        "injury": null,
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
         "activatedDate": "2026-10-19"
       },
       {
@@ -3426,10 +3432,13 @@
         "name": "Jonathan Greenard",
         "position": "Edge",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "questionable"
+        },
         "espnId": "3916409",
-        "statusUpdatedAt": "2026-10-16T21:03Z",
+        "statusUpdatedAt": "2026-10-22T22:53Z",
         "source": "auto",
         "activatedDate": "2026-10-16"
       },
@@ -3437,10 +3446,13 @@
         "name": "DeVonta Smith",
         "position": "WR",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Hamstring",
+          "note": "Smith wasn't spotted at Thursday's practice, Jimmy Kempski of PhillyVoice.com reports."
+        },
         "espnId": "4241478",
-        "statusUpdatedAt": "2026-10-16T20:25Z",
+        "statusUpdatedAt": "2026-10-22T19:32Z",
         "source": "auto",
         "activatedDate": "2026-10-16"
       },
@@ -3500,9 +3512,12 @@
         "position": "TE",
         "espnId": "3121023",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-08T21:15Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "note": "Goedert was not seen during the media-access portion of Thursday's practice, Jimmy Kempski of the Philly Voice reports."
+        },
+        "statusUpdatedAt": "2026-10-22T19:37Z",
         "source": "auto",
         "activatedDate": "2026-10-08"
       },

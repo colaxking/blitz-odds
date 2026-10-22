@@ -346,14 +346,15 @@
       "bufferStatus": "sent"
     },
     "2026-w7-wed": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ad765eca154249523d04f70",
       "text": "Top of the Week 7 board as of Wednesday:\n\nNYG at HOU — HOU -10\nIND at MIN — MIN -6.5\nDAL at PHI — DAL -4.5\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
       "dueAt": "2026-10-21T13:17:00.000Z",
       "scheduledAt": "2026-10-20T13:00:24.793Z",
       "lastCheckedAt": "2026-10-21T13:00:22.281Z",
-      "updatedAt": "2026-10-21T13:00:22.281Z"
+      "updatedAt": "2026-10-21T13:00:22.281Z",
+      "bufferStatus": "sent"
     },
     "2026-w7-thu": {
       "status": "scheduled",
@@ -362,7 +363,16 @@
       "text": "Thursday night: Patriots at Bears, CHI -3, O/U 50.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
       "dueAt": "2026-10-22T13:03:00.000Z",
       "scheduledAt": "2026-10-21T13:00:22.281Z",
-      "lastCheckedAt": "2026-10-21T13:00:22.281Z"
+      "lastCheckedAt": "2026-10-22T13:00:21.806Z"
+    },
+    "2026-w7-fri": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ada08e7e8cca8cdcc51914a",
+      "text": "A game on the board at 1 or 1.5 isn't a lean. It's a coin flip with a hook.\n\nPut those at the bottom of your confidence sheet and stop agonizing over them.\n\nblitz-odds.com",
+      "dueAt": "2026-10-23T13:39:00.000Z",
+      "scheduledAt": "2026-10-22T13:00:21.806Z",
+      "lastCheckedAt": "2026-10-22T13:00:21.806Z"
     }
   },
   "runs": [
@@ -1177,6 +1187,28 @@
           "post": "2026-w7-thu",
           "action": "scheduled",
           "detail": "primary for 2026-10-22T09:03:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-22T13:00:21.806Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w7-wed",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w7-thu",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w7-fri",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-23T09:39:00-04:00"
         }
       ],
       "alerts": []

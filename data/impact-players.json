@@ -884,11 +884,14 @@
         "name": "Baker Mayfield",
         "position": "QB",
         "impactScore": 7,
-        "status": "active",
+        "status": "questionable",
         "espnId": "3052587",
-        "statusUpdatedAt": "2026-10-23T01:10Z",
+        "statusUpdatedAt": "2026-10-23T17:01Z",
         "source": "auto",
-        "injury": null,
+        "injury": {
+          "type": "Thumb",
+          "note": "Mayfield (thumb) was a full participant in Friday's practice but is listed questionable for Sunday's game against the Panthers, Greg Auman of Fox Sports reports."
+        },
         "activatedDate": "2026-10-22"
       },
       {
@@ -908,15 +911,12 @@
         "name": "Bucky Irving",
         "position": "RB",
         "impactScore": 8,
-        "status": "questionable",
-        "statusUpdatedAt": "2026-10-21T19:22Z",
+        "status": "active",
+        "statusUpdatedAt": "2026-10-23T17:02Z",
         "source": "auto",
         "espnId": "4596448",
-        "injury": {
-          "type": "Illness",
-          "note": "questionable"
-        },
-        "activatedDate": "2026-10-02"
+        "injury": null,
+        "activatedDate": "2026-10-23"
       },
       {
         "name": "David Sills V",
@@ -960,13 +960,13 @@
         "name": "Antoine Winfield Jr.",
         "position": "S",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Ribs",
-          "note": "Winfield (ribs) was a limited participant at practice Wednesday."
+          "note": "out"
         },
         "espnId": "4034790",
-        "statusUpdatedAt": "2026-10-22T00:01Z",
+        "statusUpdatedAt": "2026-10-23T17:15Z",
         "source": "auto"
       }
     ],

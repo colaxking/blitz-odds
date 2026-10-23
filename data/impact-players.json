@@ -113,21 +113,27 @@
         "name": "Nick Emmanwori",
         "position": "S",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Hip",
+          "note": "questionable"
+        },
         "activatedDate": "2026-09-27",
         "espnId": "4869523",
-        "statusUpdatedAt": "2026-09-27T18:41Z",
+        "statusUpdatedAt": "2026-10-23T21:17Z",
         "source": "auto"
       },
       {
         "name": "Zach Charbonnet",
         "position": "RB",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
+        "status": "out",
+        "injury": {
+          "type": "Knee - ACL",
+          "note": "Head coach Mike Macdonald said Friday that Charbonnet (knee) has been ruled out for Sunday's game versus the Chiefs, Curtis Crabtree of Fox 13 Seattle reports."
+        },
         "espnId": "4426385",
-        "statusUpdatedAt": "2026-10-23T01:10Z",
+        "statusUpdatedAt": "2026-10-23T20:48Z",
         "source": "auto",
         "activatedDate": "2026-10-22"
       },
@@ -754,13 +760,11 @@
         "position": "DE",
         "espnId": "3134690",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Suspension",
-          "note": "The NFL announced Tuesday that Sweat has been suspended two games for violating the league's performance-enhancing substances policy, Brad Biggs of the Chicago Tribune reports."
-        },
-        "statusUpdatedAt": "2026-10-13T20:16Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-23T21:09Z",
+        "source": "auto",
+        "activatedDate": "2026-10-23"
       }
     ],
     "CAR": [
@@ -3012,14 +3016,11 @@
         "position": "DE",
         "espnId": "4686906",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Illness",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-22T20:17Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-23T21:16Z",
         "source": "auto",
-        "activatedDate": "2026-10-09"
+        "activatedDate": "2026-10-23"
       },
       {
         "name": "Javon Hargrave",
@@ -3901,6 +3902,19 @@
         },
         "espnId": "4428331",
         "statusUpdatedAt": "2026-10-23T17:04Z",
+        "source": "auto"
+      },
+      {
+        "name": "Tyquan Thornton",
+        "position": "WR",
+        "espnId": "4362921",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Ankle",
+          "note": "The Chiefs placed Thornton (ankle) on injured reserve Tuesday."
+        },
+        "statusUpdatedAt": "2026-10-13T18:29Z",
         "source": "auto"
       }
     ]

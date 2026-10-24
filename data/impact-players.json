@@ -1266,15 +1266,12 @@
         "name": "Brian Branch",
         "position": "S",
         "impactScore": 7,
-        "status": "out",
-        "statusUpdatedAt": "2026-09-01T20:15:00.000Z",
-        "source": "curated",
-        "injury": {
-          "type": "Torn Achilles - on reserve/PUP",
-          "since": "2025-12",
-          "note": "Still recovering from the Achilles tear he suffered in the first week of December 2025. Detroit placed him on the reserve/PUP list at Sunday's (Aug. 30) cutdown, so he is ineligible for the first four games. With Kerby Joseph also on reserve/PUP, the Lions open the season without both starting safeties."
-        },
-        "espnId": "4692025"
+        "status": "active",
+        "statusUpdatedAt": "2026-10-24T00:08Z",
+        "source": "auto",
+        "injury": null,
+        "espnId": "4692025",
+        "activatedDate": "2026-10-24"
       },
       {
         "name": "Kerby Joseph",
@@ -1321,15 +1318,12 @@
         "name": "Cade Mays",
         "position": "C",
         "impactScore": 5,
-        "status": "out",
-        "injury": {
-          "type": "Fractured wrist - on injured reserve, designated to return",
-          "since": "2026-08-09",
-          "note": "Mays fractured a small bone in his wrist at the Sunday, Aug. 9 practice; Ian Rapoport reported an eight-to-10-week recovery and HC Dan Campbell said he would miss \"significant time\" while expecting him back for the playoffs. Detroit placed him on injured reserve with a designation to return at the Aug. 30 cutdown, so he must miss at least the first four games. Mays was the Lions' biggest 2026 free-agent investment, signing a three-year deal in March."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4361788",
-        "statusUpdatedAt": "2026-09-07T01:30:23.126Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-10-24T02:07Z",
+        "source": "auto",
+        "activatedDate": "2026-10-24"
       },
       {
         "name": "Christian Mahogany",
@@ -1544,10 +1538,13 @@
         "position": "WR",
         "espnId": "4366031",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-23T01:10Z",
-        "source": "curated",
+        "status": "questionable",
+        "injury": {
+          "type": "Knee - ACL + MCL",
+          "note": "Dell (knee) was activated from injured reserve Saturday, but he remains questionable for Sunday's game against the Giants."
+        },
+        "statusUpdatedAt": "2026-10-24T20:16Z",
+        "source": "auto",
         "activatedDate": "2026-10-22"
       },
       {
@@ -2182,15 +2179,12 @@
         "name": "A.J. Terrell",
         "position": "CB",
         "impactScore": 7,
-        "status": "out",
-        "injury": {
-          "type": "Groin injury - on injured reserve",
-          "since": "2026-09-20",
-          "note": "Terrell left the Sept. 20 game vs. Carolina in the first quarter with a groin injury (he had also hurt his shoulder in Week 1). Atlanta placed him on injured reserve this week and signed DL Zach Harrison, per NFL Network's Ian Rapoport; he must miss at least four games."
-        },
-        "statusUpdatedAt": "2026-09-23T17:15:00.000Z",
-        "source": "curated",
-        "espnId": "4239995"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-24T20:15Z",
+        "source": "auto",
+        "espnId": "4239995",
+        "activatedDate": "2026-10-24"
       }
     ],
     "PIT": [
@@ -3471,14 +3465,11 @@
         "position": "TE",
         "espnId": "3121023",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Knee",
-          "note": "Goedert was not seen during the media-access portion of Thursday's practice, Jimmy Kempski of the Philly Voice reports."
-        },
-        "statusUpdatedAt": "2026-10-22T19:37Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-24T19:57Z",
         "source": "auto",
-        "activatedDate": "2026-10-08"
+        "activatedDate": "2026-10-24"
       },
       {
         "name": "Hollywood Brown",

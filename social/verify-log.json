@@ -367,13 +367,14 @@
       "bufferStatus": "sent"
     },
     "2026-w7-fri": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ada08e7e8cca8cdcc51914a",
       "text": "A game on the board at 1 or 1.5 isn't a lean. It's a coin flip with a hook.\n\nPut those at the bottom of your confidence sheet and stop agonizing over them.\n\nblitz-odds.com",
       "dueAt": "2026-10-23T13:39:00.000Z",
       "scheduledAt": "2026-10-22T13:00:21.806Z",
-      "lastCheckedAt": "2026-10-23T13:00:20.558Z"
+      "lastCheckedAt": "2026-10-23T13:00:20.558Z",
+      "bufferStatus": "sent"
     },
     "2026-w7-sat": {
       "status": "scheduled",
@@ -382,10 +383,19 @@
       "text": "Survivor check for Week 7: the biggest favorite on the board is HOU.\n\nThe easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n\nblitz-odds.com",
       "dueAt": "2026-10-24T13:56:00.000Z",
       "scheduledAt": "2026-10-23T13:00:20.558Z",
-      "lastCheckedAt": "2026-10-23T13:00:20.558Z",
+      "lastCheckedAt": "2026-10-24T13:00:19.250Z",
       "reasons": [
         "primary: countGte: 1 game(s) at 7.5+, wanted 3"
       ]
+    },
+    "2026-w7-sun": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6adcabe56887a2efc1b8ff0c",
+      "text": "Kickoff in a few hours. Every game card has live score, down and distance, and last play once it starts — tap the bell on any game to get a push when it goes final.\n\nblitz-odds.com",
+      "dueAt": "2026-10-25T13:07:00.000Z",
+      "scheduledAt": "2026-10-24T13:00:19.250Z",
+      "lastCheckedAt": "2026-10-24T13:00:19.250Z"
     }
   },
   "runs": [
@@ -1244,6 +1254,31 @@
           "post": "2026-w7-sat",
           "action": "scheduled",
           "detail": "fallback for 2026-10-24T09:56:00-04:00"
+        }
+      ],
+      "notified": "email",
+      "alerts": [
+        "FALLBACK used for \"2026-w7-sat\" (due 2026-10-24T09:56:00-04:00) - primary failed:\n  primary: countGte: 1 game(s) at 7.5+, wanted 3\n  Scheduled text:\n    Survivor check for Week 7: the biggest favorite on the board is HOU.\n    \n    The easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n    \n    blitz-odds.com"
+      ]
+    },
+    {
+      "at": "2026-10-24T13:00:19.250Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w7-fri",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w7-sat",
+          "action": "verified",
+          "detail": "fallback unchanged"
+        },
+        {
+          "post": "2026-w7-sun",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-25T09:07:00-04:00"
         }
       ],
       "notified": "email",

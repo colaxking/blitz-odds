@@ -377,7 +377,7 @@
       "bufferStatus": "sent"
     },
     "2026-w7-sat": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "fallback",
       "bufferPostId": "6adb5a667c3aac797e811408",
       "text": "Survivor check for Week 7: the biggest favorite on the board is HOU.\n\nThe easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n\nblitz-odds.com",
@@ -386,7 +386,8 @@
       "lastCheckedAt": "2026-10-24T13:00:19.250Z",
       "reasons": [
         "primary: countGte: 1 game(s) at 7.5+, wanted 3"
-      ]
+      ],
+      "bufferStatus": "sent"
     },
     "2026-w7-sun": {
       "status": "scheduled",
@@ -395,7 +396,16 @@
       "text": "Kickoff in a few hours. Every game card has live score, down and distance, and last play once it starts — tap the bell on any game to get a push when it goes final.\n\nblitz-odds.com",
       "dueAt": "2026-10-25T13:07:00.000Z",
       "scheduledAt": "2026-10-24T13:00:19.250Z",
-      "lastCheckedAt": "2026-10-24T13:00:19.250Z"
+      "lastCheckedAt": "2026-10-25T13:00:18.849Z"
+    },
+    "2026-w7-mon": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6addfd66e4be8a4d86a9da33",
+      "text": "Cowboys at Eagles tonight, 8:15 PM ET on ESPN. DAL -4.5, O/U 43.5.\n\nOne game left in Week 7. Week 8 lines go up tomorrow.\n\nblitz-odds.com",
+      "dueAt": "2026-10-26T13:06:00.000Z",
+      "scheduledAt": "2026-10-25T13:00:18.849Z",
+      "lastCheckedAt": "2026-10-25T13:00:18.849Z"
     }
   },
   "runs": [
@@ -1285,6 +1295,28 @@
       "alerts": [
         "FALLBACK used for \"2026-w7-sat\" (due 2026-10-24T09:56:00-04:00) - primary failed:\n  primary: countGte: 1 game(s) at 7.5+, wanted 3\n  Scheduled text:\n    Survivor check for Week 7: the biggest favorite on the board is HOU.\n    \n    The easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n    \n    blitz-odds.com"
       ]
+    },
+    {
+      "at": "2026-10-25T13:00:18.849Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w7-sat",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w7-sun",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w7-mon",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-26T09:06:00-04:00"
+        }
+      ],
+      "alerts": []
     }
   ],
   "lastTokenWarningAt": null

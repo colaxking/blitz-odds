@@ -390,13 +390,14 @@
       "bufferStatus": "sent"
     },
     "2026-w7-sun": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6adcabe56887a2efc1b8ff0c",
       "text": "Kickoff in a few hours. Every game card has live score, down and distance, and last play once it starts — tap the bell on any game to get a push when it goes final.\n\nblitz-odds.com",
       "dueAt": "2026-10-25T13:07:00.000Z",
       "scheduledAt": "2026-10-24T13:00:19.250Z",
-      "lastCheckedAt": "2026-10-25T13:00:18.849Z"
+      "lastCheckedAt": "2026-10-25T13:00:18.849Z",
+      "bufferStatus": "sent"
     },
     "2026-w7-mon": {
       "status": "scheduled",
@@ -405,7 +406,16 @@
       "text": "Cowboys at Eagles tonight, 8:15 PM ET on ESPN. DAL -4.5, O/U 43.5.\n\nOne game left in Week 7. Week 8 lines go up tomorrow.\n\nblitz-odds.com",
       "dueAt": "2026-10-26T13:06:00.000Z",
       "scheduledAt": "2026-10-25T13:00:18.849Z",
-      "lastCheckedAt": "2026-10-25T13:00:18.849Z"
+      "lastCheckedAt": "2026-10-26T13:05:18.891Z"
+    },
+    "2026-w8-tue": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6adf500f75610ee6069fbb50",
+      "text": "Week 8 lines are up. Panthers at Packers opens it Thursday — GB -4.5, O/U 47.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 8 confidence order: blitz-odds.com",
+      "dueAt": "2026-10-27T13:52:00.000Z",
+      "scheduledAt": "2026-10-26T13:05:18.891Z",
+      "lastCheckedAt": "2026-10-26T13:05:18.891Z"
     }
   },
   "runs": [
@@ -1314,6 +1324,28 @@
           "post": "2026-w7-mon",
           "action": "scheduled",
           "detail": "primary for 2026-10-26T09:06:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-26T13:05:18.891Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w7-sun",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w7-mon",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w8-tue",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-27T09:52:00-04:00"
         }
       ],
       "alerts": []

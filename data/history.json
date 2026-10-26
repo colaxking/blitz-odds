@@ -30560,7 +30560,7 @@
         "CHI": "2026-10-23T00:00:17.181Z",
         "CIN": "2026-10-25T04:00:13.983Z",
         "CLE": "2026-10-25T04:00:13.983Z",
-        "DAL": "2026-10-26T00:00:14.916Z",
+        "DAL": "2026-10-26T01:00:16.197Z",
         "DEN": "2026-10-25T20:00:14.746Z",
         "DET": "2026-10-25T20:00:14.746Z",
         "GB": "2026-10-25T20:00:14.746Z",
@@ -30577,7 +30577,7 @@
         "NO": "2026-10-25T04:00:13.983Z",
         "NYG": "2026-10-25T04:00:13.983Z",
         "NYJ": "2026-10-25T04:00:13.983Z",
-        "PHI": "2026-10-26T00:00:14.916Z",
+        "PHI": "2026-10-26T01:00:16.197Z",
         "PIT": "2026-10-25T04:00:13.983Z",
         "SF": "2026-10-25T04:00:13.983Z",
         "SEA": "2026-10-26T00:00:14.916Z",
@@ -33100,11 +33100,10 @@
             "impactScore": 6,
             "status": "out",
             "injury": {
-              "type": "Bulging disc (lower back) - on injured reserve",
-              "since": "2026-08",
-              "note": "Chiefs placed LT Simmons on IR Oct. 22; no surgery needed but he has not practiced this season and head trainer Rick Burkholder said he has plateaued in rehab. Not eligible to return until Week 11 (Nov. 22 vs. Arizona)."
+              "type": "Back",
+              "note": "out"
             },
-            "statusUpdatedAt": "2026-10-23T01:10Z",
+            "statusUpdatedAt": "2026-10-22T16:52Z",
             "source": "auto",
             "espnId": "4569659"
           },
@@ -33126,26 +33125,13 @@
             "name": "Rashee Rice",
             "position": "WR",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "Rice (hamstring/knee) was not present during the portion of Friday's practice open to the media, Pete Sweeney of The Kansas City Star reports."
+              "note": "questionable"
             },
             "espnId": "4428331",
-            "statusUpdatedAt": "2026-10-23T17:04Z",
-            "source": "auto"
-          },
-          {
-            "name": "Tyquan Thornton",
-            "position": "WR",
-            "espnId": "4362921",
-            "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Ankle",
-              "note": "The Chiefs placed Thornton (ankle) on injured reserve Tuesday."
-            },
-            "statusUpdatedAt": "2026-10-13T18:29Z",
+            "statusUpdatedAt": "2026-10-20T16:10Z",
             "source": "auto"
           }
         ],
@@ -34690,24 +34676,23 @@
             "impactScore": 7,
             "status": "active",
             "injury": null,
-            "activatedDate": "2026-10-25",
+            "activatedDate": "2026-09-27",
             "espnId": "4869523",
-            "statusUpdatedAt": "2026-10-25T14:21Z",
+            "statusUpdatedAt": "2026-09-27T18:41Z",
             "source": "auto"
           },
           {
             "name": "Zach Charbonnet",
             "position": "RB",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Knee - ACL",
-              "note": "Head coach Mike Macdonald said Friday that Charbonnet (knee) has been ruled out for Sunday's game versus the Chiefs, Curtis Crabtree of Fox 13 Seattle reports."
+              "note": "The Seahawks activated Charbonnet (knee) from the reserve/PUP list Thursday, John Boyle of the team's official site reports."
             },
             "espnId": "4426385",
-            "statusUpdatedAt": "2026-10-23T20:48Z",
-            "source": "auto",
-            "activatedDate": "2026-10-22"
+            "statusUpdatedAt": "2026-10-22T18:09Z",
+            "source": "auto"
           },
           {
             "name": "Bud Clark",
@@ -34784,12 +34769,15 @@
             "name": "Anthony Bradford",
             "position": "RG",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-24T21:05Z",
-            "source": "auto",
-            "espnId": "4429211",
-            "activatedDate": "2026-10-24"
+            "status": "out",
+            "injury": {
+              "type": "Knee / hip",
+              "since": "2026-09-16",
+              "note": "Bradford was limited all week with knee and hip injuries, was listed as questionable Friday, and the Seahawks downgraded him to OUT on Saturday, Sept. 19 for Sunday at Arizona. HC Mike Macdonald said Christian Haynes would start at right guard in his place - Haynes' first career start."
+            },
+            "statusUpdatedAt": "2026-09-20T01:05:00.000Z",
+            "source": "curated",
+            "espnId": "4429211"
           },
           {
             "name": "Jadarian Price",

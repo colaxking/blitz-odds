@@ -4,7 +4,7 @@
       "2": {
         "week": 2,
         "season": 2026,
-        "gradedAt": "2026-10-26T03:00:24.094Z",
+        "gradedAt": "2026-10-26T04:00:22.185Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -129,7 +129,7 @@
       "3": {
         "week": 3,
         "season": 2026,
-        "gradedAt": "2026-10-26T03:00:24.157Z",
+        "gradedAt": "2026-10-26T04:00:22.299Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -254,7 +254,7 @@
       "4": {
         "week": 4,
         "season": 2026,
-        "gradedAt": "2026-10-26T03:00:24.190Z",
+        "gradedAt": "2026-10-26T04:00:22.388Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -379,7 +379,7 @@
       "5": {
         "week": 5,
         "season": 2026,
-        "gradedAt": "2026-10-26T03:00:24.224Z",
+        "gradedAt": "2026-10-26T04:00:22.517Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -504,7 +504,7 @@
       "6": {
         "week": 6,
         "season": 2026,
-        "gradedAt": "2026-10-26T03:00:24.290Z",
+        "gradedAt": "2026-10-26T04:00:22.658Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -625,27 +625,152 @@
             "homeScore": 22
           }
         }
+      },
+      "7": {
+        "week": 7,
+        "season": 2026,
+        "gradedAt": "2026-10-26T04:00:22.716Z",
+        "confidencePicks": [
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "SF",
+              "homeId": "ATL",
+              "awayName": "San Francisco 49ers",
+              "homeName": "Atlanta Falcons"
+            },
+            "pickTeamId": "ATL",
+            "pick": "Atlanta Falcons",
+            "confidence": 0.800748120691521,
+            "confidencePct": 80,
+            "summary": "Atlanta Falcons — 80% confidence",
+            "advantage": "Atlanta Falcons carries a 27.6-point rating edge over San Francisco 49ers once offense, defense, injuries, and weather are graded. San Francisco 49ers are without Ricky Pearsall (out), a real hit to their offense. The sportsbook favorite is actually San Francisco 49ers here. Read that as a split call, not an edge - when the model and the market disagree, the market has been right more often.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 20,
+              "homeScore": 29
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "NYG",
+              "homeId": "HOU",
+              "awayName": "New York Giants",
+              "homeName": "Houston Texans"
+            },
+            "pickTeamId": "HOU",
+            "pick": "Houston Texans",
+            "confidence": 0.7610331489884234,
+            "confidencePct": 76,
+            "summary": "Houston Texans — 76% confidence",
+            "advantage": "Houston Texans carries a 22.5-point rating edge over New York Giants once offense, defense, injuries, and weather are graded. New York Giants are without Brian Burns (out), a real hit to their defense. The market agrees Houston Texans is favored, and 76% confidence shows how comfortably.",
+            "result": "loss",
+            "finalScore": {
+              "awayScore": 27,
+              "homeScore": 21
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "LAR",
+              "homeId": "LV",
+              "awayName": "Los Angeles Rams",
+              "homeName": "Las Vegas Raiders"
+            },
+            "pickTeamId": "LAR",
+            "pick": "Los Angeles Rams",
+            "confidence": 0.7362098042104905,
+            "confidencePct": 74,
+            "summary": "Los Angeles Rams — 74% confidence",
+            "advantage": "Los Angeles Rams carries a 27.8-point rating edge over Las Vegas Raiders once offense, defense, injuries, and weather are graded. Las Vegas Raiders are without Dont'e Thornton Jr. (out), a real hit to their offense. The market agrees Los Angeles Rams is favored, and 74% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 35,
+              "homeScore": 21
+            }
+          }
+        ],
+        "spreadPick": {
+          "market": "spread",
+          "game": {
+            "awayId": "SF",
+            "homeId": "ATL",
+            "awayName": "San Francisco 49ers",
+            "homeName": "Atlanta Falcons"
+          },
+          "pickTeamId": "ATL",
+          "pick": "Atlanta Falcons +points",
+          "confidence": 0.800748120691521,
+          "confidencePct": 80,
+          "summary": "Atlanta Falcons to cover as the underdog",
+          "advantage": "The model's own line favors Atlanta Falcons while the market has them getting points. That's a lean, not an edge: against closing spreads the model's side covers about half the time, so weigh it as one opinion on the number.",
+          "result": "win",
+          "finalScore": {
+            "awayScore": 20,
+            "homeScore": 29
+          }
+        },
+        "moneylinePick": {
+          "market": "moneyline",
+          "game": {
+            "awayId": "SF",
+            "homeId": "ATL",
+            "awayName": "San Francisco 49ers",
+            "homeName": "Atlanta Falcons"
+          },
+          "pickTeamId": "ATL",
+          "pick": "Atlanta Falcons +145",
+          "confidence": 0.800748120691521,
+          "confidencePct": 80,
+          "summary": "Atlanta Falcons +145",
+          "advantage": "The model gives Atlanta Falcons a 80% win probability against a price that implies 41% - a 39-point gap. That's the model's lean, not betting value: backtested, picks like this have not beaten the market's price.",
+          "result": "win",
+          "finalScore": {
+            "awayScore": 20,
+            "homeScore": 29
+          }
+        },
+        "totalPick": {
+          "market": "total",
+          "game": {
+            "awayId": "KC",
+            "homeId": "SEA",
+            "awayName": "Kansas City Chiefs",
+            "homeName": "Seattle Seahawks"
+          },
+          "pick": "Under 42.5",
+          "lean": "under",
+          "summary": "Under 42.5",
+          "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total, and not a measured edge against the posted number.",
+          "result": "win",
+          "finalScore": {
+            "awayScore": 3,
+            "homeScore": 20
+          }
+        }
       }
     }
   },
   "aggregate": {
     "season": 2026,
-    "updatedAt": "2026-10-26T03:00:24.307Z",
+    "updatedAt": "2026-10-26T04:00:22.716Z",
     "confidencePicks": {
-      "wins": 7,
-      "losses": 8
+      "wins": 9,
+      "losses": 9
     },
     "spreadPicks": {
-      "wins": 1,
+      "wins": 2,
       "losses": 4,
       "pushes": 0
     },
     "moneylinePicks": {
-      "wins": 0,
+      "wins": 1,
       "losses": 5
     },
     "totalPicks": {
-      "wins": 2,
+      "wins": 3,
       "losses": 3,
       "pushes": 0
     },
@@ -698,6 +823,16 @@
         },
         "spreadPick": "loss",
         "moneylinePick": "loss",
+        "totalPick": "win"
+      },
+      {
+        "week": 7,
+        "confidencePicks": {
+          "wins": 2,
+          "losses": 1
+        },
+        "spreadPick": "win",
+        "moneylinePick": "win",
         "totalPick": "win"
       }
     ]

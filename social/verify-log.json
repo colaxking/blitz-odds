@@ -400,22 +400,33 @@
       "bufferStatus": "sent"
     },
     "2026-w7-mon": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6addfd66e4be8a4d86a9da33",
       "text": "Cowboys at Eagles tonight, 8:15 PM ET on ESPN. DAL -4.5, O/U 43.5.\n\nOne game left in Week 7. Week 8 lines go up tomorrow.\n\nblitz-odds.com",
       "dueAt": "2026-10-26T13:06:00.000Z",
       "scheduledAt": "2026-10-25T13:00:18.849Z",
-      "lastCheckedAt": "2026-10-26T13:05:18.891Z"
+      "lastCheckedAt": "2026-10-26T13:05:18.891Z",
+      "bufferStatus": "sent"
     },
     "2026-w8-tue": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6adf500f75610ee6069fbb50",
-      "text": "Week 8 lines are up. Panthers at Packers opens it Thursday — GB -4.5, O/U 47.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 8 confidence order: blitz-odds.com",
+      "text": "Week 8 lines are up. Panthers at Packers opens it Thursday — GB -3.5, O/U 47.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 8 confidence order: blitz-odds.com",
       "dueAt": "2026-10-27T13:52:00.000Z",
       "scheduledAt": "2026-10-26T13:05:18.891Z",
-      "lastCheckedAt": "2026-10-26T13:05:18.891Z"
+      "lastCheckedAt": "2026-10-27T13:00:20.946Z",
+      "updatedAt": "2026-10-27T13:00:20.946Z"
+    },
+    "2026-w8-wed": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ae0a0688fa8b2f716de31ba",
+      "text": "Week 8's biggest spreads as of Wednesday:\n\nTEN at CIN — CIN -10\nIND at JAX — JAX -7.5\nNE at MIA — NE -7.5\nARI at DAL — DAL -6.5\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
+      "dueAt": "2026-10-28T13:17:00.000Z",
+      "scheduledAt": "2026-10-27T13:00:20.946Z",
+      "lastCheckedAt": "2026-10-27T13:00:20.946Z"
     }
   },
   "runs": [
@@ -1346,6 +1357,28 @@
           "post": "2026-w8-tue",
           "action": "scheduled",
           "detail": "primary for 2026-10-27T09:52:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-27T13:00:20.946Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w7-mon",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w8-tue",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w8-wed",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-28T09:17:00-04:00"
         }
       ],
       "alerts": []

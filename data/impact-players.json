@@ -955,14 +955,12 @@
         "name": "Antoine Winfield Jr.",
         "position": "S",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Ribs",
-          "note": "questionable"
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4034790",
-        "statusUpdatedAt": "2026-10-27T13:11Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-10-28T20:21Z",
+        "source": "auto",
+        "activatedDate": "2026-10-28"
       }
     ],
     "CIN": [
@@ -984,9 +982,12 @@
         "name": "Ja'Marr Chase",
         "position": "WR",
         "impactScore": 10,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-11T15:40Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "Chase (ankle/rest) was listed as a non-participant for Wednesday's practice, Ben Baby of ESPN.com reports."
+        },
+        "statusUpdatedAt": "2026-10-28T20:22Z",
         "source": "auto",
         "espnId": "4362628",
         "activatedDate": "2026-10-11"
@@ -2038,9 +2039,12 @@
         "position": "WR",
         "espnId": "3916433",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-02T19:52Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Hamstring",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-10-28T20:07Z",
         "source": "auto",
         "activatedDate": "2026-10-02"
       }

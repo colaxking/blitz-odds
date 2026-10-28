@@ -410,23 +410,34 @@
       "bufferStatus": "sent"
     },
     "2026-w8-tue": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6adf500f75610ee6069fbb50",
       "text": "Week 8 lines are up. Panthers at Packers opens it Thursday — GB -3.5, O/U 47.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 8 confidence order: blitz-odds.com",
       "dueAt": "2026-10-27T13:52:00.000Z",
       "scheduledAt": "2026-10-26T13:05:18.891Z",
       "lastCheckedAt": "2026-10-27T13:00:20.946Z",
-      "updatedAt": "2026-10-27T13:00:20.946Z"
+      "updatedAt": "2026-10-27T13:00:20.946Z",
+      "bufferStatus": "sent"
     },
     "2026-w8-wed": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6ae0a0688fa8b2f716de31ba",
-      "text": "Week 8's biggest spreads as of Wednesday:\n\nTEN at CIN — CIN -10\nIND at JAX — JAX -7.5\nNE at MIA — NE -7.5\nARI at DAL — DAL -6.5\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
+      "text": "Week 8's biggest spreads as of Wednesday:\n\nTEN at CIN — CIN -10\nIND at JAX — JAX -9.5\nNE at MIA — NE -7\nARI at DAL — DAL -6.5\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
       "dueAt": "2026-10-28T13:17:00.000Z",
       "scheduledAt": "2026-10-27T13:00:20.946Z",
-      "lastCheckedAt": "2026-10-27T13:00:20.946Z"
+      "lastCheckedAt": "2026-10-28T13:00:20.631Z",
+      "updatedAt": "2026-10-28T13:00:20.631Z"
+    },
+    "2026-w8-thu": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ae1f1e6a2992d2fc00f27dd",
+      "text": "Panthers at Packers tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nKC at DEN — KC -1.5\nLV at NYJ — NYJ -1.5\nATL at TB — TB -2.5\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
+      "dueAt": "2026-10-29T13:03:00.000Z",
+      "scheduledAt": "2026-10-28T13:00:20.631Z",
+      "lastCheckedAt": "2026-10-28T13:00:20.631Z"
     }
   },
   "runs": [
@@ -1379,6 +1390,28 @@
           "post": "2026-w8-wed",
           "action": "scheduled",
           "detail": "primary for 2026-10-28T09:17:00-04:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-10-28T13:00:20.631Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w8-tue",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w8-wed",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w8-thu",
+          "action": "scheduled",
+          "detail": "primary for 2026-10-29T09:03:00-04:00"
         }
       ],
       "alerts": []

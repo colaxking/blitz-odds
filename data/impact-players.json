@@ -51,9 +51,12 @@
         "name": "A.J. Brown",
         "position": "WR",
         "impactScore": 9,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-21T19:22Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "Brown (ankle/knee) was a limited participant in Wednesday's practice."
+        },
+        "statusUpdatedAt": "2026-10-28T20:28Z",
         "source": "auto",
         "espnId": "4047646",
         "activatedDate": "2026-10-21"
@@ -63,13 +66,11 @@
         "position": "CB",
         "espnId": "3916923",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Neck",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-27T13:11Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-10-28T20:26Z",
+        "source": "auto",
+        "activatedDate": "2026-10-28"
       },
       {
         "name": "Dre'Mont Jones",
@@ -2769,9 +2770,12 @@
         "position": "TE",
         "espnId": "4880236",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-23T20:18Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Hamstring",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-10-28T20:32Z",
         "source": "auto",
         "activatedDate": "2026-10-23"
       },

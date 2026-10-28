@@ -3272,9 +3272,12 @@
         "position": "WR",
         "espnId": "4567156",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-17T19:11Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Foot",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-10-28T22:41Z",
         "source": "auto",
         "activatedDate": "2026-10-17"
       },
@@ -3329,14 +3332,12 @@
         "name": "Marcus Mariota",
         "position": "QB",
         "impactScore": 5,
-        "status": "questionable",
-        "statusUpdatedAt": "2026-10-26T17:13Z",
+        "status": "active",
+        "statusUpdatedAt": "2026-10-28T22:42Z",
         "source": "auto",
         "espnId": "2576980",
-        "injury": {
-          "type": "Knee - MCL",
-          "note": "questionable"
-        }
+        "injury": null,
+        "activatedDate": "2026-10-28"
       },
       {
         "name": "Sam Cosmi",

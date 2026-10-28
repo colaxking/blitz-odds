@@ -1955,9 +1955,12 @@
         "name": "Dylan Sampson",
         "position": "RB",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-24T16:52Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "note": "Sampson (knee) was a limited participant in Wednesday's practice."
+        },
+        "statusUpdatedAt": "2026-10-28T22:08Z",
         "source": "auto",
         "espnId": "5081397",
         "activatedDate": "2026-10-24"
@@ -3754,9 +3757,12 @@
         "position": "WR",
         "espnId": "4686472",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-30T22:44Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-10-28T21:52Z",
         "source": "auto",
         "activatedDate": "2026-09-30"
       },
@@ -3803,14 +3809,12 @@
         "name": "Pat Surtain II",
         "position": "CB",
         "impactScore": 8,
-        "status": "questionable",
-        "injury": {
-          "type": "Ankle",
-          "note": "questionable"
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4372012",
-        "statusUpdatedAt": "2026-10-27T13:11Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-10-28T21:53Z",
+        "source": "auto",
+        "activatedDate": "2026-10-28"
       }
     ],
     "KC": [

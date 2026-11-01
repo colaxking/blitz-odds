@@ -1429,9 +1429,12 @@
         "position": "WR",
         "espnId": "4242433",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-18T19:05Z",
+        "status": "out",
+        "injury": {
+          "type": "Hamstring",
+          "note": "doubtful"
+        },
+        "statusUpdatedAt": "2026-11-01T18:48Z",
         "source": "auto",
         "activatedDate": "2026-10-18"
       },
@@ -1618,13 +1621,13 @@
         "name": "Lamar Jackson",
         "position": "QB",
         "impactScore": 10,
-        "status": "questionable",
+        "status": "out",
         "espnId": "3916387",
-        "statusUpdatedAt": "2026-11-01T18:19Z",
+        "statusUpdatedAt": "2026-11-01T18:38Z",
         "source": "auto",
         "injury": {
-          "type": "Hand",
-          "note": "questionable"
+          "type": "Thumb",
+          "note": "Jackson (right thumb) has been ruled out for the remainder of Sunday's game against the Bills."
         },
         "activatedDate": "2026-10-30"
       },
@@ -2195,6 +2198,19 @@
         "source": "auto",
         "espnId": "4239995",
         "activatedDate": "2026-10-29"
+      },
+      {
+        "name": "Zachariah Branch",
+        "position": "WR",
+        "espnId": "4870612",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Hamstring",
+          "note": "out"
+        },
+        "statusUpdatedAt": "2026-11-01T18:43Z",
+        "source": "auto"
       }
     ],
     "PIT": [
@@ -2539,10 +2555,13 @@
         "name": "Jeremiyah Love",
         "position": "RB",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Undisclosed",
+          "note": "questionable"
+        },
         "espnId": "4870808",
-        "statusUpdatedAt": "2026-10-30T21:13Z",
+        "statusUpdatedAt": "2026-11-01T18:48Z",
         "source": "auto",
         "activatedDate": "2026-10-30"
       },

@@ -67,14 +67,11 @@
         "position": "CB",
         "espnId": "3916923",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Neck",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-10-30T20:06Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-11-01T19:57Z",
         "source": "auto",
-        "activatedDate": "2026-10-28"
+        "activatedDate": "2026-11-01"
       },
       {
         "name": "Dre'Mont Jones",
@@ -1270,10 +1267,13 @@
         "name": "Brian Branch",
         "position": "S",
         "impactScore": 7,
-        "status": "active",
-        "statusUpdatedAt": "2026-10-24T20:45Z",
+        "status": "questionable",
+        "statusUpdatedAt": "2026-11-01T19:22Z",
         "source": "auto",
-        "injury": null,
+        "injury": {
+          "type": "Concussion",
+          "note": "questionable"
+        },
         "espnId": "4692025",
         "activatedDate": "2026-10-24"
       },
@@ -1989,9 +1989,12 @@
         "position": "CB",
         "espnId": "4379397",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-30T19:35Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Neck",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-01T19:47Z",
         "source": "auto",
         "activatedDate": "2026-09-30"
       }

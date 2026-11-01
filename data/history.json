@@ -35168,33 +35168,33 @@
         "BAL": "2026-11-01T04:00:13.381Z",
         "BUF": "2026-11-01T04:00:13.381Z",
         "CAR": "2026-10-29T23:00:14.843Z",
-        "CHI": "2026-11-01T20:00:16.219Z",
+        "CHI": "2026-11-01T21:00:14.439Z",
         "CIN": "2026-11-01T04:00:13.381Z",
         "CLE": "2026-11-01T04:00:13.381Z",
         "DAL": "2026-11-01T04:00:13.381Z",
-        "DEN": "2026-11-01T20:00:16.219Z",
+        "DEN": "2026-11-01T21:00:14.439Z",
         "DET": "2026-11-01T04:00:13.381Z",
         "GB": "2026-10-29T23:00:14.843Z",
         "HOU": "2026-10-29T23:00:14.843Z",
         "IND": "2026-11-01T04:00:13.381Z",
         "JAX": "2026-11-01T04:00:13.381Z",
-        "KC": "2026-11-01T20:00:16.219Z",
+        "KC": "2026-11-01T21:00:14.439Z",
         "LV": "2026-11-01T04:00:13.381Z",
-        "LAC": "2026-11-01T20:00:16.219Z",
-        "LAR": "2026-11-01T20:00:16.219Z",
-        "MIA": "2026-11-01T20:00:16.219Z",
+        "LAC": "2026-11-01T21:00:14.439Z",
+        "LAR": "2026-11-01T21:00:14.439Z",
+        "MIA": "2026-11-01T21:00:14.439Z",
         "MIN": "2026-11-01T04:00:13.381Z",
-        "NE": "2026-11-01T20:00:16.219Z",
+        "NE": "2026-11-01T21:00:14.439Z",
         "NO": "2026-10-29T23:00:14.843Z",
         "NYG": "2026-10-29T23:00:14.843Z",
         "NYJ": "2026-11-01T04:00:13.381Z",
-        "PHI": "2026-11-01T20:00:16.219Z",
+        "PHI": "2026-11-01T21:00:14.439Z",
         "PIT": "2026-11-01T04:00:13.381Z",
         "SF": "2026-10-29T23:00:14.843Z",
-        "SEA": "2026-11-01T20:00:16.219Z",
+        "SEA": "2026-11-01T21:00:14.439Z",
         "TB": "2026-11-01T04:00:13.381Z",
         "TEN": "2026-11-01T04:00:13.381Z",
-        "WAS": "2026-11-01T20:00:16.219Z"
+        "WAS": "2026-11-01T21:00:14.439Z"
       },
       "teamStatsThroughWeek": 7,
       "teamStatsSeason": 2026,
@@ -36561,9 +36561,12 @@
             "position": "DE",
             "espnId": "4372463",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-12T18:58Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-11-01T19:59Z",
             "source": "auto",
             "activatedDate": "2026-10-12"
           },
@@ -36921,14 +36924,11 @@
             "position": "CB",
             "espnId": "4371946",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Quadriceps",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-10-27T13:11Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-01T19:59Z",
             "source": "auto",
-            "activatedDate": "2026-09-14"
+            "activatedDate": "2026-11-01"
           },
           {
             "name": "Marvin Mims Jr.",
@@ -38324,14 +38324,11 @@
             "position": "CB",
             "espnId": "3916923",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Neck",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-10-30T20:06Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-01T19:57Z",
             "source": "auto",
-            "activatedDate": "2026-10-28"
+            "activatedDate": "2026-11-01"
           },
           {
             "name": "Dre'Mont Jones",
@@ -39722,6 +39719,11 @@
         "CAR-GB": {
           "awayScore": 19,
           "homeScore": 27,
+          "final": true
+        },
+        "ATL-TB": {
+          "awayScore": 0,
+          "homeScore": 16,
           "final": true
         }
       }

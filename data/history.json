@@ -35168,33 +35168,33 @@
         "BAL": "2026-11-01T04:00:13.381Z",
         "BUF": "2026-11-01T04:00:13.381Z",
         "CAR": "2026-10-29T23:00:14.843Z",
-        "CHI": "2026-11-01T04:00:13.381Z",
+        "CHI": "2026-11-01T18:00:14.989Z",
         "CIN": "2026-11-01T04:00:13.381Z",
         "CLE": "2026-11-01T04:00:13.381Z",
         "DAL": "2026-11-01T04:00:13.381Z",
-        "DEN": "2026-11-01T04:00:13.381Z",
+        "DEN": "2026-11-01T18:00:14.989Z",
         "DET": "2026-11-01T04:00:13.381Z",
         "GB": "2026-10-29T23:00:14.843Z",
         "HOU": "2026-10-29T23:00:14.843Z",
         "IND": "2026-11-01T04:00:13.381Z",
         "JAX": "2026-11-01T04:00:13.381Z",
-        "KC": "2026-11-01T04:00:13.381Z",
+        "KC": "2026-11-01T18:00:14.989Z",
         "LV": "2026-11-01T04:00:13.381Z",
-        "LAC": "2026-11-01T04:00:13.381Z",
-        "LAR": "2026-11-01T04:00:13.381Z",
-        "MIA": "2026-11-01T04:00:13.381Z",
+        "LAC": "2026-11-01T18:00:14.989Z",
+        "LAR": "2026-11-01T18:00:14.989Z",
+        "MIA": "2026-11-01T18:00:14.989Z",
         "MIN": "2026-11-01T04:00:13.381Z",
-        "NE": "2026-11-01T04:00:13.381Z",
+        "NE": "2026-11-01T18:00:14.989Z",
         "NO": "2026-10-29T23:00:14.843Z",
         "NYG": "2026-10-29T23:00:14.843Z",
         "NYJ": "2026-11-01T04:00:13.381Z",
-        "PHI": "2026-11-01T04:00:13.381Z",
+        "PHI": "2026-11-01T18:00:14.989Z",
         "PIT": "2026-11-01T04:00:13.381Z",
         "SF": "2026-10-29T23:00:14.843Z",
-        "SEA": "2026-11-01T04:00:13.381Z",
+        "SEA": "2026-11-01T18:00:14.989Z",
         "TB": "2026-11-01T04:00:13.381Z",
         "TEN": "2026-11-01T04:00:13.381Z",
-        "WAS": "2026-11-01T04:00:13.381Z"
+        "WAS": "2026-11-01T18:00:14.989Z"
       },
       "teamStatsThroughWeek": 7,
       "teamStatsSeason": 2026,
@@ -35824,12 +35824,15 @@
             "name": "Jeremiyah Love",
             "position": "RB",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Ankle",
+              "note": "Head coach Mike LaFleur said Monday that Love (ankle) will take part in Wednesday's practice, Theo Mackie of The Arizona Republic reports."
+            },
             "espnId": "4870808",
-            "statusUpdatedAt": "2026-10-30T21:13Z",
+            "statusUpdatedAt": "2026-10-26T21:39Z",
             "source": "auto",
-            "activatedDate": "2026-10-30"
+            "activatedDate": "2026-10-09"
           },
           {
             "name": "Xavier Weaver",
@@ -35999,12 +36002,12 @@
             "position": "CB",
             "espnId": "4431194",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "out"
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-31T20:03Z",
+            "statusUpdatedAt": "2026-10-27T13:11Z",
             "source": "auto"
           },
           {
@@ -36050,12 +36053,12 @@
             "name": "A.J. Terrell",
             "position": "CB",
             "impactScore": 7,
-            "status": "active",
+            "status": "questionable",
             "injury": null,
-            "statusUpdatedAt": "2026-10-29T23:35Z",
+            "statusUpdatedAt": "2026-10-24T20:15Z",
             "source": "auto",
             "espnId": "4239995",
-            "activatedDate": "2026-10-29"
+            "activatedDate": "2026-10-24"
           }
         ],
         "BAL": [
@@ -36063,12 +36066,15 @@
             "name": "Lamar Jackson",
             "position": "QB",
             "impactScore": 10,
-            "status": "active",
+            "status": "questionable",
             "espnId": "3916387",
-            "statusUpdatedAt": "2026-10-30T17:36Z",
+            "statusUpdatedAt": "2026-10-29T20:55Z",
             "source": "auto",
-            "injury": null,
-            "activatedDate": "2026-10-30"
+            "injury": {
+              "type": "Ankle",
+              "note": "Jackson (ankle) was a full participant at Thursday's practice, Jeff Zrebiec of The Athletic reports."
+            },
+            "activatedDate": "2026-10-29"
           },
           {
             "name": "Nate Wiggins",
@@ -36867,12 +36873,12 @@
             "position": "WR",
             "espnId": "3676833",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Ribs",
-              "note": "Turpin (ribs) was a non-participant in practice Thursday, Tommy Yarrish of the Cowboys' official site reports."
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-30T00:47Z",
+            "statusUpdatedAt": "2026-10-27T13:11Z",
             "source": "auto"
           }
         ],
@@ -37459,12 +37465,14 @@
             "name": "Tyler Warren",
             "position": "TE",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Groin",
+              "note": "questionable"
+            },
             "espnId": "4431459",
-            "statusUpdatedAt": "2026-10-29T20:14Z",
-            "source": "auto",
-            "activatedDate": "2026-10-29"
+            "statusUpdatedAt": "2026-10-27T13:11Z",
+            "source": "auto"
           },
           {
             "name": "Alec Pierce",
@@ -37817,11 +37825,13 @@
             "position": "WR",
             "espnId": "4603186",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-10-31T19:53Z",
-            "source": "auto",
-            "activatedDate": "2026-10-31"
+            "status": "out",
+            "injury": {
+              "type": "Forearm",
+              "note": "The Raiders placed Bech (forearm) on injured reserve Tuesday."
+            },
+            "statusUpdatedAt": "2026-09-29T22:27Z",
+            "source": "auto"
           }
         ],
         "LAC": [
@@ -39381,12 +39391,12 @@
             "name": "Emeka Egbuka",
             "position": "WR",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "injury": {
-              "type": "Foot",
-              "note": "Egbuka (foot) has been ruled out for Sunday's game against the Falcons, Scott Smith of the Bucs' official site reports."
+              "type": "Concussion",
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-10-30T16:32Z",
+            "statusUpdatedAt": "2026-10-27T13:11Z",
             "source": "auto",
             "espnId": "4567750"
           },
@@ -39504,12 +39514,12 @@
             "position": "WR",
             "espnId": "4871023",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Shoulder",
-              "note": "Tate (shoulder) won't practice Friday, and his status for Sunday's game against the Bengals is in doubt, Paul Kuharsky reports."
+              "note": "Titans head coach Robert Saleh said that Tate won't practice Wednesday due to a shoulder injury, Turron Davenport of ESPN.com reports."
             },
-            "statusUpdatedAt": "2026-10-30T15:48Z",
+            "statusUpdatedAt": "2026-10-28T17:11Z",
             "source": "auto",
             "activatedDate": "2026-10-11"
           },
@@ -39705,20 +39715,6 @@
             },
             "statusUpdatedAt": "2026-10-05T23:04Z",
             "source": "auto"
-          },
-          {
-            "name": "Daron Payne",
-            "position": "DT",
-            "impactScore": 7,
-            "status": "out",
-            "espnId": "3925354",
-            "statusUpdatedAt": "2026-10-31T21:10Z",
-            "source": "curated",
-            "injury": {
-              "type": "Jones fracture (foot) - season-ending",
-              "since": "2026-10-30",
-              "note": "Suffered a Jones fracture at Friday's (Oct. 30) practice; per ESPN's Adam Schefter (Oct. 31) the injury is season-ending."
-            }
           }
         ]
       },

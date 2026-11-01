@@ -1035,9 +1035,12 @@
         "position": "CB",
         "espnId": "4572036",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-02T20:17Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "Turner (ankle) has been ruled out for the rest of Sunday's game against the Titans."
+        },
+        "statusUpdatedAt": "2026-11-01T21:08Z",
         "source": "auto",
         "activatedDate": "2026-10-02"
       },
@@ -1350,10 +1353,13 @@
         "name": "D.J. Reed",
         "position": "CB",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Hip",
+          "note": "Reed (hip) is questionable to return to Sunday's game against the Dolphins."
+        },
         "espnId": "3139387",
-        "statusUpdatedAt": "2026-10-04T23:18Z",
+        "statusUpdatedAt": "2026-11-01T21:02Z",
         "source": "auto",
         "activatedDate": "2026-10-04"
       },
@@ -1641,16 +1647,15 @@
         "name": "Nate Wiggins",
         "position": "CB",
         "impactScore": 7,
-        "status": "active",
+        "status": "questionable",
         "injury": {
-          "type": "Left leg injury (no structural damage) - recovered",
-          "since": "2026-08-11",
-          "note": "Returned to full practice and 11-on-11 team drills Monday, Aug. 17, after missing most of the prior week following a leg injury suffered tangling feet with WR Ja'Kobi Lane. HC Jesse Minter called the return a positive sign; Wiggins is set to be available for joint practices with Minnesota later this week."
+          "type": "Neck",
+          "note": "Wiggins (stinger) is being evaluated for a possible concussion and is questionable to return to Sunday's game against the Bills."
         },
         "activatedDate": "2026-08-17",
         "espnId": "4601278",
-        "statusUpdatedAt": "2026-08-26T04:28:37.572Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-11-01T20:58Z",
+        "source": "auto"
       },
       {
         "name": "Marlon Humphrey",
@@ -2210,12 +2215,12 @@
         "position": "WR",
         "espnId": "4870612",
         "impactScore": 6,
-        "status": "out",
+        "status": "questionable",
         "injury": {
           "type": "Hamstring",
-          "note": "out"
+          "note": "questionable"
         },
-        "statusUpdatedAt": "2026-11-01T18:43Z",
+        "statusUpdatedAt": "2026-11-01T20:59Z",
         "source": "auto"
       }
     ],
@@ -2561,13 +2566,13 @@
         "name": "Jeremiyah Love",
         "position": "RB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
-          "type": "Undisclosed",
-          "note": "questionable"
+          "type": "Ankle",
+          "note": "Love (ankle) was ruled out for Sunday's game against the Cowboys to begin the second half, Alex Weiner of ArizonaSports.com reports."
         },
         "espnId": "4870808",
-        "statusUpdatedAt": "2026-11-01T18:48Z",
+        "statusUpdatedAt": "2026-11-01T21:11Z",
         "source": "auto",
         "activatedDate": "2026-10-30"
       },

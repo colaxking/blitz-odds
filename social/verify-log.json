@@ -452,7 +452,7 @@
       "bufferStatus": "sent"
     },
     "2026-w8-sat": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "fallback",
       "bufferPostId": "6ae494e83dc61ec0c200fe55",
       "text": "Survivor check for Week 8: the biggest favorite on the board is CIN.\n\nThe easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n\nblitz-odds.com",
@@ -461,16 +461,27 @@
       "lastCheckedAt": "2026-10-31T13:00:19.032Z",
       "reasons": [
         "primary: countGte: 2 game(s) at 7.5+, wanted 3"
-      ]
+      ],
+      "bufferStatus": "sent"
     },
     "2026-w8-sun": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6ae5e666a114574349a6fb64",
-      "text": "Week 8 Sunday: twelve games, first kickoff 1:00 PM ET.\n\nHighest total: BAL at BUF, 54.5\nClosest game: KC at DEN — KC -1.5\n\nIf your pool locks at the first Sunday kickoff, that's your clock. blitz-odds.com",
+      "text": "Week 8 Sunday: twelve games, first kickoff 1:00 PM ET.\n\nHighest total: BAL at BUF, 54.5\nClosest game: ATL at TB — TB -1.5\n\nIf your pool locks at the first Sunday kickoff, that's your clock. blitz-odds.com",
       "dueAt": "2026-11-01T14:07:00.000Z",
       "scheduledAt": "2026-10-31T13:00:19.032Z",
-      "lastCheckedAt": "2026-10-31T13:00:19.032Z"
+      "lastCheckedAt": "2026-11-01T14:00:19.319Z",
+      "updatedAt": "2026-11-01T14:00:19.319Z"
+    },
+    "2026-w8-mon": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ae745f8f0984eef336adafa",
+      "text": "Bears at Seahawks closes Week 8 tonight — SEA -3, O/U 46.5.\n\nYour league's My Picks tab grades every game the moment it goes final. Tonight's is the last one to land.\n\nblitz-odds.com",
+      "dueAt": "2026-11-02T14:06:00.000Z",
+      "scheduledAt": "2026-11-01T14:00:19.319Z",
+      "lastCheckedAt": "2026-11-01T14:00:19.319Z"
     }
   },
   "runs": [
@@ -1520,6 +1531,28 @@
       "alerts": [
         "FALLBACK used for \"2026-w8-sat\" (due 2026-10-31T09:56:00-04:00) - primary failed:\n  primary: countGte: 2 game(s) at 7.5+, wanted 3\n  Scheduled text:\n    Survivor check for Week 8: the biggest favorite on the board is CIN.\n    \n    The easy pick isn't always the right one — it depends on who you'll still have left. The survivor path planner in the Playbook tab maps your remaining weeks.\n    \n    blitz-odds.com"
       ]
+    },
+    {
+      "at": "2026-11-01T14:00:19.319Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w8-sat",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w8-sun",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w8-mon",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-02T09:06:00-05:00"
+        }
+      ],
+      "alerts": []
     }
   ],
   "lastTokenWarningAt": null

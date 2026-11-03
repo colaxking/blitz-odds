@@ -476,22 +476,33 @@
       "bufferStatus": "sent"
     },
     "2026-w8-mon": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ae745f8f0984eef336adafa",
       "text": "Bears at Seahawks closes Week 8 tonight — SEA -3, O/U 46.5.\n\nYour league's My Picks tab grades every game the moment it goes final. Tonight's is the last one to land.\n\nblitz-odds.com",
       "dueAt": "2026-11-02T14:06:00.000Z",
       "scheduledAt": "2026-11-01T14:00:19.319Z",
-      "lastCheckedAt": "2026-11-02T14:00:30.050Z"
+      "lastCheckedAt": "2026-11-02T14:00:30.050Z",
+      "bufferStatus": "sent"
     },
     "2026-w9-tue": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6ae8977f09c35c01e8d0d9b1",
-      "text": "Week 9 is on the board: fifteen games, ranked by confidence.\n\nBiggest favorite so far:\nARI at SEA — SEA -10.5\n\nClosest:\nBUF at MIN — BUF -2.5\n\nLines move all week and the rankings move with them. blitz-odds.com",
+      "text": "Week 9 is on the board: fifteen games, ranked by confidence.\n\nBiggest favorite so far:\nARI at SEA — SEA -11.5\n\nClosest:\nCLE at NO — NO -2.5\n\nLines move all week and the rankings move with them. blitz-odds.com",
       "dueAt": "2026-11-03T14:52:00.000Z",
       "scheduledAt": "2026-11-02T14:00:30.050Z",
-      "lastCheckedAt": "2026-11-02T14:00:30.050Z"
+      "lastCheckedAt": "2026-11-03T14:00:20.092Z",
+      "updatedAt": "2026-11-03T14:00:20.092Z"
+    },
+    "2026-w9-wed": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6ae9e8f77a88f34c1e94b75e",
+      "text": "Top of the Week 9 board as of Wednesday:\n\nARI at SEA — SEA -11.5\nLV at SF — SF -10\nNYJ at KC — KC -9.5\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
+      "dueAt": "2026-11-04T14:17:00.000Z",
+      "scheduledAt": "2026-11-03T14:00:20.092Z",
+      "lastCheckedAt": "2026-11-03T14:00:20.092Z"
     }
   },
   "runs": [
@@ -1582,6 +1593,28 @@
           "post": "2026-w9-tue",
           "action": "scheduled",
           "detail": "primary for 2026-11-03T09:52:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-03T14:00:20.092Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w8-mon",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w9-tue",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w9-wed",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-04T09:17:00-05:00"
         }
       ],
       "alerts": []

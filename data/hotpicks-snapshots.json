@@ -2841,6 +2841,492 @@
           }
         }
       }
+    },
+    "9": {
+      "week": 9,
+      "season": 2026,
+      "snapshotAt": "2026-11-03T22:00:23.499Z",
+      "picks": {
+        "topConfidence": [
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "GB",
+              "homeId": "NE",
+              "awayName": "Green Bay Packers",
+              "homeName": "New England Patriots"
+            },
+            "pickTeamId": "NE",
+            "pick": "New England Patriots",
+            "confidence": 0.8754002737008051,
+            "confidencePct": 88,
+            "summary": "New England Patriots — 88% confidence",
+            "advantage": "New England Patriots carries a 39.1-point rating edge over Green Bay Packers once offense, defense, injuries, and weather are graded. Green Bay Packers are without Micah Parsons (out), a real hit to their defense. The market agrees New England Patriots is favored, and 88% confidence shows how comfortably."
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "ARI",
+              "homeId": "SEA",
+              "awayName": "Arizona Cardinals",
+              "homeName": "Seattle Seahawks"
+            },
+            "pickTeamId": "SEA",
+            "pick": "Seattle Seahawks",
+            "confidence": 0.8239486772548841,
+            "confidencePct": 82,
+            "summary": "Seattle Seahawks — 82% confidence",
+            "advantage": "Seattle Seahawks carries a 30.8-point rating edge over Arizona Cardinals once offense, defense, injuries, and weather are graded. Arizona Cardinals are without Jeremiyah Love (out), a real hit to their offense. The market agrees Seattle Seahawks is favored, and 82% confidence shows how comfortably."
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "LAR",
+              "homeId": "WAS",
+              "awayName": "Los Angeles Rams",
+              "homeName": "Washington Commanders"
+            },
+            "pickTeamId": "LAR",
+            "pick": "Los Angeles Rams",
+            "confidence": 0.7465730129741834,
+            "confidencePct": 75,
+            "summary": "Los Angeles Rams — 75% confidence",
+            "advantage": "Los Angeles Rams carries a 29-point rating edge over Washington Commanders once offense, defense, injuries, and weather are graded. Washington Commanders are without Laremy Tunsil (out), a real hit to their offense. The market agrees Los Angeles Rams is favored, and 75% confidence shows how comfortably."
+          }
+        ],
+        "spreadPicks": [
+          {
+            "market": "spread",
+            "game": {
+              "awayId": "CIN",
+              "homeId": "ATL",
+              "awayName": "Cincinnati Bengals",
+              "homeName": "Atlanta Falcons"
+            },
+            "pickTeamId": "ATL",
+            "pick": "Atlanta Falcons +points",
+            "confidence": 0.610979125131783,
+            "confidencePct": 61,
+            "summary": "Atlanta Falcons to cover as the underdog",
+            "advantage": "The model's own line favors Atlanta Falcons while the market has them getting points. That's a lean, not an edge: against closing spreads the model's side covers about half the time, so weigh it as one opinion on the number."
+          },
+          {
+            "market": "spread",
+            "game": {
+              "awayId": "CLE",
+              "homeId": "NO",
+              "awayName": "Cleveland Browns",
+              "homeName": "New Orleans Saints"
+            },
+            "pickTeamId": "CLE",
+            "pick": "Cleveland Browns +points",
+            "confidence": 0.607012870131832,
+            "confidencePct": 61,
+            "summary": "Cleveland Browns to cover as the underdog",
+            "advantage": "The model's own line favors Cleveland Browns while the market has them getting points. That's a lean, not an edge: against closing spreads the model's side covers about half the time, so weigh it as one opinion on the number."
+          },
+          {
+            "market": "spread",
+            "game": {
+              "awayId": "DET",
+              "homeId": "MIA",
+              "awayName": "Detroit Lions",
+              "homeName": "Miami Dolphins"
+            },
+            "pickTeamId": "MIA",
+            "pick": "Miami Dolphins +points",
+            "confidence": 0.5724913391131481,
+            "confidencePct": 57,
+            "summary": "Miami Dolphins to cover as the underdog",
+            "advantage": "The model's own line favors Miami Dolphins while the market has them getting points. That's a lean, not an edge: against closing spreads the model's side covers about half the time, so weigh it as one opinion on the number."
+          }
+        ],
+        "moneylinePicks": [
+          {
+            "market": "moneyline",
+            "game": {
+              "awayId": "LV",
+              "homeId": "SF",
+              "awayName": "Las Vegas Raiders",
+              "homeName": "San Francisco 49ers"
+            },
+            "pickTeamId": "LV",
+            "pick": "Las Vegas Raiders +410",
+            "confidence": 0.522838778650831,
+            "confidencePct": 52,
+            "summary": "Las Vegas Raiders +410",
+            "advantage": "The model gives Las Vegas Raiders a 52% win probability against a price that implies 20% - a 33-point gap. That's the model's lean, not betting value: backtested, picks like this have not beaten the market's price."
+          },
+          {
+            "market": "moneyline",
+            "game": {
+              "awayId": "DET",
+              "homeId": "MIA",
+              "awayName": "Detroit Lions",
+              "homeName": "Miami Dolphins"
+            },
+            "pickTeamId": "MIA",
+            "pick": "Miami Dolphins +295",
+            "confidence": 0.5724913391131481,
+            "confidencePct": 57,
+            "summary": "Miami Dolphins +295",
+            "advantage": "The model gives Miami Dolphins a 57% win probability against a price that implies 25% - a 32-point gap. That's the model's lean, not betting value: backtested, picks like this have not beaten the market's price."
+          },
+          {
+            "market": "moneyline",
+            "game": {
+              "awayId": "GB",
+              "homeId": "NE",
+              "awayName": "Green Bay Packers",
+              "homeName": "New England Patriots"
+            },
+            "pickTeamId": "NE",
+            "pick": "New England Patriots -166",
+            "confidence": 0.8754002737008051,
+            "confidencePct": 88,
+            "summary": "New England Patriots -166",
+            "advantage": "The model gives New England Patriots a 88% win probability against a price that implies 62% - a 25-point gap. That's the model's lean, not betting value: backtested, picks like this have not beaten the market's price."
+          }
+        ],
+        "totalPicks": [
+          {
+            "market": "total",
+            "game": {
+              "awayId": "HOU",
+              "homeId": "LAC",
+              "awayName": "Houston Texans",
+              "homeName": "Los Angeles Chargers"
+            },
+            "pick": "Under 40.5",
+            "lean": "under",
+            "summary": "Under 40.5",
+            "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total, and not a measured edge against the posted number."
+          },
+          {
+            "market": "total",
+            "game": {
+              "awayId": "CIN",
+              "homeId": "ATL",
+              "awayName": "Cincinnati Bengals",
+              "homeName": "Atlanta Falcons"
+            },
+            "pick": "Over 52.5",
+            "lean": "over",
+            "summary": "Over 52.5",
+            "advantage": "Both offenses grade out well above these two defenses once injuries and weather are factored in - a directional lean toward more scoring, not a projected total, and not a measured edge against the posted number."
+          },
+          {
+            "market": "total",
+            "game": {
+              "awayId": "NYG",
+              "homeId": "PHI",
+              "awayName": "New York Giants",
+              "homeName": "Philadelphia Eagles"
+            },
+            "pick": "Under 39.5",
+            "lean": "under",
+            "summary": "Under 39.5",
+            "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total, and not a measured edge against the posted number."
+          }
+        ],
+        "spreadPick": {
+          "market": "spread",
+          "game": {
+            "awayId": "CIN",
+            "homeId": "ATL",
+            "awayName": "Cincinnati Bengals",
+            "homeName": "Atlanta Falcons"
+          },
+          "pickTeamId": "ATL",
+          "pick": "Atlanta Falcons +points",
+          "confidence": 0.610979125131783,
+          "confidencePct": 61,
+          "summary": "Atlanta Falcons to cover as the underdog",
+          "advantage": "The model's own line favors Atlanta Falcons while the market has them getting points. That's a lean, not an edge: against closing spreads the model's side covers about half the time, so weigh it as one opinion on the number."
+        },
+        "moneylinePick": {
+          "market": "moneyline",
+          "game": {
+            "awayId": "LV",
+            "homeId": "SF",
+            "awayName": "Las Vegas Raiders",
+            "homeName": "San Francisco 49ers"
+          },
+          "pickTeamId": "LV",
+          "pick": "Las Vegas Raiders +410",
+          "confidence": 0.522838778650831,
+          "confidencePct": 52,
+          "summary": "Las Vegas Raiders +410",
+          "advantage": "The model gives Las Vegas Raiders a 52% win probability against a price that implies 20% - a 33-point gap. That's the model's lean, not betting value: backtested, picks like this have not beaten the market's price."
+        },
+        "totalPick": {
+          "market": "total",
+          "game": {
+            "awayId": "HOU",
+            "homeId": "LAC",
+            "awayName": "Houston Texans",
+            "homeName": "Los Angeles Chargers"
+          },
+          "pick": "Under 40.5",
+          "lean": "under",
+          "summary": "Under 40.5",
+          "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total, and not a measured edge against the posted number."
+        }
+      },
+      "gradingContext": {
+        "GB-NE": {
+          "favorite": "NE",
+          "spread": -3,
+          "moneylineHome": -166,
+          "moneylineAway": 140,
+          "overUnder": 46.5,
+          "asOf": "2026-11-03T21:15:31.117Z",
+          "books": {
+            "draftkings": {
+              "favorite": "NE",
+              "spread": -3,
+              "moneylineHome": -166,
+              "moneylineAway": 140,
+              "overUnder": 46.5,
+              "asOf": "2026-11-03T21:15:31.117Z"
+            },
+            "fanduel": {
+              "favorite": "NE",
+              "spread": -3,
+              "moneylineHome": -158,
+              "moneylineAway": 134,
+              "overUnder": 46.5,
+              "asOf": "2026-11-03T21:15:31.117Z"
+            },
+            "betmgm": {
+              "favorite": "NE",
+              "spread": -3,
+              "moneylineHome": -165,
+              "moneylineAway": 138,
+              "overUnder": 47,
+              "asOf": "2026-11-03T21:15:31.117Z"
+            },
+            "caesars": {
+              "favorite": "NE",
+              "spread": -3,
+              "moneylineHome": -164,
+              "moneylineAway": 138,
+              "overUnder": 47,
+              "asOf": "2026-11-03T21:15:31.117Z"
+            }
+          }
+        },
+        "ARI-SEA": {
+          "favorite": "SEA",
+          "spread": -10.5,
+          "moneylineHome": -600,
+          "moneylineAway": 440,
+          "overUnder": 41.5,
+          "asOf": "2026-11-03T21:15:31.117Z",
+          "books": {
+            "draftkings": {
+              "favorite": "SEA",
+              "spread": -10.5,
+              "moneylineHome": -600,
+              "moneylineAway": 440,
+              "overUnder": 41.5,
+              "asOf": "2026-11-03T21:15:31.117Z"
+            },
+            "fanduel": {
+              "favorite": "SEA",
+              "spread": -10.5,
+              "moneylineHome": -650,
+              "moneylineAway": 480,
+              "overUnder": 42.5,
+              "asOf": "2026-11-03T21:15:31.117Z"
+            },
+            "betmgm": {
+              "favorite": "SEA",
+              "spread": -11,
+              "moneylineHome": -625,
+              "moneylineAway": 475,
+              "overUnder": 42,
+              "asOf": "2026-11-03T21:15:31.117Z"
+            },
+            "caesars": {
+              "favorite": "SEA",
+              "spread": -10.5,
+              "moneylineHome": -625,
+              "moneylineAway": 450,
+              "overUnder": 42,
+              "asOf": "2026-11-03T21:15:31.117Z"
+            }
+          }
+        },
+        "LAR-WAS": {
+          "favorite": "LAR",
+          "spread": -5.5,
+          "moneylineHome": 200,
+          "moneylineAway": -245,
+          "overUnder": 47.5,
+          "asOf": "2026-11-03T21:15:31.114Z",
+          "books": {
+            "draftkings": {
+              "favorite": "LAR",
+              "spread": -5.5,
+              "moneylineHome": 200,
+              "moneylineAway": -245,
+              "overUnder": 47.5,
+              "asOf": "2026-11-03T21:15:31.114Z"
+            },
+            "fanduel": {
+              "favorite": "LAR",
+              "spread": -5.5,
+              "moneylineHome": 205,
+              "moneylineAway": -250,
+              "overUnder": 47.5,
+              "asOf": "2026-11-03T21:15:31.114Z"
+            },
+            "betmgm": {
+              "favorite": "LAR",
+              "spread": -5.5,
+              "moneylineHome": 195,
+              "moneylineAway": -235,
+              "overUnder": 47.5,
+              "asOf": "2026-11-03T21:15:31.114Z"
+            },
+            "caesars": {
+              "favorite": "LAR",
+              "spread": -5.5,
+              "moneylineHome": 200,
+              "moneylineAway": -245,
+              "overUnder": 47.5,
+              "asOf": "2026-11-03T21:15:31.114Z"
+            }
+          }
+        },
+        "CIN-ATL": {
+          "favorite": "CIN",
+          "spread": -3,
+          "moneylineHome": 136,
+          "moneylineAway": -162,
+          "overUnder": 52.5,
+          "asOf": "2026-11-03T21:15:31.111Z",
+          "books": {
+            "draftkings": {
+              "favorite": "CIN",
+              "spread": -3,
+              "moneylineHome": 136,
+              "moneylineAway": -162,
+              "overUnder": 52.5,
+              "asOf": "2026-11-03T21:15:31.111Z"
+            },
+            "fanduel": {
+              "favorite": "CIN",
+              "spread": -3,
+              "moneylineHome": 138,
+              "moneylineAway": -164,
+              "overUnder": 52.5,
+              "asOf": "2026-11-03T21:15:31.111Z"
+            },
+            "betmgm": {
+              "favorite": "CIN",
+              "spread": -3,
+              "moneylineHome": 140,
+              "moneylineAway": -165,
+              "overUnder": 53,
+              "asOf": "2026-11-03T21:15:31.111Z"
+            },
+            "caesars": {
+              "favorite": "CIN",
+              "spread": -3,
+              "moneylineHome": 139,
+              "moneylineAway": -164,
+              "overUnder": 52.5,
+              "asOf": "2026-11-03T21:15:31.111Z"
+            }
+          }
+        },
+        "LV-SF": {
+          "favorite": "SF",
+          "spread": -10,
+          "moneylineHome": -550,
+          "moneylineAway": 410,
+          "overUnder": 52.5,
+          "asOf": "2026-11-03T21:15:31.118Z",
+          "books": {
+            "draftkings": {
+              "favorite": "SF",
+              "spread": -10,
+              "moneylineHome": -550,
+              "moneylineAway": 410,
+              "overUnder": 52.5,
+              "asOf": "2026-11-03T21:15:31.118Z"
+            },
+            "fanduel": {
+              "favorite": "SF",
+              "spread": -9.5,
+              "moneylineHome": -590,
+              "moneylineAway": 430,
+              "overUnder": 52.5,
+              "asOf": "2026-11-03T21:15:31.118Z"
+            },
+            "betmgm": {
+              "favorite": "SF",
+              "spread": -10,
+              "moneylineHome": -525,
+              "moneylineAway": 400,
+              "overUnder": 52.5,
+              "asOf": "2026-11-03T21:15:31.118Z"
+            },
+            "caesars": {
+              "favorite": "SF",
+              "spread": -10,
+              "moneylineHome": -480,
+              "moneylineAway": 375,
+              "overUnder": 52.5,
+              "asOf": "2026-11-03T21:15:31.118Z"
+            }
+          }
+        },
+        "HOU-LAC": {
+          "favorite": "HOU",
+          "spread": -4.5,
+          "moneylineHome": 170,
+          "moneylineAway": -205,
+          "overUnder": 40.5,
+          "asOf": "2026-11-03T21:15:31.116Z",
+          "books": {
+            "draftkings": {
+              "favorite": "HOU",
+              "spread": -4.5,
+              "moneylineHome": 170,
+              "moneylineAway": -205,
+              "overUnder": 40.5,
+              "asOf": "2026-11-03T21:15:31.116Z"
+            },
+            "fanduel": {
+              "favorite": "HOU",
+              "spread": -4.5,
+              "moneylineHome": 190,
+              "moneylineAway": -230,
+              "overUnder": 40.5,
+              "asOf": "2026-11-03T21:15:31.116Z"
+            },
+            "betmgm": {
+              "favorite": "HOU",
+              "spread": -5,
+              "moneylineHome": 180,
+              "moneylineAway": -220,
+              "overUnder": 41,
+              "asOf": "2026-11-03T21:15:31.116Z"
+            },
+            "caesars": {
+              "favorite": "HOU",
+              "spread": -4.5,
+              "moneylineHome": 177,
+              "moneylineAway": -213,
+              "overUnder": 40.5,
+              "asOf": "2026-11-03T21:15:31.116Z"
+            }
+          }
+        }
+      }
     }
   }
 }

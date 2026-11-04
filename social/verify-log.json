@@ -486,23 +486,34 @@
       "bufferStatus": "sent"
     },
     "2026-w9-tue": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ae8977f09c35c01e8d0d9b1",
       "text": "Week 9 is on the board: fifteen games, ranked by confidence.\n\nBiggest favorite so far:\nARI at SEA — SEA -11.5\n\nClosest:\nCLE at NO — NO -2.5\n\nLines move all week and the rankings move with them. blitz-odds.com",
       "dueAt": "2026-11-03T14:52:00.000Z",
       "scheduledAt": "2026-11-02T14:00:30.050Z",
       "lastCheckedAt": "2026-11-03T14:00:20.092Z",
-      "updatedAt": "2026-11-03T14:00:20.092Z"
+      "updatedAt": "2026-11-03T14:00:20.092Z",
+      "bufferStatus": "sent"
     },
     "2026-w9-wed": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6ae9e8f77a88f34c1e94b75e",
-      "text": "Top of the Week 9 board as of Wednesday:\n\nARI at SEA — SEA -11.5\nLV at SF — SF -10\nNYJ at KC — KC -9.5\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
+      "text": "Top of the Week 9 board as of Wednesday:\n\nARI at SEA — SEA -12.5\nJAX at BAL — JAX -10\nLV at SF — SF -10\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
       "dueAt": "2026-11-04T14:17:00.000Z",
       "scheduledAt": "2026-11-03T14:00:20.092Z",
-      "lastCheckedAt": "2026-11-03T14:00:20.092Z"
+      "lastCheckedAt": "2026-11-04T14:00:19.260Z",
+      "updatedAt": "2026-11-04T14:00:19.260Z"
+    },
+    "2026-w9-thu": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6aeb3a7b4a32c52d4d241dc3",
+      "text": "Thursday night: Jaguars at Ravens, JAX -10, O/U 40.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
+      "dueAt": "2026-11-05T14:03:00.000Z",
+      "scheduledAt": "2026-11-04T14:00:19.260Z",
+      "lastCheckedAt": "2026-11-04T14:00:19.260Z"
     }
   },
   "runs": [
@@ -1615,6 +1626,28 @@
           "post": "2026-w9-wed",
           "action": "scheduled",
           "detail": "primary for 2026-11-04T09:17:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-04T14:00:19.260Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w9-tue",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w9-wed",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w9-thu",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-05T09:03:00-05:00"
         }
       ],
       "alerts": []

@@ -479,14 +479,12 @@
         "name": "Matthew Stafford",
         "position": "QB",
         "impactScore": 8,
-        "status": "questionable",
+        "status": "active",
         "espnId": "12483",
-        "statusUpdatedAt": "2026-11-02T23:11Z",
+        "statusUpdatedAt": "2026-11-05T00:36Z",
         "source": "auto",
-        "injury": {
-          "type": "Arm",
-          "note": "Stafford left the locker room after Sunday's 24-9 win over the Charger with a bag of ice wrapped to his right arm, and Rams coach Sean McVay acknowledged Monday that the quarterback has been dealing with some arm soreness, Adam Grosbard of The Orange County Register reports."
-        }
+        "injury": null,
+        "activatedDate": "2026-11-05"
       },
       {
         "name": "Puka Nacua",
@@ -3358,9 +3356,12 @@
         "position": "WR",
         "espnId": "4567156",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-01T13:26Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Foot",
+          "note": "Burks (foot) did not practice Wednesday, Ben Standig of The Team 980 Washington D.C. reports."
+        },
+        "statusUpdatedAt": "2026-11-05T00:39Z",
         "source": "auto",
         "activatedDate": "2026-11-01"
       },
@@ -3426,10 +3427,13 @@
         "name": "Sam Cosmi",
         "position": "G",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "note": "questionable"
+        },
         "espnId": "4262199",
-        "statusUpdatedAt": "2026-10-09T21:45Z",
+        "statusUpdatedAt": "2026-11-05T00:33Z",
         "source": "auto",
         "activatedDate": "2026-10-09"
       },

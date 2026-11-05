@@ -497,23 +497,34 @@
       "bufferStatus": "sent"
     },
     "2026-w9-wed": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6ae9e8f77a88f34c1e94b75e",
       "text": "Top of the Week 9 board as of Wednesday:\n\nARI at SEA — SEA -12.5\nJAX at BAL — JAX -10\nLV at SF — SF -10\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
       "dueAt": "2026-11-04T14:17:00.000Z",
       "scheduledAt": "2026-11-03T14:00:20.092Z",
       "lastCheckedAt": "2026-11-04T14:00:19.260Z",
-      "updatedAt": "2026-11-04T14:00:19.260Z"
+      "updatedAt": "2026-11-04T14:00:19.260Z",
+      "bufferStatus": "sent"
     },
     "2026-w9-thu": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6aeb3a7b4a32c52d4d241dc3",
-      "text": "Thursday night: Jaguars at Ravens, JAX -10, O/U 40.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
+      "text": "Thursday night: Jaguars at Ravens, JAX -10, O/U 39.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
       "dueAt": "2026-11-05T14:03:00.000Z",
       "scheduledAt": "2026-11-04T14:00:19.260Z",
-      "lastCheckedAt": "2026-11-04T14:00:19.260Z"
+      "lastCheckedAt": "2026-11-05T14:00:19.363Z",
+      "updatedAt": "2026-11-05T14:00:19.363Z"
+    },
+    "2026-w9-fri": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6aec8bf5bfdb27db17f18ddc",
+      "text": "Confidence pool math: missing your top pick costs more than missing your bottom five combined.\n\nThe top of the sheet is about not losing. The bottom is where you can take a flyer.\n\nblitz-odds.com",
+      "dueAt": "2026-11-06T14:39:00.000Z",
+      "scheduledAt": "2026-11-05T14:00:19.363Z",
+      "lastCheckedAt": "2026-11-05T14:00:19.363Z"
     }
   },
   "runs": [
@@ -1648,6 +1659,28 @@
           "post": "2026-w9-thu",
           "action": "scheduled",
           "detail": "primary for 2026-11-05T09:03:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-05T14:00:19.363Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w9-wed",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w9-thu",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w9-fri",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-06T09:39:00-05:00"
         }
       ],
       "alerts": []

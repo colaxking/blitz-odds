@@ -39775,12 +39775,12 @@
       "snapshotDate": "2026-11-06T00:00:16.449Z",
       "inputsFrozenAt": "2026-11-06T00:00:16.449Z",
       "inputsCapturedAt": {
-        "ARI": "2026-11-06T01:00:16.096Z",
+        "ARI": "2026-11-06T02:00:16.778Z",
         "ATL": "2026-11-06T01:00:16.096Z",
         "BAL": "2026-11-06T01:00:16.096Z",
-        "BUF": "2026-11-06T01:00:16.096Z",
+        "BUF": "2026-11-06T02:00:16.778Z",
         "CAR": "2026-11-06T01:00:16.096Z",
-        "CHI": "2026-11-06T01:00:16.096Z",
+        "CHI": "2026-11-06T02:00:16.778Z",
         "CIN": "2026-11-06T01:00:16.096Z",
         "CLE": "2026-11-06T01:00:16.096Z",
         "DAL": "2026-11-06T01:00:16.096Z",
@@ -39795,7 +39795,7 @@
         "LAC": "2026-11-06T01:00:16.096Z",
         "LAR": "2026-11-06T01:00:16.096Z",
         "MIA": "2026-11-06T01:00:16.096Z",
-        "MIN": "2026-11-06T01:00:16.096Z",
+        "MIN": "2026-11-06T02:00:16.778Z",
         "NE": "2026-11-06T01:00:16.096Z",
         "NO": "2026-11-06T01:00:16.096Z",
         "NYG": "2026-11-06T01:00:16.096Z",
@@ -39803,8 +39803,8 @@
         "PHI": "2026-11-06T01:00:16.096Z",
         "PIT": "2026-11-06T00:00:16.449Z",
         "SF": "2026-11-06T01:00:16.096Z",
-        "SEA": "2026-11-06T01:00:16.096Z",
-        "TB": "2026-11-06T01:00:16.096Z",
+        "SEA": "2026-11-06T02:00:16.778Z",
+        "TB": "2026-11-06T02:00:16.778Z",
         "TEN": "2026-11-06T00:00:16.449Z",
         "WAS": "2026-11-06T01:00:16.096Z"
       },
@@ -40503,9 +40503,12 @@
             "position": "CB",
             "espnId": "4698113",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-01T16:39Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-06T00:38Z",
             "source": "auto",
             "activatedDate": "2026-11-01"
           },
@@ -40700,14 +40703,14 @@
             "name": "Nate Wiggins",
             "position": "CB",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "injury": {
-              "type": "Illness",
-              "note": "Wiggins (illness) is officially listed as questionable for Thursday's game versus the Jaguars, Ryan Mink of the Ravens' official site reports."
+              "type": "Neck",
+              "note": "questionable"
             },
             "activatedDate": "2026-11-03",
             "espnId": "4601278",
-            "statusUpdatedAt": "2026-11-05T01:06Z",
+            "statusUpdatedAt": "2026-11-04T20:17Z",
             "source": "auto"
           },
           {
@@ -42265,23 +42268,22 @@
             "position": "RB",
             "espnId": "4882093",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-05T23:50Z",
-            "source": "auto",
-            "activatedDate": "2026-11-05"
+            "status": "questionable",
+            "injury": {
+              "type": "Ankle",
+              "note": "Tuten was a non-participant at Monday's walkthrough due to ankle and foot injuries."
+            },
+            "statusUpdatedAt": "2026-11-03T00:43Z",
+            "source": "auto"
           },
           {
             "name": "Wesley Williams",
             "position": "DE",
             "espnId": "4832922",
             "impactScore": 5,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "inactive"
-            },
-            "statusUpdatedAt": "2026-11-05T23:48Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-02T18:53Z",
             "source": "auto",
             "activatedDate": "2026-11-02"
           },
@@ -44066,15 +44068,12 @@
             "name": "Anthony Bradford",
             "position": "RG",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Knee",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-11-05T02:35Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-06T00:33Z",
             "source": "auto",
             "espnId": "4429211",
-            "activatedDate": "2026-11-02"
+            "activatedDate": "2026-11-06"
           },
           {
             "name": "Jadarian Price",

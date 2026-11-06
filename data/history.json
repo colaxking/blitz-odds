@@ -39775,38 +39775,38 @@
       "snapshotDate": "2026-11-06T00:00:16.449Z",
       "inputsFrozenAt": "2026-11-06T00:00:16.449Z",
       "inputsCapturedAt": {
-        "ARI": "2026-11-06T02:00:16.778Z",
-        "ATL": "2026-11-06T01:00:16.096Z",
+        "ARI": "2026-11-06T03:00:16.053Z",
+        "ATL": "2026-11-06T03:00:16.053Z",
         "BAL": "2026-11-06T01:00:16.096Z",
-        "BUF": "2026-11-06T02:00:16.778Z",
-        "CAR": "2026-11-06T01:00:16.096Z",
-        "CHI": "2026-11-06T02:00:16.778Z",
-        "CIN": "2026-11-06T01:00:16.096Z",
-        "CLE": "2026-11-06T01:00:16.096Z",
-        "DAL": "2026-11-06T01:00:16.096Z",
-        "DEN": "2026-11-06T01:00:16.096Z",
-        "DET": "2026-11-06T01:00:16.096Z",
-        "GB": "2026-11-06T01:00:16.096Z",
-        "HOU": "2026-11-06T01:00:16.096Z",
-        "IND": "2026-11-06T01:00:16.096Z",
+        "BUF": "2026-11-06T03:00:16.053Z",
+        "CAR": "2026-11-06T03:00:16.053Z",
+        "CHI": "2026-11-06T03:00:16.053Z",
+        "CIN": "2026-11-06T03:00:16.053Z",
+        "CLE": "2026-11-06T03:00:16.053Z",
+        "DAL": "2026-11-06T03:00:16.053Z",
+        "DEN": "2026-11-06T03:00:16.053Z",
+        "DET": "2026-11-06T03:00:16.053Z",
+        "GB": "2026-11-06T03:00:16.053Z",
+        "HOU": "2026-11-06T03:00:16.053Z",
+        "IND": "2026-11-06T03:00:16.053Z",
         "JAX": "2026-11-06T01:00:16.096Z",
-        "KC": "2026-11-06T01:00:16.096Z",
-        "LV": "2026-11-06T01:00:16.096Z",
-        "LAC": "2026-11-06T01:00:16.096Z",
-        "LAR": "2026-11-06T01:00:16.096Z",
-        "MIA": "2026-11-06T01:00:16.096Z",
-        "MIN": "2026-11-06T02:00:16.778Z",
-        "NE": "2026-11-06T01:00:16.096Z",
-        "NO": "2026-11-06T01:00:16.096Z",
-        "NYG": "2026-11-06T01:00:16.096Z",
-        "NYJ": "2026-11-06T01:00:16.096Z",
-        "PHI": "2026-11-06T01:00:16.096Z",
+        "KC": "2026-11-06T03:00:16.053Z",
+        "LV": "2026-11-06T03:00:16.053Z",
+        "LAC": "2026-11-06T03:00:16.053Z",
+        "LAR": "2026-11-06T03:00:16.053Z",
+        "MIA": "2026-11-06T03:00:16.053Z",
+        "MIN": "2026-11-06T03:00:16.053Z",
+        "NE": "2026-11-06T03:00:16.053Z",
+        "NO": "2026-11-06T03:00:16.053Z",
+        "NYG": "2026-11-06T03:00:16.053Z",
+        "NYJ": "2026-11-06T03:00:16.053Z",
+        "PHI": "2026-11-06T03:00:16.053Z",
         "PIT": "2026-11-06T00:00:16.449Z",
-        "SF": "2026-11-06T01:00:16.096Z",
-        "SEA": "2026-11-06T02:00:16.778Z",
-        "TB": "2026-11-06T02:00:16.778Z",
+        "SF": "2026-11-06T03:00:16.053Z",
+        "SEA": "2026-11-06T03:00:16.053Z",
+        "TB": "2026-11-06T03:00:16.053Z",
         "TEN": "2026-11-06T00:00:16.449Z",
-        "WAS": "2026-11-06T01:00:16.096Z"
+        "WAS": "2026-11-06T03:00:16.053Z"
       },
       "teamStatsThroughWeek": 8,
       "teamStatsSeason": 2026,
@@ -41304,8 +41304,12 @@
             "position": "CB",
             "espnId": "4572036",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Heel",
+              "since": "2026-11",
+              "note": "Did not practice Wednesday (Nov. 4) with a heel injury per CBS Sports; Week 9 status pending."
+            },
             "statusUpdatedAt": "2026-11-05T18:51Z",
             "source": "auto",
             "activatedDate": "2026-11-05"
@@ -41370,7 +41374,7 @@
             "source": "auto",
             "injury": {
               "type": "Concussion",
-              "note": "Watson was placed in concussion protocol, the Browns announced Wednesday via the team's official X account."
+              "note": "In concussion protocol and did not practice Wednesday (Nov. 4) ahead of Week 9 vs. the Saints."
             }
           },
           {
@@ -41816,7 +41820,7 @@
             "injury": {
               "type": "Torn ACL + meniscus repair (left knee) - on reserve/PUP",
               "since": "2025-12",
-              "note": "Suffered a torn ACL plus meniscus repair in Week 15 last season vs. Denver. Green Bay made it official with Sunday's cutdown, moving Parsons from active/PUP to reserve/PUP, which rules him out of the first four games (vs. Minnesota, the Jets, Atlanta and Tampa Bay) and makes Week 5 the earliest he can return. Parsons has said his 'most optimistic' target is Week 6 (Oct. 18, SNF vs. his old team the Cowboys at Lambeau), but stressed there's no guarantee given the Packers' internal recovery protocol for ACL-plus injuries."
+              "note": "Returned to practice as a limited participant Wednesday (Nov. 4), opening his 21-day activation window; target is the Thanksgiving game vs. the Rams per CBS Sports."
             },
             "espnId": "4361423",
             "statusUpdatedAt": "2026-08-31T20:15:00.000Z",
@@ -42677,7 +42681,7 @@
             "injury": {
               "type": "Knee - arthroscopic surgery, on injured reserve",
               "since": "2026-09-13",
-              "note": "Garrett underwent arthroscopic surgery Monday, Sept. 14 on the knee that bothered him through training camp and is headed to injured reserve, per Tom Pelissero and Ian Rapoport. He played through lower-leg pain in the Week 1 opener in Melbourne and \"wasn't himself.\" HC Sean McVay said Monday there is no timeline for his return and that the Rams had thought the knee was something he could work through. IR sidelines him a minimum of four games - the Giants, Broncos, Eagles and Bills."
+              "note": "Returned to limited practice Wednesday (Nov. 4), opening his 21-day activation window, per CBS Sports."
             },
             "activatedDate": "2026-09-09"
           },
@@ -42701,8 +42705,8 @@
             "source": "auto",
             "espnId": "4697639",
             "injury": {
-              "type": "Shoulder",
-              "note": "out"
+              "type": "Shoulder - reaggravated, season-ending surgery",
+              "note": "Reaggravated his shoulder vs. the Chargers and needs season-ending surgery; headed to injured reserve per CBS Sports (Nov. 4)."
             },
             "activatedDate": "2026-10-10"
           },
@@ -44103,8 +44107,12 @@
             "name": "Emeka Egbuka",
             "position": "WR",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Foot",
+              "since": "2026-11",
+              "note": "Did not practice Wednesday (Nov. 4) with a foot injury per CBS Sports; Week 9 status pending."
+            },
             "statusUpdatedAt": "2026-11-05T20:55Z",
             "source": "auto",
             "espnId": "4567750",

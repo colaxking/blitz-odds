@@ -508,14 +508,15 @@
       "bufferStatus": "sent"
     },
     "2026-w9-thu": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6aeb3a7b4a32c52d4d241dc3",
       "text": "Thursday night: Jaguars at Ravens, JAX -10, O/U 39.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
       "dueAt": "2026-11-05T14:03:00.000Z",
       "scheduledAt": "2026-11-04T14:00:19.260Z",
       "lastCheckedAt": "2026-11-05T14:00:19.363Z",
-      "updatedAt": "2026-11-05T14:00:19.363Z"
+      "updatedAt": "2026-11-05T14:00:19.363Z",
+      "bufferStatus": "sent"
     },
     "2026-w9-fri": {
       "status": "scheduled",
@@ -524,7 +525,16 @@
       "text": "Confidence pool math: missing your top pick costs more than missing your bottom five combined.\n\nThe top of the sheet is about not losing. The bottom is where you can take a flyer.\n\nblitz-odds.com",
       "dueAt": "2026-11-06T14:39:00.000Z",
       "scheduledAt": "2026-11-05T14:00:19.363Z",
-      "lastCheckedAt": "2026-11-05T14:00:19.363Z"
+      "lastCheckedAt": "2026-11-06T14:00:19.664Z"
+    },
+    "2026-w9-sat": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6aeddd770b0f6e64a0c38721",
+      "text": "Survivor players: Week 9 has three favorites of 7.5 or more. Tempting.\n\nBefore you burn SF or KC, check who you'll still need later in the season. The survivor path planner in the Playbook tab maps it out.\n\nblitz-odds.com",
+      "dueAt": "2026-11-07T14:56:00.000Z",
+      "scheduledAt": "2026-11-06T14:00:19.664Z",
+      "lastCheckedAt": "2026-11-06T14:00:19.664Z"
     }
   },
   "runs": [
@@ -1681,6 +1691,28 @@
           "post": "2026-w9-fri",
           "action": "scheduled",
           "detail": "primary for 2026-11-06T09:39:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-06T14:00:19.664Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w9-thu",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w9-fri",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w9-sat",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-07T09:56:00-05:00"
         }
       ],
       "alerts": []

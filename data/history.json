@@ -39778,9 +39778,9 @@
         "ARI": "2026-11-08T21:00:14.190Z",
         "ATL": "2026-11-06T05:00:14.681Z",
         "BAL": "2026-11-06T01:00:16.096Z",
-        "BUF": "2026-11-08T21:00:14.190Z",
+        "BUF": "2026-11-08T22:00:15.870Z",
         "CAR": "2026-11-06T05:00:14.681Z",
-        "CHI": "2026-11-08T21:00:14.190Z",
+        "CHI": "2026-11-08T22:00:15.870Z",
         "CIN": "2026-11-06T05:00:14.681Z",
         "CLE": "2026-11-08T05:00:14.961Z",
         "DAL": "2026-11-08T05:00:14.961Z",
@@ -39795,7 +39795,7 @@
         "LAC": "2026-11-08T21:00:14.190Z",
         "LAR": "2026-11-08T05:00:14.961Z",
         "MIA": "2026-11-08T05:00:14.961Z",
-        "MIN": "2026-11-08T21:00:14.190Z",
+        "MIN": "2026-11-08T22:00:15.870Z",
         "NE": "2026-11-08T21:00:14.190Z",
         "NO": "2026-11-08T05:00:14.961Z",
         "NYG": "2026-11-08T05:00:14.961Z",
@@ -39804,7 +39804,7 @@
         "PIT": "2026-11-06T00:00:16.449Z",
         "SF": "2026-11-08T21:00:14.190Z",
         "SEA": "2026-11-08T21:00:14.190Z",
-        "TB": "2026-11-08T21:00:14.190Z",
+        "TB": "2026-11-08T22:00:15.870Z",
         "TEN": "2026-11-06T00:00:16.449Z",
         "WAS": "2026-11-08T05:00:14.961Z"
       },
@@ -40505,9 +40505,9 @@
             "impactScore": 5,
             "status": "active",
             "injury": null,
-            "statusUpdatedAt": "2026-11-08T20:02Z",
+            "statusUpdatedAt": "2026-11-01T16:39Z",
             "source": "auto",
-            "activatedDate": "2026-11-08"
+            "activatedDate": "2026-11-01"
           },
           {
             "name": "Garrett Williams",
@@ -41859,12 +41859,15 @@
             "name": "Aaron Banks",
             "position": "G",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-06T21:51Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-04T21:59Z",
             "source": "auto",
             "espnId": "4242390",
-            "activatedDate": "2026-11-06"
+            "activatedDate": "2026-10-28"
           },
           {
             "name": "Lukas Van Ness",
@@ -41999,12 +42002,9 @@
             "name": "Braden Smith",
             "position": "RT",
             "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "inactive"
-            },
-            "statusUpdatedAt": "2026-11-08T19:37Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-05T23:04Z",
             "source": "auto",
             "espnId": "3121595",
             "activatedDate": "2026-11-05"
@@ -42459,25 +42459,28 @@
             "position": "WR",
             "espnId": "4432775",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
-              "type": "Coach's Decision",
-              "note": "inactive"
+              "type": "Back",
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-11-08T19:59Z",
+            "statusUpdatedAt": "2026-11-05T22:42Z",
             "source": "auto",
-            "activatedDate": "2026-11-06"
+            "activatedDate": "2026-11-02"
           },
           {
             "name": "Darien Porter",
             "position": "CB",
             "espnId": "4430330",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-08T19:59Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Groin",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-01T18:19Z",
             "source": "auto",
-            "activatedDate": "2026-11-08"
+            "activatedDate": "2026-09-25"
           },
           {
             "name": "Jack Bech",
@@ -42495,12 +42498,9 @@
             "position": "WR",
             "espnId": "5150247",
             "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "Benson (coach's decision) is a healthy scratch for Sunday's battle against San Francisco."
-            },
-            "statusUpdatedAt": "2026-11-08T20:23Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-02T19:05Z",
             "source": "auto",
             "activatedDate": "2026-11-02"
           }
@@ -42633,12 +42633,9 @@
             "position": "WR",
             "espnId": "4426535",
             "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "inactive"
-            },
-            "statusUpdatedAt": "2026-11-08T19:39Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-02T19:07Z",
             "source": "auto",
             "activatedDate": "2026-11-02"
           }
@@ -42968,12 +42965,12 @@
             "name": "TreVeyon Henderson",
             "position": "RB",
             "impactScore": 7,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Illness",
-              "note": "In a statement posted to social media on Friday, Henderson -- who hasn't practiced since last Wednesday -- noted that he recently experienced \"an unexpected and unusual medical emergency involving a series of unexplained neurological symptoms,\" Mike Reiss of ESPN reports."
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-11-06T16:39Z",
+            "statusUpdatedAt": "2026-11-03T13:03Z",
             "source": "auto",
             "espnId": "4432710",
             "activatedDate": "2026-10-18"
@@ -43004,12 +43001,12 @@
             "name": "A.J. Brown",
             "position": "WR",
             "impactScore": 9,
-            "status": "out",
+            "status": "questionable",
             "injury": {
-              "type": "Knee",
-              "note": "Brown (knee/ankle) remained sidelined at practice Friday, Doug Kyed of the Boston Herald reports."
+              "type": "Ankle",
+              "note": "When asked whether Brown (ankle/knee) might practice at some point this week, coach Mike Vrabel said Monday, \"We'll see,\" Doug Kyed of the Boston Herald reports."
             },
-            "statusUpdatedAt": "2026-11-06T17:09Z",
+            "statusUpdatedAt": "2026-11-02T16:43Z",
             "source": "auto",
             "espnId": "4047646",
             "activatedDate": "2026-10-21"
@@ -43019,22 +43016,28 @@
             "position": "CB",
             "espnId": "3916923",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-06T20:47Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Neck",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-04T21:56Z",
             "source": "auto",
-            "activatedDate": "2026-11-06"
+            "activatedDate": "2026-11-01"
           },
           {
             "name": "Dre'Mont Jones",
             "position": "DE",
             "espnId": "3915525",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-06T20:46Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Shoulder",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-04T21:58Z",
             "source": "auto",
-            "activatedDate": "2026-11-06"
+            "activatedDate": "2026-10-16"
           },
           {
             "name": "Mike Onwenu",
@@ -43730,11 +43733,14 @@
             "name": "Christian McCaffrey",
             "position": "RB",
             "impactScore": 9,
-            "status": "active",
-            "injury": null,
-            "activatedDate": "2026-11-06",
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "note": "McCaffrey is dealing with a mild hamstring strain rather than a quadriceps injury, and the 49ers believe he'll be ready following the team's Week 8 bye, David Lombardi of SF Standard reports."
+            },
+            "activatedDate": "2026-10-25",
             "espnId": "3117251",
-            "statusUpdatedAt": "2026-11-06T22:12Z",
+            "statusUpdatedAt": "2026-10-26T22:12Z",
             "source": "auto"
           },
           {
@@ -43770,13 +43776,13 @@
             "name": "Mike Evans",
             "position": "WR",
             "impactScore": 8,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Achilles",
-              "note": "Evans (Achilles) didn't participate in the portion of Friday's practice open to the media, Nick Wagoner of ESPN.com reports."
+              "note": "Evans (Achilles) is expected to return after San Francisco's Week 8 bye, David Lombardi of SF Standard reports."
             },
             "espnId": "16737",
-            "statusUpdatedAt": "2026-11-06T20:50Z",
+            "statusUpdatedAt": "2026-10-26T22:15Z",
             "source": "auto",
             "activatedDate": "2026-10-19"
           },
@@ -43784,24 +43790,26 @@
             "name": "Nick Bosa",
             "position": "Edge",
             "impactScore": 9,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "note": "Head coach Kyle Shanahan indicated Monday that Bosa (knee) \"has a chance\" to return following the 49ers' Week 8 bye, David Lombardi of SFStandard.com reports."
+            },
             "espnId": "4040605",
-            "statusUpdatedAt": "2026-11-06T23:28Z",
-            "source": "auto",
-            "activatedDate": "2026-11-06"
+            "statusUpdatedAt": "2026-10-26T23:05Z",
+            "source": "auto"
           },
           {
             "name": "Christian Kirk",
             "position": "WR",
             "espnId": "3895856",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
-              "type": "Knee - Meniscus",
-              "note": "Kirk (knee) will miss Sunday's game against Las Vegas and may need surgery for a meniscus injury, David Lombardi of SFStandard.com reports."
+              "type": "Knee",
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-11-06T22:02Z",
+            "statusUpdatedAt": "2026-11-04T23:28Z",
             "source": "auto",
             "activatedDate": "2026-10-26"
           },
@@ -43899,24 +43907,24 @@
             "position": "DE",
             "espnId": "4039029",
             "impactScore": 4,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "inactive"
-            },
-            "statusUpdatedAt": "2026-11-08T20:01Z",
-            "source": "auto"
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
+            "source": "curated"
           },
           {
             "name": "Demarcus Robinson",
             "position": "WR",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-07T21:44Z",
-            "source": "auto",
-            "espnId": "3043116",
-            "activatedDate": "2026-11-07"
+            "status": "out",
+            "injury": {
+              "type": "High ankle sprain",
+              "since": "2026-09-20",
+              "note": "Robinson rolled his ankle untouched after a 20-yard catch in the second quarter of the Sept. 20 win over Miami and was carted off. HC Kyle Shanahan said it is believed to be a high ankle sprain, which typically means multiple weeks."
+            },
+            "statusUpdatedAt": "2026-09-21T17:20:00.000Z",
+            "source": "curated",
+            "espnId": "3043116"
           },
           {
             "name": "Brandon Aiyuk",
@@ -43935,13 +43943,13 @@
             "name": "Deebo Samuel Sr.",
             "position": "WR",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "Samuel (hamstring) didn't participate in the early portion of Friday's practice, Nick Wagoner of ESPN.com reports."
+              "note": "Samuel (hamstring) has a chance to return following the 49ers' Week 8 bye, Matt Maiocco of NBC Sports Bay Area reports."
             },
             "espnId": "3126486",
-            "statusUpdatedAt": "2026-11-06T21:06Z",
+            "statusUpdatedAt": "2026-10-26T22:35Z",
             "source": "auto"
           }
         ],
@@ -44057,12 +44065,15 @@
             "name": "Anthony Bradford",
             "position": "RG",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-06T00:33Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-05T02:35Z",
             "source": "auto",
             "espnId": "4429211",
-            "activatedDate": "2026-11-06"
+            "activatedDate": "2026-11-02"
           },
           {
             "name": "Jadarian Price",
@@ -44435,6 +44446,36 @@
         "DET-MIA": {
           "awayScore": 19,
           "homeScore": 9,
+          "final": true
+        },
+        "DAL-IND": {
+          "awayScore": 27,
+          "homeScore": 23,
+          "final": true
+        },
+        "NYJ-KC": {
+          "awayScore": 12,
+          "homeScore": 35,
+          "final": true
+        },
+        "CLE-NO": {
+          "awayScore": 22,
+          "homeScore": 23,
+          "final": true
+        },
+        "NYG-PHI": {
+          "awayScore": 19,
+          "homeScore": 11,
+          "final": true
+        },
+        "LAR-WAS": {
+          "awayScore": 20,
+          "homeScore": 13,
+          "final": true
+        },
+        "DEN-CAR": {
+          "awayScore": 26,
+          "homeScore": 21,
           "final": true
         }
       }

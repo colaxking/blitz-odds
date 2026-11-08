@@ -1508,9 +1508,12 @@
         "name": "Braden Smith",
         "position": "RT",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-05T23:04Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-11-08T19:37Z",
         "source": "auto",
         "espnId": "3121595",
         "activatedDate": "2026-11-05"
@@ -2816,9 +2819,12 @@
         "position": "WR",
         "espnId": "4426535",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-02T19:07Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-11-08T19:39Z",
         "source": "auto",
         "activatedDate": "2026-11-02"
       }
@@ -2838,9 +2844,12 @@
         "position": "TE",
         "espnId": "4880236",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-06T21:19Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Quadriceps",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-08T19:54Z",
         "source": "auto",
         "activatedDate": "2026-11-06"
       },
@@ -3887,6 +3896,19 @@
         "statusUpdatedAt": "2026-10-28T21:53Z",
         "source": "auto",
         "activatedDate": "2026-10-28"
+      },
+      {
+        "name": "Jaylen Waddle",
+        "position": "WR",
+        "espnId": "4372016",
+        "impactScore": 6,
+        "status": "out",
+        "injury": {
+          "type": "Head",
+          "note": "Waddle (concussion) has been ruled out for the remainder of Sunday's game against the Panthers, Parker Gabriel of The Denver Post reports."
+        },
+        "statusUpdatedAt": "2026-11-08T19:52Z",
+        "source": "auto"
       }
     ],
     "KC": [

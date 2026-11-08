@@ -414,10 +414,13 @@
         "position": "DE",
         "espnId": "4039029",
         "impactScore": 4,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-        "source": "curated"
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-11-08T20:01Z",
+        "source": "auto"
       },
       {
         "name": "Demarcus Robinson",
@@ -2646,14 +2649,11 @@
         "position": "CB",
         "espnId": "4698113",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Knee",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-11-06T00:38Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-11-08T20:02Z",
         "source": "auto",
-        "activatedDate": "2026-11-01"
+        "activatedDate": "2026-11-08"
       },
       {
         "name": "Garrett Williams",
@@ -2966,9 +2966,12 @@
         "position": "WR",
         "espnId": "4432775",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-06T00:11Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-11-08T19:59Z",
         "source": "auto",
         "activatedDate": "2026-11-06"
       },
@@ -2977,14 +2980,11 @@
         "position": "CB",
         "espnId": "4430330",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Groin",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-11-01T18:19Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-11-08T19:59Z",
         "source": "auto",
-        "activatedDate": "2026-09-25"
+        "activatedDate": "2026-11-08"
       },
       {
         "name": "Jack Bech",
@@ -3002,9 +3002,12 @@
         "position": "WR",
         "espnId": "5150247",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-02T19:05Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "Benson (coach's decision) is a healthy scratch for Sunday's battle against San Francisco."
+        },
+        "statusUpdatedAt": "2026-11-08T20:23Z",
         "source": "auto",
         "activatedDate": "2026-11-02"
       }

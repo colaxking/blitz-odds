@@ -1141,13 +1141,11 @@
         "position": "WR",
         "espnId": "4880281",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Hamstring",
-          "note": "Tyson (hamstring) was activated from injured reserve Saturday, but he remains questionable for Sunday's game against the Browns."
-        },
-        "statusUpdatedAt": "2026-11-07T21:09Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-11-08T16:41Z",
+        "source": "auto",
+        "activatedDate": "2026-11-08"
       },
       {
         "name": "Mason Tipton",
@@ -1224,14 +1222,12 @@
         "name": "Kelvin Banks Jr.",
         "position": "LT",
         "impactScore": 7,
-        "status": "questionable",
-        "injury": {
-          "type": "Ankle",
-          "note": "Banks (ankle) is listed as questionable for Sunday's game against the Browns."
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4685260",
-        "statusUpdatedAt": "2026-11-07T03:01Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-11-08T03:02Z",
+        "source": "auto",
+        "activatedDate": "2026-11-08"
       },
       {
         "name": "Barion Brown",
@@ -1906,13 +1902,13 @@
         "name": "Deshaun Watson",
         "position": "QB",
         "impactScore": 5,
-        "status": "questionable",
+        "status": "out",
         "espnId": "3122840",
-        "statusUpdatedAt": "2026-11-04T14:45Z",
+        "statusUpdatedAt": "2026-11-08T16:38Z",
         "source": "auto",
         "injury": {
           "type": "Concussion",
-          "note": "Watson was placed in concussion protocol, the Browns announced Wednesday via the team's official X account."
+          "note": "Watson (concussion) is inactive for Sunday's game against the Saints, Daniel Oyefusi of ESPN.com reports."
         }
       },
       {
@@ -2263,12 +2259,12 @@
         "name": "Joey Porter Jr.",
         "position": "CB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Ankle",
-          "note": "questionable"
+          "note": "inactive"
         },
-        "statusUpdatedAt": "2026-11-05T22:21Z",
+        "statusUpdatedAt": "2026-11-08T16:47Z",
         "source": "auto",
         "espnId": "4426506",
         "activatedDate": "2026-10-18"
@@ -2361,9 +2357,12 @@
         "name": "Tim Patrick",
         "position": "WR",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-02T19:16Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-11-08T16:39Z",
         "source": "auto",
         "espnId": "3134353",
         "activatedDate": "2026-11-02"
@@ -2864,9 +2863,12 @@
         "position": "WR",
         "espnId": "4249417",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-26T18:38Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-11-08T16:48Z",
         "source": "auto",
         "activatedDate": "2026-10-26"
       },
@@ -3358,14 +3360,12 @@
         "name": "Jer'Zhan Newton",
         "position": "DT",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Pectoral",
-          "note": "Newton (pectoral) is listed as questionable for Sunday's game against the Rams, Zach Selby of the Commanders' official site reports."
-        },
-        "statusUpdatedAt": "2026-11-07T01:37Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-11-07T20:53Z",
         "source": "auto",
-        "espnId": "4430560"
+        "espnId": "4430560",
+        "activatedDate": "2026-11-07"
       },
       {
         "name": "Frankie Luvu",
@@ -3589,14 +3589,12 @@
         "name": "Marist Liufau",
         "position": "LB",
         "impactScore": 5,
-        "status": "questionable",
-        "injury": {
-          "type": "Forearm",
-          "note": "questionable"
-        },
+        "status": "active",
+        "injury": null,
         "espnId": "4427816",
-        "statusUpdatedAt": "2026-11-07T19:46Z",
-        "source": "auto"
+        "statusUpdatedAt": "2026-11-08T02:15Z",
+        "source": "auto",
+        "activatedDate": "2026-11-08"
       },
       {
         "name": "Tyler Smith",
@@ -3624,12 +3622,12 @@
         "name": "DeMarvion Overshown",
         "position": "LB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Hamstring",
-          "note": "questionable"
+          "note": "inactive"
         },
-        "statusUpdatedAt": "2026-11-05T22:21Z",
+        "statusUpdatedAt": "2026-11-08T16:47Z",
         "source": "auto",
         "espnId": "4362088",
         "activatedDate": "2026-10-22"
@@ -3817,9 +3815,12 @@
         "position": "CB",
         "espnId": "4371946",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-01T19:59Z",
+        "status": "out",
+        "injury": {
+          "type": "Coach's Decision",
+          "note": "inactive"
+        },
+        "statusUpdatedAt": "2026-11-08T16:48Z",
         "source": "auto",
         "activatedDate": "2026-11-01"
       },

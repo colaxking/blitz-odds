@@ -39775,36 +39775,36 @@
       "snapshotDate": "2026-11-06T00:00:16.449Z",
       "inputsFrozenAt": "2026-11-06T00:00:16.449Z",
       "inputsCapturedAt": {
-        "ARI": "2026-11-08T20:00:14.344Z",
+        "ARI": "2026-11-08T21:00:14.190Z",
         "ATL": "2026-11-06T05:00:14.681Z",
         "BAL": "2026-11-06T01:00:16.096Z",
-        "BUF": "2026-11-08T20:00:14.344Z",
+        "BUF": "2026-11-08T21:00:14.190Z",
         "CAR": "2026-11-06T05:00:14.681Z",
-        "CHI": "2026-11-08T20:00:14.344Z",
+        "CHI": "2026-11-08T21:00:14.190Z",
         "CIN": "2026-11-06T05:00:14.681Z",
         "CLE": "2026-11-08T05:00:14.961Z",
         "DAL": "2026-11-08T05:00:14.961Z",
         "DEN": "2026-11-06T05:00:14.681Z",
         "DET": "2026-11-08T05:00:14.961Z",
-        "GB": "2026-11-08T20:00:14.344Z",
-        "HOU": "2026-11-08T05:00:14.961Z",
+        "GB": "2026-11-08T21:00:14.190Z",
+        "HOU": "2026-11-08T21:00:14.190Z",
         "IND": "2026-11-08T05:00:14.961Z",
         "JAX": "2026-11-06T01:00:16.096Z",
         "KC": "2026-11-08T05:00:14.961Z",
-        "LV": "2026-11-08T20:00:14.344Z",
-        "LAC": "2026-11-08T05:00:14.961Z",
+        "LV": "2026-11-08T21:00:14.190Z",
+        "LAC": "2026-11-08T21:00:14.190Z",
         "LAR": "2026-11-08T05:00:14.961Z",
         "MIA": "2026-11-08T05:00:14.961Z",
-        "MIN": "2026-11-08T20:00:14.344Z",
-        "NE": "2026-11-08T20:00:14.344Z",
+        "MIN": "2026-11-08T21:00:14.190Z",
+        "NE": "2026-11-08T21:00:14.190Z",
         "NO": "2026-11-08T05:00:14.961Z",
         "NYG": "2026-11-08T05:00:14.961Z",
         "NYJ": "2026-11-08T05:00:14.961Z",
         "PHI": "2026-11-08T05:00:14.961Z",
         "PIT": "2026-11-06T00:00:16.449Z",
-        "SF": "2026-11-08T20:00:14.344Z",
-        "SEA": "2026-11-08T20:00:14.344Z",
-        "TB": "2026-11-08T20:00:14.344Z",
+        "SF": "2026-11-08T21:00:14.190Z",
+        "SEA": "2026-11-08T21:00:14.190Z",
+        "TB": "2026-11-08T21:00:14.190Z",
         "TEN": "2026-11-06T00:00:16.449Z",
         "WAS": "2026-11-08T05:00:14.961Z"
       },
@@ -40503,14 +40503,11 @@
             "position": "CB",
             "espnId": "4698113",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Knee",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-11-06T00:38Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-08T20:02Z",
             "source": "auto",
-            "activatedDate": "2026-11-01"
+            "activatedDate": "2026-11-08"
           },
           {
             "name": "Garrett Williams",
@@ -42002,9 +41999,12 @@
             "name": "Braden Smith",
             "position": "RT",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-05T23:04Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-11-08T19:37Z",
             "source": "auto",
             "espnId": "3121595",
             "activatedDate": "2026-11-05"
@@ -42459,9 +42459,12 @@
             "position": "WR",
             "espnId": "4432775",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-06T00:11Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-11-08T19:59Z",
             "source": "auto",
             "activatedDate": "2026-11-06"
           },
@@ -42470,14 +42473,11 @@
             "position": "CB",
             "espnId": "4430330",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Groin",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-11-01T18:19Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-08T19:59Z",
             "source": "auto",
-            "activatedDate": "2026-09-25"
+            "activatedDate": "2026-11-08"
           },
           {
             "name": "Jack Bech",
@@ -42495,9 +42495,12 @@
             "position": "WR",
             "espnId": "5150247",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-02T19:05Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "Benson (coach's decision) is a healthy scratch for Sunday's battle against San Francisco."
+            },
+            "statusUpdatedAt": "2026-11-08T20:23Z",
             "source": "auto",
             "activatedDate": "2026-11-02"
           }
@@ -42630,9 +42633,12 @@
             "position": "WR",
             "espnId": "4426535",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-02T19:07Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-11-08T19:39Z",
             "source": "auto",
             "activatedDate": "2026-11-02"
           }
@@ -43893,10 +43899,13 @@
             "position": "DE",
             "espnId": "4039029",
             "impactScore": 4,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-09-19T01:12:51.000Z",
-            "source": "curated"
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "inactive"
+            },
+            "statusUpdatedAt": "2026-11-08T20:01Z",
+            "source": "auto"
           },
           {
             "name": "Demarcus Robinson",
@@ -44421,6 +44430,11 @@
         "CIN-ATL": {
           "awayScore": 34,
           "homeScore": 17,
+          "final": true
+        },
+        "DET-MIA": {
+          "awayScore": 19,
+          "homeScore": 9,
           "final": true
         }
       }

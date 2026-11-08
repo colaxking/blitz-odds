@@ -529,13 +529,14 @@
       "bufferStatus": "sent"
     },
     "2026-w9-sat": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6aeddd770b0f6e64a0c38721",
       "text": "Survivor players: Week 9 has three favorites of 7.5 or more. Tempting.\n\nBefore you burn SF or KC, check who you'll still need later in the season. The survivor path planner in the Playbook tab maps it out.\n\nblitz-odds.com",
       "dueAt": "2026-11-07T14:56:00.000Z",
       "scheduledAt": "2026-11-06T14:00:19.664Z",
-      "lastCheckedAt": "2026-11-07T14:00:17.339Z"
+      "lastCheckedAt": "2026-11-07T14:00:17.339Z",
+      "bufferStatus": "sent"
     },
     "2026-w9-sun": {
       "status": "scheduled",
@@ -544,7 +545,16 @@
       "text": "Kickoff in a few hours. Every game card has live score, down and distance, and last play once it starts — tap the bell on any game to get a push when it goes final.\n\nblitz-odds.com",
       "dueAt": "2026-11-08T14:07:00.000Z",
       "scheduledAt": "2026-11-07T14:00:17.339Z",
-      "lastCheckedAt": "2026-11-07T14:00:17.339Z"
+      "lastCheckedAt": "2026-11-08T14:00:17.921Z"
+    },
+    "2026-w9-mon": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6af08075562f2e6de9c08fe5",
+      "text": "Bills at Vikings tonight, 8:15 PM ET on ESPN. BUF -3, O/U 43.5.\n\nOne game left in Week 9. Week 10 lines go up tomorrow.\n\nblitz-odds.com",
+      "dueAt": "2026-11-09T14:06:00.000Z",
+      "scheduledAt": "2026-11-08T14:00:17.921Z",
+      "lastCheckedAt": "2026-11-08T14:00:17.921Z"
     }
   },
   "runs": [
@@ -1745,6 +1755,28 @@
           "post": "2026-w9-sun",
           "action": "scheduled",
           "detail": "primary for 2026-11-08T09:07:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-08T14:00:17.921Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w9-sat",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w9-sun",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w9-mon",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-09T09:06:00-05:00"
         }
       ],
       "alerts": []

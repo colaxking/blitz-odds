@@ -41,10 +41,13 @@
         "name": "Ben Brown",
         "position": "C",
         "impactScore": 3,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "note": "questionable"
+        },
         "espnId": "4362890",
-        "statusUpdatedAt": "2026-10-30T20:12Z",
+        "statusUpdatedAt": "2026-11-08T23:26Z",
         "source": "auto",
         "activatedDate": "2026-10-30"
       },
@@ -67,9 +70,12 @@
         "position": "CB",
         "espnId": "3916923",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-06T20:47Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-08T23:27Z",
         "source": "auto",
         "activatedDate": "2026-11-06"
       },

@@ -4,7 +4,7 @@
       "2": {
         "week": 2,
         "season": 2026,
-        "gradedAt": "2026-11-09T00:00:21.916Z",
+        "gradedAt": "2026-11-09T01:00:20.180Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -129,7 +129,7 @@
       "3": {
         "week": 3,
         "season": 2026,
-        "gradedAt": "2026-11-09T00:00:22.017Z",
+        "gradedAt": "2026-11-09T01:00:20.249Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -254,7 +254,7 @@
       "4": {
         "week": 4,
         "season": 2026,
-        "gradedAt": "2026-11-09T00:00:22.090Z",
+        "gradedAt": "2026-11-09T01:00:20.289Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -379,7 +379,7 @@
       "5": {
         "week": 5,
         "season": 2026,
-        "gradedAt": "2026-11-09T00:00:22.173Z",
+        "gradedAt": "2026-11-09T01:00:20.335Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -504,7 +504,7 @@
       "6": {
         "week": 6,
         "season": 2026,
-        "gradedAt": "2026-11-09T00:00:22.315Z",
+        "gradedAt": "2026-11-09T01:00:20.421Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -629,7 +629,7 @@
       "7": {
         "week": 7,
         "season": 2026,
-        "gradedAt": "2026-11-09T00:00:22.440Z",
+        "gradedAt": "2026-11-09T01:00:20.574Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -754,7 +754,7 @@
       "8": {
         "week": 8,
         "season": 2026,
-        "gradedAt": "2026-11-09T00:00:22.501Z",
+        "gradedAt": "2026-11-09T01:00:20.630Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -875,28 +875,153 @@
             "homeScore": 27
           }
         }
+      },
+      "9": {
+        "week": 9,
+        "season": 2026,
+        "gradedAt": "2026-11-09T01:00:20.677Z",
+        "confidencePicks": [
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "GB",
+              "homeId": "NE",
+              "awayName": "Green Bay Packers",
+              "homeName": "New England Patriots"
+            },
+            "pickTeamId": "NE",
+            "pick": "New England Patriots",
+            "confidence": 0.8754002737008051,
+            "confidencePct": 88,
+            "summary": "New England Patriots — 88% confidence",
+            "advantage": "New England Patriots carries a 39.1-point rating edge over Green Bay Packers once offense, defense, injuries, and weather are graded. Green Bay Packers are without Micah Parsons (out), a real hit to their defense. The market agrees New England Patriots is favored, and 88% confidence shows how comfortably.",
+            "result": "loss",
+            "finalScore": {
+              "awayScore": 45,
+              "homeScore": 27
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "ARI",
+              "homeId": "SEA",
+              "awayName": "Arizona Cardinals",
+              "homeName": "Seattle Seahawks"
+            },
+            "pickTeamId": "SEA",
+            "pick": "Seattle Seahawks",
+            "confidence": 0.8239486772548841,
+            "confidencePct": 82,
+            "summary": "Seattle Seahawks — 82% confidence",
+            "advantage": "Seattle Seahawks carries a 30.8-point rating edge over Arizona Cardinals once offense, defense, injuries, and weather are graded. Arizona Cardinals are without Jeremiyah Love (out), a real hit to their offense. The market agrees Seattle Seahawks is favored, and 82% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 3,
+              "homeScore": 17
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "LAR",
+              "homeId": "WAS",
+              "awayName": "Los Angeles Rams",
+              "homeName": "Washington Commanders"
+            },
+            "pickTeamId": "LAR",
+            "pick": "Los Angeles Rams",
+            "confidence": 0.7465730129741834,
+            "confidencePct": 75,
+            "summary": "Los Angeles Rams — 75% confidence",
+            "advantage": "Los Angeles Rams carries a 29-point rating edge over Washington Commanders once offense, defense, injuries, and weather are graded. Washington Commanders are without Laremy Tunsil (out), a real hit to their offense. The market agrees Los Angeles Rams is favored, and 75% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 20,
+              "homeScore": 13
+            }
+          }
+        ],
+        "spreadPick": {
+          "market": "spread",
+          "game": {
+            "awayId": "CIN",
+            "homeId": "ATL",
+            "awayName": "Cincinnati Bengals",
+            "homeName": "Atlanta Falcons"
+          },
+          "pickTeamId": "ATL",
+          "pick": "Atlanta Falcons +points",
+          "confidence": 0.610979125131783,
+          "confidencePct": 61,
+          "summary": "Atlanta Falcons to cover as the underdog",
+          "advantage": "The model's own line favors Atlanta Falcons while the market has them getting points. That's a lean, not an edge: against closing spreads the model's side covers about half the time, so weigh it as one opinion on the number.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 34,
+            "homeScore": 17
+          }
+        },
+        "moneylinePick": {
+          "market": "moneyline",
+          "game": {
+            "awayId": "LV",
+            "homeId": "SF",
+            "awayName": "Las Vegas Raiders",
+            "homeName": "San Francisco 49ers"
+          },
+          "pickTeamId": "LV",
+          "pick": "Las Vegas Raiders +410",
+          "confidence": 0.522838778650831,
+          "confidencePct": 52,
+          "summary": "Las Vegas Raiders +410",
+          "advantage": "The model gives Las Vegas Raiders a 52% win probability against a price that implies 20% - a 33-point gap. That's the model's lean, not betting value: backtested, picks like this have not beaten the market's price.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 17,
+            "homeScore": 38
+          }
+        },
+        "totalPick": {
+          "market": "total",
+          "game": {
+            "awayId": "HOU",
+            "homeId": "LAC",
+            "awayName": "Houston Texans",
+            "homeName": "Los Angeles Chargers"
+          },
+          "pick": "Under 40.5",
+          "lean": "under",
+          "summary": "Under 40.5",
+          "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total, and not a measured edge against the posted number.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 44,
+            "homeScore": 22
+          }
+        }
       }
     }
   },
   "aggregate": {
     "season": 2026,
-    "updatedAt": "2026-11-09T00:00:22.563Z",
+    "updatedAt": "2026-11-09T01:00:20.677Z",
     "confidencePicks": {
-      "wins": 11,
-      "losses": 10
+      "wins": 13,
+      "losses": 11
     },
     "spreadPicks": {
       "wins": 2,
-      "losses": 5,
+      "losses": 6,
       "pushes": 0
     },
     "moneylinePicks": {
       "wins": 1,
-      "losses": 6
+      "losses": 7
     },
     "totalPicks": {
       "wins": 4,
-      "losses": 3,
+      "losses": 4,
       "pushes": 0
     },
     "byWeek": [
@@ -969,6 +1094,16 @@
         "spreadPick": "loss",
         "moneylinePick": "loss",
         "totalPick": "win"
+      },
+      {
+        "week": 9,
+        "confidencePicks": {
+          "wins": 2,
+          "losses": 1
+        },
+        "spreadPick": "loss",
+        "moneylinePick": "loss",
+        "totalPick": "loss"
       }
     ]
   }

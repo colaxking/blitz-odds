@@ -39778,9 +39778,9 @@
         "ARI": "2026-11-08T21:00:14.190Z",
         "ATL": "2026-11-06T05:00:14.681Z",
         "BAL": "2026-11-06T01:00:16.096Z",
-        "BUF": "2026-11-09T00:00:17.111Z",
+        "BUF": "2026-11-09T01:00:16.264Z",
         "CAR": "2026-11-06T05:00:14.681Z",
-        "CHI": "2026-11-09T00:00:17.111Z",
+        "CHI": "2026-11-09T01:00:16.264Z",
         "CIN": "2026-11-06T05:00:14.681Z",
         "CLE": "2026-11-08T05:00:14.961Z",
         "DAL": "2026-11-08T05:00:14.961Z",
@@ -39795,7 +39795,7 @@
         "LAC": "2026-11-08T21:00:14.190Z",
         "LAR": "2026-11-08T05:00:14.961Z",
         "MIA": "2026-11-08T05:00:14.961Z",
-        "MIN": "2026-11-09T00:00:17.111Z",
+        "MIN": "2026-11-09T01:00:16.264Z",
         "NE": "2026-11-08T21:00:14.190Z",
         "NO": "2026-11-08T05:00:14.961Z",
         "NYG": "2026-11-08T05:00:14.961Z",
@@ -39804,7 +39804,7 @@
         "PIT": "2026-11-06T00:00:16.449Z",
         "SF": "2026-11-08T21:00:14.190Z",
         "SEA": "2026-11-08T21:00:14.190Z",
-        "TB": "2026-11-09T00:00:17.111Z",
+        "TB": "2026-11-09T01:00:16.264Z",
         "TEN": "2026-11-06T00:00:16.449Z",
         "WAS": "2026-11-08T05:00:14.961Z"
       },
@@ -41123,13 +41123,13 @@
             "name": "Kyle Monangai",
             "position": "RB",
             "impactScore": 6,
-            "status": "questionable",
+            "status": "out",
             "injury": {
-              "type": "Thumb",
-              "note": "questionable"
+              "type": "Toe",
+              "note": "Monangai (thumb/toe) is inactive for Sunday's contest against the Buccaneers."
             },
             "espnId": "4608686",
-            "statusUpdatedAt": "2026-11-03T13:03Z",
+            "statusUpdatedAt": "2026-11-09T00:00Z",
             "source": "auto",
             "activatedDate": "2026-09-25"
           },
@@ -41191,14 +41191,11 @@
             "position": "CB",
             "espnId": "4426374",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Thumb",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-11-06T20:02Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-09T00:07Z",
             "source": "auto",
-            "activatedDate": "2026-10-22"
+            "activatedDate": "2026-11-09"
           },
           {
             "name": "Tyson Bagent",
@@ -41215,11 +41212,14 @@
             "name": "Case Keenum",
             "position": "QB",
             "impactScore": 4,
-            "status": "active",
+            "status": "out",
             "espnId": "15168",
-            "statusUpdatedAt": "2026-11-03T00:07Z",
+            "statusUpdatedAt": "2026-11-09T00:04Z",
             "source": "auto",
-            "injury": null,
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "Keenum (coach's decision) is inactive but serving as the Bears' emergency No. 3 quarterback for Sunday Night Football versus the Buccaneers."
+            },
             "activatedDate": "2026-11-03"
           },
           {
@@ -44103,15 +44103,12 @@
             "name": "Emeka Egbuka",
             "position": "WR",
             "impactScore": 7,
-            "status": "questionable",
-            "injury": {
-              "type": "Foot",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-11-06T17:17Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-08T23:59Z",
             "source": "auto",
             "espnId": "4567750",
-            "activatedDate": "2026-11-05"
+            "activatedDate": "2026-11-08"
           },
           {
             "name": "Bucky Irving",
@@ -44476,6 +44473,26 @@
         "DEN-CAR": {
           "awayScore": 26,
           "homeScore": 21,
+          "final": true
+        },
+        "HOU-LAC": {
+          "awayScore": 44,
+          "homeScore": 22,
+          "final": true
+        },
+        "GB-NE": {
+          "awayScore": 45,
+          "homeScore": 27,
+          "final": true
+        },
+        "LV-SF": {
+          "awayScore": 17,
+          "homeScore": 38,
+          "final": true
+        },
+        "ARI-SEA": {
+          "awayScore": 3,
+          "homeScore": 17,
           "final": true
         }
       }

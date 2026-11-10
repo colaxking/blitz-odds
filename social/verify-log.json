@@ -549,37 +549,36 @@
       "bufferStatus": "sent"
     },
     "2026-w9-mon": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6af08075562f2e6de9c08fe5",
       "text": "Bills at Vikings tonight, 8:15 PM ET on ESPN. BUF -3, O/U 43.5.\n\nOne game left in Week 9. Week 10 lines go up tomorrow.\n\nblitz-odds.com",
       "dueAt": "2026-11-09T14:06:00.000Z",
       "scheduledAt": "2026-11-08T14:00:17.921Z",
-      "lastCheckedAt": "2026-11-09T14:00:19.348Z"
+      "lastCheckedAt": "2026-11-09T14:00:19.348Z",
+      "bufferStatus": "sent"
     },
     "2026-w10-tue": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6af1d1f598f7332151581550",
-      "text": "Week 10 lines are up. Commanders at Giants opens it Thursday — NYG -1.5, O/U 43.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 10 confidence order: blitz-odds.com",
+      "text": "Week 10 lines are up. Commanders at Giants opens it Thursday — NYG -2.5, O/U 42.5.\n\nIf your pool locks at first kickoff, the clock starts Thursday.\n\nFull Week 10 confidence order: blitz-odds.com",
       "dueAt": "2026-11-10T14:52:00.000Z",
       "scheduledAt": "2026-11-09T14:00:19.348Z",
-      "lastCheckedAt": "2026-11-09T14:00:19.348Z"
+      "lastCheckedAt": "2026-11-10T14:00:20.643Z",
+      "updatedAt": "2026-11-10T14:00:20.643Z"
+    },
+    "2026-w10-wed": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6af3237b9a6b93e08745403e",
+      "text": "Week 10's biggest spreads as of Wednesday:\n\nJAX at TEN — JAX -10\nLAR at ARI — LAR -9.5\nBUF at NYJ — BUF -8.5\nLAC at BAL — BAL -5.5\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
+      "dueAt": "2026-11-11T14:17:00.000Z",
+      "scheduledAt": "2026-11-10T14:00:20.643Z",
+      "lastCheckedAt": "2026-11-10T14:00:20.643Z"
     }
   },
   "runs": [
-    {
-      "at": "2026-09-11T15:28:03.142Z",
-      "dryRun": false,
-      "actions": [
-        {
-          "post": "2026-w1-sat-deadline",
-          "action": "scheduled",
-          "detail": "primary for 2026-09-12T09:56:00-04:00"
-        }
-      ],
-      "alerts": []
-    },
     {
       "at": "2026-09-12T13:00:20.754Z",
       "dryRun": false,
@@ -1809,6 +1808,28 @@
           "post": "2026-w10-tue",
           "action": "scheduled",
           "detail": "primary for 2026-11-10T09:52:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-10T14:00:20.643Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w9-mon",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w10-tue",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w10-wed",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-11T09:17:00-05:00"
         }
       ],
       "alerts": []

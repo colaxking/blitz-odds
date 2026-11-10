@@ -39772,44 +39772,7 @@
     {
       "week": 9,
       "isDemo": false,
-      "snapshotDate": "2026-11-06T00:00:16.449Z",
-      "inputsFrozenAt": "2026-11-06T00:00:16.449Z",
-      "inputsCapturedAt": {
-        "ARI": "2026-11-08T21:00:14.190Z",
-        "ATL": "2026-11-06T05:00:14.681Z",
-        "BAL": "2026-11-06T01:00:16.096Z",
-        "BUF": "2026-11-10T01:00:19.240Z",
-        "CAR": "2026-11-06T05:00:14.681Z",
-        "CHI": "2026-11-09T01:00:16.264Z",
-        "CIN": "2026-11-06T05:00:14.681Z",
-        "CLE": "2026-11-08T05:00:14.961Z",
-        "DAL": "2026-11-08T05:00:14.961Z",
-        "DEN": "2026-11-06T05:00:14.681Z",
-        "DET": "2026-11-08T05:00:14.961Z",
-        "GB": "2026-11-08T21:00:14.190Z",
-        "HOU": "2026-11-08T21:00:14.190Z",
-        "IND": "2026-11-08T05:00:14.961Z",
-        "JAX": "2026-11-06T01:00:16.096Z",
-        "KC": "2026-11-08T05:00:14.961Z",
-        "LV": "2026-11-08T21:00:14.190Z",
-        "LAC": "2026-11-08T21:00:14.190Z",
-        "LAR": "2026-11-08T05:00:14.961Z",
-        "MIA": "2026-11-08T05:00:14.961Z",
-        "MIN": "2026-11-10T01:00:19.240Z",
-        "NE": "2026-11-08T21:00:14.190Z",
-        "NO": "2026-11-08T05:00:14.961Z",
-        "NYG": "2026-11-08T05:00:14.961Z",
-        "NYJ": "2026-11-08T05:00:14.961Z",
-        "PHI": "2026-11-08T05:00:14.961Z",
-        "PIT": "2026-11-06T00:00:16.449Z",
-        "SF": "2026-11-08T21:00:14.190Z",
-        "SEA": "2026-11-08T21:00:14.190Z",
-        "TB": "2026-11-09T01:00:16.264Z",
-        "TEN": "2026-11-06T00:00:16.449Z",
-        "WAS": "2026-11-08T05:00:14.961Z"
-      },
-      "teamStatsThroughWeek": 8,
-      "teamStatsSeason": 2026,
+      "snapshotDate": "2026-11-10T15:11:15Z",
       "note": "Week 9 of the 2026 season. Team stats and injury statuses are what the model was running on at kickoff (each team's captured on the last refresh before its own game), not the numbers updated after the week's games were played. Final scores fill in automatically as games finish.",
       "teamStats": {
         "ARI": {
@@ -44440,9 +44403,9 @@
           "homeScore": 17,
           "final": true
         },
-        "DET-MIA": {
-          "awayScore": 19,
-          "homeScore": 9,
+        "DEN-CAR": {
+          "awayScore": 26,
+          "homeScore": 21,
           "final": true
         },
         "DAL-IND": {
@@ -44453,6 +44416,11 @@
         "NYJ-KC": {
           "awayScore": 12,
           "homeScore": 35,
+          "final": true
+        },
+        "DET-MIA": {
+          "awayScore": 19,
+          "homeScore": 9,
           "final": true
         },
         "CLE-NO": {
@@ -44470,24 +44438,19 @@
           "homeScore": 13,
           "final": true
         },
-        "DEN-CAR": {
-          "awayScore": 26,
-          "homeScore": 21,
-          "final": true
-        },
         "HOU-LAC": {
           "awayScore": 44,
           "homeScore": 22,
           "final": true
         },
-        "GB-NE": {
-          "awayScore": 45,
-          "homeScore": 27,
-          "final": true
-        },
         "LV-SF": {
           "awayScore": 17,
           "homeScore": 38,
+          "final": true
+        },
+        "GB-NE": {
+          "awayScore": 45,
+          "homeScore": 27,
           "final": true
         },
         "ARI-SEA": {
@@ -44505,7 +44468,9 @@
           "homeScore": 6,
           "final": true
         }
-      }
+      },
+      "inputsFrozenAt": "2026-11-06T00:00:16.449Z",
+      "teamStatsThroughWeek": 8
     }
   ]
 }

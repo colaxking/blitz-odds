@@ -16,12 +16,12 @@
         "name": "TreVeyon Henderson",
         "position": "RB",
         "impactScore": 7,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Illness",
-          "note": "questionable"
+          "note": "out"
         },
-        "statusUpdatedAt": "2026-11-10T15:44Z",
+        "statusUpdatedAt": "2026-11-11T23:13Z",
         "source": "auto",
         "espnId": "4432710",
         "activatedDate": "2026-10-18"
@@ -70,12 +70,12 @@
         "position": "CB",
         "espnId": "3916923",
         "impactScore": 5,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Knee",
-          "note": "questionable"
+          "note": "out"
         },
-        "statusUpdatedAt": "2026-11-08T23:27Z",
+        "statusUpdatedAt": "2026-11-11T23:03Z",
         "source": "auto",
         "activatedDate": "2026-11-06"
       },
@@ -1250,10 +1250,13 @@
         "name": "Kelvin Banks Jr.",
         "position": "LT",
         "impactScore": 7,
-        "status": "active",
-        "injury": null,
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "questionable"
+        },
         "espnId": "4685260",
-        "statusUpdatedAt": "2026-11-08T03:02Z",
+        "statusUpdatedAt": "2026-11-11T23:14Z",
         "source": "auto",
         "activatedDate": "2026-11-08"
       },
@@ -3114,9 +3117,12 @@
         "name": "Aaron Banks",
         "position": "G",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-06T21:51Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-11T23:07Z",
         "source": "auto",
         "espnId": "4242390",
         "activatedDate": "2026-11-06"
@@ -3126,9 +3132,12 @@
         "position": "DE",
         "espnId": "4686906",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-23T21:16Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Back",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-11T23:06Z",
         "source": "auto",
         "activatedDate": "2026-10-23"
       },

@@ -1302,10 +1302,13 @@
         "name": "Brian Branch",
         "position": "S",
         "impactScore": 7,
-        "status": "active",
-        "statusUpdatedAt": "2026-11-06T22:48Z",
+        "status": "questionable",
+        "statusUpdatedAt": "2026-11-11T22:47Z",
         "source": "auto",
-        "injury": null,
+        "injury": {
+          "type": "Hip",
+          "note": "questionable"
+        },
         "espnId": "4692025",
         "activatedDate": "2026-11-06"
       },
@@ -1577,9 +1580,12 @@
         "position": "WR",
         "espnId": "4366031",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-25T16:05Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Hand",
+          "note": "Dell (hand) was limited in Wednesday's practice, Mary Kay Cabot of The Cleveland Plain Dealer reports."
+        },
+        "statusUpdatedAt": "2026-11-11T22:42Z",
         "source": "auto",
         "activatedDate": "2026-10-25"
       },
@@ -2706,9 +2712,12 @@
         "position": "WR",
         "espnId": "4432708",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-14T19:40Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Hamstring",
+          "note": "Harrison (hamstring) was limited in Wednesday's practice, Jonathan M. Alexander of the Houston Chronicle reports."
+        },
+        "statusUpdatedAt": "2026-11-11T22:45Z",
         "source": "auto",
         "activatedDate": "2026-10-14"
       }

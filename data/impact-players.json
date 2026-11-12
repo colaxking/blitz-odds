@@ -1055,9 +1055,12 @@
         "position": "CB",
         "espnId": "4572036",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-05T18:51Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-11T23:28Z",
         "source": "auto",
         "activatedDate": "2026-11-05"
       },
@@ -2322,9 +2325,12 @@
         "name": "DeShon Elliott",
         "position": "S",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-25T12:15Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-11T23:30Z",
         "source": "auto",
         "espnId": "3929846",
         "activatedDate": "2026-10-25"
@@ -2359,13 +2365,11 @@
         "position": "WR",
         "espnId": "4035656",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Calf",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-11-10T15:44Z",
-        "source": "auto"
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-11-11T23:31Z",
+        "source": "auto",
+        "activatedDate": "2026-11-11"
       }
     ],
     "NYJ": [
@@ -3694,12 +3698,12 @@
         "position": "WR",
         "espnId": "3676833",
         "impactScore": 6,
-        "status": "questionable",
+        "status": "out",
         "injury": {
           "type": "Ribs",
-          "note": "questionable"
+          "note": "Turpin (ribs) was limited in Wednesday's practice, Tommy Yarrish of the Cowboys' official site reports."
         },
-        "statusUpdatedAt": "2026-11-10T15:44Z",
+        "statusUpdatedAt": "2026-11-11T23:47Z",
         "source": "auto"
       }
     ],

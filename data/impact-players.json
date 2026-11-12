@@ -217,9 +217,12 @@
         "name": "Anthony Bradford",
         "position": "RG",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-06T00:33Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Knee",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-12T00:24Z",
         "source": "auto",
         "espnId": "4429211",
         "activatedDate": "2026-11-06"
@@ -494,11 +497,14 @@
         "name": "Myles Garrett",
         "position": "Edge",
         "impactScore": 8,
-        "status": "active",
+        "status": "questionable",
         "espnId": "3122132",
-        "statusUpdatedAt": "2026-11-07T17:48Z",
+        "statusUpdatedAt": "2026-11-12T00:32Z",
         "source": "auto",
-        "injury": null,
+        "injury": {
+          "type": "Knee",
+          "note": "Garrett (knee) was limited at Wednesday's walkthrough, Sarah Barshop of ESPN.com reports."
+        },
         "activatedDate": "2026-11-07"
       },
       {
@@ -2365,9 +2371,12 @@
         "position": "WR",
         "espnId": "4035656",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-11T23:31Z",
+        "status": "out",
+        "injury": {
+          "type": "Undisclosed",
+          "note": "Skowronek (calf) was a full participant in Wednesday's practice, Teresa Varley of the Steelers' official site reports."
+        },
+        "statusUpdatedAt": "2026-11-12T00:36Z",
         "source": "auto",
         "activatedDate": "2026-11-11"
       }

@@ -570,48 +570,37 @@
       "bufferStatus": "sent"
     },
     "2026-w10-wed": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6af3237b9a6b93e08745403e",
       "text": "Week 10's biggest spreads as of Wednesday:\n\nJAX at TEN — JAX -10.5\nLAR at ARI — LAR -9.5\nBUF at NYJ — BUF -8.5\nSEA at LV — SEA -6.5\n\nThat's the top of your confidence sheet. The question is the order — and the model doesn't always agree with the spread.\n\nblitz-odds.com",
       "dueAt": "2026-11-11T14:17:00.000Z",
       "scheduledAt": "2026-11-10T14:00:20.643Z",
       "lastCheckedAt": "2026-11-11T14:00:21.925Z",
-      "updatedAt": "2026-11-11T14:00:21.925Z"
+      "updatedAt": "2026-11-11T14:00:21.925Z",
+      "bufferStatus": "sent"
     },
     "2026-w10-thu": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6af474f800263add00a4feb2",
-      "text": "Commanders at Giants tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nCAR at NO — NO -2.5\nNE at DET — DET -2.5\nKC at ATL — KC -3.5\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
+      "text": "Commanders at Giants tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nCAR at NO — NO -2.5\nNE at DET — DET -2.5\nKC at ATL — KC -3\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
       "dueAt": "2026-11-12T14:03:00.000Z",
       "scheduledAt": "2026-11-11T14:00:21.925Z",
-      "lastCheckedAt": "2026-11-11T14:00:21.925Z"
+      "lastCheckedAt": "2026-11-12T14:00:20.807Z",
+      "updatedAt": "2026-11-12T14:00:20.807Z"
+    },
+    "2026-w10-fri": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6af5c676e7d7941c3fa41b79",
+      "text": "The most common confidence-pool mistake: ranking teams by how much you like them instead of how likely they are to win.\n\nA 3-point favorite you love still loses about four times in ten.\n\nblitz-odds.com",
+      "dueAt": "2026-11-13T14:39:00.000Z",
+      "scheduledAt": "2026-11-12T14:00:20.807Z",
+      "lastCheckedAt": "2026-11-12T14:00:20.807Z"
     }
   },
   "runs": [
-    {
-      "at": "2026-09-13T13:00:19.093Z",
-      "dryRun": false,
-      "actions": [
-        {
-          "post": "2026-w1-sat-deadline",
-          "action": "closed",
-          "detail": "sent"
-        },
-        {
-          "post": "2026-w1-sun-live",
-          "action": "verified",
-          "detail": "primary unchanged"
-        },
-        {
-          "post": "2026-w1-mon-grading",
-          "action": "scheduled",
-          "detail": "primary for 2026-09-14T09:06:00-04:00"
-        }
-      ],
-      "alerts": []
-    },
     {
       "at": "2026-09-14T13:00:21.595Z",
       "dryRun": false,
@@ -1846,6 +1835,28 @@
           "post": "2026-w10-thu",
           "action": "scheduled",
           "detail": "primary for 2026-11-12T09:03:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-12T14:00:20.807Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w10-wed",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w10-thu",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w10-fri",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-13T09:39:00-05:00"
         }
       ],
       "alerts": []

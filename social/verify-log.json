@@ -581,14 +581,15 @@
       "bufferStatus": "sent"
     },
     "2026-w10-thu": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6af474f800263add00a4feb2",
       "text": "Commanders at Giants tonight, 8:15 PM ET on Prime Video.\n\nThe three closest Sunday games right now:\nCAR at NO — NO -2.5\nNE at DET — DET -2.5\nKC at ATL — KC -3\n\nCoin flips. In a confidence pool, those are your 1s, 2s and 3s.\n\nblitz-odds.com",
       "dueAt": "2026-11-12T14:03:00.000Z",
       "scheduledAt": "2026-11-11T14:00:21.925Z",
       "lastCheckedAt": "2026-11-12T14:00:20.807Z",
-      "updatedAt": "2026-11-12T14:00:20.807Z"
+      "updatedAt": "2026-11-12T14:00:20.807Z",
+      "bufferStatus": "sent"
     },
     "2026-w10-fri": {
       "status": "scheduled",
@@ -597,32 +598,19 @@
       "text": "The most common confidence-pool mistake: ranking teams by how much you like them instead of how likely they are to win.\n\nA 3-point favorite you love still loses about four times in ten.\n\nblitz-odds.com",
       "dueAt": "2026-11-13T14:39:00.000Z",
       "scheduledAt": "2026-11-12T14:00:20.807Z",
-      "lastCheckedAt": "2026-11-12T14:00:20.807Z"
+      "lastCheckedAt": "2026-11-13T14:00:20.917Z"
+    },
+    "2026-w10-sat": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6af717f649bae9df2d0d11ab",
+      "text": "Survivor players: Week 10 has three favorites of 7.5 or more. Tempting.\n\nBefore you burn JAX or LAR, check who you'll still need later in the season. The survivor path planner in the Playbook tab maps it out.\n\nblitz-odds.com",
+      "dueAt": "2026-11-14T14:56:00.000Z",
+      "scheduledAt": "2026-11-13T14:00:20.917Z",
+      "lastCheckedAt": "2026-11-13T14:00:20.917Z"
     }
   },
   "runs": [
-    {
-      "at": "2026-09-14T13:00:21.595Z",
-      "dryRun": false,
-      "actions": [
-        {
-          "post": "2026-w1-sun-live",
-          "action": "closed",
-          "detail": "sent"
-        },
-        {
-          "post": "2026-w1-mon-grading",
-          "action": "verified",
-          "detail": "primary unchanged"
-        },
-        {
-          "post": "2026-w2-tue-lines-up",
-          "action": "scheduled",
-          "detail": "primary for 2026-09-15T09:52:00-04:00"
-        }
-      ],
-      "alerts": []
-    },
     {
       "at": "2026-09-15T13:00:21.984Z",
       "dryRun": false,
@@ -1857,6 +1845,28 @@
           "post": "2026-w10-fri",
           "action": "scheduled",
           "detail": "primary for 2026-11-13T09:39:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-13T14:00:20.917Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w10-thu",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w10-fri",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w10-sat",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-14T09:56:00-05:00"
         }
       ],
       "alerts": []

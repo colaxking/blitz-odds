@@ -2397,9 +2397,12 @@
         "position": "CB",
         "espnId": "4426817",
         "impactScore": 3,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-26T18:43Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Illness",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-13T21:23Z",
         "source": "auto",
         "activatedDate": "2026-10-26"
       },
@@ -2408,9 +2411,12 @@
         "position": "WR",
         "espnId": "4723820",
         "impactScore": 5,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-13T16:14Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Ankle",
+          "note": "Cooper (ankle), who was a full participant in Friday's practice, is listed as questionable for Sunday's game against the Bills."
+        },
+        "statusUpdatedAt": "2026-11-13T21:19Z",
         "source": "auto",
         "activatedDate": "2026-11-13"
       },
@@ -3092,14 +3098,11 @@
         "position": "WR",
         "espnId": "4431487",
         "impactScore": 6,
-        "status": "questionable",
-        "injury": {
-          "type": "Groin",
-          "note": "questionable"
-        },
-        "statusUpdatedAt": "2026-11-11T21:52Z",
+        "status": "active",
+        "injury": null,
+        "statusUpdatedAt": "2026-11-13T21:54Z",
         "source": "auto",
-        "activatedDate": "2026-10-23"
+        "activatedDate": "2026-11-13"
       },
       {
         "name": "Aaron Banks",

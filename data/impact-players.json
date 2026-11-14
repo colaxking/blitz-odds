@@ -1539,9 +1539,12 @@
         "name": "Braden Smith",
         "position": "RT",
         "impactScore": 6,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-11-09T21:14Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Illness",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-14T18:15Z",
         "source": "auto",
         "espnId": "3121595",
         "activatedDate": "2026-11-09"

@@ -44478,15 +44478,15 @@
       "snapshotDate": "2026-11-13T00:00:15.956Z",
       "inputsFrozenAt": "2026-11-13T00:00:15.956Z",
       "inputsCapturedAt": {
-        "ARI": "2026-11-15T20:00:15.494Z",
+        "ARI": "2026-11-15T21:00:13.619Z",
         "ATL": "2026-11-15T05:00:16.133Z",
-        "BAL": "2026-11-15T20:00:15.494Z",
+        "BAL": "2026-11-15T21:00:13.619Z",
         "BUF": "2026-11-15T05:00:16.133Z",
         "CAR": "2026-11-15T05:00:16.133Z",
         "CHI": "2026-11-13T00:00:15.956Z",
-        "CIN": "2026-11-15T20:00:15.494Z",
+        "CIN": "2026-11-15T21:00:13.619Z",
         "CLE": "2026-11-15T05:00:16.133Z",
-        "DAL": "2026-11-15T20:00:15.494Z",
+        "DAL": "2026-11-15T21:00:13.619Z",
         "DEN": "2026-11-13T00:00:15.956Z",
         "DET": "2026-11-15T05:00:16.133Z",
         "GB": "2026-11-15T05:00:16.133Z",
@@ -44494,9 +44494,9 @@
         "IND": "2026-11-15T05:00:16.133Z",
         "JAX": "2026-11-15T05:00:16.133Z",
         "KC": "2026-11-15T05:00:16.133Z",
-        "LV": "2026-11-15T20:00:15.494Z",
-        "LAC": "2026-11-15T20:00:15.494Z",
-        "LAR": "2026-11-15T05:00:16.133Z",
+        "LV": "2026-11-15T21:00:13.619Z",
+        "LAC": "2026-11-15T21:00:13.619Z",
+        "LAR": "2026-11-15T21:00:13.619Z",
         "MIA": "2026-11-15T05:00:16.133Z",
         "MIN": "2026-11-15T05:00:16.133Z",
         "NE": "2026-11-15T05:00:16.133Z",
@@ -44504,9 +44504,9 @@
         "NYG": "2026-11-13T01:00:14.071Z",
         "NYJ": "2026-11-15T05:00:16.133Z",
         "PHI": "2026-11-13T00:00:15.956Z",
-        "PIT": "2026-11-15T20:00:15.494Z",
-        "SF": "2026-11-15T20:00:15.494Z",
-        "SEA": "2026-11-15T20:00:15.494Z",
+        "PIT": "2026-11-15T21:00:13.619Z",
+        "SF": "2026-11-15T21:00:13.619Z",
+        "SEA": "2026-11-15T21:00:13.619Z",
         "TB": "2026-11-13T00:00:15.956Z",
         "TEN": "2026-11-15T05:00:16.133Z",
         "WAS": "2026-11-13T00:00:15.956Z"
@@ -45205,14 +45205,11 @@
             "position": "CB",
             "espnId": "4698113",
             "impactScore": 5,
-            "status": "questionable",
-            "injury": {
-              "type": "Knee",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-11-12T00:14Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-15T19:38Z",
             "source": "auto",
-            "activatedDate": "2026-11-08"
+            "activatedDate": "2026-11-15"
           },
           {
             "name": "Garrett Williams",
@@ -47182,12 +47179,12 @@
             "position": "WR",
             "espnId": "4432775",
             "impactScore": 6,
-            "status": "questionable",
+            "status": "out",
             "injury": {
               "type": "Back",
-              "note": "questionable"
+              "note": "Thornton (back) is inactive for Sunday's game against the Seahawks."
             },
-            "statusUpdatedAt": "2026-11-13T22:14Z",
+            "statusUpdatedAt": "2026-11-15T19:48Z",
             "source": "auto",
             "activatedDate": "2026-11-09"
           },
@@ -47218,9 +47215,12 @@
             "position": "WR",
             "espnId": "5150247",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-09T21:19Z",
+            "status": "out",
+            "injury": {
+              "type": "Coach's Decision",
+              "note": "Benson (coach's decision) is inactive for Sunday's game against the Seahawks."
+            },
+            "statusUpdatedAt": "2026-11-15T19:59Z",
             "source": "auto",
             "activatedDate": "2026-11-09"
           }
@@ -47293,13 +47293,13 @@
             "name": "Ladd McConkey",
             "position": "WR",
             "impactScore": 8,
-            "status": "questionable",
+            "status": "out",
             "injury": {
               "type": "Back",
-              "note": "questionable"
+              "note": "McConkey (back) won't travel to Baltimore with the Chargers for Monday's game against the Ravens and has been downgraded from questionable to out for Week 10 action."
             },
             "espnId": "4612826",
-            "statusUpdatedAt": "2026-11-08T21:19Z",
+            "statusUpdatedAt": "2026-11-15T19:52Z",
             "source": "auto",
             "activatedDate": "2026-10-29"
           },
@@ -47395,15 +47395,12 @@
             "name": "Myles Garrett",
             "position": "Edge",
             "impactScore": 8,
-            "status": "questionable",
+            "status": "active",
             "espnId": "3122132",
-            "statusUpdatedAt": "2026-11-12T00:32Z",
+            "statusUpdatedAt": "2026-11-15T19:42Z",
             "source": "auto",
-            "injury": {
-              "type": "Knee",
-              "note": "Garrett (knee) was limited at Wednesday's walkthrough, Sarah Barshop of ESPN.com reports."
-            },
-            "activatedDate": "2026-11-07"
+            "injury": null,
+            "activatedDate": "2026-11-15"
           },
           {
             "name": "Aaron Donald",
@@ -48392,15 +48389,12 @@
             "name": "Joey Porter Jr.",
             "position": "CB",
             "impactScore": 7,
-            "status": "questionable",
-            "injury": {
-              "type": "Ankle",
-              "note": "Porter (ankle) is listed as questionable for Sunday's game against the 49ers, Tommy Yarrish of the Cowboys' official site reports."
-            },
-            "statusUpdatedAt": "2026-11-14T00:56Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-15T14:13Z",
             "source": "auto",
             "espnId": "4426506",
-            "activatedDate": "2026-10-18"
+            "activatedDate": "2026-11-15"
           },
           {
             "name": "Gabriel Rubio",
@@ -48572,15 +48566,12 @@
             "name": "Dre Greenlaw",
             "position": "LB",
             "impactScore": 6,
-            "status": "questionable",
-            "statusUpdatedAt": "2026-11-12T02:20Z",
+            "status": "active",
+            "statusUpdatedAt": "2026-11-15T20:00Z",
             "source": "auto",
             "espnId": "3916903",
-            "injury": {
-              "type": "Knee",
-              "note": "Greenlaw registered eight tackles (five solo) and one fumble recovery during the 49ers' 38-17 win over the Raiders in Week 9."
-            },
-            "activatedDate": "2026-10-20"
+            "injury": null,
+            "activatedDate": "2026-11-15"
           },
           {
             "name": "Romello Height",
@@ -49185,6 +49176,11 @@
         "NE-DET": {
           "awayScore": 10,
           "homeScore": 35,
+          "final": true
+        },
+        "MIN-GB": {
+          "awayScore": 30,
+          "homeScore": 10,
           "final": true
         }
       }

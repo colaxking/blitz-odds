@@ -44478,15 +44478,15 @@
       "snapshotDate": "2026-11-13T00:00:15.956Z",
       "inputsFrozenAt": "2026-11-13T00:00:15.956Z",
       "inputsCapturedAt": {
-        "ARI": "2026-11-15T05:00:16.133Z",
+        "ARI": "2026-11-15T18:00:14.024Z",
         "ATL": "2026-11-15T05:00:16.133Z",
-        "BAL": "2026-11-15T05:00:16.133Z",
+        "BAL": "2026-11-15T18:00:14.024Z",
         "BUF": "2026-11-15T05:00:16.133Z",
         "CAR": "2026-11-15T05:00:16.133Z",
         "CHI": "2026-11-13T00:00:15.956Z",
-        "CIN": "2026-11-15T05:00:16.133Z",
+        "CIN": "2026-11-15T18:00:14.024Z",
         "CLE": "2026-11-15T05:00:16.133Z",
-        "DAL": "2026-11-15T05:00:16.133Z",
+        "DAL": "2026-11-15T18:00:14.024Z",
         "DEN": "2026-11-13T00:00:15.956Z",
         "DET": "2026-11-15T05:00:16.133Z",
         "GB": "2026-11-15T05:00:16.133Z",
@@ -44494,8 +44494,8 @@
         "IND": "2026-11-15T05:00:16.133Z",
         "JAX": "2026-11-15T05:00:16.133Z",
         "KC": "2026-11-15T05:00:16.133Z",
-        "LV": "2026-11-15T05:00:16.133Z",
-        "LAC": "2026-11-15T05:00:16.133Z",
+        "LV": "2026-11-15T18:00:14.024Z",
+        "LAC": "2026-11-15T18:00:14.024Z",
         "LAR": "2026-11-15T05:00:16.133Z",
         "MIA": "2026-11-15T05:00:16.133Z",
         "MIN": "2026-11-15T05:00:16.133Z",
@@ -44504,9 +44504,9 @@
         "NYG": "2026-11-13T01:00:14.071Z",
         "NYJ": "2026-11-15T05:00:16.133Z",
         "PHI": "2026-11-13T00:00:15.956Z",
-        "PIT": "2026-11-15T05:00:16.133Z",
-        "SF": "2026-11-15T05:00:16.133Z",
-        "SEA": "2026-11-15T05:00:16.133Z",
+        "PIT": "2026-11-15T18:00:14.024Z",
+        "SF": "2026-11-15T18:00:14.024Z",
+        "SEA": "2026-11-15T18:00:14.024Z",
         "TB": "2026-11-13T00:00:15.956Z",
         "TEN": "2026-11-15T05:00:16.133Z",
         "WAS": "2026-11-13T00:00:15.956Z"
@@ -45127,14 +45127,6 @@
       "impactPlayers": {
         "ARI": [
           {
-            "name": "Carson Beck",
-            "position": "QB",
-            "impactScore": 5,
-            "status": "active",
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated"
-          },
-          {
             "name": "Jacoby Brissett",
             "position": "QB",
             "impactScore": 5,
@@ -45245,6 +45237,20 @@
             },
             "statusUpdatedAt": "2026-09-21T23:17Z",
             "source": "auto"
+          },
+          {
+            "name": "Marvin Harrison Jr.",
+            "position": "WR",
+            "espnId": "4432708",
+            "impactScore": 6,
+            "status": "out",
+            "injury": {
+              "type": "Hamstring",
+              "note": "Harrison (hamstring) is ruled out for Sunday's game against the Browns."
+            },
+            "statusUpdatedAt": "2026-11-13T21:13Z",
+            "source": "auto",
+            "activatedDate": "2026-10-14"
           }
         ],
         "ATL": [
@@ -45390,12 +45396,11 @@
             "impactScore": 10,
             "status": "out",
             "espnId": "3916387",
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-11-01T18:38Z",
+            "source": "auto",
             "injury": {
-              "type": "Fractured, dislocated right thumb - surgery, on injured reserve",
-              "since": "2026-11-01",
-              "note": "Hurt his throwing-hand thumb in the Nov. 1 loss to Buffalo and has since had surgery; the Ravens confirm he's out 6-10 weeks and HC Jesse Minter says he's 'doing well' and expected to return this season. Backup Tyler Huntley is also out for the season (turf toe), so undrafted rookie Joe Fagnano has been starting."
+              "type": "Thumb",
+              "note": "Jackson (right thumb) has been ruled out for the remainder of Sunday's game against the Bills."
             },
             "activatedDate": "2026-10-30"
           },
@@ -45734,12 +45739,12 @@
             "position": "WR",
             "espnId": "4430034",
             "impactScore": 6,
-            "status": "questionable",
+            "status": "out",
             "injury": {
               "type": "Knee",
-              "note": "The Panthers activated Legette (knee) from injured reserve Saturday, Alex Zietlow of The Charlotte Observer reports."
+              "note": "ir"
             },
-            "statusUpdatedAt": "2026-11-14T18:56Z",
+            "statusUpdatedAt": "2026-10-03T20:11Z",
             "source": "auto"
           }
         ],
@@ -46063,14 +46068,13 @@
             "name": "Deshaun Watson",
             "position": "QB",
             "impactScore": 5,
-            "status": "active",
+            "status": "out",
             "espnId": "3122840",
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-11-11T14:38Z",
+            "source": "auto",
             "injury": {
-              "type": "Concussion (cleared)",
-              "since": "2026-11",
-              "note": "Entered the concussion protocol ahead of Week 9 vs. New Orleans; has cleared and is starting Week 10 vs. Houston with no injury designation."
+              "type": "Concussion",
+              "note": "The Browns announced Wednesday that Watson (concussion) will start Sunday's game against the Texans, Kelsey Russo of the team's official site reports."
             }
           },
           {
@@ -46228,20 +46232,6 @@
             "statusUpdatedAt": "2026-11-13T22:54Z",
             "source": "auto",
             "activatedDate": "2026-11-13"
-          },
-          {
-            "name": "Joey Porter Jr.",
-            "position": "CB",
-            "impactScore": 7,
-            "status": "questionable",
-            "injury": {
-              "type": "Ankle/foot",
-              "note": "Traded from Pittsburgh to Dallas in early October. Listed questionable for Sunday vs. the 49ers."
-            },
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
-            "espnId": "4426506",
-            "activatedDate": "2026-10-18"
           }
         ],
         "DEN": [
@@ -46543,12 +46533,11 @@
             "impactScore": 7,
             "status": "out",
             "espnId": "4047365",
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-11-12T18:01Z",
+            "source": "auto",
             "injury": {
-              "type": "Fractured right ring finger - surgery",
-              "since": "2026-11",
-              "note": "Had surgery on the fractured finger Friday, Nov. 13 and 'should be back in the next few weeks,' per Tom Pelissero. Ruled out for Week 10 vs. Minnesota."
+              "type": "Finger",
+              "note": "out"
             },
             "activatedDate": "2026-10-19"
           },
@@ -46571,22 +46560,28 @@
             "position": "WR",
             "espnId": "4431487",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-13T21:54Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Groin",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-11T21:52Z",
             "source": "auto",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-10-23"
           },
           {
             "name": "Aaron Banks",
             "position": "G",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-13T01:44Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-11T23:07Z",
             "source": "auto",
             "espnId": "4242390",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-11-06"
           },
           {
             "name": "Lukas Van Ness",
@@ -46663,12 +46658,12 @@
             "position": "WR",
             "espnId": "4430191",
             "impactScore": 6,
-            "status": "questionable",
+            "status": "out",
             "injury": {
               "type": "Ankle",
-              "note": "Moore (ankle) is listed as questionable for Sunday's game against the Vikings, Wes Hodkiewicz of the Packers' official site reports."
+              "note": "ir"
             },
-            "statusUpdatedAt": "2026-11-14T00:25Z",
+            "statusUpdatedAt": "2026-10-17T20:05Z",
             "source": "auto"
           }
         ],
@@ -46724,28 +46719,12 @@
             "name": "Braden Smith",
             "position": "RT",
             "impactScore": 6,
-            "status": "questionable",
-            "injury": {
-              "type": "Illness",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-11-14T18:15Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-09T21:14Z",
             "source": "auto",
             "espnId": "3121595",
             "activatedDate": "2026-11-09"
-          },
-          {
-            "name": "David Montgomery",
-            "position": "RB",
-            "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Groin",
-              "since": "2026-10",
-              "note": "Left the Oct. 11 game at Tennessee with a groin injury and missed about a month; practiced Thursday and Friday but was downgraded from questionable to out Saturday for Week 10 vs. Cleveland. Woody Marks expected to lead the backfield."
-            },
-            "statusUpdatedAt": "2026-11-15T02:15Z",
-            "source": "curated"
           },
           {
             "name": "Ali Gaye",
@@ -46777,11 +46756,14 @@
             "position": "WR",
             "espnId": "4366031",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-13T22:53Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Hand",
+              "note": "Dell (hand) was limited in Wednesday's practice, Mary Kay Cabot of The Cleveland Plain Dealer reports."
+            },
+            "statusUpdatedAt": "2026-11-11T22:42Z",
             "source": "auto",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-10-25"
           },
           {
             "name": "Solomon Byrd",
@@ -46830,6 +46812,17 @@
             "activatedDate": "2026-10-12"
           },
           {
+            "name": "Sabastian Harsh",
+            "position": "DE",
+            "espnId": "4699802",
+            "impactScore": 5,
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-10-19T16:40Z",
+            "source": "auto",
+            "activatedDate": "2026-10-19"
+          },
+          {
             "name": "Jaylin Noel",
             "position": "WR",
             "espnId": "4586312",
@@ -46841,20 +46834,6 @@
             },
             "statusUpdatedAt": "2026-10-28T22:30Z",
             "source": "auto"
-          },
-          {
-            "name": "Marvin Harrison Jr.",
-            "position": "WR",
-            "espnId": "4432708",
-            "impactScore": 7,
-            "status": "out",
-            "injury": {
-              "type": "Hamstring",
-              "note": "Traded from Arizona to Houston on Oct. 11-12. Ruled out for Week 10 vs. Cleveland."
-            },
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
-            "activatedDate": "2026-10-14"
           }
         ],
         "IND": [
@@ -46898,14 +46877,10 @@
             "position": "WR",
             "espnId": "4249030",
             "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Abdomen - on injured reserve",
-              "since": "2026-08-31",
-              "note": "Placed on injured reserve by the Colts on Aug. 31 and remains there (per ESPN)."
-            },
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-08-31T17:16Z",
+            "source": "auto",
             "activatedDate": "2026-08-31"
           },
           {
@@ -46946,11 +46921,13 @@
             "position": "DE",
             "espnId": "3843843",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-14T17:09Z",
-            "source": "auto",
-            "activatedDate": "2026-11-14"
+            "status": "out",
+            "injury": {
+              "type": "Hamstring",
+              "note": "out"
+            },
+            "statusUpdatedAt": "2026-10-05T23:02Z",
+            "source": "auto"
           },
           {
             "name": "Darius Slayton",
@@ -47008,11 +46985,14 @@
             "position": "RB",
             "espnId": "4882093",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-13T19:56Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Ankle",
+              "note": "Tuten (ankle/foot) was listed as a non-participant in practice Wednesday, Ryan O'Halloran of The Florida Times-Union reports."
+            },
+            "statusUpdatedAt": "2026-11-11T21:14Z",
             "source": "auto",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-11-05"
           },
           {
             "name": "Wesley Williams",
@@ -47030,11 +47010,14 @@
             "position": "WR",
             "espnId": "3916433",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-13T19:56Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Ankle",
+              "note": "Meyers (ankle) did not participate in Wednesday's practice, Ryan O'Halloran of The Florida Times-Union reports."
+            },
+            "statusUpdatedAt": "2026-11-11T21:16Z",
             "source": "auto",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-11-03"
           }
         ],
         "KC": [
@@ -47042,11 +47025,14 @@
             "name": "Patrick Mahomes",
             "position": "QB",
             "impactScore": 10,
-            "status": "active",
-            "injury": null,
-            "activatedDate": "2026-11-11",
+            "status": "questionable",
+            "injury": {
+              "type": "Elbow",
+              "note": "questionable"
+            },
+            "activatedDate": "2026-07-28",
             "espnId": "3139477",
-            "statusUpdatedAt": "2026-11-11T21:46Z",
+            "statusUpdatedAt": "2026-11-08T21:45Z",
             "source": "auto"
           },
           {
@@ -47100,12 +47086,12 @@
             "name": "Mansoor Delane",
             "position": "CB",
             "impactScore": 6,
-            "status": "questionable",
+            "status": "out",
             "injury": {
               "type": "Shoulder",
-              "note": "questionable"
+              "note": "Delane (shoulder) was a full participant in Wednesday's practice."
             },
-            "statusUpdatedAt": "2026-11-13T20:27Z",
+            "statusUpdatedAt": "2026-11-11T23:34Z",
             "source": "auto",
             "espnId": "4880124"
           },
@@ -47132,19 +47118,6 @@
             },
             "statusUpdatedAt": "2026-10-13T18:29Z",
             "source": "auto"
-          },
-          {
-            "name": "Kenneth Walker III",
-            "position": "RB",
-            "impactScore": 8,
-            "status": "out",
-            "injury": {
-              "type": "Groin strain (minor)",
-              "since": "2026-11-12",
-              "note": "Hurt his groin in Thursday's (Nov. 12) practice; per ESPN/NFL Network sources the Chiefs will hold him out of Sunday's game at Atlanta and \"want to give him a week.\" Rookie Emmett Johnson leads the backfield; Walker ranks 2nd in the NFL with 872 rushing yards."
-            },
-            "statusUpdatedAt": "2026-11-14T18:30Z",
-            "source": "curated"
           }
         ],
         "LV": [
@@ -47345,13 +47318,13 @@
             "name": "David Njoku",
             "position": "TE",
             "impactScore": 6,
-            "status": "questionable",
+            "status": "out",
             "injury": {
-              "type": "Fibula (lower leg) - designated to return from IR",
+              "type": "Fibula (lower leg) - on injured reserve",
               "since": "2026-09-20",
-              "note": "Carted off Sept. 20 vs. Las Vegas and placed on IR. Now designated to return and listed questionable for Monday night vs. Baltimore."
+              "note": "Carted off in the second quarter of the Sept. 20 game vs. Las Vegas after getting hurt blocking on a run. HC Jim Harbaugh announced Monday that Njoku (fibula) and TE Charlie Kolar (forearm) were both placed on injured reserve; each must miss at least four games and is eligible to return Week 8 vs. the Rams after the bye. Oronde Gadsden is the lone healthy TE on the active roster."
             },
-            "statusUpdatedAt": "2026-11-14T22:30Z",
+            "statusUpdatedAt": "2026-09-22T01:25:00.000Z",
             "source": "curated",
             "espnId": "3123076"
           },
@@ -47410,12 +47383,11 @@
             "impactScore": 9,
             "status": "out",
             "injury": {
-              "type": "Right knee MCL + PCL sprains, turf toe - on injured reserve",
-              "since": "2026-11-08",
-              "note": "Hurt on the final offensive play (a jet sweep) of the Nov. 8 game at Washington after a 150-yard day. Placed on IR Nov. 12; Sean McVay expects him out at least a month."
+              "type": "Knee - MCL",
+              "note": "doubtful"
             },
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-11-11T14:34Z",
+            "source": "auto",
             "espnId": "4426515",
             "activatedDate": "2026-10-25"
           },
@@ -47528,32 +47500,26 @@
             "impactScore": 5,
             "status": "out",
             "espnId": "4242512",
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-11-11T21:01Z",
+            "source": "auto",
             "injury": {
-              "type": "Groin/abdomen - on injured reserve",
-              "since": "2026-11",
-              "note": "Placed on IR this week; the Dolphins hope he returns this season but haven't ruled out season-ending surgery. Kyle McCord is in line for his first career start."
+              "type": "Abdomen",
+              "note": "ir"
             }
-          },
-          {
-            "name": "Kyle McCord",
-            "position": "QB",
-            "impactScore": 4,
-            "status": "active",
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated"
           },
           {
             "name": "Will Kacmarek",
             "position": "TE",
             "espnId": "4880236",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-13T21:58Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Quadriceps",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-08T19:54Z",
             "source": "auto",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-11-06"
           },
           {
             "name": "De'Von Achane",
@@ -47584,10 +47550,10 @@
             "name": "Kyle Louis",
             "position": "LB",
             "impactScore": 4,
-            "status": "active",
+            "status": "questionable",
             "injury": null,
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-10-24T19:01Z",
+            "source": "auto",
             "espnId": "4880273",
             "activatedDate": "2026-10-24"
           },
@@ -47610,12 +47576,11 @@
             "impactScore": 7,
             "status": "out",
             "espnId": "3917315",
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-11-10T20:08Z",
+            "source": "auto",
             "injury": {
               "type": "Hamstring",
-              "since": "2026-11",
-              "note": "Out for Week 10 vs. Green Bay; the Vikings are targeting a Week 12 return vs. Atlanta on Nov. 29, per Tom Pelissero. J.J. McCarthy is expected to start in the meantime."
+              "note": "doubtful"
             }
           },
           {
@@ -47743,12 +47708,11 @@
             "impactScore": 7,
             "status": "out",
             "injury": {
-              "type": "Illness - on injured reserve",
-              "since": "2026-11",
-              "note": "Henderson said he was hospitalized after an 'unusual' medical emergency; the Patriots ruled him out for the Munich game vs. Detroit and placed him on IR on Nov. 14."
+              "type": "Illness",
+              "note": "out"
             },
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-11-11T23:13Z",
+            "source": "auto",
             "espnId": "4432710",
             "activatedDate": "2026-10-18"
           },
@@ -47922,11 +47886,14 @@
             "position": "CB",
             "espnId": "4428350",
             "impactScore": 5,
-            "status": "active",
-            "statusUpdatedAt": "2026-11-13T19:44Z",
+            "status": "questionable",
+            "statusUpdatedAt": "2026-11-12T21:43Z",
             "source": "auto",
-            "injury": null,
-            "activatedDate": "2026-11-13"
+            "injury": {
+              "type": "Knee",
+              "note": "questionable"
+            },
+            "activatedDate": "2026-10-22"
           },
           {
             "name": "Cameron Jordan",
@@ -47968,12 +47935,15 @@
             "name": "Kelvin Banks Jr.",
             "position": "LT",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Ankle",
+              "note": "questionable"
+            },
             "espnId": "4685260",
-            "statusUpdatedAt": "2026-11-13T19:44Z",
+            "statusUpdatedAt": "2026-11-11T23:14Z",
             "source": "auto",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-11-08"
           },
           {
             "name": "Barion Brown",
@@ -48156,12 +48126,9 @@
             "position": "CB",
             "espnId": "4426817",
             "impactScore": 3,
-            "status": "questionable",
-            "injury": {
-              "type": "Illness",
-              "note": "questionable"
-            },
-            "statusUpdatedAt": "2026-11-13T21:23Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-10-26T18:43Z",
             "source": "auto",
             "activatedDate": "2026-10-26"
           },
@@ -48173,11 +48140,11 @@
             "status": "questionable",
             "injury": {
               "type": "Ankle",
-              "note": "Cooper (ankle), who was a full participant in Friday's practice, is listed as questionable for Sunday's game against the Bills."
+              "note": "questionable"
             },
-            "statusUpdatedAt": "2026-11-13T21:19Z",
+            "statusUpdatedAt": "2026-11-11T17:02Z",
             "source": "auto",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-10-17"
           },
           {
             "name": "Minkah Fitzpatrick",
@@ -48420,6 +48387,20 @@
             },
             "statusUpdatedAt": "2026-08-19T12:07Z",
             "source": "auto"
+          },
+          {
+            "name": "Joey Porter Jr.",
+            "position": "CB",
+            "impactScore": 7,
+            "status": "questionable",
+            "injury": {
+              "type": "Ankle",
+              "note": "Porter (ankle) is listed as questionable for Sunday's game against the 49ers, Tommy Yarrish of the Cowboys' official site reports."
+            },
+            "statusUpdatedAt": "2026-11-14T00:56Z",
+            "source": "auto",
+            "espnId": "4426506",
+            "activatedDate": "2026-10-18"
           },
           {
             "name": "Gabriel Rubio",
@@ -48694,12 +48675,11 @@
             "impactScore": 6,
             "status": "out",
             "injury": {
-              "type": "Personal (reserve/left squad)",
-              "since": "2026-09",
-              "note": "Reinstated from the reserve/left squad list on Nov. 9; the 49ers received a two-week roster exemption, so he isn't counting against the roster or playing yet (per Tom Pelissero)."
+              "type": "Personal",
+              "note": "Head coach Kyle Shanahan said Sunday that he's not viewing Aiyuk as an option for the 49ers while the club contends with multiple injuries at receiver, Matt Barrows of The Athletic reports."
             },
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated"
+            "statusUpdatedAt": "2026-09-21T15:27Z",
+            "source": "auto"
           },
           {
             "name": "Deebo Samuel Sr.",
@@ -48720,22 +48700,13 @@
             "impactScore": 8,
             "status": "out",
             "espnId": "3912547",
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated",
+            "statusUpdatedAt": "2026-11-04T19:02Z",
+            "source": "auto",
             "injury": {
-              "type": "Quadriceps (also ribs)",
-              "since": "2026-11",
-              "note": "Ruled out again for Week 10 at Las Vegas, with Drew Lock starting. Expected to return Week 12 at San Francisco (Nov. 29) after Seattle's Week 11 bye."
+              "type": "Quadriceps",
+              "note": "Head coach Mike Macdonald announced that Darnold won't play Sunday against the Cardinals due to a quadriceps injury, NFL reporter Andrew Siciliano reports."
             },
             "activatedDate": "2026-09-24"
-          },
-          {
-            "name": "Drew Lock",
-            "position": "QB",
-            "impactScore": 5,
-            "status": "active",
-            "statusUpdatedAt": "2026-11-14T22:30Z",
-            "source": "curated"
           },
           {
             "name": "Nick Emmanwori",
@@ -49209,6 +49180,11 @@
         "WAS-NYG": {
           "awayScore": 24,
           "homeScore": 21,
+          "final": true
+        },
+        "NE-DET": {
+          "awayScore": 10,
+          "homeScore": 35,
           "final": true
         }
       }

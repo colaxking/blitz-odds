@@ -14731,9 +14731,14 @@ const rosterCache = {};
 async function fetchTeamRoster(teamId) {
   if (rosterCache[teamId]) return rosterCache[teamId];
   const slug = espnTeamSlug(teamId);
+  // Depth charts go through our own same-origin proxy: ESPN stopped sending
+  // CORS headers on /depthcharts (Nov 2026), so a direct browser fetch is
+  // blocked. The depth chart is also strictly optional - a failed or blocked
+  // depth-chart request must never take the roster down with it (it used to,
+  // via Promise.all rejecting), so it resolves to null instead of throwing.
   const [rosterRes, depthRes] = await Promise.all([
     fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${slug}/roster`),
-    fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${slug}/depthcharts`),
+    fetch(`/.netlify/functions/espn-depthchart?team=${encodeURIComponent(slug)}`).catch(() => null),
   ]);
   if (!rosterRes.ok) throw new Error("ESPN roster request failed: " + rosterRes.status);
   const rosterData = await rosterRes.json();
@@ -14745,8 +14750,11 @@ async function fetchTeamRoster(teamId) {
   });
 
   let depthChart = [];
-  if (depthRes.ok) {
-    const depthData = await depthRes.json();
+  let depthData = null;
+  if (depthRes && depthRes.ok) {
+    try { depthData = await depthRes.json(); } catch (e) { depthData = null; }
+  }
+  if (depthData) {
     // ESPN nests the real slot-by-slot depth order under depthchart[], one entry
     // per formation (e.g. "Base 3-4 D", "3WR 1TE", "Special Teams"), each with
     // its own positions dict - not a single flat "positions" object. Merge them,

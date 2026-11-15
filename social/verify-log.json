@@ -602,50 +602,36 @@
       "bufferStatus": "sent"
     },
     "2026-w10-sat": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6af717f649bae9df2d0d11ab",
       "text": "Survivor players: Week 10 has three favorites of 7.5 or more. Tempting.\n\nBefore you burn JAX or LAR, check who you'll still need later in the season. The survivor path planner in the Playbook tab maps it out.\n\nblitz-odds.com",
       "dueAt": "2026-11-14T14:56:00.000Z",
       "scheduledAt": "2026-11-13T14:00:20.917Z",
-      "lastCheckedAt": "2026-11-14T14:00:18.078Z"
+      "lastCheckedAt": "2026-11-14T14:00:18.078Z",
+      "bufferStatus": "sent"
     },
     "2026-w10-sun": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6af86973918fe79d2e818840",
-      "text": "Week 10 Sunday: twelve games, first kickoff 9:30 AM ET.\n\nHighest total: SF at DAL, 55.5\nClosest game: CAR at NO — NO -2.5\n\nIf your pool locks at the first Sunday kickoff, that's your clock. blitz-odds.com",
+      "text": "Week 10 Sunday: twelve games, first kickoff 9:30 AM ET.\n\nHighest total: SF at DAL, 55.5\nClosest game: CAR at NO — NO -1.5\n\nIf your pool locks at the first Sunday kickoff, that's your clock. blitz-odds.com",
       "dueAt": "2026-11-15T14:07:00.000Z",
       "scheduledAt": "2026-11-14T14:00:18.078Z",
-      "lastCheckedAt": "2026-11-14T14:00:18.078Z"
+      "lastCheckedAt": "2026-11-15T14:00:18.931Z",
+      "updatedAt": "2026-11-15T14:00:18.931Z"
+    },
+    "2026-w10-mon": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6af9baf6918fe79d2ee8a238",
+      "text": "Chargers at Ravens closes Week 10 tonight — BAL -4.5, O/U 38.5.\n\nYour league's My Picks tab grades every game the moment it goes final. Tonight's is the last one to land.\n\nblitz-odds.com",
+      "dueAt": "2026-11-16T14:06:00.000Z",
+      "scheduledAt": "2026-11-15T14:00:18.931Z",
+      "lastCheckedAt": "2026-11-15T14:00:18.931Z"
     }
   },
   "runs": [
-    {
-      "at": "2026-09-16T13:00:20.870Z",
-      "dryRun": false,
-      "actions": [
-        {
-          "post": "2026-w2-tue-lines-up",
-          "action": "closed",
-          "detail": "sent"
-        },
-        {
-          "post": "2026-w2-wed-biggest-spreads",
-          "action": "verified",
-          "detail": "primary unchanged"
-        },
-        {
-          "post": "2026-w2-thu-tnf-coinflips",
-          "action": "scheduled",
-          "detail": "fallback for 2026-09-17T09:03:00-04:00"
-        }
-      ],
-      "notified": "email",
-      "alerts": [
-        "FALLBACK used for \"2026-w2-thu-tnf-coinflips\" (due 2026-09-17T09:03:00-04:00) - primary failed:\n  primary: spreadEq: MIN-CHI is -5.5, wanted -3; spreadEq: CIN-HOU is -2.5, wanted -3; spreadEq: JAX-DEN is -2.5, wanted -3\n  Scheduled text:\n    Lions at Bills tonight, 8:15 PM ET on Prime Video.\n    \n    The three closest Sunday games right now:\n    CAR at ATL — CAR -2.5\n    CIN at HOU — HOU -2.5\n    JAX at DEN — DEN -2.5\n    \n    Coin flips. In a confidence pool, those are your 1s, 2s and 3s.\n    \n    blitz-odds.com"
-      ]
-    },
     {
       "at": "2026-09-17T13:00:18.998Z",
       "dryRun": false,
@@ -1877,6 +1863,28 @@
           "post": "2026-w10-sun",
           "action": "scheduled",
           "detail": "primary for 2026-11-15T09:07:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-15T14:00:18.931Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w10-sat",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w10-sun",
+          "action": "updated",
+          "detail": "primary; text changed"
+        },
+        {
+          "post": "2026-w10-mon",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-16T09:06:00-05:00"
         }
       ],
       "alerts": []

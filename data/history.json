@@ -44480,11 +44480,11 @@
       "inputsCapturedAt": {
         "ARI": "2026-11-15T21:00:13.619Z",
         "ATL": "2026-11-15T05:00:16.133Z",
-        "BAL": "2026-11-15T21:00:13.619Z",
+        "BAL": "2026-11-15T22:00:14.948Z",
         "BUF": "2026-11-15T05:00:16.133Z",
         "CAR": "2026-11-15T05:00:16.133Z",
         "CHI": "2026-11-13T00:00:15.956Z",
-        "CIN": "2026-11-15T21:00:13.619Z",
+        "CIN": "2026-11-15T22:00:14.948Z",
         "CLE": "2026-11-15T05:00:16.133Z",
         "DAL": "2026-11-15T21:00:13.619Z",
         "DEN": "2026-11-13T00:00:15.956Z",
@@ -44495,7 +44495,7 @@
         "JAX": "2026-11-15T05:00:16.133Z",
         "KC": "2026-11-15T05:00:16.133Z",
         "LV": "2026-11-15T21:00:13.619Z",
-        "LAC": "2026-11-15T21:00:13.619Z",
+        "LAC": "2026-11-15T22:00:14.948Z",
         "LAR": "2026-11-15T21:00:13.619Z",
         "MIA": "2026-11-15T05:00:16.133Z",
         "MIN": "2026-11-15T05:00:16.133Z",
@@ -44504,7 +44504,7 @@
         "NYG": "2026-11-13T01:00:14.071Z",
         "NYJ": "2026-11-15T05:00:16.133Z",
         "PHI": "2026-11-13T00:00:15.956Z",
-        "PIT": "2026-11-15T21:00:13.619Z",
+        "PIT": "2026-11-15T22:00:14.948Z",
         "SF": "2026-11-15T21:00:13.619Z",
         "SEA": "2026-11-15T21:00:13.619Z",
         "TB": "2026-11-13T00:00:15.956Z",
@@ -45205,11 +45205,14 @@
             "position": "CB",
             "espnId": "4698113",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-15T19:38Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-12T00:14Z",
             "source": "auto",
-            "activatedDate": "2026-11-15"
+            "activatedDate": "2026-11-08"
           },
           {
             "name": "Garrett Williams",
@@ -45240,12 +45243,12 @@
             "position": "WR",
             "espnId": "4432708",
             "impactScore": 6,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Hamstring",
-              "note": "Harrison (hamstring) is ruled out for Sunday's game against the Browns."
+              "note": "Harrison (hamstring) was limited in Wednesday's practice, Jonathan M. Alexander of the Houston Chronicle reports."
             },
-            "statusUpdatedAt": "2026-11-13T21:13Z",
+            "statusUpdatedAt": "2026-11-11T22:45Z",
             "source": "auto",
             "activatedDate": "2026-10-14"
           }
@@ -46212,23 +46215,28 @@
             "name": "DeMarvion Overshown",
             "position": "LB",
             "impactScore": 7,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-13T00:24Z",
+            "status": "out",
+            "injury": {
+              "type": "Hamstring",
+              "note": "Overshown (hamstring/back) was limited in Wednesday's practice, Tommy Yarrish of the Cowboys' official site reports."
+            },
+            "statusUpdatedAt": "2026-11-11T23:52Z",
             "source": "auto",
             "espnId": "4362088",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-10-22"
           },
           {
             "name": "KaVontae Turpin",
             "position": "WR",
             "espnId": "3676833",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-13T22:54Z",
-            "source": "auto",
-            "activatedDate": "2026-11-13"
+            "status": "questionable",
+            "injury": {
+              "type": "Ribs",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-11T23:51Z",
+            "source": "auto"
           }
         ],
         "DEN": [
@@ -47179,12 +47187,9 @@
             "position": "WR",
             "espnId": "4432775",
             "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Back",
-              "note": "Thornton (back) is inactive for Sunday's game against the Seahawks."
-            },
-            "statusUpdatedAt": "2026-11-15T19:48Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-09T21:19Z",
             "source": "auto",
             "activatedDate": "2026-11-09"
           },
@@ -47215,12 +47220,9 @@
             "position": "WR",
             "espnId": "5150247",
             "impactScore": 6,
-            "status": "out",
-            "injury": {
-              "type": "Coach's Decision",
-              "note": "Benson (coach's decision) is inactive for Sunday's game against the Seahawks."
-            },
-            "statusUpdatedAt": "2026-11-15T19:59Z",
+            "status": "active",
+            "injury": null,
+            "statusUpdatedAt": "2026-11-09T21:19Z",
             "source": "auto",
             "activatedDate": "2026-11-09"
           }
@@ -47395,12 +47397,15 @@
             "name": "Myles Garrett",
             "position": "Edge",
             "impactScore": 8,
-            "status": "active",
+            "status": "questionable",
             "espnId": "3122132",
-            "statusUpdatedAt": "2026-11-15T19:42Z",
+            "statusUpdatedAt": "2026-11-12T00:32Z",
             "source": "auto",
-            "injury": null,
-            "activatedDate": "2026-11-15"
+            "injury": {
+              "type": "Knee",
+              "note": "Garrett (knee) was limited at Wednesday's walkthrough, Sarah Barshop of ESPN.com reports."
+            },
+            "activatedDate": "2026-11-07"
           },
           {
             "name": "Aaron Donald",
@@ -48513,13 +48518,13 @@
             "name": "Mike Evans",
             "position": "WR",
             "impactScore": 8,
-            "status": "out",
+            "status": "questionable",
             "injury": {
               "type": "Achilles",
-              "note": "Evans (Achilles) has been ruled out for Sunday's game at Dallas, Nick Wagoner of ESPN reports."
+              "note": "questionable"
             },
             "espnId": "16737",
-            "statusUpdatedAt": "2026-11-13T22:08Z",
+            "statusUpdatedAt": "2026-11-12T22:33Z",
             "source": "auto",
             "activatedDate": "2026-10-19"
           },
@@ -48567,11 +48572,11 @@
             "position": "LB",
             "impactScore": 6,
             "status": "active",
-            "statusUpdatedAt": "2026-11-15T20:00Z",
+            "statusUpdatedAt": "2026-10-20T21:39Z",
             "source": "auto",
             "espnId": "3916903",
             "injury": null,
-            "activatedDate": "2026-11-15"
+            "activatedDate": "2026-10-20"
           },
           {
             "name": "Romello Height",
@@ -48676,12 +48681,14 @@
             "name": "Deebo Samuel Sr.",
             "position": "WR",
             "impactScore": 6,
-            "status": "active",
-            "injury": null,
+            "status": "questionable",
+            "injury": {
+              "type": "Hamstring",
+              "note": "questionable"
+            },
             "espnId": "3126486",
-            "statusUpdatedAt": "2026-11-13T22:12Z",
-            "source": "auto",
-            "activatedDate": "2026-11-13"
+            "statusUpdatedAt": "2026-11-12T22:33Z",
+            "source": "auto"
           }
         ],
         "SEA": [
@@ -48796,12 +48803,15 @@
             "name": "Anthony Bradford",
             "position": "RG",
             "impactScore": 5,
-            "status": "active",
-            "injury": null,
-            "statusUpdatedAt": "2026-11-13T22:43Z",
+            "status": "questionable",
+            "injury": {
+              "type": "Knee",
+              "note": "questionable"
+            },
+            "statusUpdatedAt": "2026-11-12T00:24Z",
             "source": "auto",
             "espnId": "4429211",
-            "activatedDate": "2026-11-13"
+            "activatedDate": "2026-11-06"
           },
           {
             "name": "Jadarian Price",
@@ -49181,6 +49191,36 @@
         "MIN-GB": {
           "awayScore": 30,
           "homeScore": 10,
+          "final": true
+        },
+        "KC-ATL": {
+          "awayScore": 35,
+          "homeScore": 13,
+          "final": true
+        },
+        "HOU-CLE": {
+          "awayScore": 24,
+          "homeScore": 27,
+          "final": true
+        },
+        "JAX-TEN": {
+          "awayScore": 40,
+          "homeScore": 23,
+          "final": true
+        },
+        "MIA-IND": {
+          "awayScore": 22,
+          "homeScore": 24,
+          "final": true
+        },
+        "CAR-NO": {
+          "awayScore": 20,
+          "homeScore": 17,
+          "final": true
+        },
+        "BUF-NYJ": {
+          "awayScore": 31,
+          "homeScore": 12,
           "final": true
         }
       }

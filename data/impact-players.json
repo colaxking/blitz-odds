@@ -2374,13 +2374,13 @@
         "name": "Geno Smith",
         "position": "QB",
         "impactScore": 6,
-        "status": "out",
+        "status": "questionable",
         "espnId": "15864",
-        "statusUpdatedAt": "2026-11-15T20:49Z",
+        "statusUpdatedAt": "2026-11-15T20:55Z",
         "source": "auto",
         "injury": {
           "type": "Ankle",
-          "note": "out"
+          "note": "Smith (ankle) has been ruled out for the remainder of Sunday's game against the Bills, Brian Costello of the New York Post reports."
         },
         "activatedDate": "2026-11-15"
       },
@@ -2547,15 +2547,14 @@
         "name": "Wan'Dale Robinson",
         "position": "WR",
         "impactScore": 6,
-        "status": "active",
+        "status": "questionable",
         "espnId": "4569587",
         "injury": {
-          "type": "Concussion evaluation (cleared - no concussion diagnosed)",
-          "since": "2026-08-27",
-          "note": "Evaluated for a concussion after a hard hit from Bears S Xavier Woods in Thursday's joint practice - a hit HC Robert Saleh called \"cheap.\" Ian Rapoport and follow-up reporting indicate Robinson is not believed to have suffered a concussion and is expected to avoid the protocol; Tennessee is still monitoring him in case symptoms develop."
+          "type": "Ankle",
+          "note": "Robinson (ankle) is questionable to return to Sunday's game against the Jaguars."
         },
-        "statusUpdatedAt": "2026-08-29T01:05:00.000Z",
-        "source": "curated"
+        "statusUpdatedAt": "2026-11-15T21:09Z",
+        "source": "auto"
       },
       {
         "name": "Tanoh Kpassagnon",
@@ -3009,9 +3008,12 @@
         "name": "Brock Bowers",
         "position": "TE",
         "impactScore": 9,
-        "status": "active",
-        "injury": null,
-        "statusUpdatedAt": "2026-10-28T21:28Z",
+        "status": "questionable",
+        "injury": {
+          "type": "Leg",
+          "note": "questionable"
+        },
+        "statusUpdatedAt": "2026-11-15T21:14Z",
         "source": "auto",
         "espnId": "4432665",
         "activatedDate": "2026-10-28"

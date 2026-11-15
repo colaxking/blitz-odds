@@ -4049,6 +4049,9 @@
   .pickem-game-card.is-lost { border-color: rgba(var(--out-rgb),0.4); }
   .pickem-game-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--text-dim); }
   .pickem-lock-tag { display: inline-flex; align-items: center; gap: 4px; color: var(--text-dim); font-weight: 700; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.4px; }
+  .pickem-meta-score { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pickem-meta-score b { font-weight: 800; }
+  .pickem-meta-score b.is-trailing { color: var(--text-dim); font-weight: 700; }
   .pickem-final-tag { display: inline-flex; align-items: center; gap: 4px; color: var(--text); font-weight: 800; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.4px; }
   .pickem-pick-option.is-winner .pickem-team-name,
   .pickem-pick-option.is-winner .pickem-team-score { color: var(--win); }
@@ -4349,6 +4352,17 @@
   .league-picks-matchup .is-winner { color: var(--win); }
   .league-picks-at { color: var(--text-dim); font-weight: 600; margin: 0 1px; }
   .league-picks-time { font-size: 0.68rem; color: var(--text-dim); font-weight: 600; }
+  /* Live / final score inline in the matchup header, plus the possession +
+     down-and-distance line under it while a game is in progress. */
+  .league-picks-score { font-size: 0.95rem; font-weight: 800; min-width: 1.2em; text-align: center; font-variant-numeric: tabular-nums; }
+  .league-picks-score.is-trailing { color: var(--text-dim); font-weight: 700; }
+  .league-picks-situation { margin: -2px 0 0; font-size: 0.68rem; color: var(--text-dim); font-weight: 600; }
+  .league-picks-situation .is-redzone { color: var(--live); font-weight: 700; }
+  .league-picks-column.is-leading { border-color: rgba(var(--warn-rgb),0.5); background: rgba(var(--warn-rgb),0.08); }
+  .league-picks-leading-tag { color: var(--warn); font-weight: 700; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.3px; }
+  .league-picks-cover { margin-left: auto; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+  .league-picks-cover.is-covering { color: var(--warn); }
+  .league-picks-cover.is-not-covering { color: var(--text-dim); }
   .league-picks-locked-note { margin: 0; font-size: 0.72rem; color: var(--text-dim); font-weight: 600; }
 
   .league-picks-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

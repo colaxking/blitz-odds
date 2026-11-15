@@ -3,11 +3,16 @@ import { getStore } from "@netlify/blobs";
 import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
 import { makeGameId } from "./lib/gameId.mts";
 import { isPastKickoff } from "./lib/kickoff.mts";
+// Same UMD scoring engine results-process.mts and the frontend use, so the
+// ✓/✗ shown here can't disagree with standings (ats in particular grades on
+// the margin + each pick's spread snapshot, not the straight-up winner).
+// @ts-ignore - plain JS UMD module, no type declarations
+import ScoringEngine from "../../js/scoringEngine.js";
 
 // GET /.netlify/functions/league-picks?leagueId={id}&week={n}
 //   -> { ok, week, format, members: [{userId,displayName,avatar}],
 //        games: [{ gameId, away, home, date, time, network, locked,
-//                  winner, tie, final,
+//                  winner, tie, final, awayScore?, homeScore?,
 //                  picks: [{userId, team, confidence?, spread?, correct?}] }] }
 //
 // "Who picked what" for a whole league week. picks-mine.mts answers the
@@ -138,6 +143,13 @@ export default async (req: Request, _context: Context) => {
       });
     }));
 
+    const scoringSettings = league.scoringSettings || {};
+    function gradeFor(p: any, result: any) {
+      if (!result?.final) return {};
+      const scored = ScoringEngine.scorePick(league.format, scoringSettings, p, result);
+      return typeof scored?.correct === "boolean" ? { correct: scored.correct } : {};
+    }
+
     const games = scheduleGames.map((g: any, i: number) => {
       const gameId = makeGameId(league.season, week, g.away, g.home);
       const locked = lockedFlags[i];
@@ -146,9 +158,7 @@ export default async (req: Request, _context: Context) => {
         ...p,
         // Only claim right/wrong once the game is actually final and
         // scored - a leader at halftime is not a correct pick yet.
-        ...(result?.final && !result.tie && result.winner
-          ? { correct: p.team === result.winner }
-          : {}),
+        ...gradeFor(p, result),
       }));
       // Confidence leagues read most naturally highest-stake-first;
       // everything else is alphabetical so the order is at least stable
@@ -173,6 +183,10 @@ export default async (req: Request, _context: Context) => {
         winner: result?.winner ?? null,
         tie: !!result?.tie,
         final: !!result?.final,
+        // Processed final score, so an archived week still shows it once the
+        // live ESPN feed has moved on.
+        ...(typeof result?.awayScore === "number" ? { awayScore: result.awayScore } : {}),
+        ...(typeof result?.homeScore === "number" ? { homeScore: result.homeScore } : {}),
         picks,
       };
     });

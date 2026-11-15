@@ -12559,7 +12559,7 @@ function describePickOutcome(format, game, result, scored) {
   return { state, badge, text, pts, icon };
 }
 
-function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidence, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor, onOpenGame, grade }) {
+function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidence, onPick, saving, error, tz, prediction, suggestedConfidence, replacesPick, survivor, onOpenGame, grade, scoreInfo }) {
   const [pendingConfidence, setPendingConfidence] = useState(game.pick?.confidence ?? "");
 
   // grade is { result, scored } once the game is final (see
@@ -12568,6 +12568,12 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidenc
   const isFinal = !!(grade && grade.result && grade.result.final);
   const result = isFinal ? grade.result : null;
   const outcome = isFinal ? describePickOutcome(format, game, result, grade.scored) : null;
+  const isLiveNow = !isFinal && !!(scoreInfo && scoreInfo.isLive);
+  const metaScore = isFinal && typeof result.awayScore === "number"
+    ? { away: result.awayScore, home: result.homeScore }
+    : (scoreInfo && (scoreInfo.isLive || scoreInfo.isFinal) && typeof scoreInfo.awayScore === "number")
+      ? { away: scoreInfo.awayScore, home: scoreInfo.homeScore }
+      : null;
   const cardState = outcome && outcome.state !== "void" ? " is-" + outcome.state : "";
 
   useEffect(() => {
@@ -12643,10 +12649,20 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidenc
   return (
     <div className={"pickem-game-card" + (game.locked ? " is-locked" : "") + (isFinal ? " is-final" : "") + cardState}>
       <div className="pickem-game-meta">
-        <span>{shownTime.date} · {shownTime.time}</span>
+        {/* Once the game is under way the score takes the kickoff time's
+            place in this row; the team buttons below are unchanged. */}
+        {metaScore
+          ? <span className="pickem-meta-score">
+              {game.away} <b className={metaScore.away < metaScore.home ? "is-trailing" : ""}>{metaScore.away}</b>
+              {" – "}
+              <b className={metaScore.home < metaScore.away ? "is-trailing" : ""}>{metaScore.home}</b> {game.home}
+            </span>
+          : <span>{shownTime.date} · {shownTime.time}</span>}
         {isFinal
           ? <span className="pickem-final-tag">Final</span>
-          : (game.locked && <span className="pickem-lock-tag">🔒 Locked</span>)}
+          : isLiveNow
+            ? <span className="live-tag"><span className="live-dot"></span>{liveClockLabel(scoreInfo)}</span>
+            : (game.locked && <span className="pickem-lock-tag">🔒 Locked</span>)}
       </div>
       <div className="pickem-pick-row">
         {[game.away, game.home].map((teamId, i) => {
@@ -13178,6 +13194,7 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
             suggestedConfidence={data.format === "confidence" ? suggestedConfidence[game.gameId] : undefined}
             survivor={isSurvivor ? survivorFor(game) : null}
             grade={gradeFor(game)}
+            scoreInfo={scoreInfoById[game.gameId] || null}
             replacesPick={isSurvivor && !game.pick && data.games.some(g => g.pick)}
             onOpenGame={onOpenGame ? (g => onOpenGame(g, {
               leagueId: league.id,
@@ -13954,11 +13971,41 @@ function LeagueStandingsPanel({ auth, profile, league, week }) {
   );
 }
 
+/** "Q3 4:12"-style clock for an in-progress scoreInfo (see resolveScore). */
+function liveClockLabel(info) {
+  if (!info) return "";
+  if (info.clock && info.period) return `${info.period > 4 ? "OT" : "Q" + info.period} ${info.clock}`;
+  return "Live";
+}
+
+/** Live or final score for a league game: the ESPN feed / history snapshot
+ *  first (resolveScore), then the processed score league-picks returns, so
+ *  an archived week still shows its final. null before kickoff. */
+function leagueGameScore(liveMap, context, g) {
+  const info = resolveScore(liveMap[`${g.away}-${g.home}`], context.getResult(g.away, g.home));
+  if (info) return info;
+  if (g.final && typeof g.awayScore === "number" && typeof g.homeScore === "number") {
+    return { awayScore: g.awayScore, homeScore: g.homeScore, isFinal: true, isLive: false };
+  }
+  return null;
+}
+
+/** Whether a pick is currently ahead on an in-progress score: the team is
+ *  winning outright, or - in an ats league - covering its spread snapshot.
+ *  true / false / null (level, or a push on the number). */
+function pickIsAheadLive(format, pick, game, info) {
+  if (!info || !info.isLive || !pick) return null;
+  const isHome = pick.team === game.home;
+  const margin = isHome ? info.homeScore - info.awayScore : info.awayScore - info.homeScore;
+  const adjusted = format === "ats" && typeof pick.spread === "number" ? margin + pick.spread : margin;
+  return adjusted > 0 ? true : adjusted < 0 ? false : null;
+}
+
 /** Everyone's picks for one game, split into a column per team. Only ever
  *  rendered for a game the server has already confirmed is locked - the
  *  pre-kickoff case is handled by the caller and never receives pick data
  *  at all (see league-picks.mts). */
-function LeaguePicksGame({ game, format, tz, meId }) {
+function LeaguePicksGame({ game, format, tz, meId, score }) {
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const shownTime = formatGameDateTimeInZone(game.date, game.time, seasonYear, tz);
 
@@ -13983,30 +14030,67 @@ function LeaguePicksGame({ game, format, tz, meId }) {
   const byTeam = { [game.away]: [], [game.home]: [] };
   game.picks.forEach(p => { if (byTeam[p.team]) byTeam[p.team].push(p); });
 
+  const isLive = !!(score && score.isLive);
+  const isFinal = game.final || !!(score && score.isFinal);
+  const hasScore = !!score && typeof score.awayScore === "number";
+  // Team ahead right now (live only). In an ats league the scoreboard leader
+  // isn't who's "winning" the pick, so the column tint is skipped and each
+  // person is marked against their own spread snapshot instead.
+  const liveLeader = isLive && score.awayScore !== score.homeScore
+    ? (score.awayScore > score.homeScore ? game.away : game.home)
+    : null;
+  const possTeam = isLive && score.possession ? (score.possession === "home" ? game.home : game.away) : null;
+  const finalWinner = isFinal
+    ? (game.final ? game.winner : (hasScore && score.awayScore !== score.homeScore ? (score.awayScore > score.homeScore ? game.away : game.home) : null))
+    : null;
+
+  const teamScore = (teamId) => {
+    if (!hasScore) return null;
+    const n = teamId === game.home ? score.homeScore : score.awayScore;
+    const trailing = (isFinal && finalWinner && finalWinner !== teamId) || (isLive && liveLeader && liveLeader !== teamId);
+    return <span className={"league-picks-score" + (trailing ? " is-trailing" : "")}>{n}</span>;
+  };
+
   return (
-    <div className="league-picks-game">
+    <div className={"league-picks-game" + (isLive ? " is-live" : "")}>
       <div className="league-picks-game-head">
         <div className="league-picks-matchup">
           <TeamLogo teamId={game.away} size={22} />
-          <span className={game.final && game.winner === game.away ? "is-winner" : ""}>{game.away}</span>
+          <span className={finalWinner === game.away ? "is-winner" : ""}>{game.away}</span>
+          {teamScore(game.away)}
           <span className="league-picks-at">@</span>
+          {teamScore(game.home)}
           <TeamLogo teamId={game.home} size={22} />
-          <span className={game.final && game.winner === game.home ? "is-winner" : ""}>{game.home}</span>
+          <span className={finalWinner === game.home ? "is-winner" : ""}>{game.home}</span>
         </div>
-        <span className="league-picks-time">
-          {game.final ? (game.tie ? "Final · Tie" : "Final") : `${shownTime.date} · ${shownTime.time}`}
-        </span>
+        {isLive ? (
+          <span className="live-tag"><span className="live-dot"></span>{liveClockLabel(score)}</span>
+        ) : (
+          <span className="league-picks-time">
+            {isFinal ? (game.tie ? "Final · Tie" : "Final") : `${shownTime.date} · ${shownTime.time}`}
+          </span>
+        )}
       </div>
+      {isLive && (possTeam || score.downDistanceText) && (
+        <p className="league-picks-situation">
+          {possTeam && <span>{possTeam} ball</span>}
+          {possTeam && score.downDistanceText && <span> · </span>}
+          {score.downDistanceText && (
+            <span className={score.isRedZone ? "is-redzone" : ""}>{score.downDistanceText}</span>
+          )}
+        </p>
+      )}
 
       <div className="league-picks-columns">
         {[game.away, game.home].map(teamId => {
           const list = byTeam[teamId] || [];
-          const isWinner = game.final && !game.tie && game.winner === teamId;
+          const isWinner = isFinal && !game.tie && finalWinner === teamId;
+          const isLeading = format !== "ats" && liveLeader === teamId;
           return (
-            <div key={teamId} className={"league-picks-column" + (isWinner ? " is-winner" : "")}>
+            <div key={teamId} className={"league-picks-column" + (isWinner ? " is-winner" : "") + (isLeading ? " is-leading" : "")}>
               <div className="league-picks-column-head">
                 <TeamLogo teamId={teamId} size={18} />
-                <span>{teamId}</span>
+                <span>{teamId}{isLeading && <span className="league-picks-leading-tag"> · leading</span>}</span>
                 <span className="league-picks-column-count">{list.length}</span>
               </div>
               {list.length === 0 && <p className="league-picks-none">Nobody</p>}
@@ -14021,6 +14105,15 @@ function LeaguePicksGame({ game, format, tz, meId }) {
                   {format === "confidence" && typeof p.confidence === "number" && (
                     <span className="league-picks-conf">{p.confidence}</span>
                   )}
+                  {format === "ats" && isLive && (() => {
+                    const ahead = pickIsAheadLive(format, p, game, score);
+                    if (ahead === null) return null;
+                    return (
+                      <span className={"league-picks-cover " + (ahead ? "is-covering" : "is-not-covering")}>
+                        {ahead ? "covering" : "not covering"}
+                      </span>
+                    );
+                  })()}
                   {p.correct === true && <span className="league-picks-mark">✓</span>}
                   {p.correct === false && <span className="league-picks-mark">✗</span>}
                 </div>
@@ -14047,6 +14140,9 @@ function LeaguePicksGame({ game, format, tz, meId }) {
 function LeaguePicksPanel({ auth, profile, league, week, tz }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  // Same ESPN feed the Games tab and My Picks poll (fetchLiveScoresCached
+  // dedupes the subscriptions); the week's history snapshot is the fallback.
+  const liveMap = useLiveScores(week);
 
   // Same missing dependency as LeagueStandingsPanel - this panel prints
   // member names too, so a display-name change made in Settings while it's
@@ -14076,6 +14172,7 @@ function LeaguePicksPanel({ auth, profile, league, week, tz }) {
   const meId = auth.user && auth.user.id;
   const games = data.games || [];
   const lockedCount = games.filter(g => g.locked).length;
+  const weekContext = getWeekContext(week);
 
   // Members with no pick on a locked game, computed here rather than
   // server-side so the response stays a plain list of picks. The viewer's
@@ -14110,7 +14207,14 @@ function LeaguePicksPanel({ auth, profile, league, week, tz }) {
       </div>
       {games.length === 0 && <p className="leagues-empty">No games scheduled for this week.</p>}
       {decorated.map(g => (
-        <LeaguePicksGame key={g.gameId} game={g} format={data.format} tz={tz} meId={meId} />
+        <LeaguePicksGame
+          key={g.gameId}
+          game={g}
+          format={data.format}
+          tz={tz}
+          meId={meId}
+          score={g.locked ? leagueGameScore(liveMap, weekContext, g) : null}
+        />
       ))}
     </>
   );

@@ -4,7 +4,7 @@
       "2": {
         "week": 2,
         "season": 2026,
-        "gradedAt": "2026-11-17T04:00:30.165Z",
+        "gradedAt": "2026-11-17T05:00:21.359Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -129,7 +129,7 @@
       "3": {
         "week": 3,
         "season": 2026,
-        "gradedAt": "2026-11-17T04:00:30.275Z",
+        "gradedAt": "2026-11-17T05:00:21.433Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -254,7 +254,7 @@
       "4": {
         "week": 4,
         "season": 2026,
-        "gradedAt": "2026-11-17T04:00:30.361Z",
+        "gradedAt": "2026-11-17T05:00:21.492Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -379,7 +379,7 @@
       "5": {
         "week": 5,
         "season": 2026,
-        "gradedAt": "2026-11-17T04:00:30.472Z",
+        "gradedAt": "2026-11-17T05:00:21.561Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -504,7 +504,7 @@
       "6": {
         "week": 6,
         "season": 2026,
-        "gradedAt": "2026-11-17T04:00:30.585Z",
+        "gradedAt": "2026-11-17T05:00:21.647Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -629,7 +629,7 @@
       "7": {
         "week": 7,
         "season": 2026,
-        "gradedAt": "2026-11-17T04:00:30.743Z",
+        "gradedAt": "2026-11-17T05:00:21.682Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -754,7 +754,7 @@
       "8": {
         "week": 8,
         "season": 2026,
-        "gradedAt": "2026-11-17T04:00:30.912Z",
+        "gradedAt": "2026-11-17T05:00:21.767Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -879,7 +879,7 @@
       "9": {
         "week": 9,
         "season": 2026,
-        "gradedAt": "2026-11-17T04:00:31.008Z",
+        "gradedAt": "2026-11-17T05:00:21.822Z",
         "confidencePicks": [
           {
             "market": "confidence",
@@ -1000,28 +1000,153 @@
             "homeScore": 22
           }
         }
+      },
+      "10": {
+        "week": 10,
+        "season": 2026,
+        "gradedAt": "2026-11-17T05:00:21.860Z",
+        "confidencePicks": [
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "JAX",
+              "homeId": "TEN",
+              "awayName": "Jacksonville Jaguars",
+              "homeName": "Tennessee Titans"
+            },
+            "pickTeamId": "JAX",
+            "pick": "Jacksonville Jaguars",
+            "confidence": 0.7693149984342759,
+            "confidencePct": 77,
+            "summary": "Jacksonville Jaguars — 77% confidence",
+            "advantage": "Jacksonville Jaguars carries a 31.7-point rating edge over Tennessee Titans once offense, defense, injuries, and weather are graded. Tennessee Titans are without Tanoh Kpassagnon (out), a real hit to their defense. The market agrees Jacksonville Jaguars is favored, and 77% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 40,
+              "homeScore": 23
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "SF",
+              "homeId": "DAL",
+              "awayName": "San Francisco 49ers",
+              "homeName": "Dallas Cowboys"
+            },
+            "pickTeamId": "DAL",
+            "pick": "Dallas Cowboys",
+            "confidence": 0.6806901590638144,
+            "confidencePct": 68,
+            "summary": "Dallas Cowboys — 68% confidence",
+            "advantage": "Dallas Cowboys carries a 13.5-point rating edge over San Francisco 49ers once offense, defense, injuries, and weather are graded. San Francisco 49ers are without Ricky Pearsall (out), a real hit to their offense. The sportsbook favorite is actually San Francisco 49ers here. Read that as a split call, not an edge - when the model and the market disagree, the market has been right more often.",
+            "result": "loss",
+            "finalScore": {
+              "awayScore": 46,
+              "homeScore": 40
+            }
+          },
+          {
+            "market": "confidence",
+            "game": {
+              "awayId": "LAR",
+              "homeId": "ARI",
+              "awayName": "Los Angeles Rams",
+              "homeName": "Arizona Cardinals"
+            },
+            "pickTeamId": "LAR",
+            "pick": "Los Angeles Rams",
+            "confidence": 0.674369589279803,
+            "confidencePct": 67,
+            "summary": "Los Angeles Rams — 67% confidence",
+            "advantage": "Los Angeles Rams carries a 21.1-point rating edge over Arizona Cardinals once offense, defense, injuries, and weather are graded. Arizona Cardinals are without Jeremiyah Love (out), a real hit to their offense. The market agrees Los Angeles Rams is favored, and 67% confidence shows how comfortably.",
+            "result": "win",
+            "finalScore": {
+              "awayScore": 34,
+              "homeScore": 6
+            }
+          }
+        ],
+        "spreadPick": {
+          "market": "spread",
+          "game": {
+            "awayId": "SF",
+            "homeId": "DAL",
+            "awayName": "San Francisco 49ers",
+            "homeName": "Dallas Cowboys"
+          },
+          "pickTeamId": "DAL",
+          "pick": "Dallas Cowboys +points",
+          "confidence": 0.6806901590638144,
+          "confidencePct": 68,
+          "summary": "Dallas Cowboys to cover as the underdog",
+          "advantage": "The model's own line favors Dallas Cowboys while the market has them getting points. That's a lean, not an edge: against closing spreads the model's side covers about half the time, so weigh it as one opinion on the number.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 46,
+            "homeScore": 40
+          }
+        },
+        "moneylinePick": {
+          "market": "moneyline",
+          "game": {
+            "awayId": "SF",
+            "homeId": "DAL",
+            "awayName": "San Francisco 49ers",
+            "homeName": "Dallas Cowboys"
+          },
+          "pickTeamId": "DAL",
+          "pick": "Dallas Cowboys +170",
+          "confidence": 0.6806901590638144,
+          "confidencePct": 68,
+          "summary": "Dallas Cowboys +170",
+          "advantage": "The model gives Dallas Cowboys a 68% win probability against a price that implies 37% - a 31-point gap. That's the model's lean, not betting value: backtested, picks like this have not beaten the market's price.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 46,
+            "homeScore": 40
+          }
+        },
+        "totalPick": {
+          "market": "total",
+          "game": {
+            "awayId": "LAC",
+            "homeId": "BAL",
+            "awayName": "Los Angeles Chargers",
+            "homeName": "Baltimore Ravens"
+          },
+          "pick": "Under 38.5",
+          "lean": "under",
+          "summary": "Under 38.5",
+          "advantage": "Both defenses grade out well above these two offenses once injuries and weather are factored in - a directional lean toward a lower-scoring game, not a projected total, and not a measured edge against the posted number.",
+          "result": "loss",
+          "finalScore": {
+            "awayScore": 23,
+            "homeScore": 20
+          }
+        }
       }
     }
   },
   "aggregate": {
     "season": 2026,
-    "updatedAt": "2026-11-17T04:00:31.044Z",
+    "updatedAt": "2026-11-17T05:00:21.860Z",
     "confidencePicks": {
-      "wins": 13,
-      "losses": 11
+      "wins": 15,
+      "losses": 12
     },
     "spreadPicks": {
       "wins": 2,
-      "losses": 6,
+      "losses": 7,
       "pushes": 0
     },
     "moneylinePicks": {
       "wins": 1,
-      "losses": 7
+      "losses": 8
     },
     "totalPicks": {
       "wins": 4,
-      "losses": 4,
+      "losses": 5,
       "pushes": 0
     },
     "byWeek": [
@@ -1097,6 +1222,16 @@
       },
       {
         "week": 9,
+        "confidencePicks": {
+          "wins": 2,
+          "losses": 1
+        },
+        "spreadPick": "loss",
+        "moneylinePick": "loss",
+        "totalPick": "loss"
+      },
+      {
+        "week": 10,
         "confidencePicks": {
           "wins": 2,
           "losses": 1

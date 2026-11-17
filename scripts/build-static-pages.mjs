@@ -1223,6 +1223,18 @@ const TAB_PAGES = [
     description: "Join a free NFL pick'em pool instantly - no invite needed - or run your own with friends. Confidence, survivor, straight-up, and against-the-spread formats, with automatic scoring and standings.",
   },
   {
+    // Bowl Pick'em. The SPA only shows this tab when the "bowls" feature flag
+    // covers the visitor (admin console > Features), so while it's being
+    // tested the page exists for direct hits but is kept out of the index:
+    // noindex here, and noindex entries are left out of sitemap.xml below.
+    // Drop `noindex` when the flag goes to Everyone.
+    dir: "bowls",
+    canonicalPath: "/bowls/",
+    noindex: true,
+    title: "College Bowl Pick'em - Free Bowl Confidence Pools | Blitz Odds",
+    description: "Every college bowl game and the full College Football Playoff on one free pick sheet. Run a confidence, straight-up or against-the-spread bowl pool with friends, scored automatically.",
+  },
+  {
     dir: "news",
     canonicalPath: "/news/",
     title: "NFL News | Blitz Odds",
@@ -1232,6 +1244,7 @@ const TAB_PAGES = [
 
 async function buildTabPage(template, page, data, periods) {
   let html = applyMeta(template, page);
+  if (page.noindex) html = html.replace("</head>", `<meta name="robots" content="noindex" />\n</head>`);
   if (page.snapshot) {
     lastSnapshotGated = false;
     const snap = page.snapshot(data, periods);
@@ -1455,7 +1468,8 @@ async function main() {
     tabEntries.push(await buildTabPage(template, page, data, periods));
   }
 
-  const entries = [...tabEntries, ...teamEntries, ...weekEntries, ...gameEntries];
+  const indexedTabEntries = tabEntries.filter((e, i) => !TAB_PAGES[i].noindex);
+  const entries = [...indexedTabEntries, ...teamEntries, ...weekEntries, ...gameEntries];
   const changedCount = entries.filter((e) => e.changed).length;
 
   log("Updating sitemap...");

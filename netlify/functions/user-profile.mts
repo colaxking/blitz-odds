@@ -78,6 +78,8 @@ function jsonResponse(status: number, body: unknown) {
   });
 }
 
+const NAV_PIN_IDS = new Set(["home", "games", "picks", "bowls", "league", "news"]);
+
 function defaultSettings() {
   return {
     themeMode: "system",
@@ -175,6 +177,15 @@ function sanitizeSettings(input: any, existing: any) {
       typeof input.tutorialSeenAt === "string" && !Number.isNaN(Date.parse(input.tutorialSeenAt))
         ? input.tutorialSeenAt
         : new Date().toISOString();
+  }
+
+  /* Phone bottom-bar pins (the "Edit bottom bar" screen). 2-4 known tab ids,
+     no duplicates; anything else is dropped rather than half-applied, so a
+     bad payload leaves the previous pins in place. Menu isn't stored - it is
+     always the last slot. */
+  if (Array.isArray(input.navPins)) {
+    const pins = [...new Set(input.navPins.filter((t: unknown) => typeof t === "string" && NAV_PIN_IDS.has(t as string)))] as string[];
+    if (pins.length >= 2 && pins.length <= 4) out.navPins = pins;
   }
 
   return out;

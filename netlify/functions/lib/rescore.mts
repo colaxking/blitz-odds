@@ -169,6 +169,7 @@ export async function rescoreLeague(
 ): Promise<RescoreResult> {
   const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
   if (!league) throw new Error("No such league");
+  if (league.sport === "bowls") throw new Error("Bowl pools are scored live and have nothing to rescore");
 
   let targetWeeks: number[];
   if (weeks && weeks.length) {

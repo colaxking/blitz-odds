@@ -76,6 +76,7 @@ export default async (req: Request, _context: Context) => {
     const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
     if (!league) return jsonResponse(404, { ok: false, error: "League not found" }, CORS_HEADERS);
     if (league.locked) return jsonResponse(403, { ok: false, error: "This league is locked" }, CORS_HEADERS);
+    if (league.sport === "bowls") return jsonResponse(400, { ok: false, error: "Bowl pools save picks through bowl-picks-submit" }, CORS_HEADERS);
 
     const membersDoc: any = await leagueStore.get(`members:${leagueId}`, { type: "json" });
     const isMember = membersDoc?.members?.some((m: any) => m.userId === userId);

@@ -802,6 +802,20 @@ export default async (req: Request, _context: Context) => {
     // bySurface says which of the three entry points carries it; if the
     // My Leagues row barely registers against the header, that icon is
     // chrome nobody needed. ---
+    // --- Bowl Pick'em and the phone bottom bar (both feature-flagged). The
+    // bowl funnel reads left to right: slate views, pools created, pool
+    // views, sheets saved. Pin layouts say which bar people actually build;
+    // if nobody changes the default, the edit screen was chrome. ---
+    const bowlsViews = validRecords.filter((r) => r.type === "bowls_view").length;
+    const bowlPoolCreates = sortedCounts(validRecords.filter((r) => r.type === "bowl_pool_create"), (r) => r.format);
+    const bowlLeagueViews = validRecords.filter((r) => r.type === "bowl_league_view").length;
+    const bowlSaveRecords = validRecords.filter((r) => r.type === "bowl_picks_save");
+    const bowlPicksSaves = bowlSaveRecords.length;
+    const bowlSavesFull = bowlSaveRecords.filter((r: any) => typeof r.total === "number" && r.total > 0 && r.picked === r.total).length;
+    const bowlAutoranks = validRecords.filter((r) => r.type === "bowl_autorank").length;
+    const navMenuOpens = validRecords.filter((r) => r.type === "nav_menu_open").length;
+    const navPinLayouts = sortedCounts(validRecords.filter((r) => r.type === "nav_pins_save"), (r: any) => r.pins);
+
     const leagueShareRecords = validRecords.filter((r) => r.type === "league_invite_share");
     const leagueShares = leagueShareRecords.length;
     const leagueSharesBySurface = sortedCounts(leagueShareRecords, (r) => r.surface);
@@ -1331,6 +1345,14 @@ export default async (req: Request, _context: Context) => {
         leagueJoinFailures,
         leagueJoinsByFormat,
         officialLeagueJoins,
+        bowlsViews,
+        bowlPoolCreates,
+        bowlLeagueViews,
+        bowlPicksSaves,
+        bowlSavesFull,
+        bowlAutoranks,
+        navMenuOpens,
+        navPinLayouts,
         leagueShares,
         leagueSharesBySurface,
         leagueSharesByMethod,

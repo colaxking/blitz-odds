@@ -308,6 +308,9 @@ const TAB_ROUTES = HOME_TAB_ENABLED
       picks: "/picks",
       league: "/leagues",
       news: "/news",
+      // Behind the "bowls" feature flag - App sends a visitor the flag
+      // doesn't cover back to "/" once the flags have loaded.
+      bowls: "/bowls",
     }
   : {
       games: "/",
@@ -1273,6 +1276,11 @@ function useDocumentMeta(activeTab, view, teamId, week, game) {
       applyDocumentMeta(
         "Free NFL Pick'em Leagues — Pools That Score Themselves | Blitz Odds",
         "Run a free NFL pick'em pool with friends. Straight-up, confidence, survivor, and against-the-spread formats, each game backed by a model win probability and live sportsbook odds."
+      );
+    } else if (activeTab === "bowls") {
+      applyDocumentMeta(
+        "College Bowl Pick'em — Free Bowl Confidence Pools | Blitz Odds",
+        "Every college bowl game and the full College Football Playoff on one free pick sheet. Run a confidence, straight-up or against-the-spread bowl pool with friends, scored automatically."
       );
     } else if (activeTab === "league") {
       applyDocumentMeta(
@@ -10624,11 +10632,24 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myL
  * 3 have working defaults, so someone who wants a league in fifteen seconds
  * can hit Next twice and be done.
  */
-function LeagueCreateWizard({ auth, onCreated, onCancel }) {
+function LeagueCreateWizard({ auth, onCreated, onCancel, bowlsEnabled = false, initialSport = null }) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [format, setFormat] = useState("straight_up");
+  // "nfl" or "bowls". Bowl pools only appear as a choice behind the "bowls"
+  // feature flag; league-create.mts re-checks the flag server-side.
+  const [sport, setSport] = useState(bowlsEnabled && initialSport === "bowls" ? "bowls" : "nfl");
+  const [format, setFormat] = useState(bowlsEnabled && initialSport === "bowls" ? "confidence" : "straight_up");
+  const [includePlayoff, setIncludePlayoff] = useState(true);
+  const [bowlTiebreaker, setBowlTiebreaker] = useState(true);
+  const isBowls = sport === "bowls";
+  const formatOptions = isBowls
+    ? LEAGUE_FORMAT_OPTIONS.filter((f) => BOWL_FORMAT_OPTIONS.indexOf(f.value) !== -1)
+    : LEAGUE_FORMAT_OPTIONS;
+  function chooseSport(next) {
+    setSport(next);
+    if (next === "bowls" && BOWL_FORMAT_OPTIONS.indexOf(format) === -1) setFormat("confidence");
+  }
   const [visibility, setVisibility] = useState("private");
   const [maxMembers, setMaxMembers] = useState("20");
   const [pointsPerCorrect, setPointsPerCorrect] = useState(1);
@@ -10673,6 +10694,7 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(isBowls ? { sport: "bowls", bowlSettings: { includePlayoff, tiebreaker: bowlTiebreaker } } : {}),
           name: name.trim(),
           description: description.trim(),
           format,
@@ -10684,6 +10706,7 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to create league");
+      if (isBowls) trackEvent("bowl_pool_create", { format, includePlayoff, tiebreaker: bowlTiebreaker });
 
       // Invites are best-effort: the league already exists by now, so a slow
       // or failed Resend call must not read as creation having failed. The
@@ -10736,10 +10759,25 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
               onChange={(e) => setName(e.target.value)} />
             <div className="lgx-count">{name.length} / 50</div>
 
+            {bowlsEnabled && (
+              <>
+                <label className="lgx-label" style={{ marginTop: 20 }}>Season</label>
+                <p className="lgx-help">A weekly NFL league, or one pick sheet for college bowl season.</p>
+                <div className="lgx-priv lgx-season">
+                  <button type="button" className={!isBowls ? "sel" : ""} onClick={() => chooseSport("nfl")}>
+                    <b>NFL</b><span>Weekly picks through Week 18</span>
+                  </button>
+                  <button type="button" className={isBowls ? "sel" : ""} onClick={() => chooseSport("bowls")}>
+                    <b>Bowl Pool</b><span>Every bowl and the Playoff, one sheet</span>
+                  </button>
+                </div>
+              </>
+            )}
+
             <label className="lgx-label" style={{ marginTop: 20 }}>Game type</label>
-            <p className="lgx-help">Choose the Pick'em game format for your league.</p>
+            <p className="lgx-help">{isBowls ? "How the bowl sheet is scored. Survivor isn't offered for bowls." : "Choose the Pick'em game format for your league."}</p>
             <div className="lgx-fmt-grid">
-              {LEAGUE_FORMAT_OPTIONS.map((f) => (
+              {formatOptions.map((f) => (
                 <button key={f.value} type="button"
                   className={"lgx-fmt" + (format === f.value ? " sel" : "")}
                   onClick={() => setFormat(f.value)}>
@@ -10790,7 +10828,56 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 2 && isBowls && (
+          <div className="lgx-body">
+            {format !== "confidence" && (
+              <div className="lgx-set">
+                <div className="t"><b>Points per correct pick</b><span>Every game is worth the same.</span></div>
+                <div className="c">
+                  <input className="league-input" type="number" min={1} step={1} value={pointsPerCorrect}
+                    onChange={(e) => setPointsPerCorrect(e.target.value)} />
+                </div>
+              </div>
+            )}
+            {format === "confidence" && (
+              <div className="lgx-set">
+                <div className="t"><b>Points</b>
+                  <span>Rank every game. Your most confident pick is worth the most points, your least confident 1.</span></div>
+                <div className="c"><span className="lgx-locked">By rank · fixed</span></div>
+              </div>
+            )}
+            <div className="lgx-set">
+              <div className="t"><b>Include the College Football Playoff</b>
+                <span>Later rounds join the sheet once their teams are set. Points can be assigned before then.</span></div>
+              <div className="c">
+                <select className="league-input" value={includePlayoff ? "1" : "0"} onChange={(e) => setIncludePlayoff(e.target.value === "1")}>
+                  <option value="1">Included</option><option value="0">Bowls only</option>
+                </select>
+              </div>
+            </div>
+            <div className="lgx-set">
+              <div className="t"><b>Title-game tiebreaker</b>
+                <span>Everyone guesses the national championship's total points; closest wins a tie.</span></div>
+              <div className="c">
+                <select className="league-input" value={bowlTiebreaker ? "1" : "0"} onChange={(e) => setBowlTiebreaker(e.target.value === "1")}>
+                  <option value="1">On</option><option value="0">Off</option>
+                </select>
+              </div>
+            </div>
+            {format === "ats" && (
+              <div className="lgx-set">
+                <div className="t"><b>Lines</b><span>Each pick keeps the spread it was made at. A push scores nothing.</span></div>
+                <div className="c"><span className="lgx-locked">Locked at pick</span></div>
+              </div>
+            )}
+            <div className="lgx-set">
+              <div className="t"><b>Pick deadline</b><span>Each game locks at its own kickoff.</span></div>
+              <div className="c"><span className="lgx-locked">Per game · fixed</span></div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && !isBowls && (
           <div className="lgx-body">
             <div className="lgx-set">
               <div className="t"><b>Points per correct pick</b>
@@ -10894,7 +10981,7 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
             <label className="lgx-label" style={{ marginTop: 22 }}>Summary</label>
             <div className="lgx-sum">
               <div className="lgx-sum-cell"><span className="lgx-eyebrow">Name</span><b>{name.trim() || "—"}</b></div>
-              <div className="lgx-sum-cell"><span className="lgx-eyebrow">Format</span><b>{formatLabel}</b></div>
+              <div className="lgx-sum-cell"><span className="lgx-eyebrow">Format</span><b>{isBowls ? `Bowl Pool · ${formatLabel}` : formatLabel}</b></div>
               <div className="lgx-sum-cell"><span className="lgx-eyebrow">Privacy</span>
                 <b>{visibility === "private" ? "Private" : "Public"}</b></div>
               <div className="lgx-sum-cell"><span className="lgx-eyebrow">Size</span><b>{sizeLabel}</b></div>
@@ -10949,7 +11036,7 @@ function LeagueCreateWizard({ auth, onCreated, onCancel }) {
   );
 }
 
-function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague, autoJoinCode, autoJoinCodeError, joinLinkError, initialSubTab, onGoHome }) {
+function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeLeague, onRequestLogin, onSelectLeague, onManageLeague, autoJoinCode, autoJoinCodeError, joinLinkError, initialSubTab, onGoHome, bowlsEnabled = false, initialSport = null }) {
   const [copiedCode, setCopiedCode] = useState(null);
   const [pendingLeaveId, setPendingLeaveId] = useState(null);
   const [leavingId, setLeavingId] = useState(null);
@@ -11080,6 +11167,8 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
         </div>
         <LeagueCreateWizard
           auth={auth}
+          bowlsEnabled={bowlsEnabled}
+          initialSport={initialSport}
           onCancel={() => selectSubTab("search")}
           onCreated={(league) => { upsertLeague(league); onSelectLeague(league.id); }}
         />
@@ -11960,7 +12049,9 @@ const LEAGUE_SHARE_PHRASE = {
  *  through, since there the sheet never opened. */
 async function shareLeagueLink(league) {
   const url = leagueJoinUrl(league);
-  const phrase = LEAGUE_SHARE_PHRASE[league.format] || "pick'em";
+  const phrase = league.sport === "bowls"
+    ? `college bowl ${LEAGUE_SHARE_PHRASE[league.format] || "pick'em"}`
+    : (LEAGUE_SHARE_PHRASE[league.format] || "pick'em");
   if (typeof navigator !== "undefined" && navigator.share) {
     try {
       await navigator.share({
@@ -14403,7 +14494,7 @@ function LeagueRequestsPanel({ auth, league, onPendingChange }) {
   );
 }
 
-function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, initialWeek, onOpenLeagueRoute, onGoHome, onOpenGame }) {
+function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, initialWeek, onOpenLeagueRoute, onGoHome, onOpenGame, bowlsEnabled = false, initialSport = null, onOpenBowls = null }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
   // /leagues/{id} opens straight into that league. Initial value only -
   // once someone navigates inside the tab, their clicks own this, not the
@@ -14491,7 +14582,7 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   useEffect(() => {
     if (selectedLeagueId || auth.status !== "in") return;
     const timer = setTimeout(() => {
-      (leagues || []).slice(0, 4).forEach(l => prefetchLeagueWeek(auth, l.id, week));
+      (leagues || []).filter(l => l.sport !== "bowls").slice(0, 4).forEach(l => prefetchLeagueWeek(auth, l.id, week));
     }, 250);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -14630,6 +14721,26 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   }
 
   const league = selectedLeagueId ? (leagues || []).find(l => l.id === selectedLeagueId) : null;
+  // A bowl pool has its own screen - one sheet for the whole bowl season, not
+  // the weekly NFL panels below. Back goes to the Bowls tab when it's
+  // available (where bowl pools are listed), otherwise Home.
+  if (league && league.sport === "bowls") {
+    const backToBowls = bowlsEnabled && typeof onOpenBowls === "function";
+    return (
+      <BowlLeagueView
+        auth={auth}
+        profile={profile}
+        league={league}
+        tz={tz}
+        isOwner={league.ownerId === myUserId}
+        onBackLabel={backToBowls ? "Bowls" : "Home"}
+        onBack={() => { setSelectedLeagueId(null); if (backToBowls) onOpenBowls(); else if (typeof onGoHome === "function") onGoHome(); }}
+        onManage={() => setManagingLeagueId(league.id)}
+        onLeave={() => handleLeave(league.id)}
+        leaving={leavingLeagueId === league.id}
+      />
+    );
+  }
   if (league) {
     const isOwner = league.ownerId === myUserId;
     return (
@@ -14715,6 +14826,8 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
       joinLinkError={pendingJoin && pendingJoin.type === "leagueId" ? autoJoinError : null}
       initialSubTab={initialSubTab}
       onGoHome={onGoHome}
+      bowlsEnabled={bowlsEnabled}
+      initialSport={initialSport}
     />
   );
 }
@@ -17528,7 +17641,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
  * dashboard once that landed, and it cost a slot in a bar that has to fit
  * on a phone. LEAGUES_UI_ENABLED still gates the tab's *route*, so nothing
  * about linking to /leagues changed. */
-function TabBar({ activeTab, onSelectTab, liveCount = 0 }) {
+function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPins = null, onOpenMenu = null, menuOpen = false }) {
   /* Each tab carries both an `img` (the illustrated brand mark) and an
    * `icon` (the emoji it replaced). The emoji is not dead code - TabBar
    * renders it for any tab without an image, and it's the one-line revert
@@ -17552,9 +17665,28 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0 }) {
       ? [{ id: "home", label: "Home", icon: "\u{1F3E0}", img: "/branding/tab-icon-home.png" }]
       : []),
     { id: "games", label: "Games", icon: "\u{1F3C8}", img: "/branding/tab-icon-games.png" },
+    // Bowls sits between Games and the Playbook while bowl season is on and
+    // the "bowls" flag is on for this visitor. It removes itself after the
+    // season (BOWLS_VISIBLE_UNTIL) without a deploy.
+    ...(features && features.bowls && bowlsInSeason()
+      ? [{ id: "bowls", label: "Bowls", icon: "\u{1F3C6}", img: "/branding/tab-icon-bowls.svg" }]
+      : []),
     { id: "picks", label: PLAYBOOK_TAB_LABEL, icon: PLAYBOOK_TAB_ICON, img: PLAYBOOK_TAB_IMG },
     { id: "news", label: "News", icon: "\u{1F4F0}", img: "/branding/tab-icon-news.png" },
+    // Leagues has never been a desktop tab (it lives in the header), so it's
+    // only rendered when the phone bar has it pinned - and CSS keeps it off
+    // the desktop row even then (.tab-mobile-only).
+    ...(navPins && navPins.indexOf("league") !== -1
+      ? [{ id: "league", label: "Leagues", icon: "\u{1F465}", img: "/branding/tab-icon-leagues.svg", mobileOnly: true }]
+      : []),
   ];
+  /* The customisable phone bar ("mobileNav" flag). Desktop still gets every
+   * tab: the pinned/unpinned split and the Menu button only take effect
+   * inside the <=720px media query. Pinned tabs are ordered with CSS `order`
+   * so the DOM (and desktop) order never changes. */
+  const custom = !!(navPins && typeof onOpenMenu === "function");
+  const pinIndex = (id) => (custom ? navPins.indexOf(id) : -1);
+  const menuActive = custom && (menuOpen || pinIndex(activeTab) === -1);
   /* The span stays aria-hidden and the <img> stays alt="" on purpose: the
    * .tab-label next to it is the accessible name, so describing the artwork
    * as well would have a screen reader announce every tab twice. */
@@ -17584,12 +17716,15 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0 }) {
    * Archive, the one tab that navigated out of the SPA; it went with the
    * tab. Re-add it if a tab ever needs to be a real link again. */
   return (
-    <nav className="tab-bar" aria-label="Primary">
+    <nav className={"tab-bar" + (custom ? " tab-bar-custom" : "")} aria-label="Primary">
       {tabs.map((t) => (
         <button
           key={t.id}
           type="button"
-          className={"tab-btn" + (activeTab === t.id ? " active" : "")}
+          className={"tab-btn" + (activeTab === t.id ? " active" : "")
+            + (custom && pinIndex(t.id) === -1 ? " tab-unpinned" : "")
+            + (t.mobileOnly ? " tab-mobile-only" : "")}
+          style={custom && pinIndex(t.id) !== -1 ? { "--pin-order": pinIndex(t.id) } : undefined}
           onClick={() => onSelectTab(t.id)}
           aria-current={activeTab === t.id ? "page" : undefined}
           aria-label={t.id === "games" && liveCount > 0
@@ -17601,7 +17736,1185 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0 }) {
           <span className="tab-label">{t.label}</span>
         </button>
       ))}
+      {custom && (
+        <button
+          type="button"
+          className={"tab-btn tab-menu-btn" + (menuActive ? " active" : "")}
+          onClick={onOpenMenu}
+          aria-haspopup="dialog"
+          aria-expanded={menuOpen}
+        >
+          <span className="tab-icon tab-menu-icon" aria-hidden="true">
+            <MenuGlyph open={menuOpen} />
+            {features && features.bowls && bowlsInSeason() && navPins.indexOf("bowls") === -1 && !menuSeenBowls() && <span className="tab-menu-dot" />}
+          </span>
+          <span className="tab-label">{menuOpen ? "Close" : "Menu"}</span>
+        </button>
+      )}
     </nav>
+  );
+}
+
+/** The orange dot on Menu that points people at the new Bowls tile. Cleared
+ *  the first time the menu is opened. */
+const MENU_SEEN_BOWLS_KEY = "blitz:menuSeenBowls";
+function menuSeenBowls() {
+  try { return localStorage.getItem(MENU_SEEN_BOWLS_KEY) === "1"; } catch (e) { return true; }
+}
+function markMenuSeenBowls() {
+  try { localStorage.setItem(MENU_SEEN_BOWLS_KEY, "1"); } catch (e) {}
+}
+
+
+/* ==================== FEATURE FLAGS ====================
+ * Runtime switches set from the admin console's Features tab (see
+ * netlify/functions/lib/features.mts). Each is "off", "admins" (only admin
+ * accounts see it - how a feature gets tested on the live site) or
+ * "everyone". /features answers with booleans already resolved for the
+ * caller, so nothing here needs to know about the three modes.
+ *
+ * The last answer is cached in localStorage and used as the first paint's
+ * value, so a feature that's on doesn't flicker in a beat after load. The
+ * cache is only a starting guess: every flagged endpoint re-checks the flag
+ * server-side, and App waits for the real answer before redirecting anyone
+ * away from a flagged route. */
+const FEATURES_CACHE_KEY = "blitz:features";
+const FEATURE_NAMES = ["bowls", "mobileNav"];
+
+function readCachedFeatures() {
+  const out = {};
+  FEATURE_NAMES.forEach((k) => { out[k] = false; });
+  try {
+    const raw = JSON.parse(localStorage.getItem(FEATURES_CACHE_KEY) || "null");
+    if (raw && typeof raw === "object") FEATURE_NAMES.forEach((k) => { out[k] = raw[k] === true; });
+  } catch (e) {}
+  return out;
+}
+
+function useFeatures(auth) {
+  const [state, setState] = useState(() => ({ ...readCachedFeatures(), loaded: false, isAdmin: false, admin: null }));
+  const [nonce, setNonce] = useState(0);
+  const signedIn = auth && auth.status === "in";
+  const authSettled = auth && auth.status !== "loading" && auth.status !== undefined;
+
+  useEffect(() => {
+    if (!authSettled) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = signedIn
+          ? await auth.authenticatedFetch("/.netlify/functions/features")
+          : await fetch("/.netlify/functions/features");
+        const body = await res.json();
+        if (cancelled || !body || !body.ok) return;
+        const next = { loaded: true, isAdmin: !!body.isAdmin, admin: body.admin || null };
+        FEATURE_NAMES.forEach((k) => { next[k] = !!(body.features && body.features[k]); });
+        try {
+          const cache = {};
+          FEATURE_NAMES.forEach((k) => { cache[k] = next[k]; });
+          localStorage.setItem(FEATURES_CACHE_KEY, JSON.stringify(cache));
+        } catch (e) {}
+        setState(next);
+      } catch (e) {
+        // Offline or the function is down: keep the cached guess, but mark
+        // it loaded so nothing waits on an answer that isn't coming.
+        if (!cancelled) setState((s) => ({ ...s, loaded: true }));
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn, authSettled, auth && auth.user && auth.user.id, nonce]);
+
+  const refresh = useCallback(() => setNonce((n) => n + 1), []);
+  return { ...state, refresh };
+}
+
+const FEATURE_MODE_OPTIONS = [
+  { id: "off", label: "Off" },
+  { id: "admins", label: "Admins only" },
+  { id: "everyone", label: "Everyone" },
+];
+
+function AdminFeaturesPanel({ auth, onToast, onChanged }) {
+  const [doc, setDoc] = useState(null);
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    adminCall(auth, "/.netlify/functions/features")
+      .then((b) => { if (!cancelled) setDoc(b.admin || null); })
+      .catch((e) => { if (!cancelled) setError(e.message); });
+    return () => { cancelled = true; };
+  }, [auth]);
+
+  async function setMode(name, mode) {
+    if (busy || !doc || doc.flags[name] === mode) return;
+    setBusy(name);
+    try {
+      const b = await adminCall(auth, "/.netlify/functions/features", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, mode }),
+      });
+      setDoc(b.admin);
+      const label = (b.admin.labels[name] || {}).title || name;
+      onToast(`${label}: ${(FEATURE_MODE_OPTIONS.find((o) => o.id === mode) || {}).label}`);
+      if (typeof onChanged === "function") onChanged();
+    } catch (e) {
+      onToast(e.message || "Couldn't update that feature");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  if (error) return <AdminStatus error={error} />;
+  if (!doc) return <AdminStatus busy />;
+
+  return (
+    <React.Fragment>
+      <p className="admin-hint" style={{ marginTop: 0, marginBottom: 14 }}>
+        Turn a feature on for admin accounts only to test it on the live site, then switch it to Everyone to launch.
+        Changes apply on the next page load with no deploy needed.
+      </p>
+      {Object.keys(doc.flags).map((name) => {
+        const label = doc.labels[name] || { title: name, blurb: "" };
+        return (
+          <section className="admin-sec admin-feature" key={name}>
+            <h4>{label.title}</h4>
+            {label.blurb && <p className="admin-hint" style={{ margin: "0 0 8px" }}>{label.blurb}</p>}
+            <div className="admin-pick-ctl" role="group" aria-label={label.title}>
+              {FEATURE_MODE_OPTIONS.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  className="admin-seg"
+                  aria-pressed={doc.flags[name] === o.id}
+                  disabled={busy === name}
+                  onClick={() => setMode(name, o.id)}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+      {doc.updatedAt && (
+        <p className="admin-hint">Last changed {fmtAdminDate(doc.updatedAt, true)}{doc.updatedBy ? ` by ${doc.updatedBy}` : ""}.</p>
+      )}
+    </React.Fragment>
+  );
+}
+
+/* ==================== MOBILE BOTTOM BAR ====================
+ * Behind the "mobileNav" flag. On a phone (the <=720px layout, where the tab
+ * row becomes the fixed bottom bar) the bar shows the tabs the reader pinned
+ * plus a Menu button that opens everything else. Desktop is untouched: CSS
+ * shows every tab and hides the Menu button above 720px, so this is purely
+ * a phone layout and the same TabBar markup serves both.
+ *
+ * Pins are 2-4 tab ids. Saved to localStorage, and for a signed-in reader
+ * also to the account (user-profile settings.navPins) so they follow them
+ * to another phone. */
+const NAV_PINS_KEY = "blitz:navPins";
+const DEFAULT_NAV_PINS = ["home", "games", "picks"];
+const NAV_PIN_MIN = 2;
+const NAV_PIN_MAX = 4;
+
+/** Every destination the bar or menu can hold, in menu order. `available`
+ *  is evaluated against the current feature flags. */
+function navDestinations(features) {
+  return [
+    { id: "home", label: "Home", img: "/branding/tab-icon-home.png", note: "Your leagues and this week at a glance" },
+    { id: "games", label: "Games", img: "/branding/tab-icon-games.png", note: "This week's matchups" },
+    { id: "picks", label: PLAYBOOK_TAB_LABEL, img: PLAYBOOK_TAB_IMG, note: "Pick sheets and the survivor planner" },
+    ...(features && features.bowls && bowlsInSeason()
+      ? [{ id: "bowls", label: "Bowls", img: "/branding/tab-icon-bowls.svg", note: "Bowl season only - hides itself in February", isNew: true }]
+      : []),
+    { id: "league", label: "Leagues", img: "/branding/tab-icon-leagues.svg", note: "Your pools, or create and join one" },
+    { id: "news", label: "News", img: "/branding/tab-icon-news.png", note: "Injuries and headlines" },
+  ];
+}
+
+function sanitizeNavPins(pins, features) {
+  const ids = new Set(navDestinations(features).map((d) => d.id));
+  const out = [];
+  (Array.isArray(pins) ? pins : []).forEach((p) => {
+    if (typeof p === "string" && ids.has(p) && out.indexOf(p) === -1) out.push(p);
+  });
+  return out.slice(0, NAV_PIN_MAX);
+}
+
+function readStoredNavPins() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(NAV_PINS_KEY) || "null");
+    if (Array.isArray(raw) && raw.length >= NAV_PIN_MIN) return raw;
+  } catch (e) {}
+  return null;
+}
+
+function NavIcon({ dest, size = 30 }) {
+  return <img className="tab-icon-img" src={dest.img} alt="" width={size} height={size} decoding="async" />;
+}
+
+function MenuGlyph({ open }) {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+    </svg>
+  );
+}
+
+/** The bottom sheet the Menu button opens. Portalled to <body> above the
+ *  fixed bar (z-index 500), so it covers the bar itself as well. */
+function NavMenuSheet({ features, pins, activeTab, onSelect, onClose, onEditBar, auth, isAdmin, onOpenSettings, onOpenHowItWorks, onOpenAdmin }) {
+  useEffect(() => {
+    lockBodyScroll();
+    function onKey(e) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("keydown", onKey); unlockBodyScroll(); };
+  }, [onClose]);
+
+  const dests = navDestinations(features).filter((d) => pins.indexOf(d.id) === -1);
+  const signedIn = auth && auth.status === "in";
+
+  return ReactDOM.createPortal(
+    <div className="navmenu-overlay" onClick={onClose}>
+      <div className="navmenu-sheet" role="dialog" aria-modal="true" aria-label="Menu" onClick={(e) => e.stopPropagation()}>
+        <div className="navmenu-grip" aria-hidden="true" />
+        <div className="navmenu-head">
+          <h2>Menu</h2>
+          <button type="button" className="navmenu-edit" onClick={onEditBar}>Edit bottom bar</button>
+        </div>
+        {dests.length > 0 && (
+          <div className="navmenu-grid">
+            {dests.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                className={"navmenu-tile" + (activeTab === d.id ? " active" : "") + (d.isNew ? " is-new" : "")}
+                onClick={() => { onSelect(d.id); onClose(); }}
+              >
+                <NavIcon dest={d} size={32} />
+                <span>{d.label}</span>
+                {d.isNew && <em className="navmenu-new">New</em>}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="navmenu-list">
+          <a className="navmenu-row" href="/historical/">Archive<span aria-hidden="true">›</span></a>
+          <button type="button" className="navmenu-row" onClick={() => { onClose(); onOpenHowItWorks(); }}>How this works<span aria-hidden="true">›</span></button>
+          <button type="button" className="navmenu-row" onClick={() => { onClose(); onOpenSettings(); }}>Settings<span aria-hidden="true">›</span></button>
+          {isAdmin && (
+            <button type="button" className="navmenu-row" onClick={() => { onClose(); onOpenAdmin(); }}>Admin<span aria-hidden="true">›</span></button>
+          )}
+          {signedIn ? (
+            <button type="button" className="navmenu-row navmenu-row-dim" onClick={() => { onClose(); auth.logout(); }}>Sign out</button>
+          ) : (
+            <button type="button" className="navmenu-row" onClick={() => { onClose(); auth.openLogin(); }}>Sign in<span aria-hidden="true">›</span></button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+/** "Edit bottom bar": pick and order 2-4 tabs. Works on a draft and only
+ *  applies on Done, so backing out with Cancel changes nothing. */
+function NavEditSheet({ features, pins, onSave, onClose }) {
+  const [draft, setDraft] = useState(() => pins.slice());
+  useEffect(() => {
+    lockBodyScroll();
+    function onKey(e) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("keydown", onKey); unlockBodyScroll(); };
+  }, [onClose]);
+
+  const all = navDestinations(features);
+  const byId = {};
+  all.forEach((d) => { byId[d.id] = d; });
+  const pinned = draft.map((id) => byId[id]).filter(Boolean);
+  const available = all.filter((d) => draft.indexOf(d.id) === -1);
+  const atMax = draft.length >= NAV_PIN_MAX;
+  const atMin = draft.length <= NAV_PIN_MIN;
+
+  function move(i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= draft.length) return;
+    const n = draft.slice();
+    const t = n[i]; n[i] = n[j]; n[j] = t;
+    setDraft(n);
+  }
+
+  return ReactDOM.createPortal(
+    <div className="navmenu-overlay" onClick={onClose}>
+      <div className="navmenu-sheet navedit-sheet" role="dialog" aria-modal="true" aria-label="Edit bottom bar" onClick={(e) => e.stopPropagation()}>
+        <div className="navedit-head">
+          <button type="button" className="navedit-link" onClick={onClose}>Cancel</button>
+          <h2>Bottom bar</h2>
+          <button type="button" className="navedit-link navedit-done" onClick={() => onSave(draft)}>Done</button>
+        </div>
+
+        <div className="navedit-label">Preview</div>
+        <div className="navedit-preview" style={{ gridTemplateColumns: `repeat(${pinned.length + 1}, minmax(0, 1fr))` }} aria-hidden="true">
+          {pinned.map((d) => (
+            <span key={d.id}><NavIcon dest={d} size={26} />{d.label}</span>
+          ))}
+          <span><MenuGlyph />Menu</span>
+        </div>
+
+        <div className="navedit-label navedit-label-row">
+          <span>In your bar</span>
+          <span className={atMax ? "navedit-full" : ""}>{atMax ? "Full - 4 + Menu" : `${draft.length} of ${NAV_PIN_MAX}`}</span>
+        </div>
+        <ul className="navedit-list">
+          {pinned.map((d, i) => (
+            <li key={d.id}>
+              <NavIcon dest={d} size={26} />
+              <span className="navedit-name">{d.label}</span>
+              <button type="button" className="navedit-ctl" aria-label={`Move ${d.label} up`} disabled={i === 0} onClick={() => move(i, -1)}>
+                <ChevronIcon direction="up" size={14} />
+              </button>
+              <button type="button" className="navedit-ctl" aria-label={`Move ${d.label} down`} disabled={i === pinned.length - 1} onClick={() => move(i, 1)}>
+                <ChevronIcon direction="down" size={14} />
+              </button>
+              <button type="button" className="navedit-ctl navedit-remove" aria-label={`Remove ${d.label}`} disabled={atMin}
+                onClick={() => setDraft(draft.filter((x) => x !== d.id))}>−</button>
+            </li>
+          ))}
+          <li className="navedit-fixed">
+            <MenuGlyph />
+            <span className="navedit-name">Menu</span>
+            <span className="navedit-note">Always last</span>
+          </li>
+        </ul>
+
+        {available.length > 0 && (
+          <React.Fragment>
+            <div className="navedit-label">More options</div>
+            <ul className="navedit-list">
+              {available.map((d) => (
+                <li key={d.id}>
+                  <NavIcon dest={d} size={26} />
+                  <span className="navedit-name">{d.label}<small>{d.note}</small></span>
+                  <button type="button" className="navedit-ctl navedit-add" aria-label={`Add ${d.label}`} disabled={atMax}
+                    onClick={() => setDraft(draft.concat(d.id))}>+</button>
+                </li>
+              ))}
+            </ul>
+          </React.Fragment>
+        )}
+
+        <button type="button" className="navedit-reset" onClick={() => setDraft(DEFAULT_NAV_PINS.slice())}>
+          Reset to Home, Games, {PLAYBOOK_TAB_LABEL}
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+/* ==================== BOWL PICK'EM ====================
+ * College bowl season: the Bowls tab (the slate) and bowl pools (a league
+ * with sport: "bowls"). Behind the "bowls" feature flag for discovery and
+ * pool creation; an existing pool's members can always open it - see
+ * bowl-league.mts for why.
+ *
+ * Data comes from three endpoints:
+ *   bowls-current       the slate, scores and market lines (ESPN, cached)
+ *   bowl-league         one pool: games, my sheet, standings, pick grid
+ *   bowl-picks-submit   save my whole sheet
+ *
+ * Teams are keyed by ESPN's numeric team id and games by ESPN's event id.
+ * College abbreviations aren't unique, so nothing here keys on them. Teams
+ * render as a plain colour chip with the abbreviation - no logos, same
+ * no-trademark rule as the NFL badges.
+ *
+ * Win percentages are the market's (vig-free moneyline, or the spread when
+ * there's no moneyline) - Blitz Edge is an NFL model and isn't applied here,
+ * so the copy says "market", never "edge". */
+
+/** The tab and its menu tile disappear on their own once bowl season is over,
+ *  even with the flag still on. */
+const BOWLS_VISIBLE_UNTIL = Date.parse("2027-02-01T12:00:00Z");
+function bowlsInSeason(now) {
+  return (now || Date.now()) < BOWLS_VISIBLE_UNTIL;
+}
+
+const BOWL_FORMAT_OPTIONS = ["confidence", "straight_up", "ats"];
+const BOWL_SEASON_LABEL = "2026–27";
+const BOWL_ROUND_LABEL = { first: "First Round", quarter: "Quarterfinal", semi: "Semifinal", final: "National Championship" };
+
+let bowlSlateCache = null;     // { at, data }
+let bowlSlateInflight = null;
+
+function fetchBowlSlate(auth, force) {
+  if (!force && bowlSlateCache && Date.now() - bowlSlateCache.at < 45 * 1000) return Promise.resolve(bowlSlateCache.data);
+  if (bowlSlateInflight) return bowlSlateInflight;
+  const go = auth && auth.status === "in"
+    ? auth.authenticatedFetch("/.netlify/functions/bowls-current")
+    : fetch("/.netlify/functions/bowls-current");
+  bowlSlateInflight = go
+    .then(async (res) => {
+      const body = await res.json().catch(() => null);
+      if (!res.ok || !body || !body.ok) throw new Error((body && body.error) || "Couldn't load the bowl schedule");
+      bowlSlateCache = { at: Date.now(), data: body };
+      return body;
+    })
+    .finally(() => { bowlSlateInflight = null; });
+  return bowlSlateInflight;
+}
+
+function slateHasLive(games) {
+  const now = Date.now();
+  return (games || []).some((g) => g.state === "in" || (g.state === "pre" && !g.timeTbd && Math.abs(Date.parse(g.date) - now) < 20 * 60 * 1000));
+}
+
+function useBowlSlate(auth, enabled) {
+  const [state, setState] = useState(() => ({ data: bowlSlateCache ? bowlSlateCache.data : null, error: null }));
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    let timer = null;
+    function load(force) {
+      fetchBowlSlate(auth, force)
+        .then((data) => {
+          if (cancelled) return;
+          setState({ data, error: null });
+          timer = setTimeout(() => load(true), slateHasLive(data.games) ? 60 * 1000 : 5 * 60 * 1000);
+        })
+        .catch((e) => {
+          if (cancelled) return;
+          setState((s) => ({ data: s.data, error: e.message }));
+          timer = setTimeout(() => load(true), 2 * 60 * 1000);
+        });
+    }
+    load(false);
+    return () => { cancelled = true; clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, auth && auth.status]);
+  return state;
+}
+
+function bowlIsLocked(g, now) {
+  if (g.state !== "pre") return true;
+  if (g.timeTbd) return false;
+  return (now || Date.now()) >= Date.parse(g.date);
+}
+
+/** Readable text on a team colour: white unless the colour is light. */
+function bowlChipText(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+  if (!m) return "#fff";
+  const n = parseInt(m[1], 16);
+  const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  return lum > 0.62 ? "#0b1220" : "#fff";
+}
+
+function BowlTeamChip({ team, size = 32 }) {
+  if (!team) {
+    return <span className="bowl-chip bowl-chip-tbd" style={{ width: size, height: size }} aria-hidden="true">TBD</span>;
+  }
+  const bg = team.color || "#334155";
+  return (
+    <span
+      className="bowl-chip"
+      style={{ width: size, height: size, background: bg, color: bowlChipText(bg), fontSize: team.abbr.length > 4 ? size * 0.26 : size * 0.31 }}
+      aria-hidden="true"
+    >
+      {team.abbr}
+    </span>
+  );
+}
+
+function bowlTeamLabel(team) {
+  return team ? team.short || team.name : "TBD";
+}
+
+function bowlKickoffLabel(g, tz) {
+  try {
+    const d = new Date(g.date);
+    const day = d.toLocaleDateString("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" });
+    if (g.timeTbd) return `${day} · Time TBD`;
+    const time = d.toLocaleTimeString("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+    return `${day} · ${time}`;
+  } catch (e) {
+    return g.date ? g.date.slice(0, 10) : "";
+  }
+}
+
+function bowlDayKey(g, tz) {
+  try {
+    return new Date(g.date).toLocaleDateString("en-CA", { timeZone: tz });
+  } catch (e) { return (g.date || "").slice(0, 10); }
+}
+
+function bowlDayLabel(g, tz) {
+  try {
+    return new Date(g.date).toLocaleDateString("en-US", { timeZone: tz, weekday: "long", month: "long", day: "numeric" });
+  } catch (e) { return (g.date || "").slice(0, 10); }
+}
+
+/** Market win probability for one side of a game, 0..1, or null. */
+function bowlWinProb(g, side) {
+  const p = g.odds && typeof g.odds.homeWinProb === "number" ? g.odds.homeWinProb : null;
+  if (p === null) return null;
+  return side === "home" ? p : 1 - p;
+}
+
+function bowlPct(p) {
+  return p === null || p === undefined ? "–" : `${Math.round(p * 100)}%`;
+}
+
+/** "-6.5" / "+6.5" / "PK" for a team in a game. */
+function bowlLineFor(g, team) {
+  if (!g.odds || !team) return null;
+  if (!g.odds.favoriteId || g.odds.spread === 0) return "PK";
+  return g.odds.favoriteId === team.id ? `-${g.odds.spread}` : `+${g.odds.spread}`;
+}
+
+function bowlStatusLine(g, tz) {
+  if (g.state === "post") return "Final";
+  if (g.state === "in") return g.detail || "Live";
+  return bowlKickoffLabel(g, tz);
+}
+
+function BowlGameCard({ game: g, tz, myPick }) {
+  const awayP = bowlWinProb(g, "away");
+  const homeP = bowlWinProb(g, "home");
+  const live = g.state === "in";
+  const fin = g.state === "post";
+  const rows = [
+    { side: "away", team: g.away, p: awayP, score: g.awayScore },
+    { side: "home", team: g.home, p: homeP, score: g.homeScore },
+  ];
+  const favSide = awayP !== null && homeP !== null ? (homeP >= awayP ? "home" : "away") : null;
+  return (
+    <article className={"bowl-card" + (g.cfp ? " is-cfp" : "") + (live ? " is-live" : "")}>
+      <header className="bowl-card-hd">
+        <span className="bowl-card-name">{g.cfp ? (BOWL_ROUND_LABEL[g.round] || "Playoff") : g.bowl}</span>
+        <span className={"bowl-card-when" + (live ? " live" : "")}>{bowlStatusLine(g, tz)}</span>
+      </header>
+      {g.cfp && g.round !== "first" && <div className="bowl-card-sub">{g.bowl.replace(/^College Football Playoff\s*/i, "").replace(/^(Quarterfinal|Semifinal)\s+at the\s+/i, "") || g.bowl}</div>}
+      {rows.map((r, i) => {
+        const won = fin && r.team && g.winnerId === r.team.id;
+        return (
+          <React.Fragment key={r.side}>
+            <div className={"bowl-card-team" + (won ? " won" : "") + (fin && !won ? " lost" : "")}>
+              <BowlTeamChip team={r.team} size={32} />
+              <span className="bowl-card-tname">
+                {r.team && r.team.rank ? <small className="bowl-rank">{r.team.rank}</small> : null}
+                {bowlTeamLabel(r.team)}
+                {r.team && r.team.record ? <small className="bowl-rec">{r.team.record}</small> : null}
+              </span>
+              {(live || fin) ? (
+                <span className="bowl-card-score">{r.score !== null && r.score !== undefined ? r.score : ""}</span>
+              ) : (
+                <span className={"bowl-card-pct" + (favSide === r.side ? " fav" : "")}>{r.team ? bowlPct(r.p) : ""}</span>
+              )}
+            </div>
+            {i === 0 && !live && !fin && awayP !== null && (
+              <div className="bowl-card-bar" aria-hidden="true"><span style={{ width: `${Math.round(awayP * 100)}%` }} /></div>
+            )}
+          </React.Fragment>
+        );
+      })}
+      <footer className="bowl-card-ft">
+        <span>
+          {g.odds
+            ? `${g.odds.details || "Line"}${g.odds.total ? ` · O/U ${g.odds.total}` : ""}`
+            : g.state !== "pre" ? (g.venue || "")
+            : (g.away && g.home ? "Line not posted yet" : "Matchup TBD")}
+        </span>
+        {myPick && <span className="bowl-card-mine">{myPick}</span>}
+      </footer>
+    </article>
+  );
+}
+
+function BowlsView({ auth, features, tz, onOpenLeague, onCreatePool, onRequestLogin }) {
+  const { data, error } = useBowlSlate(auth, !!features.bowls);
+  const { leagues } = useMyLeagues(auth);
+  const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    trackEvent("bowls_view", { signedIn: auth.status === "in" });
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "page_view", { page_path: "/bowls", page_title: "College Bowl Pick'em | Blitz Odds", page_location: window.location.origin + "/bowls" });
+    }
+  }, []);
+
+  const games = (data && data.games) || [];
+  const bowlLeagues = (leagues || []).filter((l) => l.sport === "bowls");
+  const filtered = games.filter((g) => {
+    if (filter === "cfp") return g.cfp;
+    if (filter === "ny6") return g.cfp && (g.round === "quarter" || g.round === "semi" || g.round === "final");
+    if (filter === "tossups") {
+      const p = bowlWinProb(g, "home");
+      return p !== null && Math.abs(p - 0.5) <= 0.1;
+    }
+    if (filter === "live") return g.state === "in";
+    return true;
+  });
+  const days = [];
+  filtered.forEach((g) => {
+    const k = bowlDayKey(g, tz);
+    let d = days.find((x) => x.key === k);
+    if (!d) { d = { key: k, label: bowlDayLabel(g, tz), games: [] }; days.push(d); }
+    d.games.push(g);
+  });
+  const liveCount = games.filter((g) => g.state === "in").length;
+  const cfp = games.filter((g) => g.cfp);
+  const rounds = ["first", "quarter", "semi", "final"].map((r) => ({ id: r, games: cfp.filter((g) => g.round === r) })).filter((r) => r.games.length);
+  const firstDate = games.length ? games[0] : null;
+  const lastDate = games.length ? games[games.length - 1] : null;
+  const filters = [
+    { id: "all", label: `All ${games.length || ""}`.trim() },
+    { id: "cfp", label: "Playoff" },
+    { id: "ny6", label: "New Year's Six+" },
+    { id: "tossups", label: "Toss-ups" },
+    ...(liveCount ? [{ id: "live", label: `Live ${liveCount}` }] : []),
+  ];
+
+  return (
+    <div className="bowls-page">
+      <section className="bowls-hero">
+        <div className="bowls-hero-copy">
+          <div className="bowls-eyebrow">Bowl season {BOWL_SEASON_LABEL}</div>
+          <h1 className="bowls-title">Every bowl and the full Playoff, on one pick sheet.</h1>
+          <p className="bowls-sub">
+            {games.length ? `${games.length} games` : "Every game"}
+            {firstDate && lastDate ? `, ${bowlDayLabel(firstDate, tz).replace(/^\w+,\s*/, "")} through ${bowlDayLabel(lastDate, tz).replace(/^\w+,\s*/, "")}` : ""}.
+            {" "}Confidence, straight-up or against the spread, with picks locking at each kickoff.
+          </p>
+        </div>
+        <div className="bowls-hero-cta">
+          {bowlLeagues.length > 0 ? (
+            <button type="button" className="league-btn league-btn-primary" onClick={() => onOpenLeague(bowlLeagues[0].id)}>Make my picks</button>
+          ) : null}
+          <button
+            type="button"
+            className={"league-btn" + (bowlLeagues.length ? "" : " league-btn-primary")}
+            onClick={() => (auth.status === "in" ? onCreatePool() : onRequestLogin())}
+          >
+            Start a bowl pool
+          </button>
+        </div>
+      </section>
+
+      <div className="bowls-layout">
+        <main className="bowls-main">
+          <div className="bowls-toolbar">
+            <div className="bowls-filters" role="group" aria-label="Filter games">
+              {filters.map((f) => (
+                <button key={f.id} type="button" aria-pressed={filter === f.id} className={"bowls-filter" + (filter === f.id ? " on" : "")} onClick={() => setFilter(f.id)}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <span className="bowls-src">Win % from the betting market{data && data.games && data.games.some((g) => g.odds && g.odds.provider) ? ` (${(data.games.find((g) => g.odds && g.odds.provider) || {}).odds.provider})` : ""}</span>
+          </div>
+          {error && !data && <p className="leagues-error">{error}</p>}
+          {!data && !error && <p className="bowls-loading">Loading the bowl schedule…</p>}
+          {data && !filtered.length && <p className="bowls-empty">No games match that filter.</p>}
+          {days.map((d) => (
+            <section key={d.key} className="bowls-day">
+              <h2 className="bowls-day-hd">{d.label}</h2>
+              <div className="bowls-grid">
+                {d.games.map((g) => <BowlGameCard key={g.id} game={g} tz={tz} />)}
+              </div>
+            </section>
+          ))}
+        </main>
+
+        <aside className="bowls-rail">
+          <section className="bowls-rail-card">
+            <h2>College Football Playoff</h2>
+            {rounds.length === 0 && <p className="bowls-muted">The bracket appears here once it's set.</p>}
+            {rounds.map((r) => {
+              const known = r.games.filter((g) => g.home && g.away).length;
+              return (
+                <div key={r.id} className={"bowls-round" + (r.id === "final" ? " is-final" : "")}>
+                  <div className="bowls-round-hd">
+                    <b>{BOWL_ROUND_LABEL[r.id]}</b>
+                    <span>{bowlKickoffLabel(r.games[0], tz).split(" · ")[0]}</span>
+                  </div>
+                  <div className="bowls-round-bd">
+                    {known === 0
+                      ? (r.id === "final" ? "Teams TBD · the tiebreaker game" : `${r.games.length} ${r.games.length === 1 ? "game" : "games"} · teams TBD`)
+                      : r.games.map((g) => (
+                        <div key={g.id} className="bowls-round-game">
+                          {bowlTeamLabel(g.away)} <span>vs</span> {bowlTeamLabel(g.home)}
+                          {g.state === "post" && <em>{g.awayScore}-{g.homeScore}</em>}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+
+          <section className="bowls-rail-card">
+            <h2>Your bowl pools</h2>
+            {auth.status !== "in" && (
+              <p className="bowls-muted">
+                <button type="button" className="bowls-inline-link" onClick={onRequestLogin}>Sign in</button> to start a pool or see yours.
+              </p>
+            )}
+            {auth.status === "in" && bowlLeagues.length === 0 && (
+              <p className="bowls-muted">No bowl pools yet. Start one and send the link to your group.</p>
+            )}
+            {bowlLeagues.map((l) => (
+              <button key={l.id} type="button" className="bowls-pool" onClick={() => onOpenLeague(l.id)}>
+                <span>
+                  <b>{l.name}</b>
+                  <small>{(LEAGUE_FORMAT_OPTIONS.find((f) => f.value === l.format) || {}).label || l.format} · {l.memberCount || 1} {l.memberCount === 1 ? "member" : "members"}</small>
+                </span>
+                <ChevronIcon direction="right" size={14} />
+              </button>
+            ))}
+            {auth.status === "in" && (
+              <button type="button" className="league-btn bowls-rail-btn" onClick={onCreatePool}>+ Start a bowl pool</button>
+            )}
+          </section>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+
+/* ---- one bowl pool ---- */
+
+function useBowlLeague(auth, leagueId) {
+  const [state, setState] = useState({ data: null, error: null, loading: true });
+  const [nonce, setNonce] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    let timer = null;
+    async function load() {
+      try {
+        const res = await auth.authenticatedFetch(`/.netlify/functions/bowl-league?leagueId=${encodeURIComponent(leagueId)}`);
+        const body = await res.json();
+        if (!res.ok || !body.ok) throw new Error(body.error || "Couldn't load this pool");
+        if (cancelled) return;
+        setState({ data: body, error: null, loading: false });
+        timer = setTimeout(load, slateHasLive(body.games) ? 60 * 1000 : 5 * 60 * 1000);
+      } catch (e) {
+        if (!cancelled) setState((s) => ({ data: s.data, error: e.message, loading: false }));
+      }
+    }
+    if (auth.status === "in") load();
+    return () => { cancelled = true; clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leagueId, auth.status, nonce]);
+  const reload = useCallback(() => setNonce((n) => n + 1), []);
+  const setMe = useCallback((me) => setState((s) => (s.data ? { ...s, data: { ...s.data, me } } : s)), []);
+  return { ...state, reload, setMe };
+}
+
+function BowlLeagueView({ auth, profile, league, tz, isOwner, onBack, onBackLabel, onManage, onLeave, leaving }) {
+  const { data, error, loading, reload, setMe } = useBowlLeague(auth, league.id);
+  const [subTab, setSubTab] = useState("picks");
+  const [showInvite, setShowInvite] = useState(false);
+  const formatLabel = (LEAGUE_FORMAT_OPTIONS.find((f) => f.value === league.format) || {}).label || league.format;
+  const games = (data && data.games) || [];
+  const finals = games.filter((g) => g.state === "post").length;
+
+  useEffect(() => { trackEvent("bowl_league_view", { format: league.format }); }, [league.id]);
+
+  return (
+    <div className="leagues-page leagues-page-league">
+      <div className="league-view bowl-league">
+        <Breadcrumb trail={[{ label: onBackLabel || "Bowls", onClick: onBack }]} current={league.name} />
+        <header className="bowl-league-hd">
+          <div>
+            <h1 className="bowl-league-name">{league.name}</h1>
+            <div className="bowl-league-meta">
+              Bowl pool · {formatLabel} · {league.memberCount || 1} {league.memberCount === 1 ? "member" : "members"}
+              {games.length ? ` · ${finals} of ${games.length} games final` : ""}
+            </div>
+          </div>
+          <div className="bowl-league-actions">
+            <LeagueShareButton league={league} surface="bowl_league" small />
+            <button type="button" className="league-btn league-btn-sm" onClick={() => setShowInvite((v) => !v)}>Invite</button>
+            {isOwner
+              ? <button type="button" className="league-btn league-btn-sm" onClick={onManage}>Settings</button>
+              : <button type="button" className="league-btn league-btn-sm" disabled={leaving} onClick={onLeave}>{leaving ? "Leaving…" : "Leave"}</button>}
+          </div>
+        </header>
+        {showInvite && <LeagueInvitePanel auth={auth} league={league} onClose={() => setShowInvite(false)} />}
+
+        <div className="league-subtabs bowl-subtabs">
+          <button type="button" className={"league-subtab" + (subTab === "picks" ? " active" : "")} onClick={() => setSubTab("picks")}>My Picks</button>
+          <button type="button" className={"league-subtab" + (subTab === "standings" ? " active" : "")} onClick={() => setSubTab("standings")}>Standings</button>
+          <button type="button" className={"league-subtab bowl-subtab-grid" + (subTab === "grid" ? " active" : "")} onClick={() => setSubTab("grid")}>Pick grid</button>
+        </div>
+
+        {loading && !data && <p className="bowls-loading">Loading the pool…</p>}
+        {error && !data && (
+          <div className="bowls-errorbox">
+            <p className="leagues-error">{error}</p>
+            <button type="button" className="league-btn league-btn-sm" onClick={reload}>Try again</button>
+          </div>
+        )}
+        {data && subTab === "picks" && (
+          <BowlPickSheet auth={auth} league={league} data={data} tz={tz} onSaved={(me) => { setMe(me); reload(); }} />
+        )}
+        {data && subTab === "standings" && (
+          <div className="bowl-standings-layout">
+            <BowlStandings data={data} meId={auth.user && auth.user.id} />
+            <div className="bowl-grid-inline"><BowlPickGrid data={data} meId={auth.user && auth.user.id} tz={tz} /></div>
+          </div>
+        )}
+        {data && subTab === "grid" && <BowlPickGrid data={data} meId={auth.user && auth.user.id} tz={tz} />}
+      </div>
+    </div>
+  );
+}
+
+/** The confidence order a sheet starts from: games with stored points, by
+ *  points; then the rest by kickoff. */
+function initialConfidenceOrder(games, picks) {
+  const withPts = games.filter((g) => picks[g.id] && typeof picks[g.id].confidence === "number")
+    .sort((a, b) => picks[b.id].confidence - picks[a.id].confidence);
+  const rest = games.filter((g) => !(picks[g.id] && typeof picks[g.id].confidence === "number"));
+  return withPts.concat(rest).map((g) => g.id);
+}
+
+function BowlPickSheet({ auth, league, data, tz, onSaved }) {
+  const format = league.format;
+  const games = data.games || [];
+  const byId = useMemo(() => { const m = {}; games.forEach((g) => { m[g.id] = g; }); return m; }, [data]);
+  const N = games.length;
+  const now = Date.now();
+  const savedPicks = (data.me && data.me.picks) || {};
+
+  const [teams, setTeams] = useState(() => {
+    const t = {};
+    Object.keys(savedPicks).forEach((gid) => { t[gid] = savedPicks[gid].teamId || null; });
+    return t;
+  });
+  // Confidence: the order of OPEN games, most points first. Locked games keep
+  // the points they were saved with; the open ones share what's left, top down.
+  const [order, setOrder] = useState(() => initialConfidenceOrder(games.filter((g) => !bowlIsLocked(g, now)), savedPicks));
+  const [tiebreaker, setTiebreaker] = useState(data.me && typeof data.me.tiebreaker === "number" ? String(data.me.tiebreaker) : "");
+  const [view, setView] = useState("points");
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [dirty, setDirty] = useState(false);
+
+  // Re-seed from the server copy whenever a save round-trips (data.me changes)
+  // and nothing is being edited.
+  const savedKey = data.me && data.me.updatedAt;
+  useEffect(() => {
+    if (dirty) return;
+    const t = {};
+    Object.keys(savedPicks).forEach((gid) => { t[gid] = savedPicks[gid].teamId || null; });
+    setTeams(t);
+    setOrder(initialConfidenceOrder(games.filter((g) => !bowlIsLocked(g, Date.now())), savedPicks));
+    setTiebreaker(data.me && typeof data.me.tiebreaker === "number" ? String(data.me.tiebreaker) : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedKey, games.length]);
+
+  const lockedGames = games.filter((g) => bowlIsLocked(g, now));
+  const lockedPts = new Set(lockedGames.map((g) => savedPicks[g.id] && savedPicks[g.id].confidence).filter((v) => typeof v === "number"));
+  const freeValues = [];
+  for (let v = N; v >= 1; v--) if (!lockedPts.has(v)) freeValues.push(v);
+  // Games ESPN added after this sheet was loaded join at the bottom.
+  const openIds = order.filter((id) => byId[id] && !bowlIsLocked(byId[id], now))
+    .concat(games.filter((g) => !bowlIsLocked(g, now) && order.indexOf(g.id) === -1).map((g) => g.id));
+  const ptsOf = {};
+  openIds.forEach((id, i) => { ptsOf[id] = freeValues[i]; });
+  lockedGames.forEach((g) => { if (savedPicks[g.id] && typeof savedPicks[g.id].confidence === "number") ptsOf[g.id] = savedPicks[g.id].confidence; });
+
+  const pickedCount = games.filter((g) => teams[g.id]).length;
+  const title = data.title;
+  const titleLocked = title ? bowlIsLocked(title, now) : false;
+  const useTb = data.settings && data.settings.tiebreaker;
+
+  function setTeam(gid, teamId) {
+    setTeams((t) => ({ ...t, [gid]: t[gid] === teamId ? null : teamId }));
+    setDirty(true); setMsg(null);
+  }
+  function move(gid, dir) {
+    const i = order.indexOf(gid);
+    // Skip over ids that have since locked so a swap only ever trades two open games.
+    let j = i + dir;
+    while (j >= 0 && j < order.length && (!byId[order[j]] || bowlIsLocked(byId[order[j]], Date.now()))) j += dir;
+    if (i < 0 || j < 0 || j >= order.length) return;
+    const n = order.slice();
+    const t = n[i]; n[i] = n[j]; n[j] = t;
+    setOrder(n); setDirty(true); setMsg(null);
+  }
+  function autoRank() {
+    const open = games.filter((g) => !bowlIsLocked(g, Date.now()));
+    const nextTeams = { ...teams };
+    open.forEach((g) => {
+      if (nextTeams[g.id] || !g.home || !g.away) return;
+      const ph = bowlWinProb(g, "home");
+      if (ph === null) return;
+      nextTeams[g.id] = ph >= 0.5 ? g.home.id : g.away.id;
+    });
+    const conf = (g) => {
+      const ph = bowlWinProb(g, "home");
+      if (ph === null || !nextTeams[g.id]) return -1;
+      return nextTeams[g.id] === g.home.id ? ph : 1 - ph;
+    };
+    const ranked = open.slice().sort((a, b) => conf(b) - conf(a) || (a.date < b.date ? -1 : 1)).map((g) => g.id);
+    setTeams(nextTeams);
+    if (format === "confidence") setOrder(ranked);
+    setDirty(true);
+    setMsg({ ok: true, text: "Filled from the market. Review it, then save." });
+    trackEvent("bowl_autorank", { format });
+  }
+
+  async function save() {
+    if (saving) return;
+    setSaving(true); setMsg(null);
+    const picks = {};
+    games.forEach((g) => {
+      if (bowlIsLocked(g, Date.now())) return;
+      const teamId = teams[g.id] || null;
+      if (format === "confidence") picks[g.id] = { teamId, confidence: ptsOf[g.id] };
+      else if (teamId) picks[g.id] = { teamId };
+    });
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/bowl-picks-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leagueId: league.id,
+          picks,
+          ...(useTb && !titleLocked ? { tiebreaker: tiebreaker === "" ? null : Number(tiebreaker) } : {}),
+        }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.ok) throw new Error(body.error || "Couldn't save your picks");
+      setDirty(false);
+      setMsg({ ok: true, text: "Picks saved." });
+      trackEvent("bowl_picks_save", { format, picked: Object.values(picks).filter((p) => p.teamId).length, total: games.length });
+      onSaved(body.me);
+    } catch (e) {
+      setMsg({ ok: false, text: e.message });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const rows = format === "confidence" && view === "points"
+    ? games.slice().sort((a, b) => (ptsOf[b.id] || 0) - (ptsOf[a.id] || 0) || (a.date < b.date ? -1 : 1))
+    : games;
+
+  return (
+    <div className="bowl-sheet-layout">
+      <div className="bowl-sheet">
+        <div className="bowl-sheet-toolbar">
+          {format === "confidence" && (
+            <div className="bowls-filters" role="group" aria-label="Sort">
+              <button type="button" aria-pressed={view === "points"} className={"bowls-filter" + (view === "points" ? " on" : "")} onClick={() => setView("points")}>By points</button>
+              <button type="button" aria-pressed={view === "date"} className={"bowls-filter" + (view === "date" ? " on" : "")} onClick={() => setView("date")}>By date</button>
+            </div>
+          )}
+          <span className="bowls-src">
+            {format === "confidence"
+              ? (view === "points" ? "Use the arrows to move a game up or down" : "Switch to By points to reorder")
+              : format === "ats" ? "Each pick keeps the line it was made at" : "Pick the winner of each game"}
+          </span>
+        </div>
+        <ol className={"bowl-sheet-rows" + (format === "confidence" && view === "points" ? " is-ladder" : "")}>
+          {rows.map((g) => {
+            const locked = bowlIsLocked(g, now);
+            const saved = savedPicks[g.id];
+            const teamId = locked ? (saved && saved.teamId) || null : teams[g.id] || null;
+            const pts = ptsOf[g.id];
+            const outcome = (() => {
+              if (g.state !== "post" || !teamId) return null;
+              if (format === "ats") {
+                const cell = data.grid && data.grid[auth.user && auth.user.id] && data.grid[auth.user.id][g.id];
+                return cell ? cell.outcome : null;
+              }
+              return g.winnerId ? (g.winnerId === teamId ? "W" : "L") : null;
+            })();
+            const canMove = format === "confidence" && view === "points" && !locked;
+            return (
+              <li key={g.id} className={"bowl-row" + (locked ? " locked" : "") + (outcome === "W" ? " won" : outcome === "L" ? " lost" : "")}>
+                {format === "confidence" && <span className="bowl-row-pts" title="Points">{pts || "–"}</span>}
+                <div className="bowl-row-main">
+                  <div className="bowl-row-name">
+                    <span>{g.cfp ? BOWL_ROUND_LABEL[g.round] || g.bowl : g.bowl}</span>
+                    <span className="bowl-row-when">{locked ? (g.state === "post" ? `Final ${g.awayScore}-${g.homeScore}` : g.state === "in" ? g.detail || "Live" : "Locked") : bowlKickoffLabel(g, tz)}</span>
+                  </div>
+                  <div className="bowl-row-picks">
+                    {[g.away, g.home].map((t, i) => {
+                      const side = i === 0 ? "away" : "home";
+                      const sel = t && teamId === t.id;
+                      const line = format === "ats" ? bowlLineFor(g, t) : null;
+                      const pct = format !== "ats" && t ? bowlWinProb(g, side) : null;
+                      const noLine = format === "ats" && t && !g.odds;
+                      return (
+                        <button
+                          key={side}
+                          type="button"
+                          className={"bowl-pick" + (sel ? " sel" : "")}
+                          aria-pressed={!!sel}
+                          disabled={locked || !t || noLine}
+                          onClick={() => t && setTeam(g.id, t.id)}
+                        >
+                          <BowlTeamChip team={t} size={22} />
+                          <span className="bowl-pick-name">{bowlTeamLabel(t)}</span>
+                          {line && <span className="bowl-pick-meta">{line}</span>}
+                          {pct !== null && <span className="bowl-pick-meta">{bowlPct(pct)}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!g.home && !g.away && !locked && <div className="bowl-row-note">Teams aren't set yet - points can be assigned now, the winner picked once they are.</div>}
+                  {format === "ats" && g.home && g.away && !g.odds && !locked && <div className="bowl-row-note">No line yet - ATS picks open once one is posted.</div>}
+                  {locked && saved && format === "ats" && typeof saved.spread === "number" && (
+                    <div className="bowl-row-note">Your line: {saved.spread > 0 ? `+${saved.spread}` : saved.spread === 0 ? "PK" : saved.spread}</div>
+                  )}
+                </div>
+                {format === "confidence" && (
+                  <div className="bowl-row-move">
+                    <button type="button" aria-label={`Move ${g.bowl} up`} disabled={!canMove} onClick={() => move(g.id, -1)}><ChevronIcon direction="up" size={13} /></button>
+                    <button type="button" aria-label={`Move ${g.bowl} down`} disabled={!canMove} onClick={() => move(g.id, 1)}><ChevronIcon direction="down" size={13} /></button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        {/* Phone only: the rail (with its Save) sits above the list there, so a
+            second Save at the end saves scrolling back up a 40-game sheet. */}
+        <div className="bowl-save-bottom">
+          <button type="button" className="league-btn league-btn-primary bowl-save" disabled={saving || !dirty} onClick={save}>
+            {saving ? "Saving…" : dirty ? "Save picks" : "Saved"}
+          </button>
+          {msg && <p className={msg.ok ? "bowl-msg ok" : "bowl-msg bad"}>{msg.text}</p>}
+        </div>
+      </div>
+
+      <aside className="bowl-sheet-rail">
+        <section className="bowls-rail-card">
+          <div className="bowl-progress-hd"><h2>Your sheet</h2><b>{pickedCount} of {N} picked</b></div>
+          <div className="bowl-progress" aria-hidden="true"><span style={{ width: `${N ? Math.round((pickedCount / N) * 100) : 0}%` }} /></div>
+          <button type="button" className="league-btn bowls-rail-btn" onClick={autoRank}>
+            {format === "confidence" ? "Auto-rank by market odds" : "Fill empty picks with favorites"}
+          </button>
+          <p className="bowls-muted">
+            {format === "confidence"
+              ? "Fills any game you haven't picked with the betting favorite, then ranks your open games from safest to riskiest. Teams you already picked stay."
+              : "Fills any game you haven't picked with the betting favorite. Teams you already picked stay."}
+          </p>
+        </section>
+        {useTb && (
+          <section className="bowls-rail-card bowl-tb">
+            <label htmlFor="bowl-tb"><b>Tiebreaker</b><span>Total points in the national championship</span></label>
+            <input id="bowl-tb" type="number" inputMode="numeric" min={0} max={200} className="league-input"
+              value={tiebreaker} disabled={titleLocked}
+              onChange={(e) => { setTiebreaker(e.target.value.replace(/[^0-9]/g, "").slice(0, 3)); setDirty(true); setMsg(null); }} />
+            {titleLocked && <p className="bowls-muted">Locked at the title game's kickoff.</p>}
+          </section>
+        )}
+        <button type="button" className="league-btn league-btn-primary bowl-save" disabled={saving || !dirty} onClick={save}>
+          {saving ? "Saving…" : dirty ? "Save picks" : "Saved"}
+        </button>
+        {msg && <p className={msg.ok ? "bowl-msg ok" : "bowl-msg bad"} role="status">{msg.text}</p>}
+      </aside>
+    </div>
+  );
+}
+
+function BowlStandings({ data, meId }) {
+  const rows = data.standings || [];
+  const title = data.title;
+  return (
+    <section className="bowl-standings">
+      <div className="bowl-st-head" aria-hidden="true">
+        <span>#</span><span>Player</span><span>Pts</span><span>Max</span>
+      </div>
+      <ol className="bowl-st-rows">
+        {rows.map((r) => (
+          <li key={r.userId} className={"bowl-st-row" + (r.userId === meId ? " me" : "")}>
+            <span className="bowl-st-rank">{r.rank}</span>
+            <span className="bowl-st-name">
+              <b>{r.userId === meId ? `${r.displayName} (you)` : r.displayName}</b>
+              <small>
+                {r.correct}-{r.incorrect}{r.pushes ? `-${r.pushes}` : ""}
+                {typeof r.tiebreaker === "number" ? ` · TB ${r.tiebreaker}` : ""}
+                {r.picked === 0 ? " · no picks yet" : ""}
+              </small>
+            </span>
+            <span className="bowl-st-pts">{r.points}</span>
+            <span className="bowl-st-max">{r.max}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="bowls-muted">
+        Max is the most points still reachable.
+        {data.settings && data.settings.tiebreaker ? " Ties go to the closest guess at the title game's total points" + (title && title.state === "post" ? "." : ", revealed at its kickoff.") : ""}
+      </p>
+    </section>
+  );
+}
+
+function BowlPickGrid({ data, meId, tz }) {
+  const games = data.games || [];
+  const rows = data.standings || [];
+  const grid = data.grid || {};
+  const teamById = {};
+  games.forEach((g) => { if (g.home) teamById[g.home.id] = g.home; if (g.away) teamById[g.away.id] = g.away; });
+  return (
+    <section className="bowl-grid">
+      <div className="bowl-grid-hd">
+        <h2>Pick grid</h2>
+        <span className="bowls-muted">Other players' picks show once each game kicks off.</span>
+      </div>
+      <div className="bowl-grid-scroll">
+        <table className="bowl-grid-table">
+          <thead>
+            <tr>
+              <th scope="col" className="bowl-grid-sticky">Player</th>
+              {games.map((g) => (
+                <th key={g.id} scope="col" title={g.bowl}>
+                  {/* Matchup first: bowl names are mostly sponsor and don't
+                      shorten well, and the abbreviations are what the cells
+                      below are written in. Full bowl name is the tooltip. */}
+                  <span className="bowl-grid-gname">{g.away && g.home ? `${g.away.abbr} v ${g.home.abbr}` : g.cfp ? (BOWL_ROUND_LABEL[g.round] || "CFP").replace("National Championship", "Title") : "TBD"}</span>
+                  <span className="bowl-grid-gsub">{g.state === "post" ? `Final ${g.awayScore}-${g.homeScore}` : g.state === "in" ? "Live" : bowlKickoffLabel(g, tz).split(" · ")[0]}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.userId} className={r.userId === meId ? "me" : ""}>
+                <th scope="row" className="bowl-grid-sticky">{r.displayName}</th>
+                {games.map((g) => {
+                  const c = (grid[r.userId] || {})[g.id] || {};
+                  if (c.hidden) return <td key={g.id} className="bowl-cell hidden" title={c.picked ? "Picked - hidden until kickoff" : "No pick yet"}>{c.picked ? "•" : ""}</td>;
+                  const t = c.teamId ? teamById[c.teamId] : null;
+                  const cls = c.outcome === "W" ? " w" : c.outcome === "L" ? " l" : c.outcome === "P" ? " p" : "";
+                  return (
+                    <td key={g.id} className={"bowl-cell" + cls}>
+                      {t ? t.abbr : c.teamId ? "?" : "–"}
+                      {typeof c.confidence === "number" && <small>{c.confidence}</small>}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="bowl-grid-legend" aria-hidden="true">
+        <span><i className="w" />Correct</span><span><i className="l" />Wrong</span><span><i className="p" />Push</span><span>• picked, hidden until kickoff</span>
+      </div>
+    </section>
   );
 }
 
@@ -18898,13 +20211,14 @@ const ADMIN_TABS = [
   { id: "leagues", label: "Leagues" },
   { id: "picks", label: "Picks" },
   { id: "alerts", label: "Alerts" },
+  { id: "features", label: "Features" },
   // No "analytics" tab: the dashboard is its own page, so it hangs off the
   // account menu (admin-only) instead of being a tab that only ever held a
   // link out of the console.
   { id: "log", label: "Activity" },
 ];
 
-function AdminConsole({ auth, onClose }) {
+function AdminConsole({ auth, onClose, onFeaturesChanged }) {
   const [tab, setTab] = useState(ADMIN_TABS[0].id);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -19004,6 +20318,7 @@ function AdminConsole({ auth, onClose }) {
           )}
           {tab === "alerts" && <AdminAlertsPanel auth={auth} users={viewData && viewData.users} />}
           {tab === "log" && <AdminActivityPanel auth={auth} users={viewData && viewData.users} />}
+          {tab === "features" && <AdminFeaturesPanel auth={auth} onToast={showToast} onChanged={onFeaturesChanged} />}
         </div>
 
         {toast && <div className="admin-toast">{toast}</div>}
@@ -21071,6 +22386,47 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState(() => getInitialTab(LEAGUES_UI_ENABLED));
+
+  // Runtime feature flags (admin console > Features). See useFeatures.
+  const features = useFeatures(auth);
+  const bowlsOn = !!(features.bowls && bowlsInSeason());
+
+  // A /bowls visit for someone the flag doesn't cover - or after the season -
+  // goes to the front page. Only once the real answer is in: the cached
+  // guess can be stale in either direction, and bouncing an admin off /bowls
+  // on a stale "off" would make the admins-only test unusable.
+  useEffect(() => {
+    if (activeTab === "bowls" && features.loaded && !bowlsOn) setActiveTab(ROOT_TAB);
+  }, [activeTab, features.loaded, bowlsOn]);
+
+  /* Phone bottom bar ("mobileNav" flag). Pins live in localStorage and, when
+     signed in, on the account (settings.navPins) so they follow the reader
+     to another phone. The account copy wins when it loads. */
+  const [navPinsRaw, setNavPinsRaw] = useState(() => readStoredNavPins() || DEFAULT_NAV_PINS.slice());
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
+  const [navEditOpen, setNavEditOpen] = useState(false);
+  const navPins = useMemo(() => {
+    const clean = sanitizeNavPins(navPinsRaw, features);
+    // A pin that stopped existing (Bowls after the season) can leave the bar
+    // short; top it back up from the defaults rather than show one tab.
+    DEFAULT_NAV_PINS.forEach((d) => { if (clean.length < NAV_PIN_MIN && clean.indexOf(d) === -1) clean.push(d); });
+    return clean;
+  }, [navPinsRaw, features.bowls]);
+  const navPinsAdoptedForRef = useRef(null);
+  function saveNavPins(next) {
+    const clean = sanitizeNavPins(next, features);
+    if (clean.length < NAV_PIN_MIN) return;
+    setNavPinsRaw(clean);
+    try { localStorage.setItem(NAV_PINS_KEY, JSON.stringify(clean)); } catch (e) {}
+    trackEvent("nav_pins_save", { pins: clean.join(",") });
+    if (auth.status === "in") {
+      auth.authenticatedFetch("/.netlify/functions/user-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: { navPins: clean } }),
+      }).catch(() => {});
+    }
+  }
   const [leagueTabResetKey, setLeagueTabResetKey] = useState(0);
 
   // A league invite link's ?joinCode=/?joinLeague= (see getInitialLeagueJoin)
@@ -21208,6 +22564,19 @@ function App() {
   // bumps leagueTabResetKey, which remounts LeagueView; a prop would be
   // re-read on that remount and re-apply a stale destination.
   const [leagueIntent, setLeagueIntent] = useState(null);
+  // The account's saved bottom-bar pins win over this device's, once per
+  // sign-in - same direction as the other synced settings.
+  useEffect(() => {
+    const uid = profile && profile.id;
+    if (!uid || navPinsAdoptedForRef.current === uid) return;
+    navPinsAdoptedForRef.current = uid;
+    const remote = profile.settings && profile.settings.navPins;
+    if (Array.isArray(remote) && remote.length >= NAV_PIN_MIN) {
+      setNavPinsRaw(remote);
+      try { localStorage.setItem(NAV_PINS_KEY, JSON.stringify(remote)); } catch (e) {}
+    }
+  }, [profile && profile.id]);
+
   function goToLeaguesTab(intent) {
     // Normalises to an object even when called with nothing, because null
     // means something different: "no in-app navigation has happened, so the
@@ -21948,6 +23317,7 @@ function App() {
     if (activeTab === "picks") return { title: PLAYBOOK_TAB_LABEL, sub: getPeriodLabel(selectedWeek) };
     if (activeTab === "news") return { title: "News", sub: null };
     if (activeTab === "league") return { title: "Leagues", sub: null };
+    if (activeTab === "bowls") return { title: "Bowls", sub: BOWL_SEASON_LABEL };
     return { title: "Blitz Odds", sub: null };
   })();
 
@@ -22064,7 +23434,38 @@ function App() {
         />
       )}
 
-      <TabBar activeTab={activeTab} onSelectTab={selectTab} liveCount={liveGameCount} />
+      <TabBar
+        activeTab={activeTab}
+        onSelectTab={(t) => { setNavMenuOpen(false); selectTab(t); }}
+        liveCount={liveGameCount}
+        features={features}
+        navPins={features.mobileNav ? navPins : null}
+        onOpenMenu={features.mobileNav ? () => { markMenuSeenBowls(); setNavMenuOpen((o) => !o); trackEvent("nav_menu_open", {}); } : null}
+        menuOpen={navMenuOpen}
+      />
+      {features.mobileNav && navMenuOpen && (
+        <NavMenuSheet
+          features={features}
+          pins={navPins}
+          activeTab={activeTab}
+          auth={auth}
+          isAdmin={features.isAdmin}
+          onSelect={(t) => selectTab(t)}
+          onClose={() => setNavMenuOpen(false)}
+          onEditBar={() => { setNavMenuOpen(false); setNavEditOpen(true); }}
+          onOpenSettings={() => setShowSettings(true)}
+          onOpenHowItWorks={() => setShowHowItWorks(true)}
+          onOpenAdmin={() => setShowAdmin(true)}
+        />
+      )}
+      {features.mobileNav && navEditOpen && (
+        <NavEditSheet
+          features={features}
+          pins={navPins}
+          onClose={() => setNavEditOpen(false)}
+          onSave={(next) => { saveNavPins(next); setNavEditOpen(false); }}
+        />
+      )}
 
       {activeTab === "home" && HOME_TAB_ENABLED && (
         auth.status === "in" ? (
@@ -22168,6 +23569,17 @@ function App() {
 
       {activeTab === "news" && <NewsView />}
 
+      {activeTab === "bowls" && (bowlsOn ? (
+        <BowlsView
+          auth={auth}
+          features={features}
+          tz={resolvedTz}
+          onOpenLeague={(id) => goToLeaguesTab({ leagueId: id })}
+          onCreatePool={() => goToLeaguesTab({ subTab: "create", sport: "bowls" })}
+          onRequestLogin={() => auth.openLogin()}
+        />
+      ) : (!features.loaded ? <p className="bowls-loading">Loading…</p> : null))}
+
       {activeTab === "league" && LEAGUES_UI_ENABLED && (
         <LeagueView
           key={leagueTabResetKey}
@@ -22184,6 +23596,9 @@ function App() {
           onOpenLeagueRoute={syncLeagueRoute}
           onGoHome={goHomeTab}
           onOpenGame={openGameFromLeague}
+          bowlsEnabled={bowlsOn}
+          initialSport={leagueIntent ? (leagueIntent.sport || null) : null}
+          onOpenBowls={() => selectTab("bowls")}
         />
       )}
 
@@ -22232,7 +23647,7 @@ function App() {
         />
       )}
 
-      {showAdmin && <AdminConsole auth={auth} onClose={() => setShowAdmin(false)} />}
+      {showAdmin && <AdminConsole auth={auth} onClose={() => setShowAdmin(false)} onFeaturesChanged={features.refresh} />}
 
       {showSettings && (
         <SettingsModal

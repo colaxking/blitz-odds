@@ -81,6 +81,7 @@ export default async (req: Request, _context: Context) => {
     const userId = claims.id;
 
     if (!league) return jsonResponse(404, { ok: false, error: "League not found" }, CORS_HEADERS);
+    if (league.sport === "bowls") return jsonResponse(400, { ok: false, error: "Bowl pools use bowl-league" }, CORS_HEADERS);
 
     // Non-members get nothing. This endpoint exposes other people's picks,
     // so membership is the entire access control story - it is checked

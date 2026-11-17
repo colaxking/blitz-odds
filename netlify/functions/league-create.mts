@@ -1,6 +1,9 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { getAuthenticatedUser, displayNameFromClaims } from "./lib/auth.mts";
+import { isFeatureOnFor } from "./lib/features.mts";
+import { BOWL_SEASON } from "./lib/bowls.mts";
+import { BOWL_FORMATS } from "./lib/bowl-league.mts";
 
 // Creates a new pick'em league. Authenticated (Netlify Identity JWT)
 // callers only - the creator becomes the owner and first member.
@@ -134,7 +137,18 @@ export default async (req: Request, _context: Context) => {
 
   const description = typeof body.description === "string" ? body.description.trim().slice(0, 280) : "";
 
-  const format = VALID_FORMATS.has(body.format) ? body.format : DEFAULT_FORMAT;
+  // sport "bowls" makes a college bowl pool (see lib/bowl-league.mts) instead
+  // of a weekly NFL league. Creating one is behind the "bowls" feature flag;
+  // anything else - absent, "nfl", junk - is a normal NFL league, so every
+  // existing client keeps creating exactly what it always did.
+  const isBowls = body.sport === "bowls";
+  if (isBowls && !(await isFeatureOnFor("bowls", req, claims))) {
+    return jsonResponse(403, { ok: false, error: "Bowl pools aren't open yet" });
+  }
+
+  const format = isBowls
+    ? (BOWL_FORMATS.has(body.format) ? body.format : "confidence")
+    : (VALID_FORMATS.has(body.format) ? body.format : DEFAULT_FORMAT);
   const visibility = VALID_VISIBILITY.has(body.visibility) ? body.visibility : "private";
   const pickDeadline = VALID_PICK_DEADLINES.has(body.pickDeadline) ? body.pickDeadline : "per_game";
   const tieBreaker = VALID_TIE_BREAKERS.has(body.tieBreaker ?? null) ? (body.tieBreaker ?? null) : null;
@@ -193,7 +207,14 @@ export default async (req: Request, _context: Context) => {
       description,
       ownerId: userId,
       ownerName: displayName,
-      season: CURRENT_SEASON,
+      season: isBowls ? BOWL_SEASON : CURRENT_SEASON,
+      ...(isBowls ? {
+        sport: "bowls",
+        bowlSettings: {
+          includePlayoff: body.bowlSettings?.includePlayoff !== false,
+          tiebreaker: body.bowlSettings?.tiebreaker !== false,
+        },
+      } : {}),
       inviteCode,
       memberCount: 1,
       format,

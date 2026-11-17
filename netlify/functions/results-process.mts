@@ -175,6 +175,7 @@ async function processLeague(
 ) {
   const league: any = await leagueStore.get(`league:${leagueId}`, { type: "json" });
   if (!league || league.season !== season) return; // different season, or league vanished mid-scan
+  if (league.sport === "bowls") return; // bowl pools score live from the bowl slate (bowl-league.mts)
 
   // Picks live one key per game per member per week
   // (picks:{leagueId}:{week}:{userId}:{gameId} - see picks-submit.mts for

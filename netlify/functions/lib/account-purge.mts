@@ -68,6 +68,17 @@ export async function purgeUserData(userId: string): Promise<PurgeResult> {
     leaguesAffected: [],
   };
 
+  // 1a. Bowl pool sheets: one doc per member per pool,
+  //     bowlpicks:{leagueId}:{userId}. Same walk-and-filter as below, on the
+  //     third segment. Counted with the NFL picks.
+  try {
+    const bowlList = await leagueStore.list({ prefix: "bowlpicks:" });
+    const bowlMine = bowlList.blobs.filter((b: any) => b.key.split(":")[2] === userId);
+    await Promise.all(bowlMine.map(async (b: any) => {
+      try { await leagueStore.delete(b.key); result.picks++; } catch { /* already gone */ }
+    }));
+  } catch { /* nothing to purge */ }
+
   // 1. Picks. Keyed picks:{leagueId}:{week}:{userId}:{gameId}, so the user
   //    id sits in the middle and can't be reached with a prefix scan. The
   //    whole picks space has to be walked and filtered on the segment.

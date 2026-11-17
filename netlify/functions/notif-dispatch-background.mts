@@ -283,7 +283,12 @@ export default async (req: Request, _context: Context) => {
     const resultsCache = new Map<string, any>();
 
     const loadLeague = async (id: string) => {
-      if (!leagueCache.has(id)) leagueCache.set(id, await leagueStore.get(`league:${id}`, { type: "json" }));
+      // Bowl pools read as absent here: every alert in this job is about NFL
+      // weeks and NFL picks, which a bowl pool doesn't have.
+      if (!leagueCache.has(id)) {
+        const l: any = await leagueStore.get(`league:${id}`, { type: "json" });
+        leagueCache.set(id, l && l.sport === "bowls" ? null : l);
+      }
       return leagueCache.get(id);
     };
     const loadMembers = async (id: string) => {

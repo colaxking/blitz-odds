@@ -88,6 +88,7 @@ export default async (req: Request, _context: Context) => {
     const userId = claims.id;
 
     if (!league) return jsonResponse(404, { ok: false, error: "League not found" }, CORS_HEADERS);
+    if (league.sport === "bowls") return jsonResponse(400, { ok: false, error: "Bowl pools use bowl-league" }, CORS_HEADERS);
 
     const isMember = membersDoc?.members?.some((m: any) => m.userId === userId);
     if (!isMember) return jsonResponse(403, { ok: false, error: "Not a member of this league" }, CORS_HEADERS);

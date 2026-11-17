@@ -164,7 +164,9 @@ export default async (req: Request, _context: Context) => {
           // A league the user has since left, or that was deleted, is
           // skipped rather than erroring the whole dashboard - same
           // tolerance leagues-mine.mts already applies.
-          if (!league) return null;
+          // Bowl pools have their own screen and their own standings (see
+          // bowl-league.mts); none of the weekly NFL numbers below apply.
+          if (!league || league.sport === "bowls") return null;
           const members: any[] = membersDoc?.members || [];
           if (!members.some((m) => m.userId === userId)) return null;
 

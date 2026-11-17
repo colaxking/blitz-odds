@@ -187,6 +187,20 @@ const VALID_TYPES = new Set([
   "tour_step",
   "tour_skip",
   "tour_complete",
+  // Bowl Pick'em (behind the "bowls" feature flag). The funnel is
+  // bowls_view (the slate) -> bowl_pool_create -> bowl_league_view ->
+  // bowl_picks_save; bowl_autorank says how many sheets start from the
+  // market fill rather than by hand.
+  "bowls_view",
+  "bowl_pool_create",
+  "bowl_league_view",
+  "bowl_picks_save",
+  "bowl_autorank",
+  // The customisable phone bottom bar ("mobileNav" flag). Menu opens say
+  // whether the menu is where people go for the unpinned tabs; pin saves
+  // say which bar people actually build.
+  "nav_menu_open",
+  "nav_pins_save",
 ]);
 
 // Step ids from index.html's TOUR_STEPS. Allowlisted rather than passed
@@ -270,6 +284,7 @@ const VALID_LEAGUE_SHARE_SURFACES = new Set([
   "league_header",
   "my_leagues_row",
   "invite_panel",
+  "bowl_league",
 ]);
 
 // Which route the browser took. "none" is a real outcome, not an error to
@@ -400,7 +415,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, pref, channel, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index, official, ok, method, picked, locked } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, pref, channel, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index, official, ok, method, picked, locked, total, pins, signedIn } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -600,6 +615,21 @@ export default async (req: Request, context: Context) => {
     }
     if (type === "league_join_result") {
       record.ok = ok === true;
+    }
+    if (type === "bowl_pool_create" || type === "bowl_league_view" || type === "bowl_picks_save" || type === "bowl_autorank") {
+      if (VALID_LEAGUE_FORMATS.has(String(format))) record.format = String(format);
+    }
+    if (type === "bowl_picks_save") {
+      const p = Number(picked), t = Number(total);
+      if (Number.isFinite(p) && p >= 0 && p <= 100) record.picked = Math.floor(p);
+      if (Number.isFinite(t) && t >= 0 && t <= 100) record.total = Math.floor(t);
+    }
+    if (type === "bowls_view") record.signedIn = signedIn === true;
+    // Pins are a short comma list of known tab ids - allowlisted and
+    // re-joined so a spoofed body can't invent dashboard rows.
+    if (type === "nav_pins_save" && typeof pins === "string") {
+      const ok = pins.split(",").filter((p: string) => ["home", "games", "picks", "bowls", "league", "news"].includes(p)).slice(0, 4);
+      if (ok.length) record.pins = ok.join(",");
     }
     if (type === "league_invite_share") {
       if (VALID_LEAGUE_SHARE_SURFACES.has(String(surface))) record.surface = String(surface);

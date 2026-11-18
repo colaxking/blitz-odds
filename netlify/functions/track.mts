@@ -205,6 +205,9 @@ const VALID_TYPES = new Set([
   // headline number - does anyone flip to College at all, and do they come
   // back? The rest say which parts of the college view earn their keep.
   "sport_switch",
+  // NFL | College switch on the News tab - kept apart from sport_switch so
+  // that stays a Games-tab number.
+  "news_sport",
   "cfb_filter",
   "cfb_week",
   "cfb_details_open",
@@ -643,7 +646,7 @@ export default async (req: Request, context: Context) => {
       const ok = pins.split(",").filter((p: string) => ["home", "games", "picks", "bowls", "league", "news"].includes(p)).slice(0, 4);
       if (ok.length) record.pins = ok.join(",");
     }
-    if (type === "sport_switch" && (sport === "nfl" || sport === "cfb")) record.sport = sport;
+    if ((type === "sport_switch" || type === "news_sport") && (sport === "nfl" || sport === "cfb")) record.sport = sport;
     if (type === "cfb_filter" && typeof filter === "string" && /^(top25|mine|all|g6|\d{1,3})$/.test(filter)) record.filter = filter;
     if ((type === "cfb_week" || type === "cfb_details_open" || type === "cfb_game_view" || type === "cfb_follow") && value != null) {
       const v = String(value);

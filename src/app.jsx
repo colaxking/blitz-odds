@@ -15721,20 +15721,32 @@ async function fetchTeamNews(teamId) {
   // College teams: ESPN's college news for that team only. The CBS/FOX
   // league feeds the NFL panel blends in are NFL-only, so they're skipped.
   if (typeof teamId === "string" && teamId.indexOf("cfb:") === 0) {
+    // College teams: ESPN's news for that team, plus CBS/FOX/Yahoo college
+    // stories that name it (cfbTeamNewsMatcher). The FBS team list comes
+    // from the cfb-data stats doc; until that's loaded, ESPN alone.
+    const espnId = teamId.slice(4);
     const promise = (async () => {
-      const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/news?team=${teamId.slice(4)}&limit=50`);
-      if (!res.ok) throw new Error("ESPN news request failed: " + res.status);
-      const data = await res.json();
-      const items = (data.articles || [])
-        .filter((a) => a.type !== "Media")
-        .map((a) => ({
-          headline: decodeHtmlEntities(a.headline),
-          published: a.published,
-          url: a.links && a.links.web && a.links.web.href,
-          image: a.images && a.images[0] && a.images[0].url,
-          source: "ESPN",
-        }));
-      return mergeAndDedupeNews([items]).map((a, i) => ({ ...a, id: a.url || `espn-${i}` }));
+      const [espnItems, rssItems] = await Promise.all([
+        (async () => {
+          const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/news?team=${espnId}&limit=50`);
+          if (!res.ok) throw new Error("ESPN news request failed: " + res.status);
+          const data = await res.json();
+          return (data.articles || [])
+            .filter((a) => a.type !== "Media")
+            .map((a) => ({
+              headline: decodeHtmlEntities(a.headline),
+              published: a.published,
+              url: a.links && a.links.web && a.links.web.href,
+              image: a.images && a.images[0] && a.images[0].url,
+              source: "ESPN",
+            }));
+        })(),
+        fetchCfbRssFeeds().catch(() => []),
+      ]);
+      const teams = cfbStatsCache && cfbStatsCache.teams ? Object.values(cfbStatsCache.teams) : null;
+      const team = teams ? teams.find((t) => t && String(t.id) === espnId) : null;
+      const matched = team ? rssItems.filter(cfbTeamNewsMatcher(team, teams)) : [];
+      return mergeAndDedupeNews([espnItems, matched]).map((a, i) => ({ ...a, id: a.url || `${a.source || "news"}-${i}` }));
     })();
     newsCache[teamId] = promise;
     promise.catch(() => { delete newsCache[teamId]; });
@@ -15821,6 +15833,116 @@ function useLeagueNews() {
   return state;
 }
 
+/* College feeds for the News tab's College side and college team pages.
+   Same pattern as the NFL blend (fetchLeagueNewsFeed): ESPN's college API
+   first (reliable images), then CBS Sports, FOX Sports and Yahoo Sports'
+   college-football RSS via rss2json. Each source is cached on its own and
+   fails soft to an empty list, so one outlet being down never blanks the
+   tab. No Pro Football Talk - it's NFL-only. */
+const CBS_CFB_RSS_URL = "https://www.cbssports.com/rss/headlines/college-football/";
+const FOX_CFB_RSS_URL = "https://api.foxsports.com/v2/content/optimized-rss?partnerKey=MB0Wehpmuj2lUhuRhQaafhBjAJqaPU244mlTDK1i&size=30&tags=fs/college-football";
+const YAHOO_CFB_RSS_URL = "https://sports.yahoo.com/college-football/rss.xml";
+
+async function fetchEspnCfbLeagueNews() {
+  try {
+    const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/news?limit=50");
+    if (!res.ok) throw new Error("ESPN college news request failed: " + res.status);
+    const data = await res.json();
+    return (data.articles || [])
+      .filter((a) => a.type !== "Media")
+      .map((a) => ({
+        headline: decodeHtmlEntities(a.headline),
+        description: a.description ? decodeHtmlEntities(a.description) : null,
+        published: a.published,
+        url: a.links && a.links.web && a.links.web.href,
+        image: a.images && a.images[0] && a.images[0].url,
+        source: "ESPN",
+      }));
+  } catch (e) {
+    return [];
+  }
+}
+
+/** CBS + FOX + Yahoo college stories (no ESPN) - the half that gets
+ *  filtered by team name for a single college team. */
+function fetchCfbRssFeeds() {
+  return Promise.all([
+    fetchNewsSourceCached("cfb-cbs", () => fetchRssFeedViaJson(CBS_CFB_RSS_URL, "CBS Sports")),
+    fetchNewsSourceCached("cfb-fox", () => fetchRssFeedViaJson(FOX_CFB_RSS_URL, "FOX Sports")),
+    fetchNewsSourceCached("cfb-yahoo", () => fetchRssFeedViaJson(YAHOO_CFB_RSS_URL, "Yahoo Sports")),
+  ]).then((lists) => mergeAndDedupeNews(lists));
+}
+
+function fetchCfbLeagueNews() {
+  return Promise.all([
+    fetchNewsSourceCached("cfb-espn", fetchEspnCfbLeagueNews),
+    fetchCfbRssFeeds(),
+  ]).then(([espn, rss]) =>
+    mergeAndDedupeNews([espn, rss]).map((a, i) => ({ ...a, id: a.url || `${a.source || "news"}-cfb-${i}` })));
+}
+
+/** Which stories in the shared college feeds are about one FBS team.
+ *  College names overlap far more than NFL mascots do (Texas / Texas Tech /
+ *  North Texas, a dozen Tigers and Bulldogs), so the NFL's last-word match
+ *  would be wrong a lot. Terms used, all whole-word, case-insensitive,
+ *  against headline + description:
+ *   - the full name ("Texas Longhorns") - always;
+ *   - the mascot ("Longhorns") - only if no other FBS team shares it;
+ *   - the school name ("Texas") - only if no other team has the exact same
+ *     school name, and not where it's part of a longer school name in the
+ *     same text ("Texas Tech", "North Texas"). */
+function cfbSchoolAndMascot(t) {
+  const short = String((t && t.short) || "").trim();
+  const name = String((t && t.name) || "");
+  const mascot = short && name.toLowerCase().startsWith(short.toLowerCase() + " ")
+    ? name.slice(short.length + 1).trim() : "";
+  return { short, mascot };
+}
+
+function cfbTeamNewsMatcher(team, allTeams) {
+  if (!team || !team.name) return () => false;
+  const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const word = (x) => new RegExp(`(^|[^A-Za-z0-9])${esc(x)}(?![A-Za-z0-9])`, "i");
+  const others = (allTeams || []).filter((t) => t && t.name && String(t.id) !== String(team.id));
+  const { short, mascot } = cfbSchoolAndMascot(team);
+  const mascotUnique = !!mascot && !others.some((t) => cfbSchoolAndMascot(t).mascot.toLowerCase() === mascot.toLowerCase());
+  const shortUnique = short.length >= 3 && !others.some((t) => cfbSchoolAndMascot(t).short.toLowerCase() === short.toLowerCase());
+  const longerRes = shortUnique
+    ? others
+        .map((t) => cfbSchoolAndMascot(t).short)
+        .filter((os) => os.length > short.length && word(short).test(os))
+        .map((os) => new RegExp(esc(os), "ig"))
+    : [];
+  const fullRe = word(team.name);
+  const mascotRe = mascotUnique ? word(mascot) : null;
+  const shortRe = shortUnique ? word(short) : null;
+  return (item) => {
+    const text = `${item.headline || ""} ${item.description || ""}`;
+    if (fullRe.test(text)) return true;
+    if (mascotRe && mascotRe.test(text)) return true;
+    if (!shortRe) return false;
+    let stripped = text;
+    longerRes.forEach((re) => { stripped = stripped.replace(re, " "); });
+    return shortRe.test(stripped);
+  };
+}
+
+function useCfbLeagueNews(enabled) {
+  const [state, setState] = useState({ loading: true, error: null, data: null });
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    setState((s) => (s.data ? s : { loading: true, error: null, data: null }));
+    fetchCfbLeagueNews()
+      .then((data) => { if (!cancelled) setState({ loading: false, error: null, data }); })
+      .catch((e) => { if (!cancelled) setState({ loading: false, error: e, data: null }); });
+    return () => { cancelled = true; };
+  }, [enabled]);
+  return state;
+}
+
+const NEWS_SPORT_KEY = "blitz:newsSport";
+
 /** Full-feed "News" tab: same league-wide feed as the ticker (useLeagueNews)
  *  by default, rendered as an image-card grid instead of 15 looping
  *  headlines. Picking a team from NewsTeamFilter switches the data source
@@ -15830,28 +15952,73 @@ function useLeagueNews() {
  *  league feed's headlines. */
 const NEWS_VIEW_PAGE_SIZE = 12;
 
-function NewsView() {
-  const [selectedTeamId, setSelectedTeamId] = useState(null);
+function NewsView({ cfbOn, defaultSport, auth }) {
+  /* NFL | College switch (only while the "cfb" flag covers this visitor).
+     Starts on the side last picked here, else whichever league the Games
+     tab is on. Each side keeps its own team pick, so flipping back and
+     forth doesn't lose it - and an NFL team can never be asked for college
+     news or the other way round. College team ids are "cfb:{espnTeamId}",
+     the form fetchTeamNews/useTeamNews already take. */
+  const [sportRaw, setSportRaw] = useState(() => {
+    try {
+      const saved = localStorage.getItem(NEWS_SPORT_KEY);
+      if (saved === "nfl" || saved === "cfb") return saved;
+    } catch (e) {}
+    return defaultSport === "cfb" ? "cfb" : "nfl";
+  });
+  const sport = cfbOn ? sportRaw : "nfl";
+  const [teamBySport, setTeamBySport] = useState({ nfl: null, cfb: null });
+  const selectedTeamId = teamBySport[sport];
   const [visibleCount, setVisibleCount] = useState(NEWS_VIEW_PAGE_SIZE);
   const leagueNews = useLeagueNews();
+  const cfbLeagueNews = useCfbLeagueNews(sport === "cfb");
+  const cfbStats = useCfbStats(auth, !!cfbOn);
   const teamNews = useTeamNews(selectedTeamId);
-  const { loading, error, data } = selectedTeamId ? teamNews : leagueNews;
-  const team = selectedTeamId ? baseTeam(selectedTeamId) : null;
+  const { loading, error, data } = selectedTeamId ? teamNews : (sport === "cfb" ? cfbLeagueNews : leagueNews);
 
-  useEffect(() => { setVisibleCount(NEWS_VIEW_PAGE_SIZE); }, [selectedTeamId]);
+  let teamName = null;
+  if (selectedTeamId && sport === "cfb") {
+    const t = cfbStats && cfbStats.teams && cfbStats.teams[selectedTeamId.slice(4)];
+    teamName = t ? t.name : null;
+  } else if (selectedTeamId) {
+    const t = baseTeam(selectedTeamId);
+    teamName = t ? t.name : null;
+  }
+
+  useEffect(() => { setVisibleCount(NEWS_VIEW_PAGE_SIZE); }, [selectedTeamId, sport]);
+
+  function changeSport(next) {
+    if (next === sport) return;
+    setSportRaw(next);
+    try { localStorage.setItem(NEWS_SPORT_KEY, next); } catch (e) {}
+    trackEvent("news_sport", { sport: next });
+  }
+
+  function selectTeam(id) {
+    setTeamBySport((m) => ({ ...m, [sport]: id }));
+  }
 
   return (
     <div className="news-view">
       <div className="news-view-header">
-        <h2 className="news-view-title">Latest News</h2>
-        <NewsTeamFilter teamId={selectedTeamId} onSelectTeam={setSelectedTeamId} />
+        <h2 className="news-view-title">{sport === "cfb" ? "College Football News" : "Latest News"}</h2>
+        <div className="news-view-controls">
+          {cfbOn && <SportSwitch sport={sport} onChange={changeSport} variant="inline" />}
+          <NewsTeamFilter
+            key={sport}
+            sport={sport}
+            teamId={selectedTeamId}
+            onSelectTeam={selectTeam}
+            cfbTeams={cfbStats && cfbStats.teams}
+          />
+        </div>
       </div>
 
       {loading && <p className="news-view-empty">Loading news…</p>}
       {!loading && error && <p className="news-view-empty">Couldn't load news right now — try again shortly.</p>}
       {!loading && !error && (!data || data.length === 0) && (
         <p className="news-view-empty">
-          {team ? `No recent headlines for the ${team.name} right now.` : "No news available right now."}
+          {teamName ? `No recent headlines for ${sport === "cfb" ? "" : "the "}${teamName} right now.` : "No news available right now."}
         </p>
       )}
 
@@ -15916,12 +16083,20 @@ function NewsCard({ article, featured }) {
  *  TeamSwitcher carries a favorite-star toggle per row. Typing narrows the
  *  32-team list down by name or abbreviation; picking one re-points the
  *  News tab at useTeamNews(teamId) instead of the league-wide feed. */
-function NewsTeamFilter({ teamId, onSelectTeam }) {
+function NewsTeamFilter({ sport = "nfl", teamId, onSelectTeam, cfbTeams }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const containerRef = useRef(null);
   const inputRef = useRef(null);
-  const current = teamId ? baseTeam(teamId) : null;
+  const isCfb = sport === "cfb";
+  const cfbList = isCfb && cfbTeams
+    ? Object.values(cfbTeams).filter((t) => t && t.id && t.name)
+    : [];
+  const current = !teamId ? null
+    : isCfb ? ((cfbTeams && cfbTeams[teamId.slice(4)]) || null)
+    : baseTeam(teamId);
+  const logo = (t, size) => (isCfb ? <CfbCrest team={t} size={size} /> : <TeamLogo teamId={t.id} size={size} />);
+  const optionId = (t) => (isCfb ? "cfb:" + t.id : t.id);
 
   useEffect(() => {
     function handleOutsideClick(e) {
@@ -15947,9 +16122,16 @@ function NewsTeamFilter({ teamId, onSelectTeam }) {
   }, [open]);
 
   const q = query.trim().toLowerCase();
-  const filteredTeams = LIVE_TEAMS_LIST
-    .filter(t => !q || t.name.toLowerCase().includes(q) || t.id.toLowerCase().includes(q))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const filteredTeams = isCfb
+    ? cfbList
+        .filter((t) => !q || t.name.toLowerCase().includes(q)
+          || (t.short || "").toLowerCase().includes(q)
+          || (t.abbr || "").toLowerCase() === q)
+        .sort((a, b) => (a.short || a.name).localeCompare(b.short || b.name))
+    : LIVE_TEAMS_LIST
+        .filter(t => !q || t.name.toLowerCase().includes(q) || t.id.toLowerCase().includes(q))
+        .sort((a, b) => a.name.localeCompare(b.name));
+  const allLabel = isCfb ? "All College Teams" : "All Teams";
 
   function pick(id) {
     onSelectTeam(id);
@@ -15966,8 +16148,8 @@ function NewsTeamFilter({ teamId, onSelectTeam }) {
         aria-expanded={open}
         aria-label="Filter news by team"
       >
-        {current ? <TeamLogo teamId={current.id} size={18} /> : <span className="news-team-filter-all-icon">🏈</span>}
-        <span>{current ? current.name : "All Teams"}</span>
+        {current ? logo(current, 18) : <span className="news-team-filter-all-icon">🏈</span>}
+        <span>{current ? current.name : allLabel}</span>
         <span className={"news-team-filter-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
       </button>
       {open && (
@@ -15976,7 +16158,7 @@ function NewsTeamFilter({ teamId, onSelectTeam }) {
             ref={inputRef}
             type="text"
             className="news-team-filter-search"
-            placeholder="Search teams…"
+            placeholder={isCfb ? "Search college teams…" : "Search teams…"}
             value={query}
             onChange={e => setQuery(e.target.value)}
             aria-label="Search teams"
@@ -15988,20 +16170,23 @@ function NewsTeamFilter({ teamId, onSelectTeam }) {
               onClick={() => pick(null)}
             >
               <span className="news-team-filter-all-icon">🏈</span>
-              <span>All Teams</span>
+              <span>{allLabel}</span>
             </button>
             {filteredTeams.map(t => (
               <button
                 key={t.id}
                 type="button"
-                className={"news-team-filter-item" + (t.id === teamId ? " active" : "")}
-                onClick={() => pick(t.id)}
+                className={"news-team-filter-item" + (optionId(t) === teamId ? " active" : "")}
+                onClick={() => pick(optionId(t))}
               >
-                <TeamLogo teamId={t.id} size={22} />
+                {logo(t, 22)}
                 <span>{t.name}</span>
               </button>
             ))}
-            {filteredTeams.length === 0 && (
+            {isCfb && !cfbTeams && (
+              <div className="news-team-filter-empty">Loading college teams…</div>
+            )}
+            {filteredTeams.length === 0 && (isCfb ? !!cfbTeams : true) && (
               <div className="news-team-filter-empty">No teams match "{query}"</div>
             )}
           </div>
@@ -22773,10 +22958,10 @@ function cfbAuthedGet(auth, url) {
 
 let cfbStatsCache = null;
 let cfbStatsPromise = null;
-function useCfbStats(auth) {
+function useCfbStats(auth, enabled = true) {
   const [doc, setDoc] = useState(cfbStatsCache);
   useEffect(() => {
-    if (doc) return;
+    if (doc || !enabled) return;
     let cancelled = false;
     if (!cfbStatsPromise) {
       cfbStatsPromise = cfbAuthedGet(auth, "/.netlify/functions/cfb-data?view=stats")
@@ -22790,7 +22975,7 @@ function useCfbStats(auth) {
     }
     cfbStatsPromise.then((d) => { if (!cancelled) setDoc(d); }).catch(() => {});
     return () => { cancelled = true; };
-  }, [auth && auth.status]);
+  }, [auth && auth.status, enabled]);
   return doc;
 }
 
@@ -25662,7 +25847,7 @@ function App() {
         />
       )}
 
-      {activeTab === "news" && <NewsView />}
+      {activeTab === "news" && <NewsView cfbOn={cfbOn} defaultSport={gamesSport} auth={auth} />}
 
       {activeTab === "bowls" && (bowlsOn ? (
         <BowlsView

@@ -2053,6 +2053,8 @@
     margin: 0 0 16px;
   }
   .news-view-title { font-size: 1.15rem; font-weight: 800; margin: 0; }
+  .news-view-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .news-view-controls .sport-switch { margin: 0; }
   .news-view-empty { color: var(--text-dim); font-size: 0.85rem; margin-top: 18px; }
 
   .news-team-filter { position: relative; display: inline-flex; }

@@ -173,6 +173,10 @@ export async function runCfbLivePass(args: {
         const byFav = u.cfbFavorites.includes(g.away.id) || u.cfbFavorites.includes(g.home.id);
         if (!followed && !byFav) continue;
         const prefs = await getPrefs(u.userId);
+        // Settings > Alerts > Your teams > College game alerts. Off means a
+        // starred team alone no longer brings its games in; a game followed
+        // with "Alert me" still does.
+        if (!followed && prefs.push.cfbTeams === false) { tally(report[ch.kind === "score" ? "scoring" : ch.kind], "cfb-teams-off"); continue; }
 
         if (ch.kind === "kickoff") {
           if (!prefs.push.kickoff) { tally(report.kickoff, "off"); continue; }

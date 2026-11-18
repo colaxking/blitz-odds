@@ -8624,7 +8624,7 @@ function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSport
         )}
 
         {signedIn && tab === "notifications" && (
-          <NotificationsTab auth={auth} resolvedTz={resolvedTz} favorites={favorites} />
+          <NotificationsTab auth={auth} resolvedTz={resolvedTz} favorites={favorites} cfbOn={cfbOn} cfbFavorites={cfbFavorites} />
         )}
 
         {(!signedIn || tab === "prefs") && (
@@ -8741,7 +8741,7 @@ const CLIENT_DEFAULT_NOTIF_PREFS = {
   timezone: "America/New_York",
   push: {
     kickoff: true, scoring: "lead", final: true, scope: "fav",
-    injuries: "key", inGameInjury: true, pickReminder: true, lastCall: true,
+    injuries: "key", inGameInjury: true, cfbTeams: true, pickReminder: true, lastCall: true,
     quietFrom: 23, quietTo: 7,
   },
 };
@@ -8864,7 +8864,7 @@ function FollowedGamesRow({ auth, tz }) {
   );
 }
 
-function NotificationsTab({ auth, resolvedTz, favorites }) {
+function NotificationsTab({ auth, resolvedTz, favorites, cfbOn, cfbFavorites }) {
   const userId = (auth.user && auth.user.id) || null;
   // Seeded, never null - the panel renders on the first frame. `loaded`
   // is what says whether these numbers are the server's or a guess, and
@@ -9107,6 +9107,18 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
   }
 
   const favs = favorites || [];
+  // College teams only while the "cfb" flag covers this reader, like the
+  // Favorite College Teams picker on the Preferences tab. Names and crests
+  // come from the cfb-data stats doc (shared cache); until it lands the chip
+  // falls back to whatever the app has already seen for that id.
+  const cfbFavs = cfbOn ? (cfbFavorites || []) : [];
+  const cfbStats = useCfbStats(auth, cfbOn && cfbFavs.length > 0);
+  const cfbFavTeams = cfbFavs
+    .map((id) => {
+      const t = (cfbStats && cfbStats.teams && cfbStats.teams[id]) || cfbTeamRegistry.get(String(id)) || null;
+      return t ? { ...t, id: String(id) } : { id: String(id), name: "Team " + id, short: "Team " + id, abbr: "" };
+    })
+    .sort((x, y) => (x.short || x.name).localeCompare(y.short || y.name));
   // The switches below are only meaningful if an alert can actually be
   // delivered. An orphaned subscription is not "on" - it looked on for the
   // entire time this bug went unnoticed - so it reads as off here and the
@@ -9272,44 +9284,75 @@ function NotificationsTab({ auth, resolvedTz, favorites }) {
           <span className="notif-channel-tag push">Push</span>
         </div>
 
-        {favs.length === 0 ? (
+        {favs.length === 0 && cfbFavs.length === 0 ? (
           <div className="notif-empty">
-            You haven't starred any teams yet. Tap the <b>★</b> on any team crest, or pick them under <b>Preferences → Favorite teams</b>, and injury alerts turn on here.
+            You haven't starred any teams yet. Tap the <b>★</b> on any team crest, or pick them under <b>Preferences → {cfbOn ? "Favorite NFL Teams / Favorite College Teams" : "Favorite teams"}</b>, and alerts for them turn on here.
           </div>
         ) : (
           <React.Fragment>
-            <div className="notif-fav-chips">
-              {favs.map((id) => (
-                <span key={id} className="notif-fav-chip"><span className="star">★</span> {id}</span>
-              ))}
-            </div>
+            {favs.length > 0 && (
+              <React.Fragment>
+                {cfbOn && <p className="notif-team-group">NFL</p>}
+                <div className="notif-fav-chips">
+                  {favs.map((id) => (
+                    <span key={id} className="notif-fav-chip"><span className="star">★</span> {id}</span>
+                  ))}
+                </div>
 
-            <div className="notif-row">
-              <div className="notif-row-body">
-                <p className="notif-row-name">Injuries</p>
-                <p className="notif-row-desc">When a player's status changes — ruled out, questionable, or cleared to return.</p>
-                <NotifSegmented
-                  label="Which injury changes"
-                  value={prefs.push.injuries}
-                  disabled={!pushLive || locked}
-                  onChange={(v) => setPush("injuries", v)}
-                  options={[
-                    { value: "key", label: "Key players" },
-                    { value: "all", label: "Any change" },
-                    { value: "off", label: "Off" },
-                  ]}
-                />
-              </div>
-            </div>
+                <div className="notif-row">
+                  <div className="notif-row-body">
+                    <p className="notif-row-name">Injuries</p>
+                    <p className="notif-row-desc">When a player's status changes — ruled out, questionable, or cleared to return.</p>
+                    <NotifSegmented
+                      label="Which injury changes"
+                      value={prefs.push.injuries}
+                      disabled={!pushLive || locked}
+                      onChange={(v) => setPush("injuries", v)}
+                      options={[
+                        { value: "key", label: "Key players" },
+                        { value: "all", label: "Any change" },
+                        { value: "off", label: "Off" },
+                      ]}
+                    />
+                  </div>
+                </div>
 
-            <div className="notif-row">
-              <div className="notif-row-body">
-                <p className="notif-row-name">In-game injuries</p>
-                <p className="notif-row-desc">When someone goes down during a game, before the report is official.</p>
-                <span className="notif-when">Live games only</span>
+                <div className="notif-row">
+                  <div className="notif-row-body">
+                    <p className="notif-row-name">In-game injuries</p>
+                    <p className="notif-row-desc">When someone goes down during a game, before the report is official.</p>
+                    <span className="notif-when">Live games only</span>
+                  </div>
+                  <NotifSwitch checked={prefs.push.inGameInjury} disabled={!pushLive || locked} label="In-game injury alerts" onToggle={() => togglePush("inGameInjury")} />
+                </div>
+              </React.Fragment>
+            )}
+
+            {cfbOn && (
+              <div className={"notif-team-college" + (favs.length > 0 ? " divided" : "")}>
+                <p className="notif-team-group">College</p>
+                {cfbFavTeams.length === 0 ? (
+                  <div className="notif-empty">
+                    No college teams starred. Tap the <b>★</b> on any college team, or pick them under <b>Preferences → Favorite College Teams</b>.
+                  </div>
+                ) : (
+                  <React.Fragment>
+                    <div className="notif-fav-chips">
+                      {cfbFavTeams.map((t) => (
+                        <span key={t.id} className="notif-fav-chip cfb"><CfbCrest team={t} size={18} /> {t.short || t.name}</span>
+                      ))}
+                    </div>
+                    <div className="notif-row">
+                      <div className="notif-row-body">
+                        <p className="notif-row-name">College game alerts</p>
+                        <p className="notif-row-desc">Kickoff, scoring, and final score for every game these teams play, using the Games settings above. College games you follow with <b>Alert me</b> alert either way. No injury alerts — ESPN doesn't publish a college injury report.</p>
+                      </div>
+                      <NotifSwitch checked={prefs.push.cfbTeams !== false} disabled={!pushLive || locked} label="College game alerts" onToggle={() => setPush("cfbTeams", prefs.push.cfbTeams === false)} />
+                    </div>
+                  </React.Fragment>
+                )}
               </div>
-              <NotifSwitch checked={prefs.push.inGameInjury} disabled={!pushLive || locked} label="In-game injury alerts" onToggle={() => togglePush("inGameInjury")} />
-            </div>
+            )}
           </React.Fragment>
         )}
       </div>

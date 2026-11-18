@@ -3133,6 +3133,13 @@
     border: 1px solid var(--card-border); color: var(--text);
   }
   .notif-fav-chip .star { color: var(--star); font-size: 0.8rem; }
+  .notif-fav-chip.cfb { padding-left: 4px; }
+  .notif-fav-chip.cfb .cfb-crest, .notif-fav-chip.cfb .team-crest { width: 18px; height: 18px; }
+  .notif-team-group {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim);
+    font-weight: 700; margin: 4px 0 6px;
+  }
+  .notif-team-college.divided { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--card-border); }
 
   .notif-follow-list { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 10px; }
   .notif-follow-row {

@@ -37,6 +37,10 @@ export interface PushPrefs {
   injuries: "key" | "all" | "off";
   /** Someone going down mid-game, before any official designation exists. */
   inGameInjury: boolean;
+  /** Kickoff / scoring / final for games involving a starred college team
+   *  (settings.cfbFavorites), on the same kickoff/scoring/final switches as
+   *  the NFL. A college game followed with "Alert me" alerts either way. */
+  cfbTeams: boolean;
   /** The evening-before nudge, on this device instead of by email. Same
    *  moment and same trigger as `emailPickReminders`; the dispatcher picks
    *  one channel per reader rather than firing both (see the PICK REMINDER
@@ -80,6 +84,7 @@ export const DEFAULT_PUSH_PREFS: PushPrefs = {
   scope: "fav",
   injuries: "key",
   inGameInjury: true,
+  cfbTeams: true,
   pickReminder: true,
   lastCall: true,
   quietFrom: 23,
@@ -131,7 +136,7 @@ const INJURY_VALUES = new Set(["key", "all", "off"]);
 function sanitizePush(input: any, existing: PushPrefs): PushPrefs {
   const out: PushPrefs = { ...existing };
   if (!input || typeof input !== "object") return out;
-  for (const key of ["kickoff", "final", "inGameInjury", "pickReminder", "lastCall"] as const) {
+  for (const key of ["kickoff", "final", "inGameInjury", "cfbTeams", "pickReminder", "lastCall"] as const) {
     if (typeof input[key] === "boolean") out[key] = input[key];
   }
   if (SCORING_VALUES.has(input.scoring)) out.scoring = input.scoring;

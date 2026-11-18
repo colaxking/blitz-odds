@@ -24116,35 +24116,33 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
         {sportSwitch && <div className="cmd-divider cfb-desktop-only" aria-hidden="true" />}
         <CfbWeekNav periods={periods} selectedKey={period.key} onSelect={onSelectPeriod} />
         <div className="cmd-divider" aria-hidden="true" />
-        {favorites.length > 0 && (
-          <>
-            <CfbFavsBar favorites={favorites} onSelect={onSelectTeam} />
-            <div className="cmd-divider" aria-hidden="true" />
-          </>
-        )}
         <div className="cfb-filters" role="group" aria-label="Filter games">
           {CFB_VIEW_FILTERS.map((f) => (
             <button key={f.id} type="button" className={"cfb-chip" + (f.id === filter ? " active" : "")} aria-pressed={f.id === filter} onClick={() => setFilter(f.id)}>
               {f.label}
             </button>
           ))}
-          <label className={"cfb-chip cfb-conf-select" + (confActive ? " active" : "")}>
-            <span className="cfb-conf-label">{confActive ? activeFilter.label : "Conference"}</span>
-            <svg className="cfb-conf-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <select aria-label="Conference" value={confActive ? filter : ""} onChange={(e) => setFilter(e.target.value || "all")}>
-              <option value="">All conferences</option>
-              {CFB_CONF_GROUPS.map((grp) => (
-                <optgroup key={grp.label} label={grp.label}>
-                  {grp.items.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.label}{slate.status === "ready" ? ` (${confCounts[c.id] || 0})` : ""}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </label>
         </div>
+        {/* Right side of the bar: favourite crests, then the conference
+            dropdown pinned to the far right. */}
+        {favorites.length > 0 && <CfbFavsBar favorites={favorites} onSelect={onSelectTeam} />}
+        {favorites.length > 0 && <div className="cmd-divider cfb-conf-divider" aria-hidden="true" />}
+        <label className={"cfb-chip cfb-conf-select" + (confActive ? " active" : "")}>
+          <span className="cfb-conf-label">{confActive ? activeFilter.label : "Conference"}</span>
+          <svg className="cfb-conf-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <select aria-label="Conference" value={confActive ? filter : ""} onChange={(e) => setFilter(e.target.value || "all")}>
+            <option value="">All conferences</option>
+            {CFB_CONF_GROUPS.map((grp) => (
+              <optgroup key={grp.label} label={grp.label}>
+                {grp.items.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}{slate.status === "ready" ? ` (${confCounts[c.id] || 0})` : ""}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div className="cfb-list-head">

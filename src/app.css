@@ -5723,6 +5723,18 @@
   .cfb-chip:hover { border-color: var(--accent); }
   .cfb-chip.active { background: var(--accent); border-color: var(--accent); color: #062b26; font-weight: 700; }
   [data-theme="light"] .cfb-chip.active { color: #ffffff; }
+  /* Conference dropdown: a chip-shaped label with a transparent native
+     <select> stretched over it, so phones get the system picker and the
+     chip shows the pick (or "Conference" when none is active). */
+  .cfb-conf-select { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+  .cfb-conf-select:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cfb-conf-caret { flex-shrink: 0; opacity: 0.8; }
+  .cfb-conf-select select {
+    position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+    font-size: 16px; /* keeps iOS from zooming on focus */ border: 0; margin: 0; padding: 0;
+    -webkit-appearance: none; appearance: none;
+  }
+  .cfb-conf-select select option, .cfb-conf-select select optgroup { color: #111; background: #fff; }
   @media (max-width: 720px) {
     .cfb-cmd-bar { padding: 6px 8px; }
     .cfb-chip { height: 34px; }

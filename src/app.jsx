@@ -22702,17 +22702,27 @@ const CFB_GROUP_OF_6 = new Set(["151", "12", "15", "17", "37", "9"]);
 
 /** The chips across the top of the college week view. Top 25 is the
  *  default: a full FBS Saturday is ~60 games, and the ranked ones are what
- *  most people came for. */
-const CFB_FILTERS = [
+ *  most people came for. Conferences live in one dropdown next to them
+ *  (CFB_CONF_GROUPS) rather than a chip each - eleven conferences plus the
+ *  Group of 6 don't fit a row. */
+const CFB_VIEW_FILTERS = [
   { id: "top25", label: "Top 25", title: "Games with a ranked team" },
   { id: "mine", label: "My teams", title: "Your starred teams" },
   { id: "all", label: "All FBS", title: "Every FBS game" },
-  { id: "8", label: "SEC", title: "SEC" },
-  { id: "5", label: "Big Ten", title: "Big Ten" },
-  { id: "4", label: "Big 12", title: "Big 12" },
-  { id: "1", label: "ACC", title: "ACC" },
-  { id: "g6", label: "Group of 6", title: "Group of 6" },
 ];
+const CFB_CONF_GROUPS = [
+  { label: "Power 4", items: [
+    { id: "8", label: "SEC" }, { id: "5", label: "Big Ten" }, { id: "4", label: "Big 12" }, { id: "1", label: "ACC" },
+  ] },
+  { label: "Group of 6", items: [
+    { id: "g6", label: "All Group of 6" },
+    { id: "151", label: "American" }, { id: "12", label: "Conference USA" }, { id: "15", label: "MAC" },
+    { id: "17", label: "Mountain West" }, { id: "9", label: "Pac-12" }, { id: "37", label: "Sun Belt" },
+  ] },
+  { label: "Other", items: [{ id: "18", label: "FBS Independents" }] },
+];
+const CFB_CONF_FILTERS = CFB_CONF_GROUPS.flatMap((grp) => grp.items.map((c) => ({ ...c, title: c.id === "g6" ? "Group of 6" : c.label })));
+const CFB_FILTERS = [...CFB_VIEW_FILTERS, ...CFB_CONF_FILTERS];
 
 function cfbConfName(id) {
   if (!id) return null;
@@ -23152,6 +23162,8 @@ const CFB_BADGE_IDS = new Set([
   "87", "41",
   // Pac-12
   "204", "265",
+  // Late adds: Tulsa (American), UMass (MAC), Sacramento State, North Dakota State
+  "202", "113", "16", "2449",
   // Sun Belt
   "2026", "2032", "324", "290", "2247", "256", "309", "276", "295", "6", "2572", "326", "2653", "2433",
 ]);
@@ -23961,6 +23973,15 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
   }, [shown, favorites, filter, tz]);
 
   const activeFilter = CFB_FILTERS.find((f) => f.id === filter) || CFB_FILTERS[0];
+  const confActive = CFB_CONF_FILTERS.some((f) => f.id === filter);
+  /* Games per conference this week, for the dropdown - so an empty pick
+     (Pac-12 on a bye-heavy week, independents in December) shows as (0)
+     before anyone chooses it. */
+  const confCounts = useMemo(() => {
+    const out = {};
+    CFB_CONF_FILTERS.forEach((c) => { out[c.id] = games.filter((g) => cfbGameMatches(g, c.id, favorites)).length; });
+    return out;
+  }, [games, favorites]);
   const anyLive = games.some((g) => g.state === "in");
 
   return (
@@ -23979,11 +24000,27 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
           </>
         )}
         <div className="cfb-filters" role="group" aria-label="Filter games">
-          {CFB_FILTERS.map((f) => (
+          {CFB_VIEW_FILTERS.map((f) => (
             <button key={f.id} type="button" className={"cfb-chip" + (f.id === filter ? " active" : "")} aria-pressed={f.id === filter} onClick={() => setFilter(f.id)}>
               {f.label}
             </button>
           ))}
+          <label className={"cfb-chip cfb-conf-select" + (confActive ? " active" : "")}>
+            <span className="cfb-conf-label">{confActive ? activeFilter.label : "Conference"}</span>
+            <svg className="cfb-conf-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <select aria-label="Conference" value={confActive ? filter : ""} onChange={(e) => setFilter(e.target.value || "all")}>
+              <option value="">All conferences</option>
+              {CFB_CONF_GROUPS.map((grp) => (
+                <optgroup key={grp.label} label={grp.label}>
+                  {grp.items.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}{slate.status === "ready" ? ` (${confCounts[c.id] || 0})` : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 

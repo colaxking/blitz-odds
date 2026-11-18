@@ -391,6 +391,17 @@
   /* FavoriteStar is normally absolutely-positioned to sit on a team badge's
      corner - here it needs to sit inline as a normal row item instead. */
   .team-switcher-item .star-btn { position: static; flex-shrink: 0; margin-right: 8px; }
+  /* College switcher: search box pinned above a scrolling list of 138
+     teams with crests, so the panel itself doesn't scroll. On desktop the
+     trigger sits at the right of the row, so the panel opens leftward; on a
+     phone the breadcrumb collapses and the trigger is at the left. */
+  .cfb-switcher-panel { display: flex; flex-direction: column; overflow: hidden; width: 300px; max-height: 420px; left: auto; right: 0; }
+  .cfb-switcher-list { overflow-y: auto; min-height: 0; flex: 1; overscroll-behavior: contain; }
+  .cfb-switcher-name { display: flex; align-items: center; gap: 10px; }
+  .cfb-switcher-name .cfb-crest, .cfb-switcher-name .team-crest { width: 22px; height: 22px; flex-shrink: 0; }
+  @media (max-width: 860px) {
+    .cfb-switcher-panel { left: 0; right: auto; width: min(320px, calc(100vw - 32px)); max-height: min(420px, 60vh); }
+  }
 
   .week-nav {
     position: relative; display: flex; align-items: center; gap: 0; flex-shrink: 0;

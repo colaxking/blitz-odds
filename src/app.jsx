@@ -24166,7 +24166,110 @@ function CfbGameView({ gameId, periods, favorites, onToggleFavorite, onSelectTea
 
 /* ---- Team page ------------------------------------------------------------ */
 
-function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onBack, onGoHome, auth, tz }) {
+/** College version of TeamSwitcher for the college team page: the same
+ *  pill trigger and panel (favourites first with a star per row), plus a
+ *  search box and crests, since FBS is 138 teams rather than 32. The list
+ *  comes from the cfb-data stats doc; until it lands, the panel says so. */
+function CfbTeamSwitcher({ teamId, team, teams, favorites, onSelectTeam, onToggleFavorite, compact }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const containerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    function handleKeyDown(e) { if (e.key === "Escape") setOpen(false); }
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    setQuery("");
+    // Focus the search box on a pointer device only - on a phone it would
+    // throw the keyboard up over the list before anyone asked to type.
+    const fine = typeof window.matchMedia === "function" && window.matchMedia("(pointer: fine)").matches;
+    if (!fine) return;
+    const t = setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 0);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  const list = teams ? Object.values(teams).filter((t) => t && t.id && t.name) : [];
+  const q = query.trim().toLowerCase();
+  const matches = list
+    .filter((t) => !q || t.name.toLowerCase().includes(q)
+      || (t.short || "").toLowerCase().includes(q)
+      || (t.abbr || "").toLowerCase() === q)
+    .sort((a, b) => (a.short || a.name).localeCompare(b.short || b.name));
+  const favIds = new Set(favorites);
+  const favTeams = matches.filter((t) => favIds.has(String(t.id)));
+  const otherTeams = matches.filter((t) => !favIds.has(String(t.id)));
+
+  function pick(id) {
+    setOpen(false);
+    if (String(id) !== String(teamId)) onSelectTeam(String(id));
+  }
+  function renderRow(t) {
+    const id = String(t.id);
+    return (
+      <div key={id} className={"team-switcher-item" + (id === String(teamId) ? " active" : "")} role="option" aria-selected={id === String(teamId)}>
+        <button type="button" className="team-switcher-item-name cfb-switcher-name" onClick={() => pick(id)}>
+          <CfbCrest team={t} size={22} />
+          <span>{t.name}</span>
+        </button>
+        <CfbFavoriteStar teamId={id} team={t} favorites={favorites} onToggle={onToggleFavorite} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="team-switcher cfb-team-switcher" ref={containerRef}>
+      <button
+        type="button"
+        className="team-switcher-trigger"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Switch team"
+      >
+        <span>{compact ? "Change team" : (team && team.name) || "Change team"}</span>
+        <span className={"team-switcher-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
+      </button>
+      {open && (
+        <div className="team-switcher-panel cfb-switcher-panel">
+          <input
+            ref={inputRef}
+            type="text"
+            className="news-team-filter-search"
+            placeholder="Search college teams…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search college teams"
+          />
+          <div className="cfb-switcher-list" role="listbox" aria-label="College teams">
+            {!teams && <div className="news-team-filter-empty">Loading college teams…</div>}
+            {favTeams.length > 0 && (
+              <>
+                <div className="team-switcher-group-label">★ Favorites</div>
+                {favTeams.map(renderRow)}
+              </>
+            )}
+            {otherTeams.length > 0 && <div className="team-switcher-group-label">{q ? "Matches" : "All FBS Teams"}</div>}
+            {otherTeams.map(renderRow)}
+            {teams && matches.length === 0 && <div className="news-team-filter-empty">No teams match "{query}"</div>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onSelectTeam, onBack, onGoHome, auth, tz }) {
   const [state, setState] = useState({ status: "loading" });
   const stats = useCfbStats(auth);
   const isMobile = useIsMobile(860);
@@ -24241,6 +24344,20 @@ function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onBack
       <CfbTitle title={team ? `${team.name} Schedule, Roster & News — College Football` : null} />
       <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
         <Breadcrumb trail={trail} current={team ? team.name : "Team"} />
+        {onSelectTeam && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {!isMobile && <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Team:</span>}
+            <CfbTeamSwitcher
+              teamId={teamId}
+              team={team || (stats && stats.teams && stats.teams[teamId]) || null}
+              teams={stats && stats.teams}
+              favorites={favorites}
+              onSelectTeam={onSelectTeam}
+              onToggleFavorite={onToggleFavorite}
+              compact={isMobile}
+            />
+          </div>
+        )}
       </div>
       {state.status === "loading" && <p className="cfb-empty">Loading team…</p>}
       {state.status === "error" && <p className="cfb-empty">Couldn't load this team.</p>}
@@ -24404,7 +24521,7 @@ function CollegeGames({ cal, route, onNavigate, favorites, onToggleFavorite, aut
     return <CfbGameView gameId={route.gameId} periods={periods} favorites={favorites} onToggleFavorite={onToggleFavorite} onSelectTeam={selectTeam} onBack={toWeek} onGoHome={onGoHome} auth={auth} tz={tz} />;
   }
   if (route.view === "team") {
-    return <CfbTeamView teamId={route.teamId} favorites={favorites} onToggleFavorite={onToggleFavorite} onSelectGame={selectGame} onBack={toWeek} onGoHome={onGoHome} auth={auth} tz={tz} />;
+    return <CfbTeamView teamId={route.teamId} favorites={favorites} onToggleFavorite={onToggleFavorite} onSelectGame={selectGame} onSelectTeam={selectTeam} onBack={toWeek} onGoHome={onGoHome} auth={auth} tz={tz} />;
   }
   return (
     <CfbWeekView

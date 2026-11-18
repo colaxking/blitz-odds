@@ -8785,7 +8785,7 @@ function writeCachedNotifPrefs(userId, prefs) {
 //
 // Scoped to the current week because that's the whole extent of a follow -
 // there is no later week to show, by construction.
-function FollowedGamesRow({ auth, tz }) {
+function FollowedGamesRow({ auth, tz, label }) {
   const week = useMemo(() => getDefaultWeek(), []);
   const { followed, toggle, busy, error } = useGameFollows(auth, week);
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
@@ -8810,7 +8810,7 @@ function FollowedGamesRow({ auth, tz }) {
   return (
     <div className="notif-row">
       <div className="notif-row-body">
-        <p className="notif-row-name">Following this week</p>
+        <p className="notif-row-name">{label || "Following this week"}</p>
         <p className="notif-row-desc">
           Single games you asked for alerts on. These clear themselves when the week ends.
         </p>
@@ -8859,6 +8859,85 @@ function FollowedGamesRow({ auth, tz }) {
           </div>
         )}
         {error && <p className="notif-row-desc" style={{ color: "var(--pill-bad-text)" }}>{error}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** The college half of "Following this week" (cfb flag only): games
+ *  followed with Alert me on a college card, for the current college week
+ *  (or the postseason, filed as week 20). The follow store only holds ESPN
+ *  event ids, so names and kickoff come from that week's scoreboard - one
+ *  shared, cached fetch, made only once there is something to show. An id
+ *  the scoreboard doesn't carry still gets a row so it can be removed. */
+function CfbFollowedGamesRow({ auth, tz }) {
+  const { calendar } = useCfbCalendar(true);
+  const period = calendar ? (calendar.periods.find((p) => p.key === calendar.currentKey) || null) : null;
+  const week = cfbFollowWeek(period);
+  const { followed, toggle, busy } = useCfbFollows(auth, week);
+  const [games, setGames] = useState(null);   // id -> normalized game
+  const ids = followed ? [...followed] : [];
+  const idsKey = ids.slice().sort().join(",");
+
+  useEffect(() => {
+    if (!period || !ids.length) return;
+    let cancelled = false;
+    fetchCfbScoreboard(period)
+      .then((json) => {
+        if (cancelled) return;
+        const map = {};
+        cfbNormalizeBoard(json).games.forEach((g) => { map[g.id] = g; });
+        setGames(map);
+      })
+      .catch(() => { if (!cancelled) setGames({}); });
+    return () => { cancelled = true; };
+  }, [period && period.key, idsKey]);
+
+  const rows = ids
+    .map((id) => ({ id, game: games ? games[id] || null : null }))
+    .sort((x, y) => (x.game && y.game ? (x.game.date < y.game.date ? -1 : 1) : x.game ? -1 : y.game ? 1 : 0));
+  const teamName = (t) => t.short || t.name || t.abbr;
+
+  return (
+    <div className="notif-row">
+      <div className="notif-row-body">
+        <p className="notif-row-name">College games following this week</p>
+        <p className="notif-row-desc">
+          College games you asked for alerts on{period ? ` (${period.label})` : ""}. These clear themselves when the week ends.
+        </p>
+        {!calendar || followed === null ? (
+          <p className="notif-row-desc">Loading…</p>
+        ) : rows.length === 0 ? (
+          <div className="notif-empty">
+            No college games followed. Tap <b>Alert me</b> on any college game card to add one.
+          </div>
+        ) : (
+          <div className="notif-follow-list">
+            {rows.map(({ id, game }) => {
+              const when = game ? cfbKickoff(game, tz) : null;
+              return (
+                <div className="notif-follow-row" key={id}>
+                  <span>
+                    <span className="notif-follow-teams">
+                      {game ? `${teamName(game.away)} @ ${teamName(game.home)}` : games ? `Game ${id}` : "Loading…"}
+                    </span>
+                    {when && when.date && (
+                      <span className="notif-follow-when"> · {when.date}{when.time ? " " + when.time : ""}</span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    className="notif-follow-drop"
+                    disabled={busy === id}
+                    onClick={() => toggle(id, false)}
+                  >
+                    {busy === id ? "…" : "Remove"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -9274,7 +9353,8 @@ function NotificationsTab({ auth, resolvedTz, favorites, cfbOn, cfbFavorites }) 
           </div>
         </div>
 
-        <FollowedGamesRow auth={auth} tz={resolvedTz} />
+        <FollowedGamesRow auth={auth} tz={resolvedTz} label={cfbOn ? "NFL games following this week" : null} />
+        {cfbOn && <CfbFollowedGamesRow auth={auth} tz={resolvedTz} />}
       </div>
 
       {/* ---- Your teams ---- */}

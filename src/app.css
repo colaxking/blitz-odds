@@ -5803,3 +5803,9 @@
     .cfb-cmd-bar .cfb-favs { flex: 1 1 100%; max-width: none; }
     .cfb-cmd-bar .cfb-filters { flex: 1 1 100%; }
   }
+  .cfb-fav-search {
+    width: 100%; box-sizing: border-box; margin: 0 0 8px; padding: 10px 12px; min-height: 44px;
+    border: 1px solid var(--card-border); border-radius: 10px; background: var(--surface-2);
+    color: var(--text); font: inherit; font-size: 0.9rem;
+  }
+  .cfb-fav-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }

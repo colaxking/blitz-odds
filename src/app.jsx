@@ -8551,7 +8551,7 @@ function ProfileAvatarGlyph({ avatar }) {
   return <span className={avatar.cls || ""}>{avatar.glyph}</span>;
 }
 
-function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSportsbookId, themeMode, setThemeMode, tzId, setTzId, resolvedTz, favorites, onToggleFavorite, onClose }) {
+function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSportsbookId, themeMode, setThemeMode, tzId, setTzId, resolvedTz, favorites, onToggleFavorite, cfbOn, cfbFavorites, onToggleCfbFavorite, onClose }) {
   const overlayRef = useRef(null);
   const signedIn = auth && auth.status === "in";
   const [tab, setTab] = useState(signedIn ? "profile" : "prefs");
@@ -8630,9 +8630,17 @@ function SettingsModal({ auth, profile, onProfileUpdated, sportsbookId, setSport
             </div>
 
             <div className="settings-section">
-              <h3 className="settings-section-title">Favorite Teams</h3>
+              <h3 className="settings-section-title">{cfbOn ? "Favorite NFL Teams" : "Favorite Teams"}</h3>
               <FavoriteTeamsPicker favorites={favorites} onToggleFavorite={onToggleFavorite} />
             </div>
+
+            {/* Behind the "cfb" flag, like everything else college. */}
+            {cfbOn && (
+              <div className="settings-section">
+                <h3 className="settings-section-title">Favorite College Teams</h3>
+                <CfbFavoriteTeamsPicker auth={auth} favorites={cfbFavorites || []} onToggleFavorite={onToggleCfbFavorite} />
+              </div>
+            )}
           </React.Fragment>
         )}
       </div>
@@ -22862,6 +22870,53 @@ function CfbTeamBadge({ team, favorites, onToggle, onSelect }) {
   );
 }
 
+/** Settings > Preferences: every FBS team with a star, like the NFL list.
+ *  138 teams is a long scroll, so it has a search box; starred teams stay
+ *  pinned at the top. The list is the stats doc's (FBS teams ESPN ranks). */
+function CfbFavoriteTeamsPicker({ auth, favorites, onToggleFavorite }) {
+  const stats = useCfbStats(auth);
+  const [q, setQ] = useState("");
+  if (!stats || !stats.teams) return <div className="fav-picker-list"><span className="hw-tag">Loading college teams…</span></div>;
+  const all = Object.values(stats.teams)
+    .filter((t) => t && t.name)
+    .sort((a, b) => (a.short || a.name).localeCompare(b.short || b.name));
+  const favIds = new Set(favorites);
+  const needle = q.trim().toLowerCase();
+  const matches = (t) => !needle || t.name.toLowerCase().includes(needle) || (t.abbr || "").toLowerCase() === needle;
+  const favTeams = all.filter((t) => favIds.has(t.id));
+  const otherTeams = all.filter((t) => !favIds.has(t.id) && matches(t));
+  const row = (t) => (
+    <div key={t.id} className="fav-picker-item">
+      <CfbCrest team={t} size={24} />
+      <span className="fav-picker-item-name">{t.name}</span>
+      <CfbFavoriteStar teamId={t.id} team={t} favorites={favorites} onToggle={onToggleFavorite} />
+    </div>
+  );
+  return (
+    <>
+      <input
+        type="search"
+        className="cfb-fav-search"
+        placeholder="Search college teams"
+        aria-label="Search college teams"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
+      <div className="fav-picker-list">
+        {favTeams.length > 0 && (
+          <>
+            <div className="fav-picker-group-label">★ Favorites</div>
+            {favTeams.map(row)}
+          </>
+        )}
+        <div className="fav-picker-group-label">{needle ? `Matching "${q.trim()}"` : "All FBS Teams"}</div>
+        {otherTeams.map(row)}
+        {otherTeams.length === 0 && <span className="hw-tag">No FBS team matches that.</span>}
+      </div>
+    </>
+  );
+}
+
 /* ---- Favourites strip ------------------------------------------------------
    The college twin of the NFL command bar's favourites: a crest per starred
    team, tap for its team page. Starring stores a little of the team (name,
@@ -25461,6 +25516,9 @@ function App() {
           resolvedTz={resolvedTz}
           favorites={favorites}
           onToggleFavorite={toggleFavorite}
+          cfbOn={!!features.cfb}
+          cfbFavorites={cfbFavorites}
+          onToggleCfbFavorite={toggleCfbFavorite}
           onClose={() => setShowSettings(false)}
         />
       )}

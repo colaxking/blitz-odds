@@ -53,6 +53,13 @@ function num(v: any): number | null {
 
 export interface CfbTeamStats {
   id: string;
+  /** Who the team is, for lists that need to draw it (Settings' college
+   *  favourites). Colours come from ESPN's team list, merged in loadStats. */
+  abbr: string;
+  name: string;
+  short: string;
+  color: string | null;
+  altColor: string | null;
   gamesPlayed: number;
   offense: { rushYdsPerGame: number | null; passYdsPerGame: number | null; totalYdsPerGame: number | null; pointsPerGame: number | null; rankRush: number; rankPass: number; rankTotal: number; rankPoints: number };
   defense: { rushYdsAllowedPerGame: number | null; passYdsAllowedPerGame: number | null; totalYdsAllowedPerGame: number | null; pointsAllowedPerGame: number | null; rankRush: number; rankPass: number; rankTotal: number; rankPoints: number };
@@ -117,6 +124,9 @@ export function buildStatsDoc(json: any): CfbStatsDoc {
     const cats = row.categories || [];
     const gp = valueOf(defs, cats, "general", "own", "gamesPlayed") || 0;
     raw.set(id, {
+      abbr: String(row.team.abbreviation || ""),
+      name: String(row.team.displayName || ""),
+      short: String(row.team.shortDisplayName || row.team.nickname || row.team.displayName || ""),
       gp,
       // "yardsPerGame" lives in the passing block on ESPN's by-team feed and
       // is total offense (pass + rush) per game.
@@ -143,6 +153,7 @@ export function buildStatsDoc(json: any): CfbStatsDoc {
     const v = raw.get(id);
     teams[id] = {
       id,
+      abbr: v.abbr, name: v.name, short: v.short, color: null, altColor: null,
       gamesPlayed: v.gp,
       offense: {
         rushYdsPerGame: v.oRush, passYdsPerGame: v.oPass, totalYdsPerGame: v.oTotal, pointsPerGame: v.oPts,
@@ -159,7 +170,8 @@ export function buildStatsDoc(json: any): CfbStatsDoc {
 
 export async function loadStats(opts: { force?: boolean } = {}): Promise<CfbStatsDoc> {
   const store = getStore(CFB_STORE, { consistency: "strong" });
-  const key = `stats:${CFB_SEASON}`;
+  // v2: the doc also carries team names and colours now.
+  const key = `stats-v2:${CFB_SEASON}`;
   let cached: CfbStatsDoc | null = null;
   try { cached = (await store.get(key, { type: "json" })) as CfbStatsDoc | null; } catch { cached = null; }
   if (cached && !opts.force && Date.now() - Date.parse(cached.fetchedAt) < STATS_FRESH_MS) return cached;
@@ -168,6 +180,21 @@ export async function loadStats(opts: { force?: boolean } = {}): Promise<CfbStat
     const res = await fetch(url, { headers: ESPN_HEADERS });
     if (!res.ok) throw new Error(`ESPN by-team stats ${res.status}`);
     const doc = buildStatsDoc(await res.json());
+    // Team colours, from ESPN's team list (every division; FBS ids pick out
+    // ours). Decoration only - a failure leaves the colours null.
+    try {
+      const tr = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1000", { headers: ESPN_HEADERS });
+      if (tr.ok) {
+        const tj: any = await tr.json();
+        for (const w of tj?.sports?.[0]?.leagues?.[0]?.teams || []) {
+          const t = w?.team;
+          const hit = t?.id ? doc.teams[String(t.id)] : null;
+          if (!hit) continue;
+          hit.color = t.color ? `#${t.color}` : null;
+          hit.altColor = t.alternateColor ? `#${t.alternateColor}` : null;
+        }
+      }
+    } catch { /* colours are optional */ }
     if (doc.teamCount > 0) {
       await store.setJSON(key, doc);
       return doc;

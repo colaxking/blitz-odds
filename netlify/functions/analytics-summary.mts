@@ -827,6 +827,16 @@ export default async (req: Request, _context: Context) => {
       "Alerts turned on": validRecords.filter((r: any) => r.type === "cfb_follow" && r.action === "on").length,
       "Teams starred": validRecords.filter((r: any) => r.type === "cfb_favorite" && r.action === "on").length,
     };
+    // College team page tabs (Schedule is the default, so Roster/News opens
+    // are the interesting ones).
+    const cfbTeamTabs = sortedCounts(validRecords.filter((r) => r.type === "cfb_team_tab"), (r: any) => r.tab);
+    // News tab: NFL <-> College switches, and which teams people filter to,
+    // split by side. "all" (clearing the filter) is counted but not listed.
+    const newsSportSwitches = sortedCounts(validRecords.filter((r) => r.type === "news_sport"), (r: any) => r.sport);
+    const newsTeamRecords = validRecords.filter((r: any) => r.type === "news_team" && r.team && r.team !== "all");
+    const newsTeamPicksBySport = sortedCounts(newsTeamRecords, (r: any) => r.sport);
+    const newsTeamsNfl = Object.fromEntries(Object.entries(sortedCounts(newsTeamRecords.filter((r: any) => r.sport === "nfl"), (r: any) => r.teamName || r.team)).slice(0, 10));
+    const newsTeamsCfb = Object.fromEntries(Object.entries(sortedCounts(newsTeamRecords.filter((r: any) => r.sport === "cfb"), (r: any) => r.teamName || r.team)).slice(0, 10));
     const navPinLayouts = sortedCounts(validRecords.filter((r) => r.type === "nav_pins_save"), (r: any) => r.pins);
 
     const leagueShareRecords = validRecords.filter((r) => r.type === "league_invite_share");
@@ -1368,6 +1378,11 @@ export default async (req: Request, _context: Context) => {
         sportSwitches,
         cfbFilters,
         cfbFunnel,
+        cfbTeamTabs,
+        newsSportSwitches,
+        newsTeamPicksBySport,
+        newsTeamsNfl,
+        newsTeamsCfb,
         navPinLayouts,
         leagueShares,
         leagueSharesBySurface,

@@ -1270,8 +1270,12 @@ function applyDocumentMeta(title, description) {
  *  is checked first since it overrides whatever the Games tab's own
  *  view/teamId/week/game state happens to be sitting at while a different
  *  tab is open. */
-function useDocumentMeta(activeTab, view, teamId, week, game) {
+function useDocumentMeta(activeTab, view, teamId, week, game, cfbActive) {
   useEffect(() => {
+    // College views set their own title (useCfbDocumentTitle) - applying
+    // the NFL week title here would mislabel them, including in analytics,
+    // whose page label reads document.title on game pages.
+    if (cfbActive) return undefined;
     if (activeTab === "home") {
       // The Home tab's `view` is "week", so this has to come first or the
       // week-view branch below would claim "/" and re-apply the odds title
@@ -1316,7 +1320,18 @@ function useDocumentMeta(activeTab, view, teamId, week, game) {
       applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
     }
     return () => applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
-  }, [activeTab, view, teamId, week, game]);
+  }, [activeTab, view, teamId, week, game, cfbActive]);
+}
+
+function CfbTitle({ title }) { useCfbDocumentTitle(title); return null; }
+
+/** <title> for the College side of the Games tab (week / game / team). */
+function useCfbDocumentTitle(title) {
+  useEffect(() => {
+    if (!title) return undefined;
+    applyDocumentMeta(`${title} | Blitz Odds`, "College football odds, live scores and matchups for every FBS game.");
+    return () => applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
+  }, [title]);
 }
 
 /** Injects/updates/removes a single <script type="application/ld+json"> in
@@ -15996,6 +16011,17 @@ function NewsView({ cfbOn, defaultSport, auth }) {
 
   function selectTeam(id) {
     setTeamBySport((m) => ({ ...m, [sport]: id }));
+    // Which teams people read news for, per side. College ids are ESPN
+    // numbers, so the name rides along for the dashboard to show.
+    let name = null;
+    if (id && sport === "cfb") {
+      const t = cfbStats && cfbStats.teams && cfbStats.teams[id.slice(4)];
+      name = t ? t.name : null;
+    } else if (id) {
+      const t = baseTeam(id);
+      name = t ? t.name : null;
+    }
+    trackEvent("news_team", { sport, team: id ? (sport === "cfb" ? id.slice(4) : id) : "all", teamName: name || undefined });
   }
 
   return (
@@ -23933,6 +23959,7 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
 
   return (
     <div className="cfb-week">
+      <CfbTitle title={`College Football ${period && period.label ? period.label + " " : ""}Odds & Scores`} />
       {sportSwitch}
       <div className="cmd-bar cfb-cmd-bar">
         {sportSwitch && <div className="sport-switch-inline-slot">{React.cloneElement(sportSwitch, { variant: "inline" })}</div>}
@@ -24069,6 +24096,7 @@ function CfbGameView({ gameId, periods, favorites, onToggleFavorite, onSelectTea
   ];
   return (
     <div className="game-page">
+      <CfbTitle title={g ? `${g.away.name || g.away.abbr} at ${g.home.name || g.home.abbr} — College Football Odds & Prediction` : null} />
       <Breadcrumb trail={trail} current={g ? `${g.away.abbr} @ ${g.home.abbr}` : "Game"} />
       {state.status === "loading" && <p className="cfb-empty">Loading game…</p>}
       {state.status === "error" && <p className="cfb-empty">Couldn't find that game.</p>}
@@ -24167,6 +24195,7 @@ function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onBack
   ];
   return (
     <div className="cfb-team-page">
+      <CfbTitle title={team ? `${team.name} Schedule, Roster & News — College Football` : null} />
       <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
         <Breadcrumb trail={trail} current={team ? team.name : "Team"} />
       </div>
@@ -25175,7 +25204,7 @@ function App() {
   // game is open, and neither refetches a week already in the map.
   useFrozenPredictions(selectedWeek); // pre-kickoff model calls for the week on screen, so live/final cards don't recompute
   useFrozenPredictions(selectedGame ? selectedGame.week : null);
-  useDocumentMeta(activeTab, view, selectedTeamId, selectedWeek, selectedGame); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
+  useDocumentMeta(activeTab, view, selectedTeamId, selectedWeek, selectedGame, cfbActive); // keeps <title>/description (and OG/Twitter mirrors) matching the current view
 
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
 

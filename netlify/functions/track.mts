@@ -208,6 +208,9 @@ const VALID_TYPES = new Set([
   // NFL | College switch on the News tab - kept apart from sport_switch so
   // that stays a Games-tab number.
   "news_sport",
+  // News tab team dropdown, either side. team is an NFL abbr, an ESPN
+  // college id, or "all" for clearing it; teamName carries the display name.
+  "news_team",
   "cfb_filter",
   "cfb_week",
   "cfb_details_open",
@@ -646,7 +649,12 @@ export default async (req: Request, context: Context) => {
       const ok = pins.split(",").filter((p: string) => ["home", "games", "picks", "bowls", "league", "news"].includes(p)).slice(0, 4);
       if (ok.length) record.pins = ok.join(",");
     }
-    if ((type === "sport_switch" || type === "news_sport") && (sport === "nfl" || sport === "cfb")) record.sport = sport;
+    if ((type === "sport_switch" || type === "news_sport" || type === "news_team") && (sport === "nfl" || sport === "cfb")) record.sport = sport;
+    if (type === "news_team") {
+      const t = String(team == null ? "" : team);
+      if (t === "all" || /^[A-Z]{2,4}$/.test(t) || /^\d{1,6}$/.test(t)) record.team = t;
+      if (teamName && t !== "all") record.teamName = String(teamName).replace(/[^A-Za-z0-9 .&'()\-]/g, "").slice(0, 48);
+    }
     if (type === "cfb_filter" && typeof filter === "string" && /^(top25|mine|all|g6|\d{1,3})$/.test(filter)) record.filter = filter;
     if ((type === "cfb_week" || type === "cfb_details_open" || type === "cfb_game_view" || type === "cfb_follow") && value != null) {
       const v = String(value);

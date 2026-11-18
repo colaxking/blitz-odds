@@ -259,11 +259,31 @@
           return "Historical archive: " + (label || archiveBadge.textContent.trim());
         }
 
+        // College side of the Games tab (/college/, "cfb" flag). Its week,
+        // game and team screens share markup with the NFL ones, so without
+        // this they read as NFL pages ("Games \u2014 Week 12").
+        var isCollege = path === "/college" || path === "/college/index.html";
+
         var gamePage = document.querySelector(".game-page");
         if (gamePage) {
           var gameTitleText = document.title || "";
           var gameLabel = gameTitleText.split(" | ")[0].trim();
+          if (isCollege) {
+            var cfbGameLabel = gameLabel.split(" \u2014 ")[0].trim();
+            return cfbGameLabel ? "College game: " + cfbGameLabel : "College game page";
+          }
           return gameLabel ? "Game: " + gameLabel : "Game page";
+        }
+
+        if (isCollege) {
+          var cfbTeamName = document.querySelector(".team-hero .team-hero-id h2");
+          if (cfbTeamName && cfbTeamName.textContent) {
+            var cfbTab = document.querySelector(".team-tab-btn.active");
+            var cfbTabText = cfbTab && cfbTab.textContent ? cfbTab.textContent.trim() : null;
+            return "College team: " + cfbTeamName.textContent.trim() + (cfbTabText ? " \u2014 " + cfbTabText : "");
+          }
+          var cfbWeek = getCurrentWeekLabel();
+          return "Games \u2014 College" + (cfbWeek ? " \u2014 " + cfbWeek : "");
         }
 
         var header = document.querySelector(".team-view-header");
@@ -298,6 +318,11 @@
           var subEl = document.querySelector(".hot-picks-subtab-btn.active");
           var sub = subEl && subEl.textContent ? subEl.textContent.trim() : null;
           if (sub) return tabLabel + " \u2014 " + sub;
+
+          // News tab on its College side ("cfb" flag); NFL keeps the plain
+          // "News" label so it lines up with older data.
+          var newsCollege = document.querySelector(".news-view .sport-switch-btn.active");
+          if (newsCollege && /college/i.test(newsCollege.textContent || "")) return tabLabel + " \u2014 College";
 
           var weekForTab = getCurrentWeekLabel();
           return weekForTab ? tabLabel + " \u2014 " + weekForTab : tabLabel;

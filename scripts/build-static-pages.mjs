@@ -1235,6 +1235,17 @@ const TAB_PAGES = [
     description: "Every college bowl game and the full College Football Playoff on one free pick sheet. Run a confidence, straight-up or against-the-spread bowl pool with friends, scored automatically.",
   },
   {
+    // College (FBS) games - the College side of the Games tab, behind the
+    // "cfb" feature flag. Its sub-views (?week=, ?game=, ?team=) all resolve
+    // to this one file. noindex for the same reason as /bowls/ while the flag
+    // is being tested; drop it when the flag goes to Everyone.
+    dir: "college",
+    canonicalPath: "/college/",
+    noindex: true,
+    title: "College Football Odds, Spreads & Win Probabilities This Week | Blitz Odds",
+    description: "Every FBS game this week with the betting line, market win probability, offense and defense stat ranks, weather and live scores.",
+  },
+  {
     dir: "news",
     canonicalPath: "/news/",
     title: "NFL News | Blitz Odds",

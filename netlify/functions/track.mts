@@ -201,6 +201,17 @@ const VALID_TYPES = new Set([
   // say which bar people actually build.
   "nav_menu_open",
   "nav_pins_save",
+  // College games on the Games tab ("cfb" flag). sport_switch is the
+  // headline number - does anyone flip to College at all, and do they come
+  // back? The rest say which parts of the college view earn their keep.
+  "sport_switch",
+  "cfb_filter",
+  "cfb_week",
+  "cfb_details_open",
+  "cfb_game_view",
+  "cfb_team_view",
+  "cfb_follow",
+  "cfb_favorite",
 ]);
 
 // Step ids from index.html's TOUR_STEPS. Allowlisted rather than passed
@@ -415,7 +426,7 @@ export default async (req: Request, context: Context) => {
       return jsonResponse(400, { ok: false, error: "Invalid JSON body" });
     }
 
-    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, pref, channel, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index, official, ok, method, picked, locked, total, pins, signedIn } = body || {};
+    const { type, visitorId, ts, team, teamName, adding, week, tab, side, player, source, device, theme, sportsbook, timezone, displayMode, headline, origin, placement, away, home, page, pathname, host, referrerHost, nav, filter, value, subtab, pref, channel, format, action, surface, section, open, stage, outcome, state, reason, emailSent, provider, step, index, official, ok, method, picked, locked, total, pins, signedIn, sport } = body || {};
 
     if (!VALID_TYPES.has(type)) {
       return jsonResponse(400, { ok: false, error: "Invalid or missing type" });
@@ -631,6 +642,14 @@ export default async (req: Request, context: Context) => {
       const ok = pins.split(",").filter((p: string) => ["home", "games", "picks", "bowls", "league", "news"].includes(p)).slice(0, 4);
       if (ok.length) record.pins = ok.join(",");
     }
+    if (type === "sport_switch" && (sport === "nfl" || sport === "cfb")) record.sport = sport;
+    if (type === "cfb_filter" && typeof filter === "string" && /^(top25|mine|all|g6|\d{1,3})$/.test(filter)) record.filter = filter;
+    if ((type === "cfb_week" || type === "cfb_details_open" || type === "cfb_game_view" || type === "cfb_follow") && value != null) {
+      const v = String(value);
+      if (/^(\d{1,12}|post)$/.test(v)) record.value = v;
+    }
+    if ((type === "cfb_team_view" || type === "cfb_favorite") && team != null && /^\d{1,6}$/.test(String(team))) record.team = String(team);
+    if ((type === "cfb_follow" || type === "cfb_favorite") && (action === "on" || action === "off")) record.action = action;
     if (type === "league_invite_share") {
       if (VALID_LEAGUE_SHARE_SURFACES.has(String(surface))) record.surface = String(surface);
       if (VALID_LEAGUE_SHARE_METHODS.has(String(method))) record.method = String(method);

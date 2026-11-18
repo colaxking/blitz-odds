@@ -1,4 +1,5 @@
 import type { Context, Config } from "@netlify/functions";
+import { markCfbAlertInterest } from "./lib/cfb.mts";
 import { getStore } from "@netlify/blobs";
 import { TERMS_VERSION, VALID_TERMS_SOURCES, MAX_TERMS_HISTORY } from "./lib/terms.mts";
 import { verifyToken, isSuspended, suspensionInfo, suspendedResponse, isUnverified, unverifiedResponse, displayNameFromClaims } from "./lib/auth.mts";
@@ -36,7 +37,7 @@ import { verifyToken, isSuspended, suspensionInfo, suspendedResponse, isUnverifi
 //        (creates a default record on first login if none exists yet)
 // POST /.netlify/functions/user-profile           -> merge-update caller's
 //        own profile. Body: { displayName?, leagues?: string[], settings?: {
-//        themeMode?, sportsbookId?, tzId?, favorites? } }
+//        themeMode?, sportsbookId?, tzId?, favorites?, gamesSport?, cfbFavorites? } }
 //        subscriptionTier is intentionally not settable here - that will be
 //        driven by the Stripe webhook once billing exists.
 //
@@ -188,6 +189,16 @@ function sanitizeSettings(input: any, existing: any) {
     if (pins.length >= 2 && pins.length <= 4) out.navPins = pins;
   }
 
+  /* Games tab: which league the reader last had up (NFL | College), and the
+     college teams they've starred. College favourites are ESPN numeric team
+     ids, kept apart from `favorites` (NFL abbreviations) so nothing that
+     reads NFL favourites - alerts, the week view's favourites strip - ever
+     sees an id it can't resolve. */
+  if (input.gamesSport === "nfl" || input.gamesSport === "cfb") out.gamesSport = input.gamesSport;
+  if (Array.isArray(input.cfbFavorites)) {
+    out.cfbFavorites = [...new Set(input.cfbFavorites.filter((f: unknown) => typeof f === "string" && /^\d{1,6}$/.test(f as string)))].slice(0, 32);
+  }
+
   return out;
 }
 
@@ -282,6 +293,12 @@ export default async (req: Request, _context: Context) => {
       };
 
       await store.setJSON(key, updated);
+
+      // The college live-alert pass skips its ESPN poll entirely until
+      // someone has starred a college team or followed a college game.
+      if (Array.isArray(updated.settings?.cfbFavorites) && updated.settings.cfbFavorites.length) {
+        await markCfbAlertInterest();
+      }
 
       // Fan out a changed name/avatar to every league roster this user
       // belongs to. League membership rows snapshot displayName/avatar at

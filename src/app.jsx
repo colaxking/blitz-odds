@@ -390,6 +390,9 @@ function parseGameIdPath(idRaw) {
  *  the URL itself, since a team's own slug can contain dashes (e.g.
  *  "new-york-giants"), which would make a plain string split ambiguous. */
 function parseLocationPath(pathname) {
+  // College lives under the Games tab at /college/ (see CFB_PATH); its own
+  // sub-views ride in the query string, read by parseCfbRoute.
+  if (isCfbPath(pathname)) return { tab: "games", college: true };
   const teamMatch = pathname.match(/^\/teams\/([a-z0-9-]+)(?:\/(injuries))?\/?$/);
   if (teamMatch) {
     const teamId = teamIdFromSlug(teamMatch[1]);
@@ -1928,6 +1931,19 @@ async function fetchBoxScore(week, awayAbbr, homeAbbr, forceRefresh) {
   if (!forceRefresh && boxScoreCache.has(cacheKey)) return boxScoreCache.get(cacheKey);
 
   const promise = (async () => {
+    // College games are asked for by ESPN event id ("cfb:{id}" in the week
+    // slot) - abbreviations aren't unique there, and the summary needs no
+    // scoreboard lookup to find the event. No live `situation` either; the
+    // modal's sticky possession covers that gap.
+    if (typeof week === "string" && week.indexOf("cfb:") === 0) {
+      const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=${week.slice(4)}`);
+      if (!res.ok) throw new Error("ESPN box score request failed: " + res.status);
+      const data = await res.json();
+      const comp = data.header && data.header.competitions && data.header.competitions[0];
+      data._liveSituation = null;
+      data._liveStatus = comp ? comp.status : null;
+      return data;
+    }
     const scoreboardData = await fetchWeekScoreboard(week);
     let eventId = null;
     let scoreboardComp = null;
@@ -2076,6 +2092,17 @@ function GameScoreLink({ week, awayAbbr, homeAbbr, className, children, fallback
       {open && <BoxScoreModal week={week} awayAbbr={awayAbbr} homeAbbr={homeAbbr} onClose={() => setOpen(false)} fallbackPossession={fallbackPossession} />}
     </React.Fragment>
   );
+}
+
+/** Box score crests: NFL abbreviations are badge ids as they stand; a
+ *  college box score ("cfb:{eventId}" week) maps its abbreviations back to
+ *  the teams the college views have already seen. */
+function boxLogoId(week, abbr) {
+  if (typeof week === "string" && week.indexOf("cfb:") === 0) {
+    for (const [id, t] of cfbTeamRegistry) if (t.abbr === abbr) return "cfb:" + id;
+    return "cfb:?";
+  }
+  return abbr;
 }
 
 function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }) {
@@ -2257,13 +2284,13 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
               <span className="poss-ball boxscore-header-ball" title={`${awayAbbr} has the ball`}>🏈</span>
             )}
             <span className={"boxscore-team-logo" + (winnerAbbr === awayAbbr ? " is-winner" : "")}>
-              <TeamLogo teamId={awayAbbr} size={32} />
+              <TeamLogo teamId={boxLogoId(week, awayAbbr)} size={32} />
             </span>
           </span>
           <span className="boxscore-modal-title">{scoreLabel}</span>
           <span className="boxscore-header-team">
             <span className={"boxscore-team-logo" + (winnerAbbr === homeAbbr ? " is-winner" : "")}>
-              <TeamLogo teamId={homeAbbr} size={32} />
+              <TeamLogo teamId={boxLogoId(week, homeAbbr)} size={32} />
             </span>
             {liveInfo && liveInfo.possession === "home" && (
               <span className="poss-ball boxscore-header-ball" title={`${homeAbbr} has the ball`}>🏈</span>
@@ -2363,7 +2390,7 @@ function BoxScoreModal({ week, awayAbbr, homeAbbr, onClose, fallbackPossession }
                       role="tab"
                       aria-selected={team.abbr === currentAbbr}
                     >
-                      <TeamLogo teamId={team.abbr} size={18} />
+                      <TeamLogo teamId={boxLogoId(week, team.abbr)} size={18} />
                       <span>{team.abbr}</span>
                       {winnerAbbr === team.abbr && <span className="boxscore-winner-check" title="Won">✓</span>}
                     </button>
@@ -2631,6 +2658,12 @@ function Breadcrumb({ trail, current, backTourId }) {
  *  the transparent gaps around the art as a visible colored chip. */
 function TeamLogo({ teamId, size }) {
   const dim = size || 46;
+  // College teams ("cfb:{espnId}") have no badge art - they get the
+  // two-colour crest built from ESPN's team colours instead.
+  if (typeof teamId === "string" && teamId.indexOf("cfb:") === 0) {
+    const t = cfbTeamRegistry.get(teamId.slice(4));
+    return <CfbCrest team={t || { abbr: "?" }} size={dim} />;
+  }
   return (
     <img
       className="team-crest"
@@ -17807,7 +17840,7 @@ function markMenuSeenBowls() {
  * server-side, and App waits for the real answer before redirecting anyone
  * away from a flagged route. */
 const FEATURES_CACHE_KEY = "blitz:features";
-const FEATURE_NAMES = ["bowls", "mobileNav"];
+const FEATURE_NAMES = ["bowls", "mobileNav", "cfb"];
 
 function readCachedFeatures() {
   const out = {};
@@ -22286,6 +22319,1467 @@ function SuspendedScreen({ suspension, onSignOut }) {
   );
 }
 
+/* =======================================================================
+ * COLLEGE (FBS) ON THE GAMES TAB
+ *
+ * The Games tab's second league, behind the "cfb" feature flag. The NFL
+ * view and everything it depends on (schedule.json, teams.json, odds blob,
+ * the Blitz Edge model) is untouched: college is its own data path that
+ * renders into the same card markup and CSS, so the two read as one product.
+ *
+ * DATA. The slate, live scores, records, AP ranks and the DraftKings line
+ * all come straight from ESPN's college scoreboard in the browser - the same
+ * thing the NFL live scores already do. Team stat ranks and venue weather
+ * come from /.netlify/functions/cfb-data (see lib/cfb.mts for why those two
+ * are server-side). Team schedules and recent form come from ESPN's team
+ * schedule endpoint, on demand.
+ *
+ * IDENTITY. ESPN numeric ids everywhere - team abbreviations aren't unique
+ * in college and ESPN spells some differently between endpoints. A college
+ * team's app-wide key is "cfb:{espnId}" (TeamLogo understands it); college
+ * favourites are stored as bare ids in their own setting, `cfbFavorites`.
+ *
+ * WIN %. There is no college Blitz Edge model yet (a refit is required
+ * before one - see claude_model-refit-notes.md). Cards show the market's win
+ * probability, labelled "Market", never "Edge".
+ *
+ * URLS. /college/ is a real static page (build-static-pages.mjs). Deeper
+ * views ride in the query string - ?week=12, ?week=post, ?game={eventId},
+ * ?team={teamId} - so every one of them resolves to that file with no SPA
+ * rewrite, and an alert can deep-link to /college/?game=...
+ * ======================================================================= */
+
+const CFB_SEASON = 2026;
+const CFB_PATH = "/college/";
+const GAMES_SPORT_KEY = "blitz:gamesSport";
+const CFB_FAVORITES_KEY = "blitz:cfbFavorites";
+const CFB_FILTER_KEY = "blitz:cfbFilter";
+/** FBS has ~138 teams; the stats doc says exactly how many were ranked. */
+const CFB_DEFAULT_TEAM_COUNT = 138;
+
+const CFB_CONFERENCES = {
+  "8": "SEC", "5": "Big Ten", "4": "Big 12", "1": "ACC",
+  "151": "American", "12": "Conference USA", "15": "MAC", "17": "Mountain West",
+  "37": "Sun Belt", "9": "Pac-12", "18": "FBS Independents",
+};
+const CFB_GROUP_OF_6 = new Set(["151", "12", "15", "17", "37", "9"]);
+
+/** The chips across the top of the college week view. Top 25 is the
+ *  default: a full FBS Saturday is ~60 games, and the ranked ones are what
+ *  most people came for. */
+const CFB_FILTERS = [
+  { id: "top25", label: "Top 25", title: "Games with a ranked team" },
+  { id: "mine", label: "My teams", title: "Your starred teams" },
+  { id: "all", label: "All FBS", title: "Every FBS game" },
+  { id: "8", label: "SEC", title: "SEC" },
+  { id: "5", label: "Big Ten", title: "Big Ten" },
+  { id: "4", label: "Big 12", title: "Big 12" },
+  { id: "1", label: "ACC", title: "ACC" },
+  { id: "g6", label: "Group of 6", title: "Group of 6" },
+];
+
+function cfbConfName(id) {
+  if (!id) return null;
+  return CFB_CONFERENCES[String(id)] || "FCS";
+}
+
+function cfbNum(v) {
+  const n = typeof v === "number" ? v : parseFloat(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/* ---- Routes ------------------------------------------------------------ */
+
+/** { view: "week"|"game"|"team", period: "12"|"post"|null, gameId, teamId } */
+function parseCfbRoute(search) {
+  try {
+    const p = new URLSearchParams(search || "");
+    const game = p.get("game");
+    const team = p.get("team");
+    const week = p.get("week");
+    const period = week && /^(\d{1,2}|post)$/.test(week) ? week : null;
+    if (game && /^\d{5,12}$/.test(game)) return { view: "game", gameId: game, period, teamId: null };
+    if (team && /^\d{1,6}$/.test(team)) return { view: "team", teamId: team, period, gameId: null };
+    return { view: "week", period, gameId: null, teamId: null };
+  } catch (e) {
+    return { view: "week", period: null, gameId: null, teamId: null };
+  }
+}
+
+function buildCfbPath(route) {
+  const r = route || {};
+  if (r.view === "game" && r.gameId) return `${CFB_PATH}?game=${r.gameId}`;
+  if (r.view === "team" && r.teamId) return `${CFB_PATH}?team=${r.teamId}`;
+  if (r.period) return `${CFB_PATH}?week=${r.period}`;
+  return CFB_PATH;
+}
+
+function isCfbPath(pathname) {
+  return /^\/college(\/|$)/.test(pathname || "");
+}
+
+/* ---- Periods (weeks) --------------------------------------------------- */
+
+/** ESPN's calendar -> the week picker's list. Regular-season weeks keep
+ *  ESPN's numbers; the whole postseason (every bowl plus the Playoff) is one
+ *  period, "post", the same slice the Bowls tab reads. */
+function cfbPeriodsFromCalendar(calendar) {
+  const out = [];
+  for (const block of calendar || []) {
+    const type = String(block.value);
+    if (type !== "2" && type !== "3") continue;
+    for (const e of block.entries || []) {
+      if (type === "2") {
+        out.push({ key: String(e.value), label: e.label || `Week ${e.value}`, seasontype: 2, week: Number(e.value), detail: e.detail || "", start: e.startDate, end: e.endDate });
+      } else if (String(e.value) === "1") {
+        out.push({ key: "post", label: "Bowls & Playoff", seasontype: 3, week: 1, detail: e.detail || "", start: e.startDate, end: e.endDate });
+      }
+    }
+  }
+  return out;
+}
+
+/* ---- ESPN scoreboard ---------------------------------------------------- */
+
+const CFB_SB_SHARE_MS = 8000;
+const cfbScoreboardCache = new Map();
+
+function cfbScoreboardUrl(period) {
+  const base = "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300";
+  if (!period) return base;
+  return `${base}&dates=${CFB_SEASON}&seasontype=${period.seasontype}&week=${period.week}`;
+}
+
+function fetchCfbScoreboard(period, force) {
+  const key = period ? period.key : "current";
+  const hit = cfbScoreboardCache.get(key);
+  if (!force && hit && Date.now() - hit.at < CFB_SB_SHARE_MS) return hit.promise;
+  const promise = fetch(cfbScoreboardUrl(period)).then((res) => {
+    if (!res.ok) throw new Error("ESPN college scoreboard " + res.status);
+    return res.json();
+  });
+  cfbScoreboardCache.set(key, { at: Date.now(), promise });
+  promise.catch(() => {
+    const cur = cfbScoreboardCache.get(key);
+    if (cur && cur.promise === promise) cfbScoreboardCache.delete(key);
+  });
+  return promise;
+}
+
+function cfbMlProb(ml) {
+  if (ml === null || ml === 0) return null;
+  return ml < 0 ? -ml / (-ml + 100) : 100 / (ml + 100);
+}
+function cfbNormCdf(x) {
+  const sign = x < 0 ? -1 : 1;
+  const ax = Math.abs(x) / Math.SQRT2;
+  const t = 1 / (1 + 0.3275911 * ax);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-ax * ax);
+  return 0.5 * (1 + sign * y);
+}
+/** Same rule as lib/bowls.mts: vig-removed moneylines when both are posted,
+ *  otherwise the spread over college's ~15.5-point margin SD. */
+const CFB_MARGIN_SD = 15.5;
+
+function cfbTeamOf(c) {
+  const t = c && c.team;
+  if (!t || !t.id || t.id === "-1") return null;
+  const rank = cfbNum(c.curatedRank && c.curatedRank.current);
+  const recs = Array.isArray(c.records) ? c.records : [];
+  const total = recs.find((r) => r.type === "total") || recs[0];
+  const conf = recs.find((r) => r.type === "vsconf");
+  const id = String(t.id);
+  return {
+    id,
+    key: "cfb:" + id,
+    abbr: String(t.abbreviation || "").slice(0, 6) || "TBD",
+    name: t.displayName || t.name || t.abbreviation,
+    short: t.shortDisplayName || t.location || t.abbreviation,
+    color: t.color ? "#" + t.color : null,
+    altColor: t.alternateColor ? "#" + t.alternateColor : null,
+    rank: rank !== null && rank >= 1 && rank <= 25 ? rank : null,
+    record: total ? total.summary : null,
+    confRecord: conf ? conf.summary : null,
+    confId: t.conferenceId ? String(t.conferenceId) : null,
+    score: cfbNum(c.score),
+    winner: c.winner === true,
+  };
+}
+
+function cfbOddsOf(comp, home, away) {
+  const o = Array.isArray(comp.odds) ? comp.odds[0] : null;
+  if (!o) return null;
+  const spreadRaw = cfbNum(o.spread);
+  if (spreadRaw === null && !o.details) return null;
+  let favoriteId = null;
+  if (o.homeTeamOdds && o.homeTeamOdds.favorite && home) favoriteId = home.id;
+  else if (o.awayTeamOdds && o.awayTeamOdds.favorite && away) favoriteId = away.id;
+  else if (spreadRaw && home && away) favoriteId = spreadRaw < 0 ? home.id : away.id;
+  const ml = o.moneyline || {};
+  const homeML = cfbNum((ml.home && ml.home.close && ml.home.close.odds) ?? (o.homeTeamOdds && o.homeTeamOdds.moneyLine));
+  const awayML = cfbNum((ml.away && ml.away.close && ml.away.close.odds) ?? (o.awayTeamOdds && o.awayTeamOdds.moneyLine));
+  const spread = spreadRaw === null ? null : Math.abs(spreadRaw);
+  let homeWinProb = null;
+  const ph = cfbMlProb(homeML), pa = cfbMlProb(awayML);
+  if (ph !== null && pa !== null && ph + pa > 0) homeWinProb = ph / (ph + pa);
+  else if (spread !== null && home) {
+    if (!favoriteId || spread === 0) homeWinProb = 0.5;
+    else {
+      const favP = cfbNormCdf(spread / CFB_MARGIN_SD);
+      homeWinProb = favoriteId === home.id ? favP : 1 - favP;
+    }
+  }
+  return {
+    favoriteId, spread, details: o.details || null, total: cfbNum(o.overUnder),
+    homeML, awayML, provider: (o.provider && o.provider.name) || "DraftKings", homeWinProb,
+  };
+}
+
+function cfbNormalizeGame(e) {
+  const comp = e && e.competitions && e.competitions[0];
+  if (!comp) return null;
+  const hc = (comp.competitors || []).find((c) => c.homeAway === "home");
+  const ac = (comp.competitors || []).find((c) => c.homeAway === "away");
+  const home = cfbTeamOf(hc), away = cfbTeamOf(ac);
+  if (!home || !away) return null;
+  const st = (comp.status && comp.status.type) || {};
+  const state = st.state === "in" ? "in" : st.state === "post" ? "post" : "pre";
+  const sit = comp.situation || null;
+  let possession = null;
+  if (sit && sit.possession) possession = String(sit.possession) === home.id ? "home" : String(sit.possession) === away.id ? "away" : null;
+  const venue = comp.venue || {};
+  const headline = (comp.notes || []).map((n) => n && n.headline).find(Boolean) || null;
+  const broadcast = comp.broadcast || ((comp.broadcasts || [])[0] && (comp.broadcasts[0].names || [])[0]) || null;
+  return {
+    id: String(e.id),
+    date: comp.date || e.date,
+    timeTbd: comp.timeValid === false,
+    state,
+    completed: !!st.completed,
+    detail: st.shortDetail || st.detail || null,
+    period: cfbNum(comp.status && comp.status.period) || 0,
+    clock: (comp.status && comp.status.displayClock) || "",
+    neutral: !!comp.neutralSite,
+    confGame: !!comp.conferenceCompetition,
+    headline,
+    venue: { id: venue.id ? String(venue.id) : null, name: venue.fullName || null, city: venue.address ? venue.address.city : null, state: venue.address ? venue.address.state : null, indoor: !!venue.indoor },
+    broadcast,
+    away, home,
+    possession,
+    downDistanceText: sit && sit.downDistanceText ? sit.downDistanceText : null,
+    isRedZone: !!(sit && sit.isRedZone),
+    lastPlay: sit && sit.lastPlay && sit.lastPlay.text ? sit.lastPlay.text : null,
+    odds: cfbOddsOf(comp, home, away),
+  };
+}
+
+/** Last pre-kickoff line seen per game, so a started or finished card still
+ *  shows what the market said (ESPN drops odds at kickoff). In memory only;
+ *  a cold load of a finished game just shows no line. */
+const cfbLastLine = new Map();
+
+function cfbNormalizeBoard(json) {
+  const games = [];
+  for (const e of (json && json.events) || []) {
+    const g = cfbNormalizeGame(e);
+    if (!g) continue;
+    if (g.odds && g.state === "pre") cfbLastLine.set(g.id, g.odds);
+    if (!g.odds && cfbLastLine.has(g.id)) g.odds = cfbLastLine.get(g.id);
+    games.push(g);
+  }
+  const league = json && json.leagues && json.leagues[0];
+  return {
+    games,
+    week: json && json.week ? Number(json.week.number) : null,
+    seasontype: json && json.season ? Number(json.season.type) : null,
+    periods: cfbPeriodsFromCalendar(league && league.calendar),
+  };
+}
+
+/* ---- Shared module state (favourites, calendar, stats, weather) --------- */
+
+function readCfbFavorites() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CFB_FAVORITES_KEY) || "[]");
+    return Array.isArray(raw) ? raw.filter((x) => typeof x === "string" && /^\d{1,6}$/.test(x)).slice(0, 32) : [];
+  } catch (e) { return []; }
+}
+
+let cfbCalendarCache = null;      // { periods, currentKey }
+let cfbCalendarPromise = null;
+
+function loadCfbCalendar() {
+  if (cfbCalendarCache) return Promise.resolve(cfbCalendarCache);
+  if (cfbCalendarPromise) return cfbCalendarPromise;
+  cfbCalendarPromise = fetchCfbScoreboard(null).then((json) => {
+    const board = cfbNormalizeBoard(json);
+    const periods = board.periods;
+    let currentKey = board.seasontype === 3 ? "post" : String(board.week || "");
+    if (!periods.some((p) => p.key === currentKey)) {
+      // Off-season or between ESPN's season types: the period whose window
+      // holds today, else the last one.
+      const now = Date.now();
+      const hit = periods.find((p) => Date.parse(p.start) <= now && now < Date.parse(p.end));
+      currentKey = hit ? hit.key : (periods.length ? periods[periods.length - 1].key : "1");
+    }
+    cfbCalendarCache = { periods, currentKey };
+    return cfbCalendarCache;
+  }).catch((err) => { cfbCalendarPromise = null; throw err; });
+  return cfbCalendarPromise;
+}
+
+function useCfbCalendar(enabled) {
+  const [cal, setCal] = useState(cfbCalendarCache);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    if (cal || !enabled) return;
+    let cancelled = false;
+    loadCfbCalendar().then((c) => { if (!cancelled) setCal(c); }).catch((e) => { if (!cancelled) setError(e.message || "Couldn't load the college schedule"); });
+    return () => { cancelled = true; };
+  }, [enabled]);
+  return { calendar: cal, error };
+}
+
+function cfbAuthedGet(auth, url) {
+  return auth && auth.status === "in" && auth.authenticatedFetch
+    ? auth.authenticatedFetch(url)
+    : fetch(url);
+}
+
+let cfbStatsCache = null;
+let cfbStatsPromise = null;
+function useCfbStats(auth) {
+  const [doc, setDoc] = useState(cfbStatsCache);
+  useEffect(() => {
+    if (doc) return;
+    let cancelled = false;
+    if (!cfbStatsPromise) {
+      cfbStatsPromise = cfbAuthedGet(auth, "/.netlify/functions/cfb-data?view=stats")
+        .then((r) => r.json())
+        .then((body) => {
+          if (!body || !body.ok) throw new Error("stats unavailable");
+          cfbStatsCache = body;
+          return body;
+        })
+        .catch((e) => { cfbStatsPromise = null; throw e; });
+    }
+    cfbStatsPromise.then((d) => { if (!cancelled) setDoc(d); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [auth && auth.status]);
+  return doc;
+}
+
+const cfbWeatherCache = new Map();
+function useCfbWeather(auth, period) {
+  const key = period ? period.key : null;
+  const [doc, setDoc] = useState(() => (key && cfbWeatherCache.get(key)) || null);
+  useEffect(() => {
+    if (!period) return;
+    const hit = cfbWeatherCache.get(period.key);
+    if (hit && Date.now() - hit._at < 30 * 60 * 1000) { setDoc(hit); return; }
+    let cancelled = false;
+    cfbAuthedGet(auth, `/.netlify/functions/cfb-data?view=weather&week=${period.week}&seasontype=${period.seasontype}`)
+      .then((r) => r.json())
+      .then((body) => {
+        if (!body || !body.ok) return;
+        body._at = Date.now();
+        cfbWeatherCache.set(period.key, body);
+        if (!cancelled) setDoc(body);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [key, auth && auth.status]);
+  return doc && doc.games ? doc.games : {};
+}
+
+/** Live-polled slate for one period. 30s while anything is live or about to
+ *  kick off, 5 minutes otherwise, paused while the tab is hidden. */
+function useCfbSlate(period) {
+  const key = period ? period.key : null;
+  const [state, setState] = useState({ status: "loading", games: [] });
+  useEffect(() => {
+    if (!period) return;
+    let cancelled = false;
+    let timer = null;
+    setState((s) => (s.key === key ? s : { status: "loading", games: [], key }));
+    function schedule(games) {
+      const now = Date.now();
+      const hot = games.some((g) => g.state === "in" || (g.state === "pre" && !g.timeTbd && Date.parse(g.date) - now < 20 * 60 * 1000 && now - Date.parse(g.date) < 6 * 3600 * 1000));
+      timer = setTimeout(() => load(true), hot ? LIVE_POLL_MS : 5 * 60 * 1000);
+    }
+    function load(force) {
+      if (document.hidden) { timer = setTimeout(() => load(force), 15000); return; }
+      fetchCfbScoreboard(period, force)
+        .then((json) => {
+          if (cancelled) return;
+          const board = cfbNormalizeBoard(json);
+          setState({ status: "ready", games: board.games, key });
+          schedule(board.games);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setState((s) => (s.status === "ready" ? s : { status: "error", games: [], key }));
+          timer = setTimeout(() => load(true), 60000);
+        });
+    }
+    load(false);
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+  }, [key]);
+  return state;
+}
+
+/* ---- Follows ("Alert me") ---------------------------------------------- */
+
+const cfbFollowStore = (() => {
+  const byWeek = new Map();
+  const listeners = new Set();
+  let version = 0;
+  return {
+    get: (w) => byWeek.get(w) || null,
+    set: (w, games) => { byWeek.set(w, new Set(games || [])); version++; listeners.forEach((l) => l()); },
+    subscribe: (l) => { listeners.add(l); return () => listeners.delete(l); },
+    getVersion: () => version,
+  };
+})();
+
+function useCfbFollows(auth, week) {
+  const signedIn = !!(auth && auth.status === "in");
+  useSyncExternalStore(cfbFollowStore.subscribe, cfbFollowStore.getVersion, cfbFollowStore.getVersion);
+  const [busy, setBusy] = useState(null);
+  useEffect(() => {
+    if (!signedIn || !week || cfbFollowStore.get(week)) return;
+    auth.authenticatedFetch(`/.netlify/functions/cfb-follow?week=${week}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && d.ok) cfbFollowStore.set(week, d.games); })
+      .catch(() => {});
+  }, [signedIn, week]);
+  const followed = signedIn && week ? cfbFollowStore.get(week) : null;
+  const toggle = useCallback(async (eventId, next) => {
+    if (!signedIn || !week) return;
+    setBusy(eventId);
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/cfb-follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ week, eventId, follow: next }),
+      });
+      const d = await res.json();
+      if (res.ok && d.ok) cfbFollowStore.set(week, d.games);
+    } catch (e) {
+      /* the bell simply doesn't change */
+    } finally {
+      setBusy(null);
+    }
+  }, [auth, signedIn, week]);
+  return { followed, toggle, busy };
+}
+
+/** Weeks for follows are ESPN's regular-season number; the postseason is
+ *  filed under 20 so it can't collide with a regular week. */
+function cfbFollowWeek(period) {
+  if (!period) return null;
+  return period.seasontype === 3 ? 20 : period.week;
+}
+
+/* ---- Small pieces -------------------------------------------------------- */
+
+/** A college team's crest: the team's two colours split on the diagonal with
+ *  its abbreviation over them - no logo artwork, same reasoning as the NFL
+ *  badges. Used by TeamLogo for any "cfb:{id}" key. */
+const cfbTeamRegistry = new Map();   // espnId -> { abbr, color, altColor, name, short }
+
+function cfbRemember(team) {
+  if (team && team.id) cfbTeamRegistry.set(team.id, { abbr: team.abbr, color: team.color, altColor: team.altColor, name: team.name, short: team.short });
+}
+
+function CfbCrest({ team, size = 46 }) {
+  const t = team || {};
+  const c1 = t.color || "#334155";
+  const c2 = t.altColor && t.altColor.toLowerCase() !== c1.toLowerCase() ? t.altColor : "#1e293b";
+  const abbr = t.abbr || "?";
+  return (
+    <span
+      className="cfb-crest"
+      role="img"
+      aria-label={t.name || abbr}
+      style={{
+        width: size, height: size,
+        background: `linear-gradient(135deg, ${c1} 50%, ${c2} 50%)`,
+        fontSize: abbr.length > 4 ? size * 0.22 : abbr.length > 3 ? size * 0.25 : size * 0.29,
+      }}
+    >
+      {abbr}
+    </span>
+  );
+}
+
+function CfbFavoriteStar({ teamId, favorites, onToggle }) {
+  const active = favorites.includes(teamId);
+  return (
+    <button
+      type="button"
+      className={"star-btn" + (active ? " active" : "")}
+      title={active ? "Remove from your college teams" : "Add to your college teams"}
+      aria-label={active ? "Remove from your college teams" : "Add to your college teams"}
+      aria-pressed={active}
+      onClick={(e) => { e.stopPropagation(); onToggle(teamId); }}
+    >
+      {active ? "★" : "☆"}
+    </button>
+  );
+}
+
+function CfbTeamBadge({ team, favorites, onToggle, onSelect }) {
+  return (
+    <div className="badge-wrap">
+      <button type="button" className="team-click" onClick={() => onSelect(team.id)} style={{ position: "static" }} aria-label={`${team.name} team page`}>
+        <CfbCrest team={team} />
+      </button>
+      <CfbFavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggle} />
+    </div>
+  );
+}
+
+/** College rank tiers, scaled from the NFL's 1-32 cut points (10 / 21) to
+ *  however many FBS teams the stats doc ranked. */
+function cfbRankClass(rank, n) {
+  if (!rank) return "rank-mid";
+  if (rank <= Math.round(n * 10 / 32)) return "rank-good";
+  if (rank <= Math.round(n * 21 / 32)) return "rank-mid";
+  return "rank-bad";
+}
+
+function CfbRankPill({ rank, n }) {
+  return <span className={"rank-pill " + cfbRankClass(rank, n)}>{rank ? `#${rank}` : "–"}</span>;
+}
+
+function CfbDiffPill({ offRank, defRank, offLabel, n }) {
+  if (!offRank || !defRank) return <span className="rank-pill rank-mid">–</span>;
+  const diff = defRank - offRank;
+  const gap = Math.abs(diff);
+  const scale = n / 32;
+  const tier = gap === 0 ? null : gap >= Math.round(17 * scale) ? "significant" : gap >= Math.round(9 * scale) ? "moderate" : "slight";
+  const cls = tier === null ? "rank-mid" : diff > 0 ? `rank-good-${tier}` : `rank-bad-${tier}`;
+  return <span className={"rank-pill " + cls}>{diff === 0 ? "Even" : `${diff > 0 ? "+" : ""}${diff} ${offLabel}`}</span>;
+}
+
+function cfbKickoff(g, tz) {
+  try {
+    const d = new Date(g.date);
+    const date = d.toLocaleDateString("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" });
+    if (g.timeTbd) return { date, time: "Time TBA" };
+    const time = d.toLocaleTimeString("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+    return { date, time };
+  } catch (e) {
+    return { date: (g.date || "").slice(0, 10), time: "" };
+  }
+}
+
+function cfbDayKey(g, tz) {
+  try { return new Date(g.date).toLocaleDateString("en-CA", { timeZone: tz }); } catch (e) { return (g.date || "").slice(0, 10); }
+}
+function cfbDayLabel(g, tz) {
+  try { return new Date(g.date).toLocaleDateString("en-US", { timeZone: tz, weekday: "long", month: "long", day: "numeric" }); } catch (e) { return ""; }
+}
+
+function cfbPeriodLabelText(q) {
+  if (q === 1) return "1st";
+  if (q === 2) return "2nd";
+  if (q === 3) return "3rd";
+  if (q === 4) return "4th";
+  return q > 4 ? `OT${q > 5 ? q - 4 : ""}` : "";
+}
+
+function cfbSpreadText(odds, team) {
+  if (!odds || odds.spread === null || odds.spread === undefined) return null;
+  if (!odds.favoriteId || odds.spread === 0) return "PK";
+  return odds.favoriteId === team.id ? `-${odds.spread}` : `+${odds.spread}`;
+}
+
+/** The market's pick for a game: { side, team, pct } or null. */
+function cfbMarketPick(g) {
+  const p = g.odds && typeof g.odds.homeWinProb === "number" ? g.odds.homeWinProb : null;
+  if (p === null) return null;
+  const side = p >= 0.5 ? "home" : "away";
+  // Never "100%": a 58-point favourite still isn't a certainty, and the
+  // rounding shouldn't claim it is.
+  const pct = Math.min(99, Math.max(50, Math.round((side === "home" ? p : 1 - p) * 100)));
+  return { side, team: g[side], pct };
+}
+
+/** Plain-English read of a matchup: what the market says, then the biggest
+ *  stat-rank mismatches either way. Facts only - no model, no "edge". */
+function cfbWriteup(g, stats, n) {
+  const parts = [];
+  const pick = cfbMarketPick(g);
+  if (pick) {
+    const other = pick.side === "home" ? g.away : g.home;
+    const line = g.odds && g.odds.spread ? ` and lays ${g.odds.spread} points` : "";
+    parts.push(`The market makes ${pick.team.short} a ${pick.pct}% favorite over ${other.short}${line}${g.odds && g.odds.total ? `, with the total at ${g.odds.total}` : ""}.`);
+  } else {
+    parts.push("No line is posted for this game yet, so there's no market read.");
+  }
+  const a = stats && stats[g.away.id], h = stats && stats[g.home.id];
+  if (a && h) {
+    const edges = [];
+    [["total", "rankTotal"], ["rushing", "rankRush"], ["passing", "rankPass"]].forEach(([label, k]) => {
+      edges.push({ off: g.away, def: g.home, label, offRank: a.offense[k], defRank: h.defense[k] });
+      edges.push({ off: g.home, def: g.away, label, offRank: h.offense[k], defRank: a.defense[k] });
+    });
+    edges.forEach((e) => { e.diff = (e.defRank || 0) - (e.offRank || 0); });
+    edges.sort((x, y) => Math.abs(y.diff) - Math.abs(x.diff));
+    const top = edges.filter((e) => e.offRank && e.defRank && Math.abs(e.diff) >= Math.round(9 * n / 32)).slice(0, 2);
+    top.forEach((e) => {
+      parts.push(e.diff > 0
+        ? `${e.off.short}'s ${e.label} offense (#${e.offRank} of ${n}) has a ${e.diff}-spot edge on ${e.def.short}'s ${e.label} defense (#${e.defRank}).`
+        : `${e.def.short}'s ${e.label} defense (#${e.defRank} of ${n}) has a ${-e.diff}-spot edge on ${e.off.short}'s ${e.label} offense (#${e.offRank}).`);
+    });
+    if (!top.length) parts.push("On yardage ranks the two sides are close - no mismatch of more than a few spots either way.");
+  }
+  if (g.neutral) parts.push(`Neutral site${g.venue && g.venue.name ? ` at ${g.venue.name}` : ""}.`);
+  parts.push("College win % is the betting market's, not a Blitz Edge model call.");
+  return parts.join(" ");
+}
+
+/* ---- Recent form + past meetings (ESPN team schedule) -------------------- */
+
+const cfbTeamScheduleCache = new Map();
+function fetchCfbTeamSchedule(teamId, season) {
+  const key = `${teamId}:${season}`;
+  if (cfbTeamScheduleCache.has(key)) return cfbTeamScheduleCache.get(key);
+  const url = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${teamId}/schedule?season=${season}`;
+  const p = fetch(url).then((r) => { if (!r.ok) throw new Error("schedule " + r.status); return r.json(); });
+  cfbTeamScheduleCache.set(key, p);
+  p.catch(() => cfbTeamScheduleCache.delete(key));
+  return p;
+}
+
+/** One team's games for a season, in date order, from its own perspective. */
+function cfbScheduleRows(json, teamId) {
+  const rows = [];
+  for (const e of (json && json.events) || []) {
+    const comp = e.competitions && e.competitions[0];
+    if (!comp) continue;
+    const me = (comp.competitors || []).find((c) => String(c.id || (c.team && c.team.id)) === String(teamId));
+    const opp = (comp.competitors || []).find((c) => c !== me);
+    if (!me || !opp) continue;
+    const st = (comp.status && comp.status.type) || {};
+    const myScore = cfbNum(me.score && typeof me.score === "object" ? me.score.value : me.score);
+    const oppScore = cfbNum(opp.score && typeof opp.score === "object" ? opp.score.value : opp.score);
+    const ot = opp.team || {};
+    rows.push({
+      id: String(e.id),
+      date: comp.date || e.date,
+      timeTbd: comp.timeValid === false,
+      week: e.week && e.week.number,
+      seasonType: e.seasonType && e.seasonType.type,
+      home: me.homeAway === "home",
+      neutral: !!comp.neutralSite,
+      completed: !!st.completed,
+      state: st.state || (st.completed ? "post" : "pre"),
+      opp: { id: String(ot.id || opp.id), name: ot.displayName || ot.shortDisplayName || "", short: ot.shortDisplayName || ot.location || ot.abbreviation || "", abbr: ot.abbreviation || "", rank: cfbNum(opp.curatedRank && opp.curatedRank.current) },
+      myScore, oppScore,
+      result: st.completed && myScore !== null && oppScore !== null ? (myScore > oppScore ? "W" : myScore < oppScore ? "L" : "T") : null,
+      headline: (comp.notes || []).map((n) => n && n.headline).find(Boolean) || null,
+    });
+  }
+  rows.sort((x, y) => (x.date < y.date ? -1 : 1));
+  return rows;
+}
+
+function CfbRecentForm({ team, beforeDate }) {
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchCfbTeamSchedule(team.id, CFB_SEASON)
+      .then((json) => {
+        if (cancelled) return;
+        const all = cfbScheduleRows(json, team.id).filter((r) => r.completed && (!beforeDate || r.date < beforeDate));
+        setRows(all.slice(-5).reverse());
+      })
+      .catch(() => { if (!cancelled) setRows([]); });
+    return () => { cancelled = true; };
+  }, [team.id, beforeDate]);
+  return (
+    <div className="cfb-form-col">
+      <div className="label">{team.short} · last 5</div>
+      {rows === null && <span className="hw-tag">Loading…</span>}
+      {rows && rows.length === 0 && <span className="hw-tag">No results yet.</span>}
+      {rows && rows.map((r) => (
+        <div key={r.id} className="cfb-form-row">
+          <span className={"cfb-form-res cfb-form-" + (r.result || "T").toLowerCase()}>{r.result}</span>
+          <span className="cfb-form-opp">{r.home ? "vs" : "@"} {r.opp.rank && r.opp.rank <= 25 ? `#${r.opp.rank} ` : ""}{r.opp.short}</span>
+          <span className="cfb-form-score">{r.myScore}-{r.oppScore}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Meetings in the last five seasons, read off the home team's schedules.
+ *  Five small requests, made only when Full Details is opened. */
+function CfbPastMeetings({ away, home, auth }) {
+  const [state, setState] = useState({ status: "loading", games: [] });
+  useEffect(() => {
+    let cancelled = false;
+    const seasons = [CFB_SEASON - 1, CFB_SEASON - 2, CFB_SEASON - 3, CFB_SEASON - 4, CFB_SEASON - 5];
+    Promise.all(seasons.map((s) => fetchCfbTeamSchedule(home.id, s).then((j) => cfbScheduleRows(j, home.id)).catch(() => [])))
+      .then((lists) => {
+        if (cancelled) return;
+        const games = [];
+        lists.forEach((rows) => rows.forEach((r) => { if (r.completed && r.opp.id === away.id) games.push(r); }));
+        games.sort((x, y) => (x.date < y.date ? 1 : -1));
+        setState({ status: "ready", games });
+      });
+    return () => { cancelled = true; };
+  }, [away.id, home.id]);
+  if (!hasFullAccess(auth)) {
+    return (
+      <div className="game-page-section">
+        <div className="section-title">Past Matchups <span className="gate-flag">Account</span></div>
+        <AccountGate section="cfb_past_matchups" title="See past meetings" auth={auth}>
+          Sign in for every meeting between these two teams in the last five seasons.
+        </AccountGate>
+      </div>
+    );
+  }
+  let homeWins = 0, awayWins = 0;
+  state.games.forEach((g) => { if (g.result === "W") homeWins++; else if (g.result === "L") awayWins++; });
+  return (
+    <div className="game-page-section">
+      <div className="section-title">Past Matchups</div>
+      {state.status === "loading" && <span className="hw-tag">Loading past meetings…</span>}
+      {state.status === "ready" && state.games.length === 0 && <span className="hw-tag">No meetings in the last five seasons.</span>}
+      {state.status === "ready" && state.games.length > 0 && (
+        <>
+          <p className="h2h-summary">Since {CFB_SEASON - 5}: {away.short} {awayWins} – {homeWins} {home.short}</p>
+          <div className="h2h-list">
+            {state.games.map((g) => (
+              <div key={g.id} className="cfb-h2h-row">
+                <span>{new Date(g.date).getFullYear()}</span>
+                <span>{g.result === "W" ? home.short : away.short} won {Math.max(g.myScore, g.oppScore)}-{Math.min(g.myScore, g.oppScore)}</span>
+                <span className="cfb-h2h-where">{g.neutral ? "neutral" : g.home ? `at ${home.short}` : `at ${away.short}`}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ---- The card ------------------------------------------------------------ */
+
+function CfbGameCard({ game: g, period, stats, weather, favorites, onToggleFavorite, onSelectTeam, onSelectGame, auth, tz, standalone }) {
+  cfbRemember(g.away); cfbRemember(g.home);
+  const [open, setOpen] = useState(!!standalone);
+  const isLive = g.state === "in";
+  const isFinal = g.state === "post";
+  const pick = cfbMarketPick(g);
+  const n = (stats && stats.teamCount) || CFB_DEFAULT_TEAM_COUNT;
+  const teamStats = stats && stats.teams;
+  const a = teamStats && teamStats[g.away.id];
+  const h = teamStats && teamStats[g.home.id];
+  const shown = cfbKickoff(g, tz);
+  const bothRanked = !!(g.away.rank && g.home.rank);
+  const winnerId = isFinal && g.away.score !== null && g.home.score !== null
+    ? (g.away.score > g.home.score ? g.away.id : g.home.score > g.away.score ? g.home.id : null)
+    : null;
+  const called = winnerId && pick ? pick.team.id === winnerId : null;
+
+  const followWeek = cfbFollowWeek(period);
+  const { followed, toggle, busy } = useCfbFollows(auth, followWeek);
+  const signedIn = !!(auth && auth.status === "in");
+  const isFollowing = !!(followed && followed.has(g.id));
+  const followPending = signedIn && followed === null;
+
+  function onFollow() {
+    if (!signedIn) { auth && auth.openSignup && auth.openSignup(); return; }
+    trackEvent("cfb_follow", { value: g.id, action: isFollowing ? "off" : "on" });
+    toggle(g.id, !isFollowing);
+  }
+
+  const teamBlock = (side) => {
+    const t = g[side];
+    const picked = pick && pick.side === side;
+    return (
+      <div className={"team-block" + (picked ? " blitz-pick" : "") + (winnerId === t.id ? " actual-winner" : "")}>
+        {winnerId === t.id && <span className="won-check" title={t.name + " won"} aria-label={t.name + " won"}>&#10003;</span>}
+        <CfbTeamBadge team={t} favorites={favorites} onToggle={onToggleFavorite} onSelect={onSelectTeam} />
+        <div className="team-name">{t.rank && <span className="cfb-rank">#{t.rank} </span>}{t.short}</div>
+        <div className="team-record">{[t.record, cfbConfName(t.confId)].filter(Boolean).join(" · ")}</div>
+        <div className={"win-tag" + (picked ? "" : " win-tag-hidden")}>Market Fav</div>
+      </div>
+    );
+  };
+
+  return (
+    <div className={"game-card cfb-card" + (bothRanked ? " is-division" : "") + (isLive ? " is-live" : "")} data-cfb-game={g.id}>
+      {isFinal && called !== null && (
+        <div className={"card-ribbon " + (called ? "correct" : "incorrect")} title={called ? "The market favorite won" : "The underdog won"}>
+          {called ? "✓ Fav won" : "✗ Upset"}
+        </div>
+      )}
+      <div className={"game-meta" + (isFinal && called !== null ? " has-ribbon" : "")}>
+        <span className="game-meta-left">
+          {!isLive && <>{shown.date}{shown.time ? " • " + shown.time : ""}</>}
+          {bothRanked && <span className="division-tag" title="Both teams are ranked">Top 25</span>}
+          {g.headline && <span className="cfb-note-tag" title={g.headline}>{g.headline.replace(/ - .*$/, "")}</span>}
+          {!isLive && !isFinal && <WeatherPill weather={weather} />}
+        </span>
+        <span className="game-meta-right">
+          {!isLive && g.broadcast && <span className="game-network">{g.broadcast}</span>}
+        </span>
+      </div>
+
+      {isLive && (
+        <div className="live-strip">
+          <div className="live-strip-row">
+            <LiveScoreFlash awayScore={g.away.score} homeScore={g.home.score} className="live-score-inline">
+              {g.possession === "away" && <span className="poss-ball">🏈</span>}
+              {g.away.abbr} {g.away.score} – {g.home.score} {g.home.abbr}
+              {g.possession === "home" && <span className="poss-ball">🏈</span>}
+            </LiveScoreFlash>
+            <span className="live-tag"><span className="live-dot"></span>LIVE {g.period ? `${cfbPeriodLabelText(g.period)} ${g.clock}` : ""}</span>
+          </div>
+          {(g.downDistanceText || g.broadcast) && (
+            <div className="live-strip-row">
+              {g.downDistanceText ? <span className={"down-distance" + (g.isRedZone ? " is-redzone" : "")}>{g.downDistanceText}</span> : <span />}
+              {g.broadcast && <span className="live-strip-network">{g.broadcast}</span>}
+            </div>
+          )}
+          {g.lastPlay && <div className="last-play">{g.lastPlay}</div>}
+        </div>
+      )}
+
+      <div className="matchup-row">
+        {teamBlock("away")}
+        {isFinal ? (
+          <div className="final-score-mid">
+            <span className="fs-nums">{g.away.score}<span className="fs-sep">-</span>{g.home.score}</span>
+            <span className="fs-label">Final</span>
+          </div>
+        ) : (
+          <div className="at-sep">{g.neutral ? "vs" : "@"}</div>
+        )}
+        {teamBlock("home")}
+      </div>
+
+      <div className="combo-block">
+        <div className={"cb-edge" + (pick ? "" : " is-muted")}>
+          <span className="cfb-market-label">Market</span>
+          <span className="cb-conf">
+            {pick ? (
+              <>
+                <CfbCrest team={pick.team} size={32} />
+                <span className="cb-conf-team">{pick.team.abbr}</span>
+                <span className="cb-conf-pct">{pick.pct}% to win</span>
+              </>
+            ) : (
+              <span className="cb-conf-team cfb-no-line">Win odds post when the line opens</span>
+            )}
+          </span>
+        </div>
+        <div className="cb-odds">
+          {g.odds && (g.odds.spread !== null || g.odds.total !== null) ? (
+            <>
+              <div className="cb-odds-line">
+                {g.odds.spread !== null && <span className="cb-stat"><b>{g.odds.favoriteId ? (g.odds.favoriteId === g.home.id ? g.home.abbr : g.away.abbr) : ""} {g.odds.spread === 0 || !g.odds.favoriteId ? "PK" : `-${g.odds.spread}`}</b> Spread</span>}
+                {g.odds.total !== null && <span className="cb-stat"><b>{g.odds.total}</b> O/U</span>}
+              </div>
+              {(g.odds.awayML !== null || g.odds.homeML !== null) && (
+                <div className="cb-odds-line">
+                  <span className="cb-odds-k">ML</span>
+                  <span className="cb-stat"><b>{g.away.abbr} {formatMoneyline(g.odds.awayML)}</b></span>
+                  <span className="cb-stat"><b>{g.home.abbr} {formatMoneyline(g.odds.homeML)}</b></span>
+                </div>
+              )}
+            </>
+          ) : (
+            <span className="cb-odds-none">Odds not yet posted</span>
+          )}
+        </div>
+        {g.odds && <div className="cb-odds-src">Line: {g.odds.provider}{g.state !== "pre" ? <span className="cb-odds-asof"> · at kickoff</span> : null}</div>}
+      </div>
+
+      <div className="gc-actions">
+        <button type="button" className="gc-action" aria-expanded={open} onClick={() => { setOpen((o) => !o); if (!open) trackEvent("cfb_details_open", { value: g.id }); }}>
+          Full Details &amp; History
+          <span className={"gc-chevron" + (open ? " expanded" : "")}>▾</span>
+        </button>
+        {!isFinal && (
+          <button
+            type="button"
+            className={"gc-action gc-follow" + (isFollowing ? " is-following" : "")}
+            aria-pressed={isFollowing}
+            disabled={followPending || busy === g.id}
+            aria-label={isFollowing ? "Stop alerts for this game" : "Get alerts for this game"}
+            title={isFollowing ? "You're getting alerts for this game. Tap to stop." : "Get kickoff, scoring and final alerts for this game"}
+            onClick={onFollow}
+          >
+            <span className="gc-follow-bell"><BellIcon filled={isFollowing} /></span>
+            <span className="gc-follow-label">{isFollowing ? "Following" : "Alert me"}</span>
+          </button>
+        )}
+      </div>
+
+      {open && (
+        <div className="full-details-panel">
+          {(isLive || isFinal) && (
+            <div>
+              <div className="sec-label">Box Score</div>
+              <ShortBoxScore week={"cfb:" + g.id} awayAbbr={g.away.abbr} homeAbbr={g.home.abbr} awayId={g.away.abbr} homeId={g.home.abbr} live={isLive} auth={auth} />
+            </div>
+          )}
+
+          <div>
+            <div className="sec-label">The Read</div>
+            <div className="edge-detail">
+              {hasFullAccess(auth) ? (
+                <p>{cfbWriteup(g, teamStats, n)}</p>
+              ) : (
+                <>
+                  <p className="edge-teaser">{rationaleTeaser(cfbWriteup(g, teamStats, n))}</p>
+                  <AccountGate section="cfb_writeup" title="Read the full breakdown" auth={auth}>
+                    Sign in for the rest of this write-up - where the yardage ranks say this game is decided.
+                  </AccountGate>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="sec-label">Team Comparison <span className="sec-label-format">rank of {n} FBS</span></div>
+            {a && h ? (
+              <>
+                <div className="stat-compare">
+                  <div className="col">
+                    <div className="label">{g.away.abbr} offense</div>
+                    <div>Total <CfbRankPill rank={a.offense.rankTotal} n={n} /></div>
+                    <div>Rush <CfbRankPill rank={a.offense.rankRush} n={n} /></div>
+                    <div>Pass <CfbRankPill rank={a.offense.rankPass} n={n} /></div>
+                  </div>
+                  <div className="col">
+                    <div className="label">{g.home.abbr} defense</div>
+                    <div>Total <CfbRankPill rank={h.defense.rankTotal} n={n} /></div>
+                    <div>Rush <CfbRankPill rank={h.defense.rankRush} n={n} /></div>
+                    <div>Pass <CfbRankPill rank={h.defense.rankPass} n={n} /></div>
+                  </div>
+                  <div className="col">
+                    <div className="label">Total Difference</div>
+                    <div>Total <CfbDiffPill offRank={a.offense.rankTotal} defRank={h.defense.rankTotal} offLabel={g.away.abbr} n={n} /></div>
+                    <div>Rush <CfbDiffPill offRank={a.offense.rankRush} defRank={h.defense.rankRush} offLabel={g.away.abbr} n={n} /></div>
+                    <div>Pass <CfbDiffPill offRank={a.offense.rankPass} defRank={h.defense.rankPass} offLabel={g.away.abbr} n={n} /></div>
+                  </div>
+                  <div className="col">
+                    <div className="label">{g.home.abbr} offense</div>
+                    <div>Total <CfbRankPill rank={h.offense.rankTotal} n={n} /></div>
+                    <div>Rush <CfbRankPill rank={h.offense.rankRush} n={n} /></div>
+                    <div>Pass <CfbRankPill rank={h.offense.rankPass} n={n} /></div>
+                  </div>
+                  <div className="col">
+                    <div className="label">{g.away.abbr} defense</div>
+                    <div>Total <CfbRankPill rank={a.defense.rankTotal} n={n} /></div>
+                    <div>Rush <CfbRankPill rank={a.defense.rankRush} n={n} /></div>
+                    <div>Pass <CfbRankPill rank={a.defense.rankPass} n={n} /></div>
+                  </div>
+                  <div className="col">
+                    <div className="label">&nbsp;</div>
+                    <div>Total <CfbDiffPill offRank={h.offense.rankTotal} defRank={a.defense.rankTotal} offLabel={g.home.abbr} n={n} /></div>
+                    <div>Rush <CfbDiffPill offRank={h.offense.rankRush} defRank={a.defense.rankRush} offLabel={g.home.abbr} n={n} /></div>
+                    <div>Pass <CfbDiffPill offRank={h.offense.rankPass} defRank={a.defense.rankPass} offLabel={g.home.abbr} n={n} /></div>
+                  </div>
+                </div>
+                <div className="cfb-ppg">
+                  Points per game: {g.away.abbr} {a.offense.pointsPerGame ?? "–"} scored / {a.defense.pointsAllowedPerGame ?? "–"} allowed · {g.home.abbr} {h.offense.pointsPerGame ?? "–"} scored / {h.defense.pointsAllowedPerGame ?? "–"} allowed
+                </div>
+                <GradationLegend />
+              </>
+            ) : (
+              <span className="hw-tag">{stats ? "One of these teams isn't FBS, so there are no FBS ranks to compare." : "Loading team ranks…"}</span>
+            )}
+          </div>
+
+          <div>
+            <div className="sec-label">Recent Form</div>
+            <div className="cfb-form">
+              <CfbRecentForm team={g.away} beforeDate={g.date} />
+              <CfbRecentForm team={g.home} beforeDate={g.date} />
+            </div>
+          </div>
+
+          {!standalone && <CfbPastMeetings away={g.away} home={g.home} auth={auth} />}
+
+          {!standalone && onSelectGame && (
+            <a
+              className="game-permalink"
+              href={buildCfbPath({ view: "game", gameId: g.id })}
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                e.preventDefault();
+                onSelectGame(g.id);
+              }}
+            >
+              Open this matchup's own page →
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---- Week picker (same look as the NFL one) ----------------------------- */
+
+function CfbWeekPanel({ periods, selectedKey, onPick, className }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const active = el.querySelector(".week-nav-item.active");
+    if (active) el.scrollTop = Math.max(0, active.offsetTop - el.clientHeight / 2 + active.offsetHeight);
+  }, []);
+  const regular = periods.filter((p) => p.seasontype === 2);
+  const post = periods.filter((p) => p.seasontype === 3);
+  const item = (p) => (
+    <button key={p.key} type="button" className={"week-nav-item" + (p.key === selectedKey ? " active" : "")} role="option" aria-selected={p.key === selectedKey} onClick={() => onPick(p.key)}>
+      <span>{p.label}</span>
+      {p.detail && <span className="cfb-week-detail">{p.detail}</span>}
+    </button>
+  );
+  return (
+    <div className={"week-nav-panel" + (className ? " " + className : "")} role="listbox" ref={ref}>
+      {regular.length > 0 && <div className="week-nav-group-label">Regular season</div>}
+      {regular.map(item)}
+      {post.length > 0 && <div className="week-nav-group-label">Postseason</div>}
+      {post.map(item)}
+    </div>
+  );
+}
+
+function useDismiss(open, setOpen, ref) {
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    function onKey(e) { if (e.key === "Escape") setOpen(false); }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [open]);
+}
+
+function CfbWeekNav({ periods, selectedKey, onSelect }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useDismiss(open, setOpen, ref);
+  const idx = periods.findIndex((p) => p.key === selectedKey);
+  const cur = idx >= 0 ? periods[idx] : null;
+  return (
+    <div className="week-nav" ref={ref}>
+      <button type="button" className="week-nav-arrow" onClick={() => idx > 0 && onSelect(periods[idx - 1].key)} disabled={idx <= 0} aria-label="Previous week"><ChevronIcon direction="left" /></button>
+      <button type="button" className="week-nav-trigger" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open}>
+        <span>{cur ? cur.label : "Week"}</span>
+        <span className={"week-nav-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={12} /></span>
+      </button>
+      <button type="button" className="week-nav-arrow" onClick={() => idx >= 0 && idx < periods.length - 1 && onSelect(periods[idx + 1].key)} disabled={idx < 0 || idx >= periods.length - 1} aria-label="Next week"><ChevronIcon direction="right" /></button>
+      {open && <CfbWeekPanel periods={periods} selectedKey={selectedKey} onPick={(k) => { onSelect(k); setOpen(false); }} />}
+    </div>
+  );
+}
+
+/** The phone header's week pill when College is up. */
+function CfbHeaderWeekPill({ periods, selectedKey, onSelect }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useDismiss(open, setOpen, ref);
+  const cur = periods.find((p) => p.key === selectedKey);
+  return (
+    <div className="hdr-week" ref={ref}>
+      <button type="button" className="hdr-week-pill" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open}>
+        <span className="hdr-week-label">{cur ? (cur.seasontype === 3 ? "Bowls" : cur.label) : "College"}</span>
+        <span className={"week-nav-chevron" + (open ? " open" : "")}><ChevronIcon direction="down" size={11} /></span>
+      </button>
+      {open && <CfbWeekPanel periods={periods} selectedKey={selectedKey} onPick={(k) => { onSelect(k); setOpen(false); }} className="week-nav-panel-hdr" />}
+    </div>
+  );
+}
+
+/* ---- NFL | College switch ------------------------------------------------ */
+
+function SportSwitch({ sport, onChange, nflSub, cfbSub, variant }) {
+  return (
+    <div className={"sport-switch sport-switch-" + (variant || "row")} role="tablist" aria-label="League">
+      <button type="button" role="tab" aria-selected={sport === "nfl"} className={"sport-switch-btn" + (sport === "nfl" ? " active" : "")} onClick={() => sport !== "nfl" && onChange("nfl")}>
+        <span className="sport-switch-name">NFL</span>
+        {nflSub && <span className="sport-switch-sub">{nflSub}</span>}
+      </button>
+      <button type="button" role="tab" aria-selected={sport === "cfb"} className={"sport-switch-btn" + (sport === "cfb" ? " active" : "")} onClick={() => sport !== "cfb" && onChange("cfb")}>
+        <span className="sport-switch-name">College</span>
+        {cfbSub && <span className="sport-switch-sub">{cfbSub}</span>}
+      </button>
+    </div>
+  );
+}
+
+/* ---- Week view ----------------------------------------------------------- */
+
+function cfbGameMatches(g, filter, favorites) {
+  if (filter === "all") return true;
+  if (filter === "top25") return !!(g.away.rank || g.home.rank);
+  if (filter === "mine") return favorites.includes(g.away.id) || favorites.includes(g.home.id);
+  if (filter === "g6") return CFB_GROUP_OF_6.has(g.away.confId) || CFB_GROUP_OF_6.has(g.home.confId);
+  return g.away.confId === filter || g.home.confId === filter;
+}
+
+function cfbBestRank(g) {
+  return Math.min(g.away.rank || 99, g.home.rank || 99);
+}
+
+function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavorite, onSelectTeam, onSelectGame, auth, tz, sportSwitch }) {
+  const slate = useCfbSlate(period);
+  const stats = useCfbStats(auth);
+  const weather = useCfbWeather(auth, period);
+  const [filter, setFilterRaw] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CFB_FILTER_KEY);
+      return CFB_FILTERS.some((f) => f.id === saved) ? saved : "top25";
+    } catch (e) { return "top25"; }
+  });
+  function setFilter(id) {
+    setFilterRaw(id);
+    try { localStorage.setItem(CFB_FILTER_KEY, id); } catch (e) {}
+    trackEvent("cfb_filter", { filter: id });
+  }
+  const games = slate.games || [];
+  const shown = useMemo(() => games.filter((g) => cfbGameMatches(g, filter, favorites)), [games, filter, favorites]);
+
+  /* Live games on top, then the reader's own teams, then day by day in
+     kickoff order - ranked matchups first within a time slot. A college week
+     runs Tuesday to Saturday, so day headers do real work here. */
+  const sections = useMemo(() => {
+    const live = shown.filter((g) => g.state === "in");
+    const rest = shown.filter((g) => g.state !== "in");
+    const mine = filter !== "mine" ? rest.filter((g) => favorites.includes(g.away.id) || favorites.includes(g.home.id)) : [];
+    const mineIds = new Set(mine.map((g) => g.id));
+    const byDay = new Map();
+    rest.filter((g) => !mineIds.has(g.id)).forEach((g) => {
+      const k = cfbDayKey(g, tz);
+      if (!byDay.has(k)) byDay.set(k, { label: cfbDayLabel(g, tz), games: [] });
+      byDay.get(k).games.push(g);
+    });
+    const order = (x, y) => (x.date === y.date ? cfbBestRank(x) - cfbBestRank(y) : x.date < y.date ? -1 : 1);
+    const out = [];
+    if (live.length) out.push({ key: "live", label: "Live now", games: live.sort((x, y) => cfbBestRank(x) - cfbBestRank(y)) });
+    if (mine.length) out.push({ key: "mine", label: "Your teams", games: mine.sort(order) });
+    [...byDay.keys()].sort().forEach((k) => out.push({ key: k, label: byDay.get(k).label, games: byDay.get(k).games.sort(order) }));
+    return out;
+  }, [shown, favorites, filter, tz]);
+
+  const activeFilter = CFB_FILTERS.find((f) => f.id === filter) || CFB_FILTERS[0];
+  const anyLive = games.some((g) => g.state === "in");
+
+  return (
+    <div className="cfb-week">
+      {sportSwitch}
+      <div className="cmd-bar cfb-cmd-bar">
+        {sportSwitch && <div className="sport-switch-inline-slot">{React.cloneElement(sportSwitch, { variant: "inline" })}</div>}
+        {sportSwitch && <div className="cmd-divider cfb-desktop-only" aria-hidden="true" />}
+        <CfbWeekNav periods={periods} selectedKey={period.key} onSelect={onSelectPeriod} />
+        <div className="cmd-divider" aria-hidden="true" />
+        <div className="cfb-filters" role="group" aria-label="Filter games">
+          {CFB_FILTERS.map((f) => (
+            <button key={f.id} type="button" className={"cfb-chip" + (f.id === filter ? " active" : "")} aria-pressed={f.id === filter} onClick={() => setFilter(f.id)}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="cfb-list-head">
+        <span className="cfb-list-title">{activeFilter.title}</span>
+        <span className="cfb-list-count">
+          {slate.status === "ready" ? `${shown.length} of ${games.length} game${games.length === 1 ? "" : "s"}` : ""}
+          {anyLive ? " · live" : ""}
+        </span>
+      </div>
+
+      {slate.status === "loading" && <p className="cfb-empty">Loading the college slate…</p>}
+      {slate.status === "error" && <p className="cfb-empty">Couldn't reach the college scoreboard. It'll retry in a minute.</p>}
+      {slate.status === "ready" && games.length === 0 && <p className="cfb-empty">No FBS games scheduled for {period.label}.</p>}
+      {slate.status === "ready" && games.length > 0 && shown.length === 0 && (
+        <p className="cfb-empty">
+          {filter === "mine"
+            ? "Star a college team (☆ on any game card) and its games show up here every week."
+            : "No games match this filter this week."}
+          {" "}<button type="button" className="link-btn" onClick={() => setFilter("all")}>Show all FBS games</button>
+        </p>
+      )}
+
+      {sections.map((sec) => (
+        <section key={sec.key} className="cfb-day">
+          <h2 className="cfb-day-label">{sec.label}</h2>
+          <div className="schedule-grid">
+            {sec.games.map((g) => (
+              <CfbGameCard
+                key={g.id}
+                game={g}
+                period={period}
+                stats={stats}
+                weather={weather[g.id] || null}
+                favorites={favorites}
+                onToggleFavorite={onToggleFavorite}
+                onSelectTeam={onSelectTeam}
+                onSelectGame={onSelectGame}
+                auth={auth}
+                tz={tz}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+      <p className="cfb-footnote">Scores, lines and AP ranks from ESPN (DraftKings line). Win % is the market's, with the vig removed. Stat ranks are per game across all FBS teams.</p>
+    </div>
+  );
+}
+
+/* ---- Game page ------------------------------------------------------------ */
+
+/** One event by id, whatever week it's in: ESPN's scoreboard can't be asked
+ *  for a single event, but the summary endpoint can, and its header carries
+ *  the same competition object the scoreboard does. */
+const cfbEventCache = new Map();
+function fetchCfbEvent(eventId, force) {
+  const hit = cfbEventCache.get(eventId);
+  if (!force && hit && Date.now() - hit.at < CFB_SB_SHARE_MS) return hit.promise;
+  const url = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=${eventId}`;
+  const promise = fetch(url).then((r) => { if (!r.ok) throw new Error("summary " + r.status); return r.json(); }).then((json) => {
+    const header = json.header || {};
+    const comp = (header.competitions || [])[0];
+    if (!comp) throw new Error("No such game");
+    // The summary header's competitors carry `rank` instead of curatedRank
+    // and no odds; patch both so the scoreboard normalizer reads it as-is.
+    (comp.competitors || []).forEach((c) => {
+      if (!c.curatedRank && c.rank) c.curatedRank = { current: c.rank };
+      if (c.record && !c.records) c.records = c.record.map((r) => ({ ...r, summary: r.summary || r.displayValue }));
+    });
+    if (!comp.odds && Array.isArray(json.pickcenter) && json.pickcenter[0]) comp.odds = [json.pickcenter[0]];
+    if (!comp.venue && json.gameInfo && json.gameInfo.venue) comp.venue = json.gameInfo.venue;
+    const g = cfbNormalizeGame({ id: header.id || eventId, date: comp.date, competitions: [comp] });
+    if (!g) throw new Error("No such game");
+    return {
+      game: g,
+      week: header.week || null,
+      seasontype: header.season ? Number(header.season.type) : 2,
+    };
+  });
+  cfbEventCache.set(eventId, { at: Date.now(), promise });
+  promise.catch(() => cfbEventCache.delete(eventId));
+  return promise;
+}
+
+function CfbGameView({ gameId, periods, favorites, onToggleFavorite, onSelectTeam, onBack, onGoHome, auth, tz }) {
+  const [state, setState] = useState({ status: "loading" });
+  const stats = useCfbStats(auth);
+  useEffect(() => {
+    let cancelled = false;
+    let timer = null;
+    function load(force) {
+      fetchCfbEvent(gameId, force).then((d) => {
+        if (cancelled) return;
+        setState({ status: "ready", ...d });
+        if (d.game.state === "in") timer = setTimeout(() => load(true), LIVE_POLL_MS);
+      }).catch(() => { if (!cancelled) setState((s) => (s.status === "ready" ? s : { status: "error" })); });
+    }
+    load(false);
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+  }, [gameId]);
+
+  const period = state.status === "ready"
+    ? (periods.find((p) => (state.seasontype === 3 ? p.key === "post" : p.key === String(state.week))) || null)
+    : null;
+  const weather = useCfbWeather(auth, period);
+  useEffect(() => {
+    if (state.status === "ready") trackEvent("cfb_game_view", { value: gameId });
+  }, [state.status, gameId]);
+
+  const g = state.game;
+  const trail = [
+    { label: "Home", onClick: onGoHome || onBack },
+    { label: "College", onClick: onBack },
+    ...(period ? [{ label: period.label, onClick: onBack }] : []),
+  ];
+  return (
+    <div className="game-page">
+      <Breadcrumb trail={trail} current={g ? `${g.away.abbr} @ ${g.home.abbr}` : "Game"} />
+      {state.status === "loading" && <p className="cfb-empty">Loading game…</p>}
+      {state.status === "error" && <p className="cfb-empty">Couldn't find that game.</p>}
+      {g && (
+        <>
+          <CfbGameCard
+            game={g}
+            period={period}
+            stats={stats}
+            weather={weather[g.id] || null}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
+            onSelectTeam={onSelectTeam}
+            auth={auth}
+            tz={tz}
+            standalone
+          />
+          <CfbPastMeetings away={g.away} home={g.home} auth={auth} />
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ---- Team page ------------------------------------------------------------ */
+
+function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onBack, onGoHome, auth, tz }) {
+  const [state, setState] = useState({ status: "loading" });
+  const stats = useCfbStats(auth);
+  useEffect(() => {
+    let cancelled = false;
+    setState({ status: "loading" });
+    fetchCfbTeamSchedule(teamId, CFB_SEASON)
+      .then((json) => {
+        if (cancelled) return;
+        const t = json.team || {};
+        const team = {
+          id: String(t.id || teamId), key: "cfb:" + teamId,
+          abbr: t.abbreviation || "", name: t.displayName || "", short: t.location || t.displayName || "",
+          color: t.color ? "#" + t.color : null, altColor: t.alternateColor ? "#" + t.alternateColor : null,
+          record: t.recordSummary || null, standing: t.standingSummary || null,
+        };
+        const known = cfbTeamRegistry.get(team.id);
+        if (known && !team.altColor) team.altColor = known.altColor;
+        cfbRemember(team);
+        setState({ status: "ready", team, rows: cfbScheduleRows(json, teamId) });
+        trackEvent("cfb_team_view", { team: teamId });
+      })
+      .catch(() => { if (!cancelled) setState({ status: "error" }); });
+    return () => { cancelled = true; };
+  }, [teamId]);
+
+  const n = (stats && stats.teamCount) || CFB_DEFAULT_TEAM_COUNT;
+  const s = stats && stats.teams && stats.teams[teamId];
+  const team = state.team;
+  const trail = [
+    { label: "Home", onClick: onGoHome || onBack },
+    { label: "College", onClick: onBack },
+  ];
+  const statRow = (label, value, rank, digits) => (
+    <div className="cfb-stat-row" key={label}>
+      <span className="cfb-stat-label">{label}</span>
+      <span className="cfb-stat-val">{value === null || value === undefined ? "–" : Number(value).toFixed(digits)}</span>
+      <CfbRankPill rank={rank} n={n} />
+    </div>
+  );
+  return (
+    <div className="team-page cfb-team-page">
+      <Breadcrumb trail={trail} current={team ? team.name : "Team"} />
+      {state.status === "loading" && <p className="cfb-empty">Loading team…</p>}
+      {state.status === "error" && <p className="cfb-empty">Couldn't load this team.</p>}
+      {team && (
+        <>
+          <div className="cfb-team-head">
+            <CfbCrest team={team} size={72} />
+            <div className="cfb-team-titles">
+              <h1 className="cfb-team-name">{team.name}</h1>
+              <div className="cfb-team-sub">{[team.record, team.standing].filter(Boolean).join(" · ")}</div>
+            </div>
+            <CfbFavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
+          </div>
+
+          <div className="game-page-section">
+            <div className="section-title">Season stats <span className="sec-label-format">per game · rank of {n} FBS</span></div>
+            {s ? (
+              <div className="cfb-stat-grid">
+                <div>
+                  <div className="cfb-stat-head">Offense</div>
+                  {statRow("Points", s.offense.pointsPerGame, s.offense.rankPoints, 1)}
+                  {statRow("Total yards", s.offense.totalYdsPerGame, s.offense.rankTotal, 1)}
+                  {statRow("Rushing", s.offense.rushYdsPerGame, s.offense.rankRush, 1)}
+                  {statRow("Passing", s.offense.passYdsPerGame, s.offense.rankPass, 1)}
+                </div>
+                <div>
+                  <div className="cfb-stat-head">Defense (allowed)</div>
+                  {statRow("Points", s.defense.pointsAllowedPerGame, s.defense.rankPoints, 1)}
+                  {statRow("Total yards", s.defense.totalYdsAllowedPerGame, s.defense.rankTotal, 1)}
+                  {statRow("Rushing", s.defense.rushYdsAllowedPerGame, s.defense.rankRush, 1)}
+                  {statRow("Passing", s.defense.passYdsAllowedPerGame, s.defense.rankPass, 1)}
+                </div>
+              </div>
+            ) : (
+              <span className="hw-tag">{stats ? "No FBS stat ranks for this team." : "Loading ranks…"}</span>
+            )}
+          </div>
+
+          <div className="game-page-section">
+            <div className="section-title">{CFB_SEASON} schedule</div>
+            <div className="cfb-sched">
+              {state.rows.map((r) => {
+                const k = cfbKickoff(r, tz);
+                return (
+                  <a
+                    key={r.id}
+                    className="cfb-sched-row"
+                    href={buildCfbPath({ view: "game", gameId: r.id })}
+                    onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; e.preventDefault(); onSelectGame(r.id); }}
+                  >
+                    <span className="cfb-sched-when">{r.seasonType === 3 ? "Bowl" : `Wk ${r.week}`} · {k.date}</span>
+                    <span className="cfb-sched-opp">{r.neutral ? "vs" : r.home ? "vs" : "@"} {r.opp.rank && r.opp.rank <= 25 ? `#${r.opp.rank} ` : ""}{r.opp.short}{r.headline ? <span className="cfb-sched-note"> · {r.headline.replace(/ - .*$/, "")}</span> : null}</span>
+                    <span className={"cfb-sched-res" + (r.result ? " cfb-form-" + r.result.toLowerCase() : "")}>
+                      {r.completed ? `${r.result} ${r.myScore}-${r.oppScore}` : r.state === "in" ? "Live" : k.time}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ---- The college side of the Games tab ----------------------------------- */
+
+function CollegeGames({ cal, route, onNavigate, favorites, onToggleFavorite, auth, tz, onGoHome, sportSwitch }) {
+  const { calendar, error } = cal;
+  if (error && !calendar) return <p className="cfb-empty">Couldn't load the college schedule right now.</p>;
+  if (!calendar) return <>{sportSwitch}<p className="cfb-empty">Loading the college schedule…</p></>;
+  const periods = calendar.periods;
+  const periodKey = route.period && periods.some((p) => p.key === route.period) ? route.period : calendar.currentKey;
+  const period = periods.find((p) => p.key === periodKey) || periods[0];
+  const toWeek = () => onNavigate({ view: "week", period: route.period || null });
+  const selectTeam = (teamId) => onNavigate({ view: "team", teamId, period: route.period || null });
+  const selectGame = (gameId) => onNavigate({ view: "game", gameId, period: route.period || null });
+
+  if (route.view === "game") {
+    return <CfbGameView gameId={route.gameId} periods={periods} favorites={favorites} onToggleFavorite={onToggleFavorite} onSelectTeam={selectTeam} onBack={toWeek} onGoHome={onGoHome} auth={auth} tz={tz} />;
+  }
+  if (route.view === "team") {
+    return <CfbTeamView teamId={route.teamId} favorites={favorites} onToggleFavorite={onToggleFavorite} onSelectGame={selectGame} onBack={toWeek} onGoHome={onGoHome} auth={auth} tz={tz} />;
+  }
+  return (
+    <CfbWeekView
+      period={period}
+      periods={periods}
+      onSelectPeriod={(k) => { trackEvent("cfb_week", { value: k }); onNavigate({ view: "week", period: k === calendar.currentKey ? null : k }, { replace: true }); }}
+      favorites={favorites}
+      onToggleFavorite={onToggleFavorite}
+      onSelectTeam={selectTeam}
+      onSelectGame={selectGame}
+      auth={auth}
+      tz={tz}
+      sportSwitch={sportSwitch}
+    />
+  );
+}
+
+
 function App() {
   const auth = useAuth();
   const [themeMode, setThemeMode] = useThemeManager();
@@ -22426,6 +23920,111 @@ function App() {
   useEffect(() => {
     if (activeTab === "bowls" && features.loaded && !bowlsOn) setActiveTab(ROOT_TAB);
   }, [activeTab, features.loaded, bowlsOn]);
+
+  /* NFL | College on the Games tab ("cfb" flag). Which one is up is
+     remembered on the device and, signed in, on the account
+     (settings.gamesSport) - the account copy wins when it loads, unless the
+     URL itself named a league. A /college/ URL picks College before the flags
+     have even loaded, so a shared link doesn't flash the NFL slate first; if
+     the flags then say no, the effect below sends it back to /games. */
+  const [gamesSportRaw, setGamesSportRaw] = useState(() => {
+    try { if (isCfbPath(window.location.pathname)) return "cfb"; } catch (e) {}
+    try { return localStorage.getItem(GAMES_SPORT_KEY) === "cfb" ? "cfb" : "nfl"; } catch (e) { return "nfl"; }
+  });
+  const cfbOn = !!features.cfb || (!features.loaded && gamesSportRaw === "cfb");
+  const gamesSport = cfbOn ? gamesSportRaw : "nfl";
+  const [cfbRoute, setCfbRoute] = useState(() => {
+    try { if (isCfbPath(window.location.pathname)) return parseCfbRoute(window.location.search); } catch (e) {}
+    return { view: "week", period: null, gameId: null, teamId: null };
+  });
+  const [cfbFavorites, setCfbFavorites] = useState(readCfbFavorites);
+  const cfbActive = activeTab === "games" && gamesSport === "cfb";
+  const cfbCal = useCfbCalendar(cfbActive);
+
+  useEffect(() => {
+    if (!features.loaded || features.cfb) return;
+    try {
+      if (isCfbPath(window.location.pathname)) window.history.replaceState({ view: "week", tab: "games" }, "", buildTabPath("games"));
+    } catch (e) {}
+  }, [features.loaded, features.cfb]);
+
+  function syncCfbSettings(patch) {
+    if (auth.status !== "in") return;
+    auth.authenticatedFetch("/.netlify/functions/user-profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ settings: patch }),
+    }).catch(() => {});
+  }
+
+  function setGamesSport(next) {
+    if (next === gamesSport) return;
+    setGamesSportRaw(next);
+    try { localStorage.setItem(GAMES_SPORT_KEY, next); } catch (e) {}
+    trackEvent("sport_switch", { sport: next });
+    syncCfbSettings({ gamesSport: next });
+    setView("week");
+    setSelectedGame(null);
+    setGameOrigin(null);
+    setActiveTab("games");
+    if (next === "cfb") {
+      const r = { view: "week", period: null, gameId: null, teamId: null };
+      setCfbRoute(r);
+      stampAndPush({ tab: "games", sport: "cfb" }, buildCfbPath(r));
+    } else {
+      stampAndPush({ view: "week", tab: "games" }, buildTabPath("games"));
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
+  function cfbNavigate(route, opts) {
+    const r = { view: "week", period: null, gameId: null, teamId: null, ...route };
+    setCfbRoute(r);
+    setActiveTab("games");
+    const path = buildCfbPath(r);
+    try {
+      if (opts && opts.replace) window.history.replaceState({ ...(window.history.state || {}), tab: "games", sport: "cfb" }, "", path);
+      else if (window.location.pathname + window.location.search !== path) stampAndPush({ tab: "games", sport: "cfb" }, path);
+    } catch (e) {}
+    if (!(opts && opts.replace)) window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
+  function toggleCfbFavorite(teamId) {
+    setCfbFavorites((prev) => {
+      const next = prev.includes(teamId) ? prev.filter((t) => t !== teamId) : [...prev, teamId].slice(0, 32);
+      try { localStorage.setItem(CFB_FAVORITES_KEY, JSON.stringify(next)); } catch (e) {}
+      syncCfbSettings({ cfbFavorites: next });
+      trackEvent("cfb_favorite", { team: teamId, action: prev.includes(teamId) ? "off" : "on" });
+      return next;
+    });
+  }
+
+  // The account's league choice and college favourites, once per sign-in.
+  const cfbAdoptedForRef = useRef(null);
+  useEffect(() => {
+    const uid = profile && profile.id;
+    if (!uid || cfbAdoptedForRef.current === uid) return;
+    cfbAdoptedForRef.current = uid;
+    const st = profile.settings || {};
+    const path = window.location.pathname;
+    const urlNamedLeague = isCfbPath(path) || /^\/(games|teams)\/./.test(path);
+    if ((st.gamesSport === "nfl" || st.gamesSport === "cfb") && !urlNamedLeague && st.gamesSport !== gamesSportRaw) {
+      setGamesSportRaw(st.gamesSport);
+      try { localStorage.setItem(GAMES_SPORT_KEY, st.gamesSport); } catch (e) {}
+      if (activeTab === "games" && view === "week") {
+        try {
+          const url = st.gamesSport === "cfb" ? buildCfbPath(cfbRoute) : buildTabPath("games");
+          window.history.replaceState({ ...(window.history.state || {}), tab: "games" }, "", url);
+        } catch (e) {}
+      }
+    }
+    if (Array.isArray(st.cfbFavorites) && st.cfbFavorites.length) {
+      setCfbFavorites(st.cfbFavorites);
+      try { localStorage.setItem(CFB_FAVORITES_KEY, JSON.stringify(st.cfbFavorites)); } catch (e) {}
+    } else if (cfbFavorites.length) {
+      syncCfbSettings({ cfbFavorites });
+    }
+  }, [profile && profile.id]);
 
   /* Phone bottom bar ("mobileNav" flag). Pins live in localStorage and, when
      signed in, on the account (settings.navPins) so they follow the reader
@@ -22630,6 +24229,11 @@ function App() {
     // the way a native tab bar does. Also pops back out of a team or game
     // page to the week view, since that's the tab's own root.
     if (tab === activeTab) {
+      if (tab === "games" && cfbActive) {
+        if (cfbRoute.view !== "week") { cfbNavigate({ view: "week", period: cfbRoute.period }); return; }
+        window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+        return;
+      }
       if (tab === "games" && view !== "week") { backToWeek(); return; }
       window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
       return;
@@ -22665,7 +24269,10 @@ function App() {
       const keepHash = isIdentityHash(window.location.hash) ? window.location.hash : "";
       const staleHash = !!window.location.hash && !keepHash;
       const write = (path) => {
-        const url = path + window.location.search + keepHash;
+        // A college URL's query string is its route (?week= / ?game=), not
+        // something to carry onto another tab's path.
+        const search = isCfbPath(window.location.pathname) ? "" : window.location.search;
+        const url = path + search + keepHash;
         if (first) window.history.replaceState(window.history.state, "", url);
         else stampAndPush({ tab: activeTab }, url);
       };
@@ -22688,6 +24295,14 @@ function App() {
       // hash. Under HOME_TAB_ENABLED the week view's own home is /games, not
       // "/", so the root now counts as stale here where it previously was
       // the destination.
+      if (gamesSport === "cfb") {
+        if (!isCfbPath(window.location.pathname)) {
+          const url = buildCfbPath(cfbRoute);
+          if (first) window.history.replaceState(window.history.state, "", url);
+          else stampAndPush({ tab: "games", sport: "cfb" }, url);
+        }
+        return;
+      }
       if (view !== "week") return;
       const desired = buildTabPath("games");
       const clean = window.location.pathname.replace(/\/$/, "") || "/";
@@ -22696,9 +24311,9 @@ function App() {
         if (staleHash) write(desired);
         return;
       }
-      if (isTabPath(clean) || isRootPath(clean)) write(desired);
+      if (isTabPath(clean) || isRootPath(clean) || isCfbPath(clean)) write(desired);
     } catch (e) {}
-  }, [activeTab, view]);
+  }, [activeTab, view, gamesSport]);
 
   // A notification carries /g/{gameId} rather than the canonical game URL,
   // so once it resolves, swap the address bar over to the real one. Done
@@ -23017,7 +24632,15 @@ function App() {
   useEffect(() => {
     function onPopState() {
       const route = parseLocationPath(window.location.pathname);
-      if (route && route.view === "team") {
+      if (route && route.college) {
+        setGamesSportRaw("cfb");
+        setCfbRoute(parseCfbRoute(window.location.search));
+        setSelectedGame(null);
+        setGameOrigin(null);
+        setView("week");
+        setActiveTab("games");
+      } else if (route && route.view === "team") {
+        setGamesSportRaw("nfl");
         setSelectedTeamId(route.teamId);
         setSelectedGame(null);
         setGameOrigin(null);
@@ -23025,6 +24648,7 @@ function App() {
         setView("team");
         setActiveTab("games");
       } else if (route && route.view === "game") {
+        setGamesSportRaw("nfl");
         setSelectedGame({ week: route.week, awayAbbr: route.awayAbbr, homeAbbr: route.homeAbbr });
         setSelectedWeek(route.week);
         // The league trail this entry was pushed with, if any (see
@@ -23041,8 +24665,10 @@ function App() {
         setSelectedGame(null);
         setGameOrigin(null);
         setView("week");
+        if (route.tab === "games") setGamesSportRaw("nfl");
         setActiveTab(route.tab === "league" && !LEAGUES_UI_ENABLED ? "games" : route.tab);
       } else {
+        setGamesSportRaw("nfl");
         setSelectedGame(null);
         setGameOrigin(null);
         setView("week");
@@ -23189,6 +24815,9 @@ function App() {
   }
 
   function selectTeam(teamId) {
+    // NFL team pages only; anything that opens one (Home, Playbook, a
+    // league) means the NFL side of the Games tab, whatever was up before.
+    setGamesSportRaw("nfl");
     setSelectedTeamId(teamId);
     setSelectedGame(null);
     setGameOrigin(null);
@@ -23212,6 +24841,7 @@ function App() {
   const [gameOrigin, setGameOrigin] = useState(null);
 
   function selectGame(week, awayAbbr, homeAbbr, origin) {
+    setGamesSportRaw("nfl");
     setSelectedGame({ week, awayAbbr, homeAbbr });
     setGameOrigin(origin || null);
     setView("game");
@@ -23327,8 +24957,12 @@ function App() {
   /* What the compact mobile bar shows. The week view gets the week picker;
      everything else gets a label naming where you are, since the wordmark no
      longer tells you and the tall header that used to is gone. */
-  const showWeekPill = activeTab === "games" && view === "week";
+  const showWeekPill = activeTab === "games" && view === "week" && gamesSport === "nfl";
+  const showCfbPill = cfbActive && cfbRoute.view === "week" && !!cfbCal.calendar;
   const headerTitle = (() => {
+    if (cfbActive && cfbRoute.view !== "week") {
+      return { title: "College", sub: cfbRoute.view === "game" ? "Game" : "Team" };
+    }
     if (activeTab === "games" && view === "team") {
       const t = baseTeam(selectedTeamId);
       return { title: t ? t.name : selectedTeamId, sub: "Team" };
@@ -23358,7 +24992,17 @@ function App() {
      it. When there's nothing behind this entry - someone landed straight on
      /teams/... from search or a shared link - there's no in-app screen to pop
      to, so it falls back to the week view. */
-  const mobileBack = (activeTab === "games" && view !== "week")
+  const mobileBack = cfbActive
+    ? (cfbRoute.view !== "week"
+        ? {
+            label: "Back",
+            onClick: () => {
+              if (historyDepth > 0) window.history.back();
+              else cfbNavigate({ view: "week", period: cfbRoute.period });
+            },
+          }
+        : null)
+    : (activeTab === "games" && view !== "week")
     ? {
         label: "Back",
         onClick: () => {
@@ -23367,6 +25011,19 @@ function App() {
         },
       }
     : null;
+
+  /* The NFL | College switch, shown at the top of either league's week
+     view while the "cfb" flag covers this visitor. One element, placed as a
+     full-width row on phones and inside the command bar on desktop (CSS
+     shows one or the other). */
+  const sportSwitchEl = cfbOn ? (
+    <SportSwitch
+      sport={gamesSport}
+      onChange={setGamesSport}
+      nflSub={getPeriodLabel(selectedWeek)}
+      cfbSub={cfbCal.calendar ? ((cfbCal.calendar.periods.find((p) => p.key === (cfbRoute.period || cfbCal.calendar.currentKey)) || {}).label || "FBS") + " · FBS" : "FBS"}
+    />
+  ) : null;
 
   // A suspended account gets this INSTEAD of the app, not on top of it.
   // Rendering the normal shell behind a modal would leave a signed-in-looking
@@ -23423,7 +25080,13 @@ function App() {
             )}
           </div>
           <div className="hdr-center">
-            {showWeekPill
+            {showCfbPill
+              ? <CfbHeaderWeekPill
+                  periods={cfbCal.calendar.periods}
+                  selectedKey={cfbRoute.period || cfbCal.calendar.currentKey}
+                  onSelect={(k) => { trackEvent("cfb_week", { value: k }); cfbNavigate({ view: "week", period: k === cfbCal.calendar.currentKey ? null : k }, { replace: true }); }}
+                />
+              : showWeekPill
               ? <HeaderWeekPill periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
               : (
                 <span className="hdr-title">
@@ -23523,11 +25186,28 @@ function App() {
         )
       )}
 
-      {activeTab === "games" && (
+      {cfbActive && (
+        <CollegeGames
+          cal={cfbCal}
+          route={cfbRoute}
+          onNavigate={cfbNavigate}
+          favorites={cfbFavorites}
+          onToggleFavorite={toggleCfbFavorite}
+          auth={auth}
+          tz={resolvedTz}
+          onGoHome={goHomeTab}
+          sportSwitch={sportSwitchEl}
+        />
+      )}
+
+      {activeTab === "games" && !cfbActive && (
         <>
+          {view === "week" && sportSwitchEl}
           {view === "week" && (
             <>
-              <div className={"cmd-bar" + (favorites.length > 0 ? "" : " cmd-bar-bare")}>
+              <div className={"cmd-bar" + (favorites.length > 0 ? "" : " cmd-bar-bare") + (sportSwitchEl ? " has-sport-switch" : "")}>
+                {sportSwitchEl && <div className="sport-switch-inline-slot">{React.cloneElement(sportSwitchEl, { variant: "inline" })}</div>}
+                {sportSwitchEl && <div className="cmd-divider cfb-desktop-only" aria-hidden="true" />}
                 <WeekNav periods={periods} selectedWeek={selectedWeek} onSelectWeek={setSelectedWeek} />
                 {favorites.length > 0 && (
                   <>

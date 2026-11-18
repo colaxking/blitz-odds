@@ -814,6 +814,19 @@ export default async (req: Request, _context: Context) => {
     const bowlSavesFull = bowlSaveRecords.filter((r: any) => typeof r.total === "number" && r.total > 0 && r.picked === r.total).length;
     const bowlAutoranks = validRecords.filter((r) => r.type === "bowl_autorank").length;
     const navMenuOpens = validRecords.filter((r) => r.type === "nav_menu_open").length;
+    // --- College games (the "cfb" flag). Switches split by direction so a
+    // flip to College and straight back reads as such; the rest is a small
+    // funnel from the slate into a game, a team, an alert and a star. ---
+    const sportSwitches = sortedCounts(validRecords.filter((r) => r.type === "sport_switch"), (r: any) => r.sport);
+    const cfbFilters = sortedCounts(validRecords.filter((r) => r.type === "cfb_filter"), (r: any) => r.filter);
+    const cfbFunnel = {
+      "Week changes": validRecords.filter((r) => r.type === "cfb_week").length,
+      "Details opened": validRecords.filter((r) => r.type === "cfb_details_open").length,
+      "Game pages": validRecords.filter((r) => r.type === "cfb_game_view").length,
+      "Team pages": validRecords.filter((r) => r.type === "cfb_team_view").length,
+      "Alerts turned on": validRecords.filter((r: any) => r.type === "cfb_follow" && r.action === "on").length,
+      "Teams starred": validRecords.filter((r: any) => r.type === "cfb_favorite" && r.action === "on").length,
+    };
     const navPinLayouts = sortedCounts(validRecords.filter((r) => r.type === "nav_pins_save"), (r: any) => r.pins);
 
     const leagueShareRecords = validRecords.filter((r) => r.type === "league_invite_share");
@@ -1352,6 +1365,9 @@ export default async (req: Request, _context: Context) => {
         bowlSavesFull,
         bowlAutoranks,
         navMenuOpens,
+        sportSwitches,
+        cfbFilters,
+        cfbFunnel,
         navPinLayouts,
         leagueShares,
         leagueSharesBySurface,

@@ -31,6 +31,7 @@ export type FeatureMode = "off" | "admins" | "everyone";
 export const FEATURE_DEFAULTS: Record<string, FeatureMode> = {
   bowls: "off",
   mobileNav: "off",
+  cfb: "off",
 };
 
 export const FEATURE_LABELS: Record<string, { title: string; blurb: string }> = {
@@ -41,6 +42,10 @@ export const FEATURE_LABELS: Record<string, { title: string; blurb: string }> = 
   mobileNav: {
     title: "Custom mobile bottom bar",
     blurb: "Phone bottom bar with a Menu button and pinnable tabs. Desktop is unchanged.",
+  },
+  cfb: {
+    title: "College games",
+    blurb: "NFL | College switch on the Games tab: FBS slate, market odds, stat ranks, weather, live scores, team pages, alerts.",
   },
 };
 

@@ -11,6 +11,7 @@ import {
 } from "./lib/livescores.mts";
 import { loadAllWeeks, espnParamsFor, type PhaseWeek } from "./lib/schedule.mts";
 import { loadWeekFollows } from "./lib/follows.mts";
+import { runCfbLivePass } from "./lib/cfb-alerts.mts";
 
 // The fast tick. Watches games that are actually in progress and alerts on
 // scoring plays and final whistles.
@@ -100,12 +101,34 @@ export default async (req: Request, _context: Context) => {
     errors: [],
   };
 
+  // College first, and on its own: it has its own schedule (ESPN's current
+  // week), its own follows and its own cheap early-out, and nothing in it may
+  // stop the NFL pass below - which returns early on a quiet NFL tick, so the
+  // college pass can't live after it. Its sends go to the same delivery log.
+  try {
+    report.cfb = await runCfbLivePass({ now, dryRun, onlyUser, log: alertLog, force: body.force === true });
+  } catch (err) {
+    report.errors.push({ stage: "cfb", error: err instanceof Error ? err.message : "unknown" });
+  }
+  // The NFL pass below returns early on a quiet tick without flushing the
+  // delivery log. When the college pass actually attempted alerts, those
+  // rows have to be written before any such return.
+  const cfbAttempted = (() => {
+    const c = report.cfb;
+    if (!c) return false;
+    return ["kickoff", "scoring", "final"].some((k) => c[k] && Object.keys(c[k].outcomes || {}).length > 0);
+  })();
+  const quietReturn = async (extra: Record<string, unknown>) => {
+    if (cfbAttempted) await alertLog.flush({ games: [] });
+    return jsonResponse(200, { ...report, ...extra });
+  };
+
   try {
     // The whole season, not just weeks 1-18: a touchdown in a playoff game
     // is exactly the thing someone turned these alerts on for. See
     // lib/schedule.mts for why the three phases arrive separately.
     const weeks: PhaseWeek[] = await loadAllWeeks(siteDataStore);
-    if (!weeks.length) return jsonResponse(200, { ...report, note: "No schedule available" });
+    if (!weeks.length) return quietReturn({ note: "No schedule available" });
 
     // ---- Is anything plausibly on right now? --------------------------
     // Cheapest possible check, deliberately first. Off-season and midweek
@@ -123,7 +146,7 @@ export default async (req: Request, _context: Context) => {
       }
     }
     if (!activeWeeks.length && !body.force) {
-      return jsonResponse(200, { ...report, note: "No games in progress" });
+      return quietReturn({ note: "No games in progress" });
     }
     report.polledWeeks = activeWeeks.map((w) => w.week);
 
@@ -226,7 +249,7 @@ export default async (req: Request, _context: Context) => {
       }
     }
 
-    if (!changes.length) return jsonResponse(200, { ...report, note: "No changes this tick" });
+    if (!changes.length) return quietReturn({ note: "No changes this tick" });
 
     // ---- Who cares? -----------------------------------------------------
     // Only loaded once something actually happened, so a quiet tick during

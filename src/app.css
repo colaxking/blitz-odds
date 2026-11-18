@@ -5792,3 +5792,14 @@
   /* A college day can hold a single game; auto-fill keeps it at half width
      on desktop rather than stretching one card across the page. */
   .cfb-day .schedule-grid { grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr)); }
+  /* College favourites sit in the command bar like the NFL ones. The filter
+     chips take the rest of the row on desktop; on a phone the bar wraps so
+     favourites get their own line (with the same "Favourites" label the NFL
+     bar shows) and the chips scroll underneath. */
+  .cfb-cmd-bar .cfb-favs { flex: 0 1 auto; max-width: 40%; }
+  .cfb-favs .cfb-crest, .cfb-favs .team-crest { width: 26px; height: 26px; }
+  @media (max-width: 720px) {
+    .cfb-cmd-bar { flex-wrap: wrap; row-gap: 8px; }
+    .cfb-cmd-bar .cfb-favs { flex: 1 1 100%; max-width: none; }
+    .cfb-cmd-bar .cfb-filters { flex: 1 1 100%; }
+  }

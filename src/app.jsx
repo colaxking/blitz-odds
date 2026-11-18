@@ -22835,7 +22835,7 @@ function CfbCrest({ team, size = 46 }) {
   );
 }
 
-function CfbFavoriteStar({ teamId, favorites, onToggle }) {
+function CfbFavoriteStar({ teamId, team, favorites, onToggle }) {
   const active = favorites.includes(teamId);
   return (
     <button
@@ -22844,7 +22844,7 @@ function CfbFavoriteStar({ teamId, favorites, onToggle }) {
       title={active ? "Remove from your college teams" : "Add to your college teams"}
       aria-label={active ? "Remove from your college teams" : "Add to your college teams"}
       aria-pressed={active}
-      onClick={(e) => { e.stopPropagation(); onToggle(teamId); }}
+      onClick={(e) => { e.stopPropagation(); onToggle(teamId, team); }}
     >
       {active ? "★" : "☆"}
     </button>
@@ -22857,7 +22857,68 @@ function CfbTeamBadge({ team, favorites, onToggle, onSelect }) {
       <button type="button" className="team-click" onClick={() => onSelect(team.id)} style={{ position: "static" }} aria-label={`${team.name} team page`}>
         <CfbCrest team={team} />
       </button>
-      <CfbFavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggle} />
+      <CfbFavoriteStar teamId={team.id} team={team} favorites={favorites} onToggle={onToggle} />
+    </div>
+  );
+}
+
+/* ---- Favourites strip ------------------------------------------------------
+   The college twin of the NFL command bar's favourites: a crest per starred
+   team, tap for its team page. Starring stores a little of the team (name,
+   abbreviation, colours) on the device so the strip can draw a team that
+   isn't playing this week; a favourite synced from another device with
+   nothing stored yet is looked up once from its ESPN schedule. */
+const CFB_FAV_META_KEY = "blitz:cfbFavMeta";
+
+function readCfbFavMeta() {
+  try { const m = JSON.parse(localStorage.getItem(CFB_FAV_META_KEY) || "{}"); return m && typeof m === "object" ? m : {}; } catch (e) { return {}; }
+}
+
+function saveCfbFavMeta(team) {
+  if (!team || !team.id) return;
+  try {
+    const m = readCfbFavMeta();
+    m[team.id] = { id: team.id, abbr: team.abbr, name: team.name, short: team.short, color: team.color, altColor: team.altColor };
+    localStorage.setItem(CFB_FAV_META_KEY, JSON.stringify(m));
+  } catch (e) {}
+}
+
+function CfbFavsBar({ favorites, onSelect }) {
+  const [, bump] = useState(0);
+  const meta = readCfbFavMeta();
+  const resolve = (id) => {
+    const r = cfbTeamRegistry.get(id);
+    if (r) return { ...r, id };
+    return meta[id] || null;
+  };
+  const missing = favorites.filter((id) => !resolve(id));
+  const missingKey = missing.join(",");
+  useEffect(() => {
+    if (!missing.length) return;
+    let cancelled = false;
+    Promise.all(missing.map((id) => fetchCfbTeamSchedule(id, CFB_SEASON).then((json) => {
+      const t = json.team || {};
+      const team = {
+        id, abbr: t.abbreviation || "", name: t.displayName || "", short: t.location || t.displayName || "",
+        color: t.color ? "#" + t.color : null, altColor: t.alternateColor ? "#" + t.alternateColor : null,
+      };
+      cfbRemember(team);
+      saveCfbFavMeta(team);
+    }).catch(() => {}))).then(() => { if (!cancelled) bump((n) => n + 1); });
+    return () => { cancelled = true; };
+  }, [missingKey]);
+  if (!favorites.length) return null;
+  return (
+    <div className="cmd-favs cfb-favs">
+      {favorites.map((id) => {
+        const t = resolve(id);
+        if (!t) return null;
+        return (
+          <button key={id} type="button" className="cmd-fav-btn" onClick={() => onSelect(id)} title={t.name} aria-label={`${t.name} team page`}>
+            <CfbCrest team={t} size={26} />
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -23508,6 +23569,12 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
         {sportSwitch && <div className="cmd-divider cfb-desktop-only" aria-hidden="true" />}
         <CfbWeekNav periods={periods} selectedKey={period.key} onSelect={onSelectPeriod} />
         <div className="cmd-divider" aria-hidden="true" />
+        {favorites.length > 0 && (
+          <>
+            <CfbFavsBar favorites={favorites} onSelect={onSelectTeam} />
+            <div className="cmd-divider" aria-hidden="true" />
+          </>
+        )}
         <div className="cfb-filters" role="group" aria-label="Filter games">
           {CFB_FILTERS.map((f) => (
             <button key={f.id} type="button" className={"cfb-chip" + (f.id === filter ? " active" : "")} aria-pressed={f.id === filter} onClick={() => setFilter(f.id)}>
@@ -23711,7 +23778,7 @@ function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onBack
               <h1 className="cfb-team-name">{team.name}</h1>
               <div className="cfb-team-sub">{[team.record, team.standing].filter(Boolean).join(" · ")}</div>
             </div>
-            <CfbFavoriteStar teamId={team.id} favorites={favorites} onToggle={onToggleFavorite} />
+            <CfbFavoriteStar teamId={team.id} team={team} favorites={favorites} onToggle={onToggleFavorite} />
           </div>
 
           <div className="game-page-section">
@@ -24011,7 +24078,8 @@ function App() {
     if (!(opts && opts.replace)) window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
-  function toggleCfbFavorite(teamId) {
+  function toggleCfbFavorite(teamId, team) {
+    if (team) saveCfbFavMeta(team);
     setCfbFavorites((prev) => {
       const next = prev.includes(teamId) ? prev.filter((t) => t !== teamId) : [...prev, teamId].slice(0, 32);
       try { localStorage.setItem(CFB_FAVORITES_KEY, JSON.stringify(next)); } catch (e) {}

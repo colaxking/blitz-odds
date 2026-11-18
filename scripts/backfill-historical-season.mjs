@@ -650,7 +650,7 @@ const FOOTER_YEAR_SCRIPT = `(function () {
 const THEME_INIT_SCRIPT = `(function () {
   try {
     var saved = localStorage.getItem("blitz-odds-theme");
-    var mode = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+    var mode = saved === "light" || saved === "dark" || saved === "system" ? saved : "dark";
     var resolved = mode === "system"
       ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : mode;
@@ -731,8 +731,8 @@ const SETTINGS_WIDGET_SCRIPT = `(function () {
   function getMode() {
     try {
       var saved = localStorage.getItem(KEY);
-      return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
-    } catch (e) { return "system"; }
+      return saved === "light" || saved === "dark" || saved === "system" ? saved : "dark";
+    } catch (e) { return "dark"; }
   }
   function resolve(mode) {
     if (mode !== "system") return mode;

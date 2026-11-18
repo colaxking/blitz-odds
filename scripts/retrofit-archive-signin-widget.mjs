@@ -79,8 +79,8 @@ const OLD_SCRIPT_BLOCK = `<script>(function () {
   function getMode() {
     try {
       var saved = localStorage.getItem(KEY);
-      return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
-    } catch (e) { return "system"; }
+      return saved === "light" || saved === "dark" || saved === "system" ? saved : "dark";
+    } catch (e) { return "dark"; }
   }
   function resolve(mode) {
     if (mode !== "system") return mode;
@@ -134,8 +134,8 @@ const NEW_SCRIPT_BLOCK = `<script>(function () {
   function getMode() {
     try {
       var saved = localStorage.getItem(KEY);
-      return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
-    } catch (e) { return "system"; }
+      return saved === "light" || saved === "dark" || saved === "system" ? saved : "dark";
+    } catch (e) { return "dark"; }
   }
   function resolve(mode) {
     if (mode !== "system") return mode;

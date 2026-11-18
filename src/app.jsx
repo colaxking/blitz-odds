@@ -21298,9 +21298,11 @@ function useThemeManager() {
   const [mode, setMode] = useState(() => {
     try {
       const saved = localStorage.getItem(THEME_STORAGE_KEY);
-      return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+      // Dark is the default look; "system" (follow the device) is still a
+      // choice in Settings, it just isn't what a first visit gets.
+      return saved === "light" || saved === "dark" || saved === "system" ? saved : "dark";
     } catch (e) {
-      return "system";
+      return "dark";
     }
   });
 

@@ -115,7 +115,7 @@
   (function () {
     try {
       var saved = localStorage.getItem("blitz-odds-theme");
-      var mode = saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+      var mode = saved === "light" || saved === "dark" || saved === "system" ? saved : "dark";
       var resolved = mode === "system"
         ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
         : mode;
@@ -3121,7 +3121,7 @@
       "/js/gameId.js",
       "/js/vendor/react.production.min.js",
       "/js/vendor/react-dom.production.min.js",
-      "/js/app.js?v=34c9b0260e",
+      "/js/app.js?v=e286133338",
       "/js/analytics.js"
     ];
     function inject() {

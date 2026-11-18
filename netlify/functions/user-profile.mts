@@ -83,7 +83,7 @@ const NAV_PIN_IDS = new Set(["home", "games", "picks", "bowls", "league", "news"
 
 function defaultSettings() {
   return {
-    themeMode: "system",
+    themeMode: "dark",
     sportsbookId: "draftkings",
     tzId: "auto",
     favorites: [] as string[],

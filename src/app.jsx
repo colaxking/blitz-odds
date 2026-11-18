@@ -17210,14 +17210,18 @@ function HomeLeaderboard({ league }) {
   const rows = league.leaderboard || [];
   const isSurvivor = league.format === "survivor";
   const isConfidence = league.format === "confidence";
-  const foot = isSurvivor
+  const foot = league.sport === "bowls"
+    ? (isConfidence ? "Bowl pool · confidence points" : league.format === "ats" ? "Bowl pool · against the spread" : "Bowl pool · straight-up record")
+    : isSurvivor
     ? `${league.memberCount} entered · ${league.survivor ? league.survivor.aliveCount : 0} still alive`
     : isConfidence
       ? "Confidence points"
       : league.format === "ats" ? "Against the spread record" : "Straight-up record";
 
   if (!rows.length) {
-    return <div className="hd-rail-foot">No results yet — standings appear once the first week is scored.</div>;
+    return <div className="hd-rail-foot">{league.sport === "bowls"
+      ? "No results yet — standings appear once the first bowl is final."
+      : "No results yet — standings appear once the first week is scored."}</div>;
   }
   return (
     <>
@@ -17274,13 +17278,16 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
   const firstName = ((profile && profile.displayName) || "").split(" ")[0];
 
   const step = (setter, len) => (dir) => setter((i) => (len ? (i + dir + len) % len : 0));
-  const streakLeague = leagues[Math.min(streakIdx, Math.max(leagues.length - 1, 0))] || null;
+  // Bowl pools are listed with the rest but sit out the two NFL-week tiles:
+  // they have no weekly streak, and their sheet isn't "this week's picks".
+  const streakLeagues = leagues.filter((l) => l.sport !== "bowls");
+  const streakLeague = streakLeagues[Math.min(streakIdx, Math.max(streakLeagues.length - 1, 0))] || null;
   const boardLeague = leagues[Math.min(boardIdx, Math.max(leagues.length - 1, 0))] || null;
 
   // What's still owed this week, across every league at once - the one
   // thing this page can say that no individual league page can.
   const outstanding = leagues
-    .filter((l) => l.week && l.week.total > 0 && l.week.picked < l.week.total)
+    .filter((l) => l.sport !== "bowls" && l.week && l.week.total > 0 && l.week.picked < l.week.total)
     .map((l) => ({ leagueId: l.leagueId, name: l.name, left: l.week.total - l.week.picked }));
   const picksLeft = outstanding.reduce((n, o) => n + o.left, 0);
 
@@ -17443,11 +17450,11 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
           </div>
 
           {streakLeague && (
-            <div className={"home-card hd-tile" + (leagues.length > 1 ? " has-pager" : "")}>
+            <div className={"home-card hd-tile" + (streakLeagues.length > 1 ? " has-pager" : "")}>
               <span className="home-eyebrow">
                 {streakLeague.format === "survivor" ? "Weeks survived" : "Current streak"}
               </span>
-              <HomePager index={streakIdx} total={leagues.length} onStep={step(setStreakIdx, leagues.length)} label="league" />
+              <HomePager index={streakIdx} total={streakLeagues.length} onStep={step(setStreakIdx, streakLeagues.length)} label="league" />
               {streakLeague.format === "survivor" ? (
                 <>
                   <div className={"hd-val " + (streakLeague.survivor && !survivorIsOut(streakLeague.survivor, streakLeague.survivor.strikesAllowed) ? "win" : "dim")}>
@@ -17492,12 +17499,14 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                   const played = (l.me.correct || 0) + (l.me.incorrect || 0);
                   const isSurvivor = l.format === "survivor";
                   const isConfidence = l.format === "confidence";
+                  const isBowl = l.sport === "bowls";
+                  const sheet = l.bowlSheet;
                   return (
-                    <div className="home-card hd-row" key={l.leagueId}>
+                    <div className={"home-card hd-row" + (isBowl ? " is-bowl" : "")} key={l.leagueId}>
                       <img className="hd-row-badge" src={LEAGUE_FORMAT_ICON_URLS[l.format]} alt="" />
                       <div className="hd-row-id">
                         <p className="hd-row-name">{l.name}</p>
-                        <p className="hd-row-fmt">{HOME_FORMAT_LABELS[l.format] || l.format}</p>
+                        <p className="hd-row-fmt">{isBowl ? `Bowl Pool · ${HOME_FORMAT_LABELS[l.format] || l.format}` : (HOME_FORMAT_LABELS[l.format] || l.format)}</p>
                         <div className="hd-row-meta">
                           <span>{l.memberCount} {l.memberCount === 1 ? "member" : "members"}</span>
                           <span>{l.visibility === "public" ? "Public" : "Private"}</span>
@@ -17557,11 +17566,29 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                                 {isConfidence ? l.me.points : (played ? `${l.me.correct}-${l.me.incorrect}` : "—")}
                               </div>
                               <div className="hd-small">
-                                {isConfidence ? "this season" : (played ? `${Math.round((l.me.correct / played) * 100)}%` : "Not scored yet")}
+                                {isConfidence
+                                  ? (isBowl ? (sheet && sheet.gamesFinal ? `${sheet.gamesFinal} ${sheet.gamesFinal === 1 ? "game" : "games"} final` : "No games final yet") : "this season")
+                                  : (played ? `${Math.round((l.me.correct / played) * 100)}%` : "Not scored yet")}
                               </div>
                             </>
                           )}
                         </div>
+                        {isBowl ? (
+                          <div className="hd-col">
+                            <span className="home-eyebrow">Bowl sheet</span>
+                            <div className={"hd-big " + (sheet ? "" : "dim")}>
+                              {sheet ? `${sheet.picked} / ${sheet.total}` : "—"}
+                            </div>
+                            {sheet && sheet.total > 0 && (
+                              <div className="hd-prog">
+                                <i style={{ width: `${Math.round((sheet.picked / sheet.total) * 100)}%` }} />
+                              </div>
+                            )}
+                            {sheet && sheet.openUnpicked > 0 && (
+                              <div className="hd-small">{sheet.openUnpicked} still to pick</div>
+                            )}
+                          </div>
+                        ) : (
                         <div className="hd-col">
                           <span className="home-eyebrow">This week</span>
                           <div className={"hd-big " + (l.week ? "" : "dim")}>
@@ -17573,6 +17600,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                             </div>
                           )}
                         </div>
+                        )}
                       </div>
                       <div className="hd-row-cta">
                         <button type="button" className="home-btn"

@@ -3,6 +3,8 @@ import { getStore } from "@netlify/blobs";
 import { getAuthenticatedUser, jsonResponse, CORS_HEADERS_BASE } from "./lib/auth.mts";
 import { makeGameId } from "./lib/gameId.mts";
 import ScoringEngine from "../../js/scoringEngine.js";
+import { loadSlate, isLocked, type BowlSlate } from "./lib/bowls.mts";
+import { leagueGames, titleGame, computeStandings, emptyPicksDoc, type BowlPicksDoc } from "./lib/bowl-league.mts";
 
 // GET /.netlify/functions/home-summary?week={n}
 //   -> { ok, week, leagues: [...], totals: {...}, followRate: null }
@@ -152,6 +154,14 @@ export default async (req: Request, _context: Context) => {
       weekGames = schedule?.weeks?.find((w: any) => w.week === week)?.games || [];
     }
 
+    // Bowl pools need the bowl slate; fetched at most once per request, and
+    // only when the caller is actually in one.
+    let slatePromise: Promise<BowlSlate | null> | null = null;
+    const getSlate = (season: number) => {
+      if (!slatePromise) slatePromise = loadSlate(season).catch(() => null);
+      return slatePromise;
+    };
+
     const leagues = (
       await Promise.all(
         leagueIds.map(async (leagueId) => {
@@ -164,11 +174,18 @@ export default async (req: Request, _context: Context) => {
           // A league the user has since left, or that was deleted, is
           // skipped rather than erroring the whole dashboard - same
           // tolerance leagues-mine.mts already applies.
-          // Bowl pools have their own screen and their own standings (see
-          // bowl-league.mts); none of the weekly NFL numbers below apply.
-          if (!league || league.sport === "bowls") return null;
+          if (!league) return null;
           const members: any[] = membersDoc?.members || [];
           if (!members.some((m) => m.userId === userId)) return null;
+
+          // Bowl pools: same row shape as an NFL league so Home lists them
+          // alongside, but scored live from the bowl slate (bowl-league.mts)
+          // instead of from the weekly standings doc. No streak or survivor,
+          // and `week` stays null - a bowl sheet isn't a week's picks; its
+          // progress rides in `bowlSheet` instead.
+          if (league.sport === "bowls") {
+            return bowlLeagueRow(league, leagueId, members, userId, leagueStore, userStore, await getSlate(league.season));
+          }
 
           const standings: any = standingsRaw || { weeks: {}, season: [] };
           const season: any[] = standings.season || [];
@@ -323,11 +340,15 @@ export default async (req: Request, _context: Context) => {
     // Cross-league aggregates. Only leagues that have actually been scored
     // contribute to the average rank - an unscored league has no rank to
     // average, and counting it as last (or as first) would both be wrong.
-    const scoredLeagues = leagues.filter((l) => l.me.hasResults && l.me.rank != null);
-    const correct = leagues.reduce((n, l) => n + (l.me.correct || 0), 0);
-    const incorrect = leagues.reduce((n, l) => n + (l.me.incorrect || 0), 0);
-    const followed = leagues.reduce((n, l) => n + (l.me.followed || 0), 0);
-    const followable = leagues.reduce((n, l) => n + (l.me.followable || 0), 0);
+    // NFL leagues only: these tiles describe the NFL season (record, average
+    // rank, how often you followed the Blitz model), and folding a bowl pool's
+    // college results into them would blur all three.
+    const nflLeagues = leagues.filter((l) => l.sport !== "bowls");
+    const scoredLeagues = nflLeagues.filter((l) => l.me.hasResults && l.me.rank != null);
+    const correct = nflLeagues.reduce((n, l) => n + (l.me.correct || 0), 0);
+    const incorrect = nflLeagues.reduce((n, l) => n + (l.me.incorrect || 0), 0);
+    const followed = nflLeagues.reduce((n, l) => n + (l.me.followed || 0), 0);
+    const followable = nflLeagues.reduce((n, l) => n + (l.me.followable || 0), 0);
     const totals = {
       leagueCount: leagues.length,
       followed,
@@ -349,6 +370,101 @@ export default async (req: Request, _context: Context) => {
     return jsonResponse(500, { ok: false, error: err instanceof Error ? err.message : "Unknown error" }, CORS_HEADERS);
   }
 };
+
+/** One bowl pool as a Home dashboard row. */
+async function bowlLeagueRow(
+  league: any,
+  leagueId: string,
+  members: any[],
+  userId: string,
+  leagueStore: ReturnType<typeof getStore>,
+  userStore: ReturnType<typeof getStore>,
+  slate: BowlSlate | null
+) {
+  const base = {
+    leagueId,
+    sport: "bowls",
+    name: league.name,
+    format: league.format,
+    visibility: league.visibility,
+    memberCount: members.length,
+    isOwner: league.ownerId === userId,
+    pendingRequests: null as number | null,
+    streak: { current: 0, best: 0 },
+    survivor: null,
+    week: null,
+  };
+  if (league.ownerId === userId && league.visibility === "private") {
+    try {
+      const { blobs } = await leagueStore.list({ prefix: `request:${leagueId}:` });
+      const records = await Promise.all(blobs.map((b: any) => leagueStore.get(b.key, { type: "json" }).catch(() => null)));
+      base.pendingRequests = records.filter((r: any) => r && r.status === "pending").length;
+    } catch { /* badge left off */ }
+  }
+  if (!slate) {
+    // ESPN unreachable and nothing cached: still list the pool, just without numbers.
+    return {
+      ...base,
+      me: { rank: null, rankDelta: null, points: 0, correct: 0, incorrect: 0, followed: 0, followable: 0, hasResults: false },
+      bowlSheet: null,
+      leaderboard: [],
+    };
+  }
+
+  const games = leagueGames(slate, league);
+  const docs: Record<string, BowlPicksDoc> = {};
+  await Promise.all(members.map(async (m) => {
+    try {
+      const d: any = await leagueStore.get(`bowlpicks:${leagueId}:${m.userId}`, { type: "json" });
+      docs[m.userId] = d && d.picks ? d : emptyPicksDoc();
+    } catch { docs[m.userId] = emptyPicksDoc(); }
+  }));
+  // Live profile names, like the NFL rows (members-doc snapshot as fallback).
+  const named = await Promise.all(members.map(async (m) => {
+    let displayName = m.displayName || "Player";
+    let avatar = m.avatar ?? null;
+    try {
+      const p: any = await userStore.get(`users:${m.userId}`, { type: "json" });
+      if (p && typeof p.displayName === "string" && p.displayName.trim()) displayName = p.displayName;
+      if (p && (typeof p.avatar === "string" || p.avatar === null)) avatar = p.avatar;
+    } catch { /* snapshot stands */ }
+    return { userId: m.userId, displayName, avatar };
+  }));
+
+  const now = Date.now();
+  const rows = computeStandings(league, games, titleGame(slate), named, docs, userId, now);
+  const anyFinal = games.some((g) => g.state === "post");
+  const mine = rows.find((r) => r.userId === userId) || null;
+  const myPicks = (docs[userId] || emptyPicksDoc()).picks;
+  const open = games.filter((g) => !isLocked(g, now));
+
+  return {
+    ...base,
+    me: mine && anyFinal
+      ? { rank: mine.rank, rankDelta: null, points: mine.points, correct: mine.correct, incorrect: mine.incorrect, followed: 0, followable: 0, hasResults: true }
+      : { rank: null, rankDelta: null, points: mine ? mine.points : 0, correct: 0, incorrect: 0, followed: 0, followable: 0, hasResults: false },
+    bowlSheet: {
+      picked: games.filter((g) => myPicks[g.id] && myPicks[g.id].teamId).length,
+      total: games.length,
+      // Open games with both teams set and no pick yet - what's still owed now.
+      openUnpicked: open.filter((g) => g.home && g.away && !(myPicks[g.id] && myPicks[g.id].teamId)).length,
+      gamesFinal: games.filter((g) => g.state === "post").length,
+    },
+    leaderboard: anyFinal
+      ? rows.slice(0, LEADERBOARD_SIZE).map((r) => ({
+          userId: r.userId,
+          displayName: r.displayName,
+          avatar: r.avatar,
+          rank: r.rank,
+          points: r.points,
+          correct: r.correct,
+          incorrect: r.incorrect,
+          isMe: r.userId === userId,
+          alive: null, eliminatedWeek: null, strikes: null, strikesAllowed: null,
+        }))
+      : [],
+  };
+}
 
 export const config: Config = {
   path: "/.netlify/functions/home-summary",

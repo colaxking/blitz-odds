@@ -5,3 +5,6 @@ node_modules
 
 # build-college-pages.mjs raw ESPN cache (only for --offline rebuilds)
 data/cfb-cache-*.json
+
+# social-card.mjs installs @resvg/resvg-js here on first use
+.social-deps/

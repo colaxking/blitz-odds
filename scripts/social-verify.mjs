@@ -22,6 +22,19 @@
  *      its final 30 days.
  *   5. Writes social/verify-log.json (the workflow commits it).
  *
+ * Images (Nov 2026): every templated post that names games gets a matchup
+ * card (scripts/social-card.mjs) with both team badges, the line and total,
+ * for exactly the games its text names. New or changed cards are committed
+ * to social/img/ in one push and attached in Buffer by their
+ * raw.githubusercontent.com URL pinned to that commit (Buffer re-fetches at
+ * send time, so the URL must never move - a Netlify URL would need a manual
+ * publish first). A card that can't be rendered, pushed or accepted by
+ * Buffer never blocks the post: it goes out text only and Dan is emailed.
+ *
+ * College (Nov 2026): weekly slots with "league": "cfb" render against
+ * ESPN's FBS scoreboard for their own Eastern day rather than the NFL odds,
+ * and talk about the Top 25 slate. See queue.json's weekly._readme.
+ *
  * Notifications go through Resend when RESEND_API_KEY is present. When it
  * isn't, any run that has something to report exits non-zero so GitHub's own
  * "workflow failed" email carries the alert instead.
@@ -37,8 +50,11 @@
  *   DRY_RUN=1           - render + evaluate, print the plan, touch nothing
  */
 
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir, rm } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
+import { renderCardPng, cardAltText, CARD_VERSION } from "./social-card.mjs";
 
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const SITE_BASE = process.env.SITE_BASE || "https://blitz-odds.com";
@@ -51,6 +67,12 @@ const NOW = process.env.NOW ? new Date(process.env.NOW) : new Date();
 const QUEUE_PATH = path.join(REPO_ROOT, "social", "queue.json");
 const LOG_PATH = path.join(REPO_ROOT, "social", "verify-log.json");
 const SCHEDULE_PATH = path.join(REPO_ROOT, "data", "schedule-full-2026.json");
+
+const IMG_DIR_REL = "social/img";
+const GITHUB_REPO = process.env.GITHUB_REPOSITORY || "colaxking/blitz-odds";
+const ESPN_CFB = "https://site.api.espn.com/apis/site/v2/sports/football/college-football";
+const ESPN_HEADERS = { "User-Agent": "curl/8.4.0", Accept: "application/json" };
+const MAX_CARD_GAMES = 6;
 
 const TOKEN_WARN_DAYS = 30;
 const TOKEN_WARN_EVERY_DAYS = 7;
@@ -109,6 +131,9 @@ function buildWeekContext(week, odds, schedule) {
       overUnder: o && typeof o.overUnder === "number" ? o.overUnder : null,
       asOf: o?.asOf || null,
       hasOdds: !!o,
+      // For the image card.
+      awayT: { league: "nfl", id: g.away, abbr: g.away, name: TEAM_NAMES[g.away] || g.away },
+      homeT: { league: "nfl", id: g.home, abbr: g.home, name: TEAM_NAMES[g.home] || g.home },
     };
   });
   const byKey = Object.fromEntries(games.map((g) => [g.key, g]));
@@ -118,7 +143,149 @@ function buildWeekContext(week, odds, schedule) {
   const lastOn = (day) => chrono.filter((g) => g.day === day).pop();
   const aliases = { "@OPENER": chrono[0], "@TNF": lastOn("Thu"), "@SNF": lastOn("Sun"), "@MNF": lastOn("Mon") };
   for (const [k, g] of Object.entries(aliases)) if (g) byKey[k] = g;
-  return { week, games, byKey };
+  return { league: "nfl", week, games, byKey };
+}
+
+// ---------------------------------------------------------------------------
+// College context (ESPN college scoreboard, FBS only)
+// ---------------------------------------------------------------------------
+
+// "YYYYMMDD" for the Eastern calendar day of an instant, plus N days.
+function nyYmd(ms, plusDays = 0) {
+  const off = nyOffsetMinutes(ms);
+  const d = new Date(ms + off * 60000 + plusDays * 86400e3);
+  return d.toISOString().slice(0, 10).replace(/-/g, "");
+}
+
+function nyClock(ms) {
+  return new Date(ms).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }) + " ET";
+}
+
+function nyDow3(ms) {
+  return new Date(ms).toLocaleDateString("en-US", { weekday: "short", timeZone: "America/New_York" });
+}
+
+async function fetchCfbScoreboard(dates) {
+  const url = `${ESPN_CFB}/scoreboard?groups=80&limit=400&dates=${dates}`;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await fetch(url, { headers: ESPN_HEADERS });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      if (attempt >= 3) throw new Error(`ESPN college scoreboard (${dates}): ${err.message}`);
+      await new Promise((r) => setTimeout(r, 2000 * attempt));
+    }
+  }
+}
+
+const cfbRank = (c) => {
+  const r = c?.curatedRank?.current;
+  return Number.isInteger(r) && r >= 1 && r <= 25 ? r : null;
+};
+
+function cfbTeam(c) {
+  const t = c.team || {};
+  return {
+    league: "cfb",
+    id: String(t.id),
+    abbr: t.abbreviation || "",
+    name: t.shortDisplayName || t.location || t.displayName || t.abbreviation,
+    rank: cfbRank(c),
+    record: c.records?.[0]?.summary || "",
+    color: t.color,
+    altColor: t.alternateColor,
+  };
+}
+
+const cfbLabel = (t) => `${t.rank ? `#${t.rank} ` : ""}${t.name}`;
+
+// One normalised game. away/home/favorite are display strings so the shared
+// NFL formatters (fmtLine, fmtOdds, {{matchup}}) read naturally for college.
+function cfbGame(e) {
+  const comp = e.competitions?.[0] || {};
+  const cs = comp.competitors || [];
+  const ac = cs.find((c) => c.homeAway === "away") || cs[0];
+  const hc = cs.find((c) => c.homeAway === "home") || cs[1];
+  const awayT = cfbTeam(ac), homeT = cfbTeam(hc);
+  const o = (comp.odds || [])[0] || null;
+  let favorite = null, absSpread = null;
+  if (o && o.details) {
+    if (/^even|pk|pick/i.test(o.details)) { absSpread = 0; }
+    else {
+      const n = Math.abs(Number(o.spread ?? /-?\d+(\.\d+)?$/.exec(o.details)?.[0]));
+      if (Number.isFinite(n)) absSpread = n;
+      const favT = o.awayTeamOdds?.favorite ? awayT : o.homeTeamOdds?.favorite ? homeT
+        : [awayT, homeT].find((t) => o.details.startsWith(t.abbr + " ")) || null;
+      favorite = favT ? favT.name : null;
+      if (!favorite) absSpread = null;
+    }
+  }
+  const hasOdds = absSpread !== null;
+  const kickoff = new Date(e.date).getTime();
+  const ranks = [awayT.rank, homeT.rank].filter(Boolean);
+  return {
+    key: String(e.id),
+    league: "cfb",
+    away: cfbLabel(awayT),
+    home: cfbLabel(homeT),
+    awayT, homeT,
+    day: nyDow3(kickoff),
+    date: "",
+    kickoff,
+    started: (e.status?.type?.state || "pre") !== "pre" || kickoff <= NOW.getTime(),
+    time: nyClock(kickoff),
+    network: comp.broadcasts?.[0]?.names?.[0] || "",
+    favorite,
+    spread: hasOdds ? -absSpread : null,
+    absSpread,
+    overUnder: o && typeof o.overUnder === "number" ? o.overUnder : null,
+    asOf: hasOdds ? NOW.toISOString() : null, // ESPN serves the current line; there is no older copy
+    hasOdds,
+    rankedCount: ranks.length,
+    rankSum: ranks.length ? ranks.reduce((a, b) => a + b, 0) + (2 - ranks.length) * 30 : 999,
+    bestRank: ranks.length ? Math.min(...ranks) : 99,
+  };
+}
+
+// Games in [dueAt day, dueAt day + windowDays]. ctx.games is the Top 25
+// slate (either team ranked) - what the posts talk about - and ctx.allGames
+// is every FBS game in the window.
+async function buildCfbContext(post) {
+  const dueMs = new Date(post.dueAt).getTime();
+  const span = Number(post.cfbWindowDays ?? 0);
+  const dates = span > 0 ? `${nyYmd(dueMs)}-${nyYmd(dueMs, span)}` : nyYmd(dueMs);
+  const doc = await fetchCfbScoreboard(dates);
+  const events = doc.events || [];
+  const allGames = events.map(cfbGame);
+  const games = allGames.filter((g) => g.rankedCount > 0).sort((a, b) => a.kickoff - b.kickoff || a.rankSum - b.rankSum);
+  const byKey = Object.fromEntries(allGames.map((g) => [g.key, g]));
+  const rankedVsRanked = games.filter((g) => g.rankedCount === 2).sort((a, b) => a.rankSum - b.rankSum);
+  const top = rankedVsRanked[0] || [...games].sort((a, b) => a.bestRank - b.bestRank)[0];
+  if (top) byKey["@TOP"] = top;
+  const postseason = events.some((e) => Number(e.season?.type) === 3);
+  return {
+    league: "cfb",
+    week: Number(doc.week?.number) || null,
+    postseason,
+    dates,
+    games,
+    allGames,
+    rankedVsRanked,
+    byKey,
+  };
+}
+
+// Ranked teams in danger: a ranked underdog, or a ranked favourite laying
+// `maxSpread` or less, against an unranked or lower-ranked opponent.
+function upsetWatch(ctx, maxSpread = 3.5) {
+  return withOdds(ctx).filter((g) => {
+    const fav = g.favorite === g.awayT.name ? g.awayT : g.favorite === g.homeT.name ? g.homeT : null;
+    const dog = fav === g.awayT ? g.homeT : fav === g.homeT ? g.awayT : null;
+    if (!fav || !dog) return false;
+    if (dog.rank && (!fav.rank || dog.rank < fav.rank)) return true;
+    return !!fav.rank && (!dog.rank || fav.rank < dog.rank) && g.absSpread <= maxSpread;
+  }).sort((a, b) => a.bestRank - b.bestRank);
 }
 
 // ---------------------------------------------------------------------------
@@ -195,6 +362,7 @@ function expandWeekly(queue, schedule, logDoc) {
     if (!base) continue;
     for (const slot of cfg.slots) {
       if (taken.has(`${week}:${slot.slot}`)) continue;
+      if (week < (slot.startWeek ?? 1) || week > (slot.endWeek ?? 99)) continue;
       if (slot.whenDay && !w.games.some((g) => (g.date || "").startsWith(slot.whenDay))) continue;
       const [hh, mm] = slot.time.split(":").map(Number);
       const day = new Date(Date.UTC(base.y, base.m - 1, base.d + slot.dayOffset));
@@ -214,6 +382,11 @@ function expandWeekly(queue, schedule, logDoc) {
         requires: v.requires ?? slot.requires ?? [],
         text: v.text,
         fallback: v.fallback ?? slot.fallback,
+        league: slot.league,
+        optional: slot.optional,
+        cfbWindowDays: slot.cfbWindowDays,
+        image: v.image ?? slot.image,
+        imageTitle: v.imageTitle ?? slot.imageTitle,
       });
     }
   }
@@ -296,12 +469,18 @@ function dowOf(dueAt) {
 
 function renderTemplate(text, ctx, post) {
   const missing = [];
+  // Every game the text names, in the order it names them - these become
+  // the rows of the attached image, so picture and words always agree.
+  const used = [];
+  const use = (g) => { if (g && !used.includes(g)) used.push(g); return g; };
+  const useAll = (gs) => { gs.forEach(use); return gs; };
   const need = (key) => {
     const g = ctx.byKey[key];
     if (!g) throw new Error(`Unknown game ${key} in week ${ctx.week}`);
     if (!g.hasOdds) missing.push(key);
-    return g;
+    return use(g);
   };
+  const peek = (key) => use(ctx.byKey[key]);
 
   const out = text.replace(/\{\{([^}]+)\}\}/g, (_, raw) => {
     const [name, ...args] = raw.trim().split(":").map((s) => s.trim());
@@ -309,18 +488,18 @@ function renderTemplate(text, ctx, post) {
       case "fav": return need(args[0]).favorite ?? "?";
       case "spread": return fmtSpread(need(args[0]).spread);
       case "ou": { const g = need(args[0]); return g.overUnder === null ? "?" : String(g.overUnder); }
-      case "away": return ctx.byKey[args[0]]?.away ?? "?";
-      case "home": return ctx.byKey[args[0]]?.home ?? "?";
-      case "time": return (ctx.byKey[args[0]]?.time ?? "?").replace(/\s*ET$/, " ET");
-      case "network": return ctx.byKey[args[0]]?.network ?? "?";
+      case "away": return peek(args[0])?.away ?? "?";
+      case "home": return peek(args[0])?.home ?? "?";
+      case "time": return (peek(args[0])?.time ?? "?").replace(/\s*ET$/, " ET");
+      case "network": return peek(args[0])?.network ?? "?";
       case "line": return fmtLine(need(args[0]));
       case "biggest": {
         const n = Number(args[0] || 4);
-        return byBiggest(onDay(withOdds(ctx), args[1])).slice(0, n).map(fmtLine).join("\n");
+        return useAll(byBiggest(onDay(withOdds(ctx), args[1])).slice(0, n)).map(fmtLine).join("\n");
       }
       case "closest": {
         const n = Number(args[0] || 3);
-        return byClosest(onDay(withOdds(ctx), args[1])).slice(0, n).map(fmtLine).join("\n");
+        return useAll(byClosest(onDay(withOdds(ctx), args[1])).slice(0, n)).map(fmtLine).join("\n");
       }
       case "countGte": {
         const v = Number(args[0]);
@@ -328,14 +507,34 @@ function renderTemplate(text, ctx, post) {
       }
       case "topFavs": {
         const n = Number(args[0] || 2);
-        return joinList(byBiggest(withOdds(ctx)).slice(0, n).map((g) => g.favorite), args[1] || "or");
+        return joinList(useAll(byBiggest(withOdds(ctx)).slice(0, n)).map((g) => g.favorite), args[1] || "or");
       }
       case "maxTotal": {
         const games = onDay(withOdds(ctx), args[0]).filter((g) => g.overUnder !== null);
         if (!games.length) return "?";
-        const top = [...games].sort((a, b) => b.overUnder - a.overUnder)[0];
+        const top = use([...games].sort((a, b) => b.overUnder - a.overUnder)[0]);
         return `${top.away} at ${top.home}, ${top.overUnder}`;
       }
+      // College-only placeholders (league "cfb" posts).
+      case "ranked": {
+        if (ctx.league !== "cfb") throw new Error(`{{ranked}} is college-only (post ${post.id})`);
+        const n = Number(args[0] || 3);
+        const gs = useAll(ctx.rankedVsRanked.filter((g) => !g.started).slice(0, n));
+        gs.filter((g) => !g.hasOdds).forEach((g) => missing.push(g.key));
+        return gs.map(fmtLine).join("\n");
+      }
+      case "rankedCount": {
+        if (ctx.league !== "cfb") throw new Error(`{{rankedCount}} is college-only (post ${post.id})`);
+        return numWord(ctx.rankedVsRanked.filter((g) => !g.started).length);
+      }
+      case "upsets": {
+        if (ctx.league !== "cfb") throw new Error(`{{upsets}} is college-only (post ${post.id})`);
+        const n = Number(args[0] || 3);
+        return useAll(upsetWatch(ctx, Number(args[1] || 3.5)).slice(0, n)).map(fmtLine).join("\n");
+      }
+      case "cfbWeek":
+        if (ctx.league !== "cfb") throw new Error(`{{cfbWeek}} is college-only (post ${post.id})`);
+        return ctx.postseason ? "Bowl season" : `Week ${ctx.week}`;
       case "slot": {
         // {{slot:4:05 PM ET}} -> "JAX-DEN and LV-LAC" (args re-joined because the time contains ':')
         const t = args.join(":");
@@ -349,7 +548,7 @@ function renderTemplate(text, ctx, post) {
       case "week": return String(ctx.week);
       case "weekPlus": return String(ctx.week + Number(args[0] || 1));
       case "matchup": {
-        const g = ctx.byKey[args[0]];
+        const g = peek(args[0]);
         if (!g) throw new Error(`Unknown game ${args[0]} in week ${ctx.week}`);
         return `${TEAM_NAMES[g.away] || g.away} at ${TEAM_NAMES[g.home] || g.home}`;
       }
@@ -367,7 +566,62 @@ function renderTemplate(text, ctx, post) {
       default: throw new Error(`Unknown placeholder {{${raw}}} in post ${post.id}`);
     }
   });
-  return { text: out, missing };
+  return { text: out, missing, games: used };
+}
+
+// ---------------------------------------------------------------------------
+// Image card
+// ---------------------------------------------------------------------------
+
+// Card spec for a rendered post, or null when it names no games (tips,
+// feature promos) or opts out with "image": false.
+function imageSpecFor(post, ctx, rendered, title) {
+  if (post.image === false || !ctx || !rendered.games?.length) return null;
+  const games = rendered.games.slice(0, MAX_CARD_GAMES).map((g) => ({
+    away: g.awayT,
+    home: g.homeT,
+    hasLine: g.hasOdds,
+    lineText: !g.hasOdds ? "Line not posted" : g.absSpread === 0 ? "Pick'em" : `${g.league === "cfb" ? abbrOfFav(g) : g.favorite} ${fmtSpread(g.spread)}`,
+    ouText: g.overUnder !== null && g.hasOdds ? `O/U ${g.overUnder}` : "",
+    meta: [g.day, g.time && g.time.replace(/\s*ET$/, " ET"), g.network].filter(Boolean).join(" · "),
+  }));
+  const dueMs = new Date(post.dueAt).getTime();
+  const asOfDay = new Date(dueMs).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/New_York" });
+  const cfb = ctx.league === "cfb";
+  return {
+    kicker: cfb ? `COLLEGE FOOTBALL · ${ctx.postseason ? "BOWL SEASON" : `WEEK ${ctx.week}`}` : `NFL · WEEK ${ctx.week}`,
+    title: title || (cfb ? "Top 25 slate" : `Week ${ctx.week} lines`),
+    games,
+    footer: cfb ? `Lines via ESPN (DraftKings) as of ${asOfDay} · Top 25 ranks via ESPN` : `Consensus lines as of ${asOfDay}`,
+  };
+}
+
+function abbrOfFav(g) {
+  return g.favorite === g.awayT.name ? g.awayT.abbr : g.favorite === g.homeT.name ? g.homeT.abbr : g.favorite;
+}
+
+const hashOf = (obj) => createHash("sha1").update(JSON.stringify(obj)).digest("hex").slice(0, 10);
+
+function git(...args) {
+  return execFileSync("git", args, { cwd: REPO_ROOT, encoding: "utf8" }).trim();
+}
+
+// raw.githubusercontent.com pinned to a commit SHA: public, permanent, and
+// live the moment the push lands - no Netlify deploy/publish in the way.
+// Buffer fetches the file again when the post goes out, so it must not move.
+function rawUrl(sha, rel) {
+  return `https://raw.githubusercontent.com/${GITHUB_REPO}/${sha}/${rel}`;
+}
+
+async function waitForUrl(url, tries = 6) {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await fetch(url, { method: "HEAD" });
+      if (res.ok) return true;
+    } catch { /* retry */ }
+    await new Promise((r) => setTimeout(r, 3000));
+  }
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -428,6 +682,24 @@ async function evaluate(requires, ctx, rendered) {
       case "dayHasGame":
         if (!onDay(ctx.games, r.day).length) fail(`dayHasGame: no ${r.day} game in week ${ctx.week}`);
         break;
+      // College slate size checks. Pair with "optional": true on the slot so a
+      // Saturday with no real slate (Army-Navy week, gaps in bowl season)
+      // just skips instead of emailing.
+      case "minGames": {
+        const n = withOdds(ctx).length;
+        if (n < Number(r.value)) fail(`minGames: ${n} upcoming game(s) with lines, wanted ${r.value}`);
+        break;
+      }
+      case "minRanked": {
+        const n = (ctx.rankedVsRanked || []).filter((x) => !x.started && x.hasOdds).length;
+        if (n < Number(r.value)) fail(`minRanked: ${n} ranked-vs-ranked game(s) with lines, wanted ${r.value}`);
+        break;
+      }
+      case "minUpsets": {
+        const n = ctx.league === "cfb" ? upsetWatch(ctx, Number(r.maxSpread ?? 3.5)).length : 0;
+        if (n < Number(r.value)) fail(`minUpsets: ${n} upset-watch game(s), wanted ${r.value}`);
+        break;
+      }
       case "siteContains": {
         try {
           const res = await fetch(`${SITE_BASE}${r.path || "/"}`, { headers: { "Cache-Control": "no-cache" } });
@@ -474,7 +746,12 @@ async function buffer(query, variables) {
   return body.data;
 }
 
-async function bufferCreate(channelId, text, dueAtIso) {
+// image = { url, altText } or null.
+const assetsFor = (image) => (image ? [{ image: { url: image.url, metadata: { altText: image.altText } } }] : []);
+
+async function bufferCreate(channelId, text, dueAtIso, image = null) {
+  const input = { channelId, text, dueAt: dueAtIso, mode: "customScheduled", schedulingType: "automatic", source: "blitz-odds social-verify" };
+  if (image) input.assets = assetsFor(image);
   const data = await buffer(
     `mutation Create($input: CreatePostInput!) {
        createPost(input: $input) {
@@ -482,14 +759,17 @@ async function bufferCreate(channelId, text, dueAtIso) {
          ... on MutationError { message }
        }
      }`,
-    { input: { channelId, text, dueAt: dueAtIso, mode: "customScheduled", schedulingType: "automatic", source: "blitz-odds social-verify" } },
+    { input },
   );
   const r = data.createPost;
   if (!r?.post) throw new Error(`createPost failed: ${r?.message || "unknown"}`);
   return r.post;
 }
 
-async function bufferEdit(id, text) {
+// image: { url, altText } to set, null to clear, undefined to leave as is.
+async function bufferEdit(id, text, image) {
+  const input = { id, text };
+  if (image !== undefined) input.assets = assetsFor(image);
   const data = await buffer(
     `mutation Edit($input: EditPostInput!) {
        editPost(input: $input) {
@@ -497,7 +777,7 @@ async function bufferEdit(id, text) {
          ... on MutationError { message }
        }
      }`,
-    { input: { id, text } },
+    { input },
   );
   const r = data.editPost;
   if (!r?.post) throw new Error(`editPost failed: ${r?.message || "unknown"}`);
@@ -574,6 +854,7 @@ async function main() {
   };
 
   const horizon = new Date(NOW.getTime() + LOOKAHEAD_HOURS * 3600e3);
+  const pending = []; // posts to create or edit in Buffer once images are up
 
   const allPosts = [...queue.posts, ...expandWeekly(queue, schedule, logDoc)]
     .sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
@@ -596,6 +877,7 @@ async function main() {
     const dueAt = new Date(post.dueAt);
 
     if (state.status === "sent" || state.status === "expired") continue;
+    if (state.status === "skipped" && new Date(post.dueAt) <= NOW) { logDoc.posts[post.id] = { ...state, status: "expired" }; continue; }
 
     // Past due: figure out whether it went out, then stop tracking it.
     if (dueAt <= NOW) {
@@ -618,29 +900,48 @@ async function main() {
 
     if (dueAt > horizon) continue; // not yet in the window
 
-    const needsData = post.week !== undefined && (/\{\{/.test(post.text) || (post.requires || []).length || post.fallback);
+    const isCfb = post.league === "cfb";
+    const needsData = !isCfb && post.week !== undefined && (/\{\{/.test(post.text) || (post.requires || []).length || post.fallback);
     if (needsData && !odds) {
       act({ post: post.id, action: "skipped", detail: "no live odds" });
       continue;
     }
 
+    // College posts read ESPN's college scoreboard for their own day(s).
+    let ctx = null;
+    let ctxError = null;
+    if (isCfb) {
+      try { ctx = await buildCfbContext(post); } catch (err) { ctxError = err; }
+      if (ctxError) {
+        act({ post: post.id, action: "skipped", detail: ctxError.message });
+        alerts.push(`SKIPPED college post "${post.id}" (due ${post.dueAt}) - ${ctxError.message}`);
+        continue;
+      }
+    }
+    const getCtx = () => (isCfb ? ctx : ctxFor(post.week));
+    const templated = isCfb || post.week !== undefined;
+
     // Decide which copy to use.
     let chosen = null;
     let reasons = [];
-    const candidates = [{ label: "primary", text: post.text, requires: post.requires || [] }];
-    if (post.fallback) candidates.push({ label: "fallback", text: post.fallback.text, requires: post.fallback.requires || [] });
+    const candidates = [{ label: "primary", text: post.text, requires: post.requires || [], imageTitle: post.imageTitle }];
+    if (post.fallback) candidates.push({ label: "fallback", text: post.fallback.text, requires: post.fallback.requires || [], imageTitle: post.fallback.imageTitle ?? post.imageTitle });
 
     for (const c of candidates) {
-      let rendered;
+      let rendered, title = null;
       try {
-        rendered = post.week !== undefined ? renderTemplate(c.text, ctxFor(post.week), post) : { text: c.text, missing: [] };
+        rendered = templated ? renderTemplate(c.text, getCtx(), post) : { text: c.text, missing: [], games: [] };
+        if (templated && c.imageTitle) title = renderTemplate(c.imageTitle, getCtx(), post).text;
       } catch (err) {
         reasons.push(`${c.label}: ${err.message}`);
         continue;
       }
-      const failures = post.week !== undefined ? await evaluate(c.requires, ctxFor(post.week), rendered) : [];
-      if (post.week === undefined && tweetLength(rendered.text) > TWEET_MAX) failures.push(`text is ${tweetLength(rendered.text)} chars (max ${TWEET_MAX})`);
-      if (!failures.length) { chosen = { ...c, text: rendered.text }; break; }
+      const failures = templated ? await evaluate(c.requires, getCtx(), rendered) : [];
+      if (!templated && tweetLength(rendered.text) > TWEET_MAX) failures.push(`text is ${tweetLength(rendered.text)} chars (max ${TWEET_MAX})`);
+      if (!failures.length) {
+        chosen = { ...c, text: rendered.text, image: templated && queue.images !== false ? imageSpecFor(post, getCtx(), rendered, title) : null };
+        break;
+      }
       reasons.push(`${c.label}: ${failures.join("; ")}`);
     }
 
@@ -652,7 +953,11 @@ async function main() {
         if (!DRY_RUN) await bufferDelete(state.bufferPostId);
         act({ post: post.id, action: "deleted", detail: reasons.join(" | ") });
         alerts.push(`PULLED "${post.id}" (was scheduled for ${post.dueAt}):\n  ${reasons.join("\n  ")}\n  Last text:\n${indent(state.text)}`);
-        logDoc.posts[post.id] = { ...state, status: "blocked", bufferPostId: null, text: null, reasons, lastCheckedAt: run.at };
+        logDoc.posts[post.id] = { ...state, status: "blocked", bufferPostId: null, text: null, imageHash: null, imageUrl: null, reasons, lastCheckedAt: run.at };
+      } else if (post.optional) {
+        // e.g. a college Saturday with no real Top 25 slate - not worth an email.
+        act({ post: post.id, action: "skipped", detail: `optional: ${reasons.join(" | ")}` });
+        logDoc.posts[post.id] = { ...state, status: "skipped", reasons, lastCheckedAt: run.at };
       } else {
         act({ post: post.id, action: "blocked", detail: reasons.join(" | ") });
         alerts.push(`BLOCKED "${post.id}" (due ${post.dueAt}) - nothing scheduled:\n  ${reasons.join("\n  ")}`);
@@ -661,20 +966,104 @@ async function main() {
       continue;
     }
 
-    if (!state.bufferPostId) {
-      let bufferPostId = DRY_RUN ? "dry-run" : (await bufferCreate(queue.channelId, chosen.text, dueIso)).id;
-      act({ post: post.id, action: "scheduled", detail: `${chosen.label} for ${post.dueAt}` });
-      logDoc.posts[post.id] = { status: "scheduled", variant: chosen.label, bufferPostId, text: chosen.text, dueAt: dueIso, scheduledAt: run.at, lastCheckedAt: run.at, reasons: reasons.length ? reasons : undefined };
-    } else if (state.text !== chosen.text) {
-      if (!DRY_RUN) await bufferEdit(state.bufferPostId, chosen.text);
-      act({ post: post.id, action: "updated", detail: `${chosen.label}; text changed` });
-      logDoc.posts[post.id] = { ...state, status: "scheduled", variant: chosen.label, text: chosen.text, updatedAt: run.at, lastCheckedAt: run.at };
+    const imageHash = chosen.image ? hashOf({ v: CARD_VERSION, ...chosen.image }) : null;
+    const textChanged = state.text !== chosen.text;
+    const imageChanged = (state.imageHash ?? null) !== imageHash;
+    if (!state.bufferPostId || textChanged || imageChanged) {
+      pending.push({ post, state, chosen, reasons, dueIso, imageHash, textChanged, imageChanged });
     } else {
       act({ post: post.id, action: "verified", detail: `${chosen.label} unchanged` });
       logDoc.posts[post.id] = { ...state, lastCheckedAt: run.at };
     }
-    if (chosen.label === "fallback") {
+    if (chosen.label === "fallback" && !post.optional) {
       alerts.push(`FALLBACK used for "${post.id}" (due ${post.dueAt}) - primary failed:\n  ${reasons.join("\n  ")}\n  Scheduled text:\n${indent(chosen.text)}`);
+    }
+  }
+
+  // Images: render every new/changed card, push them in one commit, and hand
+  // Buffer the raw.githubusercontent.com URL pinned to that commit.
+  const images = new Map(); // post id -> { url, altText } | null
+  const toPush = [];
+  for (const p of pending) {
+    if (!p.chosen.image) { images.set(p.post.id, null); continue; }
+    const altText = cardAltText(p.chosen.image);
+    if (!p.imageChanged && p.state.imageUrl) { images.set(p.post.id, { url: p.state.imageUrl, altText }); continue; }
+    const rel = `${IMG_DIR_REL}/${p.post.id}-${p.imageHash}.png`;
+    try {
+      await mkdir(path.join(REPO_ROOT, IMG_DIR_REL), { recursive: true });
+      await writeFile(path.join(REPO_ROOT, rel), await renderCardPng(p.chosen.image));
+      toPush.push({ p, rel, altText });
+      act({ post: p.post.id, action: "image-rendered", detail: rel });
+    } catch (err) {
+      images.set(p.post.id, null);
+      alerts.push(`IMAGE failed for "${p.post.id}" - posting text only: ${err.message}`);
+    }
+  }
+  if (toPush.length) {
+    // Drop cards of posts that have gone out or been replaced. Their
+    // SHA-pinned URLs keep working from history, so this only keeps the
+    // working tree small.
+    const keep = new Set(toPush.map((t) => t.rel));
+    for (const st of Object.values(logDoc.posts)) {
+      if (st.imageUrl && !["sent", "expired", "sent?"].includes(st.status)) keep.add(st.imageUrl.replace(/^.*?\/(social\/img\/[^/]+)$/, "$1"));
+    }
+    const stale = (await readdir(path.join(REPO_ROOT, IMG_DIR_REL)).catch(() => []))
+      .map((f) => `${IMG_DIR_REL}/${f}`).filter((rel) => rel.endsWith(".png") && !keep.has(rel));
+    if (!DRY_RUN) for (const rel of stale) await rm(path.join(REPO_ROOT, rel), { force: true });
+    if (stale.length) act({ action: "image-prune", detail: `${stale.length} old card(s)` });
+    toPush.stalePaths = stale;
+
+    if (DRY_RUN) {
+      for (const t of toPush) images.set(t.p.post.id, { url: `file://${path.join(REPO_ROOT, t.rel)}`, altText: t.altText });
+    } else {
+      try {
+        execFileSync("bash", [path.join(REPO_ROOT, "scripts", "commit-and-push.sh"), `Social verify: ${toPush.length} post image(s)`, ...toPush.map((t) => t.rel), ...toPush.stalePaths], { cwd: REPO_ROOT, stdio: "inherit" });
+        const sha = git("rev-parse", "HEAD");
+        for (const t of toPush) images.set(t.p.post.id, { url: rawUrl(sha, t.rel), altText: t.altText });
+        if (!(await waitForUrl(images.get(toPush[0].p.post.id).url))) throw new Error("pushed images not reachable on raw.githubusercontent.com yet");
+      } catch (err) {
+        for (const t of toPush) images.set(t.p.post.id, null);
+        alerts.push(`IMAGES could not be published (${err.message}) - ${toPush.length} post(s) scheduled as text only.`);
+      }
+    }
+  }
+
+  for (const p of pending) {
+    const { post, state, chosen, reasons, dueIso, imageHash } = p;
+    let image = images.get(post.id) ?? null;
+    try {
+      if (!state.bufferPostId) {
+        let bufferPostId = "dry-run";
+        if (!DRY_RUN) {
+          try {
+            bufferPostId = (await bufferCreate(queue.channelId, chosen.text, dueIso, image)).id;
+          } catch (err) {
+            if (!image) throw err;
+            alerts.push(`IMAGE rejected by Buffer for "${post.id}" - scheduled text only: ${err.message}`);
+            image = null;
+            bufferPostId = (await bufferCreate(queue.channelId, chosen.text, dueIso, null)).id;
+          }
+        }
+        act({ post: post.id, action: "scheduled", detail: `${chosen.label}${image ? " + image" : ""} for ${post.dueAt}` });
+        logDoc.posts[post.id] = { status: "scheduled", variant: chosen.label, bufferPostId, text: chosen.text, imageHash: image ? imageHash : null, imageUrl: image?.url ?? null, dueAt: dueIso, scheduledAt: run.at, lastCheckedAt: run.at, reasons: reasons.length ? reasons : undefined };
+      } else {
+        if (!DRY_RUN) {
+          try {
+            await bufferEdit(state.bufferPostId, chosen.text, image);
+          } catch (err) {
+            if (!image) throw err;
+            alerts.push(`IMAGE rejected by Buffer for "${post.id}" - kept text only: ${err.message}`);
+            image = null;
+            await bufferEdit(state.bufferPostId, chosen.text, null);
+          }
+        }
+        const what = [p.textChanged && "text", p.imageChanged && "image"].filter(Boolean).join(" + ") || "refresh";
+        act({ post: post.id, action: "updated", detail: `${chosen.label}; ${what} changed${image ? " + image" : ""}` });
+        logDoc.posts[post.id] = { ...state, status: "scheduled", variant: chosen.label, text: chosen.text, imageHash: image ? imageHash : null, imageUrl: image?.url ?? null, updatedAt: run.at, lastCheckedAt: run.at };
+      }
+    } catch (err) {
+      act({ post: post.id, action: "error", detail: err.message });
+      alerts.push(`ERROR scheduling "${post.id}" (due ${post.dueAt}): ${err.message}`);
     }
   }
 

@@ -22927,6 +22927,11 @@ const CFB_BADGE_IDS = new Set([
   "333", "8", "2", "57", "61", "96", "99", "344", "142", "201", "145", "2579", "2633", "245", "251", "238",
   // ACC (Stanford, 24, still on the colour crest - its source image was cropped)
   "103", "25", "228", "150", "52", "59", "97", "2390", "152", "153", "221", "2567", "183", "258", "259", "154",
+  // American
+  "349", "2429", "151", "2226", "235", "2426", "249", "242", "58", "218", "2655", "5", "2636",
+  // Conference USA - Delaware and Missouri State only so far; the other ten
+  // source images came through as white outlines with the colour stripped.
+  "48", "2623",
 ]);
 
 function CfbCrest({ team, size = 46 }) {
@@ -23434,7 +23439,7 @@ function CfbGameCard({ game: g, period, stats, weather, favorites, onToggleFavor
                 <span className="cb-conf-pct">{pick.pct}% to win</span>
               </>
             ) : (
-              <span className="cb-conf-team cfb-no-line">Win odds post when the line opens</span>
+              <span className="cb-conf-team cfb-no-line">{g.state === "pre" ? "Win odds post when the line opens" : "No pre-game line on file"}</span>
             )}
           </span>
         </div>
@@ -23454,7 +23459,7 @@ function CfbGameCard({ game: g, period, stats, weather, favorites, onToggleFavor
               )}
             </>
           ) : (
-            <span className="cb-odds-none">Odds not yet posted</span>
+            <span className="cb-odds-none">{g.state === "pre" ? "Odds not yet posted" : "ESPN drops the line once a game starts"}</span>
           )}
         </div>
         {g.odds && <div className="cb-odds-src">Line: {g.odds.provider}{g.state !== "pre" ? <span className="cb-odds-asof"> · at kickoff</span> : null}</div>}

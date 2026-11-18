@@ -2661,8 +2661,9 @@ function TeamLogo({ teamId, size }) {
   // College teams ("cfb:{espnId}") have no badge art - they get the
   // two-colour crest built from ESPN's team colours instead.
   if (typeof teamId === "string" && teamId.indexOf("cfb:") === 0) {
-    const t = cfbTeamRegistry.get(teamId.slice(4));
-    return <CfbCrest team={t || { abbr: "?" }} size={dim} />;
+    const id = teamId.slice(4);
+    const t = cfbTeamRegistry.get(id);
+    return <CfbCrest team={t ? { ...t, id } : { id, abbr: "?" }} size={dim} />;
   }
   return (
     <img
@@ -22792,8 +22793,29 @@ function cfbRemember(team) {
   if (team && team.id) cfbTeamRegistry.set(team.id, { abbr: team.abbr, color: team.color, altColor: team.altColor, name: team.name, short: team.short });
 }
 
+/** College teams with their own badge art at /team-badges/cfb/{espnId}.png,
+ *  same style as the NFL badges. Everyone else gets the colour crest below.
+ *  Add an id here when its PNG lands. */
+const CFB_BADGE_IDS = new Set([
+  // Big 12
+  "12", "9", "239", "252", "2132", "38", "248", "66", "2305", "2306", "197", "2628", "2641", "2116", "254", "277",
+]);
+
 function CfbCrest({ team, size = 46 }) {
   const t = team || {};
+  if (t.id && CFB_BADGE_IDS.has(String(t.id))) {
+    return (
+      <img
+        className="team-crest"
+        src={`/team-badges/cfb/${t.id}.png`}
+        alt={t.name || t.abbr || ""}
+        width={size}
+        height={size}
+        style={{ width: size, height: size }}
+        decoding="async"
+      />
+    );
+  }
   const c1 = t.color || "#334155";
   const c2 = t.altColor && t.altColor.toLowerCase() !== c1.toLowerCase() ? t.altColor : "#1e293b";
   const abbr = t.abbr || "?";

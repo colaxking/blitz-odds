@@ -1,0 +1,48 @@
+name: Blitz Odds - college pages refresh
+
+# Regenerates the standalone college football pages (scripts/build-college-pages.mjs):
+# FBS team pages, week hubs and per-game pages for last/this/next week, the
+# bowl + CFP schedule and one page per bowl, plus sitemap-college.xml. Unlike
+# static-pages-refresh this job DOES call an external API (ESPN's public
+# college endpoints, no key) - the pages are built from live data.
+#
+# Dispatched externally via cron-job.org, same as every other refresh job
+# (GitHub's own `schedule:` cron is unreliable on low-traffic repos):
+#   POST https://api.github.com/repos/colaxking/blitz-odds/actions/workflows/college-pages-refresh.yml/dispatches
+#   Headers: Authorization: Bearer <PAT with 'workflow' scope>,
+#            Accept: application/vnd.github+json, Content-Type: application/json
+#   Body: {"ref":"main"}
+#
+# Suggested cadence: every 3 hours, plus once Sunday morning (ET) to pick up
+# Saturday's finals and the new AP poll. Lines move slowly enough that more
+# often buys nothing. COST NOTE as in static-pages-refresh.yml: each commit is
+# a production deploy, and the builder only rewrites pages whose content
+# changed (the "Updated" footer stamp is ignored), so a run with no real
+# change commits nothing.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blitz-odds-college-pages-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build college pages
+        run: node scripts/build-college-pages.mjs
+
+      - name: Commit regenerated pages if changed
+        run: |
+          scripts/commit-and-push.sh "College pages refresh: automated regeneration via GitHub Actions" college/games/ college/teams/ college/bowls/ sitemap-college.xml data/cfb-lines-2026.json data/cfb-pages-2026.json

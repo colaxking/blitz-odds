@@ -11,7 +11,9 @@ Disallow: /leagues/
 # Netlify Identity email templates - raw Go-template HTML, not pages.
 Disallow: /email-templates/
 
-# Two sitemaps: the live site, and the historical box-score archive
-# (separated so the archive can be crawled and reported on independently).
+# Three sitemaps: the live NFL site, the historical box-score archive, and
+# the standalone college football pages (scripts/build-college-pages.mjs) -
+# separated so each can be crawled and reported on independently.
 Sitemap: https://blitz-odds.com/sitemap.xml
 Sitemap: https://blitz-odds.com/sitemap-archive.xml
+Sitemap: https://blitz-odds.com/sitemap-college.xml

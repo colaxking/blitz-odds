@@ -2,3 +2,6 @@
 deploy-*.zip
 node_modules
 .netlify/
+
+# build-college-pages.mjs raw ESPN cache (only for --offline rebuilds)
+data/cfb-cache-*.json

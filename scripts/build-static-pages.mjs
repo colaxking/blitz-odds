@@ -69,7 +69,19 @@ async function writeIfChanged(outPath, html) {
   if (existing === html) return false;
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(outPath, html, "utf8");
+  // The file is always rewritten above - every page must reference the
+  // current js/app.js / css/app.css build - but a diff that is ONLY those
+  // `?v=<hash>` stamps isn't a content change. Counting it as one put
+  // today's date on 380 of 382 sitemap URLs after every app build (preseason
+  // week-1 games "modified" in November), which teaches Google to ignore
+  // lastmod. Found in the 2026-11-18 Search Console review.
+  if (existing !== null && stripAssetHashes(existing) === stripAssetHashes(html)) return false;
   return true;
+}
+
+/** Build-only cache-busting stamps: "/js/app.js?v=6b28fd717f" etc. */
+function stripAssetHashes(html) {
+  return html.replace(/\?v=[0-9a-f]{6,}/g, "?v=");
 }
 
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();

@@ -25923,6 +25923,9 @@ function App() {
           Sources: The Football Database (team stats), Pro-Football-Reference and NFL.com (schedules),
           SportsGameOdds (betting lines), ESPN (live scores and box scores), Open-Meteo (weather).
           {" "}<a href="/historical/index.html" className="archive-entry-link" data-archive-source="footer" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Historical results archive</a>
+          {/* Standalone, flag-independent college pages (scripts/build-college-pages.mjs). */}
+          {" · "}<a href="/college/games/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>College football odds</a>
+          {" · "}<a href="/college/bowls/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Bowl schedule</a>
         </p>
         <p className="footer-legal">
           &copy; {new Date().getFullYear()} Blitz Odds. Not affiliated with or endorsed by the National Football

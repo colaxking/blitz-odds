@@ -41,7 +41,18 @@ import { getStore } from "@netlify/blobs";
 //   force  -> submit even URLs whose date matches the blob (recovery only)
 
 const SITE_BASE = "https://blitz-odds.com";
-const SITEMAP_URL = `${SITE_BASE}/sitemap.xml`;
+// All three sitemaps robots.txt lists. Until 2026-11-18 this read only
+// sitemap.xml - fine while it held all ~3,975 URLs, but the archive moved to
+// sitemap-archive.xml on 2026-10-06, which left sitemap.xml at ~380 URLs:
+// under MIN_PLAUSIBLE_URLS, so every run since then aborted without
+// submitting anything. sitemap.xml is required; the other two are read when
+// present (a 404 on one is logged, not fatal) and the plausibility check
+// applies to the combined count.
+const SITEMAP_URLS = [
+  `${SITE_BASE}/sitemap.xml`,
+  `${SITE_BASE}/sitemap-archive.xml`,
+  `${SITE_BASE}/sitemap-college.xml`,
+];
 const INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow";
 
 const SITE_DATA_STORE = "blitz-site-data";
@@ -127,24 +138,25 @@ export default async (req: Request, _context: Context) => {
   const dryRun = body.dryRun === true;
   const force = body.force === true;
 
-  // 1. Read the sitemap as the public sees it.
-  let xml: string;
-  try {
-    const res = await fetch(SITEMAP_URL, {
-      headers: { "Cache-Control": "no-cache" },
-    });
-    if (!res.ok) {
-      log(`Sitemap fetch returned ${res.status} - aborting.`);
-      return jsonResponse(502, { ok: false, error: `Sitemap fetch returned ${res.status}` });
+  // 1. Read the sitemaps as the public sees them.
+  const live = new Map<string, string>();
+  for (const [i, sitemapUrl] of SITEMAP_URLS.entries()) {
+    const required = i === 0;
+    try {
+      const res = await fetch(sitemapUrl, { headers: { "Cache-Control": "no-cache" } });
+      if (!res.ok) {
+        log(`${sitemapUrl} returned ${res.status}${required ? " - aborting." : " - skipped."}`);
+        if (required) return jsonResponse(502, { ok: false, error: `Sitemap fetch returned ${res.status}` });
+        continue;
+      }
+      for (const [loc, lastmod] of parseSitemap(await res.text())) live.set(loc, lastmod);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Sitemap fetch failed";
+      log(`${sitemapUrl} fetch failed: ${message}`);
+      if (required) return jsonResponse(502, { ok: false, error: message });
     }
-    xml = await res.text();
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Sitemap fetch failed";
-    log(`Sitemap fetch failed: ${message}`);
-    return jsonResponse(502, { ok: false, error: message });
   }
 
-  const live = parseSitemap(xml);
   if (live.size < MIN_PLAUSIBLE_URLS) {
     // Bail rather than treat a bad parse as a site-wide change.
     log(`Sitemap parsed to only ${live.size} URLs (min ${MIN_PLAUSIBLE_URLS}) - aborting without submitting.`);

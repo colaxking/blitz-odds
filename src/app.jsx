@@ -14987,8 +14987,80 @@ function buildDepthRankMap(depthSlots) {
 }
 
 const rosterCache = {};
+/** College roster + "depth chart". ESPN publishes no college depth charts
+ *  (its depthcharts endpoints answer empty for every FBS team), so the
+ *  college depth chart is built from who is actually producing: ESPN's
+ *  season leaders per stat, matched to the roster by athlete id and slotted
+ *  by roster position - QB by passing, RB by rushing, WR/TE by receiving,
+ *  the defensive groups by tackles, plus sack and interception leaders.
+ *  Kickers and punters come straight off the roster. Each slot is labelled
+ *  "by production" in the UI so nobody mistakes it for a coach's chart. */
+async function fetchCfbTeamRoster(teamId) {
+  const id = teamId.slice(4);
+  const [rosterRes, leadersRes] = await Promise.all([
+    fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${id}/roster`),
+    fetch(`https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/seasons/${CFB_SEASON}/types/2/teams/${id}/leaders`).catch(() => null),
+  ]);
+  if (!rosterRes.ok) throw new Error("ESPN roster request failed: " + rosterRes.status);
+  const rosterData = await rosterRes.json();
+  const playersById = {};
+  const fullRoster = (rosterData.athletes || [])
+    .filter((g) => ROSTER_SIDES.includes(g.position))
+    .map((group) => {
+      const players = (group.items || []).slice();
+      players.forEach((p) => { playersById[p.id] = p; });
+      return { group: group.position, players };
+    });
+
+  let cats = [];
+  if (leadersRes && leadersRes.ok) {
+    try { cats = ((await leadersRes.json()).categories) || []; } catch (e) { cats = []; }
+  }
+  const catOf = (name) => cats.find((c) => c.name === name);
+  const posOf = (p) => (p && p.position && p.position.abbreviation) || "";
+  const fromCat = (name, positions, fmt, limit) => {
+    const c = catOf(name);
+    if (!c) return [];
+    const out = [];
+    for (const l of c.leaders || []) {
+      const m = /athletes\/(\d+)/.exec((l.athlete && l.athlete.$ref) || "");
+      const p = m ? playersById[m[1]] : null;
+      if (!p) continue;
+      if (positions && !positions.includes(posOf(p))) continue;
+      out.push({ ...p, _stat: fmt ? fmt(l) : l.displayValue });
+      if (out.length >= (limit || 3)) break;
+    }
+    return out;
+  };
+  const n = (suffix) => (l) => `${l.displayValue} ${suffix}`;
+  const slot = (slug, label, posAbbr, side, athletes) => ({ slug, label, posAbbr, side, athletes });
+  const rosterOnly = (positions) => fullRoster
+    .flatMap((g) => g.players)
+    .filter((p) => positions.includes(posOf(p)));
+  const depthChart = [
+    slot("qb", "Quarterback", "QB", "offense", fromCat("passingLeader", ["QB"], null, 2)),
+    slot("rb", "Running Back", "RB", "offense", fromCat("rushingLeader", ["RB", "FB"])),
+    slot("wr", "Wide Receiver", "WR", "offense", fromCat("receivingLeader", ["WR"], null, 4)),
+    slot("te", "Tight End", "TE", "offense", fromCat("receivingLeader", ["TE"], null, 2)),
+    slot("dl", "Defensive Line", "DL", "defense", fromCat("totalTackles", ["DL", "DE", "DT", "NT", "EDGE"], n("TKL"), 4)),
+    slot("lb", "Linebacker", "LB", "defense", fromCat("totalTackles", ["LB", "OLB", "ILB", "MLB"], n("TKL"))),
+    slot("db", "Defensive Back", "DB", "defense", fromCat("totalTackles", ["DB", "CB", "S", "FS", "SS"], n("TKL"), 4)),
+    slot("sacks", "Sacks", "zz-sacks", "defense", fromCat("sacks", null, n("SACK"))),
+    slot("int", "Interceptions", "zz-int", "defense", fromCat("interceptions", null, n("INT"))),
+    slot("pk", "Kicker", "PK", "specialTeam", rosterOnly(["PK", "K"])),
+    slot("p", "Punter", "P", "specialTeam", rosterOnly(["P"])),
+    slot("ls", "Long Snapper", "LS", "specialTeam", rosterOnly(["LS"])),
+  ].filter((g) => g.athletes.length > 0);
+  return { fullRoster, depthChart, college: true };
+}
+
 async function fetchTeamRoster(teamId) {
   if (rosterCache[teamId]) return rosterCache[teamId];
+  if (typeof teamId === "string" && teamId.indexOf("cfb:") === 0) {
+    const result = await fetchCfbTeamRoster(teamId);
+    rosterCache[teamId] = result;
+    return result;
+  }
   const slug = espnTeamSlug(teamId);
   // Depth charts go through our own same-origin proxy: ESPN stopped sending
   // CORS headers on /depthcharts (Nov 2026), so a direct browser fetch is
@@ -15646,6 +15718,29 @@ const newsCache = {};
 async function fetchTeamNews(teamId) {
   if (newsCache[teamId]) return newsCache[teamId];
 
+  // College teams: ESPN's college news for that team only. The CBS/FOX
+  // league feeds the NFL panel blends in are NFL-only, so they're skipped.
+  if (typeof teamId === "string" && teamId.indexOf("cfb:") === 0) {
+    const promise = (async () => {
+      const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/news?team=${teamId.slice(4)}&limit=50`);
+      if (!res.ok) throw new Error("ESPN news request failed: " + res.status);
+      const data = await res.json();
+      const items = (data.articles || [])
+        .filter((a) => a.type !== "Media")
+        .map((a) => ({
+          headline: decodeHtmlEntities(a.headline),
+          published: a.published,
+          url: a.links && a.links.web && a.links.web.href,
+          image: a.images && a.images[0] && a.images[0].url,
+          source: "ESPN",
+        }));
+      return mergeAndDedupeNews([items]).map((a, i) => ({ ...a, id: a.url || `espn-${i}` }));
+    })();
+    newsCache[teamId] = promise;
+    promise.catch(() => { delete newsCache[teamId]; });
+    return promise;
+  }
+
   const promise = (async () => {
     const slug = espnTeamSlug(teamId);
     const [espnArticles, leagueFeed] = await Promise.all([
@@ -16006,6 +16101,9 @@ function DepthChartSection({ teamId }) {
   const rosterGroup = data.fullRoster.find(g => g.group === activeSide);
   const positionGroups = rosterGroup ? groupPlayersByPosition(rosterGroup.players, activeSide, depthRankById) : [];
   const injuryByName = buildInjuryLookup(teamId);
+  // College: no injury data, no NFL career-history modal, class (FR/SO/JR/
+  // SR) instead of years, and the depth chart is production-based.
+  const isCollege = !!data.college;
 
   return (
     <div>
@@ -16025,14 +16123,28 @@ function DepthChartSection({ teamId }) {
 
       {sideDepthChart.length > 0 && (
         <div className="depth-chart-block">
-          <h3 className="injury-report-title">Depth Chart</h3>
+          <h3 className="injury-report-title">Depth Chart{isCollege && <span className="cfb-depth-note"> · by production this season</span>}</h3>
           <div className="depth-chart-grid">
             {sideDepthChart.map(group => (
               <div className="depth-slot" key={group.slug}>
                 <div className="depth-slot-label">{group.label}</div>
                 <div className="depth-slot-players">
                   {group.athletes.map((p, i) => {
-                    const isRookie = !!(p.experience && p.experience.years === 0);
+                    const isRookie = !isCollege && !!(p.experience && p.experience.years === 0);
+                    if (isCollege) {
+                      return (
+                        <div className="depth-player cfb-depth-player" key={p.id || i}>
+                          <span className="depth-player-rank">{i + 1}</span>
+                          <div className="cfb-dp-body">
+                            <div className="cfb-dp-top">
+                              <span className="depth-player-name">{p.shortName || p.displayName}</span>
+                              {p.jersey && <span className="depth-player-jersey">#{p.jersey}</span>}
+                            </div>
+                            {p._stat && <div className="depth-player-stat">{p._stat}</div>}
+                          </div>
+                        </div>
+                      );
+                    }
                     return (
                       <div className="depth-player" key={p.id || i}>
                         <span className="depth-player-rank">{i + 1}</span>
@@ -16080,16 +16192,16 @@ function DepthChartSection({ teamId }) {
               <div className="roster-table-wrap">
                 <table className="team-schedule-table roster-table">
                   <thead>
-                    <tr><th>#</th><th>Player</th><th>Ht / Wt</th><th>Exp</th></tr>
+                    <tr><th>#</th><th>Player</th><th>Ht / Wt</th><th>{isCollege ? "Class" : "Exp"}</th></tr>
                   </thead>
                   <tbody>
                     {pg.players.map(p => {
-                      const isRookie = !!(p.experience && p.experience.years === 0);
+                      const isRookie = !isCollege && !!(p.experience && p.experience.years === 0);
                       return (
                         <tr key={p.id}>
                           <td>{p.jersey || "—"}</td>
                           <td>
-                            <button
+                            {isCollege ? <span>{p.displayName}</span> : <button
                               type="button"
                               className="roster-player-name-btn"
                               onClick={() => {
@@ -16108,12 +16220,14 @@ function DepthChartSection({ teamId }) {
                               }}
                             >
                               {p.displayName}
-                            </button>
+                            </button>}
                             {isRookie && <span className="rookie-badge" title="Rookie">R</span>}
                             <RosterInjuryFlag impactPlayer={injuryByName[normalizePlayerName(p.displayName)]} />
                           </td>
                           <td>{p.displayHeight ? `${p.displayHeight}, ${p.displayWeight}` : "—"}</td>
-                          <td>{p.experience && p.experience.years != null ? p.experience.years : "—"}</td>
+                          <td>{isCollege
+                            ? ((p.experience && (p.experience.abbreviation || p.experience.displayValue)) || "—")
+                            : (p.experience && p.experience.years != null ? p.experience.years : "—")}</td>
                         </tr>
                       );
                     })}
@@ -23783,9 +23897,13 @@ function CfbGameView({ gameId, periods, favorites, onToggleFavorite, onSelectTea
 function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onBack, onGoHome, auth, tz }) {
   const [state, setState] = useState({ status: "loading" });
   const stats = useCfbStats(auth);
+  const isMobile = useIsMobile(860);
+  const [activeTab, setActiveTab] = useState("schedule");
+  const tabsRef = useRef(null);
   useEffect(() => {
     let cancelled = false;
     setState({ status: "loading" });
+    setActiveTab("schedule");
     fetchCfbTeamSchedule(teamId, CFB_SEASON)
       .then((json) => {
         if (cancelled) return;
@@ -23809,10 +23927,8 @@ function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onBack
   const n = (stats && stats.teamCount) || CFB_DEFAULT_TEAM_COUNT;
   const s = stats && stats.teams && stats.teams[teamId];
   const team = state.team;
-  const trail = [
-    { label: "Home", onClick: onGoHome || onBack },
-    { label: "College", onClick: onBack },
-  ];
+  const rows = state.rows || [];
+  const nextRow = rows.find((r) => !r.completed) || null;
   const statRow = (label, value, rank, digits) => (
     <div className="cfb-stat-row" key={label}>
       <span className="cfb-stat-label">{label}</span>
@@ -23820,67 +23936,177 @@ function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onBack
       <CfbRankPill rank={rank} n={n} />
     </div>
   );
+
+  /* Same tab strip as the NFL team page: Schedule and Roster & Depth Chart,
+     with News as a third tab on phones and a side column on desktop. */
+  const tabs = isMobile
+    ? [
+        { id: "schedule", label: "Schedule", analyticsLabel: "Schedule" },
+        { id: "roster", label: "Roster", analyticsLabel: "Roster & Depth Chart" },
+        { id: "news", label: "News", analyticsLabel: "News" },
+      ]
+    : [
+        { id: "schedule", label: "Schedule", analyticsLabel: "Schedule" },
+        { id: "roster", label: "Roster & Depth Chart", analyticsLabel: "Roster & Depth Chart" },
+      ];
+  useEffect(() => {
+    if (!tabs.some((t) => t.id === activeTab)) setActiveTab("schedule");
+  }, [isMobile]);
+  function selectTab(id) {
+    setActiveTab(id);
+    trackEvent("cfb_team_tab", { tab: id, team: teamId });
+    if (!isMobile) return;
+    const el = tabsRef.current;
+    if (el && typeof el.scrollIntoView === "function") el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const trail = [
+    { label: "Home", onClick: onGoHome || onBack },
+    { label: "College", onClick: onBack },
+  ];
   return (
-    <div className="team-page cfb-team-page">
-      <Breadcrumb trail={trail} current={team ? team.name : "Team"} />
+    <div className="cfb-team-page">
+      <div className="controls-row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+        <Breadcrumb trail={trail} current={team ? team.name : "Team"} />
+      </div>
       {state.status === "loading" && <p className="cfb-empty">Loading team…</p>}
       {state.status === "error" && <p className="cfb-empty">Couldn't load this team.</p>}
       {team && (
         <>
-          <div className="cfb-team-head">
-            <CfbCrest team={team} size={72} />
-            <div className="cfb-team-titles">
-              <h1 className="cfb-team-name">{team.name}</h1>
-              <div className="cfb-team-sub">{[team.record, team.standing].filter(Boolean).join(" · ")}</div>
-            </div>
-            <CfbFavoriteStar teamId={team.id} team={team} favorites={favorites} onToggle={onToggleFavorite} />
-          </div>
-
-          <div className="game-page-section">
-            <div className="section-title">Season stats <span className="sec-label-format">per game · rank of {n} FBS</span></div>
-            {s ? (
-              <div className="cfb-stat-grid">
-                <div>
-                  <div className="cfb-stat-head">Offense</div>
-                  {statRow("Points", s.offense.pointsPerGame, s.offense.rankPoints, 1)}
-                  {statRow("Total yards", s.offense.totalYdsPerGame, s.offense.rankTotal, 1)}
-                  {statRow("Rushing", s.offense.rushYdsPerGame, s.offense.rankRush, 1)}
-                  {statRow("Passing", s.offense.passYdsPerGame, s.offense.rankPass, 1)}
+          <div className="team-hero">
+            <div className="team-hero-top">
+              <div className="badge-wrap" style={{ width: 48, height: 48 }}>
+                <CfbCrest team={team} size={48} />
+                <CfbFavoriteStar teamId={team.id} team={team} favorites={favorites} onToggle={onToggleFavorite} />
+              </div>
+              <div className="team-hero-id">
+                <h2>{team.name}</h2>
+                <div className="team-hero-sub">
+                  {team.standing && <span>{team.standing}</span>}
+                  {team.standing && team.record && <span className="team-hero-sep">·</span>}
+                  {team.record && <span>{team.record}</span>}
                 </div>
-                <div>
-                  <div className="cfb-stat-head">Defense (allowed)</div>
-                  {statRow("Points", s.defense.pointsAllowedPerGame, s.defense.rankPoints, 1)}
-                  {statRow("Total yards", s.defense.totalYdsAllowedPerGame, s.defense.rankTotal, 1)}
-                  {statRow("Rushing", s.defense.rushYdsAllowedPerGame, s.defense.rankRush, 1)}
-                  {statRow("Passing", s.defense.passYdsAllowedPerGame, s.defense.rankPass, 1)}
+                {nextRow && (
+                  <div className="team-hero-sub team-hero-next">
+                    <span>{nextRow.state === "in" ? "Now:" : "Next:"}</span>
+                    <strong>{nextRow.home ? "vs" : "@"} {nextRow.opp.short}</strong>
+                    <span>{(() => { const k = cfbKickoff(nextRow, tz); return `${k.date}${k.time ? " " + k.time : ""}`; })()}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {s && (
+              <div className="team-rank-grid" aria-label={`Team rankings out of ${n} FBS teams`}>
+                <span></span>
+                <span className="trg-head">Total</span>
+                <span className="trg-head">Rush</span>
+                <span className="trg-head">Pass</span>
+                <span className="trg-side">Off</span>
+                <span className="trg-cell"><CfbRankPill rank={s.offense.rankTotal} n={n} /></span>
+                <span className="trg-cell"><CfbRankPill rank={s.offense.rankRush} n={n} /></span>
+                <span className="trg-cell"><CfbRankPill rank={s.offense.rankPass} n={n} /></span>
+                <span className="trg-side">Def</span>
+                <span className="trg-cell"><CfbRankPill rank={s.defense.rankTotal} n={n} /></span>
+                <span className="trg-cell"><CfbRankPill rank={s.defense.rankRush} n={n} /></span>
+                <span className="trg-cell"><CfbRankPill rank={s.defense.rankPass} n={n} /></span>
+              </div>
+            )}
+
+            {s && (
+              <div className="team-hero-chips">
+                <div className="team-hero-chip">
+                  <span className="thc-key">Pts scored</span>
+                  <span className="thc-val">{s.offense.pointsPerGame ?? "–"}</span>
+                </div>
+                <div className="team-hero-chip">
+                  <span className="thc-key">Pts allowed</span>
+                  <span className="thc-val">{s.defense.pointsAllowedPerGame ?? "–"}</span>
+                </div>
+                <div className="team-hero-chip">
+                  <span className="thc-key">Ranks of</span>
+                  <span className="thc-val">{n} FBS</span>
                 </div>
               </div>
-            ) : (
-              <span className="hw-tag">{stats ? "No FBS stat ranks for this team." : "Loading ranks…"}</span>
             )}
           </div>
 
-          <div className="game-page-section">
-            <div className="section-title">{CFB_SEASON} schedule</div>
-            <div className="cfb-sched">
-              {state.rows.map((r) => {
-                const k = cfbKickoff(r, tz);
-                return (
-                  <a
-                    key={r.id}
-                    className="cfb-sched-row"
-                    href={buildCfbPath({ view: "game", gameId: r.id })}
-                    onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; e.preventDefault(); onSelectGame(r.id); }}
-                  >
-                    <span className="cfb-sched-when">{r.seasonType === 3 ? "Bowl" : `Wk ${r.week}`} · {k.date}</span>
-                    <span className="cfb-sched-opp">{r.neutral ? "vs" : r.home ? "vs" : "@"} {r.opp.rank && r.opp.rank <= 25 ? `#${r.opp.rank} ` : ""}{r.opp.short}{r.headline ? <span className="cfb-sched-note"> · {r.headline.replace(/ - .*$/, "")}</span> : null}</span>
-                    <span className={"cfb-sched-res" + (r.result ? " cfb-form-" + r.result.toLowerCase() : "")}>
-                      {r.completed ? `${r.result} ${r.myScore}-${r.oppScore}` : r.state === "in" ? "Live" : k.time}
-                    </span>
-                  </a>
-                );
-              })}
+          <div className="team-tabs" role="tablist" ref={tabsRef}>
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={"team-tab-btn" + (activeTab === t.id ? " active" : "")}
+                onClick={() => selectTab(t.id)}
+                role="tab"
+                aria-selected={activeTab === t.id}
+                data-tab-label={t.analyticsLabel}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="team-view-layout">
+            <div className="team-view-main">
+              {activeTab === "schedule" && (
+                <>
+                  <div className="game-page-section">
+                    <div className="section-title">Season stats <span className="sec-label-format">per game · rank of {n} FBS</span></div>
+                    {s ? (
+                      <div className="cfb-stat-grid">
+                        <div>
+                          <div className="cfb-stat-head">Offense</div>
+                          {statRow("Points", s.offense.pointsPerGame, s.offense.rankPoints, 1)}
+                          {statRow("Total yards", s.offense.totalYdsPerGame, s.offense.rankTotal, 1)}
+                          {statRow("Rushing", s.offense.rushYdsPerGame, s.offense.rankRush, 1)}
+                          {statRow("Passing", s.offense.passYdsPerGame, s.offense.rankPass, 1)}
+                        </div>
+                        <div>
+                          <div className="cfb-stat-head">Defense (allowed)</div>
+                          {statRow("Points", s.defense.pointsAllowedPerGame, s.defense.rankPoints, 1)}
+                          {statRow("Total yards", s.defense.totalYdsAllowedPerGame, s.defense.rankTotal, 1)}
+                          {statRow("Rushing", s.defense.rushYdsAllowedPerGame, s.defense.rankRush, 1)}
+                          {statRow("Passing", s.defense.passYdsAllowedPerGame, s.defense.rankPass, 1)}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="hw-tag">{stats ? "No FBS stat ranks for this team." : "Loading ranks…"}</span>
+                    )}
+                  </div>
+
+                  <div className="game-page-section">
+                    <div className="section-title">{CFB_SEASON} schedule</div>
+                    <div className="cfb-sched">
+                      {rows.map((r) => {
+                        const k = cfbKickoff(r, tz);
+                        return (
+                          <a
+                            key={r.id}
+                            className="cfb-sched-row"
+                            href={buildCfbPath({ view: "game", gameId: r.id })}
+                            onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; e.preventDefault(); onSelectGame(r.id); }}
+                          >
+                            <span className="cfb-sched-when">{r.seasonType === 3 ? "Bowl" : `Wk ${r.week}`} · {k.date}</span>
+                            <span className="cfb-sched-opp">{r.neutral ? "vs" : r.home ? "vs" : "@"} {r.opp.rank && r.opp.rank <= 25 ? `#${r.opp.rank} ` : ""}{r.opp.short}{r.headline ? <span className="cfb-sched-note"> · {r.headline.replace(/ - .*$/, "")}</span> : null}</span>
+                            <span className={"cfb-sched-res" + (r.result ? " cfb-form-" + r.result.toLowerCase() : "")}>
+                              {r.completed ? `${r.result} ${r.myScore}-${r.oppScore}` : r.state === "in" ? "Live" : k.time}
+                            </span>
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+              {activeTab === "roster" && <DepthChartSection teamId={"cfb:" + teamId} />}
+              {isMobile && activeTab === "news" && <TeamNewsPanel teamId={"cfb:" + teamId} />}
             </div>
+            {!isMobile && (
+              <div className="team-view-side">
+                <TeamNewsPanel teamId={"cfb:" + teamId} />
+              </div>
+            )}
           </div>
         </>
       )}

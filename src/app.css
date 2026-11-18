@@ -5809,3 +5809,12 @@
     color: var(--text); font: inherit; font-size: 0.9rem;
   }
   .cfb-fav-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* College depth chart: built from production, so each name carries the
+     stat line that put it there. */
+  .cfb-depth-note { font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text-dim); font-size: 0.78em; }
+  .depth-player-stat { color: var(--text-dim); font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .cfb-depth-player { align-items: flex-start; }
+  .cfb-dp-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .cfb-dp-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .cfb-dp-top .depth-player-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .cfb-depth-player .depth-player-stat { white-space: normal; line-height: 1.3; }

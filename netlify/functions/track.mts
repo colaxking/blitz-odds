@@ -212,6 +212,7 @@ const VALID_TYPES = new Set([
   "cfb_team_view",
   "cfb_follow",
   "cfb_favorite",
+  "cfb_team_tab",
 ]);
 
 // Step ids from index.html's TOUR_STEPS. Allowlisted rather than passed
@@ -648,7 +649,8 @@ export default async (req: Request, context: Context) => {
       const v = String(value);
       if (/^(\d{1,12}|post)$/.test(v)) record.value = v;
     }
-    if ((type === "cfb_team_view" || type === "cfb_favorite") && team != null && /^\d{1,6}$/.test(String(team))) record.team = String(team);
+    if (type === "cfb_team_tab" && (tab === "schedule" || tab === "roster" || tab === "news")) record.tab = tab;
+    if ((type === "cfb_team_view" || type === "cfb_favorite" || type === "cfb_team_tab") && team != null && /^\d{1,6}$/.test(String(team))) record.team = String(team);
     if ((type === "cfb_follow" || type === "cfb_favorite") && (action === "on" || action === "off")) record.action = action;
     if (type === "league_invite_share") {
       if (VALID_LEAGUE_SHARE_SURFACES.has(String(surface))) record.surface = String(surface);

@@ -18187,7 +18187,7 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPin
     // the "bowls" flag is on for this visitor. It removes itself after the
     // season (BOWLS_VISIBLE_UNTIL) without a deploy.
     ...(features && features.bowls && bowlsInSeason()
-      ? [{ id: "bowls", label: "Bowls", icon: "\u{1F3C6}", img: "/branding/tab-icon-bowls.svg" }]
+      ? [{ id: "bowls", label: "Bowls", icon: "\u{1F3C6}", img: "/branding/tab-icon-bowls.png" }]
       : []),
     { id: "picks", label: PLAYBOOK_TAB_LABEL, icon: PLAYBOOK_TAB_ICON, img: PLAYBOOK_TAB_IMG },
     { id: "news", label: "News", icon: "\u{1F4F0}", img: "/branding/tab-icon-news.png" },
@@ -18448,7 +18448,7 @@ function navDestinations(features) {
     { id: "games", label: "Games", img: "/branding/tab-icon-games.png", note: "This week's matchups" },
     { id: "picks", label: PLAYBOOK_TAB_LABEL, img: PLAYBOOK_TAB_IMG, note: "Pick sheets and the survivor planner" },
     ...(features && features.bowls && bowlsInSeason()
-      ? [{ id: "bowls", label: "Bowls", img: "/branding/tab-icon-bowls.svg", note: "Bowl season only - hides itself in February", isNew: true }]
+      ? [{ id: "bowls", label: "Bowls", img: "/branding/tab-icon-bowls.png", note: "Bowl season only - hides itself in February", isNew: true }]
       : []),
     { id: "league", label: "Leagues", img: "/branding/tab-icon-leagues.svg", note: "Your pools, or create and join one" },
     { id: "news", label: "News", img: "/branding/tab-icon-news.png", note: "Injuries and headlines" },

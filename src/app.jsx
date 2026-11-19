@@ -23683,6 +23683,8 @@ const CFB_BADGE_IDS = new Set([
   "204", "265",
   // Late adds: Tulsa (American), UMass (MAC), Sacramento State, North Dakota State
   "202", "113", "16", "2449",
+  // FCS opponents on the 2026 FBS slate: Chattanooga, Samford, Tennessee Tech, Wofford
+  "236", "2535", "2635", "2747",
   // Sun Belt
   "2026", "2032", "324", "290", "2247", "256", "309", "276", "295", "6", "2572", "326", "2653", "2433",
 ]);

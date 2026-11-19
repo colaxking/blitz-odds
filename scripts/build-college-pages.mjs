@@ -75,6 +75,21 @@ const CONFERENCES = {
   "37": "Sun Belt", "9": "Pac-12", "18": "FBS Independents",
 };
 const CONF_ORDER = ["8", "5", "4", "1", "151", "12", "15", "17", "37", "9", "18"];
+/* ESPN files a team in a conference that has divisions under the division's
+ * group id, not the conference's - the Sun Belt's East (167) and West (168)
+ * showed up as two separate "Other FBS" sections on /college/teams/, and
+ * those teams had no conference on their own pages. Resolve a group to its
+ * conference: a known conference id, else its parent's, else this table. */
+const DIVISION_TO_CONF = { "167": "37", "168": "37" };
+function confIdOf(groups, fallback = null) {
+  const id = groups?.id != null ? String(groups.id) : null;
+  if (id && CONFERENCES[id]) return id;
+  const parent = groups?.parent?.id != null ? String(groups.parent.id) : null;
+  if (parent && CONFERENCES[parent]) return parent;
+  if (id && DIVISION_TO_CONF[id]) return DIVISION_TO_CONF[id];
+  if (fallback && DIVISION_TO_CONF[fallback]) return DIVISION_TO_CONF[fallback];
+  return id || fallback;
+}
 
 function log(...a) { console.log("[college-pages]", ...a); }
 
@@ -778,7 +793,7 @@ async function buildTeamPage(team, ctx) {
   const s = ctx.schedules[team.id];
   const st = ctx.stats.teams[team.id];
   const info = s?.team || {};
-  const confId = info.groups?.id ? String(info.groups.id) : team.conf;
+  const confId = confIdOf(info.groups, team.conf);
   const conf = CONFERENCES[confId] || null;
   const record = info.recordSummary || null;
   const standing = info.standingSummary || null;
@@ -841,7 +856,9 @@ async function buildTeamsIndex(teams, ctx) {
   const p = "/college/teams/";
   const by = new Map();
   for (const t of teams) {
-    const c = String(ctx.schedules[t.id]?.team?.groups?.id || t.conf || "18");
+    // Anything still unrecognised shares ONE "Other FBS" section.
+    const resolved = confIdOf(ctx.schedules[t.id]?.team?.groups, t.conf) || "18";
+    const c = CONFERENCES[resolved] ? resolved : "other";
     if (!by.has(c)) by.set(c, []);
     by.get(c).push(t);
   }
@@ -1027,7 +1044,7 @@ async function main() {
       id: String(t.id), abbr: String(t.abbreviation || L.abbreviation || ""), name: t.displayName || L.displayName,
       short: t.shortDisplayName || L.shortDisplayName || t.displayName,
       color: L.color ? `#${L.color}` : null, altColor: L.alternateColor ? `#${L.alternateColor}` : null,
-      conf: raw.schedules[String(t.id)]?.team?.groups?.id ? String(raw.schedules[String(t.id)].team.groups.id) : null,
+      conf: confIdOf(raw.schedules[String(t.id)]?.team?.groups),
     };
   }).filter((t) => t.name);
   // Slugs: full display name; a repeat (none today) gets the ESPN id.

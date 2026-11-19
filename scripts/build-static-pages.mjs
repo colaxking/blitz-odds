@@ -119,6 +119,25 @@ function escapeHtml(s) {
 // answer. STATIC_PAGES_OFFLINE=1 skips the request.
 const LIVE_SITE_DATA_URL = `${SITE_BASE}/.netlify/functions/site-data-current`;
 
+// Which flagged features a signed-out visitor (and so a crawler) gets: the
+// same /features answer the app asks for. College and bowl links in the
+// prerendered pages follow it, exactly as the tiles and footer links do in
+// the app. Anything but a clear "on" - request failed, offline build - is off.
+const BOWLS_VISIBLE_UNTIL = Date.parse("2027-02-01T12:00:00Z"); // = src/app.jsx
+async function fetchPublicFeatures() {
+  const off = { cfb: false, bowls: false };
+  if (process.env.STATIC_PAGES_OFFLINE === "1") return off;
+  try {
+    const res = await fetch(`${SITE_BASE}/.netlify/functions/features`, { signal: AbortSignal.timeout(15000), headers: { accept: "application/json" } });
+    if (!res.ok) return off;
+    const body = await res.json();
+    if (!body || !body.ok || !body.features) return off;
+    return { cfb: body.features.cfb === true, bowls: body.features.bowls === true && Date.now() < BOWLS_VISIBLE_UNTIL };
+  } catch {
+    return off;
+  }
+}
+
 async function fetchLiveSiteData() {
   if (process.env.STATIC_PAGES_OFFLINE === "1") return null;
   try {
@@ -161,7 +180,10 @@ async function loadData() {
   const live = await fetchLiveSiteData();
   if (live) log(`Using live team stats (through Week ${live.teamsAsOfWeek ?? "?"}) and injuries from ${LIVE_SITE_DATA_URL}.`);
   else log("Live site data unavailable or disabled - using the committed data/teams.json and data/impact-players.json.");
+  const features = await fetchPublicFeatures();
+  log(`Feature flags for signed-out visitors: college ${features.cfb ? "on" : "off"}, bowls ${features.bowls ? "on" : "off"}.`);
   return {
+    features,
     teams: live ? live.teams : teamsFile.teams,
     schedule: scheduleFile,
     preseason: preseasonFile,
@@ -1322,10 +1344,10 @@ function buildExploreHtml(data, period) {
   const tiles = [
     tile("/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor &amp; ATS sheets"),
     tile("/leagues/", "/branding/tab-icon-leagues.svg", "Free leagues", "Join a pool or run your own"),
-    tile("/college/games/", "/branding/tab-icon-games.png", "College football", "Odds &amp; win probabilities"),
-    tile("/college/bowls/", "/branding/tab-icon-bowls.png", "Bowl schedule", "Every bowl and the Playoff"),
+    data.features.cfb ? tile("/college/games/", "/branding/tab-icon-games.png", "College football", "Odds &amp; win probabilities") : null,
+    data.features.bowls ? tile("/college/bowls/", "/branding/tab-icon-bowls.png", "Bowl schedule", "Every bowl and the Playoff") : null,
     tile("/historical/index.html", "/branding/tab-icon-news.png", "Results archive", "Scores back to 2015"),
-  ].join("\n");
+  ].filter(Boolean).join("\n");
   return `    <div class="home-explore">
       <div class="home-sec-head"><h3>${period ? `${label} slate` : "This week's slate"}</h3>${period ? `<a class="hx-head-link" href="${weekHubPath(data, period)}">Confidence ladder &rarr;</a>` : ""}</div>
       <div class="home-card hx-card">
@@ -1459,7 +1481,7 @@ function buildGamesIndexSnapshotHtml(data, periods) {
   </ul>
 
   <h2>More football</h2>
-  <p><a href="/college/games/">College football odds &amp; win probabilities</a> · <a href="/college/teams/">College football teams</a> · <a href="/college/bowls/">Bowl game schedule</a> · <a href="/historical/index.html">Historical NFL results archive</a></p>
+  <p>${data.features.cfb ? `<a href="/college/games/">College football odds &amp; win probabilities</a> · <a href="/college/teams/">College football teams</a> · ` : ""}${data.features.bowls ? `<a href="/college/bowls/">Bowl game schedule</a> · ` : ""}<a href="/historical/index.html">Historical NFL results archive</a></p>
 </div>`,
   };
 }
@@ -1489,7 +1511,7 @@ function buildLeaguesSnapshotHtml(data, periods) {
   <p>Name it, pick a format, send the link. That's the whole setup. Official public pools are open to anyone, no invite needed.</p>
 
   <h2>Picks to play</h2>
-  <p>${period ? `<a href="${weekHubPath(data, period)}">NFL ${escapeHtml(period.label)} picks &amp; confidence pool ladder</a> · ` : ""}<a href="/picks/">Pick'em Playbook</a> · <a href="/games/">This week's NFL games &amp; odds</a> · <a href="/college/bowls/">College bowl schedule</a></p>
+  <p>${period ? `<a href="${weekHubPath(data, period)}">NFL ${escapeHtml(period.label)} picks &amp; confidence pool ladder</a> · ` : ""}<a href="/picks/">Pick'em Playbook</a> · <a href="/games/">This week's NFL games &amp; odds</a>${data.features.bowls ? ` · <a href="/college/bowls/">College bowl schedule</a>` : ""}</p>
 </div>`,
   };
 }

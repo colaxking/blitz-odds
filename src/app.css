@@ -660,7 +660,8 @@
     display: block; text-align: center; padding: 12px; margin-top: 6px;
     border-top: 1px solid var(--card-border); color: var(--accent); font-weight: 800; font-size: .82rem;
   }
-  .hx-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+  /* 3-5 tiles depending on the cfb / bowls flags: equal columns, one row. */
+  .hx-tiles { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 14px; }
   .hx-tile {
     display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 16px 12px;
     border-radius: 14px; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
@@ -692,7 +693,7 @@
     .hx-games { grid-template-columns: 1fr; }
     .hx-game { border-top: 1px solid var(--card-border); }
     .hx-day + .hx-game { border-top: none; }
-    .hx-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .hx-tiles { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .hx-tile { flex-direction: row; text-align: left; gap: 10px; padding: 12px; }
     .hx-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
     .hx-teamgrid { grid-template-columns: repeat(8, 1fr); }

@@ -17634,7 +17634,7 @@ function americanToImpliedProbability(ml) {
  *  <h1> carries the odds/predictions terms the site is about and the visible
  *  display headline is an <h2> - the marketing line has no keyword surface
  *  of its own. Same sr-only pattern LeagueView already uses. */
-function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbookId, tz }) {
+function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbookId, tz, cfbOn, bowlsOn }) {
   // Not memoized on [week, sportsbookId]: the live team stats, injuries, odds
   // and weather land after first render (useLiveSiteData and friends swap the
   // module bindings and re-render the app), and a memo keyed only on the week
@@ -17805,7 +17805,7 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
         </div>
       </div>
 
-      <HomeExplore week={week} tz={tz} />
+      <HomeExplore week={week} tz={tz} cfbOn={cfbOn} bowlsOn={bowlsOn} />
     </div>
   );
 }
@@ -17816,7 +17816,7 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
  *  rest of the app navigates with buttons, so without this block nothing
  *  under /games/ or /teams/ was linked from "/" at all. Plain links on
  *  purpose: each target is a real prerendered page. */
-function HomeExplore({ week, tz }) {
+function HomeExplore({ week, tz, cfbOn, bowlsOn }) {
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const label = getPeriodLabel(week);
   useFrozenPredictions(week);
@@ -17827,10 +17827,14 @@ function HomeExplore({ week, tz }) {
   const tiles = [
     ["/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor & ATS sheets"],
     ["/leagues/", "/branding/tab-icon-leagues.svg", "Free leagues", "Join a pool or run your own"],
-    ["/college/games/", "/branding/tab-icon-games.png", "College football", "Odds & win probabilities"],
-    ["/college/bowls/", "/branding/tab-icon-bowls.png", "Bowl schedule", "Every bowl and the Playoff"],
+    // College and bowls follow the same feature flags that show and hide
+    // those features in the app (admin console > Features): off for this
+    // visitor means no tile. The static copy in build-static-pages.mjs reads
+    // the same flags as a signed-out visitor gets them.
+    cfbOn ? ["/college/games/", "/branding/tab-icon-games.png", "College football", "Odds & win probabilities"] : null,
+    bowlsOn ? ["/college/bowls/", "/branding/tab-icon-bowls.png", "Bowl schedule", "Every bowl and the Playoff"] : null,
     ["/historical/index.html", "/branding/tab-icon-news.png", "Results archive", "Scores back to 2015"],
-  ];
+  ].filter(Boolean);
   let lastDay = null;
   return (
     <div className="home-explore">
@@ -26423,6 +26427,8 @@ function App() {
             onOpenGames={() => selectTab("games")}
             onCreateLeague={() => auth.openSignup()}
             onJoinLeague={() => auth.openSignup()}
+            cfbOn={!!features.cfb}
+            bowlsOn={bowlsOn}
           />
         )
       )}
@@ -26563,16 +26569,16 @@ function App() {
           Sources: The Football Database (team stats), Pro-Football-Reference and NFL.com (schedules),
           SportsGameOdds (betting lines), ESPN (live scores and box scores), Open-Meteo (weather).
           {" "}<a href="/historical/index.html" className="archive-entry-link" data-archive-source="footer" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Historical results archive</a>
-          {/* Standalone, flag-independent college pages (scripts/build-college-pages.mjs). */}
-          {" · "}<a href="/college/games/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>College football odds</a>
-          {" · "}<a href="/college/bowls/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Bowl schedule</a>
+          {/* College and bowl links follow the cfb / bowls feature flags, like the features themselves. */}
+          {features.cfb && <>{" · "}<a href="/college/games/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>College football odds</a></>}
+          {bowlsOn && <>{" · "}<a href="/college/bowls/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Bowl schedule</a></>}
         </p>
         <p className="footer-sitelinks">
           <a href="/games/">NFL games &amp; odds</a>
           {" · "}<a href={`/games/${(SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear()}/${weekSlug(getDefaultWeek())}/`}>This week's picks</a>
           {" · "}<a href="/picks/">Pick'em Playbook</a>
           {" · "}<a href="/leagues/">Pick'em leagues</a>
-          {" · "}<a href="/college/teams/">College teams</a>
+          {features.cfb && <>{" · "}<a href="/college/teams/">College teams</a></>}
         </p>
         <p className="footer-legal">
           &copy; {new Date().getFullYear()} Blitz Odds. Not affiliated with or endorsed by the National Football

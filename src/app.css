@@ -5858,3 +5858,16 @@
   .cfb-dp-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
   .cfb-dp-top .depth-player-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .cfb-depth-player .depth-player-stat { white-space: normal; line-height: 1.3; }
+
+  /* showAppToast() notices - e.g. what "Alert me" did about push on this
+     device. Sits above the phone's fixed tab bar. */
+  .app-toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    z-index: 3100; max-width: min(92vw, 460px); padding: 10px 16px; border-radius: 14px;
+    background: var(--surface-2, var(--card-bg)); border: 1px solid var(--card-border); color: var(--text);
+    font-size: .8rem; font-weight: 600; line-height: 1.35; text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35); cursor: pointer;
+  }
+  @media (max-width: 720px) {
+    .app-toast { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+  }

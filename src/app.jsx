@@ -695,6 +695,96 @@ async function hasLocalPushSubscription() {
   }
 }
 
+/* ---- Turning push on from an "Alert me" tap ------------------------------
+ * Following a game used to only record the follow. Alerts then went to
+ * whichever devices had been switched on in Settings > Alerts - so on a phone
+ * (or a second browser) that never had, the follow worked server-side and
+ * nothing ever arrived, with no sign anything was missing.
+ *
+ * Now a follow also registers the device it was tapped on. The permission
+ * prompt has to be requested inside the tap itself - Safari refuses one that
+ * starts after an await - so autoEnablePushForFollow must be called before
+ * the follow's own network request, and kicks off requestPermission
+ * synchronously. Everything after that (VAPID key, subscribe, register) runs
+ * in the background; the follow itself never waits on it or fails because
+ * of it. Registration is idempotent server-side (keyed by endpoint), so
+ * re-registering an already-known device on every follow is harmless and
+ * also repairs a row the server has since pruned. */
+let vapidKeyCache = null;
+async function getVapidPublicKey(auth) {
+  if (vapidKeyCache) return vapidKeyCache;
+  const res = await auth.authenticatedFetch("/.netlify/functions/notif-prefs");
+  const data = await res.json().catch(() => null);
+  if (data && data.vapidPublicKey) vapidKeyCache = data.vapidPublicKey;
+  return vapidKeyCache;
+}
+
+/** One-line notice at the bottom of the screen (see AppToast in App). */
+function showAppToast(text) {
+  try { window.dispatchEvent(new CustomEvent("blitz:toast", { detail: { text } })); } catch (e) {}
+}
+
+function autoEnablePushForFollow(auth) {
+  if (!auth || auth.status !== "in") return;
+  const env = pushEnvironment();
+  if (env === "ios-not-installed") {
+    showAppToast("Following. To get alerts on this iPhone, add Blitz Odds to your Home Screen (Share \u203a Add to Home Screen) and open it from there.");
+    return;
+  }
+  if (env === "blocked") {
+    showAppToast("Following, but notifications are blocked for this site in this browser. Allow them in the browser's site settings to get alerts here.");
+    return;
+  }
+  if (env === "unsupported") return;
+  const wasGranted = env === "granted";
+  let permission;
+  try {
+    permission = wasGranted ? Promise.resolve("granted") : Promise.resolve(Notification.requestPermission());
+  } catch (e) { return; }
+  (async () => {
+    if ((await permission) !== "granted") return;
+    const hadLocal = await hasLocalPushSubscription();
+    const registration = await registerPushServiceWorker();
+    await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      const key = await getVapidPublicKey(auth);
+      if (!key) return;
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(key),
+      });
+    }
+    await registerPushSubscription(auth, subscription);
+    if (!hadLocal) {
+      trackEvent("push_auto_enabled", { via: "follow" });
+      showAppToast("Alerts are on for this device.");
+    }
+  })().catch(() => {
+    showAppToast("Following, but this device couldn't be set up for alerts. Try Settings \u203a Alerts.");
+  });
+}
+
+/** Bottom-of-screen notice fed by showAppToast. Auto-hides after a few
+ *  seconds; a newer message replaces the one showing. */
+function AppToast() {
+  const [text, setText] = useState(null);
+  useEffect(() => {
+    let timer = null;
+    function onToast(e) {
+      const t = e && e.detail && e.detail.text;
+      if (!t) return;
+      setText(t);
+      clearTimeout(timer);
+      timer = setTimeout(() => setText(null), t.length > 60 ? 7000 : 3500);
+    }
+    window.addEventListener("blitz:toast", onToast);
+    return () => { window.removeEventListener("blitz:toast", onToast); clearTimeout(timer); };
+  }, []);
+  if (!text) return null;
+  return <div className="app-toast" role="status" aria-live="polite" onClick={() => setText(null)}>{text}</div>;
+}
+
 // ---- Division alignment (for highlighting division games) -----------------
 // The NFL's 8-division, 4-team alignment is essentially static reference
 // data - it only changes on the rare franchise relocation, not week to week
@@ -11738,6 +11828,8 @@ function useGameFollows(auth, week) {
 
   const toggle = useCallback(async (gameId, next) => {
     if (!signedIn || week == null || !gameId) return false;
+    // Before any await: the permission prompt must start inside the tap.
+    if (next) autoEnablePushForFollow(auth);
     setBusy(gameId);
     setError(null);
     try {
@@ -23225,6 +23317,8 @@ function useCfbFollows(auth, week) {
   const followed = signedIn && week ? cfbFollowStore.get(week) : null;
   const toggle = useCallback(async (eventId, next) => {
     if (!signedIn || !week) return;
+    // Before any await: the permission prompt must start inside the tap.
+    if (next) autoEnablePushForFollow(auth);
     setBusy(eventId);
     try {
       const res = await auth.authenticatedFetch("/.netlify/functions/cfb-follow", {
@@ -25990,6 +26084,7 @@ function App() {
           goes display:contents and `.hdr-bar` becomes a real sticky 52px bar,
           which also lets it stick against `.app` rather than against a
           52px-tall header it would immediately scroll out of. */}
+      <AppToast />
       <header className="top">
         <div className="hdr-bar">
           <div className="hdr-lead">

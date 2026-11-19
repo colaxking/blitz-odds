@@ -643,52 +643,41 @@
       "bufferStatus": "sent"
     },
     "2026-w11-wed": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6afc5df92bccb9187014a6e0",
       "text": "Top of the Week 11 board as of Wednesday:\n\nARI at KC — KC -16.5\nMIA at BUF — BUF -16.5\nIND at HOU — HOU -12.5\n\nThat's where your biggest confidence points go. The middle of the sheet is where pools actually get won.\n\nblitz-odds.com",
       "dueAt": "2026-11-18T14:17:00.000Z",
       "scheduledAt": "2026-11-17T14:00:22.259Z",
       "lastCheckedAt": "2026-11-18T14:00:26.766Z",
-      "updatedAt": "2026-11-18T14:00:26.766Z"
+      "updatedAt": "2026-11-18T14:00:26.766Z",
+      "bufferStatus": "sent"
     },
     "2026-w11-thu": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6afdaf81b24db460bb04925b",
-      "text": "Thursday night: Colts at Texans, HOU -12.5, O/U 44.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
+      "text": "Thursday night: Colts at Texans, HOU -12.5, O/U 43.5. 8:15 PM ET on Prime Video.\n\nIf your pool locks at first kickoff, today is the deadline — not Sunday.\n\nblitz-odds.com",
       "dueAt": "2026-11-19T14:03:00.000Z",
       "scheduledAt": "2026-11-18T14:00:26.766Z",
-      "lastCheckedAt": "2026-11-18T14:00:26.766Z"
+      "lastCheckedAt": "2026-11-19T14:00:30.937Z",
+      "imageHash": "539b54701e",
+      "imageUrl": "https://raw.githubusercontent.com/colaxking/blitz-odds/6cbe7c2ced8846134ffcec68c5cd7e9b68de8fc7/social/img/2026-w11-thu-539b54701e.png",
+      "updatedAt": "2026-11-19T14:00:30.937Z"
+    },
+    "2026-w11-fri": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6aff0173abf4ba608b77fc31",
+      "text": "Chasing in your pool? Fading every favorite isn't a plan.\n\nPick one or two spots where you actually disagree with the line, and take the chalk everywhere else.\n\nblitz-odds.com",
+      "imageHash": null,
+      "imageUrl": null,
+      "dueAt": "2026-11-20T14:39:00.000Z",
+      "scheduledAt": "2026-11-19T14:00:30.937Z",
+      "lastCheckedAt": "2026-11-19T14:00:30.937Z"
     }
   },
   "runs": [
-    {
-      "at": "2026-09-20T13:00:21.407Z",
-      "dryRun": false,
-      "actions": [
-        {
-          "post": "2026-w2-sat-survivor",
-          "action": "closed",
-          "detail": "sent"
-        },
-        {
-          "post": "2026-w2-sun-slate",
-          "action": "blocked",
-          "detail": "primary: fresh: 1 line(s) older than 36h (e.g. DET-BUF)"
-        },
-        {
-          "post": "2026-w2-mon-mnf",
-          "action": "blocked",
-          "detail": "primary: fresh: 1 line(s) older than 48h (e.g. DET-BUF) | fallback: fresh: 1 line(s) older than 48h (e.g. DET-BUF)"
-        }
-      ],
-      "notified": "email",
-      "alerts": [
-        "BLOCKED \"2026-w2-sun-slate\" (due 2026-09-20T09:07:00-04:00) - nothing scheduled:\n  primary: fresh: 1 line(s) older than 36h (e.g. DET-BUF)",
-        "BLOCKED \"2026-w2-mon-mnf\" (due 2026-09-21T09:06:00-04:00) - nothing scheduled:\n  primary: fresh: 1 line(s) older than 48h (e.g. DET-BUF)\n  fallback: fresh: 1 line(s) older than 48h (e.g. DET-BUF)"
-      ]
-    },
     {
       "at": "2026-09-21T13:00:20.321Z",
       "dryRun": false,
@@ -1910,6 +1899,33 @@
           "post": "2026-w11-thu",
           "action": "scheduled",
           "detail": "primary for 2026-11-19T09:03:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-19T14:00:30.937Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w11-wed",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w11-thu",
+          "action": "image-rendered",
+          "detail": "social/img/2026-w11-thu-539b54701e.png"
+        },
+        {
+          "post": "2026-w11-thu",
+          "action": "updated",
+          "detail": "primary; text + image changed + image"
+        },
+        {
+          "post": "2026-w11-fri",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-20T09:39:00-05:00"
         }
       ],
       "alerts": []

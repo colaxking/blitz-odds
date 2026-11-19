@@ -740,6 +740,14 @@
     .cfb-list-head .wk-search { order: 3; }
   }
 
+  /* Signed out, the leagues landing page drops the "My Leagues" column on
+     desktop (the sign-in banner above already says it) so league search gets
+     the full width - its six-column table does not fit in half a page. */
+  @media (min-width: 861px) {
+    .leagues-columns.signed-out { display: block; }
+    .leagues-columns.signed-out > .leagues-page-section { display: none; }
+  }
+
   /* ---- Organized footer ------------------------------------------------ */
   .footer-cols {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px 24px;

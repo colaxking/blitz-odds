@@ -11517,10 +11517,19 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   const [pendingLeaveId, setPendingLeaveId] = useState(null);
   const [leavingId, setLeavingId] = useState(null);
   const [leaveErrorId, setLeaveErrorId] = useState(null);
-  const [mobileTab, setMobileTab] = useState("mine");
-  const [subTab, setSubTab] = useState(initialSubTab || "mine");
+  const [mobileTabRaw, setMobileTab] = useState(null);
+  const [subTabRaw, setSubTab] = useState(initialSubTab || null);
 
   const signedIn = auth.status === "in";
+  /* Until someone picks a tab, a signed-out visitor lands on Search Leagues:
+     the public leagues they can join, under the sign-in banner. The old
+     default was "My Leagues" for everyone, which signed out is an empty
+     card beside two unselected tabs - the page looked blank, and the
+     header's "Pick'em Leagues" link made that the first thing people saw.
+     Derived rather than set once at mount, because the session is still
+     resolving on the first render. */
+  const subTab = subTabRaw || (signedIn ? "mine" : "search");
+  const mobileTab = mobileTabRaw || (subTabRaw && subTabRaw !== "mine" ? subTabRaw : (signedIn ? "mine" : "search"));
   const myUserId = auth.user && auth.user.id;
 
 
@@ -11723,7 +11732,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
       {/* Desktop: My Leagues in a left column, Search/Create sharing the
           right column via a subtab bar defaulting to Search. Collapses to
           the mobile tab bar above below 860px (see CSS media queries). */}
-      <div className="leagues-columns">
+      <div className={"leagues-columns" + (signedIn ? "" : " signed-out")}>
         <div className={"leagues-page-section" + (mobileTab === "mine" ? " mobile-active" : "")}>
           <h2 className="leagues-page-section-title">{myLeaguesLabel}</h2>
           {!signedIn && <p className="leagues-empty">Sign in to see the leagues you're in.</p>}
@@ -18961,7 +18970,7 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPin
           onClick={(e) => {
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
             e.preventDefault();
-            onSelectTab(t.id);
+            onSelectTab(t.desktopOnly ? "league-browse" : t.id);
           }}
           aria-current={activeTab === t.id ? "page" : undefined}
           aria-label={t.id === "games" && liveCount > 0
@@ -25892,6 +25901,17 @@ function App() {
   }
 
   function selectTab(tab) {
+    if (tab === "league-browse") {
+      // The desktop header's "Pick'em Leagues" link. Signed in, the bare
+      // leagues list is a dead end that bounces to Home (see landingIsDeadEnd
+      // in LeagueView), which made the link look broken - so it goes to the
+      // Join a League page: public league search plus the invite code box
+      // (their own leagues are on Home). Signed out it is the leagues landing
+      // page, which opens on the same search. The phone's pinned Leagues tab
+      // and the Menu entry keep going through "league" below.
+      goToLeaguesTab(auth.status === "in" ? { subTab: "search" } : undefined);
+      return;
+    }
     if (tab === "league") {
       goToLeaguesTab();
       return;

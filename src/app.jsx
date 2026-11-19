@@ -17823,7 +17823,6 @@ function HomeExplore({ week, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
   // Recomputed every render on purpose (see HomeLanding's `edge`): live data
   // arrives after mount and must reach these chips.
   const rows = homeSlateRows(week, tz);
-  const teams = LIVE_TEAMS_LIST.slice().sort((a, b) => a.name.localeCompare(b.name));
   const tiles = [
     ["/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor & ATS sheets"],
     ["/leagues/", "/branding/tab-icon-leagues.svg", "Free leagues", "Join a pool or run your own"],
@@ -17885,14 +17884,6 @@ function HomeExplore({ week, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
           >
             <img src={img} alt="" width="34" height="34" loading="lazy" decoding="async" />
             <span><b>{name}</b><small>{sub}</small></span>
-          </a>
-        ))}
-      </div>
-      <div className="home-sec-head"><h3>NFL teams</h3></div>
-      <div className="home-card hx-teamgrid" id="nfl-teams">
-        {teams.map(t => (
-          <a className="hx-team" href={buildTeamPath(t.id)} title={t.name} key={t.id}>
-            <img src={`/team-badges/${t.id}.png`} alt={t.name} width="34" height="34" loading="lazy" decoding="async" />
           </a>
         ))}
       </div>
@@ -26601,6 +26592,7 @@ function App() {
           {" · "}<a href={`/games/${(SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear()}/${weekSlug(getDefaultWeek())}/`}>This week's picks</a>
           {" · "}<a href="/picks/">Pick'em Playbook</a>
           {" · "}<a href="/leagues/">Pick'em leagues</a>
+          {" · "}<a href="/teams/">NFL teams</a>
           {features.cfb && <>{" · "}<a href="/college/teams/">College teams</a></>}
         </p>
         <p className="footer-legal">

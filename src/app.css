@@ -628,8 +628,8 @@
   .home-close p { margin: 0 0 16px; font-size: .86rem; color: var(--text-dim); }
   .home-close .home-acts { justify-content: center; }
 
-  /* "This week" block at the foot of the landing page: the slate, a row of
-     section tiles and the 32-team badge grid. Same markup from HomeExplore
+  /* "This week" block at the foot of the landing page: the slate and a row of
+     section tiles (NFL teams live at /teams/). Same markup from HomeExplore
      (src/app.jsx) and buildExploreHtml (scripts/build-static-pages.mjs). */
   .home-explore a { text-decoration: none; }
   .hx-head-link { color: var(--accent); font-weight: 800; font-size: .8rem; white-space: nowrap; }
@@ -670,10 +670,6 @@
   .hx-tile img { width: 34px; height: 34px; object-fit: contain; flex: 0 0 auto; }
   .hx-tile b { display: block; font-size: .84rem; }
   .hx-tile small { display: block; font-size: .7rem; color: var(--text-dim); line-height: 1.35; margin-top: 2px; }
-  .hx-teamgrid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 10px 4px; padding: 14px 12px; justify-items: center; }
-  .hx-team { display: block; border-radius: 10px; padding: 3px; }
-  .hx-team:hover { background: var(--surface-2); }
-  .hx-team img { width: 34px; height: 34px; display: block; }
   footer.app-footer .footer-sitelinks a { color: var(--text-dim); text-decoration: underline; }
 
   @media (max-width: 860px) {
@@ -696,7 +692,6 @@
     .hx-tiles { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .hx-tile { flex-direction: row; text-align: left; gap: 10px; padding: 12px; }
     .hx-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
-    .hx-teamgrid { grid-template-columns: repeat(8, 1fr); }
     .home-hero h2.home-display { font-size: 1.85rem; }
     .home-fmt-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .home-value, .home-value.has-import { grid-template-columns: 1fr; }

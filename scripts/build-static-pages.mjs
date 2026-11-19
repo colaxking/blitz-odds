@@ -1085,7 +1085,7 @@ function buildTeamSnapshotHtml(data, team) {
   ${injuryRows ? `<h2>${escapeHtml(team.name)} injury report</h2>\n  <ul>\n${injuryRows}\n  </ul>` : ""}
 
   <p>
-    ${current ? `<a href="${weekHubPath(data, current)}">NFL ${escapeHtml(current.label)} picks &amp; predictions</a> · ` : ""}<a href="/games/">This week's NFL games and all 32 teams</a> ·
+    ${current ? `<a href="${weekHubPath(data, current)}">NFL ${escapeHtml(current.label)} picks &amp; predictions</a> · ` : ""}<a href="/teams/">All 32 NFL teams</a> · <a href="/games/">This week's NFL games</a> ·
     <a href="/picks/">Pick'em Playbook</a> ·
     <a href="/leagues/">Free pick'em leagues</a>
   </p>
@@ -1095,7 +1095,7 @@ function buildTeamSnapshotHtml(data, team) {
 function teamTrail(team) {
   return [
     { name: "Blitz Odds", path: "/" },
-    { name: "NFL teams", path: "/games/#nfl-teams" },
+    { name: "NFL teams", path: "/teams/" },
     { name: team.name, path: `/teams/${slugify(team.name)}/` },
   ];
 }
@@ -1317,7 +1317,7 @@ function stripHomeSnapshot(html) {
 }
 
 /** The crawlable "this week" block: every game of the current period linked
- *  to its own page, the hub pages, and all 32 teams. Same markup and classes
+ *  to its own page, and the hub pages (the teams hub is /teams/). Same markup and classes
  *  as <HomeExplore> in src/app.jsx (keep the two in step) - before this the
  *  homepage's HTML linked to "/", "/games" and "/leagues" and nothing else,
  *  and the app's own navigation is buttons, so no current-season page was
@@ -1337,10 +1337,6 @@ function buildExploreHtml(data, period) {
     }
   }
   const tile = (href, img, name, sub) => `        <a class="hx-tile" href="${href}"><img src="${img}" alt="" width="34" height="34" loading="lazy" decoding="async" /><span><b>${name}</b><small>${sub}</small></span></a>`;
-  const teams = [...data.teams]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((t) => `<a class="hx-team" href="/teams/${slugify(t.name)}/" title="${escapeHtml(t.name)}"><img src="/team-badges/${escapeHtml(t.id)}.png" alt="${escapeHtml(t.name)}" width="34" height="34" loading="lazy" decoding="async" /></a>`)
-    .join("");
   const tiles = [
     tile("/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor &amp; ATS sheets"),
     tile("/leagues/", "/branding/tab-icon-leagues.svg", "Free leagues", "Join a pool or run your own"),
@@ -1360,8 +1356,6 @@ ${games}        </div>
       <div class="hx-tiles">
 ${tiles}
       </div>
-      <div class="home-sec-head"><h3>NFL teams</h3></div>
-      <div class="home-card hx-teamgrid" id="nfl-teams">${teams}</div>
     </div>`;
 }
 
@@ -1626,6 +1620,121 @@ async function buildTabPage(template, page, data, periods) {
   return { path: page.canonicalPath, changed };
 }
 
+// ---- /teams/ - the NFL teams index -------------------------------------------
+// A standalone page (its own small shell, like the /college/ pages - not the
+// app) so the 32 team pages have one hub that every page's footer can link to
+// instead of the homepage carrying a 32-badge grid. Division alignment is the
+// same static map the app uses (TEAM_DIVISION in src/app.jsx).
+const TEAM_DIVISION = {
+  BUF: "AFC East", MIA: "AFC East", NE: "AFC East", NYJ: "AFC East",
+  BAL: "AFC North", CIN: "AFC North", CLE: "AFC North", PIT: "AFC North",
+  HOU: "AFC South", IND: "AFC South", JAX: "AFC South", TEN: "AFC South",
+  DEN: "AFC West", KC: "AFC West", LV: "AFC West", LAC: "AFC West",
+  DAL: "NFC East", NYG: "NFC East", PHI: "NFC East", WAS: "NFC East",
+  CHI: "NFC North", DET: "NFC North", GB: "NFC North", MIN: "NFC North",
+  ATL: "NFC South", CAR: "NFC South", NO: "NFC South", TB: "NFC South",
+  ARI: "NFC West", LAR: "NFC West", SF: "NFC West", SEA: "NFC West",
+};
+const DIVISION_ORDER = ["AFC East", "AFC North", "AFC South", "AFC West", "NFC East", "NFC North", "NFC South", "NFC West"];
+
+const TEAMS_INDEX_CSS = `
+:root{--bg:#0b1220;--card:#131c2e;--border:#223049;--s2:#1a2438;--text:#eef2f8;--dim:#9fb0c9;--accent:#4fd1c5}
+html[data-theme="light"]{--bg:#dbe2ec;--card:#fff;--border:#c3cedd;--s2:#e7ecf3;--text:#16202f;--dim:#5b6b80;--accent:#0f8f83}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.45}
+a{color:var(--accent)}.wrap{max-width:960px;margin:0 auto;padding:14px 16px 56px}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--text);text-decoration:none}.brand img{width:28px;height:28px}.brand b{color:var(--accent)}
+.nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}.nav a{padding:6px 10px;border-radius:8px;text-decoration:none;color:var(--dim);font-weight:600;font-size:14px}.nav a:hover,.nav a.on{background:var(--s2);color:var(--text)}
+.crumbs{font-size:13px;color:var(--dim);margin:0 0 8px}.crumbs a{color:var(--dim)}
+h1{font-size:26px;line-height:1.2;margin:4px 0 6px}h2{font-size:15px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.lede{color:var(--dim);margin:0 0 14px}.divs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.team{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border)}.team:first-of-type{border-top:none}
+.team img{width:34px;height:34px;flex:none}.team .nm{font-weight:700;color:var(--text);text-decoration:none}.team .nm:hover{color:var(--accent)}
+.team .nx{display:block;font-size:12px;color:var(--dim)}.team .nx a{color:var(--dim)}
+footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--dim)}footer a{color:var(--dim)}
+@media (max-width:600px){h1{font-size:22px}.divs{grid-template-columns:1fr}.top{gap:8px}.nav{margin-left:0;width:100%;gap:2px}.nav a{padding:6px 9px}}
+`;
+
+async function buildTeamsIndexPage(data, periods) {
+  const canonicalPath = "/teams/";
+  const url = `${SITE_BASE}${canonicalPath}`;
+  const period = currentPeriod(data, periods);
+  const title = `NFL Teams - Schedules, Odds & Predictions for All 32 Teams | Blitz Odds`;
+  const description = `All 32 NFL teams by division. Open a team for its full ${data.seasonYear} schedule, model predictions and win probabilities, team rankings and injury report.`;
+  const nextLine = (team) => {
+    if (!period) return "";
+    const g = period.games.find((x) => x.home === team.id || x.away === team.id);
+    if (!g) return period.showByeIfMissing ? `<span class="nx">${escapeHtml(period.label)}: bye</span>` : "";
+    const opp = findTeam(data.teams, g.home === team.id ? g.away : g.home);
+    if (!opp) return "";
+    return `<span class="nx">${escapeHtml(period.label)}: <a href="${gamePagePath(data, period, g)}">${g.home === team.id ? "vs" : "at"} ${escapeHtml(opp.name)}</a></span>`;
+  };
+  const sections = DIVISION_ORDER.map((div) => {
+    const list = data.teams.filter((t) => TEAM_DIVISION[t.id] === div).sort((a, b) => a.name.localeCompare(b.name));
+    if (!list.length) return "";
+    return `<section class="card"><h2>${escapeHtml(div)}</h2>${list
+      .map((t) => `<div class="team"><img src="/team-badges/${escapeHtml(t.id)}.png" alt="" width="34" height="34" loading="lazy" decoding="async" /><div><a class="nm" href="/teams/${slugify(t.name)}/">${escapeHtml(t.name)}</a>${nextLine(t)}</div></div>`)
+      .join("")}</section>`;
+  }).join("\n");
+  const trail = [{ name: "Blitz Odds", path: "/" }, { name: "NFL teams", path: canonicalPath }];
+  const itemList = {
+    "@context": "https://schema.org", "@type": "ItemList", name: "NFL teams", numberOfItems: data.teams.length,
+    itemListElement: [...data.teams].sort((a, b) => a.name.localeCompare(b.name)).map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.name, url: `${SITE_BASE}/teams/${slugify(t.name)}/` })),
+  };
+  const nav = [
+    ["/", "Home", false], ["/games/", "NFL", false],
+    ...(data.features.cfb ? [["/college/", "College", false]] : []),
+    ["/teams/", "Teams", true],
+  ].map(([href, label, on]) => `<a href="${href}"${on ? ' class="on"' : ""}>${label}</a>`).join("");
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1KHS0JK39B"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1KHS0JK39B');</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(description)}" />
+<link rel="canonical" href="${url}" />
+<meta property="og:title" content="${escapeHtml(title)}" />
+<meta property="og:description" content="${escapeHtml(description)}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="${url}" />
+<meta property="og:site_name" content="Blitz Odds" />
+<meta property="og:image" content="${SITE_BASE}/branding/blitz-odds-og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@RealBlitzOdds" />
+<link rel="icon" type="image/svg+xml" href="/branding/blitz-odds-icon.svg" />
+<link rel="apple-touch-icon" href="/branding/apple-touch-icon.png" />
+<script>(function(){try{var s=localStorage.getItem("blitz-odds-theme");var m=s==="light"||s==="dark"||s==="system"?s:"dark";var r=m==="system"?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):m;if(r==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}})();</script>
+<style>${TEAMS_INDEX_CSS.trim()}</style>
+${breadcrumbJsonLd(trail)}
+<script type="application/ld+json">${JSON.stringify(itemList)}</script>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><a class="brand" href="/"><img src="/branding/blitz-odds-icon.svg" alt="" width="28" height="28">Blitz <b>Odds</b></a><nav class="nav" aria-label="Site">${nav}</nav></header>
+<main>
+<p class="crumbs"><a href="/">Blitz Odds</a> &rsaquo; NFL teams</p>
+<h1>NFL Teams</h1>
+<p class="lede">All 32 teams by division. Open a team for its full ${data.seasonYear} schedule, the model's prediction and win probability for every game, team rankings and the injury report.</p>
+<div class="divs">
+${sections}
+</div>
+</main>
+<footer>
+<p>Blitz Odds is for informational and entertainment purposes only and does not accept wagers. Gambling problem? Call or text 1-800-GAMBLER. Not affiliated with or endorsed by the National Football League. Team names and marks are the property of their respective owners.</p>
+<p><a href="/games/">NFL games &amp; odds</a>${period ? ` · <a href="${weekHubPath(data, period)}">${escapeHtml(period.label)} picks</a>` : ""} · <a href="/picks/">Pick'em Playbook</a> · <a href="/leagues/">Pick'em leagues</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+</footer>
+</div>
+</body>
+</html>
+`;
+  const changed = await writeIfChanged(path.join(REPO_ROOT, "teams", "index.html"), html);
+  return { path: canonicalPath, changed };
+}
+
 /** Paths that once had a prerendered page and no longer should. */
 const RETIRED_PATHS = ["/archive"];
 
@@ -1828,8 +1937,9 @@ async function main() {
     tabEntries.push(await buildTabPage(template, page, data, periods));
   }
 
+  const teamsIndexEntry = await buildTeamsIndexPage(data, periods);
   const indexedTabEntries = tabEntries.filter((e, i) => !TAB_PAGES[i].noindex);
-  const entries = [...indexedTabEntries, ...teamEntries, ...weekEntries, ...gameEntries];
+  const entries = [...indexedTabEntries, teamsIndexEntry, ...teamEntries, ...weekEntries, ...gameEntries];
   const changedCount = entries.filter((e) => e.changed).length;
 
   log("Updating sitemap...");

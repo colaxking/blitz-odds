@@ -490,7 +490,8 @@ function page({ title, description, canonicalPath, h1, lede, body, trail, jsonLd
     // With the cfb flag on, "College" is the app's Games tab on its College
     // side (the same place the Home tile and the app's own links go); the
     // standalone landing page stays reachable from the breadcrumbs and footer.
-    ["/", "Home", ""], ["/games/", "NFL", ""], [FEATURES.cfb ? "/college/" : "/college/games/", "College", "games"],
+    // The college teams pages are college-only: no NFL link in the nav or footer.
+    ["/", "Home", ""], ...(navOn === "teams" ? [] : [["/games/", "NFL", ""]]), [FEATURES.cfb ? "/college/" : "/college/games/", "College", "games"],
     ["/college/teams/", "Teams", "teams"], ...(FEATURES.bowls ? [["/college/bowls/", "Bowls", "bowls"]] : []),
   ].map(([href, label, key]) => `<a href="${href}"${key && key === navOn ? ' class="on"' : ""}>${label}</a>`).join("");
   return `<!DOCTYPE html>
@@ -527,7 +528,7 @@ ${body}
 </main>
 <footer>
 <p>Lines from ESPN's college feed (DraftKings unless noted). "Market" win chances are the betting market's implied odds with the vig removed - Blitz Odds has no college model of its own yet. For entertainment only; not betting advice. 21+ where legal, 1-800-GAMBLER. Blitz Odds is not affiliated with the NCAA or any school or conference.</p>
-<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · ${FEATURES.bowls ? `<a href="/college/bowls/">Bowl schedule</a> · ` : ""}<a href="/games/">NFL picks</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated ${esc(new Date().toISOString().slice(0, 16).replace("T", " "))} UTC<!--/stamp--></p>
+<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · ${FEATURES.bowls ? `<a href="/college/bowls/">Bowl schedule</a> · ` : ""}${navOn === "teams" ? "" : `<a href="/games/">NFL picks</a> · `}<a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated ${esc(new Date().toISOString().slice(0, 16).replace("T", " "))} UTC<!--/stamp--></p>
 </footer>
 </div>
 </body>

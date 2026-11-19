@@ -1683,8 +1683,8 @@ async function buildTeamsIndexPage(data, periods) {
     itemListElement: [...data.teams].sort((a, b) => a.name.localeCompare(b.name)).map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.name, url: `${SITE_BASE}/teams/${slugify(t.name)}/` })),
   };
   const nav = [
+    // NFL-only page: no College link here (and no NFL link on the college teams pages).
     ["/", "Home", false], ["/games/", "NFL", false],
-    ...(data.features.cfb ? [["/college/", "College", false]] : []),
     ["/teams/", "Teams", true],
   ].map(([href, label, on]) => `<a href="${href}"${on ? ' class="on"' : ""}>${label}</a>`).join("");
   const html = `<!DOCTYPE html>

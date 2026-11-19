@@ -8,6 +8,10 @@ Allow: /
 Disallow: /g/
 Disallow: /join/
 Disallow: /leagues/
+# ...except the landing page itself: /leagues/ is the public "join or run a
+# pick'em pool" page and is listed in sitemap.xml. Only /leagues/{id} is
+# per-user. ($ anchors the end of the URL; the longer rule wins.)
+Allow: /leagues/$
 # Netlify Identity email templates - raw Go-template HTML, not pages.
 Disallow: /email-templates/
 

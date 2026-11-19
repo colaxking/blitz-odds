@@ -202,6 +202,71 @@ function resultForWeek(data, week, awayAbbr, homeAbbr) {
   return snap.results[`${awayAbbr}-${homeAbbr}`] || null;
 }
 
+/** Impact players for a given week. A finished week's history entry carries
+ *  the injury list the site ran on that week (impactPlayers); the app reads
+ *  it through getWeekContext().getPlayers, and these pages must too - with
+ *  today's list a finished game's "pregame pick" was recomputed against
+ *  injuries that happened weeks later, and could flip the stated call. */
+function playersForWeek(data, week, teamId) {
+  const snap = getHistorySnapshot(data, week);
+  if (snap) return (snap.impactPlayers && snap.impactPlayers[teamId]) || [];
+  return data.players[teamId] || [];
+}
+
+/** "Kansas City Chiefs" -> "Chiefs". Every NFL nickname is the last word. */
+function nickname(team) {
+  return String(team.name).split(" ").pop();
+}
+
+function weekHubPath(data, period) {
+  return `/games/${data.seasonYear}/${slugify(period.label)}/`;
+}
+
+function gamePagePath(data, period, game) {
+  const away = findTeam(data.teams, game.away);
+  const home = findTeam(data.teams, game.home);
+  return `${weekHubPath(data, period)}${slugify(away ? away.name : game.away)}-at-${slugify(home ? home.name : game.home)}/`;
+}
+
+/** Visible breadcrumb trail + matching BreadcrumbList JSON-LD. `trail` is
+ *  [{ name, path }]; the last item is the current page and is not linked. */
+function breadcrumbHtml(trail) {
+  return `<nav aria-label="Breadcrumb"><p>${trail
+    .map((t, i) => (i === trail.length - 1 ? escapeHtml(t.name) : `<a href="${t.path}">${escapeHtml(t.name)}</a>`))
+    .join(" &rsaquo; ")}</p></nav>`;
+}
+function breadcrumbJsonLd(trail) {
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: trail.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.name, item: `${SITE_BASE}${t.path}` })),
+  };
+  return `<script type="application/ld+json">${JSON.stringify(ld)}</script>`;
+}
+
+/** Title / H1 / description for one game page. Mirrored by gamePageMeta()
+ *  in src/app.jsx (useDocumentMeta + the header <h1>) - keep the two in step.
+ *  A finished game is described as a result and a model recap, never as an
+ *  upcoming prediction. */
+function gamePageMeta({ away, home, periodLabel, seasonYear, game, result, pickName, pickPct }) {
+  const a = nickname(away);
+  const h = nickname(home);
+  if (result && result.final) {
+    return {
+      title: `${a} vs ${h} Final Score & Model Recap - NFL ${periodLabel} ${seasonYear} | Blitz Odds`,
+      h1: `${away.name} vs ${home.name} - ${periodLabel} Final Score & Model Recap`,
+      description: `Final: ${away.name} ${result.awayScore}, ${home.name} ${result.homeScore} (NFL ${periodLabel}, ${seasonYear}). How the Blitz Odds model called it, the betting line and the team-ranking matchup behind the pick.`,
+    };
+  }
+  const when = game && game.date ? ` on ${game.date}` : "";
+  const pick = pickName && pickPct ? ` The Blitz Odds model gives the ${pickName} ${/^(8|11|18)/.test(String(pickPct)) ? "an" : "a"} ${pickPct}% chance to win.` : "";
+  return {
+    title: `${a} vs ${h} Prediction, Win Probability & Pick'em Analysis - NFL ${periodLabel} ${seasonYear} | Blitz Odds`,
+    h1: `${away.name} vs ${home.name} - ${periodLabel} Prediction & Matchup Analysis`,
+    description: `${away.name} at ${home.name}${when}.${pick} Spread, moneyline, injuries and the matchup edges behind the pick.`,
+  };
+}
+
 const DEFAULT_SPORTSBOOK_ID = "draftkings";
 function getOdds(data, week, away, home) {
   const weekOdds = data.odds.weeks && data.odds.weeks[String(week)];
@@ -456,12 +521,16 @@ function injectAfterBody(html, snapshot) {
 
 /** Set by the snapshot builders: did the last snapshot emit a gated part? */
 let lastSnapshotGated = false;
+/** Set by buildGameSnapshotHtml: the title/H1/description and breadcrumb
+ *  trail of the game it just rendered, for buildGamePage's <head>. */
+let lastGameMeta = null;
+let lastGameTrail = null;
 
 function buildGameSnapshotHtml(data, period, game) {
   const away = teamForWeek(data, period.week, game.away);
   const home = teamForWeek(data, period.week, game.home);
-  const awayPlayers = data.players[game.away] || [];
-  const homePlayers = data.players[game.home] || [];
+  const awayPlayers = playersForWeek(data, period.week, game.away);
+  const homePlayers = playersForWeek(data, period.week, game.home);
   const prediction = PredictionEngine.predictMatchup({
     homeTeam: home,
     awayTeam: away,
@@ -480,14 +549,34 @@ function buildGameSnapshotHtml(data, period, game) {
   const predictedWinnerName = prediction.predictedWinner === home.id ? home.name : away.name;
 
   const result = resultForWeek(data, period.week, game.away, game.home);
+  const isFinal = !!(result && result.final);
+  const pickPct = prediction.predictedWinner === home.id ? homePct : awayPct;
+  const meta = gamePageMeta({ away, home, periodLabel: period.label, seasonYear: data.seasonYear, game, result, pickName: nickname(prediction.predictedWinner === home.id ? home : away), pickPct });
+  lastGameMeta = meta;
+  const hubPath = weekHubPath(data, period);
+  const trail = [
+    { name: "Blitz Odds", path: "/" },
+    { name: "NFL games", path: "/games/" },
+    { name: `${period.label} picks`, path: hubPath },
+    { name: `${nickname(away)} vs ${nickname(home)}`, path: gamePagePath(data, period, game) },
+  ];
+  lastGameTrail = trail;
+  // The rest of the slate, so every game page links sideways to its week
+  // (they used to link only to the two team pages and the homepage).
+  const otherGames = period.games
+    .filter((g) => g !== game && findTeam(data.teams, g.away) && findTeam(data.teams, g.home))
+    .map((g) => `    <li><a href="${gamePagePath(data, period, g)}">${escapeHtml(findTeam(data.teams, g.away).name)} at ${escapeHtml(findTeam(data.teams, g.home).name)}</a></li>`)
+    .join("\n");
   let resultBlock = "";
   if (result && result.final) {
     const actualWinnerId = result.homeScore > result.awayScore ? game.home : game.away;
     const actualWinnerName = actualWinnerId === home.id ? home.name : away.name;
     const correct = actualWinnerId === prediction.predictedWinner;
-    resultBlock = `<p><strong>Final:</strong> ${escapeHtml(away.name)} ${result.awayScore} - ${result.homeScore} ${escapeHtml(home.name)}. ${escapeHtml(actualWinnerName)} won. Model prediction was ${correct ? "correct" : "incorrect"}.</p>`;
+    resultBlock = `<p><strong>Final:</strong> ${escapeHtml(away.name)} ${result.awayScore} - ${result.homeScore} ${escapeHtml(home.name)}. ${escapeHtml(actualWinnerName)} won. The model's pregame pick was ${correct ? "correct" : "incorrect"}.</p>`;
   }
 
+  const stadiumEntry = !game.international && data.stadiums.teamStadiums && data.stadiums.teamStadiums[game.home];
+  const stadiumName = stadiumEntry ? stadiumEntry.name : "";
   const odds = getOdds(data, period.week, game.away, game.home);
   const writeup = buildGatedWriteupHtml(buildRationaleText({ away, home, prediction, odds }), "edge-writeup-full");
   lastSnapshotGated = writeup.gated;
@@ -506,17 +595,19 @@ function buildGameSnapshotHtml(data, period, game) {
 
   return `
 <div id="prerendered-content">
-  <h1>${escapeHtml(away.name)} at ${escapeHtml(home.name)} — ${escapeHtml(period.label)} Odds, Injuries &amp; Prediction</h1>
-  <p>${escapeHtml(away.name)} @ ${escapeHtml(home.name)}: live odds, injury report, team rankings comparison, and win probability for this matchup.</p>
-  <p>${escapeHtml(game.date)}${game.time ? " · " + escapeHtml(game.time) : ""}${game.network ? " · " + escapeHtml(game.network) : ""}</p>
+  ${breadcrumbHtml(trail)}
+  <h1>${escapeHtml(meta.h1)}</h1>
+  <p>${escapeHtml(meta.description)}</p>
+  <p>${escapeHtml(away.name)} at ${escapeHtml(home.name)} · NFL ${escapeHtml(period.label)}, ${data.seasonYear} season · ${escapeHtml(game.date)}${game.time ? " · " + escapeHtml(game.time) : ""}${game.network ? " · " + escapeHtml(game.network) : ""}${stadiumName ? " · " + escapeHtml(stadiumName) : ""}</p>
 
   ${resultBlock}
   ${oddsBlock}
 
-  <h2>Model prediction</h2>
-  <p>Predicted winner: <strong>${escapeHtml(predictedWinnerName)}</strong> - ${escapeHtml(game.away)} ${awayPct}% / ${escapeHtml(game.home)} ${homePct}%</p>
+  <h2>${isFinal ? "How the model called it" : "Model prediction and win probability"}</h2>
+  <p>${isFinal ? "Pregame pick" : "Predicted winner"}: <strong>${escapeHtml(predictedWinnerName)}</strong> - ${escapeHtml(game.away)} ${awayPct}% / ${escapeHtml(game.home)} ${homePct}%</p>
+  ${isFinal ? "" : `<p>Straight-up pick'em pick: <strong>${escapeHtml(predictedWinnerName)}</strong>. See where this game sits on the <a href="${hubPath}">${escapeHtml(period.label)} confidence pool ladder</a>, or get the survivor and against-the-spread sheets in the <a href="/picks/">Pick'em Playbook</a>.</p>`}
 
-  <h2>Blitz Edge: why the model likes ${escapeHtml(predictedWinnerName)}</h2>
+  <h2>Blitz Edge: why the model ${isFinal ? "liked" : "likes"} ${escapeHtml(predictedWinnerName)}</h2>
   ${writeup.html}
 
   <h2>Team stats comparison (rank out of 32)</h2>
@@ -537,19 +628,25 @@ function buildGameSnapshotHtml(data, period, game) {
     </tbody>
   </table>
 
-  ${injuries ? `<h2>Injury report</h2>\n  <ul>\n${injuries}\n  </ul>` : ""}
+  ${injuries ? `<h2>Injury report${isFinal ? " (as of that week)" : ""}</h2>\n  <ul>\n${injuries}\n  </ul>` : ""}
+
+  <h2>Teams</h2>
+  <p>
+    <a href="/teams/${slugify(away.name)}/">${escapeHtml(away.name)} schedule, odds &amp; predictions</a> ·
+    <a href="/teams/${slugify(home.name)}/">${escapeHtml(home.name)} schedule, odds &amp; predictions</a>
+  </p>
+
+  ${otherGames ? `<h2>More ${escapeHtml(period.label)} games</h2>\n  <ul>\n${otherGames}\n  </ul>` : ""}
 
   <p>
-    <a href="/teams/${slugify(away.name)}/">${escapeHtml(away.name)} full schedule</a> ·
-    <a href="/teams/${slugify(home.name)}/">${escapeHtml(home.name)} full schedule</a> ·
-    <a href="/">See this week's full NFL odds and predictions on Blitz Odds</a>
+    <a href="${hubPath}">All ${escapeHtml(period.label)} picks &amp; predictions</a> ·
+    <a href="/games/">This week's NFL games</a> ·
+    <a href="/leagues/">Play these picks in a free pick'em league</a>
   </p>
 </div>`;
 }
 
-function buildGameHead(template, away, home, canonicalPath) {
-  const title = `${away.name} at ${home.name} — Odds, Injuries & Prediction | Blitz Odds`;
-  const description = `${away.name} @ ${home.name}: live odds, injury report, team rankings comparison, and win probability for this matchup.`;
+function buildGameHead(template, title, description, canonicalPath) {
   const canonicalUrl = `${SITE_BASE}${canonicalPath}`;
 
   let html = template;
@@ -572,15 +669,17 @@ async function buildGamePage(template, data, period, game) {
   const weekSlug = slugify(period.label);
   const canonicalPath = `/games/${data.seasonYear}/${weekSlug}/${slugify(away.name)}-at-${slugify(home.name)}/`;
 
-  let html = buildGameHead(template, away, home, canonicalPath);
+  // Snapshot first: it works out the result / pick the head metadata needs.
+  const snapshot = buildGameSnapshotHtml(data, period, game);
+  let html = buildGameHead(template, lastGameMeta.title, lastGameMeta.description, canonicalPath);
 
   const jsonLd = buildGameJsonLd(data, game, data.seasonYear, canonicalPath);
   if (jsonLd) html = html.replace("</head>", `${jsonLd}\n</head>`);
+  html = html.replace("</head>", `${breadcrumbJsonLd(lastGameTrail)}\n</head>`);
 
-  const snapshot = buildGameSnapshotHtml(data, period, game);
   if (lastSnapshotGated) {
     const articleLd = buildGatedArticleJsonLd({
-      headline: `${away.name} at ${home.name} - ${period.label} prediction and Blitz Edge write-up`,
+      headline: `${away.name} vs ${home.name} - ${period.label} prediction and Blitz Edge write-up`,
       description: `Why the Blitz Odds model picks its winner in ${away.name} at ${home.name}: the matchup edges, injuries and market read behind the number.`,
       canonicalPath,
       gatedClass: "edge-writeup-full",
@@ -626,8 +725,8 @@ function buildLadder(data, period) {
     const prediction = PredictionEngine.predictMatchup({
       homeTeam: home,
       awayTeam: away,
-      homeImpactPlayers: data.players[game.home] || [],
-      awayImpactPlayers: data.players[game.away] || [],
+      homeImpactPlayers: playersForWeek(data, period.week, game.home),
+      awayImpactPlayers: playersForWeek(data, period.week, game.away),
       weather: null,
       homeIsDomeTeam: isDomeTeam(data.stadiums, game.home),
       awayIsDomeTeam: isDomeTeam(data.stadiums, game.away),
@@ -654,7 +753,7 @@ function buildLadder(data, period) {
   return rows.map((r, i) => ({ ...r, points: rows.length - i }));
 }
 
-function buildWeekHubSnapshotHtml(data, period, ladder, prev, next) {
+function buildWeekHubSnapshotHtml(data, period, ladder, prev, next, allPeriods) {
   const seasonYear = data.seasonYear;
   const weekSlug = slugify(period.label);
   const gameUrl = (row) => `/games/${seasonYear}/${weekSlug}/${row.slug}/`;
@@ -689,14 +788,24 @@ function buildWeekHubSnapshotHtml(data, period, ladder, prev, next) {
   const nav = [
     prev ? `<a href="/games/${seasonYear}/${slugify(prev.label)}/">&laquo; ${escapeHtml(prev.label)}</a>` : "",
     next ? `<a href="/games/${seasonYear}/${slugify(next.label)}/">${escapeHtml(next.label)} &raquo;</a>` : "",
-    `<a href="/games">All ${seasonYear} weeks</a>`,
-    `<a href="/picks">Confidence, survivor &amp; ATS sheets</a>`,
+    `<a href="/games/">This week's NFL games</a>`,
+    `<a href="/picks/">Confidence, survivor &amp; ATS sheets</a>`,
+    `<a href="/leagues/">Free pick'em leagues</a>`,
   ]
     .filter(Boolean)
     .join(" · ");
+  const allWeeks = (allPeriods || [])
+    .map((p) => (p === period ? `<strong>${escapeHtml(p.label)}</strong>` : `<a href="${weekHubPath(data, p)}">${escapeHtml(p.label)}</a>`))
+    .join(" · ");
+  const trail = [
+    { name: "Blitz Odds", path: "/" },
+    { name: "NFL games", path: "/games/" },
+    { name: `${period.label} picks`, path: weekHubPath(data, period) },
+  ];
 
   return `
 <div id="prerendered-content">
+  ${breadcrumbHtml(trail)}
   <h1>NFL ${escapeHtml(period.label)} Picks &amp; Predictions - ${seasonYear}</h1>
   <p>Blitz Odds model picks for all ${ladder.length} ${escapeHtml(period.label)} games, ranked into a full confidence pool ladder. Win probabilities are adjusted for team rankings, injuries, and home field. Free, no account needed.</p>
 
@@ -712,6 +821,7 @@ function buildWeekHubSnapshotHtml(data, period, ladder, prev, next) {
   ${resultsBlock}
 
   <p>${nav}</p>
+  ${allWeeks ? `<h2>${seasonYear} NFL season by week</h2>\n  <p>${allWeeks}</p>` : ""}
 </div>`;
 }
 
@@ -745,7 +855,7 @@ function buildWeekHubJsonLd(data, period, ladder, canonicalPath) {
   return `<script type="application/ld+json">${JSON.stringify(list)}</script>`;
 }
 
-async function buildWeekHubPage(template, data, period, prev, next) {
+async function buildWeekHubPage(template, data, period, prev, next, allPeriods) {
   const ladder = buildLadder(data, period);
   if (!ladder.length) return null;
 
@@ -761,8 +871,13 @@ async function buildWeekHubPage(template, data, period, prev, next) {
 
   const jsonLd = buildWeekHubJsonLd(data, period, ladder, canonicalPath);
   if (jsonLd) html = html.replace("</head>", `${jsonLd}\n</head>`);
+  html = html.replace("</head>", `${breadcrumbJsonLd([
+    { name: "Blitz Odds", path: "/" },
+    { name: "NFL games", path: "/games/" },
+    { name: `${period.label} picks`, path: canonicalPath },
+  ])}\n</head>`);
 
-  html = injectAfterBody(html, buildWeekHubSnapshotHtml(data, period, ladder, prev, next));
+  html = injectAfterBody(html, buildWeekHubSnapshotHtml(data, period, ladder, prev, next, allPeriods));
   // Hidden by bootApp() in src/app.jsx once React mounts.
 
   const outPath = path.join(REPO_ROOT, "games", String(data.seasonYear), weekSlug, "index.html");
@@ -782,8 +897,8 @@ function buildScheduleRow(data, period, teamId, game) {
   const opp = findTeam(data.teams, oppId);
   const homeTeam = teamForWeek(data, period.week, game.home);
   const awayTeam = teamForWeek(data, period.week, game.away);
-  const homePlayers = data.players[game.home] || [];
-  const awayPlayers = data.players[game.away] || [];
+  const homePlayers = playersForWeek(data, period.week, game.home);
+  const awayPlayers = playersForWeek(data, period.week, game.away);
   const prediction = PredictionEngine.predictMatchup({
     homeTeam,
     awayTeam,
@@ -849,6 +964,7 @@ function statRow(label, off, def) {
 function buildTeamSnapshotHtml(data, team) {
   const stats = team.stats;
   const periods = getPeriods(data);
+  const current = currentPeriod(data, periods);
   const rows = [];
   periods.forEach((period) => {
     const game = period.games.find((g) => g.home === team.id || g.away === team.id);
@@ -877,6 +993,7 @@ function buildTeamSnapshotHtml(data, team) {
 
   return `
 <div id="prerendered-content">
+  ${breadcrumbHtml(teamTrail(team))}
   <h1>${escapeHtml(team.name)} Schedule, Odds &amp; Predictions</h1>
   <p>${escapeHtml(team.name)} full 2026 schedule with matchup predictions, win probabilities, and injury report - powered by Blitz Odds' team-ranking model.</p>
 
@@ -900,8 +1017,20 @@ function buildTeamSnapshotHtml(data, team) {
 
   ${injuryRows ? `<h2>${escapeHtml(team.name)} injury report</h2>\n  <ul>\n${injuryRows}\n  </ul>` : ""}
 
-  <p><a href="/">See this week's full NFL odds and predictions on Blitz Odds</a></p>
+  <p>
+    ${current ? `<a href="${weekHubPath(data, current)}">NFL ${escapeHtml(current.label)} picks &amp; predictions</a> · ` : ""}<a href="/games/">This week's NFL games and all 32 teams</a> ·
+    <a href="/picks/">Pick'em Playbook</a> ·
+    <a href="/leagues/">Free pick'em leagues</a>
+  </p>
 </div>`;
+}
+
+function teamTrail(team) {
+  return [
+    { name: "Blitz Odds", path: "/" },
+    { name: "NFL teams", path: "/games/#nfl-teams" },
+    { name: team.name, path: `/teams/${slugify(team.name)}/` },
+  ];
 }
 
 // ---- Head tag replacement (same copy useDocumentMeta sets client-side) ----
@@ -975,7 +1104,7 @@ async function buildTeamPage(template, data, team) {
   let html = buildHead(template, team, canonicalPath);
 
   // Extra SportsTeam JSON-LD, inserted right before </head>.
-  html = html.replace("</head>", `${buildTeamJsonLd(team, canonicalPath)}\n</head>`);
+  html = html.replace("</head>", `${buildTeamJsonLd(team, canonicalPath)}\n${breadcrumbJsonLd(teamTrail(team))}\n</head>`);
 
   // Visible static snapshot, inserted immediately after <body> (before the
   // React root div) so it's the first thing in the DOM a non-JS-executing
@@ -1090,7 +1219,7 @@ ${survivorItems}
   <h2>${label} against the spread</h2>
   ${spreadBlock}
 
-  <p><a href="/leagues">Join a free NFL pick'em pool</a> and these picks are one tap away in every format.</p>
+  <p><a href="/leagues/">Join a free NFL pick'em pool</a> and these picks are one tap away in every format. <a href="/games/">This week's NFL games</a> · <a href="/">Blitz Odds home</a></p>
 </div>`;
 }
 
@@ -1120,7 +1249,41 @@ function stripHomeSnapshot(html) {
   return html.slice(0, a) + html.slice(b + HOME_SNAPSHOT_END.length).replace(/^\n/, "");
 }
 
-function buildHomeSnapshotHtml(period) {
+/** The crawlable "this week" block: every game of the current period linked
+ *  to its own page, the hub pages, and all 32 teams. Same markup and classes
+ *  as <HomeExplore> in src/app.jsx (keep the two in step) - before this the
+ *  homepage's HTML linked to "/", "/games" and "/leagues" and nothing else,
+ *  and the app's own navigation is buttons, so no current-season page was
+ *  reachable by following links from the root. */
+function buildExploreHtml(data, period) {
+  const games = period
+    ? period.games
+        .filter((g) => findTeam(data.teams, g.away) && findTeam(data.teams, g.home))
+        .map((g) => `        <li><a href="${gamePagePath(data, period, g)}">${escapeHtml(findTeam(data.teams, g.away).name)} at ${escapeHtml(findTeam(data.teams, g.home).name)}</a> <span>${escapeHtml(g.date || "")}</span></li>`)
+        .join("\n")
+    : "";
+  const teams = [...data.teams]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((t) => `<a href="/teams/${slugify(t.name)}/">${escapeHtml(t.name)}</a>`)
+    .join(" ");
+  const label = period ? escapeHtml(period.label) : "";
+  return `    <div class="home-sec-head explore"><h3>${period ? `NFL ${label} games &amp; model picks` : "NFL games &amp; model picks"}</h3></div>
+    <div class="home-card home-explore">
+      ${games ? `<ul class="home-explore-games">\n${games}\n      </ul>` : ""}
+      <p class="home-explore-links">
+        ${period ? `<a href="${weekHubPath(data, period)}">${label} confidence pool ladder</a>` : ""}
+        <a href="/games/">All NFL games &amp; odds</a>
+        <a href="/picks/">Pick'em Playbook</a>
+        <a href="/leagues/">Free pick'em leagues</a>
+        <a href="/college/games/">College football odds</a>
+        <a href="/college/bowls/">Bowl schedule</a>
+        <a href="/historical/index.html">Historical results archive</a>
+      </p>
+      <p class="home-explore-teams" id="nfl-teams"><b>NFL teams</b> ${teams}</p>
+    </div>`;
+}
+
+function buildHomeSnapshotHtml(period, data) {
   const label = period ? escapeHtml(period.label) : "this week";
   return `${HOME_SNAPSHOT_START}
 <div id="prerendered-content" class="app">
@@ -1159,8 +1322,8 @@ function buildHomeSnapshotHtml(period) {
           scores itself all season.
         </p>
         <div class="home-acts">
-          <a href="/leagues" class="home-btn primary">Create a free league</a>
-          <a href="/games" class="home-btn">Browse this week's games</a>
+          <a href="/leagues/" class="home-btn primary">Create a free league</a>
+          <a href="/games/" class="home-btn">Browse this week's games</a>
         </div>
         <div class="home-trust">
           <span>⚡ Odds from 5 sportsbooks</span>
@@ -1169,6 +1332,7 @@ function buildHomeSnapshotHtml(period) {
         </div>
       </div>
     </div>
+${data ? buildExploreHtml(data, period) : ""}
   </div>
 </div>
 ${HOME_SNAPSHOT_END}`;
@@ -1177,14 +1341,98 @@ ${HOME_SNAPSHOT_END}`;
 /** Writes the current week's home snapshot into index.html (between the
  *  markers, creating them after <body> on first run). Returns whether the
  *  file changed. */
-async function stampHomeSnapshot(period) {
+async function stampHomeSnapshot(period, data) {
   const indexPath = path.join(REPO_ROOT, "index.html");
   const current = await readFile(indexPath, "utf8");
   const stripped = stripHomeSnapshot(current);
-  const next = injectAfterBody(stripped, buildHomeSnapshotHtml(period));
+  const next = injectAfterBody(stripped, buildHomeSnapshotHtml(period, data));
   if (next === current) return false;
   await writeFile(indexPath, next, "utf8");
   return true;
+}
+
+/** /games/ - the week view. It had a title and no body text or links at all
+ *  without JavaScript. This is the NFL hub: the current slate with the
+ *  model's pick, every week of the season, and every team. */
+function buildGamesIndexSnapshotHtml(data, periods) {
+  const period = currentPeriod(data, periods);
+  if (!period) return null;
+  const ladder = buildLadder(data, period);
+  const byKickoff = period.games
+    .map((g) => ladder.find((r) => r.game === g))
+    .filter(Boolean);
+  const rows = byKickoff
+    .map((r) => {
+      const res = r.result && r.result.final ? `Final: ${escapeHtml(r.game.away)} ${r.result.awayScore} - ${r.result.homeScore} ${escapeHtml(r.game.home)}` : `${escapeHtml(r.game.date)}${r.game.time ? " · " + escapeHtml(r.game.time) : ""}`;
+      const spread = r.odds ? `${escapeHtml(r.odds.favorite)} ${escapeHtml(formatSpread(r.odds.spread))}` : "-";
+      return `<tr><td><a href="${gamePagePath(data, period, r.game)}">${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}</a></td><td>${res}</td><td>${escapeHtml(r.pickName)} ${r.winPct}%</td><td>${spread}</td></tr>`;
+    })
+    .join("\n      ");
+  const weeks = periods.map((p) => `<a href="${weekHubPath(data, p)}">${escapeHtml(p.label)}</a>`).join(" · ");
+  const teams = [...data.teams]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((t) => `<li><a href="/teams/${slugify(t.name)}/">${escapeHtml(t.name)} schedule &amp; predictions</a></li>`)
+    .join("\n    ");
+  const label = escapeHtml(period.label);
+  return {
+    period,
+    html: `
+<div id="prerendered-content">
+  ${breadcrumbHtml([{ name: "Blitz Odds", path: "/" }, { name: "NFL games", path: "/games/" }])}
+  <h1>NFL Games, Odds &amp; Model Predictions - ${label}, ${data.seasonYear}</h1>
+  <p>Every NFL ${label} game with the Blitz Odds model's pick and win probability and the current point spread. Open a matchup for the injury report, team-ranking comparison and the reasoning behind the pick.</p>
+
+  <h2>${label} games</h2>
+  <table>
+    <thead><tr><th>Matchup</th><th>Kickoff / result</th><th>Model pick</th><th>Spread</th></tr></thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+  <p><a href="${weekHubPath(data, period)}">${label} confidence pool ladder</a> · <a href="/picks/">Pick'em Playbook: confidence, survivor &amp; against-the-spread sheets</a> · <a href="/leagues/">Free pick'em leagues</a></p>
+
+  <h2>${data.seasonYear} NFL season by week</h2>
+  <p>${weeks}</p>
+
+  <h2 id="nfl-teams">NFL teams</h2>
+  <ul>
+    ${teams}
+  </ul>
+
+  <h2>More football</h2>
+  <p><a href="/college/games/">College football odds &amp; win probabilities</a> · <a href="/college/teams/">College football teams</a> · <a href="/college/bowls/">Bowl game schedule</a> · <a href="/historical/index.html">Historical NFL results archive</a></p>
+</div>`,
+  };
+}
+
+/** /leagues/ - the public "what is a Blitz Odds league" page. The copy is
+ *  the app's own (HOME_FORMAT_CARDS and the Home "Why Blitz Odds" cells in
+ *  src/app.jsx); per-league pages under /leagues/{id} stay private. */
+function buildLeaguesSnapshotHtml(data, periods) {
+  const period = currentPeriod(data, periods);
+  return {
+    period,
+    html: `
+<div id="prerendered-content">
+  ${breadcrumbHtml([{ name: "Blitz Odds", path: "/" }, { name: "Pick'em leagues", path: "/leagues/" }])}
+  <h1>Free NFL Pick'em Pools - Join a League or Run Your Own</h1>
+  <p>Blitz Odds gives every game a model win probability, then puts your whole pool on top of it. Invite by email or link. Picks lock at kickoff, scores update live, standings settle on their own.</p>
+
+  <h2>Four pool formats</h2>
+  <ul>
+    <li><strong>Straight-Up</strong> - Pick winners. One point each. The classic office pool.</li>
+    <li><strong>Confidence</strong> - Rank every game. Your best call is worth the most.</li>
+    <li><strong>Survivor</strong> - One team a week. Never twice. Lose once and you're out.</li>
+    <li><strong>Against the Spread</strong> - Beat the number, not just the team. Lines auto-update.</li>
+  </ul>
+
+  <h2>Start a league in about a minute</h2>
+  <p>Name it, pick a format, send the link. That's the whole setup. Official public pools are open to anyone, no invite needed.</p>
+
+  <h2>Picks to play</h2>
+  <p>${period ? `<a href="${weekHubPath(data, period)}">NFL ${escapeHtml(period.label)} picks &amp; confidence pool ladder</a> · ` : ""}<a href="/picks/">Pick'em Playbook</a> · <a href="/games/">This week's NFL games &amp; odds</a> · <a href="/college/bowls/">College bowl schedule</a></p>
+</div>`,
+  };
 }
 
 // canonicalPath carries the trailing slash on purpose: each of these is a
@@ -1202,6 +1450,7 @@ const TAB_PAGES = [
     // is the same precedence the game pages themselves already rely on.
     dir: "games",
     canonicalPath: "/games/",
+    snapshot: (data, periods) => buildGamesIndexSnapshotHtml(data, periods),
     title: "NFL Odds, Spreads & Model Predictions This Week | Blitz Odds",
     description: "Every NFL game this week with live sportsbook odds, model win probabilities, injury and weather adjustments, and the reasoning behind each pick.",
   },
@@ -1231,6 +1480,7 @@ const TAB_PAGES = [
     // anyone without an invite.
     dir: "leagues",
     canonicalPath: "/leagues/",
+    snapshot: (data, periods) => buildLeaguesSnapshotHtml(data, periods),
     title: "Free NFL Pick'em Pools - Join a League or Run Your Own | Blitz Odds",
     description: "Join a free NFL pick'em pool instantly - no invite needed - or run your own with friends. Confidence, survivor, straight-up, and against-the-spread formats, with automatic scoring and standings.",
   },
@@ -1456,7 +1706,7 @@ async function main() {
   log("Loading data...");
   const data = await loadData();
   const periodsForHome = getPeriods(data);
-  const homeChanged = await stampHomeSnapshot(currentPeriod(data, periodsForHome));
+  const homeChanged = await stampHomeSnapshot(currentPeriod(data, periodsForHome), data);
   if (homeChanged) log("Homepage snapshot in index.html updated.");
   // Every other page is cut from the shell WITHOUT the homepage's own
   // prerendered hero - each gets its own snapshot instead.
@@ -1481,7 +1731,7 @@ async function main() {
   log(`Building ${periods.length} week hub pages...`);
   const weekEntries = [];
   for (let i = 0; i < periods.length; i++) {
-    const entry = await buildWeekHubPage(template, data, periods[i], periods[i - 1] || null, periods[i + 1] || null);
+    const entry = await buildWeekHubPage(template, data, periods[i], periods[i - 1] || null, periods[i + 1] || null, periods);
     if (entry) weekEntries.push(entry);
   }
 

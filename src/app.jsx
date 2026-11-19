@@ -1299,9 +1299,11 @@ function gameToSportsEvent(game, seasonYear) {
     "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
     "eventStatus": "https://schema.org/EventScheduled",
     "homeTeam": { "@type": "SportsTeam", "name": homeName },
-    "awayTeam": { "@type": "SportsTeam", "name": awayName },
-    "url": "https://blitz-odds.com/"
+    "awayTeam": { "@type": "SportsTeam", "name": awayName }
   };
+  // No `url`: this used to point every event at the homepage. The static
+  // game pages carry their own SportsEvent with the game's real URL
+  // (buildGameJsonLd in scripts/build-static-pages.mjs).
   if (game.international && game.note) {
     event.location = { "@type": "Place", "name": game.note.replace(/^International Game\s*—\s*/, "") };
   } else {
@@ -1337,6 +1339,62 @@ const DEFAULT_META = {
   title: "Free NFL Pick'em Leagues — Pools That Score Themselves | Blitz Odds",
   description: "Run a free NFL pick'em pool with friends. Straight-up, confidence, survivor, and against-the-spread formats, each game backed by a model win probability and live sportsbook odds."
 };
+
+/** "Kansas City Chiefs" -> "Chiefs". */
+function teamNickname(name) {
+  return String(name).split(" ").pop();
+}
+
+/** Title / H1 / description for a game page - a line-for-line mirror of
+ *  gamePageMeta() in scripts/build-static-pages.mjs, so the document Google
+ *  renders says the same thing as the HTML it fetched. A finished game reads
+ *  as a result and a model recap, not an upcoming prediction. */
+function gamePageMeta(game) {
+  const away = baseTeam(game.awayAbbr);
+  const home = baseTeam(game.homeAbbr);
+  const awayName = away ? away.name : game.awayAbbr;
+  const homeName = home ? home.name : game.homeAbbr;
+  const a = teamNickname(awayName);
+  const h = teamNickname(homeName);
+  const periodLabel = getPeriodLabel(game.week);
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  let result = null;
+  try { result = getWeekContext(game.week).getResult(game.awayAbbr, game.homeAbbr); } catch (e) { result = null; }
+  if (result && result.final) {
+    return {
+      title: `${a} vs ${h} Final Score & Model Recap - NFL ${periodLabel} ${seasonYear} | Blitz Odds`,
+      h1: `${awayName} vs ${homeName} - ${periodLabel} Final Score & Model Recap`,
+      description: `Final: ${awayName} ${result.awayScore}, ${homeName} ${result.homeScore} (NFL ${periodLabel}, ${seasonYear}). How the Blitz Odds model called it, the betting line and the team-ranking matchup behind the pick.`,
+    };
+  }
+  const sched = getGamesForWeek(game.week).find(g => g.away === game.awayAbbr && g.home === game.homeAbbr);
+  const when = sched && sched.date ? ` on ${sched.date}` : "";
+  return {
+    title: `${a} vs ${h} Prediction, Win Probability & Pick'em Analysis - NFL ${periodLabel} ${seasonYear} | Blitz Odds`,
+    h1: `${awayName} vs ${homeName} - ${periodLabel} Prediction & Matchup Analysis`,
+    description: `${awayName} at ${homeName}${when}. Model win probability, spread, moneyline, injuries and the matchup edges behind the pick.`,
+  };
+}
+
+/** The page's one <h1> (visually hidden, in the header) for the current
+ *  view. It used to read "Blitz Odds" on every URL once the app mounted,
+ *  replacing the descriptive heading in the prerendered HTML. */
+function pageHeading(activeTab, view, teamId, week, game) {
+  try {
+    if (activeTab === "home") return "Blitz Odds - Free NFL Pick'em Leagues, Odds & Model Predictions";
+    if (activeTab === "picks") return `NFL Pick'em Playbook - ${getPeriodLabel(week)} Confidence, Survivor & Spread Picks`;
+    if (activeTab === "league") return "Free NFL Pick'em Pools - Join a League or Run Your Own";
+    if (activeTab === "games" || activeTab == null) {
+      if (view === "game" && game) return gamePageMeta(game).h1;
+      if (view === "team" && teamId) {
+        const team = baseTeam(teamId);
+        return `${team ? team.name : teamId} Schedule, Odds & Predictions`;
+      }
+      if (view === "week") return `NFL ${getPeriodLabel(week)} Picks, Odds & Predictions`;
+    }
+  } catch (e) { /* fall through */ }
+  return "Blitz Odds";
+}
 
 function setMetaTag(selector, attr, content) {
   const el = document.querySelector(selector);
@@ -1380,19 +1438,25 @@ function useDocumentMeta(activeTab, view, teamId, week, game, cfbActive) {
         "Every college bowl game and the full College Football Playoff on one free pick sheet. Run a confidence, straight-up or against-the-spread bowl pool with friends, scored automatically."
       );
     } else if (activeTab === "league") {
+      // Same copy as the /leagues/ entry of TAB_PAGES in build-static-pages.mjs.
       applyDocumentMeta(
-        "NFL Pick'em Leagues — Compete With Friends | Blitz Odds",
-        "Create or join a free NFL pick'em league. Confidence, straight-up, survivor, and against-the-spread formats, with weekly picks and season-long standings tracked automatically."
+        "Free NFL Pick'em Pools - Join a League or Run Your Own | Blitz Odds",
+        "Join a free NFL pick'em pool instantly - no invite needed - or run your own with friends. Confidence, survivor, straight-up, and against-the-spread formats, with automatic scoring and standings."
+      );
+    } else if (activeTab === "picks") {
+      // Had no branch: /picks rendered with the week view's title.
+      applyDocumentMeta(
+        "NFL Pick'em Playbook - Confidence, Survivor & ATS Sheets | Blitz Odds",
+        "A finished pick sheet for your pool every week: a full confidence ladder, ranked spread plays, and a survivor pick planned around the rest of the season - with the model's reasoning behind each one."
+      );
+    } else if (activeTab === "news") {
+      applyDocumentMeta(
+        "NFL News | Blitz Odds",
+        "The latest NFL headlines, injury news, and roster moves, alongside the odds and predictions they move."
       );
     } else if (view === "game" && game) {
-      const away = baseTeam(game.awayAbbr);
-      const home = baseTeam(game.homeAbbr);
-      const awayName = away ? away.name : game.awayAbbr;
-      const homeName = home ? home.name : game.homeAbbr;
-      applyDocumentMeta(
-        `${awayName} at ${homeName} — Odds, Injuries & Prediction | Blitz Odds`,
-        `${awayName} @ ${homeName}: live odds, injury report, team rankings comparison, and win probability for this matchup.`
-      );
+      const gm = gamePageMeta(game);
+      applyDocumentMeta(gm.title, gm.description);
     } else if (view === "team" && teamId) {
       const team = baseTeam(teamId);
       const teamName = team ? team.name : teamId;
@@ -1402,10 +1466,29 @@ function useDocumentMeta(activeTab, view, teamId, week, game, cfbActive) {
       );
     } else if (view === "week") {
       const periodLabel = getPeriodLabel(week);
-      applyDocumentMeta(
-        `NFL ${periodLabel} Odds & Predictions | Blitz Odds`,
-        `NFL ${periodLabel} odds, live scores, and matchup predictions for every game. Compare spreads, moneylines, and win probabilities across sportsbooks, updated in real time.`
-      );
+      // /games/ and /games/{year}/{week}/ are two canonical URLs showing this
+      // view; each keeps the title its prerendered HTML carries (TAB_PAGES /
+      // buildWeekHubPage in build-static-pages.mjs) instead of sharing one.
+      const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+      const path = (typeof window !== "undefined" && window.location && window.location.pathname) || "";
+      if (/^\/games\/\d{4}\/[^/]+\/?$/.test(path)) {
+        applyDocumentMeta(
+          /^Week \d+$/.test(periodLabel)
+            ? `NFL ${periodLabel} Pick'em Picks & Confidence Pool Rankings ${seasonYear} | Blitz Odds`
+            : `NFL ${periodLabel} Picks & Predictions ${seasonYear} | Blitz Odds`,
+          `Free model picks for every NFL ${periodLabel} game, with win probabilities, spreads, and injury-adjusted predictions.`
+        );
+      } else if (/^\/games\/?$/.test(path)) {
+        applyDocumentMeta(
+          "NFL Odds, Spreads & Model Predictions This Week | Blitz Odds",
+          "Every NFL game this week with live sportsbook odds, model win probabilities, injury and weather adjustments, and the reasoning behind each pick."
+        );
+      } else {
+        applyDocumentMeta(
+          `NFL ${periodLabel} Picks, Odds & Predictions | Blitz Odds`,
+          `NFL ${periodLabel} odds, live scores, and matchup predictions for every game. Compare spreads, moneylines, and win probabilities across sportsbooks, updated in real time.`
+        );
+      }
     } else {
       applyDocumentMeta(DEFAULT_META.title, DEFAULT_META.description);
     }
@@ -11449,7 +11532,7 @@ function LeaguesLandingPage({ auth, leagues, leaguesError, upsertLeague, removeL
   return (
     <div className="leagues-page leagues-page-landing">
       <div>
-        <h1 className="sr-only">Leagues</h1>
+        <h1 className="sr-only">Free NFL Pick'em Pools - Join a League or Run Your Own</h1>
         <p className="leagues-page-intro">
           Compete with friends using confidence, straight-up, survivor, or against-the-spread pick'em - create a
           league, join one with an invite code, or search public leagues below.
@@ -17576,7 +17659,17 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
           </p>
           <div className="home-acts">
             <button type="button" className="home-btn primary" onClick={onCreateLeague}>Create a free league</button>
-            <button type="button" className="home-btn" onClick={onOpenGames}>Browse this week's games</button>
+            {/* A real link (same pushState navigation on a plain click) so
+                the homepage has a crawlable path into the games. */}
+            <a
+              className="home-btn"
+              href="/games/"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                e.preventDefault();
+                onOpenGames();
+              }}
+            >Browse this week's games</a>
           </div>
           <div className="home-trust">
             <span>⚡ Odds from 5 sportsbooks</span>
@@ -17706,7 +17799,51 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
           <button type="button" className="home-btn" onClick={onJoinLeague}>Join with a code</button>
         </div>
       </div>
+
+      <HomeExplore week={week} />
     </div>
+  );
+}
+
+/** Crawlable links from the homepage into the current season: this week's
+ *  games, the hub pages and all 32 teams. Same markup and classes as
+ *  buildExploreHtml() in scripts/build-static-pages.mjs (keep in step). The
+ *  rest of the app navigates with buttons, so without this block nothing
+ *  under /games/ or /teams/ was linked from "/" at all. Plain links on
+ *  purpose: each target is a real prerendered page. */
+function HomeExplore({ week }) {
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  const label = getPeriodLabel(week);
+  const games = getGamesForWeek(week).filter(g => baseTeam(g.away) && baseTeam(g.home));
+  const teams = LIVE_TEAMS_LIST.slice().sort((a, b) => a.name.localeCompare(b.name));
+  return (
+    <>
+      <div className="home-sec-head explore"><h3>NFL {label} games &amp; model picks</h3></div>
+      <div className="home-card home-explore">
+        {games.length > 0 && (
+          <ul className="home-explore-games">
+            {games.map(g => (
+              <li key={g.away + "-" + g.home}>
+                <a href={buildGamePath(week, g.away, g.home)}>{baseTeam(g.away).name} at {baseTeam(g.home).name}</a>{" "}
+                <span>{g.date || ""}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="home-explore-links">
+          <a href={`/games/${seasonYear}/${weekSlug(week)}/`}>{label} confidence pool ladder</a>
+          <a href="/games/">All NFL games &amp; odds</a>
+          <a href="/picks/">Pick'em Playbook</a>
+          <a href="/leagues/">Free pick'em leagues</a>
+          <a href="/college/games/">College football odds</a>
+          <a href="/college/bowls/">Bowl schedule</a>
+          <a href="/historical/index.html">Historical results archive</a>
+        </p>
+        <p className="home-explore-teams" id="nfl-teams"><b>NFL teams</b>{" "}
+          {teams.map(t => <React.Fragment key={t.id}><a href={buildTeamPath(t.id)}>{t.name}</a>{" "}</React.Fragment>)}
+        </p>
+      </div>
+    </>
   );
 }
 
@@ -26127,7 +26264,8 @@ function App() {
         </div>
         <div className="brand-row" onClick={goHomeTab}>
           <BrandWordmark height={76} className="brand-logo" />
-          <h1 className="sr-only">Blitz Odds</h1>
+          {/* Leagues and Bowls render their own <h1>; one per page. */}
+          {(activeTab === "league" || activeTab === "bowls") ? <span className="sr-only">Blitz Odds</span> : <h1 className="sr-only">{cfbActive ? "College Football Odds & Win Probabilities | Blitz Odds" : pageHeading(activeTab, view, selectedTeamId, selectedWeek, selectedGame)}</h1>}
         </div>
       </header>
 
@@ -26344,6 +26482,13 @@ function App() {
           {/* Standalone, flag-independent college pages (scripts/build-college-pages.mjs). */}
           {" · "}<a href="/college/games/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>College football odds</a>
           {" · "}<a href="/college/bowls/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Bowl schedule</a>
+        </p>
+        <p className="footer-sitelinks">
+          <a href="/games/">NFL games &amp; odds</a>
+          {" · "}<a href={`/games/${(SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear()}/${weekSlug(getDefaultWeek())}/`}>This week's picks</a>
+          {" · "}<a href="/picks/">Pick'em Playbook</a>
+          {" · "}<a href="/leagues/">Pick'em leagues</a>
+          {" · "}<a href="/college/teams/">College teams</a>
         </p>
         <p className="footer-legal">
           &copy; {new Date().getFullYear()} Blitz Odds. Not affiliated with or endorsed by the National Football

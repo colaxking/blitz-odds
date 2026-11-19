@@ -628,6 +628,26 @@
   .home-close p { margin: 0 0 16px; font-size: .86rem; color: var(--text-dim); }
   .home-close .home-acts { justify-content: center; }
 
+  /* Crawlable "this week" block at the foot of the landing page (HomeExplore
+     in src/app.jsx / buildExploreHtml in scripts/build-static-pages.mjs). */
+  .home-explore { padding: 14px 16px; }
+  .home-explore a { color: var(--text); text-decoration: none; }
+  .home-explore a:hover { color: var(--accent); text-decoration: underline; }
+  .home-explore-games {
+    list-style: none; margin: 0 0 12px; padding: 0;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 22px; font-size: .86rem; font-weight: 600;
+  }
+  .home-explore-games span { color: var(--text-dim); font-weight: 400; font-size: .76rem; white-space: nowrap; }
+  .home-explore-links, .home-explore-teams {
+    margin: 0; padding-top: 11px; border-top: 1px solid var(--card-border);
+    display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .8rem;
+  }
+  .home-explore-links a { color: var(--accent); font-weight: 700; }
+  .home-explore-teams { margin-top: 11px; color: var(--text-dim); }
+  .home-explore-teams b { color: var(--text); flex-basis: 100%; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
+  .home-explore-teams a { color: var(--text-dim); }
+  footer.app-footer .footer-sitelinks a { color: var(--text-dim); text-decoration: underline; }
+
   @media (max-width: 860px) {
     /* The hero dissolves so the four formats can sit between the pitch and
        the (tall) Blitz Edge card - a new visitor gets "here's how you'd
@@ -641,6 +661,9 @@
     .home-landing > .home-sec-head.why { order: 5; }
     .home-landing > .home-value { order: 6; }
     .home-landing > .home-close { order: 7; }
+    .home-landing > .home-sec-head.explore { order: 8; }
+    .home-landing > .home-explore { order: 9; }
+    .home-explore-games { grid-template-columns: 1fr; }
     .home-hero h2.home-display { font-size: 1.85rem; }
     .home-fmt-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .home-value, .home-value.has-import { grid-template-columns: 1fr; }

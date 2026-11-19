@@ -487,7 +487,10 @@ function page({ title, description, canonicalPath, h1, lede, body, trail, jsonLd
   const crumbs = trail.map((c, i) => (i === trail.length - 1 ? esc(c.name) : `<a href="${c.path}">${esc(c.name)}</a>`)).join(" › ");
   const lds = [breadcrumbLd(trail), ...jsonLd].map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, "\\u003c")}</script>`).join("\n");
   const nav = [
-    ["/", "Home", ""], ["/games/", "NFL", ""], ["/college/games/", "College", "games"],
+    // With the cfb flag on, "College" is the app's Games tab on its College
+    // side (the same place the Home tile and the app's own links go); the
+    // standalone landing page stays reachable from the breadcrumbs and footer.
+    ["/", "Home", ""], ["/games/", "NFL", ""], [FEATURES.cfb ? "/college/" : "/college/games/", "College", "games"],
     ["/college/teams/", "Teams", "teams"], ...(FEATURES.bowls ? [["/college/bowls/", "Bowls", "bowls"]] : []),
   ].map(([href, label, key]) => `<a href="${href}"${key && key === navOn ? ' class="on"' : ""}>${label}</a>`).join("");
   return `<!DOCTYPE html>

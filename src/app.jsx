@@ -26584,7 +26584,16 @@ function App() {
           SportsGameOdds (betting lines), ESPN (live scores and box scores), Open-Meteo (weather).
           {" "}<a href="/historical/index.html" className="archive-entry-link" data-archive-source="footer" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Historical results archive</a>
           {/* College and bowl links follow the cfb / bowls feature flags, like the features themselves. */}
-          {features.cfb && <>{" · "}<a href="/college/games/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>College football odds</a></>}
+          {/* Opens the Games tab on its College side, like the Home tile - not the standalone /college/games/ page. */}
+          {features.cfb && <>{" · "}<a
+            href="/college/"
+            style={{ color: "var(--text-dim)", textDecoration: "underline" }}
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+              e.preventDefault();
+              if (gamesSport === "cfb") cfbNavigate({}); else setGamesSport("cfb");
+            }}
+          >College football odds</a></>}
           {bowlsOn && <>{" · "}<a href="/college/bowls/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Bowl schedule</a></>}
         </p>
         <p className="footer-sitelinks">

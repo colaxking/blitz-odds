@@ -89,18 +89,12 @@ footer.app-footer p:last-child { margin-bottom: 0; }
 .footer-legal { border-top: 1px solid var(--card-border); padding-top: 10px; margin-top: 10px; font-size: 0.7rem; line-height: 1.5; }
 .footer-legal a { color: inherit; }
 </style>
+<link rel="stylesheet" href="/css/site-nav.css?v=1" />
 </head>
 <body>
 <div class="app">
-  <header class="top">
-    <a href="/" class="brand-row" aria-label="Blitz Odds home">
-      <span class="brand-logo-wrap" style="display:inline-flex;align-items:center;flex-shrink:0">
-        <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" style="height:76px;width:auto;display:block" />
-        <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" style="height:76px;width:auto;display:none" />
-      </span>
-      <h1 class="sr-only">Blitz Odds</h1>
-    </a>
-  </header>
+  <!-- site-hdr:start --><header class="site-hdr" style="--sn-top:20px;--sn-side:16px"><a class="site-hdr-brand" href="/" aria-label="Blitz Odds home"><img class="site-hdr-logo-dark" src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" width="900" height="252" decoding="async" /><img class="site-hdr-logo-light" src="/branding/blitz-odds-wordmark-light.svg" alt="" width="900" height="252" loading="lazy" decoding="async" /></a><nav class="site-nav" aria-label="Primary"><a class="site-nav-btn" href="/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-home.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Home</span></a><a class="site-nav-btn" href="/games/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-games.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Games</span></a><a class="site-nav-btn" href="/bowls/" data-flag="bowls" hidden><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-bowls.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Bowls</span></a><a class="site-nav-btn" href="/picks/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-playbook.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Playbook</span></a><a class="site-nav-btn" href="/news/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-news.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>News</span></a><a class="site-nav-btn site-nav-desktop" href="/leagues/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-leagues.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Pick'em Leagues</span></a></nav><div class="site-hdr-acts"><a class="site-hdr-cta" href="/leagues/">Create a Free League</a><a class="site-hdr-link" href="/leagues/">Sign in</a></div></header><script>(function(){try{var k="blitz-public-flags",c=sessionStorage.getItem(k);function a(f){if(f&&f.bowls===true&&Date.now()<1801483200000){var e=document.querySelector('.site-nav-btn[data-flag="bowls"]');if(e)e.hidden=false}}if(c){a(JSON.parse(c));return}fetch("/.netlify/functions/features",{headers:{accept:"application/json"}}).then(function(r){return r.json()}).then(function(b){if(b&&b.ok&&b.features){sessionStorage.setItem(k,JSON.stringify({bowls:b.features.bowls===true}));a(b.features)}}).catch(function(){})}catch(e){}})();</script><!-- site-hdr:end -->
+    <h1 class="sr-only">Blitz Odds</h1>
 
   <div class="breadcrumb"><a href="/">Home</a> &rsaquo; Privacy Policy</div>
 

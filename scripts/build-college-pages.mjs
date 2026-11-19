@@ -40,6 +40,7 @@
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { siteHeaderHtml, SITE_NAV_LINK } from "./site-header.mjs";
 
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const SITE_BASE = "https://blitz-odds.com";
@@ -409,7 +410,7 @@ html[data-theme="light"]{--bg:#dbe2ec;--card:#fff;--border:#c3cedd;--s2:#e7ecf3;
 a{color:var(--accent)}.wrap{max-width:960px;margin:0 auto;padding:14px 16px 56px}
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px}
 .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--text);text-decoration:none}.brand img{width:28px;height:28px}
-.brand b{color:var(--accent)}.nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.brand b{color:var(--accent)}.nav{display:flex;gap:4px;flex-wrap:wrap}
 .nav a{padding:6px 10px;border-radius:8px;text-decoration:none;color:var(--dim);font-weight:600;font-size:14px}.nav a:hover,.nav a.on{background:var(--s2);color:var(--text)}
 .crumbs{font-size:13px;color:var(--dim);margin:0 0 8px}.crumbs a{color:var(--dim)}
 h1{font-size:26px;line-height:1.2;margin:4px 0 6px}h2{font-size:19px;margin:26px 0 10px}h3{font-size:16px;margin:16px 0 6px}
@@ -491,7 +492,9 @@ function page({ title, description, canonicalPath, h1, lede, body, trail, jsonLd
     // side (the same place the Home tile and the app's own links go); the
     // standalone landing page stays reachable from the breadcrumbs and footer.
     // The college teams pages are college-only: no NFL link in the nav or footer.
-    ["/", "Home", ""], ...(navOn === "teams" ? [] : [["/games/", "NFL Games", ""]]), [FEATURES.cfb ? "/college/" : "/college/games/", "College Games", "games"],
+    // Home and the NFL tabs live in the shared site header above (site-header.mjs);
+    // this row is the college section's own sub-navigation.
+    [FEATURES.cfb ? "/college/" : "/college/games/", "College Games", "games"],
     ["/college/teams/", "Teams", "teams"], ...(FEATURES.bowls ? [["/college/bowls/", "Bowls", "bowls"]] : []),
   ].map(([href, label, key]) => `<a href="${href}"${key && key === navOn ? ' class="on"' : ""}>${label}</a>`).join("");
   return `<!DOCTYPE html>
@@ -514,12 +517,14 @@ ${GA}
 <link rel="icon" type="image/svg+xml" href="/branding/blitz-odds-icon.svg" />
 <link rel="apple-touch-icon" href="/branding/apple-touch-icon.png" />
 ${THEME}
-<style>${CSS.trim()}</style>
+<style>${CSS.trim()}.subnav{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--border)}</style>
+${SITE_NAV_LINK}
 ${lds}
 </head>
 <body>
 <div class="wrap">
-<header class="top"><a class="brand" href="/"><img src="/branding/blitz-odds-icon.svg" alt="" width="28" height="28">Blitz <b>Odds</b></a><nav class="nav" aria-label="Site">${nav}</nav></header>
+${siteHeaderHtml({ top: "14px", side: "16px" })}
+<nav class="nav subnav" aria-label="Section">${nav}</nav>
 <main>
 <p class="crumbs">${crumbs}</p>
 <h1>${esc(h1)}</h1>

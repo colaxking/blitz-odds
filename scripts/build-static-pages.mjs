@@ -38,6 +38,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { buildApp, assertArtifactsFresh } from "./build-app.mjs";
+import { siteHeaderHtml, SITE_NAV_LINK } from "./site-header.mjs";
 
 const require = createRequire(import.meta.url);
 /**
@@ -1529,7 +1530,7 @@ function buildHomeSnapshotHtml(period, data) {
     <nav class="tab-bar" aria-label="Primary">
       ${tab("/", "Home", "home", " active")}
       ${tab("/games/", "Games", "games")}
-      ${tab("/picks/", "Playbook", "playbook")}
+${data && data.features && data.features.bowls ? `      ${tab("/bowls/", "Bowls", "bowls")}\n` : ""}      ${tab("/picks/", "Playbook", "playbook")}
       ${tab("/news/", "News", "news")}
       ${tab("/leagues/", "Pick'em Leagues", "leagues", " tab-desktop-only")}
     </nav>
@@ -1769,7 +1770,7 @@ html[data-theme="light"]{--bg:#dbe2ec;--card:#fff;--border:#c3cedd;--s2:#e7ecf3;
 a{color:var(--accent)}.wrap{max-width:960px;margin:0 auto;padding:14px 16px 56px}
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px}
 .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--text);text-decoration:none}.brand img{width:28px;height:28px}.brand b{color:var(--accent)}
-.nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}.nav a{padding:6px 10px;border-radius:8px;text-decoration:none;color:var(--dim);font-weight:600;font-size:14px}.nav a:hover,.nav a.on{background:var(--s2);color:var(--text)}
+.nav{display:flex;gap:4px;flex-wrap:wrap}.nav a{padding:6px 10px;border-radius:8px;text-decoration:none;color:var(--dim);font-weight:600;font-size:14px}.nav a:hover,.nav a.on{background:var(--s2);color:var(--text)}
 .crumbs{font-size:13px;color:var(--dim);margin:0 0 8px}.crumbs a{color:var(--dim)}
 h1{font-size:26px;line-height:1.2;margin:4px 0 6px}h2{font-size:15px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
 .lede{color:var(--dim);margin:0 0 14px}.divs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -1833,13 +1834,14 @@ async function buildTeamsIndexPage(data, periods) {
 <link rel="icon" type="image/svg+xml" href="/branding/blitz-odds-icon.svg" />
 <link rel="apple-touch-icon" href="/branding/apple-touch-icon.png" />
 <script>(function(){try{var s=localStorage.getItem("blitz-odds-theme");var m=s==="light"||s==="dark"||s==="system"?s:"dark";var r=m==="system"?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):m;if(r==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}})();</script>
-<style>${TEAMS_INDEX_CSS.trim()}</style>
+<style>${TEAMS_INDEX_CSS.trim()}.subnav{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--border)}</style>
+${SITE_NAV_LINK}
 ${breadcrumbJsonLd(trail)}
 <script type="application/ld+json">${JSON.stringify(itemList)}</script>
 </head>
 <body>
 <div class="wrap">
-<header class="top"><a class="brand" href="/"><img src="/branding/blitz-odds-icon.svg" alt="" width="28" height="28">Blitz <b>Odds</b></a><nav class="nav" aria-label="Site">${nav}</nav></header>
+${siteHeaderHtml({ top: "14px", side: "16px" })}
 <main>
 <p class="crumbs"><a href="/">Blitz Odds</a> &rsaquo; NFL teams</p>
 <h1>NFL Teams</h1>

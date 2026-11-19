@@ -25,7 +25,7 @@ html[data-theme="light"]{--bg:#dbe2ec;--card:#fff;--border:#c3cedd;--s2:#e7ecf3;
 a{color:var(--accent)}.wrap{max-width:960px;margin:0 auto;padding:14px 16px 56px}
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px}
 .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--text);text-decoration:none}.brand img{width:28px;height:28px}
-.brand b{color:var(--accent)}.nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.brand b{color:var(--accent)}.nav{display:flex;gap:4px;flex-wrap:wrap}
 .nav a{padding:6px 10px;border-radius:8px;text-decoration:none;color:var(--dim);font-weight:600;font-size:14px}.nav a:hover,.nav a.on{background:var(--s2);color:var(--text)}
 .crumbs{font-size:13px;color:var(--dim);margin:0 0 8px}.crumbs a{color:var(--dim)}
 h1{font-size:26px;line-height:1.2;margin:4px 0 6px}h2{font-size:19px;margin:26px 0 10px}h3{font-size:16px;margin:16px 0 6px}
@@ -65,20 +65,22 @@ footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-
 .sch tr:last-child{border-bottom:none}.sch td{border:none;padding:0;min-width:0}
 .sch .s-opp{grid-area:1/1;font-weight:700}.sch .s-res{grid-area:1/2;text-align:right}
 .sch .s-date{grid-area:2/1;font-size:12px;color:var(--dim)}.sch .s-line{grid-area:2/2;text-align:right;font-size:12px;color:var(--dim)}
-.sch .s-link{grid-area:3/1;font-size:13px}.sch .s-link:empty{display:none}}</style>
+.sch .s-link{grid-area:3/1;font-size:13px}.sch .s-link:empty{display:none}}.subnav{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--border)}</style>
+<link rel="stylesheet" href="/css/site-nav.css?v=1" />
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"College football","item":"https://blitz-odds.com/college/games/"},{"@type":"ListItem","position":2,"name":"Week 12","item":"https://blitz-odds.com/college/games/2026/week-12/"},{"@type":"ListItem","position":3,"name":"Samford vs Auburn","item":"https://blitz-odds.com/college/games/2026/week-12/samford-bulldogs-vs-auburn-tigers/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Samford Bulldogs vs Auburn Tigers","sport":"American Football","url":"https://blitz-odds.com/college/games/2026/week-12/samford-bulldogs-vs-auburn-tigers/","startDate":"2026-11-21T20:30Z","eventStatus":"https://schema.org/EventScheduled","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","homeTeam":{"@type":"SportsTeam","name":"Auburn Tigers","url":"https://blitz-odds.com/college/teams/auburn-tigers/"},"awayTeam":{"@type":"SportsTeam","name":"Samford Bulldogs"},"competitor":[{"@type":"SportsTeam","name":"Samford Bulldogs"},{"@type":"SportsTeam","name":"Auburn Tigers","url":"https://blitz-odds.com/college/teams/auburn-tigers/"}],"location":{"@type":"Place","name":"Jordan-Hare Stadium","address":"Auburn, AL"},"organizer":{"@type":"SportsOrganization","name":"NCAA Division I FBS"}}</script>
 </head>
 <body>
 <div class="wrap">
-<header class="top"><a class="brand" href="/"><img src="/branding/blitz-odds-icon.svg" alt="" width="28" height="28">Blitz <b>Odds</b></a><nav class="nav" aria-label="Site"><a href="/">Home</a><a href="/games/">NFL Games</a><a href="/college/" class="on">College Games</a><a href="/college/teams/">Teams</a><a href="/college/bowls/">Bowls</a></nav></header>
+<!-- site-hdr:start --><header class="site-hdr" style="--sn-top:14px;--sn-side:16px"><a class="site-hdr-brand" href="/" aria-label="Blitz Odds home"><img class="site-hdr-logo-dark" src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" width="900" height="252" decoding="async" /><img class="site-hdr-logo-light" src="/branding/blitz-odds-wordmark-light.svg" alt="" width="900" height="252" loading="lazy" decoding="async" /></a><nav class="site-nav" aria-label="Primary"><a class="site-nav-btn" href="/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-home.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Home</span></a><a class="site-nav-btn" href="/games/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-games.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Games</span></a><a class="site-nav-btn" href="/bowls/" data-flag="bowls" hidden><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-bowls.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Bowls</span></a><a class="site-nav-btn" href="/picks/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-playbook.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Playbook</span></a><a class="site-nav-btn" href="/news/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-news.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>News</span></a><a class="site-nav-btn site-nav-desktop" href="/leagues/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-leagues.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Pick'em Leagues</span></a></nav><div class="site-hdr-acts"><a class="site-hdr-cta" href="/leagues/">Create a Free League</a><a class="site-hdr-link" href="/leagues/">Sign in</a></div></header><script>(function(){try{var k="blitz-public-flags",c=sessionStorage.getItem(k);function a(f){if(f&&f.bowls===true&&Date.now()<1801483200000){var e=document.querySelector('.site-nav-btn[data-flag="bowls"]');if(e)e.hidden=false}}if(c){a(JSON.parse(c));return}fetch("/.netlify/functions/features",{headers:{accept:"application/json"}}).then(function(r){return r.json()}).then(function(b){if(b&&b.ok&&b.features){sessionStorage.setItem(k,JSON.stringify({bowls:b.features.bowls===true}));a(b.features)}}).catch(function(){})}catch(e){}})();</script><!-- site-hdr:end -->
+<nav class="nav subnav" aria-label="Section"><a href="/college/" class="on">College Games</a><a href="/college/teams/">Teams</a><a href="/college/bowls/">Bowls</a></nav>
 <main>
 <p class="crumbs"><a href="/college/games/">College football</a> › <a href="/college/games/2026/week-12/">Week 12</a> › Samford vs Auburn</p>
 <h1>Samford Bulldogs vs Auburn Tigers Prediction &amp; Odds</h1>
 <p class="lede">Week 12 · Saturday, November 21, 2026, 3:30 PM ET · Jordan-Hare Stadium, Auburn, AL · SEC Network</p>
 <div class="card"><div class="matchup"><div class="side"><span class="crest lg"><img src="/team-badges/cfb/2535.png" alt="" width="64" height="64" loading="lazy"></span><div class="name">Samford</div><div class="meta">4-7</div></div><div class="vs">at</div><div class="side"><span class="crest lg"><img src="/team-badges/cfb/2.png" alt="" width="64" height="64" loading="lazy"></span><div class="name"><a href="/college/teams/auburn-tigers/">Auburn</a></div><div class="meta">6-4 · SEC</div></div></div></div>
 <h2>The market read</h2>
-<div class="card"><p style="margin:0">The market has Auburn as a 48.5-point favorite at Draft Kings, which works out to about a 99% chance to win - a heavy favorite. The over/under is 59.5.</p></div>
+<div class="card"><p style="margin:0">The market has Auburn as a 48.5-point favorite at DraftKings, which works out to about a 99% chance to win - a heavy favorite. The over/under is 59.5.</p></div>
 <div class="card"><div class="bar" role="img" aria-label="Market win chance: Samford 1%, Auburn 99%"><span style="width:1.0%;background:#005485"></span><span style="width:99.0%;background:#002b5c"></span></div>
 <div style="display:flex;justify-content:space-between;font-weight:700"><span>Samford 1%</span><span class="pill mk">Market</span><span>Auburn 99%</span></div>
 <div class="kv" style="margin-top:12px">
@@ -87,7 +89,7 @@ footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-
 <div><b>SAM moneyline</b><span>—</span></div>
 <div><b>AUB moneyline</b><span>—</span></div>
 </div>
-<p class="note" style="margin:8px 0 0">Samford +48.5 / Auburn -48.5 · Draft Kings</p></div>
+<p class="note" style="margin:8px 0 0">Samford +48.5 / Auburn -48.5 · DraftKings</p></div>
 
 <h2>Recent form</h2><div class="card grid2"><div><h3>Auburn last 3</h3><ul style="list-style:none;padding:0;margin:0;display:grid;gap:5px"><li><span class="pill w">W</span> <a href="/college/games/2026/week-11/auburn-tigers-vs-mississippi-state-bulldogs/">41-9</a> @ <a href="/college/teams/mississippi-state-bulldogs/">Mississippi St</a></li><li><span class="pill w">W</span> 26-23 vs <a href="/college/teams/arkansas-razorbacks/">Arkansas</a></li><li><span class="pill l">L</span> 15-45 @ <a href="/college/teams/ole-miss-rebels/">Ole Miss</a></li></ul></div></div>
 <h2>Quick answers</h2><dl class="card faq"><dt>Who is favored in Samford vs Auburn?</dt><dd>Auburn is a 48.5-point favorite, about a 99% chance to win by the market&#39;s numbers.</dd><dt>What is the over/under for Samford vs Auburn?</dt><dd>59.5 total points.</dd><dt>When and where is Samford vs Auburn?</dt><dd>Saturday, November 21, 2026, 3:30 PM ET, at Jordan-Hare Stadium, Auburn, AL. TV: SEC Network.</dd></dl>
@@ -95,7 +97,7 @@ footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-
 </main>
 <footer>
 <p>Lines from ESPN's college feed (DraftKings unless noted). "Market" win chances are the betting market's implied odds with the vig removed - Blitz Odds has no college model of its own yet. For entertainment only; not betting advice. 21+ where legal, 1-800-GAMBLER. Blitz Odds is not affiliated with the NCAA or any school or conference.</p>
-<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · <a href="/college/bowls/">Bowl schedule</a> · <a href="/games/">NFL picks</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated 2026-11-19 21:00 UTC<!--/stamp--></p>
+<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · <a href="/college/bowls/">Bowl schedule</a> · <a href="/games/">NFL picks</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated 2026-11-19 23:28 UTC<!--/stamp--></p>
 </footer>
 </div>
 </body>

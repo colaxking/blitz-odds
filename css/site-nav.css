@@ -1,0 +1,110 @@
+/* Blitz Odds - shared site header for the pages that are NOT the app.
+ *
+ * The app (index.html and every page cut from it) draws its header in React
+ * and styles it from css/app.css. The standalone static pages - the results
+ * archive under /historical/, the college pages under /college/games|teams|
+ * bowls/, /teams/, /terms/, /privacy/ and 404.html - each used to carry
+ * their own header, and each had drifted from the app's. They now all link
+ * this one file and use the markup from scripts/site-header.mjs, so the menu
+ * is the same everywhere: one sticky row on desktop (logo, text nav, account
+ * / Create a Free League), a compact top bar plus the fixed bottom tab bar
+ * on phones.
+ *
+ * Keep it visually in step with the "Compact desktop header" block and the
+ * mobile .hdr-bar / .tab-bar rules in src/app.css. Hand-written, not built:
+ * bump the ?v= in scripts/site-header.mjs when this file changes.
+ *
+ * Self-contained on purpose (its own --sn-* colours): the page families
+ * name their theme variables differently.
+ */
+:root {
+  --sn-bg: #0b1220; --sn-card: #131c2e; --sn-line: #223049; --sn-s2: #1a2438;
+  --sn-text: #eef2f8; --sn-dim: #9fb0c9; --sn-accent: #4fd1c5; --sn-on-accent: #04121a;
+}
+html[data-theme="light"] {
+  --sn-bg: #dbe2ec; --sn-card: #ffffff; --sn-line: #c3cedd; --sn-s2: #e7ecf3;
+  --sn-text: #16202f; --sn-dim: #5b6b80; --sn-accent: #0f8f83; --sn-on-accent: #04121a;
+}
+
+.site-hdr, .site-hdr * { box-sizing: border-box; }
+.site-hdr {
+  position: sticky; top: 0; z-index: 450;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px 22px;
+  min-height: 62px; text-align: left;
+  margin: calc(-1 * var(--sn-top, 0px)) calc(-1 * var(--sn-side, 0px)) 18px;
+  padding: 8px var(--sn-side, 0px);
+  background: var(--sn-bg); border-bottom: 1px solid var(--sn-line);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-user-select: none; user-select: none;
+}
+.site-hdr-brand { display: inline-flex; align-items: center; text-decoration: none; }
+.site-hdr-brand img { height: 42px; width: auto; display: block; }
+.site-hdr-brand .site-hdr-logo-light { display: none; }
+html[data-theme="light"] .site-hdr-brand .site-hdr-logo-dark { display: none; }
+html[data-theme="light"] .site-hdr-brand .site-hdr-logo-light { display: block; }
+
+.site-nav { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.site-nav-btn {
+  position: relative; display: flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 0 12px; border-radius: 8px;
+  color: var(--sn-dim); font-size: .92rem; font-weight: 700; white-space: nowrap;
+  text-decoration: none; -webkit-tap-highlight-color: transparent;
+}
+.site-nav-btn[hidden] { display: none !important; }
+.site-nav-btn:hover { color: var(--sn-text); background: var(--sn-s2); }
+.site-nav-btn[aria-current="page"] { color: var(--sn-text); }
+.site-nav-btn[aria-current="page"]::after {
+  content: ""; position: absolute; left: 12px; right: 12px; bottom: 5px; height: 2px;
+  background: var(--sn-accent); border-radius: 2px;
+}
+.site-nav-ico { display: none; }
+
+.site-hdr-acts { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.site-hdr-link, .site-hdr-cta {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 15px;
+  border-radius: 9px; border: 1px solid var(--sn-line); background: var(--sn-s2);
+  color: var(--sn-text); font-size: .84rem; font-weight: 700; white-space: nowrap; text-decoration: none;
+}
+.site-hdr-cta { background: var(--sn-accent); border-color: var(--sn-accent); color: var(--sn-on-accent); }
+/* The archive keeps its own account menu (sign-in, settings) in the slot. */
+.site-hdr-acts .account-menu { position: relative; top: auto; right: auto; }
+
+@media (min-width: 721px) and (max-width: 1040px) {
+  .site-hdr { gap: 8px 12px; }
+  .site-hdr-brand img { height: 34px; }
+  .site-nav-btn { padding: 0 8px; font-size: .85rem; }
+  .site-nav-btn[aria-current="page"]::after { left: 8px; right: 8px; }
+  .site-hdr-cta { display: none; }
+}
+
+@media (max-width: 720px) {
+  /* Compact top bar: logo left, account right. */
+  .site-hdr {
+    grid-template-columns: minmax(0, 1fr) auto; min-height: 52px; gap: 8px;
+    padding: 4px 0; margin-left: 0; margin-right: 0; margin-bottom: 12px;
+  }
+  .site-hdr-brand img { height: 26px; }
+  .site-hdr-cta { display: none; }
+  .site-hdr-link { min-height: 36px; padding: 0 12px; border-radius: 999px; }
+
+  /* The nav becomes the same fixed bottom bar the app has. */
+  .site-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; gap: 0;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: var(--sn-card); border-top: 1px solid var(--sn-line);
+  }
+  .site-nav-btn {
+    flex: 1; flex-direction: column; justify-content: center; gap: 3px;
+    min-height: 60px; padding: 4px 2px; border-radius: 10px;
+    font-size: .68rem; font-weight: 700;
+  }
+  .site-nav-btn:hover { background: none; }
+  .site-nav-btn[aria-current="page"] { color: var(--sn-accent); }
+  .site-nav-btn[aria-current="page"]::after { display: none; }
+  .site-nav-ico { display: flex; width: 34px; height: 34px; }
+  .site-nav-ico img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: .7; }
+  .site-nav-btn[aria-current="page"] .site-nav-ico img { opacity: 1; }
+  .site-nav-desktop { display: none; }
+  /* Clear the fixed bar so the last line of a page is reachable. */
+  body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+}

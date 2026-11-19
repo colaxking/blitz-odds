@@ -333,11 +333,11 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
 }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Indianapolis Colts at Jacksonville Jaguars","startDate":"2017-12-03T18:00Z","sport":"American Football","homeTeam":{"@type":"SportsTeam","name":"Jacksonville Jaguars"},"awayTeam":{"@type":"SportsTeam","name":"Indianapolis Colts"},"location":{"@type":"Place","name":"EverBank Stadium"}}</script>
+<link rel="stylesheet" href="/css/site-nav.css?v=1" />
 </head>
 <body>
 <div class="app">
-  <header class="top">
-    <div class="account-menu" id="accountMenu">
+  <!-- site-hdr:start --><header class="site-hdr" style="--sn-top:20px;--sn-side:16px"><a class="site-hdr-brand" href="/" aria-label="Blitz Odds home"><img class="site-hdr-logo-dark" src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" width="900" height="252" decoding="async" /><img class="site-hdr-logo-light" src="/branding/blitz-odds-wordmark-light.svg" alt="" width="900" height="252" loading="lazy" decoding="async" /></a><nav class="site-nav" aria-label="Primary"><a class="site-nav-btn" href="/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-home.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Home</span></a><a class="site-nav-btn" href="/games/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-games.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Games</span></a><a class="site-nav-btn" href="/bowls/" data-flag="bowls" hidden><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-bowls.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Bowls</span></a><a class="site-nav-btn" href="/picks/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-playbook.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Playbook</span></a><a class="site-nav-btn" href="/news/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-news.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>News</span></a><a class="site-nav-btn site-nav-desktop" href="/leagues/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-leagues.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Pick'em Leagues</span></a></nav><div class="site-hdr-acts"><div class="account-menu" id="accountMenu">
     <div class="account-signedout-row" id="accountSignedOutRow">
       <button type="button" class="account-btn account-btn-signin" id="accountSignInBtn">Sign in</button>
       <button type="button" class="account-menu-toggle" id="accountMenuToggle" aria-label="More options" aria-expanded="false">
@@ -351,7 +351,7 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
       <button type="button" class="account-dropdown-item" id="accountSettingsItem">Settings</button>
       <button type="button" class="account-dropdown-item" id="accountSignOutItem" style="display:none">Sign out</button>
     </div>
-  </div>
+  </div></div></header><script>(function(){try{var k="blitz-public-flags",c=sessionStorage.getItem(k);function a(f){if(f&&f.bowls===true&&Date.now()<1801483200000){var e=document.querySelector('.site-nav-btn[data-flag="bowls"]');if(e)e.hidden=false}}if(c){a(JSON.parse(c));return}fetch("/.netlify/functions/features",{headers:{accept:"application/json"}}).then(function(r){return r.json()}).then(function(b){if(b&&b.ok&&b.features){sessionStorage.setItem(k,JSON.stringify({bowls:b.features.bowls===true}));a(b.features)}}).catch(function(){})}catch(e){}})();</script><!-- site-hdr:end -->
   <div class="settings-modal-overlay" id="settingsOverlay" style="display:none">
     <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
       <button type="button" class="settings-modal-close" id="settingsClose" aria-label="Close">&times;</button>
@@ -381,20 +381,6 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
       </div>
     </div>
   </div>
-    <a href="/" class="brand-row" aria-label="Blitz Odds home">
-      <span class="brand-logo-wrap" style="display:inline-flex;align-items:center;flex-shrink:0">
-      <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" style="height:76px;width:auto;display:block" />
-      <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" style="height:76px;width:auto;display:none" />
-    </span>
-      <span class="sr-only">Blitz Odds</span>
-    </a>
-    <nav class="tab-bar" aria-label="Primary">
-    <a class="tab-btn" href="/"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-home.png" alt="" width="40" height="40" decoding="async" /></span><span class="tab-label">Home</span></a>
-    <a class="tab-btn" href="/games"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-games.png" alt="" width="40" height="40" decoding="async" /></span><span class="tab-label">Games</span></a>
-    <a class="tab-btn" href="/picks"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-playbook.png" alt="" width="40" height="40" decoding="async" /></span><span class="tab-label">Playbook</span></a>
-    <a class="tab-btn" href="/news"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-news.png" alt="" width="40" height="40" decoding="async" /></span><span class="tab-label">News</span></a>
-  </nav>
-</header>
   <div class="breadcrumb"><a href="/">Home</a> &raquo; <a href="/historical/2017/regular-season/index.html">2017 Regular Season</a> &raquo; Week 13 &raquo; IND @ JAX</div>
   <h1 class="archive-title">Indianapolis Colts vs. Jacksonville Jaguars Final Score &amp; Box Score — Week 13, 2017 Regular Season</h1>
   

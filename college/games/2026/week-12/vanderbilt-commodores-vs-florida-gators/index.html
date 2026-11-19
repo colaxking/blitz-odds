@@ -25,7 +25,7 @@ html[data-theme="light"]{--bg:#dbe2ec;--card:#fff;--border:#c3cedd;--s2:#e7ecf3;
 a{color:var(--accent)}.wrap{max-width:960px;margin:0 auto;padding:14px 16px 56px}
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px}
 .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--text);text-decoration:none}.brand img{width:28px;height:28px}
-.brand b{color:var(--accent)}.nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.brand b{color:var(--accent)}.nav{display:flex;gap:4px;flex-wrap:wrap}
 .nav a{padding:6px 10px;border-radius:8px;text-decoration:none;color:var(--dim);font-weight:600;font-size:14px}.nav a:hover,.nav a.on{background:var(--s2);color:var(--text)}
 .crumbs{font-size:13px;color:var(--dim);margin:0 0 8px}.crumbs a{color:var(--dim)}
 h1{font-size:26px;line-height:1.2;margin:4px 0 6px}h2{font-size:19px;margin:26px 0 10px}h3{font-size:16px;margin:16px 0 6px}
@@ -65,20 +65,22 @@ footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-
 .sch tr:last-child{border-bottom:none}.sch td{border:none;padding:0;min-width:0}
 .sch .s-opp{grid-area:1/1;font-weight:700}.sch .s-res{grid-area:1/2;text-align:right}
 .sch .s-date{grid-area:2/1;font-size:12px;color:var(--dim)}.sch .s-line{grid-area:2/2;text-align:right;font-size:12px;color:var(--dim)}
-.sch .s-link{grid-area:3/1;font-size:13px}.sch .s-link:empty{display:none}}</style>
+.sch .s-link{grid-area:3/1;font-size:13px}.sch .s-link:empty{display:none}}.subnav{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--border)}</style>
+<link rel="stylesheet" href="/css/site-nav.css?v=1" />
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"College football","item":"https://blitz-odds.com/college/games/"},{"@type":"ListItem","position":2,"name":"Week 12","item":"https://blitz-odds.com/college/games/2026/week-12/"},{"@type":"ListItem","position":3,"name":"Vanderbilt vs Florida","item":"https://blitz-odds.com/college/games/2026/week-12/vanderbilt-commodores-vs-florida-gators/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Vanderbilt Commodores vs Florida Gators","sport":"American Football","url":"https://blitz-odds.com/college/games/2026/week-12/vanderbilt-commodores-vs-florida-gators/","startDate":"2026-11-21T17:00Z","eventStatus":"https://schema.org/EventScheduled","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","homeTeam":{"@type":"SportsTeam","name":"Florida Gators","url":"https://blitz-odds.com/college/teams/florida-gators/"},"awayTeam":{"@type":"SportsTeam","name":"Vanderbilt Commodores","url":"https://blitz-odds.com/college/teams/vanderbilt-commodores/"},"competitor":[{"@type":"SportsTeam","name":"Vanderbilt Commodores","url":"https://blitz-odds.com/college/teams/vanderbilt-commodores/"},{"@type":"SportsTeam","name":"Florida Gators","url":"https://blitz-odds.com/college/teams/florida-gators/"}],"location":{"@type":"Place","name":"Ben Hill Griffin Stadium","address":"Gainesville, FL"},"organizer":{"@type":"SportsOrganization","name":"NCAA Division I FBS"}}</script>
 </head>
 <body>
 <div class="wrap">
-<header class="top"><a class="brand" href="/"><img src="/branding/blitz-odds-icon.svg" alt="" width="28" height="28">Blitz <b>Odds</b></a><nav class="nav" aria-label="Site"><a href="/">Home</a><a href="/games/">NFL Games</a><a href="/college/" class="on">College Games</a><a href="/college/teams/">Teams</a><a href="/college/bowls/">Bowls</a></nav></header>
+<!-- site-hdr:start --><header class="site-hdr" style="--sn-top:14px;--sn-side:16px"><a class="site-hdr-brand" href="/" aria-label="Blitz Odds home"><img class="site-hdr-logo-dark" src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" width="900" height="252" decoding="async" /><img class="site-hdr-logo-light" src="/branding/blitz-odds-wordmark-light.svg" alt="" width="900" height="252" loading="lazy" decoding="async" /></a><nav class="site-nav" aria-label="Primary"><a class="site-nav-btn" href="/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-home.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Home</span></a><a class="site-nav-btn" href="/games/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-games.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Games</span></a><a class="site-nav-btn" href="/bowls/" data-flag="bowls" hidden><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-bowls.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Bowls</span></a><a class="site-nav-btn" href="/picks/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-playbook.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Playbook</span></a><a class="site-nav-btn" href="/news/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-news.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>News</span></a><a class="site-nav-btn site-nav-desktop" href="/leagues/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-leagues.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Pick'em Leagues</span></a></nav><div class="site-hdr-acts"><a class="site-hdr-cta" href="/leagues/">Create a Free League</a><a class="site-hdr-link" href="/leagues/">Sign in</a></div></header><script>(function(){try{var k="blitz-public-flags",c=sessionStorage.getItem(k);function a(f){if(f&&f.bowls===true&&Date.now()<1801483200000){var e=document.querySelector('.site-nav-btn[data-flag="bowls"]');if(e)e.hidden=false}}if(c){a(JSON.parse(c));return}fetch("/.netlify/functions/features",{headers:{accept:"application/json"}}).then(function(r){return r.json()}).then(function(b){if(b&&b.ok&&b.features){sessionStorage.setItem(k,JSON.stringify({bowls:b.features.bowls===true}));a(b.features)}}).catch(function(){})}catch(e){}})();</script><!-- site-hdr:end -->
+<nav class="nav subnav" aria-label="Section"><a href="/college/" class="on">College Games</a><a href="/college/teams/">Teams</a><a href="/college/bowls/">Bowls</a></nav>
 <main>
 <p class="crumbs"><a href="/college/games/">College football</a> › <a href="/college/games/2026/week-12/">Week 12</a> › Vanderbilt vs Florida</p>
 <h1>Vanderbilt Commodores vs Florida Gators Prediction &amp; Odds</h1>
 <p class="lede">Week 12 · Saturday, November 21, 2026, 12:00 PM ET · Ben Hill Griffin Stadium, Gainesville, FL · SEC Network</p>
 <div class="card"><div class="matchup"><div class="side"><span class="crest lg"><img src="/team-badges/cfb/238.png" alt="" width="64" height="64" loading="lazy"></span><div class="name"><a href="/college/teams/vanderbilt-commodores/">Vanderbilt</a></div><div class="meta">4-6 · SEC</div></div><div class="vs">at</div><div class="side"><span class="crest lg"><img src="/team-badges/cfb/57.png" alt="" width="64" height="64" loading="lazy"></span><div class="name"><span class="rk">24</span><a href="/college/teams/florida-gators/">Florida</a></div><div class="meta">6-4 · SEC</div></div></div></div>
 <h2>The market read</h2>
-<div class="card"><p style="margin:0">The market has Florida as a 13.5-point favorite at Draft Kings, which works out to about a 81% chance to win - a strong favorite. The over/under is 45.5. On paper: Vanderbilt's offense ranks 120th of 138 in yards per game against a Florida defense that ranks 64th; Florida's offense ranks 56th of 138 in yards per game against a Vanderbilt defense that ranks 63rd.</p></div>
+<div class="card"><p style="margin:0">The market has Florida as a 13.5-point favorite at DraftKings, which works out to about a 81% chance to win - a strong favorite. The over/under is 45.5. On paper: Vanderbilt's offense ranks 120th of 138 in yards per game against a Florida defense that ranks 64th; Florida's offense ranks 56th of 138 in yards per game against a Vanderbilt defense that ranks 63rd.</p></div>
 <div class="card"><div class="bar" role="img" aria-label="Market win chance: Vanderbilt 19%, Florida 81%"><span style="width:19.2%;background:#000000"></span><span style="width:80.8%;background:#0021a5"></span></div>
 <div style="display:flex;justify-content:space-between;font-weight:700"><span>Vanderbilt 19%</span><span class="pill mk">Market</span><span>Florida 81%</span></div>
 <div class="kv" style="margin-top:12px">
@@ -87,7 +89,7 @@ footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-
 <div><b>VAN moneyline</b><span>+400</span></div>
 <div><b>FLA moneyline</b><span>-535</span></div>
 </div>
-<p class="note" style="margin:8px 0 0">Vanderbilt +13.5 / Florida -13.5 · Draft Kings</p></div>
+<p class="note" style="margin:8px 0 0">Vanderbilt +13.5 / Florida -13.5 · DraftKings</p></div>
 <h2>Team rankings</h2>
 <div class="card scroll"><table>
 <thead><tr><th>Per game (rank of 138 FBS)</th><th class="n">VAN rank</th><th class="n hide-sm">Avg</th><th class="n">FLA rank</th><th class="n hide-sm">Avg</th></tr></thead>
@@ -108,7 +110,7 @@ footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-
 </main>
 <footer>
 <p>Lines from ESPN's college feed (DraftKings unless noted). "Market" win chances are the betting market's implied odds with the vig removed - Blitz Odds has no college model of its own yet. For entertainment only; not betting advice. 21+ where legal, 1-800-GAMBLER. Blitz Odds is not affiliated with the NCAA or any school or conference.</p>
-<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · <a href="/college/bowls/">Bowl schedule</a> · <a href="/games/">NFL picks</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated 2026-11-19 21:00 UTC<!--/stamp--></p>
+<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · <a href="/college/bowls/">Bowl schedule</a> · <a href="/games/">NFL picks</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated 2026-11-19 23:28 UTC<!--/stamp--></p>
 </footer>
 </div>
 </body>

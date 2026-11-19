@@ -1344,8 +1344,9 @@ function buildExploreHtml(data, period) {
   const tiles = [
     tile("/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor &amp; ATS sheets"),
     tile("/leagues/", "/branding/tab-icon-leagues.svg", "Free leagues", "Join a pool or run your own"),
-    data.features.cfb ? tile("/college/games/", "/branding/tab-icon-games.png", "College football", "Odds &amp; win probabilities") : null,
-    data.features.bowls ? tile("/college/bowls/", "/branding/tab-icon-bowls.png", "Bowl schedule", "Every bowl and the Playoff") : null,
+    // The app routes (Games tab on College, the Bowls tab) - same targets as HomeExplore.
+    data.features.cfb ? tile("/college/", "/branding/tab-icon-games.png", "College football", "Odds &amp; win probabilities") : null,
+    data.features.bowls ? tile("/bowls/", "/branding/tab-icon-bowls.png", "Bowl pick'em", "Every bowl and the Playoff") : null,
     tile("/historical/index.html", "/branding/tab-icon-news.png", "Results archive", "Scores back to 2015"),
   ].filter(Boolean).join("\n");
   return `    <div class="home-explore">

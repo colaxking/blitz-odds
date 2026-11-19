@@ -17634,7 +17634,7 @@ function americanToImpliedProbability(ml) {
  *  <h1> carries the odds/predictions terms the site is about and the visible
  *  display headline is an <h2> - the marketing line has no keyword surface
  *  of its own. Same sr-only pattern LeagueView already uses. */
-function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbookId, tz, cfbOn, bowlsOn }) {
+function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbookId, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
   // Not memoized on [week, sportsbookId]: the live team stats, injuries, odds
   // and weather land after first render (useLiveSiteData and friends swap the
   // module bindings and re-render the app), and a memo keyed only on the week
@@ -17805,7 +17805,7 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
         </div>
       </div>
 
-      <HomeExplore week={week} tz={tz} cfbOn={cfbOn} bowlsOn={bowlsOn} />
+      <HomeExplore week={week} tz={tz} cfbOn={cfbOn} bowlsOn={bowlsOn} onOpenCollege={onOpenCollege} onOpenBowls={onOpenBowls} />
     </div>
   );
 }
@@ -17816,7 +17816,7 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
  *  rest of the app navigates with buttons, so without this block nothing
  *  under /games/ or /teams/ was linked from "/" at all. Plain links on
  *  purpose: each target is a real prerendered page. */
-function HomeExplore({ week, tz, cfbOn, bowlsOn }) {
+function HomeExplore({ week, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const label = getPeriodLabel(week);
   useFrozenPredictions(week);
@@ -17831,8 +17831,11 @@ function HomeExplore({ week, tz, cfbOn, bowlsOn }) {
     // those features in the app (admin console > Features): off for this
     // visitor means no tile. The static copy in build-static-pages.mjs reads
     // the same flags as a signed-out visitor gets them.
-    cfbOn ? ["/college/games/", "/branding/tab-icon-games.png", "College football", "Odds & win probabilities"] : null,
-    bowlsOn ? ["/college/bowls/", "/branding/tab-icon-bowls.png", "Bowl schedule", "Every bowl and the Playoff"] : null,
+    // These two open the feature itself - the Games tab on its College side,
+    // and the Bowls tab - in-app on a plain click; the href is the same route
+    // for a new-tab open or a click before the app has mounted.
+    cfbOn ? ["/college/", "/branding/tab-icon-games.png", "College football", "Odds & win probabilities", onOpenCollege] : null,
+    bowlsOn ? ["/bowls/", "/branding/tab-icon-bowls.png", "Bowl pick'em", "Every bowl and the Playoff", onOpenBowls] : null,
     ["/historical/index.html", "/branding/tab-icon-news.png", "Results archive", "Scores back to 2015"],
   ].filter(Boolean);
   let lastDay = null;
@@ -17869,8 +17872,17 @@ function HomeExplore({ week, tz, cfbOn, bowlsOn }) {
       </div>
       <div className="home-sec-head"><h3>More on Blitz Odds</h3></div>
       <div className="hx-tiles">
-        {tiles.map(([href, img, name, sub]) => (
-          <a className="hx-tile" href={href} key={href}>
+        {tiles.map(([href, img, name, sub, onOpen]) => (
+          <a
+            className="hx-tile"
+            href={href}
+            key={href}
+            onClick={onOpen ? (e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+              e.preventDefault();
+              onOpen();
+            } : undefined}
+          >
             <img src={img} alt="" width="34" height="34" loading="lazy" decoding="async" />
             <span><b>{name}</b><small>{sub}</small></span>
           </a>
@@ -26429,6 +26441,8 @@ function App() {
             onJoinLeague={() => auth.openSignup()}
             cfbOn={!!features.cfb}
             bowlsOn={bowlsOn}
+            onOpenCollege={() => { if (gamesSport === "cfb") cfbNavigate({}); else setGamesSport("cfb"); }}
+            onOpenBowls={() => selectTab("bowls")}
           />
         )
       )}

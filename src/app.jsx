@@ -24075,23 +24075,38 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
 
   /* Live games on top, then the reader's own teams, then day by day in
      kickoff order - ranked matchups first within a time slot. A college week
-     runs Tuesday to Saturday, so day headers do real work here. */
+     runs Tuesday to Saturday, so day headers do real work here.
+
+     Finished games sink to the bottom of their own section, so what's still
+     to come stays at the top of each day. Once every game on a day is final
+     (judged against all of that day's games, live ones included - a day
+     whose last game is in progress isn't done), the whole day moves below
+     the days still to play, oldest first, and its header says Final. */
   const sections = useMemo(() => {
     const live = shown.filter((g) => g.state === "in");
     const rest = shown.filter((g) => g.state !== "in");
     const mine = filter !== "mine" ? rest.filter((g) => favorites.includes(g.away.id) || favorites.includes(g.home.id)) : [];
     const mineIds = new Set(mine.map((g) => g.id));
+    const dayDone = new Map();
+    shown.forEach((g) => {
+      const k = cfbDayKey(g, tz);
+      dayDone.set(k, (dayDone.has(k) ? dayDone.get(k) : true) && g.state === "post");
+    });
     const byDay = new Map();
     rest.filter((g) => !mineIds.has(g.id)).forEach((g) => {
       const k = cfbDayKey(g, tz);
       if (!byDay.has(k)) byDay.set(k, { label: cfbDayLabel(g, tz), games: [] });
       byDay.get(k).games.push(g);
     });
-    const order = (x, y) => (x.date === y.date ? cfbBestRank(x) - cfbBestRank(y) : x.date < y.date ? -1 : 1);
+    const kickoff = (x, y) => (x.date === y.date ? cfbBestRank(x) - cfbBestRank(y) : x.date < y.date ? -1 : 1);
+    const order = (x, y) => ((x.state === "post") - (y.state === "post")) || kickoff(x, y);
     const out = [];
     if (live.length) out.push({ key: "live", label: "Live now", games: live.sort((x, y) => cfbBestRank(x) - cfbBestRank(y)) });
     if (mine.length) out.push({ key: "mine", label: "Your teams", games: mine.sort(order) });
-    [...byDay.keys()].sort().forEach((k) => out.push({ key: k, label: byDay.get(k).label, games: byDay.get(k).games.sort(order) }));
+    const keys = [...byDay.keys()].sort();
+    const daySection = (k, done) => ({ key: k, label: byDay.get(k).label + (done ? " \u00b7 Final" : ""), done, games: byDay.get(k).games.sort(order) });
+    keys.filter((k) => !dayDone.get(k)).forEach((k) => out.push(daySection(k, false)));
+    keys.filter((k) => dayDone.get(k)).forEach((k) => out.push(daySection(k, true)));
     return out;
   }, [shown, favorites, filter, tz]);
 
@@ -24166,7 +24181,7 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
       )}
 
       {sections.map((sec) => (
-        <section key={sec.key} className="cfb-day">
+        <section key={sec.key} className={"cfb-day" + (sec.done ? " cfb-day-done" : "")}>
           <h2 className="cfb-day-label">{sec.label}</h2>
           <div className="schedule-grid">
             {sec.games.map((g) => (

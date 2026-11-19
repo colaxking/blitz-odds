@@ -1062,6 +1062,9 @@
     color: var(--text-dim); font-family: inherit; font-size: 0.92rem; font-weight: 700;
     padding: 0 0 14px; position: relative; transition: color 0.15s;
   }
+  /* Tabs are <a> elements; keep them looking and feeling like the buttons
+     they replaced (no underline, no iOS long-press link preview). */
+  a.tab-btn { text-decoration: none; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
   .tab-btn:hover { color: var(--text); }
   .tab-btn.active { color: var(--text); }
   .tab-btn.active::after {

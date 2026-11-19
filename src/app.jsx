@@ -18459,20 +18459,28 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPin
       )}
     </span>
   );
-  /* Every tab is a button now. There used to be an <a href> branch here for
-   * Archive, the one tab that navigated out of the SPA; it went with the
-   * tab. Re-add it if a tab ever needs to be a real link again. */
+  /* Every tab is a real link (<a href>) to its own prerendered page, with
+   * the click handled in-app (pushState) exactly as the buttons were. As
+   * buttons, the primary navigation was invisible to crawlers: a rendered
+   * page linked to nothing but the footer. Modified clicks (new tab etc.)
+   * fall through to the browser. The trailing slash matches the canonical
+   * URL - "/games" alone 301s. */
   return (
     <nav className={"tab-bar" + (custom ? " tab-bar-custom" : "")} aria-label="Primary">
       {tabs.map((t) => (
-        <button
+        <a
           key={t.id}
-          type="button"
+          href={buildTabPath(t.id) === "/" ? "/" : buildTabPath(t.id) + "/"}
+          draggable="false"
           className={"tab-btn" + (activeTab === t.id ? " active" : "")
             + (custom && pinIndex(t.id) === -1 ? " tab-unpinned" : "")
             + (t.mobileOnly ? " tab-mobile-only" : "")}
           style={custom && pinIndex(t.id) !== -1 ? { "--pin-order": pinIndex(t.id) } : undefined}
-          onClick={() => onSelectTab(t.id)}
+          onClick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+            e.preventDefault();
+            onSelectTab(t.id);
+          }}
           aria-current={activeTab === t.id ? "page" : undefined}
           aria-label={t.id === "games" && liveCount > 0
             ? `Games, ${liveCount} live now`
@@ -18481,7 +18489,7 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPin
         >
           {renderIcon(t)}
           <span className="tab-label">{t.label}</span>
-        </button>
+        </a>
       ))}
       {custom && (
         <button

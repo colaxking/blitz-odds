@@ -1508,8 +1508,13 @@ const TAB_PAGES = [
     description: "Every FBS game this week with the betting line, market win probability, offense and defense stat ranks, weather and live scores.",
   },
   {
+    // noindex: the page is a feed of other publishers' headlines that link
+    // out, loaded client-side - there is nothing of the site's own to rank,
+    // and prerendering someone else's headlines wouldn't change that. It
+    // stays a normal tab; it just leaves the index and the sitemap.
     dir: "news",
     canonicalPath: "/news/",
+    noindex: true,
     title: "NFL News | Blitz Odds",
     description: "The latest NFL headlines, injury news, and roster moves, alongside the odds and predictions they move.",
   },

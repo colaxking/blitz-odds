@@ -29,7 +29,10 @@ const CURRENT_SEASON = 2026;
 // actually scored with it - it's gated on point-spread data availability
 // from the odds provider, not yet wired up. See js/scoringEngine.js header.
 const VALID_FORMATS = new Set(["straight_up", "confidence", "survivor", "ats"]);
-const VALID_VISIBILITY = new Set(["private", "public"]);
+// "hidden" is the owner's switch for taking a league out of public view:
+// it's left out of leagues-search entirely, can't be joined by id and takes
+// no join requests - an emailed invite or the invite code is the only way in.
+const VALID_VISIBILITY = new Set(["private", "public", "hidden"]);
 const VALID_TIE_BREAKERS = new Set(["most_correct", "fewest_incorrect", null]);
 const DEFAULT_FORMAT = "straight_up";
 

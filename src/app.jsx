@@ -10315,14 +10315,28 @@ const LEAGUE_FORMAT_ICON_URLS = {
 // in without asking. Descriptions are withheld for private leagues in
 // search results (see leagues-search.mts), so the copy doesn't promise
 // invisibility it no longer delivers.
+//
+// "hidden" is the third option: the owner takes the league out of public
+// view altogether. It never appears in search (leagues-search.mts), can't be
+// requested, and the only way in is an emailed invite or the invite code.
 const LEAGUE_VISIBILITY_INFO = {
   private: "Listed in search, but nobody joins without your approval. An invite code skips the queue.",
   public: "Listed in search and anyone can join instantly, no code needed.",
+  hidden: "Not listed in search. The only way in is an invite or the invite code.",
 };
 const LEAGUE_VISIBILITY_CARDS = [
   { value: "private", icon: "\u{1F512}", label: "Private", blurb: "Listed in search, but you approve every join request." },
   { value: "public", icon: "\u{1F310}", label: "Public", blurb: "Listed in search, anyone can join instantly." },
+  { value: "hidden", icon: "\u{1F648}", label: "Hidden", blurb: "Not listed anywhere. Invite or code only." },
 ];
+// One place for the short label + icon, so every badge agrees. Anything
+// unrecognised reads as Private, which is how it behaves server-side.
+function leagueVisibilityLabel(v) {
+  return v === "public" ? "Public" : v === "hidden" ? "Hidden" : "Private";
+}
+function leagueVisibilityIcon(v) {
+  return v === "public" ? "\u{1F310}" : v === "hidden" ? "\u{1F648}" : "\u{1F512}";
+}
 const LEAGUE_SIZE_OPTIONS = [
   { value: "", label: "No limit" },
   { value: "8", label: "8 players" },
@@ -10360,8 +10374,9 @@ const LEAGUE_TIE_HANDLING_OPTIONS = [
   { value: "incorrect", label: "Counts as incorrect" },
 ];
 const LEAGUE_VISIBILITY_OPTIONS = [
-  { value: "private", label: "Private" },
-  { value: "public", label: "Public" },
+  { value: "private", label: "Private - listed, you approve requests" },
+  { value: "public", label: "Public - listed, anyone can join" },
+  { value: "hidden", label: "Hidden - not listed, invite or code only" },
 ];
 const LEAGUE_TIE_BREAKER_OPTIONS = [
   { value: "", label: "None" },
@@ -10517,6 +10532,7 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted, onGo
               {LEAGUE_VISIBILITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </label>
+          <p className="league-format-hint lgx-span-2" style={{ margin: 0 }}>{LEAGUE_VISIBILITY_INFO[visibility]}</p>
           <label className="league-settings-row">
             <span>Max members</span>
             <input type="number" className="league-input" min={league.memberCount || 2} max={500} value={maxMembers} onChange={e => setMaxMembers(e.target.value)} placeholder="Unlimited" />
@@ -11193,10 +11209,10 @@ function LeagueCreateWizard({ auth, onCreated, onCancel, bowlsEnabled = false, i
               ))}
             </div>
 
-            <div className="lgx-two" style={{ marginTop: 22 }}>
+            <div style={{ marginTop: 22 }}>
               <div>
                 <label className="lgx-label">League privacy</label>
-                <p className="lgx-help">Who can join this league?</p>
+                <p className="lgx-help">Who can find and join this league?</p>
                 <div className="lgx-priv">
                   {LEAGUE_VISIBILITY_CARDS.map((o) => (
                     <button key={o.value} type="button"
@@ -11207,7 +11223,7 @@ function LeagueCreateWizard({ auth, onCreated, onCancel, bowlsEnabled = false, i
                   ))}
                 </div>
               </div>
-              <div>
+              <div className="lgx-size-row">
                 <label className="lgx-label" htmlFor="lgx-size">League size</label>
                 <p className="lgx-help">Set the maximum number of players.</p>
                 <select id="lgx-size" className="league-input" value={maxMembers}
@@ -11227,6 +11243,11 @@ function LeagueCreateWizard({ auth, onCreated, onCancel, bowlsEnabled = false, i
             {visibility === "private" && (
               <p className="lgx-help" style={{ marginTop: 8 }}>
                 Private league descriptions aren't shown in search results — only to members.
+              </p>
+            )}
+            {visibility === "hidden" && (
+              <p className="lgx-help" style={{ marginTop: 8 }}>
+                Hidden leagues don't appear in search at all — only people you invite or give the code to can join.
               </p>
             )}
           </div>
@@ -11379,7 +11400,9 @@ function LeagueCreateWizard({ auth, onCreated, onCancel, bowlsEnabled = false, i
                 }} />
             </div>
             <p className="lgx-help" style={{ marginTop: 10 }}>
-              You'll get an invite code too — anyone with it joins straight away, no approval needed.
+              {visibility === "hidden"
+                ? "You'll get an invite code too — since this league is hidden, an invite or that code is the only way to join."
+                : "You'll get an invite code too — anyone with it joins straight away, no approval needed."}
             </p>
 
             <label className="lgx-label" style={{ marginTop: 22 }}>Summary</label>
@@ -11387,7 +11410,7 @@ function LeagueCreateWizard({ auth, onCreated, onCancel, bowlsEnabled = false, i
               <div className="lgx-sum-cell"><span className="lgx-eyebrow">Name</span><b>{name.trim() || "—"}</b></div>
               <div className="lgx-sum-cell"><span className="lgx-eyebrow">Format</span><b>{isBowls ? `Bowl Pool · ${formatLabel}` : formatLabel}</b></div>
               <div className="lgx-sum-cell"><span className="lgx-eyebrow">Privacy</span>
-                <b>{visibility === "private" ? "Private" : "Public"}</b></div>
+                <b>{leagueVisibilityLabel(visibility)}</b></div>
               <div className="lgx-sum-cell"><span className="lgx-eyebrow">Size</span><b>{sizeLabel}</b></div>
             </div>
             {error && <p className="leagues-error" style={{ marginTop: 14 }}>{error}</p>}
@@ -11420,7 +11443,7 @@ function LeagueCreateWizard({ auth, onCreated, onCancel, bowlsEnabled = false, i
             </div>
           </div>
           <div className="lgx-pv-meta">
-            <span>{visibility === "private" ? "🔒 Private League" : "🌐 Public League"}</span>
+            <span>{leagueVisibilityIcon(visibility)} {leagueVisibilityLabel(visibility)} League</span>
             <span>👥 {maxMembers ? `${maxMembers} Players Max` : "No player limit"}</span>
             <span>Created by You</span>
           </div>
@@ -18362,7 +18385,7 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
                         <p className="hd-row-fmt">{isBowl ? `Bowl Pool · ${HOME_FORMAT_LABELS[l.format] || l.format}` : (HOME_FORMAT_LABELS[l.format] || l.format)}</p>
                         <div className="hd-row-meta">
                           <span>{l.memberCount} {l.memberCount === 1 ? "member" : "members"}</span>
-                          <span>{l.visibility === "public" ? "Public" : "Private"}</span>
+                          <span>{leagueVisibilityLabel(l.visibility)}</span>
                           {/* Owner-only, and only when something is actually
                               waiting. The dashboard is the screen an owner
                               lands on, so it's where a pending request has to

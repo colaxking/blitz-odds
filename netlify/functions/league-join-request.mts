@@ -66,6 +66,12 @@ export default async (req: Request, _context: Context) => {
     // A public league has nothing to approve - the caller should have gone
     // straight to league-join. Saying so is more useful than silently
     // creating a request nobody will ever look at.
+    // A hidden league isn't listed and takes no requests at all - the owner
+    // has said invite or code only. Answered as "not found" so that knowing
+    // (or guessing) an id confirms nothing about a league its owner hid.
+    if (league.visibility === "hidden") {
+      return jsonResponse(404, { ok: false, error: "League no longer exists" }, CORS_HEADERS);
+    }
     if (league.visibility !== "private") {
       return jsonResponse(400, { ok: false, error: "This league can be joined directly" }, CORS_HEADERS);
     }

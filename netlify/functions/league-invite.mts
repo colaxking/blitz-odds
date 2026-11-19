@@ -48,6 +48,7 @@ const CORS_HEADERS: Record<string, string> = {
 
 
 function buildInviteEmail(league: any, inviterName: string) {
+  // Anything that isn't public - private or hidden - is joined by code.
   const isPrivate = league.visibility !== "public";
   const formatLabel = FORMAT_LABELS[league.format] || league.format;
     const subject = `${inviterName} invited you to join "${league.name}" on Blitz Odds`;

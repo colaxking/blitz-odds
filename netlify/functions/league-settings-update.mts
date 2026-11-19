@@ -41,7 +41,8 @@ import { seasonHasStarted } from "./lib/kickoff.mts";
 const LEAGUE_STORE = "blitz-leagues";
 const SITE_DATA_STORE = "blitz-site-data";
 
-const VALID_VISIBILITY = new Set(["private", "public"]);
+// "hidden" = not listed in search, invite or code only (see league-create.mts).
+const VALID_VISIBILITY = new Set(["private", "public", "hidden"]);
 const VALID_TIE_BREAKERS = new Set(["most_correct", "fewest_incorrect", null]);
 
 function sanitizeScoringSettingsPatch(format: string, existing: any, incoming: any) {

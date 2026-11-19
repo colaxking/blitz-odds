@@ -925,7 +925,9 @@
     border-radius: 50%; border: 1px solid var(--card-border); display: grid; place-items: center;
     font-size: .7rem; color: transparent; }
   .lgx-fmt.sel .tick { background: var(--accent); border-color: var(--accent); color: #04121a; }
-  .lgx-priv { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .lgx-priv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .lgx-size-row { margin-top: 20px; max-width: 320px; }
+  .lgx-size-row .league-input { width: 100%; }
   .lgx-priv button { text-align: left; padding: 14px; border-radius: 12px; cursor: pointer;
     background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); font-family: inherit; }
   .lgx-priv button.sel { border-color: var(--accent); background: rgba(var(--accent-rgb), .07); }
@@ -1051,6 +1053,8 @@
        reader has already passed. */
     .lgx-rail .lgx-about, .lgx-rail .lgx-next { display: none; }
     .lgx-two { grid-template-columns: 1fr; gap: 18px; }
+    .lgx-priv { grid-template-columns: 1fr; }
+    .lgx-size-row { max-width: none; }
     .lgx-fmt-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .lgx-sum { grid-template-columns: 1fr; }
     .lgx-steps { padding: 14px; }

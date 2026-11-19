@@ -16,7 +16,8 @@ import { getAuthenticatedUser } from "./lib/auth.mts";
 // GET /.netlify/functions/leagues-search?q=text&limit=20
 //   -> { ok, leagues: [ { id, name, description, format, memberCount,
 //        maxMembers, season, createdAt }, ... ], total }
-//   Only leagues with visibility "public" are ever returned. inviteCode is
+//   Only leagues with visibility "public" or "private" are returned - a
+//   "hidden" league is never listed, whoever is asking. inviteCode is
 //   deliberately omitted from results - public leagues are joined by id
 //   (league-join.mts), not by code, so there's no reason to hand one out.
 //
@@ -94,7 +95,9 @@ export default async (req: Request, _context: Context) => {
 
     // Private leagues are listed too. "Private" now means "you approve who
     // joins", not "nobody can find it" - the invite code remains the way to
-    // skip approval entirely. Anything explicitly locked stays out.
+    // skip approval entirely. Anything explicitly locked stays out, and so
+    // does a league its owner has hidden (visibility "hidden"): those are
+    // invite/code only and must never appear here, with or without a query.
     let results = fetched.filter((l: any) => l && !l.locked && (l.visibility === "public" || l.visibility === "private"));
     if (q) {
       results = results.filter((l: any) => typeof l.name === "string" && l.name.toLowerCase().includes(q));

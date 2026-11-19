@@ -1316,60 +1316,205 @@ function stripHomeSnapshot(html) {
   return html.slice(0, a) + html.slice(b + HOME_SNAPSHOT_END.length).replace(/^\n/, "");
 }
 
-/** The crawlable "this week" block: every game of the current period linked
- *  to its own page, and the hub pages (the teams hub is /teams/). Same markup and classes
- *  as <HomeExplore> in src/app.jsx (keep the two in step) - before this the
- *  homepage's HTML linked to "/", "/games" and "/leagues" and nothing else,
- *  and the app's own navigation is buttons, so no current-season page was
- *  reachable by following links from the root. */
-function buildExploreHtml(data, period) {
-  const label = period ? escapeHtml(period.label) : "";
-  let games = "";
-  if (period) {
-    const ladder = buildLadder(data, period);
-    let lastDay = null;
-    for (const g of period.games) {
-      const r = ladder.find((x) => x.game === g);
-      if (!r) continue;
-      if (g.date !== lastDay) { games += `        <div class="hx-day">${escapeHtml(g.date || "")}</div>\n`; lastDay = g.date; }
-      const side = (team, id) => `<span class="hx-t${r.pickAbbr === id ? " pick" : ""}"><img src="/team-badges/${escapeHtml(id)}.png" alt="" width="26" height="26" loading="lazy" decoding="async" />${escapeHtml(nickname(team))}</span>`;
-      games += `        <a class="hx-game" href="${gamePagePath(data, period, g)}" aria-label="${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}"><span class="hx-teams">${side(r.away, g.away)}<span class="hx-at">@</span>${side(r.home, g.home)}</span><span class="hx-meta"><span class="hx-pick">${escapeHtml(r.pickAbbr)} ${r.winPct}%</span><span class="hx-time">${escapeHtml(g.time || "")}</span></span></a>\n`;
-    }
+/* Mirrored word for word from HOME_FAQ in src/app.jsx. */
+const HOME_FAQ = [
+  { q: "What is an NFL pick'em league?", a: "A pick'em league is a pool where everyone picks the winners of each week's NFL games. Picks are scored after the games finish, and the standings rank everyone across the season." },
+  { q: "Is Blitz Odds free to use?", a: "Yes. Creating a league, joining a league, and making picks are free." },
+  { q: "How do confidence pools work?", a: "You rank your picks from most to least confident. A correct pick earns the points you assigned to it, so your surest calls are worth the most." },
+  { q: "Can I create a private pick'em league?", a: "Yes. A league can be public, private, or hidden. Private and hidden leagues are joined by invitation or code." },
+  { q: "How does automatic scoring work?", a: "Picks lock at kickoff. When a game goes final, Blitz Odds grades every pick and updates the league standings." },
+  { q: "What is Blitz Edge?", a: "Blitz Edge is the Blitz Odds prediction model. It estimates each NFL team's chance to win from offense and defense rankings, injuries, rest, and weather. It is an estimate, not a guarantee." },
+  { q: "Does Blitz Odds show live NFL scores?", a: "Yes. Scores, quarter, and game clock update while games are in progress, next to the model's pregame pick." },
+  { q: "Can I view college football scores and predictions?", a: "Yes. College football scores are shown with win probabilities based on the betting market. The Blitz Edge model currently covers the NFL." },
+];
+
+const HOME_FORMATS = [
+  ["straight-up", "Straight-Up", "Pick the winning team in each game."],
+  ["confidence", "Confidence", "Rank selections by confidence."],
+  ["survivor", "Survivor", "Choose a team to survive each week."],
+  ["ats", "Against the Spread", "Select teams against the point spread."],
+];
+
+/** Kickoff as a UTC timestamp from the schedule's "Thu, Nov 19" / "8:15 PM
+ *  ET" strings. Only used to keep already-started games out of the static
+ *  "upcoming" lists; the app replaces all of it with live status on mount. */
+function approxKickoffMs(game, seasonYear) {
+  const m = /([A-Za-z]{3}) (\d{1,2})/.exec(String(game.date || "").replace(/^[A-Za-z]{3},\s*/, ""));
+  const t = /(\d{1,2}):(\d{2})\s*(AM|PM)/i.exec(String(game.time || ""));
+  if (!m || !t) return null;
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const mon = months.indexOf(m[1]);
+  if (mon < 0) return null;
+  const year = mon <= 1 ? Number(seasonYear) + 1 : Number(seasonYear);
+  let hour = Number(t[1]) % 12;
+  if (/pm/i.test(t[3])) hour += 12;
+  // Eastern: EDT (UTC-4) until early November, EST (UTC-5) after and in Jan/Feb.
+  const day = Number(m[2]);
+  const est = mon <= 1 || mon === 11 || (mon === 10 && day >= 8);
+  return Date.UTC(year, mon, day, hour + (est ? 5 : 4), Number(t[2]));
+}
+
+/** Static copy of the signed-out homepage (src/app.jsx <HomeLanding>): same
+ *  section order, classes and copy, so css/app.css paints it identically
+ *  before any script runs and React's first render lands on the same layout.
+ *  The scoreboard lists only games that have not kicked off, as "Upcoming" -
+ *  live and final status needs the score feed, which only the app has. */
+function buildHomeBodyHtml(data, period) {
+  const label = period ? escapeHtml(period.label) : "This week";
+  const ladder = period ? buildLadder(data, period) : [];
+  const now = Date.now();
+  const open = ladder.filter((r) => {
+    if (r.result) return false;
+    const ms = approxKickoffMs(r.game, data.seasonYear);
+    return ms == null || ms > now;
+  });
+  const feat = open[0] || null;
+  const picks = open.filter((r) => r !== feat).slice(0, 3);
+  const byKickoff = period ? period.games.map((g) => open.find((r) => r.game === g)).filter(Boolean).slice(0, 4) : [];
+  const hub = period ? weekHubPath(data, period) : "/games/";
+  const badge = (id, size) => `<img src="/team-badges/${escapeHtml(id)}.png" alt="" width="${size}" height="${size}" loading="lazy" decoding="async" />`;
+  const pcts = (r) => {
+    const home = Math.round(r.prediction.homeWinProbability * 100);
+    const away = Math.round(r.prediction.awayWinProbability * 100);
+    return { home, away };
+  };
+
+  let preview = "";
+  if (feat) {
+    const p = pcts(feat);
+    const pickIsHome = feat.pickAbbr === feat.game.home;
+    const mt = (team, id, isPick) => `<div class="hl-mt${isPick ? " pick" : ""}"><img class="team-crest" src="/team-badges/${escapeHtml(id)}.png" alt="${escapeHtml(team.name)}" width="56" height="56" decoding="async" /><b>${escapeHtml(team.name)}</b>${isPick ? `<span class="hl-pickflag">Predicted winner</span>` : ""}</div>`;
+    const line = feat.odds && feat.odds.favorite
+      ? `\n          <p class="hl-line"><span><b>${escapeHtml(feat.odds.favorite)} ${escapeHtml(formatSpread(feat.odds.spread))}</b> Spread</span>${feat.odds.overUnder != null ? `<span><b>${escapeHtml(feat.odds.overUnder)}</b> O/U</span>` : ""}<span class="hl-dim">Market line</span></p>`
+      : "";
+    preview = `
+        <div class="home-card hl-preview">
+          <div class="hl-preview-head"><span class="home-eyebrow hl-eyebrow">${label} · Featured matchup</span><span class="hl-dim">${escapeHtml(feat.game.date || "")}${feat.game.time ? ` · ${escapeHtml(feat.game.time)}` : ""}</span></div>
+          <div class="hl-matchup">${mt(feat.away, feat.game.away, !pickIsHome)}<span class="hl-at">@</span>${mt(feat.home, feat.game.home, pickIsHome)}</div>
+          <div class="hl-edge">
+            <div class="hl-edge-top"><img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" class="hl-edge-logo" width="378" height="120" decoding="async" /><div class="hl-edge-num"><b>${feat.winPct}%</b><span>model win probability · ${escapeHtml(feat.pickAbbr)}</span></div></div>
+            <div class="hl-bar" role="img" aria-label="Model win probability: ${escapeHtml(feat.away.name)} ${p.away} percent, ${escapeHtml(feat.home.name)} ${p.home} percent"><span${pickIsHome ? "" : ` class="on"`} style="width:${p.away}%"></span><span${pickIsHome ? ` class="on"` : ""} style="width:${p.home}%"></span></div>
+            <div class="hl-bar-key"><span>${escapeHtml(feat.game.away)} ${p.away}%</span><span>${escapeHtml(feat.game.home)} ${p.home}%</span></div>
+          </div>${line}
+          <p class="hl-fine">The percentage is the Blitz Edge model's estimate of each team's chance to win. It is an estimate, not a guarantee.</p>
+          <a class="hl-more" href="${gamePagePath(data, period, feat.game)}">See the full ${escapeHtml(nickname(feat.away))}–${escapeHtml(nickname(feat.home))} analysis &rarr;</a>
+        </div>`;
   }
-  const tile = (href, img, name, sub) => `        <a class="hx-tile" href="${href}"><img src="${img}" alt="" width="34" height="34" loading="lazy" decoding="async" /><span><b>${name}</b><small>${sub}</small></span></a>`;
-  const tiles = [
-    tile("/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor &amp; ATS sheets"),
-    tile("/leagues/", "/branding/tab-icon-leagues.png", "Free leagues", "Join a pool or run your own"),
-    // The app routes (Games tab on College, the Bowls tab) - same targets as HomeExplore.
-    data.features.cfb ? tile("/college/", "/branding/tab-icon-games.png", "College football", "Odds &amp; win probabilities") : null,
-    data.features.bowls ? tile("/bowls/", "/branding/tab-icon-bowls.png", "Bowl pick'em", "Every bowl and the Playoff") : null,
-    tile("/historical/index.html", "/branding/tab-icon-news.png", "Results archive", "Scores back to 2015"),
-  ].filter(Boolean).join("\n");
-  return `    <div class="home-explore">
-      <div class="home-sec-head"><h3>${period ? `${label} slate` : "This week's slate"}</h3>${period ? `<a class="hx-head-link" href="${weekHubPath(data, period)}">Confidence ladder &rarr;</a>` : ""}</div>
-      <div class="home-card hx-card">
-        <div class="hx-games">
-${games}        </div>
-        <a class="hx-more" href="/games/">All ${label} games &amp; odds &rarr;</a>
-      </div>
-      <div class="home-sec-head"><h3>More on Blitz Odds</h3></div>
-      <div class="hx-tiles">
-${tiles}
-      </div>
-    </div>`;
+
+  const scoreCard = (r) => {
+    const g = r.game;
+    const side = (team, id, which) => `<span class="hs-team hs-${which}"><span class="hs-logo" aria-hidden="true">${badge(id, 30)}</span><span class="hs-name">${escapeHtml(nickname(team))} <small>${escapeHtml(id)}</small></span><span class="hs-abbr">${escapeHtml(id)}</span><span class="hs-score"></span></span>`;
+    return `          <a class="home-card hs-game is-upcoming" href="${gamePagePath(data, period, g)}" aria-label="${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}, ${escapeHtml(g.date || "")} ${escapeHtml(g.time || "")}"><span class="hs-status is-upcoming"><span class="hs-status-wide">Upcoming</span><span class="hs-status-narrow">${escapeHtml(g.time || "Scheduled")}</span></span><span class="hs-when"><span class="hs-status-wide">${escapeHtml(g.date || "")} · ${escapeHtml(g.time || "")}</span><span class="hs-status-narrow">${escapeHtml(g.date || "")}</span></span>${side(r.away, g.away, "away")}${side(r.home, g.home, "home")}<span class="hs-pick"><span class="hs-pick-lbl"><span class="hs-status-wide">Pregame model pick</span><span class="hs-status-narrow">Pregame pick</span></span><span class="hs-pick-val"><b>${escapeHtml(r.pickAbbr)} ${r.winPct}%</b></span></span><span class="hs-link" aria-hidden="true">Matchup analysis &rarr;</span></a>`;
+  };
+  const scores = byKickoff.length
+    ? `        <div class="hs-grid">\n${byKickoff.map(scoreCard).join("\n")}\n        </div>`
+    : `        <p class="hs-empty">Live scores load here. Browse <a href="/games/">NFL games and predictions</a> or the <a href="/historical/index.html">results archive</a>.</p>`;
+
+  const pickCard = (r) => {
+    const p = pcts(r);
+    const g = r.game;
+    const team = (t, id, pct) => `<span class="hl-pickcard-team${r.pickAbbr === id ? " pick" : ""}">${badge(id, 32)}<span>${escapeHtml(t.name)}</span><b>${pct}%</b></span>`;
+    return `          <a class="home-card hl-pickcard" href="${gamePagePath(data, period, g)}" aria-label="${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}: predicted winner ${escapeHtml(r.pickAbbr)}, ${r.winPct} percent"><span class="hl-pickcard-when">${escapeHtml(g.date || "")}${g.time ? ` · ${escapeHtml(g.time)}` : ""}</span>${team(r.away, g.away, p.away)}${team(r.home, g.home, p.home)}<span class="hs-pick hl-pickcard-pick"><span class="hs-pick-lbl"><img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" width="378" height="120" loading="lazy" decoding="async" /> Predicted winner</span><span class="hs-pick-val"><b>${escapeHtml(r.pickAbbr)} ${r.winPct}%</b></span></span><span class="hs-link" aria-hidden="true">Full matchup details &rarr;</span></a>`;
+  };
+  const picksSection = picks.length ? `
+      <section class="hl-sec" aria-labelledby="hl-picks">
+        <div class="hl-head"><div><h2 id="hl-picks">This Week's NFL Picks</h2><p>${label} · pregame win probabilities from the Blitz Edge model.</p></div>${data.features.cfb ? `<a class="hl-more" href="/college/">College football odds &rarr;</a>` : ""}</div>
+        <div class="hl-grid3">
+${picks.map(pickCard).join("\n")}
+        </div>
+        <div class="hl-center"><a class="home-btn hl-btn-lg" href="/games/">View All NFL Games &amp; Predictions</a></div>
+      </section>` : "";
+
+  const faqLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: HOME_FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  }).replace(/</g, "\\u003c");
+  const svg = (d) => `<svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+
+  return `  <div class="home-landing hl">
+      <section class="hl-hero">
+        <div class="hl-hero-copy">
+          <span class="home-eyebrow hl-eyebrow">Free NFL pick'em leagues · picks · scores</span>
+          <h1 class="hl-display">Run Your Pick'em League. <em>Make Smarter Picks.</em></h1>
+          <p class="hl-lede">Create a free NFL pick'em league, invite your friends, and let Blitz Odds handle scoring and standings. Use model-powered predictions to make more informed picks every week.</p>
+          <div class="hl-acts">
+            <a class="home-btn primary hl-btn-lg" href="/leagues/">Create a Free League</a>
+            <a class="home-btn hl-btn-lg" href="${hub}">Explore This Week's Picks</a>
+            <a class="home-btn hl-btn-lg hl-btn-quiet" href="/leagues/">Join a League</a>
+          </div>
+          <p class="hl-trust"><span>Free to create and join</span><span>Four pool formats</span><span>Not a sportsbook — no wagers</span></p>
+        </div>${preview}
+      </section>
+
+      <section class="hl-sec hs" aria-labelledby="hs-title">
+        <div class="hl-head"><div><h2 id="hs-title">Football Scores &amp; Predictions</h2><p>Follow the action and see how Blitz Odds predictions compare with game results.</p></div><a class="hl-more hs-all-top" href="/games/">View All Football Scores &rarr;</a></div>
+        <div class="hs-controls"><div class="hs-seg" role="group" aria-label="Game status"><button type="button" class="on" aria-pressed="true">All</button><button type="button" aria-pressed="false">Live</button><button type="button" aria-pressed="false">Upcoming</button><button type="button" aria-pressed="false">Final</button></div><span class="hs-updated">&nbsp;</span></div>
+${scores}
+        <a class="hl-more hs-all-bottom" href="/games/">View All Football Scores &rarr;</a>
+      </section>
+
+      <section class="hl-sec" aria-label="What you can do on Blitz Odds">
+        <div class="hl-grid3">
+          <div class="home-card hl-benefit">${svg(`<path d="M3 20h18M7 16V9M12 16V4M17 16v-5" />`)}<h3>Make Smarter Picks</h3><p>Compare model predictions, team matchups, and key game factors before locking in your picks.</p><a class="hl-more" href="/games/">Explore NFL Picks &rarr;</a></div>
+          <div class="home-card hl-benefit">${svg(`<circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.6-3.4 3.2-5 6.5-5s5.9 1.6 6.5 5M17 5.5a3 3 0 0 1 0 5.6M18.5 15.2c1.7.7 2.7 2.3 3 4.8" />`)}<h3>Run Your League</h3><p>Create a free pick'em pool, invite your friends, and manage everything in one place.</p><a class="hl-more" href="/leagues/">Create a League &rarr;</a></div>
+          <div class="home-card hl-benefit">${svg(`<path d="M4 6h16M4 12h10M4 18h13" /><path d="M17 11l2 2 3-4" />`)}<h3>Track Every Result</h3><p>Follow picks, scores, and standings as the season unfolds.</p><a class="hl-more" href="/leagues/">Explore Leagues &rarr;</a></div>
+        </div>
+      </section>
+
+      <section class="hl-sec" aria-labelledby="hl-how">
+        <div class="hl-head"><h2 id="hl-how">How Blitz Odds Works</h2></div>
+        <ol class="home-card hl-steps">
+          <li><span class="hl-step-n" aria-hidden="true">1</span><div><h3>Create or Join</h3><p>Start your own free pick'em league or join an existing one.</p></div></li>
+          <li><span class="hl-step-n" aria-hidden="true">2</span><div><h3>Make Your Picks</h3><p>Use Blitz Edge predictions and matchup insights to select your teams.</p></div></li>
+          <li><span class="hl-step-n" aria-hidden="true">3</span><div><h3>Track Results</h3><p>Follow game scores and league standings without manual spreadsheets.</p></div></li>
+        </ol>
+      </section>
+
+      <section class="hl-sec" aria-labelledby="hl-why">
+        <div class="hl-head"><h2 id="hl-why">Why Blitz Odds?</h2></div>
+        <div class="hl-grid3 hl-why">
+          <div class="hl-why-cell is-edge"><h3>Blitz Edge Predictions</h3><p>Model-driven matchup analysis and win probabilities.</p><a class="hl-more" href="/picks/">See the Pick'em Playbook &rarr;</a></div>
+          <div class="hl-why-cell is-league"><h3>Easy League Management</h3><p>League setup, invitations, picks, scoring, and standings.</p><a class="hl-more" href="/leagues/">Browse pick'em leagues &rarr;</a></div>
+          <div class="hl-why-cell is-data"><h3>Football Insights in One Place</h3><p>${data.features.cfb ? "NFL and college football schedules, scores, predictions, and historical data." : "NFL schedules, scores, predictions, and historical data."}</p><a class="hl-more" href="/historical/index.html">Browse the results archive &rarr;</a></div>
+        </div>
+      </section>
+
+      <section class="hl-sec" aria-labelledby="hl-formats">
+        <div class="hl-head"><div><h2 id="hl-formats">Pick'em Formats</h2><p>Every format is free. Choose one when you create a league.</p></div></div>
+        <div class="hl-grid4">
+${HOME_FORMATS.map(([slug, name, blurb]) => `          <a class="home-card hl-format" href="/leagues/"><img src="/branding/format-badge-${slug}-icon.png" alt="" width="240" height="180" loading="lazy" decoding="async" /><h3>${name}</h3><p>${blurb}</p><span class="hl-more" aria-hidden="true">Play ${name} &rarr;</span></a>`).join("\n")}
+        </div>
+      </section>
+${picksSection}
+
+      <section class="home-card hl-close" aria-labelledby="hl-close">
+        <div><h2 id="hl-close">Ready to Run Your Pick'em League?</h2><p>Create your free league, invite your friends, and let Blitz Odds handle the details.</p></div>
+        <div class="hl-acts"><a class="home-btn primary hl-btn-lg" href="/leagues/">Create Your Free League</a><a class="home-btn hl-btn-lg" href="/games/">Explore NFL Picks</a></div>
+      </section>
+
+      <section class="hl-sec hl-faq" aria-labelledby="hl-faq">
+        <div class="hl-head"><h2 id="hl-faq">Frequently Asked Questions</h2></div>
+        <div class="home-card hl-faq-list">
+${HOME_FAQ.map((f, i) => `          <details${i === 0 ? " open" : ""}><summary><h3>${escapeHtml(f.q)}</h3></summary><p>${escapeHtml(f.a)}</p></details>`).join("\n")}
+        </div>
+        <script type="application/ld+json">${faqLd}</script>
+      </section>
+  </div>`;
 }
 
 function buildHomeSnapshotHtml(period, data) {
-  const label = period ? escapeHtml(period.label) : "this week";
+  const wordmark = (h, lazyBoth) => `<img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" width="900" height="252" decoding="async" style="height:${h}px;width:auto;display:block" />
+            <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" width="900" height="252" loading="lazy" decoding="async" style="height:${h}px;width:auto;display:none" />`;
+  const tab = (href, label, img, extra = "") => `<a href="${href}" class="tab-btn${extra}"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-${img}.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">${label}</span></a>`;
   return `${HOME_SNAPSHOT_START}
-<div id="prerendered-content" class="app">
+<div id="prerendered-content" class="app app-home">
   <header class="top">
     <div class="hdr-bar">
       <div class="hdr-lead">
         <a href="/" class="hdr-mark" aria-label="Blitz Odds home">
           <span class="brand-logo-mini" style="display:inline-flex;align-items:center;flex-shrink:0">
-            <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" width="900" height="252" decoding="async" style="height:21px;width:auto;display:block" />
-            <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" width="900" height="252" loading="lazy" decoding="async" style="height:21px;width:auto;display:none" />
+            ${wordmark(21)}
           </span>
         </a>
       </div>
@@ -1377,39 +1522,19 @@ function buildHomeSnapshotHtml(period, data) {
       <div class="header-right-cluster"></div>
     </div>
     <div class="brand-row">
-      <span class="brand-logo" style="display:inline-flex;align-items:center;flex-shrink:0">
-        <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" width="900" height="252" decoding="async" style="height:76px;width:auto;display:block" />
-        <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" width="900" height="252" loading="lazy" decoding="async" style="height:76px;width:auto;display:none" />
-      </span>
-      <h1 class="sr-only">Blitz Odds - Free NFL Pick'em Leagues, Odds &amp; Model Predictions</h1>
+      <a href="/" class="brand-logo" style="display:inline-flex;align-items:center;flex-shrink:0">
+            ${wordmark(76)}
+      </a>
     </div>
+    <nav class="tab-bar" aria-label="Primary">
+      ${tab("/", "Home", "home", " active")}
+      ${tab("/games/", "Games", "games")}
+      ${tab("/picks/", "Playbook", "playbook")}
+      ${tab("/news/", "News", "news")}
+      ${tab("/leagues/", "Pick'em Leagues", "leagues", " tab-desktop-only")}
+    </nav>
   </header>
-  <div class="home-landing">
-    <div class="home-hero">
-      <div class="home-hero-copy">
-        <span class="home-eyebrow">NFL pick'em pools</span>
-        <h2 class="home-display">
-          Run your pool. <em>Win it too.</em>
-          <span class="sr-only"> Free NFL pick'em leagues, odds and model predictions — ${label}.</span>
-        </h2>
-        <p class="home-lede">
-          Blitz Odds gives every game a model win probability, then puts your whole pool on top of
-          it — straight-up, confidence, survivor, or against the spread. Set it up once and it
-          scores itself all season.
-        </p>
-        <div class="home-acts">
-          <a href="/leagues/" class="home-btn primary">Create a free league</a>
-          <a href="/games/" class="home-btn">Browse this week's games</a>
-        </div>
-        <div class="home-trust">
-          <span>⚡ Odds from 5 sportsbooks</span>
-          <span>📊 Injury &amp; weather adjusted</span>
-          <span>🏆 Four pool formats</span>
-        </div>
-      </div>
-    </div>
-${data ? buildExploreHtml(data, period) : ""}
-  </div>
+${data ? buildHomeBodyHtml(data, period) : ""}
 </div>
 ${HOME_SNAPSHOT_END}`;
 }

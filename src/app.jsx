@@ -1336,7 +1336,7 @@ function gameToSportsEvent(game, seasonYear) {
  * scripts/build-static-pages.mjs), so the two don't compete for the same
  * terms with only one of them holding the content. */
 const DEFAULT_META = {
-  title: "Free NFL Pick'em Leagues — Pools That Score Themselves | Blitz Odds",
+  title: "Free NFL Pick'em Leagues, Picks & Scores | Blitz Odds",
   description: "Run a free NFL pick'em pool with friends. Straight-up, confidence, survivor, and against-the-spread formats, each game backed by a model win probability and live sportsbook odds."
 };
 
@@ -1435,8 +1435,8 @@ function useDocumentMeta(activeTab, view, teamId, week, game, cfbActive) {
       // week-view branch below would claim "/" and re-apply the odds title
       // that now belongs to /games.
       applyDocumentMeta(
-        "Free NFL Pick'em Leagues — Pools That Score Themselves | Blitz Odds",
-        "Run a free NFL pick'em pool with friends. Straight-up, confidence, survivor, and against-the-spread formats, each game backed by a model win probability and live sportsbook odds."
+        "Free NFL Pick'em Leagues, Picks & Scores | Blitz Odds",
+        "Create free NFL pick'em leagues, track live football scores, and explore model-powered NFL and college football predictions on Blitz Odds."
       );
     } else if (activeTab === "bowls") {
       applyDocumentMeta(
@@ -5030,9 +5030,49 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
     [games, liveMap, context]
   );
   useSportsEventJsonLd(games, seasonYear);
+  /* Scoreboard controls (2026-11): this view is where the homepage's "View
+     All Football Scores" lands, so it can be cut down to what's live, still
+     to come or finished, and searched by team. Status comes from the same
+     resolveScore() every card uses - "Live" is ESPN saying the game is in
+     progress, never a guess from the kickoff time. */
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [teamQuery, setTeamQuery] = useState("");
+  const searchTrackedRef = useRef(false);
+  useEffect(() => { setStatusFilter("all"); setTeamQuery(""); }, [week]);
+  const gameStatus = (g) => {
+    const score = resolveScore(liveMap && liveMap[`${g.away}-${g.home}`], context.getResult(g.away, g.home));
+    return score && score.isLive ? "live" : score && score.isFinal ? "final" : "upcoming";
+  };
+  const statusCounts = { live: 0, upcoming: 0, final: 0 };
+  games.forEach((g) => { statusCounts[gameStatus(g)]++; });
+  const q = teamQuery.trim().toLowerCase();
+  const shownGames = games.filter((g) => {
+    if (statusFilter !== "all" && gameStatus(g) !== statusFilter) return false;
+    if (!q) return true;
+    const a = context.getTeam(g.away), h = context.getTeam(g.home);
+    return [g.away, g.home, a && a.name, h && h.name].some((v) => v && String(v).toLowerCase().includes(q));
+  });
   if (!games.length) return <p>No schedule data for this week yet.</p>;
   return (
     <div>
+      <div className="wk-filters">
+        <div className="cfb-filters" role="group" aria-label="Filter games by status">
+          {[["all", `All ${games.length}`], ["live", `Live ${statusCounts.live}`], ["upcoming", `Upcoming ${statusCounts.upcoming}`], ["final", `Final ${statusCounts.final}`]].map(([id, label]) => (
+            <button key={id} type="button" className={"cfb-chip" + (statusFilter === id ? " active" : "")} aria-pressed={statusFilter === id}
+              onClick={() => { setStatusFilter(id); trackEvent("games_status_filter", { filter: id, sport: "nfl" }); }}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <input
+          type="search" className="wk-search" placeholder="Search teams" aria-label="Search teams"
+          value={teamQuery}
+          onChange={(e) => {
+            setTeamQuery(e.target.value);
+            if (!searchTrackedRef.current && e.target.value.trim().length >= 2) { searchTrackedRef.current = true; trackEvent("games_team_search", { sport: "nfl" }); }
+          }}
+        />
+      </div>
       {byeTeams.length > 0 && (
         <div className="bye-banner">
           <span className="bye-banner-label">On bye — {getPeriodLabel(week)}:</span>
@@ -5057,8 +5097,17 @@ function WeekView({ week, favorites, onToggleFavorite, onSelectTeam, onSelectGam
           {context.note}
         </div>
       )}
+      {shownGames.length === 0 && (
+        <p className="cfb-empty" role="status">
+          {q ? `No ${getPeriodLabel(week)} games match "${teamQuery.trim()}".`
+            : statusFilter === "live" ? "No games are live right now."
+            : statusFilter === "upcoming" ? `No upcoming games left in ${getPeriodLabel(week)}.`
+            : `No final scores yet for ${getPeriodLabel(week)}.`}
+          {" "}<button type="button" className="hd-link" onClick={() => { setStatusFilter("all"); setTeamQuery(""); }}>Show all games</button>
+        </p>
+      )}
       <div className="schedule-grid">
-        {games.map((g) => (
+        {shownGames.map((g) => (
           <GameCard
             key={`${g.away}-${g.home}`}
             game={g}
@@ -17637,339 +17686,57 @@ function ChevronIcon({ direction = "down", size = 14 }) {
  *  generated by scripts/backfill-historical-season.mjs), not inside this
  *  SPA, so selecting it navigates there instead of swapping activeTab. */
 
-/* The third "why" card is written but not shown - pool import from Yahoo/
- * ESPN/Sleeper/CBS doesn't exist yet, and the copy promised a live sync.
- * Flip this to true (and .home-value gets .has-import) once it ships. */
-const HOME_IMPORT_PILLAR = false;
+/* =======================================================================
+ * HOME - signed-out landing page (2026-11 redesign)
+ *
+ * Section order: hero, live scoreboard, three benefits, how it works, why
+ * Blitz Odds, pick'em formats, featured picks, closing CTA, FAQ. The same
+ * markup and classes are stamped into index.html by buildHomeSnapshotHtml()
+ * in scripts/build-static-pages.mjs - keep the two in step, including the
+ * FAQ copy (HOME_FAQ here, HOME_FAQ there).
+ *
+ * Every number on this page is live application data: predictions come from
+ * homeSlateRows() (the same call GameCard makes, kickoff-frozen once a game
+ * starts), scores from useLiveScores() / the week's history results, and
+ * college numbers from ESPN's posted market line. Nothing is hardcoded.
+ * ======================================================================= */
 
 const HOME_FORMAT_CARDS = [
-  { key: "straight_up", name: "Straight-Up", blurb: "Pick winners. One point each. The classic office pool." },
-  { key: "confidence", name: "Confidence", blurb: "Rank every game. Your best call is worth the most." },
-  { key: "survivor", name: "Survivor", blurb: "One team a week. Never twice. Lose once and you're out." },
-  { key: "ats", name: "Against the Spread", blurb: "Beat the number, not just the team. Lines auto-update." },
+  { key: "straight_up", name: "Straight-Up", blurb: "Pick the winning team in each game." },
+  { key: "confidence", name: "Confidence", blurb: "Rank selections by confidence." },
+  { key: "survivor", name: "Survivor", blurb: "Choose a team to survive each week." },
+  { key: "ats", name: "Against the Spread", blurb: "Select teams against the point spread." },
 ];
 
-/** The week's single biggest disagreement between the model and the market:
- *  the unstarted game with the largest gap between the model's win
- *  probability for its pick and that side's implied probability from the
- *  moneyline. Falls back to the model's most confident pick when no odds are
- *  posted yet (early in a week, or preseason), and to null when there's no
- *  usable game at all - the caller renders nothing rather than an empty card.
- */
-function pickTopEdgeGame(week, sportsbookId) {
-  try {
-    const context = getWeekContext(week);
-    const games = getGamesForWeek(week);
-    let best = null;
-    for (const g of games) {
-      const home = context.getTeam(g.home);
-      const away = context.getTeam(g.away);
-      if (!home || !away) continue;
-      let prediction;
-      try {
-        prediction = PredictionEngine.predictMatchup({
-          homeTeam: home,
-          awayTeam: away,
-          homeImpactPlayers: context.getPlayers(g.home),
-          awayImpactPlayers: context.getPlayers(g.away),
-          weather: getWeather(week, g.away, g.home),
-          homeIsDomeTeam: isDomeTeam(home.id),
-          awayIsDomeTeam: isDomeTeam(away.id),
-          week: week,
-        });
-      } catch (e) { continue; }
-      const homeIsPick = prediction.predictedWinner === home.id;
-      const modelProb = homeIsPick ? prediction.homeWinProbability : prediction.awayWinProbability;
-      const odds = getOdds(week, g.away, g.home, sportsbookId);
-      const ml = odds ? (homeIsPick ? odds.moneylineHome : odds.moneylineAway) : null;
-      const implied = americanToImpliedProbability(ml);
-      const edge = implied == null ? -1 : modelProb - implied;
-      const score = implied == null ? modelProb - 1 : edge;
-      if (!best || score > best.score) {
-        best = { game: g, home, away, prediction, odds, modelProb, implied, homeIsPick, score };
-      }
-    }
-    return best;
-  } catch (e) {
-    return null;
-  }
+/* Mirrored word for word in scripts/build-static-pages.mjs (HOME_FAQ). Only
+ * claims the app actually supports: college numbers are market-based, not
+ * Blitz Edge, and say so. */
+const HOME_FAQ = [
+  { q: "What is an NFL pick'em league?", a: "A pick'em league is a pool where everyone picks the winners of each week's NFL games. Picks are scored after the games finish, and the standings rank everyone across the season." },
+  { q: "Is Blitz Odds free to use?", a: "Yes. Creating a league, joining a league, and making picks are free." },
+  { q: "How do confidence pools work?", a: "You rank your picks from most to least confident. A correct pick earns the points you assigned to it, so your surest calls are worth the most." },
+  { q: "Can I create a private pick'em league?", a: "Yes. A league can be public, private, or hidden. Private and hidden leagues are joined by invitation or code." },
+  { q: "How does automatic scoring work?", a: "Picks lock at kickoff. When a game goes final, Blitz Odds grades every pick and updates the league standings." },
+  { q: "What is Blitz Edge?", a: "Blitz Edge is the Blitz Odds prediction model. It estimates each NFL team's chance to win from offense and defense rankings, injuries, rest, and weather. It is an estimate, not a guarantee." },
+  { q: "Does Blitz Odds show live NFL scores?", a: "Yes. Scores, quarter, and game clock update while games are in progress, next to the model's pregame pick." },
+  { q: "Can I view college football scores and predictions?", a: "Yes. College football scores are shown with win probabilities based on the betting market. The Blitz Edge model currently covers the NFL." },
+];
+
+/** In-app navigation on a plain click, the real href for everything else
+ *  (new tab, crawler, a click before the app has mounted). */
+function homeNav(handler) {
+  return (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    handler();
+  };
 }
 
-/** American moneyline -> implied win probability (with the vig still in it -
- *  this is the number a bettor is actually being offered, which is the
- *  honest thing to compare the model against on a marketing page). */
-function americanToImpliedProbability(ml) {
-  const n = Number(ml);
-  if (!Number.isFinite(n) || n === 0) return null;
-  return n > 0 ? 100 / (n + 100) : -n / (-n + 100);
-}
-
-/** Signed-out Home. This is the document Google gets for "/", so the real
- *  <h1> carries the odds/predictions terms the site is about and the visible
- *  display headline is an <h2> - the marketing line has no keyword surface
- *  of its own. Same sr-only pattern LeagueView already uses. */
-function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbookId, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
-  // Not memoized on [week, sportsbookId]: the live team stats, injuries, odds
-  // and weather land after first render (useLiveSiteData and friends swap the
-  // module bindings and re-render the app), and a memo keyed only on the week
-  // kept showing the number computed from the page's embedded seed - Home said
-  // 92% for a game its own card had at 82%. Thirteen predictions is cheap.
-  const edge = pickTopEdgeGame(week, sportsbookId);
-  const periodLabel = getPeriodLabel(week);
-
-  return (
-    <div className="home-landing">
-      <div className="home-hero">
-        <div className="home-hero-copy">
-          <span className="home-eyebrow">NFL pick'em pools</span>
-          {/* One heading, not two: header.top already renders the page's
-              only <h1> ("Blitz Odds"). The marketing line carries no
-              keyword surface of its own, so the terms this page should
-              actually rank for ride along inside the same element rather
-              than in a competing sr-only <h1>. */}
-          <h2 className="home-display">
-            Run your pool. <em>Win it too.</em>
-            <span className="sr-only"> Free NFL pick'em leagues, odds and model predictions — {periodLabel}.</span>
-          </h2>
-          <p className="home-lede">
-            Blitz Odds gives every game a model win probability, then puts your whole pool on top of
-            it — straight-up, confidence, survivor, or against the spread. Set it up once and it
-            scores itself all season.
-          </p>
-          <div className="home-acts">
-            <button type="button" className="home-btn primary" onClick={onCreateLeague}>Create a free league</button>
-            {/* A real link (same pushState navigation on a plain click) so
-                the homepage has a crawlable path into the games. */}
-            <a
-              className="home-btn"
-              href="/games/"
-              onClick={(e) => {
-                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                e.preventDefault();
-                onOpenGames();
-              }}
-            >Browse this week's games</a>
-          </div>
-          <div className="home-trust">
-            <span>⚡ Odds from 5 sportsbooks</span>
-            <span>📊 Injury &amp; weather adjusted</span>
-            <span>🏆 Four pool formats</span>
-          </div>
-        </div>
-
-        {edge && (
-          <div className="home-card home-edge">
-            <div className="home-edge-head">
-              <span className="home-eyebrow">{periodLabel} · top edge</span>
-            </div>
-            <div className="home-matchup">
-              <div className={"home-mt" + (!edge.homeIsPick ? " pick" : "")}>
-                <TeamLogo teamId={edge.away.id} size={46} />
-                <b>{edge.away.name}</b>
-                {!edge.homeIsPick && <span className="home-pickflag">Predicted Winner</span>}
-              </div>
-              <span className="home-at">@</span>
-              <div className={"home-mt" + (edge.homeIsPick ? " pick" : "")}>
-                <TeamLogo teamId={edge.home.id} size={46} />
-                <b>{edge.home.name}</b>
-                {edge.homeIsPick && <span className="home-pickflag">Predicted Winner</span>}
-              </div>
-            </div>
-            <div className="home-combo">
-              <div className="hc-top">
-                <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="hc-logo" width="378" height="120" decoding="async" />
-                <span className="hc-conf">
-                  <TeamLogo teamId={(edge.homeIsPick ? edge.home : edge.away).id} size={30} />
-                  <span className="hc-conf-lbl">confidence at</span>
-                  <span className="hc-conf-pct">{Math.round(edge.modelProb * 100)}%</span>
-                </span>
-              </div>
-              {/* Mirrors the game card's .cb-odds exactly - two rows, both
-                  moneylines. No "Line: {book}" caption under it the way the
-                  game card has: this is one hand-picked game on a marketing
-                  page rather than the surface someone reads a line off, and
-                  it never carried the book's name. */}
-              <div className="hc-odds">
-                {edge.odds && edge.odds.favorite ? (
-                  <>
-                    <div className="hc-odds-line">
-                      <span className="hc-stat"><b>{edge.odds.favorite} {formatSpread(edge.odds.spread)}</b> Spread</span>
-                      {edge.odds.overUnder != null && (
-                        <span className="hc-stat"><b>{edge.odds.overUnder}</b> O/U</span>
-                      )}
-                    </div>
-                    {(edge.odds.moneylineAway != null || edge.odds.moneylineHome != null) && (
-                      <div className="hc-odds-line">
-                        <span className="hc-odds-k">ML</span>
-                        <span className="hc-stat"><b>{edge.away.id} {formatMoneyline(edge.odds.moneylineAway)}</b></span>
-                        <span className="hc-stat"><b>{edge.home.id} {formatMoneyline(edge.odds.moneylineHome)}</b></span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="hc-odds-line">Line not posted</div>
-                )}
-              </div>
-            </div>
-            <p className="home-why-line">
-              {edge.implied != null ? (
-                <>
-                  The market prices {(edge.homeIsPick ? edge.home : edge.away).name} at{" "}
-                  <b>{Math.round(edge.implied * 100)}%</b>. The model has them at{" "}
-                  <b>{Math.round(edge.modelProb * 100)}%</b>.
-                </>
-              ) : (
-                <>
-                  The model's most confident call of {periodLabel}, at{" "}
-                  <b>{Math.round(edge.modelProb * 100)}%</b>. Lines for this one aren't posted yet.
-                </>
-              )}
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="home-sec-head fmt"><h3>Play it however your pool plays</h3></div>
-      <div className="home-fmt-grid">
-        {HOME_FORMAT_CARDS.map((f) => (
-          <div key={f.key} className="home-card home-fmt">
-            <img src={LEAGUE_FORMAT_ICON_URLS[f.key]} alt="" />
-            <h4>{f.name}</h4>
-            <p>{f.blurb}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="home-sec-head why"><h3>Why Blitz Odds</h3></div>
-      <div className={"home-value" + (HOME_IMPORT_PILLAR ? " has-import" : "")}>
-        <div className="home-card home-value-cell">
-          <span className="home-tag">The model</span>
-          <h4>A number on every game</h4>
-          <p>
-            Blitz Edge grades each matchup on offense vs. defense, injuries, rest and weather, then
-            tells you where it disagrees with the sportsbook.
-          </p>
-        </div>
-        <div className="home-card home-value-cell">
-          <span className="home-tag">The pool</span>
-          <h4>Scoring that runs itself</h4>
-          <p>
-            Invite by email or link. Picks lock at kickoff, scores update live, standings settle on
-            their own. Four formats, one league page.
-          </p>
-        </div>
-        {HOME_IMPORT_PILLAR && (
-          <div className="home-card home-value-cell">
-            <span className="home-tag">The switch</span>
-            <h4>Bring the pool you already run</h4>
-            <p>
-              Import a pool from Yahoo, ESPN, Sleeper or CBS and the roster, format and standings
-              come with it. Nobody re-types 18 names or loses last season.
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="home-card home-close">
-        <h3>Start a league in about a minute.</h3>
-        <p>Name it, pick a format, send the link. That's the whole setup.</p>
-        <div className="home-acts">
-          <button type="button" className="home-btn primary" onClick={onCreateLeague}>Create a free league</button>
-          <button type="button" className="home-btn" onClick={onJoinLeague}>Join with a code</button>
-        </div>
-      </div>
-
-      <HomeExplore week={week} tz={tz} cfbOn={cfbOn} bowlsOn={bowlsOn} onOpenCollege={onOpenCollege} onOpenBowls={onOpenBowls} />
-    </div>
-  );
-}
-
-/** Crawlable links from the homepage into the current season: this week's
- *  games, the hub pages and all 32 teams. Same markup and classes as
- *  buildExploreHtml() in scripts/build-static-pages.mjs (keep in step). The
- *  rest of the app navigates with buttons, so without this block nothing
- *  under /games/ or /teams/ was linked from "/" at all. Plain links on
- *  purpose: each target is a real prerendered page. */
-function HomeExplore({ week, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
-  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
-  const label = getPeriodLabel(week);
-  useFrozenPredictions(week);
-  // Recomputed every render on purpose (see HomeLanding's `edge`): live data
-  // arrives after mount and must reach these chips.
-  const rows = homeSlateRows(week, tz);
-  const tiles = [
-    ["/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor & ATS sheets"],
-    ["/leagues/", "/branding/tab-icon-leagues.png", "Free leagues", "Join a pool or run your own"],
-    // College and bowls follow the same feature flags that show and hide
-    // those features in the app (admin console > Features): off for this
-    // visitor means no tile. The static copy in build-static-pages.mjs reads
-    // the same flags as a signed-out visitor gets them.
-    // These two open the feature itself - the Games tab on its College side,
-    // and the Bowls tab - in-app on a plain click; the href is the same route
-    // for a new-tab open or a click before the app has mounted.
-    cfbOn ? ["/college/", "/branding/tab-icon-games.png", "College football", "Odds & win probabilities", onOpenCollege] : null,
-    bowlsOn ? ["/bowls/", "/branding/tab-icon-bowls.png", "Bowl pick'em", "Every bowl and the Playoff", onOpenBowls] : null,
-    ["/historical/index.html", "/branding/tab-icon-news.png", "Results archive", "Scores back to 2015"],
-  ].filter(Boolean);
-  let lastDay = null;
-  return (
-    <div className="home-explore">
-      <div className="home-sec-head">
-        <h3>{label} slate</h3>
-        <a className="hx-head-link" href={`/games/${seasonYear}/${weekSlug(week)}/`}>Confidence ladder &rarr;</a>
-      </div>
-      <div className="home-card hx-card">
-        <div className="hx-games">
-          {rows.map(r => {
-            const dayHead = r.day !== lastDay ? <div className="hx-day">{r.day}</div> : null;
-            lastDay = r.day;
-            return (
-              <React.Fragment key={r.key}>
-                {dayHead}
-                <a className="hx-game" href={r.href} aria-label={`${r.awayName} at ${r.homeName}`}>
-                  <span className="hx-teams">
-                    <span className={"hx-t" + (r.pick === r.away ? " pick" : "")}><img src={`/team-badges/${r.away}.png`} alt="" width="26" height="26" loading="lazy" decoding="async" />{teamNickname(r.awayName)}</span>
-                    <span className="hx-at">@</span>
-                    <span className={"hx-t" + (r.pick === r.home ? " pick" : "")}><img src={`/team-badges/${r.home}.png`} alt="" width="26" height="26" loading="lazy" decoding="async" />{teamNickname(r.homeName)}</span>
-                  </span>
-                  <span className="hx-meta">
-                    {r.pick && <span className="hx-pick">{r.pick} {r.pct}%</span>}
-                    <span className="hx-time">{r.time}</span>
-                  </span>
-                </a>
-              </React.Fragment>
-            );
-          })}
-        </div>
-        <a className="hx-more" href="/games/">All {label} games &amp; odds &rarr;</a>
-      </div>
-      <div className="home-sec-head"><h3>More on Blitz Odds</h3></div>
-      <div className="hx-tiles">
-        {tiles.map(([href, img, name, sub, onOpen]) => (
-          <a
-            className="hx-tile"
-            href={href}
-            key={href}
-            onClick={onOpen ? (e) => {
-              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-              e.preventDefault();
-              onOpen();
-            } : undefined}
-          >
-            <img src={img} alt="" width="34" height="34" loading="lazy" decoding="async" />
-            <span><b>{name}</b><small>{sub}</small></span>
-          </a>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/** One row per game for the Home slate. The pick and percentage are worked
- *  out exactly as GameCard does - same inputs (week context, weather, dome),
- *  and from kickoff on the kickoff-frozen record - so the chip on Home never
+/** One row per game of a week. The pick and percentage are worked out
+ *  exactly as GameCard does - same inputs (week context, weather, dome), and
+ *  from kickoff on the kickoff-frozen record - so a number on Home never
  *  disagrees with the card on the Games tab. */
-function homeSlateRows(week, tz) {
+function homeSlateRows(week, tz, sportsbookId) {
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   let context;
   try { context = getWeekContext(week); } catch (e) { return []; }
@@ -17977,9 +17744,10 @@ function homeSlateRows(week, tz) {
     const home = context.getTeam(g.home);
     const away = context.getTeam(g.away);
     if (!home || !away) return null;
-    let pick = null, pct = null;
+    const started = hasStartedForFreeze(null, g, seasonYear);
+    let pick = null, pct = null, homePct = null, awayPct = null;
     try {
-      let p = hasStartedForFreeze(null, g, seasonYear) ? getFrozenPrediction(week, g.away, g.home) : null;
+      let p = started ? getFrozenPrediction(week, g.away, g.home) : null;
       if (!p) {
         p = PredictionEngine.predictMatchup({
           homeTeam: home,
@@ -17993,18 +17761,565 @@ function homeSlateRows(week, tz) {
         });
       }
       pick = p.predictedWinner;
-      pct = Math.round((pick === home.id ? p.homeWinProbability : p.awayWinProbability) * 100);
+      homePct = Math.round(p.homeWinProbability * 100);
+      awayPct = Math.round(p.awayWinProbability * 100);
+      pct = pick === home.id ? homePct : awayPct;
     } catch (e) { pick = null; }
     const when = formatGameDateTimeInZone(g.date, g.time, seasonYear, tz) || {};
+    let odds = null;
+    try { odds = getOdds(week, g.away, g.home, sportsbookId); } catch (e) { odds = null; }
     return {
-      key: g.away + "-" + g.home, away: g.away, home: g.home, awayName: away.name, homeName: home.name,
-      href: buildGamePath(week, g.away, g.home), pick, pct,
+      key: g.away + "-" + g.home, week, away: g.away, home: g.home, awayName: away.name, homeName: home.name,
+      href: buildGamePath(week, g.away, g.home), pick, pct, homePct, awayPct, started, odds,
+      kickoffMs: gameKickoffUtcMs(g.date, g.time, seasonYear),
       day: when.date || g.date || "", time: when.time || g.time || "",
+      result: context.getResult ? context.getResult(g.away, g.home) : null,
     };
   }).filter(Boolean);
 }
 
+/** The period before `week` in the picker's order, or null. */
+function homePrevWeek(week) {
+  try {
+    const periods = getSelectablePeriods();
+    const i = periods.findIndex(p => p.week === week);
+    return i > 0 ? periods[i - 1].week : null;
+  } catch (e) { return null; }
+}
+function homeNextWeek(week) {
+  try {
+    const periods = getSelectablePeriods();
+    const i = periods.findIndex(p => p.week === week);
+    return i >= 0 && i < periods.length - 1 ? periods[i + 1].week : null;
+  } catch (e) { return null; }
+}
 
+const HOME_SCORE_LIMIT = 4;
+const HOME_DELAY_RE = /delay|suspend|postpon|cancel/i;
+const HOME_STATUS_ORDER = { live: 0, delayed: 1, upcoming: 2, pending: 3, final: 4 };
+
+/** NFL scoreboard items: this week's games plus last week's finals, each
+ *  with its real status. A game is "live" only when ESPN's feed says it is
+ *  in progress - a game past its kickoff time with no feed is "pending"
+ *  ("Awaiting score"), never LIVE. */
+function homeNflScoreItems(week, prevWeek, tz, liveMap) {
+  const items = [];
+  const add = (wk, isPrev) => {
+    homeSlateRows(wk, tz).forEach(r => {
+      const live = !isPrev && liveMap ? liveMap[r.key] : null;
+      const score = resolveScore(live, r.result);
+      const detail = live && live.shortDetail ? String(live.shortDetail) : "";
+      let status, statusLabel, when = r.day;
+      if (score && score.isLive) {
+        if (HOME_DELAY_RE.test(detail)) { status = "delayed"; statusLabel = "Delayed"; when = detail; }
+        else { status = "live"; statusLabel = "Live"; when = /half/i.test(detail) ? "Halftime" : (detail || (score.period ? `Q${score.period} ${score.clock || ""}`.trim() : "In progress")); }
+      } else if (score && score.isFinal) {
+        status = "final"; statusLabel = /^final/i.test(detail) ? detail : "Final";
+      } else if (live && live.state === "pre" && HOME_DELAY_RE.test(detail)) {
+        status = "delayed"; statusLabel = detail; when = r.day;
+      } else if (r.started) {
+        if (isPrev) return; // a past week's game with no result on file: nothing truthful to show
+        status = "pending"; statusLabel = "Awaiting score";
+      } else {
+        status = "upcoming"; statusLabel = r.time || "Scheduled";
+      }
+      if (isPrev && status !== "final") return;
+      const hasScore = !!score && (status === "live" || status === "delayed" || status === "final") && score.awayScore != null;
+      let outcome = null, loser = null;
+      if (status === "final" && hasScore && score.awayScore !== score.homeScore) {
+        const winner = score.awayScore > score.homeScore ? r.away : r.home;
+        loser = winner === r.away ? "home" : "away";
+        if (r.pick) outcome = r.pick === winner ? "correct" : "missed";
+      }
+      items.push({
+        key: wk + ":" + r.key, sport: "nfl", href: r.href, status, statusLabel, when,
+        sortMs: r.kickoffMs || 0, current: !isPrev,
+        away: { abbr: r.away, name: teamNickname(r.awayName), full: r.awayName, score: hasScore ? score.awayScore : null, logo: <img src={`/team-badges/${r.away}.png`} alt="" width="30" height="30" loading="lazy" decoding="async" /> },
+        home: { abbr: r.home, name: teamNickname(r.homeName), full: r.homeName, score: hasScore ? score.homeScore : null, logo: <img src={`/team-badges/${r.home}.png`} alt="" width="30" height="30" loading="lazy" decoding="async" /> },
+        loser, pickLabel: "Pregame model pick", pickShort: "Pregame pick",
+        pickText: r.pick ? `${r.pick} ${r.pct}%` : null, outcome,
+      });
+    });
+  };
+  add(week, false);
+  if (prevWeek != null) add(prevWeek, true);
+  return items;
+}
+
+/** Live first, then upcoming by kickoff, then finals (this week's before
+ *  last week's, most recent first). */
+function homeSortScoreItems(items) {
+  return items.slice().sort((a, b) => {
+    const s = HOME_STATUS_ORDER[a.status] - HOME_STATUS_ORDER[b.status];
+    if (s) return s;
+    if (a.status === "final") return (Number(b.current) - Number(a.current)) || (b.sortMs - a.sortMs);
+    return ((a.rank || 99) - (b.rank || 99)) || (a.sortMs - b.sortMs);
+  });
+}
+
+function homeFilterScoreItems(items, filter) {
+  if (filter === "live") return items.filter(i => i.status === "live" || i.status === "delayed");
+  if (filter === "upcoming") return items.filter(i => i.status === "upcoming");
+  if (filter === "final") return items.filter(i => i.status === "final");
+  return items;
+}
+
+function homeItemLabel(it) {
+  const teams = `${it.away.full} at ${it.home.full}`;
+  if (it.away.score != null) return `${teams}, ${it.status === "final" ? "final" : it.status === "live" ? "live, " + it.when : it.statusLabel}: ${it.away.abbr} ${it.away.score}, ${it.home.abbr} ${it.home.score}`;
+  return `${teams}, ${it.when} ${it.status === "upcoming" ? it.statusLabel : it.statusLabel}`;
+}
+
+/** One game. A single DOM serves both layouts: a card on desktop (status row,
+ *  a row per team, pick row), and on phones one line with both teams and
+ *  scores plus a caption line - the CSS grid in .hs-game does the swap. */
+function HomeScoreCard({ item: it, onClick }) {
+  const side = (t, which) => (
+    <span className={"hs-team hs-" + which + (it.loser === which ? " is-loser" : "")}>
+      <span className="hs-logo" aria-hidden="true">{t.logo}</span>
+      <span className="hs-name">{t.rank ? <span className="hs-rank">#{t.rank}</span> : null}{t.name} <small>{t.abbr}</small></span>
+      <span className="hs-abbr">{t.rank ? <span className="hs-rank">#{t.rank}</span> : null}{t.abbr}</span>
+      <span className="hs-score">{t.score != null ? t.score : ""}</span>
+    </span>
+  );
+  return (
+    <a className={"home-card hs-game is-" + it.status} href={it.href} aria-label={homeItemLabel(it)} onClick={onClick}>
+      <span className={"hs-status is-" + it.status}>
+        {it.status === "live" && <span className="hs-dot" aria-hidden="true" />}
+        {it.status === "upcoming" ? <><span className="hs-status-wide">Upcoming</span><span className="hs-status-narrow">{it.statusLabel}</span></> : it.statusLabel}
+      </span>
+      <span className="hs-when">{it.status === "upcoming" ? <><span className="hs-status-wide">{it.when} · {it.statusLabel}</span><span className="hs-status-narrow">{it.when}</span></> : it.when}</span>
+      {side(it.away, "away")}
+      {side(it.home, "home")}
+      <span className="hs-pick">
+        <span className="hs-pick-lbl"><span className="hs-status-wide">{it.pickLabel}</span><span className="hs-status-narrow">{it.pickShort}</span></span>
+        {it.pickText
+          ? <span className="hs-pick-val"><b>{it.pickText}</b>{it.outcome && <span className={"hs-outcome is-" + it.outcome}> · {it.outcome === "correct" ? "Correct" : "Missed"}</span>}</span>
+          : <span className="hs-pick-val hs-pick-none">Not available</span>}
+      </span>
+      <span className="hs-link" aria-hidden="true">Matchup analysis &rarr;</span>
+    </a>
+  );
+}
+
+function homeClockLabel(ms, tz) {
+  try {
+    return new Intl.DateTimeFormat("en-US", { timeZone: tz || undefined, hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(new Date(ms));
+  } catch (e) {
+    return new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+}
+
+/** College side of the scoreboard. Mounted only while its tab is selected,
+ *  so a visitor who never opens it never calls the college scoreboard. Reuses
+ *  the Games tab's calendar + slate hooks (same cache, same polling rules).
+ *  The percentage is the market's (vig-removed moneyline, else the spread):
+ *  there is no Blitz Edge model for college, and the label says "Market". */
+function HomeCfbScores({ filter, tz, onStatus }) {
+  const cal = useCfbCalendar(true);
+  const period = useMemo(() => {
+    const c = cal.calendar;
+    return c ? (c.periods.find(p => p.key === c.currentKey) || null) : null;
+  }, [cal.calendar]);
+  const slate = useCfbSlate(period);
+  const items = useMemo(() => (slate.games || []).map(g => {
+    const delayed = HOME_DELAY_RE.test(g.detail || "");
+    let status, statusLabel, when;
+    let day = "", time = "";
+    try {
+      const d = new Date(g.date);
+      day = new Intl.DateTimeFormat("en-US", { timeZone: tz || undefined, weekday: "short", month: "short", day: "numeric" }).format(d);
+      time = g.timeTbd ? "Time TBD" : new Intl.DateTimeFormat("en-US", { timeZone: tz || undefined, hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(d);
+    } catch (e) {}
+    if (g.state === "in") {
+      if (delayed) { status = "delayed"; statusLabel = "Delayed"; when = g.detail; }
+      else { status = "live"; statusLabel = "Live"; when = /half/i.test(g.detail || "") ? "Halftime" : (g.detail || "In progress"); }
+    } else if (g.state === "post") {
+      if (delayed) { status = "delayed"; statusLabel = g.detail; when = day; }
+      else { status = "final"; statusLabel = /^final/i.test(g.detail || "") ? g.detail : "Final"; when = day; }
+    } else if (delayed) { status = "delayed"; statusLabel = g.detail; when = day; }
+    else { status = "upcoming"; statusLabel = time || "Scheduled"; when = day; }
+    const hasScore = status !== "upcoming" && g.away.score != null && g.home.score != null && g.state !== "pre";
+    let pickText = null, outcome = null, loser = null;
+    const hp = g.odds ? g.odds.homeWinProb : null;
+    let favId = null;
+    if (hp != null && hp !== 0.5) {
+      const fav = hp > 0.5 ? g.home : g.away;
+      favId = fav.id;
+      pickText = `${fav.abbr} ${Math.round(Math.max(hp, 1 - hp) * 100)}%`;
+    }
+    if (status === "final" && hasScore && g.away.score !== g.home.score) {
+      const winner = g.away.score > g.home.score ? g.away : g.home;
+      loser = winner === g.away ? "home" : "away";
+      if (favId) outcome = favId === winner.id ? "correct" : "missed";
+    }
+    const side = (t) => ({ abbr: t.abbr, name: t.short || t.name, full: t.name, rank: t.rank, score: hasScore ? t.score : null, logo: <CfbCrest team={t} size={30} /> });
+    return {
+      key: "cfb:" + g.id, sport: "cfb", href: buildCfbPath({ view: "game", gameId: g.id }), status, statusLabel, when,
+      sortMs: Date.parse(g.date) || 0, current: true, rank: cfbBestRank(g),
+      away: side(g.away), home: side(g.home), loser,
+      pickLabel: "Market favorite · win %", pickShort: "Market", pickText, outcome,
+    };
+  }), [slate.games, tz]);
+  const shown = useMemo(() => homeSortScoreItems(homeFilterScoreItems(items, filter)).slice(0, HOME_SCORE_LIMIT), [items, filter]);
+  useEffect(() => { if (onStatus && slate.status === "ready") onStatus(Date.now()); }, [slate.games, slate.status]);
+
+  if (cal.error || slate.status === "error") {
+    return <p className="hs-empty" role="status">College scores are unavailable right now. They'll retry on their own in a minute.</p>;
+  }
+  if (!cal.calendar || slate.status === "loading") {
+    return <div className="hs-grid" aria-busy="true">{[0, 1, 2, 3].map(i => <div key={i} className="home-card hs-game hs-skel" />)}</div>;
+  }
+  if (!shown.length) {
+    return (
+      <p className="hs-empty" role="status">
+        {items.length === 0 ? `No FBS games are scheduled for ${period ? period.label : "this week"}.`
+          : filter === "live" ? "No college games are live right now."
+          : filter === "upcoming" ? "No upcoming college games left this week."
+          : "No college finals yet this week."}
+      </p>
+    );
+  }
+  return (
+    <div className="hs-grid">
+      {shown.map(it => <HomeScoreCard key={it.key} item={it} onClick={() => trackEvent("home_score_click", { sport: "cfb", status: it.status })} />)}
+    </div>
+  );
+}
+
+/** "Football Scores & Predictions": the compact live scoreboard on Home
+ *  (signed-out landing and signed-in dashboard alike). NFL always; the
+ *  College Football tab only for visitors who have the `cfb` flag, the same
+ *  rule every other college link follows. Shows about four games - live
+ *  first, then upcoming, then recent finals.
+ *
+ *  Polling is useLiveScores' (30 s while a game is live, 5 min idle, paused
+ *  in a hidden tab, exponential backoff on errors) - nothing new here. */
+function HomeScoreboard({ week, tz, cfbOn, onOpenGames, onOpenCollege, placement }) {
+  const [sport, setSportRaw] = useState("nfl");
+  const [filter, setFilterRaw] = useState("all");
+  const [updatedAt, setUpdatedAt] = useState(null);
+  const prevWeek = homePrevWeek(week);
+  const liveMap = useLiveScores(week);
+  useFrozenPredictions(week);
+  useFrozenPredictions(prevWeek);
+  useEffect(() => { if (liveMap && Object.keys(liveMap).length) setUpdatedAt(Date.now()); }, [liveMap]);
+  const activeSport = cfbOn ? sport : "nfl";
+
+  // Recomputed each render on purpose: live stats/odds land after mount by
+  // swapping module bindings (see homeSlateRows' callers).
+  const nflItems = activeSport === "nfl" ? homeNflScoreItems(week, prevWeek, tz, liveMap) : [];
+  const nflPool = homeSortScoreItems(homeFilterScoreItems(nflItems, filter));
+  const nflShown = nflPool.slice(0, HOME_SCORE_LIMIT);
+  const nextUp = nflItems.filter(i => i.status === "upcoming").sort((a, b) => a.sortMs - b.sortMs)[0];
+
+  function setSport(s) {
+    setSportRaw(s);
+    setUpdatedAt(null);
+    trackEvent("home_scores_tab", { sport: s, placement: placement || "landing" });
+  }
+  function setFilter(f) {
+    setFilterRaw(f);
+    trackEvent("home_scores_filter", { filter: f, sport: activeSport });
+  }
+  const FILTERS = [["all", "All"], ["live", "Live"], ["upcoming", "Upcoming"], ["final", "Final"]];
+  const allHref = activeSport === "cfb" ? "/college/" : "/games/";
+  const openAll = activeSport === "cfb" ? onOpenCollege : onOpenGames;
+
+  return (
+    <section className="hl-sec hs" aria-labelledby="hs-title">
+      <div className="hl-head">
+        <div>
+          <h2 id="hs-title">Football Scores &amp; Predictions</h2>
+          <p>Follow the action and see how Blitz Odds predictions compare with game results.</p>
+        </div>
+        <a className="hl-more hs-all-top" href={allHref} onClick={homeNav(() => { trackEvent("home_scores_all", { sport: activeSport }); openAll(); })}>View All Football Scores &rarr;</a>
+      </div>
+      <div className="hs-controls">
+        {cfbOn && (
+          <div className="hs-seg" role="group" aria-label="Sport">
+            <button type="button" className={activeSport === "nfl" ? "on" : ""} aria-pressed={activeSport === "nfl"} onClick={() => setSport("nfl")}>NFL</button>
+            <button type="button" className={activeSport === "cfb" ? "on" : ""} aria-pressed={activeSport === "cfb"} onClick={() => setSport("cfb")}>College Football</button>
+          </div>
+        )}
+        <div className="hs-seg" role="group" aria-label="Game status">
+          {FILTERS.map(([id, label]) => (
+            <button key={id} type="button" className={filter === id ? "on" : ""} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>
+          ))}
+        </div>
+        <span className="hs-updated" aria-live="off">{updatedAt ? `Scores updated ${homeClockLabel(updatedAt, tz)}` : " "}</span>
+      </div>
+
+      {activeSport === "cfb" ? (
+        <HomeCfbScores filter={filter} tz={tz} onStatus={setUpdatedAt} />
+      ) : nflShown.length ? (
+        <div className="hs-grid">
+          {nflShown.map(it => <HomeScoreCard key={it.key} item={it} onClick={() => trackEvent("home_score_click", { sport: "nfl", status: it.status })} />)}
+        </div>
+      ) : (
+        <p className="hs-empty" role="status">
+          {nflItems.length === 0 ? (
+            <>No NFL games are on the schedule right now. Browse <a href="/games/">NFL games and predictions</a> or the <a href="/historical/index.html">results archive</a>.</>
+          ) : filter === "live" ? (
+            <>No NFL games are live right now.{nextUp ? ` Next kickoff: ${nextUp.away.name} at ${nextUp.home.name}, ${nextUp.when} ${nextUp.statusLabel}.` : ""}</>
+          ) : filter === "upcoming" ? (
+            <>No upcoming games left in {getPeriodLabel(week)}.</>
+          ) : (
+            <>No final scores yet for {getPeriodLabel(week)}.</>
+          )}
+        </p>
+      )}
+      <a className="hl-more hs-all-bottom" href={allHref} onClick={homeNav(() => { trackEvent("home_scores_all", { sport: activeSport }); openAll(); })}>View All Football Scores &rarr;</a>
+    </section>
+  );
+}
+
+/** The hero's matchup preview: the model's most confident call among games
+ *  that haven't kicked off (or, once the whole slate has started, the most
+ *  confident call of the week, kickoff-frozen). Chosen by the model's own
+ *  number rather than by its gap to the market, so a marketing surface never
+ *  leads with a coin-flip pick against a two-score favorite. */
+function homeFeaturedRow(rows) {
+  const usable = rows.filter(r => r.pick && r.pct != null);
+  const open = usable.filter(r => !r.started);
+  const pool = open.length ? open : usable;
+  return pool.slice().sort((a, b) => b.pct - a.pct)[0] || null;
+}
+
+/** Signed-out Home. This is the document Google gets for "/": the hero
+ *  headline is the page's one <h1> (the header's sr-only heading steps down
+ *  to a <span> on this view - see App). */
+function HomeLanding({ onOpenGames, onOpenPlaybook, onCreateLeague, onJoinLeague, onOpenLeagues, week, sportsbookId, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
+  useFrozenPredictions(week);
+  // Not memoized on [week, sportsbookId]: live team stats, injuries, odds and
+  // weather land after first render by swapping module bindings, and a memo
+  // keyed on the week kept showing numbers computed from the embedded seed.
+  const rows = homeSlateRows(week, tz, sportsbookId);
+  const periodLabel = getPeriodLabel(week);
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  const feat = homeFeaturedRow(rows);
+
+  // Featured picks: the most confident unstarted calls, minus the hero's. If
+  // this week is nearly played out, look ahead to the next one.
+  let picksWeek = week;
+  let picks = rows.filter(r => !r.started && r.pick && (!feat || r.key !== feat.key)).sort((a, b) => b.pct - a.pct).slice(0, 3);
+  if (picks.length < 2) {
+    const nextWeek = homeNextWeek(week);
+    const nextRows = nextWeek != null ? homeSlateRows(nextWeek, tz, sportsbookId).filter(r => !r.started && r.pick) : [];
+    if (nextRows.length >= 2) { picks = nextRows.sort((a, b) => b.pct - a.pct).slice(0, 3); picksWeek = nextWeek; }
+  }
+  const picksLabel = getPeriodLabel(picksWeek);
+  const hubHref = `/games/${seasonYear}/${weekSlug(picksWeek)}/`;
+
+  const cta = (name, placement, fn) => () => { trackEvent("home_cta", { cta: name, placement }); fn(); };
+  const featPickIsHome = feat && feat.pick === feat.home;
+  const featPickName = feat ? (featPickIsHome ? feat.homeName : feat.awayName) : "";
+  const faqLd = useMemo(() => JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: HOME_FAQ.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  }), []);
+
+  return (
+    <div className="home-landing hl">
+      {/* B - hero */}
+      <section className="hl-hero">
+        <div className="hl-hero-copy">
+          <span className="home-eyebrow hl-eyebrow">Free NFL pick'em leagues · picks · scores</span>
+          <h1 className="hl-display">Run Your Pick'em League. <em>Make Smarter Picks.</em></h1>
+          <p className="hl-lede">
+            Create a free NFL pick'em league, invite your friends, and let Blitz Odds handle scoring and
+            standings. Use model-powered predictions to make more informed picks every week.
+          </p>
+          <div className="hl-acts">
+            <button type="button" className="home-btn primary hl-btn-lg" onClick={cta("create_league", "hero", onCreateLeague)}>Create a Free League</button>
+            <a className="home-btn hl-btn-lg" href={hubHref} onClick={homeNav(cta("explore_picks", "hero", onOpenGames))}>Explore This Week's Picks</a>
+            <a className="home-btn hl-btn-lg hl-btn-quiet" href="/leagues/" onClick={homeNav(cta("join_league", "hero", onJoinLeague))}>Join a League</a>
+          </div>
+          <p className="hl-trust"><span>Free to create and join</span><span>Four pool formats</span><span>Not a sportsbook — no wagers</span></p>
+        </div>
+
+        {feat && (
+          <div className="home-card hl-preview">
+            <div className="hl-preview-head">
+              <span className="home-eyebrow hl-eyebrow">{periodLabel} · Featured matchup</span>
+              <span className="hl-dim">{feat.day}{feat.time ? ` · ${feat.time}` : ""}</span>
+            </div>
+            <div className="hl-matchup">
+              <div className={"hl-mt" + (!featPickIsHome ? " pick" : "")}>
+                <TeamLogo teamId={feat.away} size={56} />
+                <b>{feat.awayName}</b>
+                {!featPickIsHome && <span className="hl-pickflag">Predicted winner</span>}
+              </div>
+              <span className="hl-at">@</span>
+              <div className={"hl-mt" + (featPickIsHome ? " pick" : "")}>
+                <TeamLogo teamId={feat.home} size={56} />
+                <b>{feat.homeName}</b>
+                {featPickIsHome && <span className="hl-pickflag">Predicted winner</span>}
+              </div>
+            </div>
+            <div className="hl-edge">
+              <div className="hl-edge-top">
+                <img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" className="hl-edge-logo" width="378" height="120" decoding="async" />
+                <div className="hl-edge-num"><b>{feat.pct}%</b><span>model win probability · {feat.pick}</span></div>
+              </div>
+              <div className="hl-bar" role="img" aria-label={`Model win probability: ${feat.awayName} ${feat.awayPct} percent, ${feat.homeName} ${feat.homePct} percent`}>
+                <span className={featPickIsHome ? "" : "on"} style={{ width: feat.awayPct + "%" }} />
+                <span className={featPickIsHome ? "on" : ""} style={{ width: feat.homePct + "%" }} />
+              </div>
+              <div className="hl-bar-key"><span>{feat.away} {feat.awayPct}%</span><span>{feat.home} {feat.homePct}%</span></div>
+            </div>
+            {feat.odds && feat.odds.favorite && (
+              <p className="hl-line">
+                <span><b>{feat.odds.favorite} {formatSpread(feat.odds.spread)}</b> Spread</span>
+                {feat.odds.overUnder != null && <span><b>{feat.odds.overUnder}</b> O/U</span>}
+                <span className="hl-dim">Market line</span>
+              </p>
+            )}
+            <p className="hl-fine">
+              The percentage is the Blitz Edge model's {feat.started ? "pregame " : ""}estimate of each team's chance to win
+              {feat.started ? ", frozen at kickoff" : ""}. It is an estimate, not a guarantee.
+            </p>
+            <a className="hl-more" href={feat.href} onClick={() => trackEvent("home_featured_click", { placement: "hero", game: feat.key })}>See the full {featPickName ? `${teamNickname(feat.awayName)}–${teamNickname(feat.homeName)}` : "matchup"} analysis &rarr;</a>
+          </div>
+        )}
+      </section>
+
+      {/* C - scores */}
+      <HomeScoreboard week={week} tz={tz} cfbOn={cfbOn} onOpenGames={onOpenGames} onOpenCollege={onOpenCollege} placement="landing" />
+
+      {/* D - benefits */}
+      <section className="hl-sec" aria-label="What you can do on Blitz Odds">
+        <div className="hl-grid3">
+          <div className="home-card hl-benefit">
+            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 20h18M7 16V9M12 16V4M17 16v-5" /></svg>
+            <h3>Make Smarter Picks</h3>
+            <p>Compare model predictions, team matchups, and key game factors before locking in your picks.</p>
+            <a className="hl-more" href="/games/" onClick={homeNav(cta("explore_picks", "benefits", onOpenGames))}>Explore NFL Picks &rarr;</a>
+          </div>
+          <div className="home-card hl-benefit">
+            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.6-3.4 3.2-5 6.5-5s5.9 1.6 6.5 5M17 5.5a3 3 0 0 1 0 5.6M18.5 15.2c1.7.7 2.7 2.3 3 4.8" /></svg>
+            <h3>Run Your League</h3>
+            <p>Create a free pick'em pool, invite your friends, and manage everything in one place.</p>
+            <a className="hl-more" href="/leagues/" onClick={homeNav(cta("create_league", "benefits", onCreateLeague))}>Create a League &rarr;</a>
+          </div>
+          <div className="home-card hl-benefit">
+            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h10M4 18h13" /><path d="M17 11l2 2 3-4" /></svg>
+            <h3>Track Every Result</h3>
+            <p>Follow picks, scores, and standings as the season unfolds.</p>
+            <a className="hl-more" href="/leagues/" onClick={homeNav(cta("explore_leagues", "benefits", onOpenLeagues))}>Explore Leagues &rarr;</a>
+          </div>
+        </div>
+      </section>
+
+      {/* E - how it works */}
+      <section className="hl-sec" aria-labelledby="hl-how">
+        <div className="hl-head"><h2 id="hl-how">How Blitz Odds Works</h2></div>
+        <ol className="home-card hl-steps">
+          <li><span className="hl-step-n" aria-hidden="true">1</span><div><h3>Create or Join</h3><p>Start your own free pick'em league or join an existing one.</p></div></li>
+          <li><span className="hl-step-n" aria-hidden="true">2</span><div><h3>Make Your Picks</h3><p>Use Blitz Edge predictions and matchup insights to select your teams.</p></div></li>
+          <li><span className="hl-step-n" aria-hidden="true">3</span><div><h3>Track Results</h3><p>Follow game scores and league standings without manual spreadsheets.</p></div></li>
+        </ol>
+      </section>
+
+      {/* H - why (moved above the formats at Dan's request) */}
+      <section className="hl-sec" aria-labelledby="hl-why">
+        <div className="hl-head"><h2 id="hl-why">Why Blitz Odds?</h2></div>
+        <div className="hl-grid3 hl-why">
+          <div className="hl-why-cell is-edge">
+            <h3>Blitz Edge Predictions</h3>
+            <p>Model-driven matchup analysis and win probabilities.</p>
+            <a className="hl-more" href="/picks/" onClick={homeNav(cta("playbook", "why", onOpenPlaybook))}>See the Pick'em Playbook &rarr;</a>
+          </div>
+          <div className="hl-why-cell is-league">
+            <h3>Easy League Management</h3>
+            <p>League setup, invitations, picks, scoring, and standings.</p>
+            <a className="hl-more" href="/leagues/" onClick={homeNav(cta("explore_leagues", "why", onOpenLeagues))}>Browse pick'em leagues &rarr;</a>
+          </div>
+          <div className="hl-why-cell is-data">
+            <h3>Football Insights in One Place</h3>
+            <p>{cfbOn ? "NFL and college football schedules, scores, predictions, and historical data." : "NFL schedules, scores, predictions, and historical data."}</p>
+            <a className="hl-more" href="/historical/index.html">Browse the results archive &rarr;</a>
+          </div>
+        </div>
+      </section>
+
+      {/* F - formats */}
+      <section className="hl-sec" aria-labelledby="hl-formats">
+        <div className="hl-head">
+          <div><h2 id="hl-formats">Pick'em Formats</h2><p>Every format is free. Choose one when you create a league.</p></div>
+        </div>
+        <div className="hl-grid4">
+          {HOME_FORMAT_CARDS.map((f) => (
+            <button key={f.key} type="button" className="home-card hl-format" onClick={() => { trackEvent("home_cta", { cta: "create_league", placement: "format_" + f.key }); onCreateLeague(); }}>
+              <img src={LEAGUE_FORMAT_ICON_URLS[f.key]} alt="" width="240" height="180" loading="lazy" decoding="async" />
+              <h3>{f.name}</h3>
+              <p>{f.blurb}</p>
+              <span className="hl-more" aria-hidden="true">Play {f.name} &rarr;</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* G - featured picks */}
+      {picks.length > 0 && (
+        <section className="hl-sec" aria-labelledby="hl-picks">
+          <div className="hl-head">
+            <div>
+              <h2 id="hl-picks">This Week's NFL Picks</h2>
+              <p>{picksLabel} · pregame win probabilities from the Blitz Edge model.</p>
+            </div>
+            {cfbOn && <a className="hl-more" href="/college/" onClick={homeNav(() => { trackEvent("home_cta", { cta: "college", placement: "picks" }); onOpenCollege(); })}>College football odds &rarr;</a>}
+          </div>
+          <div className="hl-grid3">
+            {picks.map(p => (
+              <a key={p.key} className="home-card hl-pickcard" href={p.href} aria-label={`${p.awayName} at ${p.homeName}: predicted winner ${p.pick}, ${p.pct} percent`} onClick={() => trackEvent("home_featured_click", { placement: "picks", game: p.key })}>
+                <span className="hl-pickcard-when">{p.day}{p.time ? ` · ${p.time}` : ""}</span>
+                <span className={"hl-pickcard-team" + (p.pick === p.away ? " pick" : "")}><img src={`/team-badges/${p.away}.png`} alt="" width="32" height="32" loading="lazy" decoding="async" /><span>{p.awayName}</span><b>{p.awayPct}%</b></span>
+                <span className={"hl-pickcard-team" + (p.pick === p.home ? " pick" : "")}><img src={`/team-badges/${p.home}.png`} alt="" width="32" height="32" loading="lazy" decoding="async" /><span>{p.homeName}</span><b>{p.homePct}%</b></span>
+                <span className="hs-pick hl-pickcard-pick">
+                  <span className="hs-pick-lbl"><img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" width="378" height="120" loading="lazy" decoding="async" /> Predicted winner</span>
+                  <span className="hs-pick-val"><b>{p.pick} {p.pct}%</b></span>
+                </span>
+                <span className="hs-link" aria-hidden="true">Full matchup details &rarr;</span>
+              </a>
+            ))}
+          </div>
+          <div className="hl-center">
+            <a className="home-btn hl-btn-lg" href="/games/" onClick={homeNav(cta("all_games", "picks", onOpenGames))}>View All NFL Games &amp; Predictions</a>
+          </div>
+        </section>
+      )}
+
+      {/* I - closing CTA */}
+      <section className="home-card hl-close" aria-labelledby="hl-close">
+        <div>
+          <h2 id="hl-close">Ready to Run Your Pick'em League?</h2>
+          <p>Create your free league, invite your friends, and let Blitz Odds handle the details.</p>
+        </div>
+        <div className="hl-acts">
+          <button type="button" className="home-btn primary hl-btn-lg" onClick={cta("create_league", "closing", onCreateLeague)}>Create Your Free League</button>
+          <a className="home-btn hl-btn-lg" href="/games/" onClick={homeNav(cta("explore_picks", "closing", onOpenGames))}>Explore NFL Picks</a>
+        </div>
+      </section>
+
+      {/* J - FAQ. Native <details>: keyboard- and screen-reader-accessible
+          without script, and the answers stay in the rendered markup. */}
+      <section className="hl-sec hl-faq" aria-labelledby="hl-faq">
+        <div className="hl-head"><h2 id="hl-faq">Frequently Asked Questions</h2></div>
+        <div className="home-card hl-faq-list">
+          {HOME_FAQ.map((f, i) => (
+            <details key={f.q} open={i === 0 ? true : undefined}>
+              <summary><h3>{f.q}</h3></summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqLd }} />
+      </section>
+    </div>
+  );
+}
 
 /* One shared fetch of home-summary, cached at module scope so a tab switch
  * away and back renders immediately rather than flashing a skeleton for
@@ -18141,7 +18456,7 @@ function HomeLeaderboard({ league }) {
  *  still owed this week. Everything except the games rail comes from a
  *  single home-summary call; the rail is the model's own picks, which are
  *  computed client-side anyway. */
-function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, onOpenGames, onOpenPlaybook }) {
+function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, onOpenGames, onOpenPlaybook, cfbOn, onOpenCollege }) {
   const summary = useHomeSummary(auth, week);
   const [streakIdx, setStreakIdx] = useState(0);
   const [boardIdx, setBoardIdx] = useState(0);
@@ -18355,6 +18670,12 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
           )}
         </div>
       )}
+
+      {/* Same scoreboard as the signed-out homepage: a reason to come back
+          on a game day that doesn't depend on being in a league. */}
+      <div className="hl hd-scores">
+        <HomeScoreboard week={week} tz={tz} cfbOn={cfbOn} onOpenGames={onOpenGames} onOpenCollege={onOpenCollege} placement="dashboard" />
+      </div>
 
       <div className="hd-layout">
         <div className="hd-main">
@@ -18577,6 +18898,9 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPin
       : []),
     { id: "picks", label: PLAYBOOK_TAB_LABEL, icon: PLAYBOOK_TAB_ICON, img: PLAYBOOK_TAB_IMG },
     { id: "news", label: "News", icon: "\u{1F4F0}", img: "/branding/tab-icon-news.png" },
+    // Desktop's compact header carries the leagues link in the nav row
+    // (the phone bar has its own pinned "Leagues" entry below, or the Menu).
+    { id: "league", key: "league-desktop", label: "Pick'em Leagues", icon: "\u{1F465}", img: "/branding/tab-icon-leagues.png", desktopOnly: true },
     // Leagues has never been a desktop tab (it lives in the header), so it's
     // only rendered when the phone bar has it pinned - and CSS keeps it off
     // the desktop row even then (.tab-mobile-only).
@@ -18626,13 +18950,14 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPin
     <nav className={"tab-bar" + (custom ? " tab-bar-custom" : "")} aria-label="Primary">
       {tabs.map((t) => (
         <a
-          key={t.id}
+          key={t.key || t.id}
           href={buildTabPath(t.id) === "/" ? "/" : buildTabPath(t.id) + "/"}
           draggable="false"
           className={"tab-btn" + (activeTab === t.id ? " active" : "")
-            + (custom && pinIndex(t.id) === -1 ? " tab-unpinned" : "")
-            + (t.mobileOnly ? " tab-mobile-only" : "")}
-          style={custom && pinIndex(t.id) !== -1 ? { "--pin-order": pinIndex(t.id) } : undefined}
+            + (custom && !t.desktopOnly && pinIndex(t.id) === -1 ? " tab-unpinned" : "")
+            + (t.mobileOnly ? " tab-mobile-only" : "")
+            + (t.desktopOnly ? " tab-desktop-only" : "")}
+          style={custom && !t.desktopOnly && pinIndex(t.id) !== -1 ? { "--pin-order": pinIndex(t.id) } : undefined}
           onClick={(e) => {
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
             e.preventDefault();
@@ -18642,7 +18967,7 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPin
           aria-label={t.id === "games" && liveCount > 0
             ? `Games, ${liveCount} live now`
             : undefined}
-          data-tour={"tab-" + t.id}
+          data-tour={t.desktopOnly ? undefined : "tab-" + t.id}
         >
           {renderIcon(t)}
           <span className="tab-label">{t.label}</span>
@@ -24469,7 +24794,13 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
     trackEvent("cfb_filter", { filter: id });
   }
   const games = slate.games || [];
-  const shown = useMemo(() => games.filter((g) => cfbGameMatches(g, filter, favorites)), [games, filter, favorites]);
+  const [teamQuery, setTeamQuery] = useState("");
+  const cfbSearchTrackedRef = useRef(false);
+  const shown = useMemo(() => {
+    const q = teamQuery.trim().toLowerCase();
+    return games.filter((g) => cfbGameMatches(g, filter, favorites)
+      && (!q || [g.away, g.home].some((t) => [t.name, t.short, t.abbr].some((v) => v && String(v).toLowerCase().includes(q)))));
+  }, [games, filter, favorites, teamQuery]);
 
   /* Live games on top, then the reader's own teams, then day by day in
      kickoff order - ranked matchups first within a time slot. A college week
@@ -24560,6 +24891,14 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
 
       <div className="cfb-list-head">
         <span className="cfb-list-title">{activeFilter.title}</span>
+        <input
+          type="search" className="wk-search" placeholder="Search teams" aria-label="Search college teams"
+          value={teamQuery}
+          onChange={(e) => {
+            setTeamQuery(e.target.value);
+            if (!cfbSearchTrackedRef.current && e.target.value.trim().length >= 2) { cfbSearchTrackedRef.current = true; trackEvent("games_team_search", { sport: "cfb" }); }
+          }}
+        />
         <span className="cfb-list-count">
           {slate.status === "ready" ? `${shown.length} of ${games.length} game${games.length === 1 ? "" : "s"}` : ""}
           {anyLive ? " · live" : ""}
@@ -24573,8 +24912,8 @@ function CfbWeekView({ period, periods, onSelectPeriod, favorites, onToggleFavor
         <p className="cfb-empty">
           {filter === "mine"
             ? "Star a college team (☆ on any game card) and its games show up here every week."
-            : "No games match this filter this week."}
-          {" "}<button type="button" className="link-btn" onClick={() => setFilter("all")}>Show all FBS games</button>
+            : teamQuery.trim() ? `No games match "${teamQuery.trim()}" this week.` : "No games match this filter this week."}
+          {" "}<button type="button" className="link-btn" onClick={() => { setFilter("all"); setTeamQuery(""); }}>Show all FBS games</button>
         </p>
       )}
 
@@ -25484,6 +25823,25 @@ function App() {
     setLeagueIntent({});
     goHomeTab();
   }, [auth.status]);
+  /* "Create a Free League" / "Join a League" from the signed-out homepage
+     open sign-up in place (there is nothing a signed-out visitor can do on
+     the leagues page). The intent is remembered so that once the session
+     comes up they land on the create form / league search they asked for,
+     not on the dashboard wondering where the button went. Cleared on use,
+     and ignored after ten minutes so a stale tap can't hijack a later
+     sign-in. */
+  const homeLeagueIntentRef = useRef(null);
+  function startLeagueSignup(subTab) {
+    homeLeagueIntentRef.current = { subTab, at: Date.now() };
+    auth.openSignup();
+  }
+  useEffect(() => {
+    const intent = homeLeagueIntentRef.current;
+    if (auth.status !== "in" || !intent) return;
+    homeLeagueIntentRef.current = null;
+    if (Date.now() - intent.at > 10 * 60 * 1000) return;
+    goToLeaguesTab({ subTab: intent.subTab });
+  }, [auth.status]);
   const [showTour, setShowTour] = useState(false);
   const tourAutoOfferedRef = useRef(false);
 
@@ -26248,7 +26606,12 @@ function App() {
       const root = document.getElementById("root") || document;
       const bar = root.querySelector(".hdr-bar");
       if (bar) bar.classList.toggle("is-scrolled", window.scrollY > 4);
-      const brand = root.querySelector(".app-home .brand-row");
+      const brandEl = root.querySelector(".app-home .brand-row");
+      // Only when the big wordmark is actually on screen under the bar. It
+      // no longer is on phones (display:none), and on desktop it lives in
+      // the sticky header row, which must not fade.
+      const brand = brandEl && window.matchMedia("(max-width: 720px)").matches && getComputedStyle(brandEl).display !== "none" ? brandEl : null;
+      if (brandEl && !brand) { brandEl.style.opacity = ""; brandEl.style.transform = ""; brandEl.style.pointerEvents = ""; }
       const mark = root.querySelector(".hdr-mark");
       if (brand) {
         const p = Math.min(1, window.scrollY / 70);
@@ -26419,6 +26782,9 @@ function App() {
               )}
           </div>
           <div className="header-right-cluster">
+            {auth.status === "out" && (
+              <button type="button" className="home-btn primary hdr-cta" onClick={() => { trackEvent("home_cta", { cta: "create_league", placement: "header" }); startLeagueSignup("create"); }}>Create a Free League</button>
+            )}
             <AccountButton
               auth={auth}
               profile={profile}
@@ -26431,9 +26797,29 @@ function App() {
         </div>
         <div className="brand-row" onClick={goHomeTab}>
           <BrandWordmark height={76} className="brand-logo" />
-          {/* Leagues and Bowls render their own <h1>; one per page. */}
-          {(activeTab === "league" || activeTab === "bowls") ? <span className="sr-only">Blitz Odds</span> : <h1 className="sr-only">{cfbActive ? "College Football Odds & Win Probabilities | Blitz Odds" : pageHeading(activeTab, view, selectedTeamId, selectedWeek, selectedGame)}</h1>}
         </div>
+        {/* The page's one <h1>, visually hidden. A sibling of .brand-row, not
+            a child: that row is display:none on phones, which took the
+            heading out of the accessibility tree (and out of what a mobile
+            crawler renders) on every tab. Leagues and Bowls render their own
+            <h1>, and so does the signed-out homepage (its hero headline). */}
+        <div className="sr-only">
+          {(activeTab === "league" || activeTab === "bowls" || (activeTab === "home" && HOME_TAB_ENABLED && auth.status !== "in" && !cfbActive)) ? <span className="sr-only">Blitz Odds</span> : <h1 className="sr-only">{cfbActive ? "College Football Odds & Win Probabilities | Blitz Odds" : pageHeading(activeTab, view, selectedTeamId, selectedWeek, selectedGame)}</h1>}
+        </div>
+        {/* Inside the header since the 2026-11 compact-header pass: on desktop
+            it is the middle track of the one-row header grid (logo / nav /
+            account). On phones header.top is display:contents and the bar is
+            position:fixed at the bottom, so its place in the DOM changes
+            nothing there. */}
+        <TabBar
+          activeTab={activeTab}
+          onSelectTab={(t) => { setNavMenuOpen(false); selectTab(t); }}
+          liveCount={liveBadgeCount}
+          features={features}
+          navPins={features.mobileNav ? navPins : null}
+          onOpenMenu={features.mobileNav ? () => { markMenuSeenBowls(); setNavMenuOpen((o) => !o); trackEvent("nav_menu_open", {}); } : null}
+          menuOpen={navMenuOpen}
+        />
       </header>
 
       {/* Sits above the tab bar rather than inside a tab, because the outcome
@@ -26449,15 +26835,6 @@ function App() {
         />
       )}
 
-      <TabBar
-        activeTab={activeTab}
-        onSelectTab={(t) => { setNavMenuOpen(false); selectTab(t); }}
-        liveCount={liveBadgeCount}
-        features={features}
-        navPins={features.mobileNav ? navPins : null}
-        onOpenMenu={features.mobileNav ? () => { markMenuSeenBowls(); setNavMenuOpen((o) => !o); trackEvent("nav_menu_open", {}); } : null}
-        menuOpen={navMenuOpen}
-      />
       {features.mobileNav && navMenuOpen && (
         <NavMenuSheet
           features={features}
@@ -26493,6 +26870,8 @@ function App() {
             onOpenLeagues={goToLeaguesTab}
             onOpenGames={() => selectTab("games")}
             onOpenPlaybook={() => selectTab("picks")}
+            cfbOn={!!features.cfb}
+            onOpenCollege={() => { if (gamesSport === "cfb") cfbNavigate({}); else setGamesSport("cfb"); }}
           />
         ) : (
           /* Sign-up in place. These used to navigate to the Leagues tab
@@ -26504,8 +26883,10 @@ function App() {
             sportsbookId={sportsbookId}
             tz={resolvedTz}
             onOpenGames={() => selectTab("games")}
-            onCreateLeague={() => auth.openSignup()}
-            onJoinLeague={() => auth.openSignup()}
+            onOpenPlaybook={() => selectTab("picks")}
+            onOpenLeagues={() => goToLeaguesTab()}
+            onCreateLeague={() => startLeagueSignup("create")}
+            onJoinLeague={() => startLeagueSignup("search")}
             cfbOn={!!features.cfb}
             bowlsOn={bowlsOn}
             onOpenCollege={() => { if (gamesSport === "cfb") cfbNavigate({}); else setGamesSport("cfb"); }}
@@ -26639,6 +27020,61 @@ function App() {
       )}
 
       <footer className="app-footer">
+        {/* Organized site links (2026-11). College and bowl columns/links
+            follow the cfb / bowls feature flags, like the features. */}
+        <nav className="footer-cols" aria-label="Site">
+          <div>
+            <h2>NFL Football</h2>
+            <ul>
+              <li><a href="/games/">NFL scores &amp; odds</a></li>
+              <li><a href={`/games/${(SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear()}/${weekSlug(getDefaultWeek())}/`}>This week's NFL picks</a></li>
+              <li><a href="/teams/">NFL teams</a></li>
+            </ul>
+          </div>
+          {(features.cfb || bowlsOn) && (
+            <div>
+              <h2>College Football</h2>
+              <ul>
+                {features.cfb && <li><a
+                  href="/college/"
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                    e.preventDefault();
+                    if (gamesSport === "cfb") cfbNavigate({}); else setGamesSport("cfb");
+                  }}
+                >College scores &amp; odds</a></li>}
+                {features.cfb && <li><a href="/college/teams/">College teams</a></li>}
+                {bowlsOn && <li><a href="/college/bowls/">Bowl schedule</a></li>}
+              </ul>
+            </div>
+          )}
+          <div>
+            <h2>Pick'em Leagues</h2>
+            <ul>
+              <li><a href="/leagues/">Free pick'em leagues</a></li>
+              <li><a href="/leagues/">Confidence &amp; survivor pools</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Playbook</h2>
+            <ul>
+              <li><a href="/picks/">Pick'em Playbook</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Historical Results</h2>
+            <ul>
+              <li><a href="/historical/index.html" className="archive-entry-link" data-archive-source="footer-cols">NFL results archive</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Legal</h2>
+            <ul>
+              <li><a href="/terms/">Terms of Service</a></li>
+              <li><a href="/privacy/">Privacy Policy</a></li>
+            </ul>
+          </div>
+        </nav>
         <p className="footer-gambling-notice">
           Blitz Odds is for informational and entertainment purposes only and does not accept wagers. Confirm all
           lines with a licensed sportsbook before placing a bet, and bet only where it is legal and you meet the
@@ -26662,14 +27098,6 @@ function App() {
             }}
           >College football odds</a></>}
           {bowlsOn && <>{" · "}<a href="/college/bowls/" style={{ color: "var(--text-dim)", textDecoration: "underline" }}>Bowl schedule</a></>}
-        </p>
-        <p className="footer-sitelinks">
-          <a href="/games/">NFL games &amp; odds</a>
-          {" · "}<a href={`/games/${(SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear()}/${weekSlug(getDefaultWeek())}/`}>This week's picks</a>
-          {" · "}<a href="/picks/">Pick'em Playbook</a>
-          {" · "}<a href="/leagues/">Pick'em leagues</a>
-          {" · "}<a href="/teams/">NFL teams</a>
-          {features.cfb && <>{" · "}<a href="/college/teams/">College teams</a></>}
         </p>
         <p className="footer-legal">
           &copy; {new Date().getFullYear()} Blitz Odds. Not affiliated with or endorsed by the National Football

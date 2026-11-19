@@ -127,11 +127,11 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="/css/app.css?v=55f4dd2d6e">
+<link rel="stylesheet" href="/css/app.css?v=d6cd10e30d">
 </head>
 <body>
 <!-- home-snapshot:start -->
-<div id="prerendered-content" class="app">
+<div id="prerendered-content" class="app app-home">
   <header class="top">
     <div class="hdr-bar">
       <div class="hdr-lead">
@@ -146,69 +146,123 @@
       <div class="header-right-cluster"></div>
     </div>
     <div class="brand-row">
-      <span class="brand-logo" style="display:inline-flex;align-items:center;flex-shrink:0">
-        <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" width="900" height="252" decoding="async" style="height:76px;width:auto;display:block" />
-        <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" width="900" height="252" loading="lazy" decoding="async" style="height:76px;width:auto;display:none" />
-      </span>
-      <h1 class="sr-only">Blitz Odds - Free NFL Pick'em Leagues, Odds &amp; Model Predictions</h1>
+      <a href="/" class="brand-logo" style="display:inline-flex;align-items:center;flex-shrink:0">
+            <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" width="900" height="252" decoding="async" style="height:76px;width:auto;display:block" />
+            <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" width="900" height="252" loading="lazy" decoding="async" style="height:76px;width:auto;display:none" />
+      </a>
     </div>
+    <nav class="tab-bar" aria-label="Primary">
+      <a href="/" class="tab-btn active"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-home.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">Home</span></a>
+      <a href="/games/" class="tab-btn"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-games.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">Games</span></a>
+      <a href="/picks/" class="tab-btn"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-playbook.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">Playbook</span></a>
+      <a href="/news/" class="tab-btn"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-news.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">News</span></a>
+      <a href="/leagues/" class="tab-btn tab-desktop-only"><span class="tab-icon has-img" aria-hidden="true"><img class="tab-icon-img" src="/branding/tab-icon-leagues.png" alt="" width="30" height="30" decoding="async" /></span><span class="tab-label">Pick'em Leagues</span></a>
+    </nav>
   </header>
-  <div class="home-landing">
-    <div class="home-hero">
-      <div class="home-hero-copy">
-        <span class="home-eyebrow">NFL pick'em pools</span>
-        <h2 class="home-display">
-          Run your pool. <em>Win it too.</em>
-          <span class="sr-only"> Free NFL pick'em leagues, odds and model predictions — Week 11.</span>
-        </h2>
-        <p class="home-lede">
-          Blitz Odds gives every game a model win probability, then puts your whole pool on top of
-          it — straight-up, confidence, survivor, or against the spread. Set it up once and it
-          scores itself all season.
-        </p>
-        <div class="home-acts">
-          <a href="/leagues/" class="home-btn primary">Create a free league</a>
-          <a href="/games/" class="home-btn">Browse this week's games</a>
+  <div class="home-landing hl">
+      <section class="hl-hero">
+        <div class="hl-hero-copy">
+          <span class="home-eyebrow hl-eyebrow">Free NFL pick'em leagues · picks · scores</span>
+          <h1 class="hl-display">Run Your Pick'em League. <em>Make Smarter Picks.</em></h1>
+          <p class="hl-lede">Create a free NFL pick'em league, invite your friends, and let Blitz Odds handle scoring and standings. Use model-powered predictions to make more informed picks every week.</p>
+          <div class="hl-acts">
+            <a class="home-btn primary hl-btn-lg" href="/leagues/">Create a Free League</a>
+            <a class="home-btn hl-btn-lg" href="/games/2026/week-11/">Explore This Week's Picks</a>
+            <a class="home-btn hl-btn-lg hl-btn-quiet" href="/leagues/">Join a League</a>
+          </div>
+          <p class="hl-trust"><span>Free to create and join</span><span>Four pool formats</span><span>Not a sportsbook — no wagers</span></p>
         </div>
-        <div class="home-trust">
-          <span>⚡ Odds from 5 sportsbooks</span>
-          <span>📊 Injury &amp; weather adjusted</span>
-          <span>🏆 Four pool formats</span>
+        <div class="home-card hl-preview">
+          <div class="hl-preview-head"><span class="home-eyebrow hl-eyebrow">Week 11 · Featured matchup</span><span class="hl-dim">Sun, Nov 22 · 1:00 PM ET</span></div>
+          <div class="hl-matchup"><div class="hl-mt"><img class="team-crest" src="/team-badges/ARI.png" alt="Arizona Cardinals" width="56" height="56" decoding="async" /><b>Arizona Cardinals</b></div><span class="hl-at">@</span><div class="hl-mt pick"><img class="team-crest" src="/team-badges/KC.png" alt="Kansas City Chiefs" width="56" height="56" decoding="async" /><b>Kansas City Chiefs</b><span class="hl-pickflag">Predicted winner</span></div></div>
+          <div class="hl-edge">
+            <div class="hl-edge-top"><img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" class="hl-edge-logo" width="378" height="120" decoding="async" /><div class="hl-edge-num"><b>87%</b><span>model win probability · KC</span></div></div>
+            <div class="hl-bar" role="img" aria-label="Model win probability: Arizona Cardinals 13 percent, Kansas City Chiefs 87 percent"><span style="width:13%"></span><span class="on" style="width:87%"></span></div>
+            <div class="hl-bar-key"><span>ARI 13%</span><span>KC 87%</span></div>
+          </div>
+          <p class="hl-line"><span><b>KC -15.5</b> Spread</span><span><b>40.5</b> O/U</span><span class="hl-dim">Market line</span></p>
+          <p class="hl-fine">The percentage is the Blitz Edge model's estimate of each team's chance to win. It is an estimate, not a guarantee.</p>
+          <a class="hl-more" href="/games/2026/week-11/arizona-cardinals-at-kansas-city-chiefs/">See the full Cardinals–Chiefs analysis &rarr;</a>
         </div>
-      </div>
-    </div>
-    <div class="home-explore">
-      <div class="home-sec-head"><h3>Week 11 slate</h3><a class="hx-head-link" href="/games/2026/week-11/">Confidence ladder &rarr;</a></div>
-      <div class="home-card hx-card">
-        <div class="hx-games">
-        <div class="hx-day">Thu, Nov 19</div>
-        <a class="hx-game" href="/games/2026/week-11/indianapolis-colts-at-houston-texans/" aria-label="Indianapolis Colts at Houston Texans"><span class="hx-teams"><span class="hx-t pick"><img src="/team-badges/IND.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Colts</span><span class="hx-at">@</span><span class="hx-t"><img src="/team-badges/HOU.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Texans</span></span><span class="hx-meta"><span class="hx-pick">IND 51%</span><span class="hx-time">8:15 PM ET</span></span></a>
-        <div class="hx-day">Sun, Nov 22</div>
-        <a class="hx-game" href="/games/2026/week-11/miami-dolphins-at-buffalo-bills/" aria-label="Miami Dolphins at Buffalo Bills"><span class="hx-teams"><span class="hx-t"><img src="/team-badges/MIA.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Dolphins</span><span class="hx-at">@</span><span class="hx-t pick"><img src="/team-badges/BUF.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Bills</span></span><span class="hx-meta"><span class="hx-pick">BUF 79%</span><span class="hx-time">1:00 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/baltimore-ravens-at-carolina-panthers/" aria-label="Baltimore Ravens at Carolina Panthers"><span class="hx-teams"><span class="hx-t"><img src="/team-badges/BAL.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Ravens</span><span class="hx-at">@</span><span class="hx-t pick"><img src="/team-badges/CAR.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Panthers</span></span><span class="hx-meta"><span class="hx-pick">CAR 57%</span><span class="hx-time">1:00 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/new-orleans-saints-at-chicago-bears/" aria-label="New Orleans Saints at Chicago Bears"><span class="hx-teams"><span class="hx-t"><img src="/team-badges/NO.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Saints</span><span class="hx-at">@</span><span class="hx-t pick"><img src="/team-badges/CHI.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Bears</span></span><span class="hx-meta"><span class="hx-pick">CHI 80%</span><span class="hx-time">1:00 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/tennessee-titans-at-dallas-cowboys/" aria-label="Tennessee Titans at Dallas Cowboys"><span class="hx-teams"><span class="hx-t"><img src="/team-badges/TEN.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Titans</span><span class="hx-at">@</span><span class="hx-t pick"><img src="/team-badges/DAL.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Cowboys</span></span><span class="hx-meta"><span class="hx-pick">DAL 77%</span><span class="hx-time">1:00 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/tampa-bay-buccaneers-at-detroit-lions/" aria-label="Tampa Bay Buccaneers at Detroit Lions"><span class="hx-teams"><span class="hx-t pick"><img src="/team-badges/TB.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Buccaneers</span><span class="hx-at">@</span><span class="hx-t"><img src="/team-badges/DET.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Lions</span></span><span class="hx-meta"><span class="hx-pick">TB 50%</span><span class="hx-time">1:00 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/arizona-cardinals-at-kansas-city-chiefs/" aria-label="Arizona Cardinals at Kansas City Chiefs"><span class="hx-teams"><span class="hx-t"><img src="/team-badges/ARI.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Cardinals</span><span class="hx-at">@</span><span class="hx-t pick"><img src="/team-badges/KC.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Chiefs</span></span><span class="hx-meta"><span class="hx-pick">KC 83%</span><span class="hx-time">1:00 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/jacksonville-jaguars-at-new-york-giants/" aria-label="Jacksonville Jaguars at New York Giants"><span class="hx-teams"><span class="hx-t pick"><img src="/team-badges/JAX.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Jaguars</span><span class="hx-at">@</span><span class="hx-t"><img src="/team-badges/NYG.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Giants</span></span><span class="hx-meta"><span class="hx-pick">JAX 74%</span><span class="hx-time">1:00 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/new-york-jets-at-los-angeles-chargers/" aria-label="New York Jets at Los Angeles Chargers"><span class="hx-teams"><span class="hx-t"><img src="/team-badges/NYJ.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Jets</span><span class="hx-at">@</span><span class="hx-t pick"><img src="/team-badges/LAC.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Chargers</span></span><span class="hx-meta"><span class="hx-pick">LAC 54%</span><span class="hx-time">4:05 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/las-vegas-raiders-at-denver-broncos/" aria-label="Las Vegas Raiders at Denver Broncos"><span class="hx-teams"><span class="hx-t"><img src="/team-badges/LV.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Raiders</span><span class="hx-at">@</span><span class="hx-t pick"><img src="/team-badges/DEN.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Broncos</span></span><span class="hx-meta"><span class="hx-pick">DEN 59%</span><span class="hx-time">4:25 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/pittsburgh-steelers-at-philadelphia-eagles/" aria-label="Pittsburgh Steelers at Philadelphia Eagles"><span class="hx-teams"><span class="hx-t pick"><img src="/team-badges/PIT.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Steelers</span><span class="hx-at">@</span><span class="hx-t"><img src="/team-badges/PHI.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Eagles</span></span><span class="hx-meta"><span class="hx-pick">PIT 51%</span><span class="hx-time">4:25 PM ET</span></span></a>
-        <a class="hx-game" href="/games/2026/week-11/minnesota-vikings-at-san-francisco-49ers/" aria-label="Minnesota Vikings at San Francisco 49ers"><span class="hx-teams"><span class="hx-t"><img src="/team-badges/MIN.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Vikings</span><span class="hx-at">@</span><span class="hx-t pick"><img src="/team-badges/SF.png" alt="" width="26" height="26" loading="lazy" decoding="async" />49ers</span></span><span class="hx-meta"><span class="hx-pick">SF 60%</span><span class="hx-time">8:20 PM ET</span></span></a>
-        <div class="hx-day">Mon, Nov 23</div>
-        <a class="hx-game" href="/games/2026/week-11/cincinnati-bengals-at-washington-commanders/" aria-label="Cincinnati Bengals at Washington Commanders"><span class="hx-teams"><span class="hx-t pick"><img src="/team-badges/CIN.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Bengals</span><span class="hx-at">@</span><span class="hx-t"><img src="/team-badges/WAS.png" alt="" width="26" height="26" loading="lazy" decoding="async" />Commanders</span></span><span class="hx-meta"><span class="hx-pick">CIN 63%</span><span class="hx-time">8:15 PM ET</span></span></a>
+      </section>
+
+      <section class="hl-sec hs" aria-labelledby="hs-title">
+        <div class="hl-head"><div><h2 id="hs-title">Football Scores &amp; Predictions</h2><p>Follow the action and see how Blitz Odds predictions compare with game results.</p></div><a class="hl-more hs-all-top" href="/games/">View All Football Scores &rarr;</a></div>
+        <div class="hs-controls"><div class="hs-seg" role="group" aria-label="Game status"><button type="button" class="on" aria-pressed="true">All</button><button type="button" aria-pressed="false">Live</button><button type="button" aria-pressed="false">Upcoming</button><button type="button" aria-pressed="false">Final</button></div><span class="hs-updated">&nbsp;</span></div>
+        <div class="hs-grid">
+          <a class="home-card hs-game is-upcoming" href="/games/2026/week-11/indianapolis-colts-at-houston-texans/" aria-label="Indianapolis Colts at Houston Texans, Thu, Nov 19 8:15 PM ET"><span class="hs-status is-upcoming"><span class="hs-status-wide">Upcoming</span><span class="hs-status-narrow">8:15 PM ET</span></span><span class="hs-when"><span class="hs-status-wide">Thu, Nov 19 · 8:15 PM ET</span><span class="hs-status-narrow">Thu, Nov 19</span></span><span class="hs-team hs-away"><span class="hs-logo" aria-hidden="true"><img src="/team-badges/IND.png" alt="" width="30" height="30" loading="lazy" decoding="async" /></span><span class="hs-name">Colts <small>IND</small></span><span class="hs-abbr">IND</span><span class="hs-score"></span></span><span class="hs-team hs-home"><span class="hs-logo" aria-hidden="true"><img src="/team-badges/HOU.png" alt="" width="30" height="30" loading="lazy" decoding="async" /></span><span class="hs-name">Texans <small>HOU</small></span><span class="hs-abbr">HOU</span><span class="hs-score"></span></span><span class="hs-pick"><span class="hs-pick-lbl"><span class="hs-status-wide">Pregame model pick</span><span class="hs-status-narrow">Pregame pick</span></span><span class="hs-pick-val"><b>HOU 57%</b></span></span><span class="hs-link" aria-hidden="true">Matchup analysis &rarr;</span></a>
+          <a class="home-card hs-game is-upcoming" href="/games/2026/week-11/miami-dolphins-at-buffalo-bills/" aria-label="Miami Dolphins at Buffalo Bills, Sun, Nov 22 1:00 PM ET"><span class="hs-status is-upcoming"><span class="hs-status-wide">Upcoming</span><span class="hs-status-narrow">1:00 PM ET</span></span><span class="hs-when"><span class="hs-status-wide">Sun, Nov 22 · 1:00 PM ET</span><span class="hs-status-narrow">Sun, Nov 22</span></span><span class="hs-team hs-away"><span class="hs-logo" aria-hidden="true"><img src="/team-badges/MIA.png" alt="" width="30" height="30" loading="lazy" decoding="async" /></span><span class="hs-name">Dolphins <small>MIA</small></span><span class="hs-abbr">MIA</span><span class="hs-score"></span></span><span class="hs-team hs-home"><span class="hs-logo" aria-hidden="true"><img src="/team-badges/BUF.png" alt="" width="30" height="30" loading="lazy" decoding="async" /></span><span class="hs-name">Bills <small>BUF</small></span><span class="hs-abbr">BUF</span><span class="hs-score"></span></span><span class="hs-pick"><span class="hs-pick-lbl"><span class="hs-status-wide">Pregame model pick</span><span class="hs-status-narrow">Pregame pick</span></span><span class="hs-pick-val"><b>BUF 79%</b></span></span><span class="hs-link" aria-hidden="true">Matchup analysis &rarr;</span></a>
+          <a class="home-card hs-game is-upcoming" href="/games/2026/week-11/baltimore-ravens-at-carolina-panthers/" aria-label="Baltimore Ravens at Carolina Panthers, Sun, Nov 22 1:00 PM ET"><span class="hs-status is-upcoming"><span class="hs-status-wide">Upcoming</span><span class="hs-status-narrow">1:00 PM ET</span></span><span class="hs-when"><span class="hs-status-wide">Sun, Nov 22 · 1:00 PM ET</span><span class="hs-status-narrow">Sun, Nov 22</span></span><span class="hs-team hs-away"><span class="hs-logo" aria-hidden="true"><img src="/team-badges/BAL.png" alt="" width="30" height="30" loading="lazy" decoding="async" /></span><span class="hs-name">Ravens <small>BAL</small></span><span class="hs-abbr">BAL</span><span class="hs-score"></span></span><span class="hs-team hs-home"><span class="hs-logo" aria-hidden="true"><img src="/team-badges/CAR.png" alt="" width="30" height="30" loading="lazy" decoding="async" /></span><span class="hs-name">Panthers <small>CAR</small></span><span class="hs-abbr">CAR</span><span class="hs-score"></span></span><span class="hs-pick"><span class="hs-pick-lbl"><span class="hs-status-wide">Pregame model pick</span><span class="hs-status-narrow">Pregame pick</span></span><span class="hs-pick-val"><b>CAR 57%</b></span></span><span class="hs-link" aria-hidden="true">Matchup analysis &rarr;</span></a>
+          <a class="home-card hs-game is-upcoming" href="/games/2026/week-11/new-orleans-saints-at-chicago-bears/" aria-label="New Orleans Saints at Chicago Bears, Sun, Nov 22 1:00 PM ET"><span class="hs-status is-upcoming"><span class="hs-status-wide">Upcoming</span><span class="hs-status-narrow">1:00 PM ET</span></span><span class="hs-when"><span class="hs-status-wide">Sun, Nov 22 · 1:00 PM ET</span><span class="hs-status-narrow">Sun, Nov 22</span></span><span class="hs-team hs-away"><span class="hs-logo" aria-hidden="true"><img src="/team-badges/NO.png" alt="" width="30" height="30" loading="lazy" decoding="async" /></span><span class="hs-name">Saints <small>NO</small></span><span class="hs-abbr">NO</span><span class="hs-score"></span></span><span class="hs-team hs-home"><span class="hs-logo" aria-hidden="true"><img src="/team-badges/CHI.png" alt="" width="30" height="30" loading="lazy" decoding="async" /></span><span class="hs-name">Bears <small>CHI</small></span><span class="hs-abbr">CHI</span><span class="hs-score"></span></span><span class="hs-pick"><span class="hs-pick-lbl"><span class="hs-status-wide">Pregame model pick</span><span class="hs-status-narrow">Pregame pick</span></span><span class="hs-pick-val"><b>CHI 80%</b></span></span><span class="hs-link" aria-hidden="true">Matchup analysis &rarr;</span></a>
         </div>
-        <a class="hx-more" href="/games/">All Week 11 games &amp; odds &rarr;</a>
-      </div>
-      <div class="home-sec-head"><h3>More on Blitz Odds</h3></div>
-      <div class="hx-tiles">
-        <a class="hx-tile" href="/picks/"><img src="/branding/tab-icon-playbook.png" alt="" width="34" height="34" loading="lazy" decoding="async" /><span><b>Pick'em Playbook</b><small>Confidence, survivor &amp; ATS sheets</small></span></a>
-        <a class="hx-tile" href="/leagues/"><img src="/branding/tab-icon-leagues.png" alt="" width="34" height="34" loading="lazy" decoding="async" /><span><b>Free leagues</b><small>Join a pool or run your own</small></span></a>
-        <a class="hx-tile" href="/college/"><img src="/branding/tab-icon-games.png" alt="" width="34" height="34" loading="lazy" decoding="async" /><span><b>College football</b><small>Odds &amp; win probabilities</small></span></a>
-        <a class="hx-tile" href="/bowls/"><img src="/branding/tab-icon-bowls.png" alt="" width="34" height="34" loading="lazy" decoding="async" /><span><b>Bowl pick'em</b><small>Every bowl and the Playoff</small></span></a>
-        <a class="hx-tile" href="/historical/index.html"><img src="/branding/tab-icon-news.png" alt="" width="34" height="34" loading="lazy" decoding="async" /><span><b>Results archive</b><small>Scores back to 2015</small></span></a>
-      </div>
-    </div>
+        <a class="hl-more hs-all-bottom" href="/games/">View All Football Scores &rarr;</a>
+      </section>
+
+      <section class="hl-sec" aria-label="What you can do on Blitz Odds">
+        <div class="hl-grid3">
+          <div class="home-card hl-benefit"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M7 16V9M12 16V4M17 16v-5" /></svg><h3>Make Smarter Picks</h3><p>Compare model predictions, team matchups, and key game factors before locking in your picks.</p><a class="hl-more" href="/games/">Explore NFL Picks &rarr;</a></div>
+          <div class="home-card hl-benefit"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.6-3.4 3.2-5 6.5-5s5.9 1.6 6.5 5M17 5.5a3 3 0 0 1 0 5.6M18.5 15.2c1.7.7 2.7 2.3 3 4.8" /></svg><h3>Run Your League</h3><p>Create a free pick'em pool, invite your friends, and manage everything in one place.</p><a class="hl-more" href="/leagues/">Create a League &rarr;</a></div>
+          <div class="home-card hl-benefit"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h13" /><path d="M17 11l2 2 3-4" /></svg><h3>Track Every Result</h3><p>Follow picks, scores, and standings as the season unfolds.</p><a class="hl-more" href="/leagues/">Explore Leagues &rarr;</a></div>
+        </div>
+      </section>
+
+      <section class="hl-sec" aria-labelledby="hl-how">
+        <div class="hl-head"><h2 id="hl-how">How Blitz Odds Works</h2></div>
+        <ol class="home-card hl-steps">
+          <li><span class="hl-step-n" aria-hidden="true">1</span><div><h3>Create or Join</h3><p>Start your own free pick'em league or join an existing one.</p></div></li>
+          <li><span class="hl-step-n" aria-hidden="true">2</span><div><h3>Make Your Picks</h3><p>Use Blitz Edge predictions and matchup insights to select your teams.</p></div></li>
+          <li><span class="hl-step-n" aria-hidden="true">3</span><div><h3>Track Results</h3><p>Follow game scores and league standings without manual spreadsheets.</p></div></li>
+        </ol>
+      </section>
+
+      <section class="hl-sec" aria-labelledby="hl-why">
+        <div class="hl-head"><h2 id="hl-why">Why Blitz Odds?</h2></div>
+        <div class="hl-grid3 hl-why">
+          <div class="hl-why-cell is-edge"><h3>Blitz Edge Predictions</h3><p>Model-driven matchup analysis and win probabilities.</p><a class="hl-more" href="/picks/">See the Pick'em Playbook &rarr;</a></div>
+          <div class="hl-why-cell is-league"><h3>Easy League Management</h3><p>League setup, invitations, picks, scoring, and standings.</p><a class="hl-more" href="/leagues/">Browse pick'em leagues &rarr;</a></div>
+          <div class="hl-why-cell is-data"><h3>Football Insights in One Place</h3><p>NFL and college football schedules, scores, predictions, and historical data.</p><a class="hl-more" href="/historical/index.html">Browse the results archive &rarr;</a></div>
+        </div>
+      </section>
+
+      <section class="hl-sec" aria-labelledby="hl-formats">
+        <div class="hl-head"><div><h2 id="hl-formats">Pick'em Formats</h2><p>Every format is free. Choose one when you create a league.</p></div></div>
+        <div class="hl-grid4">
+          <a class="home-card hl-format" href="/leagues/"><img src="/branding/format-badge-straight-up-icon.png" alt="" width="240" height="180" loading="lazy" decoding="async" /><h3>Straight-Up</h3><p>Pick the winning team in each game.</p><span class="hl-more" aria-hidden="true">Play Straight-Up &rarr;</span></a>
+          <a class="home-card hl-format" href="/leagues/"><img src="/branding/format-badge-confidence-icon.png" alt="" width="240" height="180" loading="lazy" decoding="async" /><h3>Confidence</h3><p>Rank selections by confidence.</p><span class="hl-more" aria-hidden="true">Play Confidence &rarr;</span></a>
+          <a class="home-card hl-format" href="/leagues/"><img src="/branding/format-badge-survivor-icon.png" alt="" width="240" height="180" loading="lazy" decoding="async" /><h3>Survivor</h3><p>Choose a team to survive each week.</p><span class="hl-more" aria-hidden="true">Play Survivor &rarr;</span></a>
+          <a class="home-card hl-format" href="/leagues/"><img src="/branding/format-badge-ats-icon.png" alt="" width="240" height="180" loading="lazy" decoding="async" /><h3>Against the Spread</h3><p>Select teams against the point spread.</p><span class="hl-more" aria-hidden="true">Play Against the Spread &rarr;</span></a>
+        </div>
+      </section>
+
+      <section class="hl-sec" aria-labelledby="hl-picks">
+        <div class="hl-head"><div><h2 id="hl-picks">This Week's NFL Picks</h2><p>Week 11 · pregame win probabilities from the Blitz Edge model.</p></div><a class="hl-more" href="/college/">College football odds &rarr;</a></div>
+        <div class="hl-grid3">
+          <a class="home-card hl-pickcard" href="/games/2026/week-11/tennessee-titans-at-dallas-cowboys/" aria-label="Tennessee Titans at Dallas Cowboys: predicted winner DAL, 81 percent"><span class="hl-pickcard-when">Sun, Nov 22 · 1:00 PM ET</span><span class="hl-pickcard-team"><img src="/team-badges/TEN.png" alt="" width="32" height="32" loading="lazy" decoding="async" /><span>Tennessee Titans</span><b>19%</b></span><span class="hl-pickcard-team pick"><img src="/team-badges/DAL.png" alt="" width="32" height="32" loading="lazy" decoding="async" /><span>Dallas Cowboys</span><b>81%</b></span><span class="hs-pick hl-pickcard-pick"><span class="hs-pick-lbl"><img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" width="378" height="120" loading="lazy" decoding="async" /> Predicted winner</span><span class="hs-pick-val"><b>DAL 81%</b></span></span><span class="hs-link" aria-hidden="true">Full matchup details &rarr;</span></a>
+          <a class="home-card hl-pickcard" href="/games/2026/week-11/new-orleans-saints-at-chicago-bears/" aria-label="New Orleans Saints at Chicago Bears: predicted winner CHI, 80 percent"><span class="hl-pickcard-when">Sun, Nov 22 · 1:00 PM ET</span><span class="hl-pickcard-team"><img src="/team-badges/NO.png" alt="" width="32" height="32" loading="lazy" decoding="async" /><span>New Orleans Saints</span><b>20%</b></span><span class="hl-pickcard-team pick"><img src="/team-badges/CHI.png" alt="" width="32" height="32" loading="lazy" decoding="async" /><span>Chicago Bears</span><b>80%</b></span><span class="hs-pick hl-pickcard-pick"><span class="hs-pick-lbl"><img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" width="378" height="120" loading="lazy" decoding="async" /> Predicted winner</span><span class="hs-pick-val"><b>CHI 80%</b></span></span><span class="hs-link" aria-hidden="true">Full matchup details &rarr;</span></a>
+          <a class="home-card hl-pickcard" href="/games/2026/week-11/miami-dolphins-at-buffalo-bills/" aria-label="Miami Dolphins at Buffalo Bills: predicted winner BUF, 79 percent"><span class="hl-pickcard-when">Sun, Nov 22 · 1:00 PM ET</span><span class="hl-pickcard-team"><img src="/team-badges/MIA.png" alt="" width="32" height="32" loading="lazy" decoding="async" /><span>Miami Dolphins</span><b>21%</b></span><span class="hl-pickcard-team pick"><img src="/team-badges/BUF.png" alt="" width="32" height="32" loading="lazy" decoding="async" /><span>Buffalo Bills</span><b>79%</b></span><span class="hs-pick hl-pickcard-pick"><span class="hs-pick-lbl"><img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" width="378" height="120" loading="lazy" decoding="async" /> Predicted winner</span><span class="hs-pick-val"><b>BUF 79%</b></span></span><span class="hs-link" aria-hidden="true">Full matchup details &rarr;</span></a>
+        </div>
+        <div class="hl-center"><a class="home-btn hl-btn-lg" href="/games/">View All NFL Games &amp; Predictions</a></div>
+      </section>
+
+      <section class="home-card hl-close" aria-labelledby="hl-close">
+        <div><h2 id="hl-close">Ready to Run Your Pick'em League?</h2><p>Create your free league, invite your friends, and let Blitz Odds handle the details.</p></div>
+        <div class="hl-acts"><a class="home-btn primary hl-btn-lg" href="/leagues/">Create Your Free League</a><a class="home-btn hl-btn-lg" href="/games/">Explore NFL Picks</a></div>
+      </section>
+
+      <section class="hl-sec hl-faq" aria-labelledby="hl-faq">
+        <div class="hl-head"><h2 id="hl-faq">Frequently Asked Questions</h2></div>
+        <div class="home-card hl-faq-list">
+          <details open><summary><h3>What is an NFL pick&#39;em league?</h3></summary><p>A pick&#39;em league is a pool where everyone picks the winners of each week&#39;s NFL games. Picks are scored after the games finish, and the standings rank everyone across the season.</p></details>
+          <details><summary><h3>Is Blitz Odds free to use?</h3></summary><p>Yes. Creating a league, joining a league, and making picks are free.</p></details>
+          <details><summary><h3>How do confidence pools work?</h3></summary><p>You rank your picks from most to least confident. A correct pick earns the points you assigned to it, so your surest calls are worth the most.</p></details>
+          <details><summary><h3>Can I create a private pick&#39;em league?</h3></summary><p>Yes. A league can be public, private, or hidden. Private and hidden leagues are joined by invitation or code.</p></details>
+          <details><summary><h3>How does automatic scoring work?</h3></summary><p>Picks lock at kickoff. When a game goes final, Blitz Odds grades every pick and updates the league standings.</p></details>
+          <details><summary><h3>What is Blitz Edge?</h3></summary><p>Blitz Edge is the Blitz Odds prediction model. It estimates each NFL team&#39;s chance to win from offense and defense rankings, injuries, rest, and weather. It is an estimate, not a guarantee.</p></details>
+          <details><summary><h3>Does Blitz Odds show live NFL scores?</h3></summary><p>Yes. Scores, quarter, and game clock update while games are in progress, next to the model&#39;s pregame pick.</p></details>
+          <details><summary><h3>Can I view college football scores and predictions?</h3></summary><p>Yes. College football scores are shown with win probabilities based on the betting market. The Blitz Edge model currently covers the NFL.</p></details>
+        </div>
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is an NFL pick'em league?","acceptedAnswer":{"@type":"Answer","text":"A pick'em league is a pool where everyone picks the winners of each week's NFL games. Picks are scored after the games finish, and the standings rank everyone across the season."}},{"@type":"Question","name":"Is Blitz Odds free to use?","acceptedAnswer":{"@type":"Answer","text":"Yes. Creating a league, joining a league, and making picks are free."}},{"@type":"Question","name":"How do confidence pools work?","acceptedAnswer":{"@type":"Answer","text":"You rank your picks from most to least confident. A correct pick earns the points you assigned to it, so your surest calls are worth the most."}},{"@type":"Question","name":"Can I create a private pick'em league?","acceptedAnswer":{"@type":"Answer","text":"Yes. A league can be public, private, or hidden. Private and hidden leagues are joined by invitation or code."}},{"@type":"Question","name":"How does automatic scoring work?","acceptedAnswer":{"@type":"Answer","text":"Picks lock at kickoff. When a game goes final, Blitz Odds grades every pick and updates the league standings."}},{"@type":"Question","name":"What is Blitz Edge?","acceptedAnswer":{"@type":"Answer","text":"Blitz Edge is the Blitz Odds prediction model. It estimates each NFL team's chance to win from offense and defense rankings, injuries, rest, and weather. It is an estimate, not a guarantee."}},{"@type":"Question","name":"Does Blitz Odds show live NFL scores?","acceptedAnswer":{"@type":"Answer","text":"Yes. Scores, quarter, and game clock update while games are in progress, next to the model's pregame pick."}},{"@type":"Question","name":"Can I view college football scores and predictions?","acceptedAnswer":{"@type":"Answer","text":"Yes. College football scores are shown with win probabilities based on the betting market. The Blitz Edge model currently covers the NFL."}}]}</script>
+      </section>
   </div>
 </div>
 <!-- home-snapshot:end -->
@@ -3145,7 +3199,7 @@
       "/js/gameId.js",
       "/js/vendor/react.production.min.js",
       "/js/vendor/react-dom.production.min.js",
-      "/js/app.js?v=ced597b23f",
+      "/js/app.js?v=e8218df767",
       "/js/analytics.js"
     ];
     function inject() {

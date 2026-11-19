@@ -188,13 +188,12 @@
     /* Home keeps the full wordmark below the bar; it fades and shrinks into
        the small one as you scroll (see the scroll effect in App). */
     .brand-row { display: none; }
-    .app-home .brand-row {
-      display: flex; grid-column: auto; margin: 2px 0 10px;
-      transform-origin: top center; will-change: transform, opacity;
-    }
-    /* Hidden from the first paint, before the scroll effect has run; its
-       inline opacity takes over from there as the big wordmark leaves. */
-    .app-home .hdr-mark { opacity: 0; pointer-events: none; }
+    /* Home used to keep the full wordmark under the bar and shrink it into
+       the small mark on scroll. Since the 2026-11 homepage it is the compact
+       bar from the first paint, like every other tab, so the headline and
+       the primary button sit higher on a phone. */
+    .app-home .brand-logo-mini .brand-logo-img { height: 26px !important; }
+    .app-home .hdr-bar { grid-template-columns: minmax(82px, auto) minmax(0, 1fr) minmax(82px, auto); }
     .app { padding-top: 20px; }
 
     /* One week control, not two: the header pill owns it on mobile, so the
@@ -536,16 +535,7 @@
   /* ==========================================================
      Home tab - signed-out landing
      ========================================================== */
-  .home-hero {
-    display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
-    gap: 34px; align-items: center; margin: 26px 0 10px;
-  }
-  .home-hero h2.home-display {
-    margin: 12px 0 12px; font-size: 2.6rem; line-height: 1.08;
-    font-weight: 800; letter-spacing: -.03em;
-  }
-  .home-hero h2.home-display em { font-style: normal; color: var(--accent); }
-  .home-lede { margin: 0 0 22px; font-size: 1rem; line-height: 1.55; color: var(--text-dim); max-width: 46ch; }
+  /* Shared by the landing page and the signed-in dashboard. */
   .home-eyebrow {
     font-size: .68rem; font-weight: 800; letter-spacing: .1em;
     text-transform: uppercase; color: var(--text-dim);
@@ -558,144 +548,342 @@
     padding: 10px 15px; cursor: pointer; white-space: nowrap; text-decoration: none;
   }
   .home-btn.primary { background: var(--accent); border-color: var(--accent); color: #04121a; }
-  .home-trust { margin-top: 16px; font-size: .78rem; color: var(--text-dim); display: flex; gap: 16px; flex-wrap: wrap; }
-  .home-trust span { display: inline-flex; align-items: center; gap: 6px; }
-
   .home-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; }
-  .home-edge { padding: 16px 16px 14px; }
-  .home-edge-head { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
-  .home-edge-head img { height: 22px; width: auto; }
-  .home-matchup { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 8px 0 14px; }
-  /* Same winner treatment as the week view's game card - a green box around
-     the picked side - rather than this card's own orange pill, so a person
-     coming from Home to the games list sees one visual language. */
-  .home-mt {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
+
+  /* ---- Landing page (2026-11 redesign) ---------------------------------
+     .hl-* is the page, .hs-* the scoreboard (which the signed-in dashboard
+     reuses inside a bare .hl wrapper). Same classes in the static copy
+     written by buildHomeSnapshotHtml (scripts/build-static-pages.mjs). */
+  .hl a { text-decoration: none; }
+  .hl-sec { margin-top: 44px; }
+  .hl-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 6px 16px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .hl-head h2, .hl-close h2 { margin: 0; font-size: 1.55rem; font-weight: 800; letter-spacing: -.015em; }
+  .hl-head p { margin: 4px 0 0; color: var(--text-dim); font-size: .92rem; }
+  .hl-more {
+    display: inline-flex; align-items: center; min-height: 44px;
+    color: var(--accent); font-weight: 700; font-size: .86rem;
+  }
+  a.hl-more:hover { text-decoration: underline; }
+  .hl-dim { color: var(--text-dim); }
+  .hl-eyebrow { color: var(--accent); }
+  .hl-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .hl-grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .hl-btn-lg { min-height: 50px; padding: 0 22px; font-size: .95rem; border-radius: 10px; }
+  .hl-btn-quiet { background: transparent; border-color: transparent; color: var(--accent); padding: 0 10px; }
+  .hl-center { display: flex; justify-content: center; margin-top: 18px; }
+
+  .hl-hero {
+    display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+    gap: 40px; align-items: center; margin-top: 30px;
+  }
+  .hl-display { margin: 14px 0; font-size: 3.1rem; line-height: 1.05; font-weight: 800; letter-spacing: -.03em; }
+  .hl-display em { font-style: normal; color: var(--accent); }
+  .hl-lede { margin: 0 0 22px; font-size: 1.08rem; line-height: 1.55; color: var(--text-dim); max-width: 52ch; }
+  .hl-acts { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .hl-trust { margin: 18px 0 0; display: flex; gap: 6px 22px; flex-wrap: wrap; font-size: .84rem; color: var(--text-dim); }
+
+  .hl-preview { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .hl-preview-head { display: flex; justify-content: space-between; align-items: center; gap: 4px 10px; flex-wrap: wrap; font-size: .8rem; }
+  .hl-matchup { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: start; text-align: center; }
+  .hl-mt {
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
     padding: 10px 6px; border-radius: 12px; border: 1px solid transparent;
   }
-  .home-mt.pick { background: rgba(var(--win-rgb),0.07); border-color: rgba(var(--win-rgb),0.32); }
-  .home-mt b { font-size: .84rem; }
-  .home-at { font-size: .8rem; color: var(--text-dim); font-weight: 700; }
-  .home-pickflag { font-size: .6rem; font-weight: 800; letter-spacing: .05em; color: var(--win); text-transform: uppercase; }
-  .home-combo {
-    border-radius: 10px; background: var(--surface-2); border: 1px solid var(--card-border); overflow: hidden;
-  }
-  .home-combo .hc-top { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 10px 12px; background: rgba(var(--accent-rgb),.12); }
-  .home-combo .hc-logo { height: 24px; width: auto; display: block; flex: 0 0 auto; }
-  .home-combo .hc-conf { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-  .home-combo .hc-conf-lbl { font-size: .72rem; color: var(--text-dim); }
-  .home-combo .hc-conf-pct { font-size: .95rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
-  /* Same two-row treatment as the game card's .cb-odds (both moneylines,
-     fixed rows) so the two surfaces keep reading identically - that match is
-     the whole reason this row was built to copy that one. */
-  .home-combo .hc-odds {
-    border-top: 1px solid var(--card-border); padding: 7px 12px;
-    display: flex; flex-direction: column; gap: 3px;
-    font-size: .74rem; color: var(--text-dim); font-variant-numeric: tabular-nums;
-  }
-  .home-combo .hc-odds-line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; }
-  .home-combo .hc-odds b { color: var(--text); font-weight: 800; white-space: nowrap; }
-  .home-combo .hc-stat { white-space: nowrap; }
-  .home-combo .hc-stat + .hc-stat::before { content: "\00b7"; opacity: .5; margin: 0 6px; }
-  .home-combo .hc-odds-k { font-size: .62rem; text-transform: uppercase; letter-spacing: .4px; font-weight: 800; margin-right: 5px; }
-  .home-why-line { margin: 12px 0 0; font-size: .82rem; line-height: 1.55; color: var(--text-dim); }
-  .home-why-line b { color: var(--text); }
+  .hl-mt.pick { background: rgba(var(--accent-rgb), .07); border-color: rgba(var(--accent-rgb), .35); }
+  .hl-mt b { font-size: .95rem; }
+  .hl-at { padding-top: 30px; color: var(--text-dim); font-weight: 700; }
+  .hl-pickflag { font-size: .64rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); }
+  .hl-edge { background: var(--surface-2); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .hl-edge-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .hl-edge-logo { height: 32px; width: auto; }
+  .hl-edge-num { text-align: right; display: flex; flex-direction: column; }
+  .hl-edge-num b { font-size: 2.1rem; line-height: 1; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .hl-edge-num span { font-size: .74rem; color: var(--text-dim); margin-top: 3px; }
+  .hl-bar { display: flex; gap: 2px; height: 10px; border-radius: 999px; overflow: hidden; }
+  .hl-bar span { background: var(--lose); }
+  .hl-bar span.on { background: var(--accent); }
+  .hl-bar-key { display: flex; justify-content: space-between; font-size: .78rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .hl-line { margin: 0; display: flex; gap: 4px 16px; flex-wrap: wrap; font-size: .86rem; }
+  .hl-fine { margin: 0; font-size: .78rem; line-height: 1.5; color: var(--text-dim); }
 
-  .home-sec-head { display: flex; align-items: baseline; justify-content: space-between; margin: 38px 0 12px; }
-  .home-sec-head h3 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; }
+  .hl-benefit { padding: 22px; display: flex; flex-direction: column; gap: 8px; }
+  .hl-benefit svg { color: var(--accent); }
+  .hl-benefit h3, .hl-steps h3, .hl-why-cell h3, .hl-format h3 { margin: 0; font-size: 1.08rem; font-weight: 800; }
+  .hl-benefit p, .hl-steps p, .hl-why-cell p, .hl-format p { margin: 0; color: var(--text-dim); font-size: .92rem; line-height: 1.5; }
+  .hl-benefit .hl-more { margin-top: auto; }
 
-  .home-fmt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-  .home-fmt { padding: 16px 14px 15px; text-align: center; }
-  .home-fmt img { width: 66px; height: 66px; object-fit: contain; }
-  .home-fmt h4 { margin: 8px 0 4px; font-size: .92rem; font-weight: 800; }
-  .home-fmt p { margin: 0; font-size: .76rem; line-height: 1.5; color: var(--text-dim); }
+  .hl-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: hidden; }
+  .hl-steps li { display: flex; gap: 14px; align-items: flex-start; padding: 22px; }
+  .hl-steps li + li { border-left: 1px solid var(--card-border); }
+  .hl-steps p { margin-top: 4px; }
+  .hl-step-n {
+    flex: none; width: 38px; height: 38px; border-radius: 999px;
+    background: rgba(var(--accent-rgb), .12); color: var(--accent); font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
 
-  /* Two cards today. The third ("bring the pool you already run") is built
-     but hidden behind HOME_IMPORT_PILLAR until pool import actually ships -
-     flip that flag and this grid to repeat(3, 1fr) together. */
-  .home-value { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-  .home-value.has-import { grid-template-columns: repeat(3, 1fr); }
-  .home-value-cell { padding: 16px; }
-  .home-value-cell h4 { margin: 0 0 5px; font-size: .9rem; font-weight: 800; }
-  .home-value-cell p { margin: 0; font-size: .8rem; line-height: 1.55; color: var(--text-dim); }
-  .home-tag {
-    display: inline-block; margin-bottom: 9px; font-size: .62rem; font-weight: 800; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--accent); border: 1px solid rgba(var(--accent-rgb), .4);
-    border-radius: 999px; padding: 3px 9px;
-  }
-  .home-close { text-align: center; padding: 26px 20px; margin-top: 22px; }
-  .home-close h3 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 800; }
-  .home-close p { margin: 0 0 16px; font-size: .86rem; color: var(--text-dim); }
-  .home-close .home-acts { justify-content: center; }
+  .hl-why { gap: 28px; }
+  .hl-why-cell { border-top: 2px solid var(--text-dim); padding-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .hl-why-cell.is-edge { border-top-color: var(--blitz-orange); }
+  .hl-why-cell.is-league { border-top-color: var(--accent); }
 
-  /* "This week" block at the foot of the landing page: the slate and a row of
-     section tiles (NFL teams live at /teams/). Same markup from HomeExplore
-     (src/app.jsx) and buildExploreHtml (scripts/build-static-pages.mjs). */
-  .home-explore a { text-decoration: none; }
-  .hx-head-link { color: var(--accent); font-weight: 800; font-size: .8rem; white-space: nowrap; }
-  .hx-card { padding: 6px 0 0; overflow: hidden; }
-  .hx-games { display: grid; grid-template-columns: 1fr 1fr; }
-  .hx-day {
-    grid-column: 1 / -1; padding: 12px 16px 4px; font-size: .66rem; font-weight: 800;
-    letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim);
+  .hl-format {
+    padding: 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    text-align: left; font: inherit; color: inherit; cursor: pointer;
   }
-  .hx-game {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 9px 16px; color: var(--text); min-width: 0;
+  .hl-format img { height: 72px; width: auto; }
+  .hl-format .hl-more { margin-top: auto; min-height: 0; }
+  .hl-format:hover, .hl-pickcard:hover, a.hs-game:hover { border-color: rgba(var(--accent-rgb), .55); }
+
+  .hl-pickcard { padding: 16px; display: flex; flex-direction: column; gap: 10px; color: var(--text); }
+  .hl-pickcard-when { color: var(--text-dim); font-size: .8rem; }
+  .hl-pickcard-team { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: .98rem; color: var(--text-dim); }
+  .hl-pickcard-team.pick { color: var(--text); font-weight: 800; }
+  .hl-pickcard-team img { flex: none; width: 32px; height: 32px; }
+  .hl-pickcard-team b { margin-left: auto; font-variant-numeric: tabular-nums; font-size: .9rem; }
+  .hl-pickcard-pick img { height: 18px; width: auto; vertical-align: middle; margin-right: 6px; }
+
+  .hl-close {
+    margin-top: 44px; padding: 34px 28px; background: var(--surface-2);
+    display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
   }
-  .hx-game:hover { background: var(--surface-2); }
-  .hx-teams { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: .86rem; font-weight: 600; }
-  .hx-t { display: inline-flex; align-items: center; gap: 6px; color: var(--text-dim); min-width: 0; }
-  .hx-t.pick { color: var(--text); font-weight: 800; }
-  .hx-t img { width: 26px; height: 26px; flex: 0 0 auto; }
-  .hx-at { color: var(--text-dim); font-size: .72rem; }
-  .hx-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: 0 0 auto; }
-  .hx-pick {
-    font-size: .72rem; font-weight: 800; color: var(--win); background: rgba(var(--win-rgb), .1);
-    border: 1px solid rgba(var(--win-rgb), .3); border-radius: 999px; padding: 2px 8px;
-    font-variant-numeric: tabular-nums; white-space: nowrap;
+  .hl-close p { margin: 6px 0 0; color: var(--text-dim); }
+
+  .hl-faq-list { padding: 4px 20px; }
+  .hl-faq-list details + details { border-top: 1px solid var(--card-border); }
+  .hl-faq-list summary { cursor: pointer; padding: 16px 2px; min-height: 44px; }
+  .hl-faq-list summary h3 { display: inline; margin: 0; font-size: 1rem; font-weight: 700; }
+  .hl-faq-list p { margin: 0; padding: 0 2px 16px; color: var(--text-dim); font-size: .94rem; line-height: 1.55; max-width: 76ch; }
+
+  /* ---- Scoreboard ------------------------------------------------------ */
+  .hs-controls { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .hs-seg {
+    display: inline-flex; background: var(--surface-2); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 3px; gap: 2px;
   }
-  .hx-time { font-size: .68rem; color: var(--text-dim); white-space: nowrap; }
-  .hx-more {
-    display: block; text-align: center; padding: 12px; margin-top: 6px;
-    border-top: 1px solid var(--card-border); color: var(--accent); font-weight: 800; font-size: .82rem;
+  .hs-seg button {
+    font: inherit; font-size: .86rem; font-weight: 700; min-height: 44px; padding: 0 15px;
+    border: 0; border-radius: 8px; background: transparent; color: var(--text-dim); cursor: pointer;
   }
-  /* 3-5 tiles depending on the cfb / bowls flags: equal columns, one row. */
-  .hx-tiles { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 14px; }
-  .hx-tile {
-    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 16px 12px;
-    border-radius: 14px; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
+  .hs-seg button.on { background: var(--card-bg); color: var(--text); box-shadow: 0 0 0 1px var(--card-border); }
+  .hs-updated { margin-left: auto; color: var(--text-dim); font-size: .78rem; }
+  .hs-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  /* Fixed minimum height and tabular figures: a score or status change
+     repaints inside the card and never moves the page. */
+  .hs-game {
+    min-height: 200px; padding: 14px; color: var(--text);
+    display: grid; grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "status when" "away away" "home home" "pick pick" "link link";
+    grid-template-rows: auto auto auto 1fr auto; gap: 10px 8px; align-items: center;
   }
-  .hx-tile:hover { border-color: rgba(var(--accent-rgb), .5); }
-  .hx-tile img { width: 34px; height: 34px; object-fit: contain; flex: 0 0 auto; }
-  .hx-tile b { display: block; font-size: .84rem; }
-  .hx-tile small { display: block; font-size: .7rem; color: var(--text-dim); line-height: 1.35; margin-top: 2px; }
+  .hs-status {
+    grid-area: status; justify-self: start; display: inline-flex; align-items: center; gap: 6px;
+    font-size: .66rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 999px; border: 1px solid var(--card-border);
+    color: var(--text-dim); white-space: nowrap;
+  }
+  .hs-status.is-upcoming { color: var(--accent); border-color: rgba(var(--accent-rgb), .6); }
+  .hs-status.is-live { color: var(--live); border-color: rgba(var(--live-rgb), .7); }
+  .hs-status.is-delayed { color: var(--warn); border-color: rgba(var(--warn-rgb), .6); }
+  .hs-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--live); }
+  .hs-when { grid-area: when; justify-self: end; text-align: right; color: var(--text-dim); font-size: .76rem; }
+  .hs-game.is-live .hs-when { color: var(--text); font-weight: 700; }
+  .hs-team { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; min-width: 0; }
+  .hs-away { grid-area: away; }
+  .hs-home { grid-area: home; }
+  .hs-team.is-loser { color: var(--text-dim); }
+  .hs-logo { flex: none; display: inline-flex; }
+  .hs-logo img { width: 30px; height: 30px; display: block; }
+  .hs-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hs-name small { color: var(--text-dim); font-weight: 600; font-size: .72rem; }
+  .hs-abbr { display: none; }
+  .hs-rank { color: var(--text-dim); font-size: .74rem; font-weight: 700; margin-right: 4px; }
+  .hs-score { margin-left: auto; min-width: 1.6ch; text-align: right; font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .hs-pick {
+    grid-area: pick; align-self: end; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    background: rgba(var(--accent-rgb), .10); border-radius: 9px; padding: 8px 10px; font-size: .8rem;
+  }
+  .hs-pick-lbl { color: var(--text-dim); }
+  .hs-pick-val { white-space: nowrap; }
+  .hs-pick-val b { color: var(--accent); font-size: .92rem; font-variant-numeric: tabular-nums; }
+  .hs-pick-none { color: var(--text-dim); }
+  .hs-outcome { font-weight: 700; }
+  .hs-outcome.is-correct { color: var(--pill-good-text); }
+  .hs-outcome.is-missed { color: var(--pill-bad-text); }
+  .hs-link { grid-area: link; color: var(--accent); font-weight: 700; font-size: .8rem; }
+  .hs-status-narrow { display: none; }
+  .hs-empty {
+    margin: 0; padding: 22px; min-height: 84px; border: 1px dashed var(--card-border); border-radius: 14px;
+    background: var(--card-bg); color: var(--text-dim); font-size: .92rem; line-height: 1.5;
+  }
+  .hs-empty a { color: var(--accent); text-decoration: underline; }
+  .hs-skel { opacity: .45; }
+  .hs-all-bottom { display: none; }
+  .hd-scores .hl-sec { margin-top: 22px; margin-bottom: 22px; }
+
+  /* ---- Games tab: status filter + team search -------------------------- */
+  .wk-filters { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 4px 0 14px; }
+  .wk-filters .cfb-filters { flex-wrap: wrap; }
+  .wk-search {
+    font: inherit; font-size: .86rem; height: 36px; width: 210px; min-width: 0; padding: 0 14px;
+    border-radius: 999px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text);
+  }
+  .wk-search::placeholder { color: var(--text-dim); }
+  .wk-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .cfb-list-head .wk-search { margin-left: auto; align-self: center; }
+  @media (max-width: 720px) {
+    .wk-search { flex: 1 1 100%; width: 100%; height: 44px; font-size: 1rem; }
+    .cfb-list-head { flex-wrap: wrap; }
+    .cfb-list-head .wk-search { order: 3; }
+  }
+
+  /* ---- Organized footer ------------------------------------------------ */
+  .footer-cols {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px 24px;
+    margin: 0 0 18px; padding: 0 0 18px; border-bottom: 1px solid var(--card-border);
+  }
+  .footer-cols h2 { margin: 0 0 6px; font-size: .7rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--text); }
+  .footer-cols ul { list-style: none; margin: 0; padding: 0; }
+  .footer-cols a { display: inline-block; padding: 5px 0; color: var(--text-dim); text-decoration: none; font-size: .8rem; }
+  .footer-cols a:hover { color: var(--text); text-decoration: underline; }
+
+  @media (max-width: 1000px) {
+    .hs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hl-grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hl-display { font-size: 2.5rem; }
+    .hl-hero { gap: 28px; }
+  }
+  @media (max-width: 860px) {
+    /* Headline and primary CTA first, then the preview. */
+    .hl-hero { grid-template-columns: 1fr; gap: 22px; margin-top: 18px; }
+    .hl-grid3 { grid-template-columns: 1fr; }
+    .hl-why { gap: 16px; }
+    .hl-steps { grid-template-columns: 1fr; }
+    .hl-steps li { padding: 16px; }
+    .hl-steps li + li { border-left: 0; border-top: 1px solid var(--card-border); }
+  }
+  @media (max-width: 720px) {
+    .hl-sec { margin-top: 32px; }
+    .hl-display { font-size: 2.05rem; }
+    .hl-lede { font-size: 1rem; }
+    .hl-head h2, .hl-close h2 { font-size: 1.35rem; }
+    .hl-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hl-acts > :first-child { grid-column: 1 / -1; }
+    .hl-btn-lg { padding: 0 10px; font-size: .9rem; white-space: normal; text-align: center; }
+    .hl-btn-quiet { background: var(--surface-2); border-color: var(--card-border); color: var(--text); }
+    .hl-close { margin-top: 32px; padding: 22px 16px; }
+    .hl-close .hl-acts { width: 100%; }
+    .hl-benefit { padding: 16px; }
+    .hl-faq-list { padding: 2px 14px; }
+    .hl-faq-list summary { min-height: 48px; padding: 14px 2px; }
+    .footer-cols { grid-template-columns: 1fr 1fr; }
+    .footer-cols a { padding: 8px 0; }
+
+    /* Compact scoreboard: one card, one line per game - away badge, team and
+       score on the left, status or kickoff time in the middle, home score,
+       team and badge on the right - with the pick and date on a caption
+       line. Same DOM as the desktop card; the grid areas do the work. */
+    .hs-controls { flex-direction: column; align-items: stretch; gap: 8px; }
+    .hs-seg { display: flex; }
+    .hs-seg button { flex: 1; min-height: 44px; padding: 0 6px; }
+    .hs-updated { margin-left: 0; text-align: right; font-size: .72rem; }
+    .hs-all-top { display: none; }
+    .hs-all-bottom { display: inline-flex; }
+    .hs-grid {
+      grid-template-columns: 1fr; gap: 0; padding: 0 12px;
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+    }
+    .hs-game {
+      min-height: 64px; padding: 10px 0; border: 0; border-radius: 0; background: none;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-areas: "away status home" "pick pick when";
+      grid-template-rows: auto auto; gap: 5px 8px;
+    }
+    .hs-game + .hs-game { border-top: 1px solid var(--card-border); }
+    .hs-status { justify-self: center; justify-content: center; min-width: 74px; }
+    .hs-status-wide { display: none; }
+    .hs-status-narrow { display: inline; }
+    .hs-when { font-size: .72rem; }
+    .hs-name { display: none; }
+    .hs-abbr { display: inline; white-space: nowrap; }
+    .hs-team { gap: 7px; font-size: .95rem; }
+    .hs-home { flex-direction: row-reverse; }
+    .hs-home .hs-score { margin-left: 0; margin-right: auto; text-align: left; }
+    .hs-score { font-size: 1.25rem; }
+    .hs-logo img, .hs-logo .cfb-crest { width: 28px !important; height: 28px !important; }
+    .hs-game > .hs-pick { background: none; padding: 0; font-size: .74rem; justify-content: flex-start; gap: 5px; align-self: center; }
+    .hs-game > .hs-pick .hs-pick-val b { font-size: .8rem; }
+    .hs-game > .hs-link { display: none; }
+    .hs-skel { min-height: 64px; }
+  }
+  @media (max-width: 380px) {
+    .hl-display { font-size: 1.8rem; }
+    .hs-status { min-width: 64px; padding: 4px 6px; font-size: .6rem; letter-spacing: .04em; }
+    .hs-score { font-size: 1.12rem; }
+    .hs-team { gap: 5px; font-size: .88rem; }
+    .hl-format { padding: 14px; }
+    .hl-format img { height: 56px; }
+  }
+
+  /* ---- Compact desktop header ------------------------------------------
+     One sticky row above 720px: logo, navigation, account. The tab bar now
+     sits inside header.top (see App) so it can be the middle grid track.
+     Phones are untouched: there header.top is display:contents, .hdr-bar is
+     the sticky top bar and .tab-bar is fixed to the bottom. */
+  .tab-desktop-only { display: flex; }
+  .hdr-cta { display: none; }
+  @media (max-width: 720px) {
+    .tab-bar .tab-desktop-only { display: none !important; }
+  }
+  @media (min-width: 721px) {
+    header.top {
+      grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px 22px;
+      position: sticky; top: 0; z-index: 450; text-align: left;
+      margin: -20px -16px 18px; padding: 8px 16px; min-height: 62px;
+      background: var(--bg);
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      -webkit-backdrop-filter: saturate(180%) blur(18px);
+      backdrop-filter: saturate(180%) blur(18px);
+      border-bottom: 1px solid var(--card-border);
+    }
+    header.top .brand-row { grid-column: 1; grid-row: 1; margin: 0; justify-content: flex-start; }
+    header.top .brand-logo .brand-logo-img { height: 42px !important; }
+    header.top .header-right-cluster { grid-column: 3; grid-row: 1; align-self: center; padding-top: 0; }
+    header.top .tab-bar {
+      grid-column: 2; grid-row: 1; margin: 0; border-bottom: 0; gap: 2px;
+      align-items: center; min-width: 0;
+    }
+    header.top .tab-btn {
+      padding: 0 12px; min-height: 44px; border-radius: 8px; gap: 6px;
+      font-size: .92rem; white-space: nowrap;
+    }
+    header.top .tab-btn:hover { background: var(--surface-2); }
+    header.top .tab-btn.active::after { left: 12px; right: 12px; bottom: 5px; }
+    /* Text-only nav: the illustrated marks stay on the phone bar. The icon
+       box survives only as the carrier of the live-games count. */
+    header.top .tab-icon { display: none; }
+    header.top .tab-icon:has(.tab-live-count) {
+      display: flex; order: 2; width: auto; height: auto; background: none; border: 0;
+    }
+    header.top .tab-icon:has(.tab-live-count) .tab-icon-img { display: none; }
+    header.top .tab-live-count { position: static; box-shadow: none; }
+    .hdr-cta { display: inline-flex; min-height: 40px; }
+    /* Rails that pinned to the top of the viewport now clear the sticky bar. */
+    .hd-rail, .lgx-rail, .lgx-manage-rail { top: 78px; }
+  }
+  @media (min-width: 721px) and (max-width: 1040px) {
+    .hdr-cta { display: none; }
+    header.top { gap: 8px 12px; }
+    header.top .brand-logo .brand-logo-img { height: 34px !important; }
+    header.top .tab-btn { padding: 0 8px; font-size: .85rem; }
+    header.top .tab-btn.active::after { left: 8px; right: 8px; }
+  }
+
   footer.app-footer .footer-sitelinks a { color: var(--text-dim); text-decoration: underline; }
 
-  @media (max-width: 860px) {
-    /* The hero dissolves so the four formats can sit between the pitch and
-       the (tall) Blitz Edge card - a new visitor gets "here's how you'd
-       play" before the model demo, which scrolls badly at the top. */
-    .home-landing { display: flex; flex-direction: column; align-items: stretch; }
-    .home-hero { display: contents; }
-    .home-hero-copy { order: 1; }
-    .home-landing > .home-sec-head.fmt { order: 2; }
-    .home-landing > .home-fmt-grid { order: 3; }
-    .home-edge { order: 4; margin-top: 26px; }
-    .home-landing > .home-sec-head.why { order: 5; }
-    .home-landing > .home-value { order: 6; }
-    .home-landing > .home-close { order: 7; }
-    .home-landing > .home-explore { order: 8; }
-    .hx-games { grid-template-columns: 1fr; }
-    .hx-game { border-top: 1px solid var(--card-border); }
-    .hx-day + .hx-game { border-top: none; }
-    .hx-tiles { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .hx-tile { flex-direction: row; text-align: left; gap: 10px; padding: 12px; }
-    .hx-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
-    .home-hero h2.home-display { font-size: 1.85rem; }
-    .home-fmt-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .home-value, .home-value.has-import { grid-template-columns: 1fr; }
-  }
 
 
   /* ==========================================================

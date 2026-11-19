@@ -1684,7 +1684,7 @@ async function buildTeamsIndexPage(data, periods) {
   };
   const nav = [
     // NFL-only page: no College link here (and no NFL link on the college teams pages).
-    ["/", "Home", false], ["/games/", "NFL", false],
+    ["/", "Home", false], ["/games/", "NFL Games", false],
     ["/teams/", "Teams", true],
   ].map(([href, label, on]) => `<a href="${href}"${on ? ' class="on"' : ""}>${label}</a>`).join("");
   const html = `<!DOCTYPE html>

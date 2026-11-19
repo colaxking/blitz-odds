@@ -491,7 +491,7 @@ function page({ title, description, canonicalPath, h1, lede, body, trail, jsonLd
     // side (the same place the Home tile and the app's own links go); the
     // standalone landing page stays reachable from the breadcrumbs and footer.
     // The college teams pages are college-only: no NFL link in the nav or footer.
-    ["/", "Home", ""], ...(navOn === "teams" ? [] : [["/games/", "NFL", ""]]), [FEATURES.cfb ? "/college/" : "/college/games/", "College", "games"],
+    ["/", "Home", ""], ...(navOn === "teams" ? [] : [["/games/", "NFL Games", ""]]), [FEATURES.cfb ? "/college/" : "/college/games/", "College Games", "games"],
     ["/college/teams/", "Teams", "teams"], ...(FEATURES.bowls ? [["/college/bowls/", "Bowls", "bowls"]] : []),
   ].map(([href, label, key]) => `<a href="${href}"${key && key === navOn ? ' class="on"' : ""}>${label}</a>`).join("");
   return `<!DOCTYPE html>

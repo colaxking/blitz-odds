@@ -17876,7 +17876,7 @@ function HomeExplore({ week, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
   const rows = homeSlateRows(week, tz);
   const tiles = [
     ["/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor & ATS sheets"],
-    ["/leagues/", "/branding/tab-icon-leagues.svg", "Free leagues", "Join a pool or run your own"],
+    ["/leagues/", "/branding/tab-icon-leagues.png", "Free leagues", "Join a pool or run your own"],
     // College and bowls follow the same feature flags that show and hide
     // those features in the app (admin console > Features): off for this
     // visitor means no tile. The static copy in build-static-pages.mjs reads
@@ -18558,7 +18558,7 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPin
     // only rendered when the phone bar has it pinned - and CSS keeps it off
     // the desktop row even then (.tab-mobile-only).
     ...(navPins && navPins.indexOf("league") !== -1
-      ? [{ id: "league", label: "Leagues", icon: "\u{1F465}", img: "/branding/tab-icon-leagues.svg", mobileOnly: true }]
+      ? [{ id: "league", label: "Leagues", icon: "\u{1F465}", img: "/branding/tab-icon-leagues.png", mobileOnly: true }]
       : []),
   ];
   /* The customisable phone bar ("mobileNav" flag). Desktop still gets every
@@ -18821,7 +18821,7 @@ function navDestinations(features) {
     ...(features && features.bowls && bowlsInSeason()
       ? [{ id: "bowls", label: "Bowls", img: "/branding/tab-icon-bowls.png", note: "Bowl season only - hides itself in February", isNew: true }]
       : []),
-    { id: "league", label: "Leagues", img: "/branding/tab-icon-leagues.svg", note: "Your pools, or create and join one" },
+    { id: "league", label: "Leagues", img: "/branding/tab-icon-leagues.png", note: "Your pools, or create and join one" },
     { id: "news", label: "News", img: "/branding/tab-icon-news.png", note: "Injuries and headlines" },
   ];
 }

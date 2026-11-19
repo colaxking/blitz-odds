@@ -1339,7 +1339,7 @@ function buildExploreHtml(data, period) {
   const tile = (href, img, name, sub) => `        <a class="hx-tile" href="${href}"><img src="${img}" alt="" width="34" height="34" loading="lazy" decoding="async" /><span><b>${name}</b><small>${sub}</small></span></a>`;
   const tiles = [
     tile("/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor &amp; ATS sheets"),
-    tile("/leagues/", "/branding/tab-icon-leagues.svg", "Free leagues", "Join a pool or run your own"),
+    tile("/leagues/", "/branding/tab-icon-leagues.png", "Free leagues", "Join a pool or run your own"),
     // The app routes (Games tab on College, the Bowls tab) - same targets as HomeExplore.
     data.features.cfb ? tile("/college/", "/branding/tab-icon-games.png", "College football", "Odds &amp; win probabilities") : null,
     data.features.bowls ? tile("/bowls/", "/branding/tab-icon-bowls.png", "Bowl pick'em", "Every bowl and the Playoff") : null,

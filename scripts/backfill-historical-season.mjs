@@ -1335,6 +1335,11 @@ async function rebuildRootIndex() {
     .map((abbr) => `<option value="/historical/teams/${teamSlug(abbr)}/index.html">${escapeHtml(TEAM_FULL_NAMES[abbr] || abbr)}</option>`)
     .join("\n");
 
+  const yearLinks = years.map((y) => `<a href="/historical/${y}/index.html">${y} NFL season</a>`).join(" ");
+  const teamLinks = teamsWithGames
+    .map((abbr) => `<a href="/historical/teams/${teamSlug(abbr)}/index.html">${escapeHtml(TEAM_FULL_NAMES[abbr] || abbr)}</a>`)
+    .join(" ");
+
   const bodyHtml = `
     <span class="archive-badge">Historical Archive</span>
     <h2 style="margin-top:0;">Historical Results Archive</h2>
@@ -1351,6 +1356,16 @@ async function rebuildRootIndex() {
         <option value="">Select a team&hellip;</option>
         ${teamOptions}
       </select>
+    </div>
+    <!-- Plain links as well as the dropdowns: a <select> that navigates on
+         change is invisible to crawlers, which left this page - the only
+         entry into the archive from the rest of the site - linking to none
+         of the seasons or team histories under it. -->
+    <div class="menu-block archive-links" style="margin-top:22px;">
+      <h3 style="margin:0 0 6px; font-size:0.95rem;">All seasons</h3>
+      <p style="display:flex; flex-wrap:wrap; gap:6px 16px; margin:0; font-size:0.9rem;">${yearLinks}</p>
+      <h3 style="margin:18px 0 6px; font-size:0.95rem;">All teams</h3>
+      <p style="display:flex; flex-wrap:wrap; gap:6px 16px; margin:0; font-size:0.9rem;">${teamLinks}</p>
     </div>
   `;
   const pageScript = `

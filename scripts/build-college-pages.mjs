@@ -485,7 +485,7 @@ function breadcrumbLd(trail) {
 function page({ title, description, canonicalPath, h1, lede, body, trail, jsonLd = [], navOn = "", ogType = "website" }) {
   const url = `${SITE_BASE}${canonicalPath}`;
   const crumbs = trail.map((c, i) => (i === trail.length - 1 ? esc(c.name) : `<a href="${c.path}">${esc(c.name)}</a>`)).join(" › ");
-  const lds = [breadcrumbLd(trail), ...jsonLd].map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, "\\u003c")}</script>`).join("\n");
+  const lds = [breadcrumbLd(trail), ...jsonLd].filter(Boolean).map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, "\\u003c")}</script>`).join("\n");
   const nav = [
     // With the cfb flag on, "College" is the app's Games tab on its College
     // side (the same place the Home tile and the app's own links go); the
@@ -695,6 +695,9 @@ function faq(g) {
 }
 
 function sportsEventLd(g, canonicalPath, name) {
+  // Google's Event markup requires a location; a game whose site isn't set
+  // yet (CFP first-round campus games) gets no SportsEvent until it is.
+  if (!g.venue) return null;
   const team = (t) => (t ? { "@type": "SportsTeam", name: t.name, ...(teamPath(t.id) ? { url: `${SITE_BASE}${teamPath(t.id)}` } : {}) } : undefined);
   const o = {
     "@context": "https://schema.org", "@type": "SportsEvent",

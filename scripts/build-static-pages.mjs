@@ -1381,7 +1381,7 @@ function buildHomeSnapshotHtml(period, data) {
         <img src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-dark" width="900" height="252" decoding="async" style="height:76px;width:auto;display:block" />
         <img src="/branding/blitz-odds-wordmark-light.svg" alt="Blitz Odds" class="brand-logo-img brand-logo-light" width="900" height="252" loading="lazy" decoding="async" style="height:76px;width:auto;display:none" />
       </span>
-      <h1 class="sr-only">Blitz Odds</h1>
+      <h1 class="sr-only">Blitz Odds - Free NFL Pick'em Leagues, Odds &amp; Model Predictions</h1>
     </div>
   </header>
   <div class="home-landing">

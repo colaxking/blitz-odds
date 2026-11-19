@@ -1382,7 +1382,8 @@ function gamePageMeta(game) {
 function pageHeading(activeTab, view, teamId, week, game) {
   try {
     if (activeTab === "home") return "Blitz Odds - Free NFL Pick'em Leagues, Odds & Model Predictions";
-    if (activeTab === "picks") return `NFL Pick'em Playbook - ${getPeriodLabel(week)} Confidence, Survivor & Spread Picks`;
+    const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+    if (activeTab === "picks") return `NFL Pick'em Playbook - ${getPeriodLabel(week)} Confidence, Survivor & Spread Picks (${seasonYear})`;
     if (activeTab === "league") return "Free NFL Pick'em Pools - Join a League or Run Your Own";
     if (activeTab === "games" || activeTab == null) {
       if (view === "game" && game) return gamePageMeta(game).h1;
@@ -1390,7 +1391,12 @@ function pageHeading(activeTab, view, teamId, week, game) {
         const team = baseTeam(teamId);
         return `${team ? team.name : teamId} Schedule, Odds & Predictions`;
       }
-      if (view === "week") return `NFL ${getPeriodLabel(week)} Picks, Odds & Predictions`;
+      if (view === "week") {
+        // Same wording as the prerendered <h1> of whichever URL this is.
+        const path = (typeof window !== "undefined" && window.location && window.location.pathname) || "";
+        if (/^\/games\/\d{4}\/[^/]+\/?$/.test(path)) return `NFL ${getPeriodLabel(week)} Picks & Predictions - ${seasonYear}`;
+        return `NFL Games, Odds & Model Predictions - ${getPeriodLabel(week)}, ${seasonYear}`;
+      }
     }
   } catch (e) { /* fall through */ }
   return "Blitz Odds";

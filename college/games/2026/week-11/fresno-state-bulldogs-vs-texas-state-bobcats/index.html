@@ -49,13 +49,29 @@ th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;lett
 .grid2 a:hover{color:var(--accent)}.cta{display:inline-block;margin-top:6px;padding:9px 14px;border-radius:10px;background:var(--accent);color:#06201d;font-weight:800;text-decoration:none}
 .note{font-size:12px;color:var(--dim)}.faq dt{font-weight:700;margin-top:10px}.faq dd{margin:3px 0 0;color:var(--dim)}
 footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--dim)}footer a{color:var(--dim)}
-@media (max-width:600px){h1{font-size:22px}.matchup .name{font-size:15px}.hide-sm{display:none}}</style>
+@media (max-width:600px){h1{font-size:22px}.matchup .name{font-size:15px}.hide-sm{display:none}
+.top{gap:8px}.nav{margin-left:0;width:100%;gap:2px}.nav a{padding:6px 9px}
+/* Games table: each game becomes a two-line block (away | home, then kickoff
+   and spread | market and link) so nothing has to scroll sideways. */
+.gm thead{display:none}.gm,.gm tbody{display:block}
+.gm tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.gm tr:last-child{border-bottom:none}.gm td{border:none;padding:0;min-width:0}
+.gm .team-cell{font-weight:700}.gm .g-away{grid-area:1/1}.gm .g-home{grid-area:1/2}
+.gm .g-when{grid-area:2/1;font-size:12px;color:var(--dim)}.gm .g-spread{grid-area:3/1;font-size:13px;color:var(--dim)}
+.gm .g-mkt{grid-area:2/2;text-align:left;font-weight:700;color:var(--accent)}.gm .g-link{grid-area:3/2;font-size:13px}
+/* Team schedule: opponent and result on the first line, date, line and link under them. */
+.sch thead{display:none}.sch,.sch tbody{display:block}
+.sch tr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:3px 12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.sch tr:last-child{border-bottom:none}.sch td{border:none;padding:0;min-width:0}
+.sch .s-opp{grid-area:1/1;font-weight:700}.sch .s-res{grid-area:1/2;text-align:right}
+.sch .s-date{grid-area:2/1;font-size:12px;color:var(--dim)}.sch .s-line{grid-area:2/2;text-align:right;font-size:12px;color:var(--dim)}
+.sch .s-link{grid-area:3/1;font-size:13px}.sch .s-link:empty{display:none}}</style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"College football","item":"https://blitz-odds.com/college/games/"},{"@type":"ListItem","position":2,"name":"Week 11","item":"https://blitz-odds.com/college/games/2026/week-11/"},{"@type":"ListItem","position":3,"name":"Fresno St vs Texas St","item":"https://blitz-odds.com/college/games/2026/week-11/fresno-state-bulldogs-vs-texas-state-bobcats/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsEvent","name":"Fresno State Bulldogs vs Texas State Bobcats","sport":"American Football","url":"https://blitz-odds.com/college/games/2026/week-11/fresno-state-bulldogs-vs-texas-state-bobcats/","startDate":"2026-11-14T21:00Z","eventStatus":"https://schema.org/EventScheduled","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","homeTeam":{"@type":"SportsTeam","name":"Texas State Bobcats","url":"https://blitz-odds.com/college/teams/texas-state-bobcats/"},"awayTeam":{"@type":"SportsTeam","name":"Fresno State Bulldogs","url":"https://blitz-odds.com/college/teams/fresno-state-bulldogs/"},"competitor":[{"@type":"SportsTeam","name":"Fresno State Bulldogs","url":"https://blitz-odds.com/college/teams/fresno-state-bulldogs/"},{"@type":"SportsTeam","name":"Texas State Bobcats","url":"https://blitz-odds.com/college/teams/texas-state-bobcats/"}],"location":{"@type":"Place","name":"UFCU Stadium","address":"San Marcos, TX"},"organizer":{"@type":"SportsOrganization","name":"NCAA Division I FBS"}}</script>
 </head>
 <body>
 <div class="wrap">
-<header class="top"><a class="brand" href="/"><img src="/branding/blitz-odds-icon.svg" alt="" width="28" height="28">Blitz <b>Odds</b></a><nav class="nav" aria-label="Site"><a href="/">Home</a><a href="/games">NFL</a><a href="/college/games/" class="on">College</a><a href="/college/teams/">Teams</a><a href="/college/bowls/">Bowls</a></nav></header>
+<header class="top"><a class="brand" href="/"><img src="/branding/blitz-odds-icon.svg" alt="" width="28" height="28">Blitz <b>Odds</b></a><nav class="nav" aria-label="Site"><a href="/">Home</a><a href="/games/">NFL</a><a href="/college/games/" class="on">College</a><a href="/college/teams/">Teams</a></nav></header>
 <main>
 <p class="crumbs"><a href="/college/games/">College football</a> › <a href="/college/games/2026/week-11/">Week 11</a> › Fresno St vs Texas St</p>
 <h1>Fresno State Bulldogs vs Texas State Bobcats: Final</h1>
@@ -84,7 +100,7 @@ footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-
 </main>
 <footer>
 <p>Lines from ESPN's college feed (DraftKings unless noted). "Market" win chances are the betting market's implied odds with the vig removed - Blitz Odds has no college model of its own yet. For entertainment only; not betting advice. 21+ where legal, 1-800-GAMBLER. Blitz Odds is not affiliated with the NCAA or any school or conference.</p>
-<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · <a href="/college/bowls/">Bowl schedule</a> · <a href="/games">NFL picks</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated 2026-11-18 20:33 UTC<!--/stamp--></p>
+<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · <a href="/games/">NFL picks</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated 2026-11-19 05:51 UTC<!--/stamp--></p>
 </footer>
 </div>
 </body>

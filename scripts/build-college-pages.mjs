@@ -48,11 +48,26 @@ const ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/college-foo
 const ESPN_HEADERS = { "User-Agent": "curl/8.4.0", Accept: "application/json" };
 const OFFLINE = process.argv.includes("--offline");
 
-/* Off until the flags go to Everyone: the app bounces flag-less visitors
- * from /college/ and /bowls, so a deep link there would land them on the
- * NFL slate. Flip these when `cfb` / `bowls` are on for everyone. */
-const CFB_APP_LINKS = false;
-const BOWL_POOL_LINKS = false;
+/* Bowl links (the "Bowls" nav item, the footer and "More" links, and the
+ * "Start a bowl pool" CTAs into the app) follow the same `bowls` feature flag
+ * that shows and hides Bowls in the app (admin console > Features), read the
+ * way a signed-out visitor gets it. Off - or unreadable, or past bowl season -
+ * means none of them is rendered. The bowl pages themselves are still built. */
+const BOWLS_VISIBLE_UNTIL = Date.parse("2027-02-01T12:00:00Z"); // = src/app.jsx
+let FEATURES = { cfb: false, bowls: false };
+async function fetchPublicFeatures() {
+  const off = { cfb: false, bowls: false };
+  if (OFFLINE) return off;
+  try {
+    const res = await fetch(`${SITE_BASE}/.netlify/functions/features`, { signal: AbortSignal.timeout(15000), headers: { accept: "application/json" } });
+    if (!res.ok) return off;
+    const body = await res.json();
+    if (!body || !body.ok || !body.features) return off;
+    return { cfb: body.features.cfb === true, bowls: body.features.bowls === true && Date.now() < BOWLS_VISIBLE_UNTIL };
+  } catch {
+    return off;
+  }
+}
 
 const CONFERENCES = {
   "8": "SEC", "5": "Big Ten", "4": "Big 12", "1": "ACC",
@@ -403,7 +418,23 @@ th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;lett
 .grid2 a:hover{color:var(--accent)}.cta{display:inline-block;margin-top:6px;padding:9px 14px;border-radius:10px;background:var(--accent);color:#06201d;font-weight:800;text-decoration:none}
 .note{font-size:12px;color:var(--dim)}.faq dt{font-weight:700;margin-top:10px}.faq dd{margin:3px 0 0;color:var(--dim)}
 footer{margin-top:34px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--dim)}footer a{color:var(--dim)}
-@media (max-width:600px){h1{font-size:22px}.matchup .name{font-size:15px}.hide-sm{display:none}}
+@media (max-width:600px){h1{font-size:22px}.matchup .name{font-size:15px}.hide-sm{display:none}
+.top{gap:8px}.nav{margin-left:0;width:100%;gap:2px}.nav a{padding:6px 9px}
+/* Games table: each game becomes a two-line block (away | home, then kickoff
+   and spread | market and link) so nothing has to scroll sideways. */
+.gm thead{display:none}.gm,.gm tbody{display:block}
+.gm tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.gm tr:last-child{border-bottom:none}.gm td{border:none;padding:0;min-width:0}
+.gm .team-cell{font-weight:700}.gm .g-away{grid-area:1/1}.gm .g-home{grid-area:1/2}
+.gm .g-when{grid-area:2/1;font-size:12px;color:var(--dim)}.gm .g-spread{grid-area:3/1;font-size:13px;color:var(--dim)}
+.gm .g-mkt{grid-area:2/2;text-align:left;font-weight:700;color:var(--accent)}.gm .g-link{grid-area:3/2;font-size:13px}
+/* Team schedule: opponent and result on the first line, date, line and link under them. */
+.sch thead{display:none}.sch,.sch tbody{display:block}
+.sch tr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:3px 12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.sch tr:last-child{border-bottom:none}.sch td{border:none;padding:0;min-width:0}
+.sch .s-opp{grid-area:1/1;font-weight:700}.sch .s-res{grid-area:1/2;text-align:right}
+.sch .s-date{grid-area:2/1;font-size:12px;color:var(--dim)}.sch .s-line{grid-area:2/2;text-align:right;font-size:12px;color:var(--dim)}
+.sch .s-link{grid-area:3/1;font-size:13px}.sch .s-link:empty{display:none}}
 `;
 
 let BADGE_IDS = new Set();
@@ -441,8 +472,8 @@ function page({ title, description, canonicalPath, h1, lede, body, trail, jsonLd
   const crumbs = trail.map((c, i) => (i === trail.length - 1 ? esc(c.name) : `<a href="${c.path}">${esc(c.name)}</a>`)).join(" › ");
   const lds = [breadcrumbLd(trail), ...jsonLd].map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, "\\u003c")}</script>`).join("\n");
   const nav = [
-    ["/", "Home", ""], ["/games", "NFL", ""], ["/college/games/", "College", "games"],
-    ["/college/teams/", "Teams", "teams"], ["/college/bowls/", "Bowls", "bowls"],
+    ["/", "Home", ""], ["/games/", "NFL", ""], ["/college/games/", "College", "games"],
+    ["/college/teams/", "Teams", "teams"], ...(FEATURES.bowls ? [["/college/bowls/", "Bowls", "bowls"]] : []),
   ].map(([href, label, key]) => `<a href="${href}"${key && key === navOn ? ' class="on"' : ""}>${label}</a>`).join("");
   return `<!DOCTYPE html>
 <html lang="en">
@@ -478,7 +509,7 @@ ${body}
 </main>
 <footer>
 <p>Lines from ESPN's college feed (DraftKings unless noted). "Market" win chances are the betting market's implied odds with the vig removed - Blitz Odds has no college model of its own yet. For entertainment only; not betting advice. 21+ where legal, 1-800-GAMBLER. Blitz Odds is not affiliated with the NCAA or any school or conference.</p>
-<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · <a href="/college/bowls/">Bowl schedule</a> · <a href="/games">NFL picks</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated ${esc(new Date().toISOString().slice(0, 16).replace("T", " "))} UTC<!--/stamp--></p>
+<p><a href="/college/games/">College football odds</a> · <a href="/college/teams/">FBS teams</a> · ${FEATURES.bowls ? `<a href="/college/bowls/">Bowl schedule</a> · ` : ""}<a href="/games/">NFL picks</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <!--stamp-->Updated ${esc(new Date().toISOString().slice(0, 16).replace("T", " "))} UTC<!--/stamp--></p>
 </footer>
 </div>
 </body>
@@ -703,10 +734,10 @@ function gameRow(g, linkPath) {
   const res = g.state === "post" && g.homeScore != null
     ? `${g.awayScore}-${g.homeScore}`
     : g.state === "in" ? "Live" : esc(kickoffText(g.date, g.timeTbd));
-  return `<tr><td>${teamCell(g.away)}</td><td>${teamCell(g.home)}</td><td class="hide-sm">${res}</td><td>${o ? esc(favSpreadText(g)) : "—"}</td><td class="n hide-sm">${o?.total ?? "—"}</td><td class="n">${m && g.state === "pre" ? `${esc(m.fav.abbr)} ${pct(m.favP)}` : "—"}</td><td><a href="${linkPath}">${g.state === "post" ? "Recap" : "Preview"}</a></td></tr>`;
+  return `<tr><td class="g-away">${teamCell(g.away)}</td><td class="g-home">${teamCell(g.home)}</td><td class="g-when">${res}</td><td class="g-spread">${o ? esc(favSpreadText(g)) : "—"}</td><td class="n hide-sm">${o?.total ?? "—"}</td><td class="n g-mkt">${m && g.state === "pre" ? `${esc(m.fav.abbr)} ${pct(m.favP)}` : "—"}</td><td class="g-link"><a href="${linkPath}">${g.state === "post" ? "Recap" : "Preview"}</a></td></tr>`;
 }
 function gamesTable(games, paths) {
-  return `<div class="card scroll"><table><thead><tr><th>Away</th><th>Home</th><th class="hide-sm">Kickoff / score</th><th>Spread</th><th class="n hide-sm">O/U</th><th class="n">Market</th><th></th></tr></thead><tbody>
+  return `<div class="card scroll"><table class="gm"><thead><tr><th>Away</th><th>Home</th><th>Kickoff / score</th><th>Spread</th><th class="n hide-sm">O/U</th><th class="n">Market</th><th></th></tr></thead><tbody>
 ${games.map((g) => gameRow(g, paths.get(g.id))).join("\n")}
 </tbody></table></div>`;
 }
@@ -769,7 +800,7 @@ async function buildTeamPage(team, ctx) {
     }
     const link = ctx.pathsById[g.id];
     const line = g.odds ? esc(favSpreadText(g)) : "—";
-    return `<tr><td class="hide-sm">${g.week ? `Wk ${g.week}` : ""}</td><td>${esc(kickoffText(g.date, g.timeTbd)).replace(/, \d.*$/, "")}</td><td>${teamCell(opp, { prefix: isHome ? "vs" : "@" })}</td><td>${line}</td><td>${result}</td><td>${link ? `<a href="${link}">${g.state === "post" ? "Recap" : "Preview"}</a>` : ""}</td></tr>`;
+    return `<tr><td class="hide-sm">${g.week ? `Wk ${g.week}` : ""}</td><td class="s-date">${esc(kickoffText(g.date, g.timeTbd)).replace(/, \d.*$/, "")}</td><td class="s-opp">${teamCell(opp, { prefix: isHome ? "vs" : "@" })}</td><td class="s-line">${line}</td><td class="s-res">${result}</td><td class="s-link">${link ? `<a href="${link}">${g.state === "post" ? "Recap" : "Preview"}</a>` : ""}</td></tr>`;
   });
   const next = events.find((g) => g.state !== "post");
   const nextOpp = next ? (next.home?.id === team.id ? next.away : next.home) : null;
@@ -785,7 +816,7 @@ async function buildTeamPage(team, ctx) {
   const body = `<div class="card" style="display:flex;gap:14px;align-items:center">${crest(team, "lg")}<div><div style="font-size:20px;font-weight:800">${rank ? `<span class="rk">#${rank}</span>` : ""}${esc(team.name)}</div><div class="note">${[conf, record ? `${record}` : null, standing].filter(Boolean).map(esc).join(" · ")}</div></div></div>
 ${nextCard}
 <h2>${SEASON} schedule & results</h2>
-<div class="card scroll"><table><thead><tr><th class="hide-sm">Wk</th><th>Date</th><th>Opponent</th><th>Line</th><th>Result / win chance</th><th></th></tr></thead><tbody>
+<div class="card scroll"><table class="sch"><thead><tr><th class="hide-sm">Wk</th><th>Date</th><th>Opponent</th><th>Line</th><th>Result / win chance</th><th></th></tr></thead><tbody>
 ${rows.join("\n") || `<tr><td colspan="6">Schedule not available.</td></tr>`}
 </tbody></table></div>
 ${st ? `<h2>Offense & defense rankings</h2>
@@ -884,7 +915,7 @@ async function buildBowlPage(g, ctx) {
 <div><b>TV</b><span>${esc(g.broadcast || "TBD")}</span></div>
 </div>
 ${set ? `<h2>${g.state === "post" ? "How it finished against the line" : "The market read"}</h2><div class="card"><p style="margin:0">${marketRead(g, ctx.stats)}</p></div>${marketCard(g)}${statsTable(g, ctx.stats)}${faq(g)}` : ""}
-${BOWL_POOL_LINKS ? `<div class="card"><b>Running a bowl pool?</b><p style="margin:6px 0">Free confidence, straight-up and against-the-spread bowl pools that score themselves.</p><a class="cta" href="/bowls">Start a bowl pick'em</a></div>` : ""}
+${FEATURES.bowls ? `<div class="card"><b>Running a bowl pool?</b><p style="margin:6px 0">Free confidence, straight-up and against-the-spread bowl pools that score themselves.</p><a class="cta" href="/bowls">Start a bowl pick'em</a></div>` : ""}
 <p><a href="/college/bowls/">Full ${SEASON}-${String(SEASON + 1).slice(2)} bowl schedule →</a></p>`;
   const html = page({
     title, description, canonicalPath: p, h1: set ? `${name} ${bowlYear(g)}: ${g.away.short} vs ${g.home.short}` : `${name} ${bowlYear(g)}`,
@@ -913,7 +944,7 @@ async function buildBowlsHub(games, ctx) {
     description: `All ${games.length} bowl games and the College Football Playoff for ${yr}: dates, stadiums, TV, matchups, spreads and market win chances${setCount ? "" : " - matchups post as soon as they're announced"}.`,
     canonicalPath: p, h1: `${yr} Bowl Schedule, Matchups & Odds`,
     lede: `${games.length} games from mid-December through the national championship.${setCount ? ` ${setCount} matchups set.` : " Matchups fill in as they're announced."}`,
-    body: `${BOWL_POOL_LINKS ? `<div class="card"><b>Free bowl pick'em</b><p style="margin:6px 0">Run a confidence, straight-up or ATS pool for every bowl and the CFP - scored automatically.</p><a class="cta" href="/bowls">Start a bowl pool</a></div>` : ""}
+    body: `${FEATURES.bowls ? `<div class="card"><b>Free bowl pick'em</b><p style="margin:6px 0">Run a confidence, straight-up or ATS pool for every bowl and the CFP - scored automatically.</p><a class="cta" href="/bowls">Start a bowl pool</a></div>` : ""}
 <h2>College Football Playoff</h2>${table(cfp)}
 <h2>Bowl games</h2>${table(bowls)}`,
     navOn: "bowls",
@@ -946,7 +977,7 @@ async function buildGamesLanding(curWeek, curGames, weeks, bowlsCount) {
     lede: curWeek ? `This week: <a href="${weekPath(curWeek)}">Week ${curWeek}</a> - ${curGames.length} FBS games.` : "",
     body: `${top.length ? `<h2>Week ${curWeek} Top 25 games</h2>${gamesTable(top, paths)}<p><a href="${weekPath(curWeek)}">All ${curGames.length} Week ${curWeek} games →</a></p>` : ""}
 <h2>By week</h2><div class="card grid2">${weeks.slice().reverse().map((w) => `<a href="${weekPath(w)}">Week ${w} odds & results</a>`).join("")}</div>
-<h2>More</h2><div class="card grid2"><a href="/college/bowls/">${SEASON}-${String(SEASON + 1).slice(2)} bowl schedule (${bowlsCount} games)</a><a href="/college/teams/">All FBS teams</a><a href="/games">NFL picks & odds</a></div>`,
+<h2>More</h2><div class="card grid2">${FEATURES.bowls ? `<a href="/college/bowls/">${SEASON}-${String(SEASON + 1).slice(2)} bowl schedule (${bowlsCount} games)</a>` : ""}<a href="/college/teams/">All FBS teams</a><a href="/games/">NFL picks & odds</a></div>`,
     navOn: "games",
     trail: [{ name: "College football", path: p }],
   });
@@ -981,6 +1012,8 @@ async function updateSitemap(entries) {
 
 async function main() {
   try { BADGE_IDS = new Set((await readdir(path.join(REPO_ROOT, "team-badges", "cfb"))).map((f) => f.replace(/\.png$/, ""))); } catch {}
+  FEATURES = await fetchPublicFeatures();
+  log(`feature flags for signed-out visitors: bowls ${FEATURES.bowls ? "on" : "off"}`);
   const raw = await loadRaw();
   const stats = buildStats(raw.stats);
   if (stats.count < 100) throw new Error(`Only ${stats.count} FBS teams in the stats feed - refusing to build`);

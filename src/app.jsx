@@ -9809,6 +9809,48 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
     return () => clearTimeout(t);
   }, [toast]);
 
+  /* Picking an avatar saves it there and then. It used to only stage the
+   * choice for the "Save Profile" button at the very bottom of this panel -
+   * below the name, email, password and delete-account sections, off screen
+   * on a phone - so tapping an icon changed the preview and nothing else,
+   * and the header kept showing the initial. The header updates at once and
+   * is put back if the save fails. */
+  const [avatarSaving, setAvatarSaving] = useState(false);
+  // Shown right under the icons - the panel's own toast sits beside the Save
+  // button, a screen or two further down.
+  const [avatarNote, setAvatarNote] = useState("");
+  useEffect(() => {
+    if (!avatarNote) return;
+    const t = setTimeout(() => setAvatarNote(""), 2400);
+    return () => clearTimeout(t);
+  }, [avatarNote]);
+  async function pickAvatar(id) {
+    if (avatarSaving || id === avatarId) return;
+    const previous = storedAvatarId;
+    setAvatarId(id);
+    setAvatarSaving(true);
+    if (onProfileUpdated) onProfileUpdated((p) => (p ? { ...p, avatar: id } : p));
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/user-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: id }),
+      });
+      if (!res.ok) throw new Error(`user-profile responded ${res.status}`);
+      const updated = await res.json();
+      if (!updated || updated.avatar !== id) throw new Error("avatar not saved");
+      if (onProfileUpdated) onProfileUpdated(updated);
+      setAvatarNote("Avatar updated");
+      trackEvent("profile_avatar", { avatar: id });
+    } catch (e) {
+      setAvatarId(previous);
+      if (onProfileUpdated) onProfileUpdated((p) => (p ? { ...p, avatar: previous } : p));
+      setAvatarNote("Couldn't save your avatar - try again");
+    } finally {
+      setAvatarSaving(false);
+    }
+  }
+
   async function handleSave() {
     if (saving) return;
     setSaving(true);
@@ -9838,10 +9880,10 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
           // name-only save can't wipe an avatar the user already has.
           body: JSON.stringify({ displayName: trimmedName, ...(avatarId ? { avatar: avatarId } : {}) }),
         });
-        if (res.ok) {
-          const updated = await res.json();
-          onProfileUpdated && onProfileUpdated(updated);
-        }
+        // A refused save used to fall through to "Profile updated".
+        if (!res.ok) throw new Error("Couldn't save changes - try again");
+        const updated = await res.json();
+        onProfileUpdated && onProfileUpdated(updated);
       }
 
       if (emailChanged) {
@@ -9996,7 +10038,7 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
           <div>
             <div className="avatar-preview-name">{displayName || "Player"}</div>
             <div className="avatar-preview-hint">
-              {previewAvatar ? "Tap another icon to change it" : "Pick an icon below"}
+              {previewAvatar ? "Tap another icon to change it - it saves right away" : "Pick an icon below - it saves right away"}
             </div>
           </div>
         </div>
@@ -10006,13 +10048,16 @@ function ProfileTab({ auth, profile, onProfileUpdated }) {
               type="button"
               key={a.id}
               className={"avatar-option" + (a.id === avatarId ? " selected" : "")}
-              onClick={() => setAvatarId(a.id)}
+              onClick={() => pickAvatar(a.id)}
+              disabled={avatarSaving}
+              aria-pressed={a.id === avatarId}
               aria-label={a.id}
             >
               <ProfileAvatarGlyph avatar={a} />
             </button>
           ))}
         </div>
+        {avatarNote && <div className="profile-toast" role="status">{avatarNote}</div>}
       </div>
 
       <div className="settings-section">

@@ -124,6 +124,10 @@ async function loadData() {
     readJson("data/stadiums.json"),
     readJson("data/odds-2026.json"),
   ]);
+  // Committed by weather-refresh; the app reads the same numbers through
+  // getWeather(). Optional - without it the pages just predict without weather.
+  let weatherFile = { weeks: {} };
+  try { weatherFile = await readJson("data/weather.json"); } catch { /* no weather file */ }
   return {
     teams: teamsFile.teams,
     schedule: scheduleFile,
@@ -133,6 +137,7 @@ async function loadData() {
     history: historyFile,
     stadiums: stadiumsFile,
     odds: oddsFile,
+    weather: weatherFile,
     seasonYear: scheduleFile.season || new Date().getFullYear(),
   };
 }
@@ -211,6 +216,13 @@ function playersForWeek(data, week, teamId) {
   const snap = getHistorySnapshot(data, week);
   if (snap) return (snap.impactPlayers && snap.impactPlayers[teamId]) || [];
   return data.players[teamId] || [];
+}
+
+/** Game weather, as the app's getWeather() reads it - so a page's win
+ *  probability is the one the game card shows, not a weather-blind variant. */
+function weatherForGame(data, week, away, home) {
+  const wk = data.weather && data.weather.weeks && data.weather.weeks[String(week)];
+  return (wk && wk.games && wk.games[`${away}-${home}`]) || null;
 }
 
 /** "Kansas City Chiefs" -> "Chiefs". Every NFL nickname is the last word. */
@@ -536,7 +548,7 @@ function buildGameSnapshotHtml(data, period, game) {
     awayTeam: away,
     homeImpactPlayers: homePlayers,
     awayImpactPlayers: awayPlayers,
-    weather: null,
+    weather: weatherForGame(data, period.week, game.away, game.home),
     homeIsDomeTeam: isDomeTeam(data.stadiums, game.home),
     awayIsDomeTeam: isDomeTeam(data.stadiums, game.away),
     // Weeks 1-4 (and preseason) run on prior-season ranks and take the
@@ -727,7 +739,7 @@ function buildLadder(data, period) {
       awayTeam: away,
       homeImpactPlayers: playersForWeek(data, period.week, game.home),
       awayImpactPlayers: playersForWeek(data, period.week, game.away),
-      weather: null,
+      weather: weatherForGame(data, period.week, game.away, game.home),
       homeIsDomeTeam: isDomeTeam(data.stadiums, game.home),
       awayIsDomeTeam: isDomeTeam(data.stadiums, game.away),
       week: period.week,
@@ -904,7 +916,7 @@ function buildScheduleRow(data, period, teamId, game) {
     awayTeam,
     homeImpactPlayers: homePlayers,
     awayImpactPlayers: awayPlayers,
-    weather: null,
+    weather: weatherForGame(data, period.week, game.away, game.home),
     homeIsDomeTeam: isDomeTeam(data.stadiums, game.home),
     awayIsDomeTeam: isDomeTeam(data.stadiums, game.away),
     // Weeks 1-4 (and preseason) run on prior-season ranks and take the
@@ -1256,30 +1268,44 @@ function stripHomeSnapshot(html) {
  *  and the app's own navigation is buttons, so no current-season page was
  *  reachable by following links from the root. */
 function buildExploreHtml(data, period) {
-  const games = period
-    ? period.games
-        .filter((g) => findTeam(data.teams, g.away) && findTeam(data.teams, g.home))
-        .map((g) => `        <li><a href="${gamePagePath(data, period, g)}">${escapeHtml(findTeam(data.teams, g.away).name)} at ${escapeHtml(findTeam(data.teams, g.home).name)}</a> <span>${escapeHtml(g.date || "")}</span></li>`)
-        .join("\n")
-    : "";
+  const label = period ? escapeHtml(period.label) : "";
+  let games = "";
+  if (period) {
+    const ladder = buildLadder(data, period);
+    let lastDay = null;
+    for (const g of period.games) {
+      const r = ladder.find((x) => x.game === g);
+      if (!r) continue;
+      if (g.date !== lastDay) { games += `        <div class="hx-day">${escapeHtml(g.date || "")}</div>\n`; lastDay = g.date; }
+      const side = (team, id) => `<span class="hx-t${r.pickAbbr === id ? " pick" : ""}"><img src="/team-badges/${escapeHtml(id)}.png" alt="" width="26" height="26" loading="lazy" decoding="async" />${escapeHtml(nickname(team))}</span>`;
+      games += `        <a class="hx-game" href="${gamePagePath(data, period, g)}" aria-label="${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}"><span class="hx-teams">${side(r.away, g.away)}<span class="hx-at">@</span>${side(r.home, g.home)}</span><span class="hx-meta"><span class="hx-pick">${escapeHtml(r.pickAbbr)} ${r.winPct}%</span><span class="hx-time">${escapeHtml(g.time || "")}</span></span></a>\n`;
+    }
+  }
+  const tile = (href, img, name, sub) => `        <a class="hx-tile" href="${href}"><img src="${img}" alt="" width="34" height="34" loading="lazy" decoding="async" /><span><b>${name}</b><small>${sub}</small></span></a>`;
   const teams = [...data.teams]
     .sort((a, b) => a.name.localeCompare(b.name))
-    .map((t) => `<a href="/teams/${slugify(t.name)}/">${escapeHtml(t.name)}</a>`)
-    .join(" ");
-  const label = period ? escapeHtml(period.label) : "";
-  return `    <div class="home-sec-head explore"><h3>${period ? `NFL ${label} games &amp; model picks` : "NFL games &amp; model picks"}</h3></div>
-    <div class="home-card home-explore">
-      ${games ? `<ul class="home-explore-games">\n${games}\n      </ul>` : ""}
-      <p class="home-explore-links">
-        ${period ? `<a href="${weekHubPath(data, period)}">${label} confidence pool ladder</a>` : ""}
-        <a href="/games/">All NFL games &amp; odds</a>
-        <a href="/picks/">Pick'em Playbook</a>
-        <a href="/leagues/">Free pick'em leagues</a>
-        <a href="/college/games/">College football odds</a>
-        <a href="/college/bowls/">Bowl schedule</a>
-        <a href="/historical/index.html">Historical results archive</a>
-      </p>
-      <p class="home-explore-teams" id="nfl-teams"><b>NFL teams</b> ${teams}</p>
+    .map((t) => `<a class="hx-team" href="/teams/${slugify(t.name)}/" title="${escapeHtml(t.name)}"><img src="/team-badges/${escapeHtml(t.id)}.png" alt="${escapeHtml(t.name)}" width="34" height="34" loading="lazy" decoding="async" /></a>`)
+    .join("");
+  const tiles = [
+    tile("/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor &amp; ATS sheets"),
+    tile("/leagues/", "/branding/tab-icon-leagues.svg", "Free leagues", "Join a pool or run your own"),
+    tile("/college/games/", "/branding/tab-icon-games.png", "College football", "Odds &amp; win probabilities"),
+    tile("/college/bowls/", "/branding/tab-icon-bowls.png", "Bowl schedule", "Every bowl and the Playoff"),
+    tile("/historical/index.html", "/branding/tab-icon-news.png", "Results archive", "Scores back to 2015"),
+  ].join("\n");
+  return `    <div class="home-explore">
+      <div class="home-sec-head"><h3>${period ? `${label} slate` : "This week's slate"}</h3>${period ? `<a class="hx-head-link" href="${weekHubPath(data, period)}">Confidence ladder &rarr;</a>` : ""}</div>
+      <div class="home-card hx-card">
+        <div class="hx-games">
+${games}        </div>
+        <a class="hx-more" href="/games/">All ${label} games &amp; odds &rarr;</a>
+      </div>
+      <div class="home-sec-head"><h3>More on Blitz Odds</h3></div>
+      <div class="hx-tiles">
+${tiles}
+      </div>
+      <div class="home-sec-head"><h3>NFL teams</h3></div>
+      <div class="home-card hx-teamgrid" id="nfl-teams">${teams}</div>
     </div>`;
 }
 

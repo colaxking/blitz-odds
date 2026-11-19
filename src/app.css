@@ -628,24 +628,51 @@
   .home-close p { margin: 0 0 16px; font-size: .86rem; color: var(--text-dim); }
   .home-close .home-acts { justify-content: center; }
 
-  /* Crawlable "this week" block at the foot of the landing page (HomeExplore
-     in src/app.jsx / buildExploreHtml in scripts/build-static-pages.mjs). */
-  .home-explore { padding: 14px 16px; }
-  .home-explore a { color: var(--text); text-decoration: none; }
-  .home-explore a:hover { color: var(--accent); text-decoration: underline; }
-  .home-explore-games {
-    list-style: none; margin: 0 0 12px; padding: 0;
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 22px; font-size: .86rem; font-weight: 600;
+  /* "This week" block at the foot of the landing page: the slate, a row of
+     section tiles and the 32-team badge grid. Same markup from HomeExplore
+     (src/app.jsx) and buildExploreHtml (scripts/build-static-pages.mjs). */
+  .home-explore a { text-decoration: none; }
+  .hx-head-link { color: var(--accent); font-weight: 800; font-size: .8rem; white-space: nowrap; }
+  .hx-card { padding: 6px 0 0; overflow: hidden; }
+  .hx-games { display: grid; grid-template-columns: 1fr 1fr; }
+  .hx-day {
+    grid-column: 1 / -1; padding: 12px 16px 4px; font-size: .66rem; font-weight: 800;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim);
   }
-  .home-explore-games span { color: var(--text-dim); font-weight: 400; font-size: .76rem; white-space: nowrap; }
-  .home-explore-links, .home-explore-teams {
-    margin: 0; padding-top: 11px; border-top: 1px solid var(--card-border);
-    display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .8rem;
+  .hx-game {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 16px; color: var(--text); min-width: 0;
   }
-  .home-explore-links a { color: var(--accent); font-weight: 700; }
-  .home-explore-teams { margin-top: 11px; color: var(--text-dim); }
-  .home-explore-teams b { color: var(--text); flex-basis: 100%; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
-  .home-explore-teams a { color: var(--text-dim); }
+  .hx-game:hover { background: var(--surface-2); }
+  .hx-teams { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: .86rem; font-weight: 600; }
+  .hx-t { display: inline-flex; align-items: center; gap: 6px; color: var(--text-dim); min-width: 0; }
+  .hx-t.pick { color: var(--text); font-weight: 800; }
+  .hx-t img { width: 26px; height: 26px; flex: 0 0 auto; }
+  .hx-at { color: var(--text-dim); font-size: .72rem; }
+  .hx-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: 0 0 auto; }
+  .hx-pick {
+    font-size: .72rem; font-weight: 800; color: var(--win); background: rgba(var(--win-rgb), .1);
+    border: 1px solid rgba(var(--win-rgb), .3); border-radius: 999px; padding: 2px 8px;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .hx-time { font-size: .68rem; color: var(--text-dim); white-space: nowrap; }
+  .hx-more {
+    display: block; text-align: center; padding: 12px; margin-top: 6px;
+    border-top: 1px solid var(--card-border); color: var(--accent); font-weight: 800; font-size: .82rem;
+  }
+  .hx-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+  .hx-tile {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 16px 12px;
+    border-radius: 14px; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
+  }
+  .hx-tile:hover { border-color: rgba(var(--accent-rgb), .5); }
+  .hx-tile img { width: 34px; height: 34px; object-fit: contain; flex: 0 0 auto; }
+  .hx-tile b { display: block; font-size: .84rem; }
+  .hx-tile small { display: block; font-size: .7rem; color: var(--text-dim); line-height: 1.35; margin-top: 2px; }
+  .hx-teamgrid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 10px 4px; padding: 14px 12px; justify-items: center; }
+  .hx-team { display: block; border-radius: 10px; padding: 3px; }
+  .hx-team:hover { background: var(--surface-2); }
+  .hx-team img { width: 34px; height: 34px; display: block; }
   footer.app-footer .footer-sitelinks a { color: var(--text-dim); text-decoration: underline; }
 
   @media (max-width: 860px) {
@@ -661,9 +688,14 @@
     .home-landing > .home-sec-head.why { order: 5; }
     .home-landing > .home-value { order: 6; }
     .home-landing > .home-close { order: 7; }
-    .home-landing > .home-sec-head.explore { order: 8; }
-    .home-landing > .home-explore { order: 9; }
-    .home-explore-games { grid-template-columns: 1fr; }
+    .home-landing > .home-explore { order: 8; }
+    .hx-games { grid-template-columns: 1fr; }
+    .hx-game { border-top: 1px solid var(--card-border); }
+    .hx-day + .hx-game { border-top: none; }
+    .hx-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .hx-tile { flex-direction: row; text-align: left; gap: 10px; padding: 12px; }
+    .hx-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .hx-teamgrid { grid-template-columns: repeat(8, 1fr); }
     .home-hero h2.home-display { font-size: 1.85rem; }
     .home-fmt-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .home-value, .home-value.has-import { grid-template-columns: 1fr; }

@@ -17635,7 +17635,12 @@ function americanToImpliedProbability(ml) {
  *  display headline is an <h2> - the marketing line has no keyword surface
  *  of its own. Same sr-only pattern LeagueView already uses. */
 function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbookId, tz }) {
-  const edge = useMemo(() => pickTopEdgeGame(week, sportsbookId), [week, sportsbookId]);
+  // Not memoized on [week, sportsbookId]: the live team stats, injuries, odds
+  // and weather land after first render (useLiveSiteData and friends swap the
+  // module bindings and re-render the app), and a memo keyed only on the week
+  // kept showing the number computed from the page's embedded seed - Home said
+  // 92% for a game its own card had at 82%. Thirteen predictions is cheap.
+  const edge = pickTopEdgeGame(week, sportsbookId);
   const periodLabel = getPeriodLabel(week);
 
   return (
@@ -17800,7 +17805,7 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
         </div>
       </div>
 
-      <HomeExplore week={week} />
+      <HomeExplore week={week} tz={tz} />
     </div>
   );
 }
@@ -17811,40 +17816,111 @@ function HomeLanding({ onOpenGames, onCreateLeague, onJoinLeague, week, sportsbo
  *  rest of the app navigates with buttons, so without this block nothing
  *  under /games/ or /teams/ was linked from "/" at all. Plain links on
  *  purpose: each target is a real prerendered page. */
-function HomeExplore({ week }) {
+function HomeExplore({ week, tz }) {
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const label = getPeriodLabel(week);
-  const games = getGamesForWeek(week).filter(g => baseTeam(g.away) && baseTeam(g.home));
+  useFrozenPredictions(week);
+  // Recomputed every render on purpose (see HomeLanding's `edge`): live data
+  // arrives after mount and must reach these chips.
+  const rows = homeSlateRows(week, tz);
   const teams = LIVE_TEAMS_LIST.slice().sort((a, b) => a.name.localeCompare(b.name));
+  const tiles = [
+    ["/picks/", "/branding/tab-icon-playbook.png", "Pick'em Playbook", "Confidence, survivor & ATS sheets"],
+    ["/leagues/", "/branding/tab-icon-leagues.svg", "Free leagues", "Join a pool or run your own"],
+    ["/college/games/", "/branding/tab-icon-games.png", "College football", "Odds & win probabilities"],
+    ["/college/bowls/", "/branding/tab-icon-bowls.png", "Bowl schedule", "Every bowl and the Playoff"],
+    ["/historical/index.html", "/branding/tab-icon-news.png", "Results archive", "Scores back to 2015"],
+  ];
+  let lastDay = null;
   return (
-    <>
-      <div className="home-sec-head explore"><h3>NFL {label} games &amp; model picks</h3></div>
-      <div className="home-card home-explore">
-        {games.length > 0 && (
-          <ul className="home-explore-games">
-            {games.map(g => (
-              <li key={g.away + "-" + g.home}>
-                <a href={buildGamePath(week, g.away, g.home)}>{baseTeam(g.away).name} at {baseTeam(g.home).name}</a>{" "}
-                <span>{g.date || ""}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="home-explore-links">
-          <a href={`/games/${seasonYear}/${weekSlug(week)}/`}>{label} confidence pool ladder</a>
-          <a href="/games/">All NFL games &amp; odds</a>
-          <a href="/picks/">Pick'em Playbook</a>
-          <a href="/leagues/">Free pick'em leagues</a>
-          <a href="/college/games/">College football odds</a>
-          <a href="/college/bowls/">Bowl schedule</a>
-          <a href="/historical/index.html">Historical results archive</a>
-        </p>
-        <p className="home-explore-teams" id="nfl-teams"><b>NFL teams</b>{" "}
-          {teams.map(t => <React.Fragment key={t.id}><a href={buildTeamPath(t.id)}>{t.name}</a>{" "}</React.Fragment>)}
-        </p>
+    <div className="home-explore">
+      <div className="home-sec-head">
+        <h3>{label} slate</h3>
+        <a className="hx-head-link" href={`/games/${seasonYear}/${weekSlug(week)}/`}>Confidence ladder &rarr;</a>
       </div>
-    </>
+      <div className="home-card hx-card">
+        <div className="hx-games">
+          {rows.map(r => {
+            const dayHead = r.day !== lastDay ? <div className="hx-day">{r.day}</div> : null;
+            lastDay = r.day;
+            return (
+              <React.Fragment key={r.key}>
+                {dayHead}
+                <a className="hx-game" href={r.href} aria-label={`${r.awayName} at ${r.homeName}`}>
+                  <span className="hx-teams">
+                    <span className={"hx-t" + (r.pick === r.away ? " pick" : "")}><img src={`/team-badges/${r.away}.png`} alt="" width="26" height="26" loading="lazy" decoding="async" />{teamNickname(r.awayName)}</span>
+                    <span className="hx-at">@</span>
+                    <span className={"hx-t" + (r.pick === r.home ? " pick" : "")}><img src={`/team-badges/${r.home}.png`} alt="" width="26" height="26" loading="lazy" decoding="async" />{teamNickname(r.homeName)}</span>
+                  </span>
+                  <span className="hx-meta">
+                    {r.pick && <span className="hx-pick">{r.pick} {r.pct}%</span>}
+                    <span className="hx-time">{r.time}</span>
+                  </span>
+                </a>
+              </React.Fragment>
+            );
+          })}
+        </div>
+        <a className="hx-more" href="/games/">All {label} games &amp; odds &rarr;</a>
+      </div>
+      <div className="home-sec-head"><h3>More on Blitz Odds</h3></div>
+      <div className="hx-tiles">
+        {tiles.map(([href, img, name, sub]) => (
+          <a className="hx-tile" href={href} key={href}>
+            <img src={img} alt="" width="34" height="34" loading="lazy" decoding="async" />
+            <span><b>{name}</b><small>{sub}</small></span>
+          </a>
+        ))}
+      </div>
+      <div className="home-sec-head"><h3>NFL teams</h3></div>
+      <div className="home-card hx-teamgrid" id="nfl-teams">
+        {teams.map(t => (
+          <a className="hx-team" href={buildTeamPath(t.id)} title={t.name} key={t.id}>
+            <img src={`/team-badges/${t.id}.png`} alt={t.name} width="34" height="34" loading="lazy" decoding="async" />
+          </a>
+        ))}
+      </div>
+    </div>
   );
+}
+
+/** One row per game for the Home slate. The pick and percentage are worked
+ *  out exactly as GameCard does - same inputs (week context, weather, dome),
+ *  and from kickoff on the kickoff-frozen record - so the chip on Home never
+ *  disagrees with the card on the Games tab. */
+function homeSlateRows(week, tz) {
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  let context;
+  try { context = getWeekContext(week); } catch (e) { return []; }
+  return getGamesForWeek(week).map(g => {
+    const home = context.getTeam(g.home);
+    const away = context.getTeam(g.away);
+    if (!home || !away) return null;
+    let pick = null, pct = null;
+    try {
+      let p = hasStartedForFreeze(null, g, seasonYear) ? getFrozenPrediction(week, g.away, g.home) : null;
+      if (!p) {
+        p = PredictionEngine.predictMatchup({
+          homeTeam: home,
+          awayTeam: away,
+          homeImpactPlayers: context.getPlayers(g.home),
+          awayImpactPlayers: context.getPlayers(g.away),
+          weather: getWeather(week, g.away, g.home),
+          homeIsDomeTeam: isDomeTeam(home.id),
+          awayIsDomeTeam: isDomeTeam(away.id),
+          week: week,
+        });
+      }
+      pick = p.predictedWinner;
+      pct = Math.round((pick === home.id ? p.homeWinProbability : p.awayWinProbability) * 100);
+    } catch (e) { pick = null; }
+    const when = formatGameDateTimeInZone(g.date, g.time, seasonYear, tz) || {};
+    return {
+      key: g.away + "-" + g.home, away: g.away, home: g.home, awayName: away.name, homeName: home.name,
+      href: buildGamePath(week, g.away, g.home), pick, pct,
+      day: when.date || g.date || "", time: when.time || g.time || "",
+    };
+  }).filter(Boolean);
 }
 
 

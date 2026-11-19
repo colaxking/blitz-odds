@@ -63,6 +63,11 @@ jobs:
       - name: Build static team/game pages
         run: node scripts/build-static-pages.mjs
 
+      # index.html (the homepage's "this week" block), picks/ and leagues/
+      # carry week-specific prerendered content too, so they are committed
+      # with the rest - left out, the homepage and the Playbook stayed on
+      # the week of the last manual build. commit-and-push.sh's index.html
+      # guard still refuses a truncated shell.
       - name: Commit regenerated pages if changed
         run: |
-          scripts/commit-and-push.sh "Static pages refresh: automated regeneration via GitHub Actions" teams/ games/ sitemap.xml
+          scripts/commit-and-push.sh "Static pages refresh: automated regeneration via GitHub Actions" teams/ games/ sitemap.xml index.html picks/ leagues/ news/ bowls/ college/index.html

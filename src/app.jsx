@@ -24820,7 +24820,25 @@ function App() {
   });
   const [cfbFavorites, setCfbFavorites] = useState(readCfbFavorites);
   const cfbActive = activeTab === "games" && gamesSport === "cfb";
-  const cfbCal = useCfbCalendar(cfbActive);
+  /* Loaded whenever the College switch exists, not only while College is on
+     screen: the Games-tab live badge below needs the current period to know
+     which slate to watch. Module-cached, so this is one ESPN call a session. */
+  const cfbCal = useCfbCalendar(cfbOn);
+
+  /* College games in progress, added to the Games tab's live badge. The
+     badge used to count NFL only, so a Tuesday/Wednesday MACtion night (or
+     any Saturday) showed nothing even with the College slate full of live
+     games. Watches the current period regardless of which week or sport is
+     on screen, for the same reason liveTabWeek is pinned above. Shares
+     fetchCfbScoreboard's cache with the College view's own useCfbSlate. */
+  const cfbLivePeriod = cfbOn && cfbCal.calendar
+    ? (cfbCal.calendar.periods.find((p) => p.key === cfbCal.calendar.currentKey) || null)
+    : null;
+  const cfbLiveSlate = useCfbSlate(cfbLivePeriod);
+  const cfbLiveCount = cfbLivePeriod
+    ? cfbLiveSlate.games.filter((g) => g.state === "in").length
+    : 0;
+  const liveBadgeCount = liveGameCount + cfbLiveCount;
 
   useEffect(() => {
     if (!features.loaded || features.cfb) return;
@@ -25810,19 +25828,28 @@ function App() {
     let frame = 0;
     function apply() {
       frame = 0;
-      const bar = document.querySelector(".hdr-bar");
+      // Scoped to #root: index.html's prerendered homepage snapshot carries
+      // its own .hdr-bar/.hdr-mark ahead of #root in the DOM, and an
+      // unscoped querySelector found those - so the visible small mark never
+      // faded and Home showed both logos at once on phones.
+      const root = document.getElementById("root") || document;
+      const bar = root.querySelector(".hdr-bar");
       if (bar) bar.classList.toggle("is-scrolled", window.scrollY > 4);
-      const brand = document.querySelector(".app-home .brand-row");
-      const mark = document.querySelector(".hdr-mark");
+      const brand = root.querySelector(".app-home .brand-row");
+      const mark = root.querySelector(".hdr-mark");
       if (brand) {
         const p = Math.min(1, window.scrollY / 70);
         brand.style.opacity = String(1 - p);
         brand.style.transform = `scale(${1 - p * 0.22}) translateY(${-p * 14}px)`;
         brand.style.pointerEvents = p > 0.9 ? "none" : "";
         // Hand off: the small mark only appears as the big one leaves.
-        if (mark) mark.style.opacity = String(p);
+        if (mark) {
+          mark.style.opacity = String(p);
+          mark.style.pointerEvents = p < 0.1 ? "none" : "auto";
+        }
       } else if (mark) {
         mark.style.opacity = "";
+        mark.style.pointerEvents = "";
       }
     }
     function onScroll() {
@@ -26010,7 +26037,7 @@ function App() {
       <TabBar
         activeTab={activeTab}
         onSelectTab={(t) => { setNavMenuOpen(false); selectTab(t); }}
-        liveCount={liveGameCount}
+        liveCount={liveBadgeCount}
         features={features}
         navPins={features.mobileNav ? navPins : null}
         onOpenMenu={features.mobileNav ? () => { markMenuSeenBowls(); setNavMenuOpen((o) => !o); trackEvent("nav_menu_open", {}); } : null}
@@ -26338,8 +26365,10 @@ async function bootApp() {
   // which left a blank frame between hiding one and painting the other.
   const root = ReactDOM.createRoot(document.getElementById('root'));
   ReactDOM.flushSync(() => root.render(<App />));
+  // Removed rather than hidden: left in the DOM, its duplicate header
+  // shadowed the live one for any document-level querySelector.
   const prerendered = document.getElementById("prerendered-content");
-  if (prerendered) prerendered.style.display = "none";
+  if (prerendered) prerendered.remove();
   loadIdentityWidget();
 }
 

@@ -192,6 +192,9 @@
       display: flex; grid-column: auto; margin: 2px 0 10px;
       transform-origin: top center; will-change: transform, opacity;
     }
+    /* Hidden from the first paint, before the scroll effect has run; its
+       inline opacity takes over from there as the big wordmark leaves. */
+    .app-home .hdr-mark { opacity: 0; pointer-events: none; }
     .app { padding-top: 20px; }
 
     /* One week control, not two: the header pill owns it on mobile, so the

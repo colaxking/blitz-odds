@@ -6,6 +6,11 @@
 // changed. Idempotent: skips files that already have .account-menu CSS
 // so it's safe to re-run. Mirrors the approach in
 // scripts/retrofit-archive-tabbar.mjs.
+//
+// After running this on new archive pages, run
+// scripts/retrofit-archive-avatar.mjs as well: it adds the profile lookup
+// that makes the account button show the user's chosen avatar and display
+// name instead of a first initial.
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 

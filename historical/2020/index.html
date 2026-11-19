@@ -1715,6 +1715,37 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
     if (dropdownOpen && menu && !menu.contains(e.target)) closeAccountDropdown();
   });
 
+  var PROFILE_AVATARS = {"blitz-edge":{img:"/branding/blitz-edge-icon.png"},"bolt":{g:"\u26A1",c:"#fd7f01"},"check":{g:"\u2713",c:"var(--accent)"},"football":{g:"\uD83C\uDFC8"},"trophy":{g:"\uD83C\uDFC6"},"medal":{g:"\uD83E\uDD47"},"target":{g:"\uD83C\uDFAF"},"fire":{g:"\uD83D\uDD25"},"goat":{g:"\uD83D\uDC10"},"chart":{g:"\uD83D\uDCC8"},"shield":{g:"\uD83D\uDEE1\uFE0F"},"cleat":{g:"\uD83D\uDC5F"},"cap":{g:"\uD83E\uDDE2"},"clipboard":{g:"\uD83D\uDCCB"},"party":{g:"\uD83C\uDF89"},"muscle":{g:"\uD83D\uDCAA"},"flag":{g:"\uD83D\uDEA9"},"clock":{g:"\u23F1\uFE0F"},"stadium":{g:"\uD83C\uDFDF\uFE0F"},"horn":{g:"\uD83D\uDCE3"}};
+  // The avatar and display name live on the profile record, not on the
+  // identity user, so they need the same lookup the app does.
+  function applyProfileAvatar(user) {
+    try {
+      if (!user || typeof user.jwt !== "function" || !avatarBtn) return;
+      user.jwt().then(function (token) {
+        return fetch("/.netlify/functions/user-profile", { headers: { Authorization: "Bearer " + token } });
+      }).then(function (res) { return res && res.ok ? res.json() : null; }).then(function (p) {
+        if (!p) return;
+        if (p.displayName) {
+          if (dropdownName) dropdownName.textContent = p.displayName;
+          avatarBtn.textContent = String(p.displayName).charAt(0).toUpperCase();
+        }
+        var a = p.avatar && PROFILE_AVATARS[p.avatar];
+        if (!a) return;
+        avatarBtn.textContent = "";
+        avatarBtn.style.background = "var(--card-bg)";
+        avatarBtn.style.borderColor = "var(--card-border)";
+        if (a.img) {
+          var im = document.createElement("img");
+          im.src = a.img; im.alt = ""; im.style.cssText = "width:66%;height:66%;object-fit:contain";
+          avatarBtn.appendChild(im);
+        } else {
+          var sp = document.createElement("span");
+          sp.textContent = a.g; if (a.c) sp.style.color = a.c;
+          avatarBtn.appendChild(sp);
+        }
+      }).catch(function () {});
+    } catch (e) {}
+  }
   function renderSignedOut() {
     if (signedOutRow) signedOutRow.style.display = "flex";
     if (avatarBtn) avatarBtn.style.display = "none";
@@ -1727,6 +1758,8 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
     if (avatarBtn) {
       avatarBtn.style.display = "flex";
       avatarBtn.textContent = name.charAt(0).toUpperCase();
+      avatarBtn.style.background = ""; avatarBtn.style.borderColor = "";
+      applyProfileAvatar(user);
     }
     if (dropdownName) {
       dropdownName.style.display = "block";

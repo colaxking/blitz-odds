@@ -26763,7 +26763,7 @@ function App() {
 
 
   return (
-    <div className={"app" + (activeTab === "home" ? " app-home" : "")}>
+    <div className={"app" + (activeTab === "home" ? " app-home" + (auth.status === "in" ? " app-home-wide" : "") : "")}>
       {/* One markup, two layouts. Above 720px `header.top` is the grid it has
           always been (spacer / centred wordmark / account cluster) and
           `.hdr-bar` is display:contents so its children land straight in that

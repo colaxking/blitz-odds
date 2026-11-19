@@ -88,11 +88,14 @@
     transition: background 0.15s, color 0.15s;
   }
   .app { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
-  /* The Home tab is the only three-column screen in the app (main + rail),
-     and 1100px squeezes the rail to the point the leaderboard rows wrap.
-     Scoped to this tab rather than widened globally so the week view, team
-     pages, and game pages keep the measure they were designed at. */
-  .app.app-home { max-width: 1240px; }
+  /* The signed-in Home dashboard is the only three-column screen in the app
+     (main + rail), and 1100px squeezes the rail to the point the leaderboard
+     rows wrap. Scoped to that screen rather than widened globally so the
+     week view, team pages, and game pages keep the measure they were
+     designed at. The signed-out homepage is NOT widened: at 1240px its
+     header and content sat 70px wider on each side than every other page,
+     which showed as a jump when moving between tabs. */
+  .app.app-home-wide { max-width: 1240px; }
   /* Grid (not absolute-position) so the icon cluster and the logo occupy
      separate tracks and can never overlap, no matter how wide either one
      gets on a given screen. Column 1 is a blank spacer that mirrors
@@ -571,18 +574,18 @@
   .hl-eyebrow { color: var(--accent); }
   .hl-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   .hl-grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-  .hl-btn-lg { min-height: 50px; padding: 0 22px; font-size: .95rem; border-radius: 10px; }
-  .hl-btn-quiet { background: transparent; border-color: transparent; color: var(--accent); padding: 0 10px; }
+  .hl-btn-lg { min-height: 50px; padding: 0 16px; font-size: .95rem; border-radius: 10px; }
+  .hl-btn-quiet { background: transparent; border-color: transparent; color: var(--accent); padding: 0 8px; }
   .hl-center { display: flex; justify-content: center; margin-top: 18px; }
 
   .hl-hero {
     display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
     gap: 40px; align-items: center; margin-top: 30px;
   }
-  .hl-display { margin: 14px 0; font-size: 3.1rem; line-height: 1.05; font-weight: 800; letter-spacing: -.03em; }
+  .hl-display { margin: 14px 0; font-size: 2.8rem; line-height: 1.05; font-weight: 800; letter-spacing: -.03em; }
   .hl-display em { font-style: normal; color: var(--accent); }
   .hl-lede { margin: 0 0 22px; font-size: 1.08rem; line-height: 1.55; color: var(--text-dim); max-width: 52ch; }
-  .hl-acts { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .hl-acts { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .hl-trust { margin: 18px 0 0; display: flex; gap: 6px 22px; flex-wrap: wrap; font-size: .84rem; color: var(--text-dim); }
 
   .hl-preview { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
@@ -689,7 +692,7 @@
   .hs-status.is-live { color: var(--live); border-color: rgba(var(--live-rgb), .7); }
   .hs-status.is-delayed { color: var(--warn); border-color: rgba(var(--warn-rgb), .6); }
   .hs-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--live); }
-  .hs-when { grid-area: when; justify-self: end; text-align: right; color: var(--text-dim); font-size: .76rem; }
+  .hs-when { grid-area: when; justify-self: end; text-align: right; color: var(--text-dim); font-size: .74rem; text-wrap: balance; }
   .hs-game.is-live .hs-when { color: var(--text); font-weight: 700; }
   .hs-team { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; min-width: 0; }
   .hs-away { grid-area: away; }

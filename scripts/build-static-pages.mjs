@@ -108,6 +108,36 @@ function escapeHtml(s) {
 
 // ---- Load data (same files index.html embeds at deploy time) --------------
 
+// The app does not show what is committed under data/: on load it swaps in
+// the document served by the site-data-current function (Netlify Blobs),
+// which the weekly update and the injury jobs write first and the repo files
+// trail - data/teams.json sat three weeks behind in November 2026, and the
+// injury list drifts daily. Pages built from the files then disagreed with
+// the game cards (a flipped pick on one game, 4-9 points on others). So the
+// build asks the live site for the same team stats and injuries the app
+// uses, and falls back to the committed files when it can't get a complete
+// answer. STATIC_PAGES_OFFLINE=1 skips the request.
+const LIVE_SITE_DATA_URL = `${SITE_BASE}/.netlify/functions/site-data-current`;
+
+async function fetchLiveSiteData() {
+  if (process.env.STATIC_PAGES_OFFLINE === "1") return null;
+  try {
+    const res = await fetch(LIVE_SITE_DATA_URL, { signal: AbortSignal.timeout(15000), headers: { accept: "application/json" } });
+    if (!res.ok) return null;
+    const doc = await res.json();
+    const teams = doc && doc.teams && doc.teams.teams;
+    const players = doc && doc.players && doc.players.players;
+    // All or nothing: a partial document must not mix with the files.
+    const rank = (t, side) => t && t.stats && t.stats[side] && Number.isFinite(t.stats[side].rankTotal);
+    if (!Array.isArray(teams) || teams.length !== 32) return null;
+    if (!teams.every((t) => t.id && t.name && rank(t, "offense") && rank(t, "defense") && t.priorStats && Number.isFinite(t.stats.gamesPlayed))) return null;
+    if (!players || typeof players !== "object" || !teams.every((t) => Array.isArray(players[t.id]))) return null;
+    return { teams, players, teamsAsOfWeek: doc.teams.asOfWeek };
+  } catch {
+    return null;
+  }
+}
+
 async function loadData() {
   // The engine's prior-season blend needs priorStats + stats.gamesPlayed on
   // every team; the weekly-update task may rewrite teams.json without them.
@@ -128,12 +158,15 @@ async function loadData() {
   // getWeather(). Optional - without it the pages just predict without weather.
   let weatherFile = { weeks: {} };
   try { weatherFile = await readJson("data/weather.json"); } catch { /* no weather file */ }
+  const live = await fetchLiveSiteData();
+  if (live) log(`Using live team stats (through Week ${live.teamsAsOfWeek ?? "?"}) and injuries from ${LIVE_SITE_DATA_URL}.`);
+  else log("Live site data unavailable or disabled - using the committed data/teams.json and data/impact-players.json.");
   return {
-    teams: teamsFile.teams,
+    teams: live ? live.teams : teamsFile.teams,
     schedule: scheduleFile,
     preseason: preseasonFile,
     playoffs: playoffsFile,
-    players: playersFile.players,
+    players: live ? live.players : playersFile.players,
     history: historyFile,
     stadiums: stadiumsFile,
     odds: oddsFile,

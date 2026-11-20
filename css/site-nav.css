@@ -77,6 +77,29 @@ html[data-theme="light"] .site-hdr-brand .site-hdr-logo-light { display: block; 
   .site-hdr-cta { display: none; }
 }
 
+/* The header is as wide as the page's own column, not the window: 960px on
+   the college and /teams/ pages, 900px in the archive, 780px on terms and
+   privacy. So a wide window says nothing about whether the row fits, and
+   with the Bowls tab showing the full-size row needs ~970px - on a 960px
+   page "Pick'em Leagues" ran underneath "Create a Free League" at every
+   desktop width. These rules size the row from the header's real width.
+   Desktop only: containment would re-anchor the phone's fixed bottom bar. */
+@media (min-width: 721px) {
+  .site-hdr { container: site-hdr / inline-size; }
+}
+@container site-hdr (max-width: 990px) {
+  .site-hdr-brand img { height: 34px; }
+  .site-nav-btn { padding: 0 8px; font-size: .85rem; }
+  .site-nav-btn[aria-current="page"]::after { left: 8px; right: 8px; }
+}
+/* Too narrow even for the compact row: the button gives way, the nav stays. */
+@container site-hdr (max-width: 900px) {
+  .site-nav:has(.site-nav-btn[data-flag]:not([hidden])) ~ .site-hdr-acts .site-hdr-cta { display: none; }
+}
+@container site-hdr (max-width: 810px) {
+  .site-hdr-cta { display: none; }
+}
+
 @media (max-width: 720px) {
   /* Compact top bar: logo left, account right. */
   .site-hdr {

@@ -1,0 +1,251 @@
+/* Blitz Odds - historical archive hub pages.
+ *
+ * Styles the pages scripts/build-archive-hub.mjs writes: the archive landing
+ * page, season pages, season-phase pages and team history pages. The single
+ * game / box-score pages do not load this file.
+ *
+ * Mobile-first. Colours come from the theme variables each archive page
+ * already declares inline (--bg, --card-bg, --card-border, --surface-2,
+ * --text, --text-dim, --accent, --win ...), so dark and light follow the
+ * site theme with no second palette here. The two --ah-* overrides below
+ * exist only because the light theme's accent and dim text fall just short
+ * of 4.5:1 at small sizes on the page background.
+ *
+ * Everything is scoped under .ah (set on the page's .app wrapper) so nothing
+ * here can leak into the box-score markup that shares the inline stylesheet.
+ * Hand-written, not built; the ?v= on its <link> is a content hash stamped
+ * by the build script.
+ */
+.ah {
+  --ah-link: var(--accent);
+  --ah-dim: var(--text-dim);
+  --ah-on-accent: #04121a;
+  --ah-radius: 14px;
+  --ah-focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+}
+html[data-theme="light"] .ah { --ah-link: #0a6a61; --ah-dim: #46556a; }
+
+.ah a { color: var(--ah-link); }
+.ah :focus-visible { outline: none; box-shadow: var(--ah-focus); border-radius: 8px; }
+.ah [hidden] { display: none !important; }
+.ah .ah-arrow { display: inline-block; transition: transform 0.15s ease; }
+
+/* ---- Breadcrumb + page head ---------------------------------------------- */
+.ah .breadcrumb { margin-bottom: 10px; }
+.ah .ah-crumbs { list-style: none; display: flex; flex-wrap: wrap; gap: 2px 0; margin: 0; padding: 0; font-size: 0.8rem; color: var(--ah-dim); }
+.ah .ah-crumbs li { display: inline-flex; align-items: center; min-height: 28px; }
+.ah .ah-crumbs li + li::before { content: "/"; margin: 0 8px; opacity: 0.6; }
+.ah .ah-crumbs a { color: var(--ah-dim); text-decoration: none; padding: 4px 0; }
+.ah .ah-crumbs a:hover { color: var(--text); text-decoration: underline; }
+.ah .ah-crumbs [aria-current] { color: var(--text); font-weight: 600; }
+
+.ah .ah-head { margin: 0 0 16px; }
+.ah .archive-badge { margin: 0 0 8px; background: rgba(var(--accent-rgb), 0.14); color: var(--ah-link); }
+.ah .archive-title { font-size: 1.55rem; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 8px; }
+.ah .ah-lede { margin: 0; max-width: 62ch; font-size: 0.95rem; line-height: 1.5; color: var(--ah-dim); }
+.ah .ah-note { margin: 12px 0 0; padding: 10px 12px; font-size: 0.86rem; line-height: 1.5; color: var(--text); background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--accent); border-radius: 10px; }
+.ah .ah-fine { margin: 14px 0 0; font-size: 0.78rem; line-height: 1.5; color: var(--ah-dim); }
+.ah .ah-team-id { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.ah .ah-team-id .archive-title { margin-bottom: 2px; }
+.ah .ah-team-meta { margin: 0; font-size: 0.82rem; color: var(--ah-dim); }
+
+.ah .ah-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: var(--surface-2); color: var(--ah-dim); border: 1px solid var(--card-border); vertical-align: middle; white-space: nowrap; }
+.ah .ah-pill-live { background: rgba(var(--accent-rgb), 0.14); border-color: rgba(var(--accent-rgb), 0.45); color: var(--ah-link); }
+
+/* ---- Form controls -------------------------------------------------------- */
+.ah .ah-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ah .ah-field label { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ah-dim); }
+.ah .ah-select, .ah .ah-input {
+  width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; font-size: 1rem; font-weight: 600;
+  color: var(--text); background-color: var(--bg); border: 1px solid var(--card-border); border-radius: 10px;
+  transition: border-color 0.15s ease;
+}
+.ah .ah-select { -webkit-appearance: none; appearance: none; padding-right: 36px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 19px) 20px, calc(100% - 14px) 20px; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+.ah .ah-input::placeholder { color: var(--ah-dim); font-weight: 500; opacity: 1; }
+.ah .ah-select:hover, .ah .ah-input:hover { border-color: var(--ah-dim); }
+.ah .ah-select:focus-visible, .ah .ah-input:focus-visible { border-color: var(--accent); border-radius: 10px; }
+.ah .ah-input[aria-invalid="true"], .ah .ah-select[aria-invalid="true"] { border-color: var(--out); }
+
+.ah .ah-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 10px 18px; font: inherit; font-size: 0.95rem; font-weight: 800; border-radius: 10px; border: 1px solid transparent; cursor: pointer; text-decoration: none; transition: filter 0.15s ease, border-color 0.15s ease, background-color 0.15s ease; }
+.ah .ah-btn-primary { width: 100%; background: var(--accent); color: var(--ah-on-accent); }
+.ah .ah-btn-primary:hover { filter: brightness(1.08); }
+.ah .ah-btn-primary:hover .ah-arrow { transform: translateX(3px); }
+.ah .ah-btn-ghost { background: transparent; color: var(--text); border-color: var(--card-border); }
+.ah .ah-btn-ghost:hover { border-color: var(--accent); }
+
+/* ---- Finder --------------------------------------------------------------- */
+.ah .ah-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--ah-radius); padding: 16px; margin: 0 0 26px; }
+.ah .ah-finder { border-color: rgba(var(--accent-rgb), 0.4); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); }
+.ah .ah-panel-title { margin: 0 0 12px; font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; }
+.ah .ah-finder-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: end; }
+.ah .ah-msg { grid-column: 1 / -1; margin: 0; min-height: 1.2em; font-size: 0.86rem; line-height: 1.4; color: var(--pill-bad-text); }
+.ah .ah-msg:empty { display: none; }
+
+.ah .ah-combo-box { position: relative; }
+.ah .ah-combo .ah-input { padding-right: 44px; }
+.ah .ah-combo-clear { position: absolute; top: 1px; right: 1px; width: 44px; height: 44px; border: 0; background: none; color: var(--ah-dim); font-size: 1.3rem; line-height: 1; cursor: pointer; border-radius: 10px; }
+.ah .ah-combo-clear:hover { color: var(--text); }
+.ah .ah-listbox { position: absolute; z-index: 40; left: 0; right: 0; top: calc(100% + 6px); max-height: 288px; overflow-y: auto; margin: 0; padding: 6px; list-style: none; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); overscroll-behavior: contain; }
+.ah .ah-opt { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 10px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+.ah .ah-opt.is-active { background: rgba(var(--accent-rgb), 0.16); }
+.ah .ah-opt[aria-selected="true"] .ah-opt-name { color: var(--ah-link); }
+.ah .ah-opt-name { flex: 1; min-width: 0; }
+.ah .ah-opt-tag { font-size: 0.72rem; font-weight: 600; color: var(--ah-dim); white-space: nowrap; }
+.ah .ah-opt-none { padding: 12px 10px; font-size: 0.9rem; color: var(--ah-dim); }
+
+/* ---- Sections, grids, cards ---------------------------------------------- */
+.ah .ah-section { margin: 0 0 30px; scroll-margin-top: 80px; }
+.ah .ah-section-title { margin: 0 0 12px; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; }
+.ah .ah-sub-title { margin: 22px 0 4px; font-size: 0.95rem; font-weight: 800; }
+.ah .ah-legacy .ah-fine { margin: 0 0 10px; }
+.ah .ah-about p { margin: 0; max-width: 70ch; font-size: 0.9rem; line-height: 1.6; color: var(--ah-dim); }
+
+.ah .ah-grid { display: grid; gap: 10px; }
+.ah .ah-grid-seasons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ah .ah-grid-teams { grid-template-columns: minmax(0, 1fr); }
+
+.ah .ah-card { position: relative; display: flex; color: var(--text); text-decoration: none; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--ah-radius); transition: border-color 0.15s ease, transform 0.15s ease, background-color 0.15s ease; }
+.ah .ah-card .ah-arrow { color: var(--ah-dim); transition: transform 0.15s ease, color 0.15s ease; }
+.ah .ah-card:hover { border-color: var(--accent); background: var(--surface-2); }
+.ah .ah-card:hover .ah-arrow { color: var(--ah-link); transform: translateX(3px); }
+.ah .ah-card:focus-visible { border-radius: var(--ah-radius); }
+
+.ah .ah-season { flex-direction: column; gap: 2px; min-height: 92px; padding: 14px 14px 12px; }
+.ah .ah-season-year { font-size: 1.7rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.ah .ah-season-label { font-size: 0.78rem; font-weight: 600; color: var(--ah-dim); }
+.ah .ah-season .ah-pill { align-self: flex-start; margin-top: 6px; }
+.ah .ah-season .ah-arrow { position: absolute; top: 14px; right: 14px; }
+
+.ah .ah-team { align-items: center; gap: 12px; min-height: 60px; padding: 10px 12px; }
+.ah .ah-team-text { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.ah .ah-team-name { font-size: 0.95rem; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.ah .ah-team-sub { font-size: 0.74rem; color: var(--ah-dim); line-height: 1.35; }
+
+.ah .ah-badge { flex: 0 0 auto; display: block; object-fit: contain; }
+.ah .ah-badge-init { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 24px; padding: 0 5px; border-radius: 6px; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.03em; color: var(--ah-dim); background: var(--surface-2); border: 1px solid var(--card-border); }
+.ah .ah-team .ah-badge-init, .ah .ah-team-id .ah-badge-init { min-width: 40px; height: 32px; font-size: 0.72rem; }
+
+.ah .ah-more { margin-top: 10px; }
+.ah .ah-more summary { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; font-size: 0.88rem; font-weight: 700; color: var(--text); background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; cursor: pointer; list-style: none; }
+.ah .ah-more summary::-webkit-details-marker { display: none; }
+.ah .ah-more summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.15s ease; }
+.ah .ah-more[open] summary::after { transform: rotate(-135deg) translateY(-2px); }
+.ah .ah-more summary:hover { border-color: var(--accent); }
+.ah .ah-more .ah-more-open, .ah .ah-more[open] .ah-more-closed { display: none; }
+.ah .ah-more[open] .ah-more-open { display: inline; }
+.ah .ah-more > .ah-grid { margin-top: 10px; }
+
+.ah .ah-teamtools { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-items: end; margin-bottom: 12px; }
+.ah .ah-seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; }
+.ah .ah-seg-btn { flex: 1; min-width: 64px; min-height: 40px; padding: 6px 14px; font: inherit; font-size: 0.86rem; font-weight: 700; color: var(--ah-dim); background: none; border: 0; border-radius: 9px; cursor: pointer; transition: background-color 0.15s ease, color 0.15s ease; }
+.ah .ah-seg-btn:hover { color: var(--text); }
+.ah .ah-seg-btn[aria-pressed="true"] { background: rgba(var(--accent-rgb), 0.16); color: var(--ah-link); }
+
+.ah .ah-empty { margin: 8px 0 0; padding: 22px 16px; text-align: center; font-size: 0.9rem; line-height: 1.5; color: var(--ah-dim); background: var(--card-bg); border: 1px dashed var(--card-border); border-radius: var(--ah-radius); }
+.ah .ah-empty p { margin: 0 0 12px; }
+.ah .ah-empty strong { color: var(--text); }
+.ah .ah-empty-inline { padding: 18px 16px; }
+
+/* ---- Results pages -------------------------------------------------------- */
+.ah .ah-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 14px; }
+.ah .ah-pager-link { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 12px; font-size: 0.84rem; font-weight: 700; text-align: center; color: var(--text); text-decoration: none; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; transition: border-color 0.15s ease; }
+.ah .ah-pager-link:hover { border-color: var(--accent); }
+.ah .ah-pager-link:hover .ah-arrow { transform: translateX(3px); }
+.ah .ah-pager-link.is-disabled { visibility: hidden; }
+.ah .ah-pager-mid { grid-column: 1 / -1; grid-row: 2; }
+
+.ah .ah-filters { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-items: end; padding: 14px; margin: 0 0 18px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--ah-radius); }
+.ah .ah-count { grid-column: 1 / -1; margin: 0; font-size: 0.8rem; color: var(--ah-dim); min-height: 1.2em; }
+
+.ah .ah-results { margin: 0; }
+.ah .ah-phase { margin: 0 0 8px; }
+.ah .ah-phase-title { margin: 0 0 10px; padding-bottom: 8px; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; border-bottom: 1px solid var(--card-border); }
+.ah .ah-phase + .ah-phase .ah-phase-title { margin-top: 26px; }
+.ah .ah-round { margin: 0 0 20px; scroll-margin-top: 80px; }
+.ah .ah-round-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; margin: 0 0 8px; }
+.ah .ah-round-title { margin: 0 0 8px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ah-dim); }
+.ah .ah-round-head .ah-round-title { margin: 0; font-size: 1.05rem; letter-spacing: -0.01em; text-transform: none; color: var(--text); }
+.ah .ah-round-more { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; font-size: 0.8rem; font-weight: 700; text-decoration: none; }
+.ah .ah-round-more:hover { text-decoration: underline; }
+
+/* A game: stacked card on phones, one scannable row from 700px. */
+.ah .ah-game { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "date meta" "teams teams"; gap: 8px 12px; align-items: center; padding: 10px 12px; margin: 0 0 8px; font-size: 0.92rem; color: var(--text); text-decoration: none; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; transition: border-color 0.15s ease, background-color 0.15s ease; }
+.ah .ah-game:hover { border-color: var(--accent); background: var(--surface-2); }
+.ah .ah-game:hover .ah-arrow { transform: translateX(3px); }
+.ah .ah-game:focus-visible { border-radius: 12px; }
+.ah .ah-g-date { grid-area: date; display: flex; flex-wrap: wrap; gap: 0 8px; font-size: 0.76rem; font-weight: 600; color: var(--ah-dim); }
+.ah .ah-g-round { color: var(--text); font-weight: 700; }
+.ah .ah-g-teams { grid-area: teams; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ah .ah-g-team { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--ah-dim); }
+.ah .ah-g-name { flex: 1; min-width: 0; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.ah .ah-g-ha { margin-left: 4px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ah-dim); opacity: 0.85; }
+.ah .ah-g-vs { flex: 0 0 auto; width: 18px; font-size: 0.72rem; font-weight: 700; color: var(--ah-dim); }
+.ah .ah-g-score { flex: 0 0 auto; min-width: 2ch; text-align: right; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ah .ah-g-team.is-win { color: var(--text); }
+.ah .ah-g-team.is-win .ah-g-name, .ah .ah-g-team.is-win .ah-g-score { font-weight: 800; }
+.ah .ah-g-team.is-win .ah-g-score::after { content: ""; display: inline-block; width: 0; height: 0; margin-left: 6px; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-right: 5px solid var(--accent); vertical-align: middle; }
+.ah .ah-g-team:not(.is-win) .ah-g-score::after { content: ""; display: inline-block; width: 11px; }
+.ah .ah-game-team .ah-g-team { color: var(--text); }
+.ah .ah-g-meta { grid-area: meta; display: flex; align-items: center; justify-content: flex-end; gap: 10px; font-size: 0.74rem; white-space: nowrap; }
+.ah .ah-g-status { font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ah-dim); }
+.ah .ah-g-status.is-off { color: var(--warn); }
+.ah .ah-g-note { font-weight: 600; letter-spacing: 0; text-transform: none; }
+.ah .ah-g-cta { font-weight: 700; color: var(--ah-link); }
+.ah .ah-g-res { font-size: 0.98rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ah .ah-game-team { grid-template-areas: "date date" "teams meta"; }
+.ah .ah-game-team .ah-g-meta { flex-wrap: wrap; row-gap: 2px; }
+.ah .ah-game-team .ah-g-status:not(.is-off) { display: none; }
+.ah .ah-game-team .ah-g-cta { flex-basis: 100%; text-align: right; }
+
+.ah .ah-related { margin: 26px 0 0; padding-top: 18px; border-top: 1px solid var(--card-border); }
+.ah .ah-related-title { margin: 0 0 10px; font-size: 1rem; font-weight: 800; }
+.ah .ah-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.ah .ah-links a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; font-size: 0.86rem; font-weight: 700; color: var(--text); text-decoration: none; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; transition: border-color 0.15s ease; }
+.ah .ah-links a:hover { border-color: var(--accent); }
+
+/* ---- Wider screens -------------------------------------------------------- */
+@media (min-width: 340px) {
+  .ah .ah-grid-teams { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ah .ah-team { padding: 10px; gap: 9px; }
+  .ah .ah-team .ah-arrow { display: none; }
+}
+@media (min-width: 600px) {
+  .ah .archive-title { font-size: 1.9rem; }
+  .ah .ah-panel { padding: 20px; }
+  .ah .ah-finder-form { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) auto; }
+  .ah .ah-btn-primary { width: auto; white-space: nowrap; }
+  .ah .ah-grid-seasons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ah .ah-team { padding: 10px 12px; gap: 12px; }
+  .ah .ah-team .ah-arrow { display: inline-block; }
+  .ah .ah-teamtools { grid-template-columns: minmax(0, 1fr) auto; }
+  .ah .ah-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ah .ah-pager { grid-template-columns: 1fr auto 1fr; }
+  .ah .ah-pager-mid { grid-column: auto; grid-row: auto; }
+  .ah .ah-pager-link:first-child { justify-content: flex-start; }
+  .ah .ah-pager-link:last-child { justify-content: flex-end; }
+}
+@media (min-width: 700px) {
+  .ah .ah-game, .ah .ah-game-team { grid-template-columns: 112px minmax(0, 1fr) auto; grid-template-areas: "date teams meta"; gap: 4px 16px; padding: 9px 14px; margin-bottom: 6px; }
+  .ah .ah-g-date { flex-direction: column; gap: 1px; }
+  .ah .ah-g-teams { gap: 3px; }
+  .ah .ah-g-meta { min-width: 168px; }
+  .ah .ah-game-team { grid-template-columns: 150px minmax(0, 1fr) auto; }
+  .ah .ah-game-team .ah-g-meta { flex-wrap: nowrap; min-width: 250px; }
+  .ah .ah-game-team .ah-g-status:not(.is-off) { display: inline; }
+  .ah .ah-game-team .ah-g-cta { flex-basis: auto; }
+  .ah .ah-game-team .ah-g-res { min-width: 86px; text-align: right; margin-right: auto; }
+}
+@media (min-width: 820px) {
+  .ah .ah-grid-teams { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ah *, .ah *::after { transition: none !important; }
+  .ah .ah-card:hover .ah-arrow, .ah .ah-game:hover .ah-arrow, .ah .ah-btn:hover .ah-arrow, .ah .ah-pager-link:hover .ah-arrow { transform: none; }
+}
+
+/* The site's light-theme --win is a fill colour; as small text on white it
+   needs the darker text tone the rank pills already use. */
+html[data-theme="light"] .ah .team-result-w { color: var(--pill-good-text); }

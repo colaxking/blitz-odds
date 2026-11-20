@@ -12,12 +12,12 @@
 </script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Historical NFL Results Archive | Blitz Odds</title>
-<meta name="description" content="Browse final scores and box scores from past NFL seasons, by year or by team, archived by Blitz Odds." />
+<title>Historical NFL Scores &amp; Results by Season and Team | Blitz Odds</title>
+<meta name="description" content="Browse historical NFL scores, game results, and box scores by season or team. Explore past NFL matchups and final scores on Blitz Odds." />
 <link rel="canonical" href="https://blitz-odds.com/historical/index.html" />
-<meta property="og:title" content="Historical NFL Results Archive | Blitz Odds" />
-<meta property="og:description" content="Browse final scores and box scores from past NFL seasons, by year or by team, archived by Blitz Odds." />
-<meta property="og:type" content="article" />
+<meta property="og:title" content="Historical NFL Scores &amp; Results by Season and Team | Blitz Odds" />
+<meta property="og:description" content="Browse historical NFL scores, game results, and box scores by season or team. Explore past NFL matchups and final scores on Blitz Odds." />
+<meta property="og:type" content="website" />
 <meta property="og:url" content="https://blitz-odds.com/historical/index.html" />
 <meta name="twitter:card" content="summary" />
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
@@ -334,9 +334,11 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
 </style>
 
 <link rel="stylesheet" href="/css/site-nav.css?v=1" />
+<link rel="stylesheet" href="/css/archive.css?v=63fc8960fa" />
+<script type="application/ld+json" data-archive-hub>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blitz-odds.com/"},{"@type":"ListItem","position":2,"name":"Historical NFL Scores","item":"https://blitz-odds.com/historical/index.html"}]}</script>
 </head>
 <body>
-<div class="app">
+<div class="app ah">
   <!-- site-hdr:start --><header class="site-hdr" style="--sn-top:20px;--sn-side:16px"><a class="site-hdr-brand" href="/" aria-label="Blitz Odds home"><img class="site-hdr-logo-dark" src="/branding/blitz-odds-wordmark-dark.svg" alt="Blitz Odds" width="900" height="252" decoding="async" /><img class="site-hdr-logo-light" src="/branding/blitz-odds-wordmark-light.svg" alt="" width="900" height="252" loading="lazy" decoding="async" /></a><nav class="site-nav" aria-label="Primary"><a class="site-nav-btn" href="/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-home.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Home</span></a><a class="site-nav-btn" href="/games/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-games.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Games</span></a><a class="site-nav-btn" href="/bowls/" data-flag="bowls" hidden><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-bowls.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Bowls</span></a><a class="site-nav-btn" href="/picks/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-playbook.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Playbook</span></a><a class="site-nav-btn" href="/news/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-news.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>News</span></a><a class="site-nav-btn site-nav-desktop" href="/leagues/"><span class="site-nav-ico" aria-hidden="true"><img src="/branding/tab-icon-leagues.png" alt="" width="34" height="34" loading="lazy" decoding="async" /></span><span>Pick'em Leagues</span></a></nav><div class="site-hdr-acts"><div class="account-menu" id="accountMenu">
     <div class="account-signedout-row" id="accountSignedOutRow">
       <button type="button" class="account-btn account-btn-signin" id="accountSignInBtn">Sign in</button>
@@ -381,81 +383,323 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
       </div>
     </div>
   </div>
-  <div class="breadcrumb"><a href="/">Home</a> &raquo; Historical Archive</div>
-  <h1 class="archive-title">Historical NFL Results Archive</h1>
-  
-    <span class="archive-badge">Historical Archive</span>
-    <h2 style="margin-top:0;">Historical Results Archive</h2>
-    <div class="menu-block">
-      <label for="year-nav" style="color:var(--text-dim); font-size:0.82rem;">Browse by season:</label>
-      <select id="year-nav" class="week-select" style="width:100%; margin-top:6px;">
-        <option value="">Select a season&hellip;</option>
-        <option value="/historical/2026/index.html">2026 Season</option>
-<option value="/historical/2025/index.html">2025 Season</option>
-<option value="/historical/2024/index.html">2024 Season</option>
-<option value="/historical/2023/index.html">2023 Season</option>
-<option value="/historical/2022/index.html">2022 Season</option>
-<option value="/historical/2021/index.html">2021 Season</option>
-<option value="/historical/2020/index.html">2020 Season</option>
-<option value="/historical/2019/index.html">2019 Season</option>
-<option value="/historical/2018/index.html">2018 Season</option>
-<option value="/historical/2017/index.html">2017 Season</option>
-<option value="/historical/2016/index.html">2016 Season</option>
-<option value="/historical/2015/index.html">2015 Season</option>
-      </select>
+  <div class="breadcrumb"><nav aria-label="Breadcrumb"><ol class="ah-crumbs"><li><a href="/">Home</a></li><li aria-current="page">Historical NFL Scores</li></ol></nav></div>
+  <header class="ah-head">
+    <span class="archive-badge">NFL Results Archive</span>
+    <h1 class="archive-title">Historical NFL Scores &amp; Results</h1>
+    <p class="ah-lede">Explore past NFL seasons, final scores, game results, and box scores. Browse by season or team to find historical matchups.</p>
+  </header>
+
+  <section class="ah-panel ah-finder" aria-labelledby="finder-title">
+    <h2 class="ah-panel-title" id="finder-title">Find Historical Games</h2>
+    <form class="ah-finder-form" data-ah-finder novalidate>
+      <div class="ah-field">
+        <label for="finder-season">Season</label>
+        <select id="finder-season" class="ah-select" aria-describedby="finder-msg">
+          <option value="">Any season</option><option value="2026">2026 (current season)</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option><option value="2016">2016</option><option value="2015">2015</option>
+        </select>
+      </div>
+      <div class="ah-field ah-combo" data-ah-combo>
+        <label for="finder-team" id="finder-team-label">Team</label>
+        <div class="ah-combo-box">
+          <input id="finder-team" class="ah-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="finder-team-list" aria-describedby="finder-msg" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Any team &mdash; type to search" />
+          <button type="button" class="ah-combo-clear" data-ah-combo-clear aria-label="Clear team" hidden>&times;</button>
+          <ul class="ah-listbox" id="finder-team-list" role="listbox" aria-labelledby="finder-team-label" hidden><li class="ah-opt" role="option" id="finder-team-opt-0" aria-selected="false" data-abbr="ARI" data-slug="arizona-cardinals" data-name="Arizona Cardinals" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/ARI.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Arizona Cardinals</span></li><li class="ah-opt" role="option" id="finder-team-opt-1" aria-selected="false" data-abbr="ATL" data-slug="atlanta-falcons" data-name="Atlanta Falcons" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/ATL.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Atlanta Falcons</span></li><li class="ah-opt" role="option" id="finder-team-opt-2" aria-selected="false" data-abbr="BAL" data-slug="baltimore-ravens" data-name="Baltimore Ravens" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/BAL.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Baltimore Ravens</span></li><li class="ah-opt" role="option" id="finder-team-opt-3" aria-selected="false" data-abbr="BUF" data-slug="buffalo-bills" data-name="Buffalo Bills" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/BUF.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Buffalo Bills</span></li><li class="ah-opt" role="option" id="finder-team-opt-4" aria-selected="false" data-abbr="CAR" data-slug="carolina-panthers" data-name="Carolina Panthers" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/CAR.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Carolina Panthers</span></li><li class="ah-opt" role="option" id="finder-team-opt-5" aria-selected="false" data-abbr="CHI" data-slug="chicago-bears" data-name="Chicago Bears" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/CHI.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Chicago Bears</span></li><li class="ah-opt" role="option" id="finder-team-opt-6" aria-selected="false" data-abbr="CIN" data-slug="cincinnati-bengals" data-name="Cincinnati Bengals" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/CIN.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Cincinnati Bengals</span></li><li class="ah-opt" role="option" id="finder-team-opt-7" aria-selected="false" data-abbr="CLE" data-slug="cleveland-browns" data-name="Cleveland Browns" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/CLE.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Cleveland Browns</span></li><li class="ah-opt" role="option" id="finder-team-opt-8" aria-selected="false" data-abbr="DAL" data-slug="dallas-cowboys" data-name="Dallas Cowboys" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/DAL.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Dallas Cowboys</span></li><li class="ah-opt" role="option" id="finder-team-opt-9" aria-selected="false" data-abbr="DEN" data-slug="denver-broncos" data-name="Denver Broncos" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/DEN.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Denver Broncos</span></li><li class="ah-opt" role="option" id="finder-team-opt-10" aria-selected="false" data-abbr="DET" data-slug="detroit-lions" data-name="Detroit Lions" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/DET.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Detroit Lions</span></li><li class="ah-opt" role="option" id="finder-team-opt-11" aria-selected="false" data-abbr="GB" data-slug="green-bay-packers" data-name="Green Bay Packers" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/GB.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Green Bay Packers</span></li><li class="ah-opt" role="option" id="finder-team-opt-12" aria-selected="false" data-abbr="HOU" data-slug="houston-texans" data-name="Houston Texans" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/HOU.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Houston Texans</span></li><li class="ah-opt" role="option" id="finder-team-opt-13" aria-selected="false" data-abbr="IND" data-slug="indianapolis-colts" data-name="Indianapolis Colts" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/IND.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Indianapolis Colts</span></li><li class="ah-opt" role="option" id="finder-team-opt-14" aria-selected="false" data-abbr="JAX" data-slug="jacksonville-jaguars" data-name="Jacksonville Jaguars" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/JAX.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Jacksonville Jaguars</span></li><li class="ah-opt" role="option" id="finder-team-opt-15" aria-selected="false" data-abbr="KC" data-slug="kansas-city-chiefs" data-name="Kansas City Chiefs" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/KC.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Kansas City Chiefs</span></li><li class="ah-opt" role="option" id="finder-team-opt-16" aria-selected="false" data-abbr="LV" data-slug="las-vegas-raiders" data-name="Las Vegas Raiders" data-years="2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/LV.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Las Vegas Raiders</span></li><li class="ah-opt" role="option" id="finder-team-opt-17" aria-selected="false" data-abbr="LAC" data-slug="los-angeles-chargers" data-name="Los Angeles Chargers" data-years="2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/LAC.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Los Angeles Chargers</span></li><li class="ah-opt" role="option" id="finder-team-opt-18" aria-selected="false" data-abbr="LAR" data-slug="los-angeles-rams" data-name="Los Angeles Rams" data-years="2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/LAR.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Los Angeles Rams</span></li><li class="ah-opt" role="option" id="finder-team-opt-19" aria-selected="false" data-abbr="MIA" data-slug="miami-dolphins" data-name="Miami Dolphins" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/MIA.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Miami Dolphins</span></li><li class="ah-opt" role="option" id="finder-team-opt-20" aria-selected="false" data-abbr="MIN" data-slug="minnesota-vikings" data-name="Minnesota Vikings" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/MIN.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Minnesota Vikings</span></li><li class="ah-opt" role="option" id="finder-team-opt-21" aria-selected="false" data-abbr="NE" data-slug="new-england-patriots" data-name="New England Patriots" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/NE.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">New England Patriots</span></li><li class="ah-opt" role="option" id="finder-team-opt-22" aria-selected="false" data-abbr="NO" data-slug="new-orleans-saints" data-name="New Orleans Saints" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/NO.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">New Orleans Saints</span></li><li class="ah-opt" role="option" id="finder-team-opt-23" aria-selected="false" data-abbr="NYG" data-slug="new-york-giants" data-name="New York Giants" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/NYG.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">New York Giants</span></li><li class="ah-opt" role="option" id="finder-team-opt-24" aria-selected="false" data-abbr="NYJ" data-slug="new-york-jets" data-name="New York Jets" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/NYJ.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">New York Jets</span></li><li class="ah-opt" role="option" id="finder-team-opt-25" aria-selected="false" data-abbr="PHI" data-slug="philadelphia-eagles" data-name="Philadelphia Eagles" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/PHI.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Philadelphia Eagles</span></li><li class="ah-opt" role="option" id="finder-team-opt-26" aria-selected="false" data-abbr="PIT" data-slug="pittsburgh-steelers" data-name="Pittsburgh Steelers" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/PIT.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Pittsburgh Steelers</span></li><li class="ah-opt" role="option" id="finder-team-opt-27" aria-selected="false" data-abbr="SF" data-slug="san-francisco-49ers" data-name="San Francisco 49ers" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/SF.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">San Francisco 49ers</span></li><li class="ah-opt" role="option" id="finder-team-opt-28" aria-selected="false" data-abbr="SEA" data-slug="seattle-seahawks" data-name="Seattle Seahawks" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/SEA.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Seattle Seahawks</span></li><li class="ah-opt" role="option" id="finder-team-opt-29" aria-selected="false" data-abbr="TB" data-slug="tampa-bay-buccaneers" data-name="Tampa Bay Buccaneers" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/TB.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Tampa Bay Buccaneers</span></li><li class="ah-opt" role="option" id="finder-team-opt-30" aria-selected="false" data-abbr="TEN" data-slug="tennessee-titans" data-name="Tennessee Titans" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/TEN.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Tennessee Titans</span></li><li class="ah-opt" role="option" id="finder-team-opt-31" aria-selected="false" data-abbr="WAS" data-slug="washington-commanders" data-name="Washington Commanders" data-years="2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"><img class="ah-badge" src="/team-badges/WAS.png" alt="" width="22" height="22" loading="lazy" decoding="async" /><span class="ah-opt-name">Washington Commanders</span></li><li class="ah-opt" role="option" id="finder-team-opt-32" aria-selected="false" data-abbr="OAK" data-slug="oak" data-name="Oakland Raiders" data-years="2015,2016,2017,2018,2019"><span class="ah-badge ah-badge-init" aria-hidden="true">OAK</span><span class="ah-opt-name">Oakland Raiders</span><span class="ah-opt-tag">2015–2019</span></li><li class="ah-opt" role="option" id="finder-team-opt-33" aria-selected="false" data-abbr="SD" data-slug="sd" data-name="San Diego Chargers" data-years="2015,2016"><span class="ah-badge ah-badge-init" aria-hidden="true">SD</span><span class="ah-opt-name">San Diego Chargers</span><span class="ah-opt-tag">2015–2016</span></li><li class="ah-opt" role="option" id="finder-team-opt-34" aria-selected="false" data-abbr="STL" data-slug="stl" data-name="St. Louis Rams" data-years="2015"><span class="ah-badge ah-badge-init" aria-hidden="true">STL</span><span class="ah-opt-name">St. Louis Rams</span><span class="ah-opt-tag">2015</span></li><li class="ah-opt-none" data-ah-combo-none hidden>No team matches</li></ul>
+        </div>
+      </div>
+      <button type="submit" class="ah-btn ah-btn-primary">View Results <span class="ah-arrow" aria-hidden="true">&rarr;</span></button>
+      <p class="ah-msg" id="finder-msg" role="alert" data-ah-finder-msg></p>
+    </form>
+    <noscript><p class="ah-fine">The finder needs JavaScript. Every season and team is also linked below.</p></noscript>
+  </section>
+
+  <section class="ah-section" id="seasons" aria-labelledby="seasons-title">
+    <h2 class="ah-section-title" id="seasons-title">Browse by Season</h2>
+    <div class="ah-grid ah-grid-seasons">
+      <a class="ah-card ah-season" href="/historical/2026/index.html">
+        <span class="ah-season-year">2026</span>
+        <span class="ah-season-label">NFL Results</span>
+        <span class="ah-pill ah-pill-live">Current season</span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2025/index.html">
+        <span class="ah-season-year">2025</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2024/index.html">
+        <span class="ah-season-year">2024</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2023/index.html">
+        <span class="ah-season-year">2023</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2022/index.html">
+        <span class="ah-season-year">2022</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2021/index.html">
+        <span class="ah-season-year">2021</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
     </div>
-    <div class="menu-block" style="margin-top:18px;">
-      <label for="team-nav" style="color:var(--text-dim); font-size:0.82rem;">Browse by team:</label>
-      <select id="team-nav" class="week-select" style="width:100%; margin-top:6px;">
-        <option value="">Select a team&hellip;</option>
-        <option value="/historical/teams/arizona-cardinals/index.html">Arizona Cardinals</option>
-<option value="/historical/teams/atlanta-falcons/index.html">Atlanta Falcons</option>
-<option value="/historical/teams/baltimore-ravens/index.html">Baltimore Ravens</option>
-<option value="/historical/teams/buffalo-bills/index.html">Buffalo Bills</option>
-<option value="/historical/teams/carolina-panthers/index.html">Carolina Panthers</option>
-<option value="/historical/teams/chicago-bears/index.html">Chicago Bears</option>
-<option value="/historical/teams/cincinnati-bengals/index.html">Cincinnati Bengals</option>
-<option value="/historical/teams/cleveland-browns/index.html">Cleveland Browns</option>
-<option value="/historical/teams/dallas-cowboys/index.html">Dallas Cowboys</option>
-<option value="/historical/teams/denver-broncos/index.html">Denver Broncos</option>
-<option value="/historical/teams/detroit-lions/index.html">Detroit Lions</option>
-<option value="/historical/teams/green-bay-packers/index.html">Green Bay Packers</option>
-<option value="/historical/teams/houston-texans/index.html">Houston Texans</option>
-<option value="/historical/teams/indianapolis-colts/index.html">Indianapolis Colts</option>
-<option value="/historical/teams/jacksonville-jaguars/index.html">Jacksonville Jaguars</option>
-<option value="/historical/teams/kansas-city-chiefs/index.html">Kansas City Chiefs</option>
-<option value="/historical/teams/los-angeles-chargers/index.html">Los Angeles Chargers</option>
-<option value="/historical/teams/los-angeles-rams/index.html">Los Angeles Rams</option>
-<option value="/historical/teams/las-vegas-raiders/index.html">Las Vegas Raiders</option>
-<option value="/historical/teams/miami-dolphins/index.html">Miami Dolphins</option>
-<option value="/historical/teams/minnesota-vikings/index.html">Minnesota Vikings</option>
-<option value="/historical/teams/new-england-patriots/index.html">New England Patriots</option>
-<option value="/historical/teams/new-orleans-saints/index.html">New Orleans Saints</option>
-<option value="/historical/teams/new-york-giants/index.html">New York Giants</option>
-<option value="/historical/teams/new-york-jets/index.html">New York Jets</option>
-<option value="/historical/teams/oak/index.html">OAK</option>
-<option value="/historical/teams/philadelphia-eagles/index.html">Philadelphia Eagles</option>
-<option value="/historical/teams/pittsburgh-steelers/index.html">Pittsburgh Steelers</option>
-<option value="/historical/teams/sd/index.html">SD</option>
-<option value="/historical/teams/seattle-seahawks/index.html">Seattle Seahawks</option>
-<option value="/historical/teams/san-francisco-49ers/index.html">San Francisco 49ers</option>
-<option value="/historical/teams/stl/index.html">STL</option>
-<option value="/historical/teams/tampa-bay-buccaneers/index.html">Tampa Bay Buccaneers</option>
-<option value="/historical/teams/tennessee-titans/index.html">Tennessee Titans</option>
-<option value="/historical/teams/washington-commanders/index.html">Washington Commanders</option>
-      </select>
+    <details class="ah-more">
+      <summary><span class="ah-more-closed">Show older seasons (2015–2020)</span><span class="ah-more-open">Hide older seasons</span></summary>
+      <div class="ah-grid ah-grid-seasons">
+      <a class="ah-card ah-season" href="/historical/2020/index.html">
+        <span class="ah-season-year">2020</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2019/index.html">
+        <span class="ah-season-year">2019</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2018/index.html">
+        <span class="ah-season-year">2018</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2017/index.html">
+        <span class="ah-season-year">2017</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2016/index.html">
+        <span class="ah-season-year">2016</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-season" href="/historical/2015/index.html">
+        <span class="ah-season-year">2015</span>
+        <span class="ah-season-label">NFL Results</span>
+        
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      </div>
+    </details>
+  </section>
+
+  <section class="ah-section" id="teams" aria-labelledby="teams-title">
+    <h2 class="ah-section-title" id="teams-title">Browse by NFL Team</h2>
+    <div class="ah-teamtools" data-ah-teamtools>
+      <div class="ah-field ah-field-search">
+        <label for="team-search">Search teams</label>
+        <input id="team-search" class="ah-input" type="search" autocomplete="off" spellcheck="false" placeholder="Team name or city" />
+      </div>
+      <div class="ah-seg" role="group" aria-label="Conference">
+        <button type="button" class="ah-seg-btn" data-ah-conf="all" aria-pressed="true">All</button>
+        <button type="button" class="ah-seg-btn" data-ah-conf="AFC" aria-pressed="false">AFC</button>
+        <button type="button" class="ah-seg-btn" data-ah-conf="NFC" aria-pressed="false">NFC</button>
+      </div>
     </div>
-    <!-- Plain links as well as the dropdowns: a <select> that navigates on
-         change is invisible to crawlers, which left this page - the only
-         entry into the archive from the rest of the site - linking to none
-         of the seasons or team histories under it. -->
-    <div class="menu-block archive-links" style="margin-top:22px;">
-      <h3 style="margin:0 0 6px; font-size:0.95rem;">All seasons</h3>
-      <p style="display:flex; flex-wrap:wrap; gap:6px 16px; margin:0; font-size:0.9rem;"><a href="/historical/2026/index.html">2026 NFL season</a> <a href="/historical/2025/index.html">2025 NFL season</a> <a href="/historical/2024/index.html">2024 NFL season</a> <a href="/historical/2023/index.html">2023 NFL season</a> <a href="/historical/2022/index.html">2022 NFL season</a> <a href="/historical/2021/index.html">2021 NFL season</a> <a href="/historical/2020/index.html">2020 NFL season</a> <a href="/historical/2019/index.html">2019 NFL season</a> <a href="/historical/2018/index.html">2018 NFL season</a> <a href="/historical/2017/index.html">2017 NFL season</a> <a href="/historical/2016/index.html">2016 NFL season</a> <a href="/historical/2015/index.html">2015 NFL season</a></p>
-      <h3 style="margin:18px 0 6px; font-size:0.95rem;">All teams</h3>
-      <p style="display:flex; flex-wrap:wrap; gap:6px 16px; margin:0; font-size:0.9rem;"><a href="/historical/teams/arizona-cardinals/index.html">Arizona Cardinals</a> <a href="/historical/teams/atlanta-falcons/index.html">Atlanta Falcons</a> <a href="/historical/teams/baltimore-ravens/index.html">Baltimore Ravens</a> <a href="/historical/teams/buffalo-bills/index.html">Buffalo Bills</a> <a href="/historical/teams/carolina-panthers/index.html">Carolina Panthers</a> <a href="/historical/teams/chicago-bears/index.html">Chicago Bears</a> <a href="/historical/teams/cincinnati-bengals/index.html">Cincinnati Bengals</a> <a href="/historical/teams/cleveland-browns/index.html">Cleveland Browns</a> <a href="/historical/teams/dallas-cowboys/index.html">Dallas Cowboys</a> <a href="/historical/teams/denver-broncos/index.html">Denver Broncos</a> <a href="/historical/teams/detroit-lions/index.html">Detroit Lions</a> <a href="/historical/teams/green-bay-packers/index.html">Green Bay Packers</a> <a href="/historical/teams/houston-texans/index.html">Houston Texans</a> <a href="/historical/teams/indianapolis-colts/index.html">Indianapolis Colts</a> <a href="/historical/teams/jacksonville-jaguars/index.html">Jacksonville Jaguars</a> <a href="/historical/teams/kansas-city-chiefs/index.html">Kansas City Chiefs</a> <a href="/historical/teams/los-angeles-chargers/index.html">Los Angeles Chargers</a> <a href="/historical/teams/los-angeles-rams/index.html">Los Angeles Rams</a> <a href="/historical/teams/las-vegas-raiders/index.html">Las Vegas Raiders</a> <a href="/historical/teams/miami-dolphins/index.html">Miami Dolphins</a> <a href="/historical/teams/minnesota-vikings/index.html">Minnesota Vikings</a> <a href="/historical/teams/new-england-patriots/index.html">New England Patriots</a> <a href="/historical/teams/new-orleans-saints/index.html">New Orleans Saints</a> <a href="/historical/teams/new-york-giants/index.html">New York Giants</a> <a href="/historical/teams/new-york-jets/index.html">New York Jets</a> <a href="/historical/teams/oak/index.html">OAK</a> <a href="/historical/teams/philadelphia-eagles/index.html">Philadelphia Eagles</a> <a href="/historical/teams/pittsburgh-steelers/index.html">Pittsburgh Steelers</a> <a href="/historical/teams/sd/index.html">SD</a> <a href="/historical/teams/seattle-seahawks/index.html">Seattle Seahawks</a> <a href="/historical/teams/san-francisco-49ers/index.html">San Francisco 49ers</a> <a href="/historical/teams/stl/index.html">STL</a> <a href="/historical/teams/tampa-bay-buccaneers/index.html">Tampa Bay Buccaneers</a> <a href="/historical/teams/tennessee-titans/index.html">Tennessee Titans</a> <a href="/historical/teams/washington-commanders/index.html">Washington Commanders</a></p>
+    <p class="sr-only" role="status" aria-live="polite" data-ah-team-count></p>
+    <div class="ah-grid ah-grid-teams" data-ah-teamgrid>
+      <a class="ah-card ah-team" href="/historical/teams/arizona-cardinals/index.html" data-ah-team data-name="arizona cardinals ari" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/ARI.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Arizona Cardinals</span><span class="ah-team-sub">NFC West</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/atlanta-falcons/index.html" data-ah-team data-name="atlanta falcons atl" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/ATL.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Atlanta Falcons</span><span class="ah-team-sub">NFC South</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/baltimore-ravens/index.html" data-ah-team data-name="baltimore ravens bal" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/BAL.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Baltimore Ravens</span><span class="ah-team-sub">AFC North</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/buffalo-bills/index.html" data-ah-team data-name="buffalo bills buf" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/BUF.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Buffalo Bills</span><span class="ah-team-sub">AFC East</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/carolina-panthers/index.html" data-ah-team data-name="carolina panthers car" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/CAR.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Carolina Panthers</span><span class="ah-team-sub">NFC South</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/chicago-bears/index.html" data-ah-team data-name="chicago bears chi" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/CHI.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Chicago Bears</span><span class="ah-team-sub">NFC North</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/cincinnati-bengals/index.html" data-ah-team data-name="cincinnati bengals cin" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/CIN.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Cincinnati Bengals</span><span class="ah-team-sub">AFC North</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/cleveland-browns/index.html" data-ah-team data-name="cleveland browns cle" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/CLE.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Cleveland Browns</span><span class="ah-team-sub">AFC North</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/dallas-cowboys/index.html" data-ah-team data-name="dallas cowboys dal" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/DAL.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Dallas Cowboys</span><span class="ah-team-sub">NFC East</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/denver-broncos/index.html" data-ah-team data-name="denver broncos den" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/DEN.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Denver Broncos</span><span class="ah-team-sub">AFC West</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/detroit-lions/index.html" data-ah-team data-name="detroit lions det" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/DET.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Detroit Lions</span><span class="ah-team-sub">NFC North</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/green-bay-packers/index.html" data-ah-team data-name="green bay packers gb" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/GB.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Green Bay Packers</span><span class="ah-team-sub">NFC North</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/houston-texans/index.html" data-ah-team data-name="houston texans hou" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/HOU.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Houston Texans</span><span class="ah-team-sub">AFC South</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/indianapolis-colts/index.html" data-ah-team data-name="indianapolis colts ind" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/IND.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Indianapolis Colts</span><span class="ah-team-sub">AFC South</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/jacksonville-jaguars/index.html" data-ah-team data-name="jacksonville jaguars jax" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/JAX.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Jacksonville Jaguars</span><span class="ah-team-sub">AFC South</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/kansas-city-chiefs/index.html" data-ah-team data-name="kansas city chiefs kc" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/KC.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Kansas City Chiefs</span><span class="ah-team-sub">AFC West</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/las-vegas-raiders/index.html" data-ah-team data-name="las vegas raiders lv" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/LV.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Las Vegas Raiders</span><span class="ah-team-sub">AFC West</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/los-angeles-chargers/index.html" data-ah-team data-name="los angeles chargers lac" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/LAC.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Los Angeles Chargers</span><span class="ah-team-sub">AFC West</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/los-angeles-rams/index.html" data-ah-team data-name="los angeles rams lar" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/LAR.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Los Angeles Rams</span><span class="ah-team-sub">NFC West</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/miami-dolphins/index.html" data-ah-team data-name="miami dolphins mia" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/MIA.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Miami Dolphins</span><span class="ah-team-sub">AFC East</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/minnesota-vikings/index.html" data-ah-team data-name="minnesota vikings min" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/MIN.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Minnesota Vikings</span><span class="ah-team-sub">NFC North</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/new-england-patriots/index.html" data-ah-team data-name="new england patriots ne" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/NE.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">New England Patriots</span><span class="ah-team-sub">AFC East</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/new-orleans-saints/index.html" data-ah-team data-name="new orleans saints no" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/NO.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">New Orleans Saints</span><span class="ah-team-sub">NFC South</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/new-york-giants/index.html" data-ah-team data-name="new york giants nyg" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/NYG.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">New York Giants</span><span class="ah-team-sub">NFC East</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/new-york-jets/index.html" data-ah-team data-name="new york jets nyj" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/NYJ.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">New York Jets</span><span class="ah-team-sub">AFC East</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/philadelphia-eagles/index.html" data-ah-team data-name="philadelphia eagles phi" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/PHI.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Philadelphia Eagles</span><span class="ah-team-sub">NFC East</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/pittsburgh-steelers/index.html" data-ah-team data-name="pittsburgh steelers pit" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/PIT.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Pittsburgh Steelers</span><span class="ah-team-sub">AFC North</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/san-francisco-49ers/index.html" data-ah-team data-name="san francisco 49ers sf" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/SF.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">San Francisco 49ers</span><span class="ah-team-sub">NFC West</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/seattle-seahawks/index.html" data-ah-team data-name="seattle seahawks sea" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/SEA.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Seattle Seahawks</span><span class="ah-team-sub">NFC West</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/tampa-bay-buccaneers/index.html" data-ah-team data-name="tampa bay buccaneers tb" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/TB.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Tampa Bay Buccaneers</span><span class="ah-team-sub">NFC South</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/tennessee-titans/index.html" data-ah-team data-name="tennessee titans ten" data-conf="AFC">
+        <img class="ah-badge" src="/team-badges/TEN.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Tennessee Titans</span><span class="ah-team-sub">AFC South</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/washington-commanders/index.html" data-ah-team data-name="washington commanders was" data-conf="NFC">
+        <img class="ah-badge" src="/team-badges/WAS.png" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        <span class="ah-team-text"><span class="ah-team-name">Washington Commanders</span><span class="ah-team-sub">NFC East</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
     </div>
-  
+    <div class="ah-legacy" data-ah-legacy>
+      <h3 class="ah-sub-title">Historical franchises</h3>
+      <p class="ah-fine">Teams that have since relocated. Their games from those seasons are kept under the name they played as.</p>
+      <div class="ah-grid ah-grid-teams">
+      <a class="ah-card ah-team" href="/historical/teams/oak/index.html" data-ah-team data-name="oakland raiders oak" data-conf="legacy">
+        <span class="ah-badge ah-badge-init" aria-hidden="true">OAK</span>
+        <span class="ah-team-text"><span class="ah-team-name">Oakland Raiders</span><span class="ah-team-sub">2015–2019 &middot; now Las Vegas Raiders</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/sd/index.html" data-ah-team data-name="san diego chargers sd" data-conf="legacy">
+        <span class="ah-badge ah-badge-init" aria-hidden="true">SD</span>
+        <span class="ah-team-text"><span class="ah-team-name">San Diego Chargers</span><span class="ah-team-sub">2015–2016 &middot; now Los Angeles Chargers</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="ah-card ah-team" href="/historical/teams/stl/index.html" data-ah-team data-name="st. louis rams stl" data-conf="legacy">
+        <span class="ah-badge ah-badge-init" aria-hidden="true">STL</span>
+        <span class="ah-team-text"><span class="ah-team-name">St. Louis Rams</span><span class="ah-team-sub">2015 &middot; now Los Angeles Rams</span></span>
+        <span class="ah-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      </div>
+    </div>
+    <p class="ah-empty ah-empty-inline" data-ah-team-empty hidden>No teams match that search.</p>
+  </section>
+
+  <section class="ah-section ah-about" aria-labelledby="about-title">
+    <h2 class="ah-section-title" id="about-title">About the archive</h2>
+    <p>The Blitz Odds archive covers NFL seasons from 2015 to 2026: preseason, regular season and playoff games, each with its final score and a box score with team and player statistics. Results come from ESPN's public scoreboard data. For this week's matchups and win probabilities, see the <a href="/games/">NFL games page</a>.</p>
+  </section>
   <footer class="app-footer">
     <p>Historical archive - final scores and box scores via ESPN's public scoreboard API. Part of Blitz Odds.</p>
     <p class="footer-legal">&copy; <span class="footer-year">2026</span> Blitz Odds. Not affiliated with or endorsed by the National Football League. Team names and marks are the property of their respective owners. <a href="/privacy/">Privacy</a></p>
@@ -626,14 +870,6 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
     setInterval(hideWidgetIframeIfStray, 250);
   }
 })();</script>
-<script>
-    function goTo(id) {
-      var el = document.getElementById(id);
-      el.addEventListener('change', function (e) { if (e.target.value) window.location.href = e.target.value; });
-    }
-    goTo('year-nav');
-    goTo('team-nav');
-  </script>
 <script>(function () {
   try {
     var y = String(new Date().getFullYear());
@@ -641,5 +877,6 @@ html[data-theme="light"] .tab-icon-img { opacity: 0.55; filter: grayscale(0.65) 
     for (var i = 0; i < nodes.length; i++) nodes[i].textContent = y;
   } catch (e) { /* leave the fallback year in place */ }
 })();</script>
+<script src="/js/archive.js?v=e17e395833" defer></script>
 </body>
 </html>

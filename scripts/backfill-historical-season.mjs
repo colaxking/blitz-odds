@@ -37,12 +37,14 @@
  * Writes:
  *   historical/{year}/{preseason|playoffs}/{round-slug}/{away}-at-{home}.html
  *   historical/{year}/{preseason|playoffs}/index.html   (per-phase season index)
- *   historical/index.html                                (root index, all years/phases)
+ *   historical/index.html, historical/{year}/index.html, historical/teams/{slug}/index.html
+ *                                                         (all list pages - via scripts/build-archive-hub.mjs)
  *   sitemap-archive.xml                                   (appends new <url> entries)
  */
 
 import { writeFile, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { buildArchiveHub } from "./build-archive-hub.mjs";
 
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 const YEAR = Number(process.argv[2]);
@@ -1156,231 +1158,11 @@ function mergeGamesIndex(existing, fresh) {
   return Array.from(byPath.values()).sort((a, b) => a.isoDate.localeCompare(b.isoDate));
 }
 
-// Unified per-year page (/historical/{year}/index.html) - every game that
-// year across ALL phases, in true chronological order (sorted by actual
-// date, not grouped by phase first), with a "Jump to" dropdown covering
-// every phase+round and a "Filter by team" dropdown that hides everything
-// except the selected team's games. Answers "select 2023 and see
-// everything in order" directly, rather than making the visitor pick a
-// phase first.
-function buildYearIndexPage(year, gamesForYear) {
-  const title = `${year} NFL Season Results — Preseason, Regular Season & Playoffs | Blitz Odds`;
-  const description = `Every ${year} NFL game in order - preseason, regular season, and playoffs - with final scores and box scores.`;
-  const canonicalPath = `/historical/${year}/index.html`;
-  const breadcrumb = `<a href="/">Home</a> &raquo; ${year} Season`;
-
-  const sorted = [...gamesForYear].sort((a, b) => a.isoDate.localeCompare(b.isoDate));
-
-  // Group consecutive games sharing the same phase+round into one section,
-  // in the order they naturally occur chronologically.
-  const groups = [];
-  for (const g of sorted) {
-    const groupKey = `${g.phaseKey}-${g.round}`;
-    const last = groups[groups.length - 1];
-    if (last && last.key === groupKey) {
-      last.games.push(g);
-    } else {
-      groups.push({ key: groupKey, label: `${PHASES[g.phaseKey].label} - ${g.roundLabel}`, games: [g] });
-    }
-  }
-
-  const jumpOptions = groups.map((grp) => `<option value="group-${grp.key}">${escapeHtml(grp.label)}</option>`).join("\n");
-  const teamOptions = TEAM_ABBRS_SORTED
-    .map((abbr) => `<option value="${abbr}">${escapeHtml(TEAM_FULL_NAMES[abbr] || abbr)}</option>`)
-    .join("\n");
-
-  const bodyHtml = `
-    <span class="archive-badge">Historical Archive — ${year} Season</span>
-    <h2 style="margin-top:0;">${year} NFL Season - All Games</h2>
-    <div class="filter-row">
-      <div class="week-picker">
-        <label for="week-select" style="color:var(--text-dim); font-size:0.82rem;">Jump to:</label>
-        <select id="week-select" class="week-select">
-          <option value="all">All Games</option>
-          ${jumpOptions}
-        </select>
-      </div>
-      <div class="week-picker">
-        <label for="team-select" style="color:var(--text-dim); font-size:0.82rem;">Team:</label>
-        <select id="team-select" class="week-select">
-          <option value="all">All Teams</option>
-          ${teamOptions}
-        </select>
-      </div>
-    </div>
-    <div class="season-index-list">
-      ${groups
-        .map(
-          (grp) => `
-        <div class="season-index-round" id="group-${grp.key}">
-          <h3>${escapeHtml(grp.label)}</h3>
-          ${grp.games
-            .map(
-              (g) => `<a class="season-index-game" data-origin="index" data-away="${g.awayAbbr}" data-home="${g.homeAbbr}" href="${g.canonicalPath}">
-                <span>${escapeHtml(g.awayName)} @ ${escapeHtml(g.homeName)}</span>
-                <span>${g.awayScore}-${g.homeScore}</span>
-              </a>`
-            )
-            .join("\n")}
-        </div>`
-        )
-        .join("\n")}
-    </div>
-  `;
-
-  const pageScript = `
-    document.getElementById('week-select').addEventListener('change', function (e) {
-      var sections = document.querySelectorAll('.season-index-round');
-      var target = e.target.value;
-      sections.forEach(function (s) { s.style.display = (target === 'all' || s.id === target) ? '' : 'none'; });
-    });
-    document.getElementById('team-select').addEventListener('change', function (e) {
-      var team = e.target.value;
-      document.querySelectorAll('.season-index-round').forEach(function (group) {
-        var anyVisible = false;
-        group.querySelectorAll('.season-index-game').forEach(function (row) {
-          var match = team === 'all' || row.dataset.away === team || row.dataset.home === team;
-          row.style.display = match ? '' : 'none';
-          if (match) anyVisible = true;
-        });
-        group.style.display = anyVisible ? '' : 'none';
-      });
-      // Filtering by team overrides the week/round jump - reset it to avoid
-      // a confusing combination where both filters fight each other.
-      document.getElementById('week-select').value = 'all';
-    });
-  `;
-
-  return { html: pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, pageScript }), canonicalPath };
-}
-
-// One page per team (/historical/teams/{team-slug}/index.html) - every
-// game that team has played across every year/phase backfilled so far,
-// newest first, grouped by year. This is the "select a team, see it across
-// the years" entry point - reads from the full persisted games index, not
-// just whatever this run touched, so a team page built today already
-// reflects years backfilled in earlier runs.
-function buildTeamPage(teamAbbr, gamesForTeam) {
-  const teamName = TEAM_FULL_NAMES[teamAbbr] || teamAbbr;
-  const title = `${teamName} Historical Results - Every Season | Blitz Odds`;
-  const description = `Every archived ${teamName} game - preseason, regular season, and playoffs - across all backfilled seasons, with final scores and box scores.`;
-  const canonicalPath = `/historical/teams/${teamSlug(teamAbbr)}/index.html`;
-  const breadcrumb = `<a href="/">Home</a> &raquo; Teams &raquo; ${escapeHtml(teamName)}`;
-
-  const sorted = [...gamesForTeam].sort((a, b) => b.isoDate.localeCompare(a.isoDate)); // newest first
-  const byYear = {};
-  for (const g of sorted) {
-    if (!byYear[g.year]) byYear[g.year] = [];
-    byYear[g.year].push(g);
-  }
-  const years = Object.keys(byYear).sort((a, b) => Number(b) - Number(a));
-
-  const bodyHtml = `
-    <span class="archive-badge">Historical Archive — ${escapeHtml(teamName)}</span>
-    <h2 style="margin-top:0;">${escapeHtml(teamName)} - All Archived Games</h2>
-    <div class="season-index-list">
-      ${years
-        .map(
-          (year) => `
-        <div class="season-index-round">
-          <h3>${escapeHtml(year)}</h3>
-          ${byYear[year]
-            .map((g) => {
-              const opponent = g.awayAbbr === teamAbbr ? g.homeAbbr : g.awayAbbr;
-              const opponentName = TEAM_FULL_NAMES[opponent] || opponent;
-              const atOrVs = g.awayAbbr === teamAbbr ? "@" : "vs";
-              const teamScore = g.awayAbbr === teamAbbr ? g.awayScore : g.homeScore;
-              const oppScore = g.awayAbbr === teamAbbr ? g.homeScore : g.awayScore;
-              const result = teamScore > oppScore ? "W" : teamScore < oppScore ? "L" : "T";
-              return `<a class="season-index-game" data-origin="team" data-away="${g.awayAbbr}" data-home="${g.homeAbbr}" data-team="${teamAbbr}" href="${g.canonicalPath}">
-                <span>${escapeHtml(PHASES[g.phaseKey].label)} ${escapeHtml(g.roundLabel)} - ${atOrVs} ${escapeHtml(opponentName)}</span>
-                <span class="team-result-${result.toLowerCase()}">${result} ${teamScore}-${oppScore}</span>
-              </a>`;
-            })
-            .join("\n")}
-        </div>`
-        )
-        .join("\n")}
-    </div>
-  `;
-
-  return { html: pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml }), canonicalPath };
-}
-
-// Sorted list of team abbrs, alphabetical by full team name - used to
-// build team dropdowns/grids in a stable order rather than object
-// insertion order (TEAM_FULL_NAMES is itself already roughly alphabetical
-// by city, but sort explicitly rather than relying on that).
-const TEAM_ABBRS_SORTED = Object.entries(TEAM_FULL_NAMES)
-  .sort(([, nameA], [, nameB]) => nameA.localeCompare(nameB))
-  .map(([abbr]) => abbr);
-
-// Root archive index (/historical/index.html) - a "Select Season" dropdown
-// and a "Select Team" dropdown, each navigating on change rather than
-// presenting a long flat list of links. Built from the full persisted
-// games index so it reflects every year/team with any archived games, not
-// just what this run touched.
-async function rebuildRootIndex() {
-  const allGames = await loadGamesIndex();
-  const years = Array.from(new Set(allGames.map((g) => g.year))).sort((a, b) => Number(b) - Number(a));
-  const teamsWithGames = Array.from(new Set(allGames.flatMap((g) => [g.awayAbbr, g.homeAbbr]))).sort();
-
-  const title = "Historical NFL Results Archive | Blitz Odds";
-  const description = "Browse final scores and box scores from past NFL seasons, by year or by team, archived by Blitz Odds.";
-  const canonicalPath = "/historical/index.html";
-  const breadcrumb = `<a href="/">Home</a> &raquo; Historical Archive`;
-
-  const yearOptions = years.map((y) => `<option value="/historical/${y}/index.html">${y} Season</option>`).join("\n");
-  const teamOptions = teamsWithGames
-    .map((abbr) => `<option value="/historical/teams/${teamSlug(abbr)}/index.html">${escapeHtml(TEAM_FULL_NAMES[abbr] || abbr)}</option>`)
-    .join("\n");
-
-  const yearLinks = years.map((y) => `<a href="/historical/${y}/index.html">${y} NFL season</a>`).join(" ");
-  const teamLinks = teamsWithGames
-    .map((abbr) => `<a href="/historical/teams/${teamSlug(abbr)}/index.html">${escapeHtml(TEAM_FULL_NAMES[abbr] || abbr)}</a>`)
-    .join(" ");
-
-  const bodyHtml = `
-    <span class="archive-badge">Historical Archive</span>
-    <h2 style="margin-top:0;">Historical Results Archive</h2>
-    <div class="menu-block">
-      <label for="year-nav" style="color:var(--text-dim); font-size:0.82rem;">Browse by season:</label>
-      <select id="year-nav" class="week-select" style="width:100%; margin-top:6px;">
-        <option value="">Select a season&hellip;</option>
-        ${yearOptions}
-      </select>
-    </div>
-    <div class="menu-block" style="margin-top:18px;">
-      <label for="team-nav" style="color:var(--text-dim); font-size:0.82rem;">Browse by team:</label>
-      <select id="team-nav" class="week-select" style="width:100%; margin-top:6px;">
-        <option value="">Select a team&hellip;</option>
-        ${teamOptions}
-      </select>
-    </div>
-    <!-- Plain links as well as the dropdowns: a <select> that navigates on
-         change is invisible to crawlers, which left this page - the only
-         entry into the archive from the rest of the site - linking to none
-         of the seasons or team histories under it. -->
-    <div class="menu-block archive-links" style="margin-top:22px;">
-      <h3 style="margin:0 0 6px; font-size:0.95rem;">All seasons</h3>
-      <p style="display:flex; flex-wrap:wrap; gap:6px 16px; margin:0; font-size:0.9rem;">${yearLinks}</p>
-      <h3 style="margin:18px 0 6px; font-size:0.95rem;">All teams</h3>
-      <p style="display:flex; flex-wrap:wrap; gap:6px 16px; margin:0; font-size:0.9rem;">${teamLinks}</p>
-    </div>
-  `;
-  const pageScript = `
-    function goTo(id) {
-      var el = document.getElementById(id);
-      el.addEventListener('change', function (e) { if (e.target.value) window.location.href = e.target.value; });
-    }
-    goTo('year-nav');
-    goTo('team-nav');
-  `;
-
-  const html = pageShell({ title, description, canonicalPath, breadcrumb, bodyHtml, pageScript });
-  await writeFileEnsureDir(`.${canonicalPath}`, html);
-  return canonicalPath;
-}
+// The season, season-phase, team and landing pages are written by
+// scripts/build-archive-hub.mjs from the games index saved above (it was
+// buildYearIndexPage / buildTeamPage / rebuildRootIndex in this file until
+// November 2026). main() calls it once the index has been merged, so a
+// backfill run leaves every list page current, not just this year's.
 
 async function runPhase(year, phaseKey) {
   const phaseDef = PHASES[phaseKey];
@@ -1481,22 +1263,11 @@ async function main() {
   // (It previously was, and lacked a leading slash besides, producing a
   // malformed "https://blitz-odds.comdata/..." sitemap entry.)
 
-  const gamesForThisYear = mergedIndex.filter((g) => g.year === YEAR);
-  const yearIndex = buildYearIndexPage(YEAR, gamesForThisYear);
-  await writeFileEnsureDir(`.${yearIndex.canonicalPath}`, yearIndex.html);
-  allNewPaths.push(yearIndex.canonicalPath);
-
-  const teamsTouchedThisRun = Array.from(new Set(allGameRecords.flatMap((g) => [g.awayAbbr, g.homeAbbr])));
-  for (const teamAbbr of teamsTouchedThisRun) {
-    const gamesForTeam = mergedIndex.filter((g) => g.awayAbbr === teamAbbr || g.homeAbbr === teamAbbr);
-    const teamPage = buildTeamPage(teamAbbr, gamesForTeam);
-    await writeFileEnsureDir(`.${teamPage.canonicalPath}`, teamPage.html);
-    allNewPaths.push(teamPage.canonicalPath);
-  }
-  log(`rebuilt ${teamsTouchedThisRun.length} team archive page(s).`);
-
-  const rootIndexPath = await rebuildRootIndex();
-  allNewPaths.push(rootIndexPath);
+  // Every list page (this year, each phase, every team, the landing page)
+  // is rebuilt from the merged index. That also replaces the plain per-phase
+  // index runPhase() just wrote with the current design.
+  const hub = await buildArchiveHub({ log });
+  allNewPaths.push(...hub.pages.filter((p) => !allNewPaths.includes(p)));
 
   const added = await updateSitemap(allNewPaths);
   log(`wrote ${allNewPaths.length} pages total, added ${added} sitemap entries.`);

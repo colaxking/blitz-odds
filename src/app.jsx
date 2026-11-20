@@ -18083,7 +18083,7 @@ function HomeScoreboard({ week, tz, cfbOn, onOpenGames, onOpenCollege, placement
         {activeSport === "cfb"
           ? "The percentage is the pregame market favorite's implied chance to win, not a Blitz Edge prediction and not a live probability."
           : "The percentage is the Blitz Edge pick made before kickoff, not a live win probability."}
-        {" "}On a final, "Picked the winner" means that pick won the game; one result does not show the percentage itself was right.
+        {" "}One result does not show a percentage was right.
       </p>
       <a className="hl-more hs-all-bottom" href={allHref} onClick={homeNav(() => { trackEvent("home_scores_all", { sport: activeSport }); openAll(); })}>View All Football Scores &rarr;</a>
     </section>
@@ -18148,16 +18148,29 @@ const HOME_INSIGHT_TAG = {
   confident: "Most confident, no line posted",
 };
 
+/** The headline figure on an insight card: how many percentage points the
+ *  model sits above or below the market on its own pick. Whole-number
+ *  percentages subtracted, so it always equals the two bars shown. */
+function homeGapBadge(ins) {
+  if (ins.gap == null) return { num: "n/a", label: "no market line yet", tone: "none" };
+  if (ins.gap === 0) return { num: "0", label: "points apart: model matches market", tone: "flat" };
+  const pts = Math.abs(ins.gap);
+  return {
+    num: (ins.gap > 0 ? "+" : "\u2212") + pts,
+    label: `${pts === 1 ? "point" : "points"} ${ins.gap > 0 ? "above" : "below"} the market`,
+    tone: pts >= 6 ? "wide" : "flat",
+  };
+}
+
 function homeInsightText(ins) {
   const r = ins.row;
   const pickNick = teamNickname(r.pick === r.home ? r.homeName : r.awayName);
   const otherNick = teamNickname(r.pick === r.home ? r.awayName : r.homeName);
-  const pts = ins.gap == null ? null : Math.abs(ins.gap);
-  if (ins.kind === "disagree") return `The model leans ${pickNick} at ${r.pct}%. The moneylines make the ${otherNick} the favorite and imply ${ins.market}% for the ${pickNick}.`;
-  if (ins.kind === "gap") return `Both favor the ${pickNick}, but the model says ${r.pct}% and the moneylines imply ${ins.market}%: ${pts} points ${ins.gap > 0 ? "higher" : "lower"}.`;
-  if (ins.kind === "tossup") return `The model has this one at ${r.awayPct}% to ${r.homePct}%, close to a coin flip${ins.market != null ? `. The moneylines imply ${ins.market}% for the ${pickNick}` : ""}.`;
-  if (ins.kind === "agree") return `The model (${r.pct}%) and the moneylines (${ins.market}%) land within ${pts} ${pts === 1 ? "point" : "points"} of each other on the ${pickNick}.`;
-  return `The model's most confident remaining call, at ${r.pct}%. No moneyline is posted yet to compare it with.`;
+  if (ins.kind === "disagree") return `The model picks the ${pickNick}. The market favors the ${otherNick}.`;
+  if (ins.kind === "gap") return `Both favor the ${pickNick}. The model is ${ins.gap > 0 ? "more" : "less"} sure than the market.`;
+  if (ins.kind === "tossup") return `Near a coin flip for the model: ${r.away} ${r.awayPct}%, ${r.home} ${r.homePct}%.`;
+  if (ins.kind === "agree") return `Model and market see the ${pickNick} about the same way.`;
+  return `The model's most confident remaining call. No moneyline to compare yet.`;
 }
 
 /* The league preview in "How Blitz Odds Works". Names, records and points
@@ -18287,7 +18300,7 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
               <ul>
                 <li><b>What the number is.</b> The model's estimate of each team's chance to win the game outright. The two percentages add up to 100.</li>
                 <li><b>What goes in.</b> Each team's league ranks in total, rushing and passing yards on offense and defense, home field, players listed out or questionable, and the forecast for outdoor games. Early in the season, last year's final ranks are blended in.</li>
-                <li><b>When it updates.</b> It recalculates as team stats, injury reports, and weather change, and it is frozen at kickoff, so a finished game shows the call as it stood before the game.</li>
+                <li><b>When it updates.</b> It recalculates as team stats, injury reports, and weather change, up to kickoff. A finished game keeps showing the pregame call.</li>
                 <li><b>What it isn't.</b> A guarantee, or betting advice. It is an estimate.</li>
               </ul>
               {onOpenHowItWorks && <button type="button" className="hl-explain-more" onClick={onOpenHowItWorks}>Read the full explanation</button>}
@@ -18301,7 +18314,8 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
       <HomeScoreboard week={week} tz={tz} cfbOn={cfbOn} onOpenGames={onOpenGames} onOpenCollege={onOpenCollege} placement="landing" />
 
       {/* D - benefits */}
-      <section className="hl-sec" aria-label="What you can do on Blitz Odds">
+      <section className="hl-sec" aria-labelledby="hl-benefits">
+        <h2 id="hl-benefits" className="sr-only">What you can do on Blitz Odds</h2>
         <div className="hl-grid3">
           <div className="home-card hl-benefit">
             <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 20h18M7 16V9M12 16V4M17 16v-5" /></svg>
@@ -18332,7 +18346,6 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
             <li><span className="hl-step-n" aria-hidden="true">1</span><div><h3>Create or Join</h3><p>Start your own free pick'em league or join an existing one.</p></div></li>
             <li><span className="hl-step-n" aria-hidden="true">2</span><div><h3>Make Your Picks</h3><p>Use Blitz Edge predictions and matchup insights to select your teams.</p></div></li>
             <li><span className="hl-step-n" aria-hidden="true">3</span><div><h3>Track Results</h3><p>Follow game scores and league standings without manual spreadsheets.</p></div></li>
-            <li className="hl-steps-cta"><button type="button" className="home-btn primary hl-btn-lg" onClick={cta("create_league", "how", onCreateLeague)}>Create a Free League</button></li>
           </ol>
           <div className="home-card hl-league" role="group" aria-label="Example league preview">
             <div className="hl-league-head">
@@ -18341,7 +18354,7 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
             </div>
             <div className="hl-league-body">
               <div>
-                <h3>Standings</h3>
+                <h3>Standings <span>most points leads</span></h3>
                 <table className="hl-league-table">
                   <thead><tr><th scope="col"><span className="sr-only">Rank</span></th><th scope="col">Player</th><th scope="col">Record</th><th scope="col">Points</th></tr></thead>
                   <tbody>
@@ -18352,7 +18365,7 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
                 </table>
               </div>
               <div>
-                <h3>Your {periodLabel} picks</h3>
+                <h3>Your {periodLabel} picks <span>points if right</span></h3>
                 {sheet.length > 0 ? (
                   <ul className="hl-league-picks">
                     {sheet.map((r, i) => (
@@ -18369,11 +18382,19 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
                 )}
               </div>
             </div>
-            <p className="hl-fine">
-              An example of a confidence league. Names, records and points are made up; the matchups and
-              win percentages are this week's real games and model picks. In a confidence pool you put your
-              most points on the picks you trust most.
-            </p>
+            <details className="hl-explain" onToggle={(e) => { if (e.currentTarget.open) trackEvent("home_scoring_explain", { placement: "league_preview" }); }}>
+              <summary>See How Scoring Works</summary>
+              <ul>
+                <li><b>Rank your picks.</b> In a confidence league you give each game a different number of points, {slateSize || "one per game"} down to 1. Put the most on the pick you trust most.</li>
+                <li><b>Right picks pay.</b> A correct pick earns the points you put on it. A wrong pick earns none.</li>
+                <li><b>Standings add it up.</b> Points total across the season, and the most points leads. Blitz Odds grades every game and updates the standings for you.</li>
+                <li><b>Other formats.</b> Straight-Up counts correct picks, Against the Spread grades picks against the point spread, and Survivor is one team a week.</li>
+              </ul>
+            </details>
+            <div className="hl-league-foot">
+              <button type="button" className="home-btn primary hl-btn-lg" onClick={() => { trackEvent("home_cta", { cta: "create_league", placement: "league_preview" }); onCreateLeague(); }}>Create a League Like This</button>
+              <p className="hl-fine">Example only: names, records and points are made up. Matchups and percentages are this week's real games and model picks.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -18386,17 +18407,17 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
         <div className="hl-grid3 hl-why">
           <div className="hl-why-cell is-edge">
             <h3>Predictions on the Record</h3>
-            <p>Every Blitz Edge call is frozen at kickoff and shown next to the final score, whether it was right or wrong.</p>
+            <p>Every Blitz Edge pregame call stays on the page next to the final score, right or wrong.</p>
             <a className="hl-more" href="/games/" onClick={homeNav(cta("all_games", "why", onOpenGames))}>See this week's calls and results &rarr;</a>
           </div>
           <div className="hl-why-cell is-league">
             <h3>Leagues That Score Themselves</h3>
-            <p>Picks lock at kickoff, every game is graded when it ends, and the standings update on their own.</p>
+            <p>No spreadsheets. Picks lock at kickoff, games are graded for you, and standings update on their own.</p>
             <a className="hl-more" href="/leagues/" onClick={homeNav(cta("explore_leagues", "why", onOpenLeagues))}>Browse pick'em leagues &rarr;</a>
           </div>
           <div className="hl-why-cell is-data">
-            <h3>Every Season Since 2015</h3>
-            <p>Final scores and box scores for every NFL game back to 2015, searchable by season and team.</p>
+            <h3>NFL Results Archive Since 2015</h3>
+            <p>Final scores and box scores back to the 2015 season, by season and by team.</p>
             <a className="hl-more" href="/historical/index.html">Browse the results archive &rarr;</a>
           </div>
         </div>
@@ -18406,6 +18427,7 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
       <section className="hl-sec" aria-labelledby="hl-formats">
         <div className="hl-head">
           <div><h2 id="hl-formats">Pick'em Formats</h2><p>Every format is free. Choose one when you create a league.</p></div>
+          {onOpenHowItWorks && <button type="button" className="hl-more hl-linkbtn" onClick={() => { trackEvent("home_cta", { cta: "formats_help", placement: "formats" }); onOpenHowItWorks(); }}>How each format works &rarr;</button>}
         </div>
         <div className="hl-grid4">
           {HOME_FORMAT_CARDS.map((f) => (
@@ -18443,6 +18465,7 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
                     <img src={`/team-badges/${p.home}.png`} alt="" width="32" height="32" loading="lazy" decoding="async" />
                   </span>
                   <span className="hl-pickcard-when">{p.day}{p.time ? ` · ${p.time}` : ""}</span>
+                  <span className={"hl-insight-gap is-" + homeGapBadge(ins).tone}><b>{homeGapBadge(ins).num}</b><span>{homeGapBadge(ins).label}</span></span>
                   <span className="hl-insight-bars">
                     <span className="hl-insight-row"><span>Model · {p.pick}</span><span className="hl-insight-track"><span className="is-model" style={{ width: p.pct + "%" }} /></span><b>{p.pct}%</b></span>
                     <span className="hl-insight-row"><span>Market · {p.pick}</span><span className="hl-insight-track">{ins.market != null && <span className="is-market" style={{ width: ins.market + "%" }} />}</span><b>{ins.market != null ? ins.market + "%" : "n/a"}</b></span>
@@ -18453,12 +18476,15 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
               );
             })}
           </div>
-          <p className="hl-fine hl-insight-note">
-            Model is the Blitz Edge pregame win probability. Market is the win probability implied by the
-            posted moneylines, with the sportsbook's margin removed. A gap between them shows where the two
-            estimates disagree. It is a reason to look closer at a game, not a betting edge, and a high win
-            probability on its own is not a gap.
-          </p>
+          <details className="hl-explain hl-insight-note">
+            <summary>How to read these cards</summary>
+            <ul>
+              <li><b>Model</b> is the Blitz Edge pregame win probability for its pick.</li>
+              <li><b>Market</b> is the win probability the posted moneylines imply for the same team, with the sportsbook's margin removed.</li>
+              <li><b>The big number</b> is model minus market, in percentage points. A wide gap means the two estimates disagree. It is a reason to look closer at a game, not a betting edge.</li>
+              <li><b>A high win probability is not a gap.</b> A 90% favorite the market also has at 90% shows 0.</li>
+            </ul>
+          </details>
           <div className="hl-center">
             <a className="home-btn hl-btn-lg" href="/games/" onClick={homeNav(cta("all_games", "picks", onOpenGames))}>View All NFL Games &amp; Predictions</a>
           </div>
@@ -18474,6 +18500,7 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
         <div className="hl-acts">
           <button type="button" className="home-btn primary hl-btn-lg" onClick={cta("create_league", "closing", onCreateLeague)}>Create Your Free League</button>
           <a className="home-btn hl-btn-lg" href="/games/" onClick={homeNav(cta("explore_picks", "closing", onOpenGames))}>Explore NFL Picks</a>
+          <a className="hl-more hl-close-join" href="/leagues/" onClick={homeNav(cta("join_league", "closing", onJoinLeague))}>Have an invite code? Join a league &rarr;</a>
         </div>
       </section>
 

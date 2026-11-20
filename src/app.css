@@ -661,6 +661,15 @@
   .hl-faq-list summary h3 { display: inline; margin: 0; font-size: 1rem; font-weight: 700; }
   .hl-faq-list p { margin: 0; padding: 0 2px 16px; color: var(--text-dim); font-size: .94rem; line-height: 1.55; max-width: 76ch; }
 
+  /* Light theme contrast on the landing page. The site-wide light accent
+     (#0f8f83) is 3.0:1 as text on the page background and 4.0:1 on a white
+     card, and the dim text is 4.2:1 on the page background - all under the
+     4.5:1 AA floor for body-size text. Scoped to .hl so the rest of the app
+     keeps its tokens: a slightly deeper teal (4.6:1 / 6.0:1) and dim grey
+     (5.2:1), with white on the teal buttons (6.0:1). */
+  html[data-theme="light"] .hl { --accent: #0a6f66; --accent-rgb: 10,111,102; --text-dim: #4d5c70; }
+  html[data-theme="light"] .hl .home-btn.primary { color: #ffffff; }
+
   /* ---- Phase 2 refinements --------------------------------------------- */
   /* Visible keyboard focus on everything interactive on the page. */
   .hl a:focus-visible, .hl button:focus-visible, .hl summary:focus-visible {
@@ -736,6 +745,22 @@
   }
   .hl-insight-tag.is-disagree, .hl-insight-tag.is-gap { color: var(--blitz-orange); border-color: var(--blitz-orange); }
   .hl-insight-tag.is-agree, .hl-insight-tag.is-confident { color: var(--accent); border-color: rgba(var(--accent-rgb), .6); }
+  /* The card's headline: model minus market, in percentage points. */
+  .hl-insight-gap { display: flex; align-items: baseline; gap: 8px; }
+  .hl-insight-gap b { font-size: 2rem; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
+  .hl-insight-gap span { font-size: .82rem; font-weight: 600; color: var(--text-dim); }
+  .hl-insight-gap.is-wide b { color: var(--blitz-orange); }
+  .hl-insight-gap.is-none b { font-size: 1.3rem; color: var(--text-dim); }
+  .hl-insight-note { margin-top: 12px; border-top: 0; }
+  .hl-league-body h3 span { text-transform: none; letter-spacing: 0; font-weight: 600; margin-left: 6px; opacity: .85; }
+  .hl-league-foot { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; margin-top: auto; }
+  .hl-league-foot .hl-fine { flex: 1 1 220px; }
+  .hl-linkbtn { background: none; border: 0; padding: 0; font-family: inherit; cursor: pointer; }
+  .hl-close-join { flex-basis: 100%; min-height: 44px; }
+  /* Contrast: the example flag and the live pill use the pill text tokens,
+     which clear AA on their tinted fills in both themes. */
+  .hl-league-flag { color: var(--pill-questionable-text) !important; }
+  .hs-status.is-live, .hs-seg button.has-live { color: var(--pill-out-text) !important; }
   .hl-insight-teams { display: flex; align-items: center; gap: 10px; }
   .hl-insight-teams img { flex: none; width: 32px; height: 32px; }
   .hl-insight-teams b { font-size: 1.02rem; }
@@ -750,7 +775,6 @@
   .hl-insight-track .is-market { background: var(--edge-b); }
   .hl-insight-text { font-size: .86rem; line-height: 1.5; color: var(--text-dim); }
   .hl-insight .hs-link { margin-top: auto; }
-  .hl-insight-note { margin-top: 12px; max-width: 92ch; }
   .hs-note { margin-top: 10px; }
 
   @media (max-width: 860px) {
@@ -768,6 +792,7 @@
   }
   @media (max-width: 560px) {
     .hl-league { padding: 16px 14px; }
+    .hl-league-foot .home-btn { flex: 1 1 100%; }
     .hl-league-body { grid-template-columns: 1fr; }
   }
 

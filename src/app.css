@@ -6272,3 +6272,291 @@
   @media (max-width: 720px) {
     .app-toast { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
   }
+
+
+  /* ==========================================================
+     Pick'em command center ("pickemHome" flag): signed-in Home,
+     the Leagues page and the league-complete card. Everything
+     here is scoped under .pk, so with the flag off none of it
+     can touch an existing page.
+     ========================================================== */
+  /* Secondary text a step brighter than the site token inside this
+     surface only - league meta and lock times are read at a glance on a
+     phone. The light theme gets the same deeper teal and dim grey the
+     landing page uses so everything clears 4.5:1. */
+  .pk { --text-dim: #b3c1d6; }
+  html[data-theme="light"] .pk { --accent: #0a6f66; --accent-rgb: 10,111,102; --text-dim: #44536a; }
+  html[data-theme="light"] .pk .home-btn.primary { color: #ffffff; }
+  .pk h2, .pk h3, .pk h4, .pk p { margin: 0; }
+  .pk .home-btn { min-height: 44px; font-size: .9rem; }
+  .pk .home-btn:disabled { opacity: .6; cursor: default; }
+  .pk button:focus-visible, .pk select:focus-visible, .pk input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pk-sub { color: var(--text-dim); font-size: .875rem; line-height: 1.4; }
+  .pk-fine { color: var(--text-dim); font-size: .78rem; margin-top: 10px !important; }
+  .pk-dim { color: var(--text-dim); display: inline-flex; }
+  .pk-good { color: var(--pill-good-text); display: inline-flex; }
+  .pk-ico { flex: none; }
+  .pk-link { background: none; border: 0; padding: 0; font-family: inherit; font-size: .9rem; font-weight: 700;
+    color: var(--accent); cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; }
+  .pk-link:hover { text-decoration: underline; }
+  .pk-sub .pk-link { min-height: 0; display: inline; font-size: inherit; }
+
+  .pk-greet { display: flex; align-items: center; justify-content: space-between; gap: 12px 18px; flex-wrap: wrap; margin-top: 20px; }
+  .pk-greet h2 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
+  .pk-greet-acts { display: flex; align-items: center; gap: 16px; }
+
+  .pk-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; align-items: start; margin-top: 18px; }
+  .pk-layout.no-rail { grid-template-columns: minmax(0, 1fr); }
+  .pk-main { display: flex; flex-direction: column; gap: 26px; min-width: 0; }
+  .pk-sec { margin-top: 30px; }
+  .pk-main > .pk-sec { margin-top: 0; }
+  .pk-sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px 18px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pk-sec-head h3 { font-size: 1.1rem; font-weight: 800; }
+  .pk-sec-acts { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+  /* Hero */
+  .pk-hero { padding: 20px 22px; border-color: var(--accent); }
+  .pk-hero-top { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 14px; flex-wrap: wrap; }
+  .pk-hero-body { display: flex; align-items: center; gap: 16px 30px; flex-wrap: wrap; margin-top: 8px; }
+  .pk-hero-num { flex: 1 1 260px; min-width: 0; }
+  .pk-count { font-size: 2.4rem; font-weight: 900; line-height: 1.05; letter-spacing: -.02em; }
+  .pk-hero-prog { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .pk-hero-prog .pk-bar { flex: 1; height: 10px; }
+  .pk-hero-prog span { font-size: .875rem; font-weight: 700; white-space: nowrap; }
+  .pk-hero-ctx { margin-top: 8px !important; }
+  .pk-hero-acts { display: flex; flex-direction: column; gap: 8px; flex: 0 1 280px; }
+  .pk-cta { min-height: 50px !important; font-size: 1rem !important; padding: 0 24px; }
+  .pk-start-with { display: flex; align-items: center; gap: 8px; font-size: .875rem; color: var(--text-dim); }
+  .pk-start-with select { flex: 1; min-width: 0; min-height: 44px; }
+  .pk-start-one { text-align: center; }
+  .pk-when { display: flex; align-items: center; gap: 6px; font-size: .875rem; font-weight: 700; color: var(--text); }
+  .pk-when em { font-style: normal; font-weight: 500; color: var(--text-dim); }
+  .pk-allset { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; border-color: var(--card-border); }
+  .pk-allset-txt { flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px; }
+  .pk-allset .pk-count { font-size: 2rem; }
+  .pk-start h2 { font-size: 1.5rem; font-weight: 900; line-height: 1.15; }
+  .pk-steps { margin: 12px 0 0; padding-left: 22px; display: grid; gap: 6px; font-size: .95rem; }
+  .pk-start-acts { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+  .pk-bar { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  html[data-theme="light"] .pk-bar { background: #cfd8e4; }
+  .pk-bar i { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
+  /* The count that still needs doing: a pill with a dot, so it reads as a
+     status without leaning on orange text alone. */
+  .pk-left { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--card-border); font-size: .82rem; font-weight: 800;
+    white-space: nowrap; color: var(--text); }
+  .pk-left i { width: 8px; height: 8px; border-radius: 999px; background: var(--blitz-orange); }
+
+  /* Needs Your Picks */
+  .pk-needs { display: flex; flex-direction: column; gap: 10px; }
+  .pk-need { display: flex; align-items: center; gap: 14px 20px; flex-wrap: wrap; padding: 16px 18px; }
+  .pk-need + .pk-need { margin-top: 0; }
+  .pk-sec > .pk-need + .pk-need { margin-top: 10px; }
+  .pk-need-id { flex: 2 1 200px; min-width: 0; }
+  .pk-need-id h4 { font-size: 1.02rem; font-weight: 800; overflow-wrap: anywhere; }
+  .pk-need-id .hd-req-badge { margin-top: 6px; }
+  .pk-need-prog { flex: 3 1 240px; min-width: 0; }
+  .pk-need-prog-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .875rem; font-weight: 700; margin-bottom: 6px; }
+  .pk-need-prog .pk-when { margin-top: 8px; }
+  .pk-need-cta { flex: 0 0 auto; }
+
+  /* Completed + Upcoming: one grid, two columns, every card row the same
+     height (grid-auto-rows: 1fr), so the two kinds of card always match. */
+  .pk-cu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; grid-auto-rows: 1fr; gap: 12px 16px; }
+  .pk-cu-h { font-size: 1.1rem; font-weight: 800; grid-row: 1; align-self: end; }
+  .pk-cu-c1 { grid-column: 1; }
+  .pk-cu-c2 { grid-column: 2; }
+  .pk-cu-card { padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; min-width: 0; height: 100%; box-sizing: border-box; }
+  .pk-cu-card.is-empty { grid-row: 2; justify-content: center; }
+  .pk-cu-top { display: flex; align-items: center; gap: 10px; }
+  .pk-cu-top h4 { font-size: 1.02rem; font-weight: 800; overflow-wrap: anywhere; }
+  .pk-cu-status { font-size: .9rem; font-weight: 700; }
+  .pk-cu-acts { margin-top: auto; padding-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Locks */
+  .pk-phone-only { display: none; }
+  .pk-rail { padding: 18px; }
+  .pk-rail-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .pk-rail-head .pk-link { font-size: .82rem; }
+  .pk-rail-empty { margin-top: 10px !important; }
+  .pk-rail-next { margin-top: 12px; padding: 12px; border-radius: 10px; background: var(--surface-2); }
+  .pk-rail-next-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .pk-rail-next .pk-left { background: var(--card-bg); }
+  .pk-rail-next .pk-link { font-size: .82rem; }
+  .pk-matchup { display: flex; align-items: center; gap: 7px; width: 100%; min-height: 44px; margin-top: 6px; padding: 0;
+    background: none; border: 0; border-top: 1px solid var(--card-border); color: var(--text); font-family: inherit;
+    font-size: .875rem; font-weight: 700; cursor: pointer; text-align: left; }
+  .pk-matchup em { font-style: normal; font-weight: 500; color: var(--text-dim); }
+  .pk-edge { margin-left: auto; font-size: .8rem; white-space: nowrap; }
+  .pk-lock-list { display: flex; flex-direction: column; }
+  .pk-lock-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 10px 0;
+    border-bottom: 1px solid var(--card-border); font-size: .84rem; }
+  .pk-lock-row span { display: flex; flex-direction: column; }
+  .pk-lock-row em { font-style: normal; color: var(--text-dim); }
+  .pk-lock-n { text-align: right; align-items: flex-end; }
+  .pk-locked-line { display: flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: .82rem; padding-top: 10px; }
+  .pk-rail-live-none { padding: 10px 0; border-bottom: 1px solid var(--card-border); font-size: .82rem; }
+  .pk-live { padding: 10px 0; border-bottom: 1px solid var(--card-border); display: grid; gap: 4px; }
+  .pk-live-row { display: flex; justify-content: space-between; gap: 10px; background: none; border: 0; padding: 4px 0; color: var(--text);
+    font-family: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; min-height: 32px; }
+  .pk-locks { padding: 12px 16px; }
+  .pk-locks-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .pk-locks-main { font-size: .95rem; font-weight: 800; margin-top: 2px !important; }
+  .pk-locks .pk-lock-list { margin-top: 10px; border-top: 1px solid var(--card-border); }
+
+  /* Discover */
+  .pk-discover { padding: 20px 22px; border-radius: 14px; background: var(--card-bg); border: 1px solid var(--card-border); }
+  .pk-discover.is-prominent { border-color: var(--accent); }
+  .pk-disc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  .pk-disc { display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 12px; background: var(--surface-2); min-width: 0; }
+  .pk-disc h4, .pk-dir-card h4 { font-size: 1.02rem; font-weight: 800; overflow-wrap: anywhere; }
+  .pk-disc-meta { display: flex; flex-direction: column; gap: 2px; font-size: .875rem; flex: 1; }
+  .pk-disc-meta span { color: var(--text-dim); }
+  .pk-join { border-color: var(--accent) !important; color: var(--accent) !important; background: transparent !important; }
+  .pk-disc-foot { margin-top: 14px !important; }
+  .pk-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pk-tags span { font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px;
+    border-radius: 6px; background: var(--card-bg); color: var(--text-dim); border: 1px solid var(--card-border); }
+  .pk-tags .is-official { color: var(--accent); }
+  .pk-joined { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 16px; margin-bottom: 14px; border-color: var(--pill-good-text); }
+  .pk-joined-txt { flex: 1 1 220px; display: flex; flex-direction: column; gap: 2px; font-size: .9rem; }
+  .pk-joined-txt span { color: var(--text-dim); font-size: .875rem; }
+  .pk-joined-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Season performance + standings */
+  .pk-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .pk-kpi { padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .pk-kpi b { font-size: 1.5rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .pk-stand { padding: 2px 18px; }
+  .pk-stand-row { display: flex; align-items: center; gap: 6px 18px; flex-wrap: wrap; width: 100%; min-height: 52px; padding: 10px 0;
+    background: none; border: 0; border-bottom: 1px solid var(--card-border); color: var(--text); font-family: inherit;
+    font-size: .9rem; text-align: left; cursor: pointer; }
+  .pk-stand-row:last-child { border-bottom: 0; }
+  .pk-stand-name { flex: 2 1 180px; font-weight: 800; overflow-wrap: anywhere; }
+  .pk-stand-you { flex: 1 1 130px; }
+  .pk-stand-lead { flex: 2 1 160px; }
+  .pk-stand-go { flex: 0 0 auto; color: var(--accent); font-weight: 700; }
+
+  /* Loading and error states keep the page's shape. */
+  .pk-skel { border-radius: 14px; background: var(--surface-2); animation: pk-pulse 1.4s ease-in-out infinite; }
+  .pk-skel-title { height: 34px; width: 260px; max-width: 70%; margin-top: 22px; }
+  .pk-skel-hero { height: 150px; margin-top: 18px; }
+  .pk-skel-row { height: 78px; margin-top: 12px; }
+  @keyframes pk-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+  @media (prefers-reduced-motion: reduce) { .pk-skel { animation: none; } }
+  .pk-error { padding: 20px; margin-top: 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  /* Sticky phone action: only rendered while picks are left and the hero's
+     own button is off screen. Phones only. */
+  .pk-sticky { display: none; }
+
+  /* League-complete card (on a league's pick sheet) */
+  .pk-complete { padding: 20px; margin: 0 0 18px; display: flex; flex-direction: column; gap: 14px; border-color: var(--pill-good-text); scroll-margin-top: 90px; }
+  .pk-complete-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .pk-complete-head h3 { font-size: 1.4rem; font-weight: 900; }
+  .pk-complete-n { font-weight: 700; }
+  .pk-complete-status { border: 1px solid var(--card-border); border-radius: 12px; padding: 2px 14px; }
+  .pk-complete-status p { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: .9rem; flex-wrap: wrap; }
+  .pk-complete-status p + p { border-top: 1px solid var(--card-border); }
+  .pk-complete-next { border: 1px solid var(--accent); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .pk-complete-next-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .pk-complete-next-top b { font-size: 1.05rem; }
+  .pk-complete-all { display: flex; flex-direction: column; gap: 4px; }
+  .pk-complete-acts { display: flex; gap: 8px; }
+  .pk-complete-acts .home-btn { flex: 1; }
+  @media (min-width: 721px) { .pk-complete { max-width: 560px; margin-left: auto; margin-right: auto; } }
+
+  /* Leagues page */
+  .pk-leagues .pk-greet { margin-top: 0; }
+  .pk-leagues .lgx-title { margin: 0; }
+  .pk-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-2); margin: 14px 0 16px; max-width: 460px; }
+  .pk-tabs button { flex: 1; min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--text-dim);
+    font-family: inherit; font-size: .95rem; font-weight: 800; cursor: pointer; }
+  .pk-tabs button.on { background: var(--card-bg); color: var(--text); box-shadow: 0 0 0 1px var(--card-border); }
+  .pk-mine { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .pk-mine-card { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .pk-mine-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .pk-mine-top h4 { font-size: 1.02rem; font-weight: 800; overflow-wrap: anywhere; }
+  .pk-mine-state { font-size: .82rem; font-weight: 800; white-space: nowrap; }
+  .pk-mine-acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+  .pk-dir { display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
+  .pk-dir-q { width: 100%; min-height: 48px; font-size: 16px; box-sizing: border-box; }
+  .pk-filter { display: flex; flex-direction: column; gap: 6px; }
+  .pk-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+  .pk-chip { flex: none; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--card-border);
+    background: transparent; color: var(--text-dim); font-family: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; }
+  .pk-chip.on { background: var(--accent); border-color: var(--accent); color: #04121a; }
+  html[data-theme="light"] .pk-chip.on { color: #ffffff; }
+  .pk-dir-count { font-size: .875rem; font-weight: 700; }
+  .pk-dir-list { display: flex; flex-direction: column; gap: 10px; }
+  .pk-dir-card { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .pk-dir-card .pk-tags span { background: var(--surface-2); }
+  .pk-dir-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .pk-dir-act .league-btn { min-height: 44px; }
+  .pk-code { padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+  .pk-code h4 { font-size: 1.02rem; font-weight: 800; }
+  .pk-code-row { display: flex; gap: 8px; margin-top: 6px; }
+  .pk-code-row input { flex: 1; min-width: 0; min-height: 48px; font-size: 16px; }
+
+  @media (max-width: 1000px) {
+    .pk-layout { grid-template-columns: minmax(0, 1fr); }
+    .pk-rail { display: none; }
+    .pk-phone-only { display: block; }
+  }
+  @media (max-width: 720px) {
+    /* Room for the sticky action above the fixed tab bar, so the last
+       section is never left underneath it. */
+    .pk-home { padding-bottom: 68px; }
+    .pk-greet { margin-top: 12px; }
+    .pk-greet h2 { font-size: 1.3rem; }
+    .pk-greet-acts { width: 100%; justify-content: space-between; }
+    .pk-main { gap: 22px; }
+    .pk-layout { margin-top: 12px; }
+    .pk-hero { padding: 16px; }
+    .pk-hero-top .pk-when { display: none; }
+    .pk-count { font-size: 2rem; }
+    .pk-hero-body { margin-top: 4px; gap: 12px; }
+    .pk-hero-acts { flex: 1 1 100%; }
+    .pk-need { padding: 14px 16px; gap: 12px; }
+    .pk-need-id, .pk-need-prog { flex: 1 1 100%; }
+    .pk-need-cta { width: 100%; }
+    /* One compact list on a phone: Completed cards, then Upcoming. */
+    .pk-cu { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: auto; gap: 10px; }
+    .pk-cu-h.is-empty-col { display: none; }
+    .pk-cu-c1, .pk-cu-c2 { grid-column: 1; }
+    .pk-cu > * { grid-row: auto !important; }
+    .pk-cu-h.pk-cu-c2 { order: 2; margin-top: 8px; }
+    .pk-cu-card.pk-cu-c2 { order: 3; }
+    .pk-cu-card { padding: 14px 16px; }
+    .pk-cu-card.is-empty { display: none; }
+    .pk-discover { padding: 16px; }
+    .pk-disc-grid { grid-template-columns: minmax(0, 1fr); }
+    /* Two leagues on a phone while picks are due; all of them once the
+       reader is set or has no league yet. */
+    .pk-discover:not(.is-prominent) .pk-disc:nth-child(n+3) { display: none; }
+    .pk-sec-acts { width: 100%; justify-content: space-between; }
+    .pk-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .pk-stand-lead { display: none; }
+    .pk-stand-name { flex: 1 1 100%; }
+    .pk-stand-you { flex: 1; }
+    .pk-sticky {
+      display: flex; align-items: center; gap: 12px; position: fixed; left: 0; right: 0; z-index: 490;
+      bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+      padding: 8px 16px; background: var(--card-bg); border-top: 1px solid var(--card-border);
+    }
+    .pk-sticky-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: .875rem; }
+    .pk-sticky-txt span { color: var(--text-dim); font-size: .8rem; }
+    .pk-mine { grid-template-columns: minmax(0, 1fr); }
+    .pk-mine-acts .home-btn { flex: 1; }
+    .pk-tabs { max-width: none; }
+    .pk-code-row { flex-wrap: wrap; }
+    .pk-code-row .home-btn { flex: 1 1 100%; }
+    .pk-joined .home-btn { flex: 1; }
+  }
+  @media (max-width: 360px) {
+    .pk-count { font-size: 1.7rem; }
+    .pk-kpi b { font-size: 1.3rem; }
+    .pk-dir-row { flex-wrap: wrap; }
+    .pk-dir-act, .pk-dir-act .league-btn { width: 100%; }
+  }

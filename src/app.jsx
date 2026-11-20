@@ -10725,7 +10725,7 @@ function LeagueSettingsPanel({ auth, league, onClose, onUpdated, onDeleted, onGo
 // search/browse for signed-out visitors (search is open to everyone; join,
 // create, and "My Leagues" require sign-in - enforced both here and
 // server-side by the functions themselves).
-function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myLeagues, initialCode, initialError }) {
+function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myLeagues, initialCode, initialError, variant = "table", onShowMine = null, bowlsEnabled = false, openNow = false, weekLabel = "" }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null); // null = not searched yet
   const [total, setTotal] = useState(0);
@@ -10740,6 +10740,12 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myL
   const [joinCodeError, setJoinCodeError] = useState(initialError || null);
   const [formatFilter, setFormatFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  // Card variant (the command center's Discover tab) only: NFL vs bowl
+  // pools, and the league just joined, which gets a confirmation in place
+  // instead of a jump into the league.
+  const [sportFilter, setSportFilter] = useState("");
+  const [joinedLeague, setJoinedLeague] = useState(null);
+  const cards = variant === "cards";
   // Per-league outcome of a join request, keyed by league id: "pending" once
   // it's lodged, "member" if the server says they were already in. Kept
   // local rather than folded into `results` so a re-search (which replaces
@@ -10757,6 +10763,7 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myL
       const params = new URLSearchParams({ q, limit: String(PAGE_SIZE), offset: String(offset) });
       if (formatFilter) params.set("format", formatFilter);
       if (typeFilter) params.set("type", typeFilter);
+      if (cards && sportFilter) params.set("sport", sportFilter);
       const url = `/.netlify/functions/leagues-search?${params.toString()}`;
       // Signed in, go through authenticatedFetch so the server can annotate
       // each private league with this user's own request status. Signed out,
@@ -10809,7 +10816,7 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myL
     // auth.status is a dependency because signing in mid-session is what
     // unlocks the per-user requestStatus annotations - without it, someone
     // who signs in while this page is open keeps the signed-out results.
-  }, [query, formatFilter, typeFilter, auth.status]);
+  }, [query, formatFilter, typeFilter, sportFilter, auth.status]);
 
   function handleShowMore() {
     // leagues-search caps limit at 50 per call, so the window grows by
@@ -10842,6 +10849,7 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myL
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to join league");
       trackEvent("league_join_result", { format: league.format, official: !!league.official, ok: true });
+      if (cards) setJoinedLeague(data.league);
       onJoined(data.league);
     } catch (err) {
       trackEvent("league_join_result", { format: league.format, official: !!league.official, ok: false });
@@ -10890,6 +10898,7 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myL
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Failed to join league");
       setJoinCode("");
+      if (cards) setJoinedLeague(data.league);
       onJoined(data.league);
     } catch (err) {
       setJoinCodeError(err.message || "Failed to join league");
@@ -10963,6 +10972,113 @@ function LeagueSearchSection({ auth, onRequestLogin, onJoined, onViewLeague, myL
         onClick={() => handleRequest(l)}>
         {requestingId === l.id ? "Requesting…" : "Request to Join"}
       </button>
+    );
+  }
+
+  if (cards) {
+    // Leagues the reader is already in are left out here - this tab is for
+    // finding another one, and theirs are one tap away under My Leagues.
+    // Bowl pools follow the bowls flag like every other bowl surface.
+    const visible = (results || []).filter((l) => !memberIds.has(l.id) && (l.sport !== "bowls" || bowlsEnabled));
+    const chip = (cur, val, label, set) => (
+      <button type="button" key={val || "all"} className={"pk-chip" + (cur === val ? " on" : "")}
+        aria-pressed={cur === val} onClick={() => set(val)}>{label}</button>
+    );
+    return (
+      <div className="pk-dir">
+        {joinedLeague && (
+          <div className="home-card pk-joined" role="status">
+            <span className="pk-good"><PkIcon name="check" size={22} /></span>
+            <div className="pk-joined-txt">
+              <b>You're in {joinedLeague.name}</b>
+              <span>Added to My Leagues{openNow && joinedLeague.sport !== "bowls" ? `. ${weekLabel} picks are open now.` : "."}</span>
+            </div>
+            <div className="pk-joined-acts">
+              <button type="button" className="home-btn primary" onClick={() => onViewLeague && onViewLeague(joinedLeague.id)}>Make Picks</button>
+              {onShowMine && <button type="button" className="home-btn" onClick={onShowMine}>View My Leagues</button>}
+            </div>
+          </div>
+        )}
+        <label className="sr-only" htmlFor="pk-dir-q">Search leagues by name</label>
+        <input id="pk-dir-q" type="search" className="league-input pk-dir-q" placeholder="Search leagues by name"
+          value={query} onChange={(e) => setQuery(e.target.value)} />
+        <div className="pk-filter">
+          <span className="home-eyebrow" id="pk-dir-fmt">Game type</span>
+          <div className="pk-chips" role="group" aria-labelledby="pk-dir-fmt">
+            {chip(formatFilter, "", "All", setFormatFilter)}
+            {LEAGUE_FORMAT_OPTIONS.map((f) => chip(formatFilter, f.value, PK_FORMAT_LABELS[f.value] || f.label, setFormatFilter))}
+          </div>
+        </div>
+        {bowlsEnabled && (
+          <div className="pk-filter">
+            <span className="home-eyebrow" id="pk-dir-sport">Competition</span>
+            <div className="pk-chips" role="group" aria-labelledby="pk-dir-sport">
+              {chip(sportFilter, "", "All", setSportFilter)}
+              {chip(sportFilter, "nfl", "NFL", setSportFilter)}
+              {chip(sportFilter, "bowls", "College Football", setSportFilter)}
+            </div>
+          </div>
+        )}
+
+        {searching && results === null && <div className="pk-skel pk-skel-row" aria-hidden="true" />}
+        {searchError && <p className="leagues-error">{searchError}</p>}
+        {results && !searching && (
+          <p className="pk-dir-count">
+            {visible.length === 0
+              ? (query.trim() ? `No leagues match "${query.trim()}".` : "No leagues match those filters yet.")
+              : `${visible.length}${canShowMore ? "+" : ""} ${visible.length === 1 ? "league" : "leagues"} you can join`}
+          </p>
+        )}
+        <div className="pk-dir-list">
+          {visible.map((l) => (
+            <article className="home-card pk-dir-card" key={l.id}>
+              <div className="pk-tags">
+                <span>{PK_FORMAT_LABELS[l.format] || shortLabel(l.format)}</span>
+                <span>{l.sport === "bowls" ? "College Football" : "NFL"}</span>
+                {l.official && <span className="is-official">Official</span>}
+                {l.visibility !== "public" && <span>Private</span>}
+              </div>
+              <h4>{l.name}</h4>
+              <div className="pk-dir-row">
+                <p className="pk-disc-meta">
+                  <b>{l.memberCount}{l.maxMembers ? ` of ${l.maxMembers}` : ""} members</b>
+                  <span>
+                    {l.full ? "Full" : l.visibility === "public" ? "Open to join" : "Commissioner approves requests"}
+                    {!l.full && openNow && l.sport !== "bowls" ? ` \u00b7 ${weekLabel} playable now` : ""}
+                  </span>
+                </p>
+                <div className="pk-dir-act">{renderAction(l)}</div>
+              </div>
+              {requestErrorId === l.id && <p className="leagues-error">{requestError}</p>}
+              {joinErrorId === l.id && <p className="leagues-error">Couldn't join that league.</p>}
+            </article>
+          ))}
+        </div>
+        {results && visible.length === 0 && !searching && (
+          <p className="pk-sub">Clear a filter, or start a league and invite your group.</p>
+        )}
+        {canShowMore && (
+          <div className="lgx-more">
+            <button type="button" className="league-btn" onClick={handleShowMore} disabled={loadingMore}>
+              {loadingMore ? "Loading\u2026" : "Show more leagues"}
+            </button>
+          </div>
+        )}
+
+        <section className="home-card pk-code" aria-labelledby="pk-code-h">
+          <h4 id="pk-code-h">Have an invite or league code?</h4>
+          <p className="pk-sub">Private leagues keep their code, password or commissioner approval.</p>
+          <form className="pk-code-row" onSubmit={handleJoinByCode}>
+            <label className="sr-only" htmlFor="pk-code-in">League code</label>
+            <input id="pk-code-in" className="league-input league-input-code" placeholder="League code" maxLength={12}
+              value={joinCode} onChange={(e) => setJoinCode(e.target.value)} />
+            <button type="submit" className="home-btn" disabled={joiningCode || !joinCode.trim()}>
+              {joiningCode ? "Joining\u2026" : "Join with Code"}
+            </button>
+          </form>
+          {joinCodeError && <p className="leagues-error">{joinCodeError}</p>}
+        </section>
+      </div>
     );
   }
 
@@ -13349,7 +13465,7 @@ function LeaguePickCard({ game, format, maxConfidence, usedTeams, takenConfidenc
   );
 }
 
-function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
+function LeagueWeekPanel({ auth, league, week, tz, onOpenGame, pickem = null }) {
   // Seeded straight from the cache, so reopening a league or stepping back
   // to a week already visited paints immediately with the previous payload
   // and refreshes underneath. Only a genuinely uncached week shows a
@@ -13710,6 +13826,34 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
     }
   }
 
+  /* Command center ("pickemHome" flag) only: the league-complete card. It
+     appears when a save in THIS visit takes the number of open games without
+     a finished pick from something to zero - not on opening a sheet that was
+     already complete - and only for the current week, since "up next" is
+     about what is still owed now. */
+  const pkLeft = (() => {
+    if (!pickem || !data) return null;
+    const openGames = data.games.filter(g => !g.locked);
+    if (data.format === "survivor") return data.games.some(g => g.pick && g.pick.team) ? 0 : (openGames.length ? 1 : 0);
+    return openGames.filter(g => !(g.pick && g.pick.team && (data.format !== "confidence" || typeof g.pick.confidence === "number"))).length;
+  })();
+  const pkPrevLeftRef = useRef(null);
+  const [pkShowComplete, setPkShowComplete] = useState(false);
+  useEffect(() => {
+    if (pkLeft == null || savingGameId || pickChainBusy) return;
+    // Compared within one week only: stepping from a week with picks owed to
+    // one that is finished is navigation, not a completion.
+    const prevRec = pkPrevLeftRef.current;
+    const prev = prevRec && prevRec.week === week && prevRec.gamesKey === gameIdsKey ? prevRec.left : null;
+    pkPrevLeftRef.current = { week, gamesKey: gameIdsKey, left: pkLeft };
+    if (prev != null && prev > 0 && pkLeft === 0 && week === pkCurrentWeek()) {
+      setPkShowComplete(true);
+      trackEvent("league_picks_complete", { format: data.format });
+    }
+    if (pkLeft > 0) setPkShowComplete(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pkLeft, savingGameId, pickChainBusy]);
+
   if (loadError) return <p className="leagues-error">{loadError}</p>;
   if (!data) return <p className="leagues-empty">Loading…</p>;
 
@@ -13746,6 +13890,18 @@ function LeagueWeekPanel({ auth, league, week, tz, onOpenGame }) {
   return (
     <>
       {shareSpec && <ShareSheet spec={shareSpec} onClose={() => setShareSpec(null)} />}
+      {pickem && pkShowComplete && (
+        <PkLeagueComplete
+          auth={auth}
+          league={league}
+          week={week}
+          tz={tz}
+          weekData={data}
+          onOpenLeague={pickem.onOpenLeague}
+          onGoHome={pickem.onGoHome}
+          onDismiss={() => setPkShowComplete(false)}
+        />
+      )}
       <PicksProgressRing
         complete={data.picksComplete}
         total={data.totalGames}
@@ -14981,8 +15137,11 @@ function LeagueRequestsPanel({ auth, league, onPendingChange }) {
   );
 }
 
-function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, initialWeek, onOpenLeagueRoute, onGoHome, onOpenGame, bowlsEnabled = false, initialSport = null, onOpenBowls = null }) {
+function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumePendingJoin, initialLeagueId, initialSubTab, initialLeagueSubTab, initialWeek, onOpenLeagueRoute, onGoHome, onOpenGame, bowlsEnabled = false, initialSport = null, onOpenBowls = null, pickemHome = false }) {
   const { leagues, error: leaguesError, upsertLeague, removeLeague } = useMyLeagues(auth);
+  // Command center only: "Create League" on the new Leagues page opens the
+  // existing create wizard, which lives in LeaguesLandingPage.
+  const [pkCreating, setPkCreating] = useState(false);
   // /leagues/{id} opens straight into that league. Initial value only -
   // once someone navigates inside the tab, their clicks own this, not the
   // URL it was first loaded with.
@@ -15129,6 +15288,7 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
    * happen to live in the same component.
    */
   const landingIsDeadEnd =
+    !pickemHome &&
     auth.status === "in" &&
     !selectedLeagueId &&
     !managingLeagueId &&
@@ -15269,7 +15429,16 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
               </button>
             )}
           </div>
-          {subTab === "week" && <LeagueWeekPanel auth={auth} league={league} week={week} tz={tz} onOpenGame={onOpenGame} />}
+          {subTab === "week" && (
+            <LeagueWeekPanel
+              key={league.id}
+              auth={auth} league={league} week={week} tz={tz} onOpenGame={onOpenGame}
+              pickem={pickemHome ? {
+                onOpenLeague: (id) => { setSelectedLeagueId(id); setSubTab("week"); setWeek(clampToRegularSeasonWeek(pkCurrentWeek())); },
+                onGoHome: typeof onGoHome === "function" ? onGoHome : null,
+              } : null}
+            />
+          )}
           {subTab === "picks" && <LeaguePicksPanel auth={auth} profile={profile} league={league} week={week} tz={tz} />}
           {subTab === "standings" && <LeagueStandingsPanel auth={auth} profile={profile} league={league} week={week} />}
           {subTab === "requests" && isOwner && league.visibility === "private" && (
@@ -15298,6 +15467,30 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   // frame of a page we've decided doesn't exist.
   if (landingIsDeadEnd) return null;
 
+  // Command center on: signed in, the Leagues destination is its own page
+  // (My Leagues / Discover). Create, and a failed invite link that needs the
+  // landing page's error and code box, still use LeaguesLandingPage below.
+  const pkJoinLinkFailed = !!(pendingJoin && pendingJoin.type === "leagueId");
+  if (pickemHome && auth.status === "in" && !pkCreating && initialSubTab !== "create" && !pkJoinLinkFailed) {
+    return (
+      <PickemLeaguesPage
+        auth={auth}
+        tz={tz}
+        initialTab={initialSubTab === "search" || pendingJoin ? "discover" : "mine"}
+        myLeagues={leagues}
+        upsertLeague={upsertLeague}
+        bowlsEnabled={bowlsEnabled}
+        onSelectLeague={(id) => setSelectedLeagueId(id)}
+        onOpenLeagueTab={(id, tab) => { setSelectedLeagueId(id); setSubTab(tab); if (tab === "week") setWeek(clampToRegularSeasonWeek(pkCurrentWeek())); }}
+        onManageLeague={(id) => setManagingLeagueId(id)}
+        onCreate={() => setPkCreating(true)}
+        onRequestLogin={onRequestLogin}
+        autoJoinCode={pendingJoin && pendingJoin.type === "code" && autoJoinError ? pendingJoin.value : null}
+        autoJoinCodeError={pendingJoin && pendingJoin.type === "code" ? autoJoinError : null}
+      />
+    );
+  }
+
   return (
     <LeaguesLandingPage
       auth={auth}
@@ -15311,7 +15504,7 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
       autoJoinCode={pendingJoin && pendingJoin.type === "code" && autoJoinError ? pendingJoin.value : null}
       autoJoinCodeError={pendingJoin && pendingJoin.type === "code" ? autoJoinError : null}
       joinLinkError={pendingJoin && pendingJoin.type === "leagueId" ? autoJoinError : null}
-      initialSubTab={initialSubTab}
+      initialSubTab={pkCreating ? "create" : initialSubTab}
       onGoHome={onGoHome}
       bowlsEnabled={bowlsEnabled}
       initialSport={initialSport}
@@ -18528,7 +18721,7 @@ function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLe
  * change, switching tabs isn't. */
 let homeSummaryCache = { key: null, data: null };
 
-function useHomeSummary(auth, week) {
+function useHomeSummary(auth, week, nonce) {
   const key = String(week);
   const [state, setState] = useState(() =>
     homeSummaryCache.key === key ? { status: "ready", data: homeSummaryCache.data } : { status: "loading", data: null }
@@ -18557,7 +18750,10 @@ function useHomeSummary(auth, week) {
       }
     })();
     return () => { cancelled = true; };
-  }, [auth.status, auth.authenticatedFetch, key]);
+    // `nonce` lets a caller ask for a re-read after it changed something
+    // (joined a league) without a week change; the cached payload stays on
+    // screen while the fresh one loads.
+  }, [auth.status, auth.authenticatedFetch, key, nonce]);
 
   return state;
 }
@@ -19061,13 +19257,1112 @@ function HomeDashboard({ auth, profile, week, sportsbookId, tz, onOpenLeagues, o
   );
 }
 
+/* ==================== PICK'EM COMMAND CENTER ====================
+ * Behind the "pickemHome" flag (admin console > Features). With the flag off
+ * nothing in this block renders and the signed-in Home is HomeDashboard,
+ * exactly as before.
+ *
+ * The page answers one question first - what do I still have to pick, and
+ * by when - and everything else (discovering leagues, season numbers,
+ * standings) sits below that. Scores live on the Games tab; the desktop rail
+ * here only carries the kickoffs that lock the reader's own unfinished picks.
+ *
+ * HOW PICKS ARE COUNTED (one rule, used by the hero, the league cards, the
+ * sticky phone bar, the Leagues page and the league-complete card):
+ *   required = games in the current week that have not kicked off
+ *   made     = of those, the ones with a saved pick
+ *   left     = required - made
+ * A game that has kicked off is out of all three, whether it was picked or
+ * missed - it is not something anyone can still act on. Picks made before a
+ * game locked, and games missed, are reported separately as context.
+ * Survivor is one pick a week: required is 1 while the reader is alive, has
+ * no pick in, and at least one game is still open; a saved pick on a game
+ * that has not kicked off counts as made (it can still be changed).
+ * Bowl pools are never part of the weekly numbers - they are listed under
+ * Upcoming with their own count. */
+
+const PK_FORMAT_LABELS = { straight_up: "Straight Up", confidence: "Confidence", survivor: "Survivor", ats: "ATS" };
+
+function pkCurrentWeek() {
+  return getDefaultWeek();
+}
+
+function pkWeekGames(week) {
+  const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
+  return getGamesForWeek(week).map((g) => ({
+    key: `${g.away}-${g.home}`,
+    away: g.away,
+    home: g.home,
+    date: g.date,
+    time: g.time,
+    ms: gameKickoffUtcMs(g.date, g.time, seasonYear),
+  }));
+}
+
+/** A kickoff in the reader's own time zone. Null when the instant is unknown
+ *  (a flexed game with no time yet) - callers print nothing rather than a
+ *  made-up time. */
+function pkWhen(ms, tz) {
+  if (ms == null) return null;
+  try {
+    const d = new Date(ms);
+    const zone = tz || undefined;
+    const day = new Intl.DateTimeFormat("en-US", { timeZone: zone, weekday: "short" }).format(d);
+    const date = new Intl.DateTimeFormat("en-US", { timeZone: zone, month: "short", day: "numeric" }).format(d);
+    const time = new Intl.DateTimeFormat("en-US", { timeZone: zone, hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(d);
+    return { short: `${day} ${time}`, long: `${day}, ${date} · ${time}` };
+  } catch (e) {
+    return null;
+  }
+}
+
+/** One league's pick state for the week, by the rule in the header note. */
+function pkLeagueStatus(l, games, now) {
+  if (l.sport === "bowls") {
+    const sheet = l.bowlSheet || null;
+    return { kind: "bowl", known: !!sheet, left: sheet ? (sheet.openUnpicked || 0) : 0, sheet };
+  }
+  const base = {
+    kind: "nfl", known: false, required: 0, made: 0, left: 0, lockedMade: 0, missed: 0,
+    nextLockMs: null, openLeft: new Set(), savedOpen: new Set(), eliminated: false, survivor: l.format === "survivor",
+  };
+  // No pick list from the server (an older cached response, or a week the
+  // schedule doesn't cover): the state is unknown, which is not the same as
+  // zero. The card says so instead of printing a count.
+  if (!l.week || !Array.isArray(l.week.pickedGames) || !games.length) return base;
+  const picked = new Set(l.week.pickedGames);
+  const open = games.filter((g) => g.ms == null || g.ms > now);
+  const locked = games.filter((g) => g.ms != null && g.ms <= now);
+  const st = { ...base, known: true };
+
+  if (l.format === "survivor") {
+    if (l.survivor && l.survivor.alive === false) return { ...st, eliminated: true };
+    const mine = games.find((g) => picked.has(g.key));
+    if (mine) {
+      const stillOpen = open.indexOf(mine) !== -1;
+      if (stillOpen) { st.required = 1; st.made = 1; st.savedOpen.add(mine.key); }
+      else st.lockedMade = 1;
+      return st;
+    }
+    if (!open.length) { st.missed = locked.length ? 1 : 0; return st; }
+    st.required = 1; st.left = 1;
+    const times = open.map((g) => g.ms).filter((ms) => ms != null);
+    st.nextLockMs = times.length ? Math.min.apply(null, times) : null;
+    return st;
+  }
+
+  open.forEach((g) => { if (picked.has(g.key)) st.savedOpen.add(g.key); else st.openLeft.add(g.key); });
+  st.required = open.length;
+  st.made = st.savedOpen.size;
+  st.left = st.openLeft.size;
+  st.lockedMade = locked.filter((g) => picked.has(g.key)).length;
+  st.missed = locked.length - st.lockedMade;
+  const times = open.filter((g) => st.openLeft.has(g.key)).map((g) => g.ms).filter((ms) => ms != null);
+  st.nextLockMs = times.length ? Math.min.apply(null, times) : null;
+  return st;
+}
+
+/** Everything the command center shows about picks, from one home-summary
+ *  payload. Pure, so the hero, the cards and the complete screen cannot
+ *  disagree. */
+function pkOverview(leagues, week, now) {
+  const games = pkWeekGames(week);
+  const rows = (leagues || []).map((l) => ({ league: l, st: pkLeagueStatus(l, games, now) }));
+  const nfl = rows.filter((r) => r.st.kind === "nfl");
+  const known = nfl.filter((r) => r.st.known);
+  const byUrgency = (a, b) => {
+    const am = a.st.nextLockMs, bm = b.st.nextLockMs;
+    if (am != null && bm != null && am !== bm) return am - bm;
+    if (am != null && bm == null) return -1;
+    if (am == null && bm != null) return 1;
+    // Same lock: the league already started comes first, so "continue"
+    // resumes work in progress before opening a blank sheet.
+    const ap = a.st.made > 0 ? 1 : 0, bp = b.st.made > 0 ? 1 : 0;
+    if (ap !== bp) return bp - ap;
+    return b.st.left - a.st.left;
+  };
+  const needs = known.filter((r) => r.st.left > 0).sort(byUrgency);
+  const done = known.filter((r) => r.st.left === 0);
+  const totals = known.reduce((t, r) => ({
+    required: t.required + r.st.required, made: t.made + r.st.made, left: t.left + r.st.left,
+    lockedMade: t.lockedMade + r.st.lockedMade, missed: t.missed + r.st.missed,
+  }), { required: 0, made: 0, left: 0, lockedMade: 0, missed: 0 });
+
+  // Kickoffs that still matter to this reader, soonest first: how many of
+  // their picks each one closes, and how many they already have in on it.
+  const groups = new Map();
+  games.forEach((g) => {
+    if (g.ms == null || g.ms <= now) return;
+    let todo = 0, saved = 0;
+    const names = [];
+    known.forEach((r) => {
+      if (r.st.openLeft.has(g.key)) { todo++; if (names.indexOf(r.league.name) === -1) names.push(r.league.name); }
+      else if (r.st.savedOpen.has(g.key)) saved++;
+    });
+    if (!todo && !saved) return;
+    const grp = groups.get(g.ms) || { ms: g.ms, games: [], todo: 0, saved: 0, leagues: [] };
+    grp.games.push(g);
+    grp.todo += todo;
+    grp.saved += saved;
+    names.forEach((n) => { if (grp.leagues.indexOf(n) === -1) grp.leagues.push(n); });
+    groups.set(g.ms, grp);
+  });
+  const locks = Array.from(groups.values()).sort((a, b) => a.ms - b.ms);
+  const todoLocks = locks.filter((k) => k.todo > 0);
+  const survivorOwed = needs.filter((r) => r.st.survivor);
+  const openTimes = games.filter((g) => g.ms != null && g.ms > now).map((g) => g.ms);
+
+  return {
+    week, games, rows, needs, done, totals, locks, todoLocks, survivorOwed,
+    upcoming: rows.filter((r) => r.st.kind === "bowl"),
+    unknown: nfl.filter((r) => !r.st.known),
+    nextLockMs: needs.length && needs[0].st.nextLockMs != null ? needs[0].st.nextLockMs : null,
+    openGameCount: games.filter((g) => g.ms == null || g.ms > now).length,
+    nextKickoffMs: openTimes.length ? Math.min.apply(null, openTimes) : null,
+  };
+}
+
+/** First kickoff of the week after `week`, for the all-done states. */
+function pkNextWeekStart(week) {
+  const next = week + 1;
+  if (next !== clampToRegularSeasonWeek(next)) return null;
+  const times = pkWeekGames(next).map((g) => g.ms).filter((ms) => ms != null);
+  return times.length ? { week: next, ms: Math.min.apply(null, times) } : null;
+}
+
+function pkRankText(l) {
+  if (l.format === "survivor") {
+    if (!l.survivor) return null;
+    if (!l.survivor.alive) return "Eliminated";
+    const leftStrikes = l.survivor.strikesAllowed - l.survivor.strikes;
+    return l.survivor.strikesAllowed > 1
+      ? `Alive · ${leftStrikes} of ${l.survivor.strikesAllowed} ${l.survivor.strikesAllowed === 1 ? "strike" : "strikes"} left`
+      : "Alive";
+  }
+  return l.me && l.me.rank ? `${standingsOrdinal(l.me.rank)} of ${l.memberCount}` : null;
+}
+
+function pkLeagueType(l) {
+  const fmt = PK_FORMAT_LABELS[l.format] || l.format;
+  return l.sport === "bowls" ? `Bowl Pick'em · ${fmt}` : fmt;
+}
+
+function PkIcon({ name, size = 16 }) {
+  const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, className: "pk-ico" };
+  if (name === "clock") return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>;
+  if (name === "lock") return <svg {...common}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>;
+  if (name === "check") return <svg {...common}><circle cx="12" cy="12" r="10" /><path d="M8 12.5l3 3 5-6" /></svg>;
+  if (name === "calendar") return <svg {...common}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>;
+  return null;
+}
+
+function PkBar({ made, required, label }) {
+  const pct = required > 0 ? Math.round((made / required) * 100) : 0;
+  return (
+    <div className="pk-bar" role="img" aria-label={label || `${made} of ${required} picks made`}>
+      <i style={{ width: pct + "%" }} />
+    </div>
+  );
+}
+
+function PkLeft({ n }) {
+  return <span className="pk-left"><i aria-hidden="true" />{n} left</span>;
+}
+
+/** The model's pregame pick for an upcoming game, same engine and inputs as
+ *  the game cards. Null if a team is missing from the week's data. */
+function pkBlitzPick(week, g) {
+  try {
+    const context = getWeekContext(week);
+    const home = context.getTeam(g.home);
+    const away = context.getTeam(g.away);
+    if (!home || !away) return null;
+    const p = PredictionEngine.predictMatchup({
+      homeTeam: home, awayTeam: away,
+      homeImpactPlayers: context.getPlayers(g.home),
+      awayImpactPlayers: context.getPlayers(g.away),
+      weather: getWeather(week, g.away, g.home),
+      homeIsDomeTeam: isDomeTeam(home.id), awayIsDomeTeam: isDomeTeam(away.id),
+      week: week,
+    });
+    const homeIsPick = p.predictedWinner === home.id;
+    return { teamId: homeIsPick ? home.id : away.id, pct: Math.round((homeIsPick ? p.homeWinProbability : p.awayWinProbability) * 100) };
+  } catch (e) {
+    return null;
+  }
+}
+
+/** Re-renders on a slow tick so a kickoff passing moves a game out of the
+ *  counts without a reload. */
+function usePkNow() {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+  return now;
+}
+
+/** Public leagues this reader could join right now: not already in, not
+ *  full, and no bowl pools unless the bowls flag is on for them. Ordered by
+ *  the server (official pools, then size), with formats the reader already
+ *  plays moved up - the only "interest" signal the data actually has. */
+function usePkDiscover(auth, memberIds, myFormats, bowlsOn, nonce) {
+  const [state, setState] = useState({ status: "loading", leagues: [] });
+  const memberKey = memberIds.slice().sort().join(",");
+  const formatKey = myFormats.slice().sort().join(",");
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/.netlify/functions/leagues-search?type=public&limit=30");
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "Search failed");
+        const mine = new Set(memberIds);
+        const liked = new Set(myFormats);
+        const open = (json.leagues || [])
+          .filter((l) => l.visibility === "public" && !l.full && !mine.has(l.id))
+          .filter((l) => l.sport !== "bowls" || bowlsOn)
+          .map((l, i) => ({ l, i }))
+          .sort((a, b) => (liked.has(b.l.format) ? 1 : 0) - (liked.has(a.l.format) ? 1 : 0) || a.i - b.i)
+          .map((x) => x.l);
+        if (!cancelled) setState({ status: "ready", leagues: open });
+      } catch (e) {
+        if (!cancelled) setState({ status: "error", leagues: [] });
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberKey, formatKey, bowlsOn, nonce]);
+  return state;
+}
+
+function PkDiscover({ auth, leagues, status, prominent, openNow, weekLabel, onJoined, onBrowse, onCreate, onCode, onOpenLeague }) {
+  const [joiningId, setJoiningId] = useState(null);
+  const [joinError, setJoinError] = useState(null);
+  const [joined, setJoined] = useState(null);
+  const shown = leagues.slice(0, prominent ? 6 : 3);
+
+  async function join(l) {
+    if (joiningId) return;
+    setJoiningId(l.id);
+    setJoinError(null);
+    trackEvent("league_join", { format: l.format, official: !!l.official, outcome: "attempt", surface: "home_discover" });
+    try {
+      const res = await auth.authenticatedFetch("/.netlify/functions/league-join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueId: l.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Failed to join league");
+      trackEvent("league_join_result", { format: l.format, official: !!l.official, ok: true, surface: "home_discover" });
+      setJoined({ id: data.league.id, name: data.league.name });
+      onJoined(data.league);
+    } catch (err) {
+      trackEvent("league_join_result", { format: l.format, official: !!l.official, ok: false, surface: "home_discover" });
+      setJoinError({ id: l.id, message: err.message || "Failed to join league" });
+    } finally {
+      setJoiningId(null);
+    }
+  }
+
+  return (
+    <section className={"pk-sec pk-discover" + (prominent ? " is-prominent" : "")} aria-labelledby="pk-discover-h">
+      <div className="pk-sec-head">
+        <div>
+          <h3 id="pk-discover-h">{prominent ? "Room for another league?" : "Discover Leagues"}</h3>
+          <p className="pk-sub">Public leagues that are open to new members.</p>
+        </div>
+        <div className="pk-sec-acts">
+          <button type="button" className="pk-link" onClick={onCreate}>Create a League</button>
+          <button type="button" className="home-btn" onClick={onBrowse}>Browse All Leagues</button>
+        </div>
+      </div>
+
+      {joined && (
+        <div className="home-card pk-joined" role="status">
+          <span className="pk-good"><PkIcon name="check" size={22} /></span>
+          <div className="pk-joined-txt">
+            <b>You're in {joined.name}</b>
+            <span>It is now in your leagues{openNow ? `, and ${weekLabel} picks are open.` : "."}</span>
+          </div>
+          <button type="button" className="home-btn primary" onClick={() => onOpenLeague(joined.id)}>Make Picks</button>
+        </div>
+      )}
+
+      {status === "loading" && <div className="pk-skel pk-skel-row" aria-hidden="true" />}
+      {status === "error" && <p className="pk-sub">Couldn't load public leagues right now. <button type="button" className="pk-link" onClick={onBrowse}>Browse all leagues</button></p>}
+      {status === "ready" && shown.length === 0 && !joined && (
+        <p className="pk-sub">No other public leagues are open right now. <button type="button" className="pk-link" onClick={onCreate}>Start your own</button></p>
+      )}
+      {shown.length > 0 && (
+        <div className="pk-disc-grid">
+          {shown.map((l) => (
+            <article className="pk-disc" key={l.id}>
+              <div className="pk-tags">
+                <span>{PK_FORMAT_LABELS[l.format] || l.format}</span>
+                <span>{l.sport === "bowls" ? "College Football" : "NFL"}</span>
+                {l.official && <span className="is-official">Official</span>}
+              </div>
+              <h4>{l.name}</h4>
+              <p className="pk-disc-meta">
+                <b>{l.memberCount}{l.maxMembers ? ` of ${l.maxMembers}` : ""} {l.memberCount === 1 && !l.maxMembers ? "member" : "members"}</b>
+                <span>Open to join{openNow && l.sport !== "bowls" ? ` · ${weekLabel} playable now` : ""}</span>
+              </p>
+              <button type="button" className="home-btn pk-join" disabled={joiningId === l.id} onClick={() => join(l)}>
+                {joiningId === l.id ? "Joining…" : "Join League"}
+              </button>
+              {joinError && joinError.id === l.id && <p className="leagues-error">{joinError.message}</p>}
+            </article>
+          ))}
+        </div>
+      )}
+      <p className="pk-sub pk-disc-foot">
+        Have an invite link or league code? <button type="button" className="pk-link" onClick={onCode}>Join a private league</button>
+      </p>
+    </section>
+  );
+}
+
+/** Kickoffs that close the reader's unfinished picks. `rail` is the desktop
+ *  sidebar (matchups, model picks, live scores); otherwise the compact
+ *  expandable card that sits under the hero on a phone. */
+function PkLocks({ ov, tz, week, rail, onOpenGames, liveMap }) {
+  const [open, setOpen] = useState(false);
+  const first = ov.todoLocks[0] || null;
+  const rest = ov.todoLocks.slice(1);
+  const survivorRow = ov.survivorOwed.length > 0 && (
+    <div className="pk-lock-row">
+      <span><b>Survivor</b><em>Locks at your team's kickoff</em></span>
+      <span className="pk-lock-n"><b>{ov.survivorOwed.length} to make</b></span>
+    </div>
+  );
+  const lockRow = (k) => {
+    const w = pkWhen(k.ms, tz);
+    return (
+      <div className="pk-lock-row" key={k.ms}>
+        <span><b>{w ? w.short : "Time TBD"}</b><em>{k.games.length === 1 ? `${k.games[0].away} @ ${k.games[0].home}` : `${k.games.length} games`}</em></span>
+        <span className="pk-lock-n"><b>{k.todo} to make</b>{k.saved > 0 && <em>{k.saved} saved, editable</em>}</span>
+      </div>
+    );
+  };
+  const lockedLine = (ov.totals.lockedMade > 0 || ov.totals.missed > 0) && (
+    <p className="pk-locked-line">
+      <PkIcon name="lock" size={14} />
+      Already locked: {ov.totals.lockedMade} {ov.totals.lockedMade === 1 ? "pick" : "picks"} in{ov.totals.missed > 0 ? `, ${ov.totals.missed} missed` : ""}
+    </p>
+  );
+
+  if (!rail) {
+    if (!first && !ov.survivorOwed.length) return null;
+    const w = first ? pkWhen(first.ms, tz) : null;
+    const more = rest.length + (first && ov.survivorOwed.length ? 1 : 0);
+    return (
+      <section className="home-card pk-locks pk-phone-only" aria-labelledby="pk-locks-h">
+        <div className="pk-locks-top">
+          <div>
+            <h3 id="pk-locks-h" className="home-eyebrow">Next Locks</h3>
+            {first ? (
+              <>
+                <p className="pk-locks-main">{w ? w.short : "Time TBD"} · {first.todo} {first.todo === 1 ? "pick" : "picks"} to make</p>
+                <p className="pk-sub">{first.games.length === 1 ? `${first.games[0].away} @ ${first.games[0].home}` : `${first.games.length} games`} · {first.leagues.join(", ")}</p>
+              </>
+            ) : (
+              <p className="pk-locks-main">Survivor pick · locks at your team's kickoff</p>
+            )}
+          </div>
+          {more > 0 && (
+            <button type="button" className="home-btn" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+              {open ? "Hide" : `${more} more`}
+            </button>
+          )}
+        </div>
+        {open && (
+          <div className="pk-lock-list">
+            {rest.map(lockRow)}
+            {first && survivorRow}
+            {lockedLine}
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  // Desktop rail.
+  const live = ov.games
+    .map((g) => ({ g, s: liveMap && liveMap[g.key] }))
+    .filter((x) => x.s && x.s.state === "in" && x.s.awayScore != null);
+  const matchups = first ? first.games.slice(0, 3) : [];
+  const w = first ? pkWhen(first.ms, tz) : null;
+  return (
+    <aside className="home-card pk-rail" aria-labelledby="pk-rail-h">
+      <div className="pk-rail-head">
+        <h3 id="pk-rail-h" className="home-eyebrow">Locks &amp; matchups</h3>
+        <button type="button" className="pk-link" onClick={onOpenGames}>View All Games</button>
+      </div>
+      {!first && !ov.survivorOwed.length && (
+        <p className="pk-sub pk-rail-empty">
+          {ov.nextKickoffMs != null
+            ? `Nothing left to pick. Next kickoff ${(pkWhen(ov.nextKickoffMs, tz) || {}).short || ""}.`
+            : "No upcoming kickoffs this week."}
+        </p>
+      )}
+      {first && (
+        <div className="pk-rail-next">
+          <div className="pk-rail-next-top">
+            <b>{w ? w.short : "Time TBD"}</b>
+            <span className="pk-left"><i aria-hidden="true" />{first.todo} to make</span>
+          </div>
+          <p className="pk-sub">{first.games.length} {first.games.length === 1 ? "game" : "games"}{first.saved > 0 ? ` · ${first.saved} saved, editable` : ""}</p>
+          {matchups.map((g) => {
+            const pick = pkBlitzPick(week, g);
+            return (
+              <button type="button" className="pk-matchup" key={g.key} onClick={onOpenGames}>
+                <TeamLogo teamId={g.away} size={22} /><span>{g.away}</span>
+                <em>at</em>
+                <TeamLogo teamId={g.home} size={22} /><span>{g.home}</span>
+                {pick && <span className="pk-edge"><em>Blitz Edge</em> {pick.teamId} {pick.pct}%</span>}
+              </button>
+            );
+          })}
+          {first.games.length > matchups.length && (
+            <button type="button" className="pk-link" onClick={onOpenGames}>{first.games.length - matchups.length} more at this kickoff</button>
+          )}
+        </div>
+      )}
+      <div className="pk-lock-list">
+        {rest.map(lockRow)}
+        {survivorRow}
+      </div>
+      {live.length > 0 ? (
+        <div className="pk-live">
+          <span className="home-eyebrow">Live now</span>
+          {live.slice(0, 4).map(({ g, s }) => (
+            <button type="button" className="pk-live-row" key={g.key} onClick={onOpenGames}>
+              <span>{g.away} {s.awayScore}</span><span>{g.home} {s.homeScore}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="pk-sub pk-rail-live-none">No games live right now.</p>
+      )}
+      {lockedLine}
+      {first && <p className="pk-fine">Blitz Edge is the pregame model pick, not a live win probability.</p>}
+    </aside>
+  );
+}
+
+function PickemHome({ auth, profile, tz, bowlsOn, onOpenLeagues, onOpenGames }) {
+  const week = pkCurrentWeek();
+  const [nonce, setNonce] = useState(0);
+  const summary = useHomeSummary(auth, week, nonce);
+  const now = usePkNow();
+  const liveMap = useLiveScores(week);
+  const [heroLeagueId, setHeroLeagueId] = useState(null);
+  const [ctaHidden, setCtaHidden] = useState(false);
+  const ctaRef = useRef(null);
+
+  const data = summary.data;
+  const leagues = (data && data.leagues) || [];
+  const totals = (data && data.totals) || null;
+  const ov = useMemo(() => pkOverview(leagues, week, now), [leagues, week, now]);
+  const memberIds = useMemo(() => leagues.map((l) => l.leagueId), [leagues]);
+  const myFormats = useMemo(() => Array.from(new Set(leagues.filter((l) => l.sport !== "bowls").map((l) => l.format))), [leagues]);
+  const discover = usePkDiscover(auth, memberIds, myFormats, bowlsOn, nonce);
+  const firstName = ((profile && profile.displayName) || "").split(" ")[0];
+  const weekLabel = getPeriodLabel(week);
+
+  // The sticky phone bar shows only while the hero's own button is scrolled
+  // out of view - two "continue" buttons on one screen is one too many.
+  const hasLeft = ov.totals.left > 0;
+  useEffect(() => {
+    const el = ctaRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") { setCtaHidden(false); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => setCtaHidden(!e.isIntersecting));
+    }, { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasLeft, summary.status]);
+
+  if (summary.status === "loading") {
+    return (
+      <div className="pk pk-home" aria-busy="true">
+        <div className="pk-skel pk-skel-title" />
+        <div className="pk-skel pk-skel-hero" />
+        <div className="pk-skel pk-skel-row" />
+        <div className="pk-skel pk-skel-row" />
+        <span className="sr-only">Loading your leagues…</span>
+      </div>
+    );
+  }
+  if (summary.status === "error") {
+    return (
+      <div className="pk pk-home">
+        <div className="home-card pk-error" role="alert">
+          <b>Couldn't load your leagues.</b>
+          <p className="pk-sub">{summary.error}</p>
+          <button type="button" className="home-btn" onClick={() => setNonce((n) => n + 1)}>Try again</button>
+        </div>
+      </div>
+    );
+  }
+
+  const openLeague = (leagueId, extra) => onOpenLeagues({ leagueId, leagueSubTab: "week", week, ...(extra || {}) });
+  const refresh = () => { myLeaguesCache = null; setNonce((n) => n + 1); };
+  const discoverProps = {
+    auth, leagues: discover.leagues, status: discover.status,
+    openNow: ov.openGameCount > 0, weekLabel,
+    onJoined: refresh,
+    onBrowse: () => onOpenLeagues({ subTab: "search" }),
+    onCreate: () => onOpenLeagues({ subTab: "create" }),
+    onCode: () => onOpenLeagues({ subTab: "search" }),
+    onOpenLeague: (id) => openLeague(id),
+  };
+
+  // ---- No leagues: discovery is the page. ----
+  if (!leagues.length) {
+    return (
+      <div className="pk pk-home">
+        <section className="home-card pk-hero pk-start" aria-labelledby="pk-start-h">
+          <h2 id="pk-start-h">{firstName ? `Welcome, ${firstName}. Let's get you into a league.` : "Let's get you into a league."}</h2>
+          <p className="pk-sub">Pick'em is free. Here's how it works:</p>
+          <ol className="pk-steps">
+            <li>Join a public league or start your own.</li>
+            <li>Pick the winners before each game kicks off.</li>
+            <li>Scoring and standings update automatically.</li>
+          </ol>
+          <div className="pk-start-acts">
+            <button type="button" className="home-btn primary pk-cta" onClick={() => onOpenLeagues({ subTab: "search" })}>Find a League</button>
+            <button type="button" className="home-btn pk-cta" onClick={() => onOpenLeagues({ subTab: "create" })}>Create a League</button>
+          </div>
+        </section>
+        <PkDiscover {...discoverProps} prominent />
+      </div>
+    );
+  }
+
+  const heroRow = ov.needs.find((r) => r.league.leagueId === heroLeagueId) || ov.needs[0] || null;
+  const nextLock = pkWhen(ov.nextLockMs, tz);
+  const allSet = ov.totals.left === 0;
+  const nextWeek = allSet ? pkNextWeekStart(week) : null;
+  const nextWeekWhen = nextWeek ? pkWhen(nextWeek.ms, tz) : null;
+  const pct = ov.totals.required > 0 ? Math.round((ov.totals.made / ov.totals.required) * 100) : 0;
+  const leagueWord = (n) => (n === 1 ? "league" : "leagues");
+  const contextLine = [
+    ov.totals.lockedMade > 0 ? `${ov.totals.lockedMade} ${ov.totals.lockedMade === 1 ? "pick" : "picks"} already locked in` : null,
+    ov.totals.missed > 0 ? `${ov.totals.missed} missed` : null,
+  ].filter(Boolean).join(" · ");
+
+  const completedCards = ov.done.map(({ league: l, st }) => {
+    const rank = pkRankText(l);
+    let status, note, canEdit = false;
+    if (st.eliminated) { status = "Eliminated"; note = `${l.survivor ? l.survivor.aliveCount : 0} of ${l.memberCount} still alive`; }
+    else if (st.required > 0) {
+      status = l.format === "survivor" ? "Pick saved" : `${st.made} of ${st.required} saved`;
+      note = "Editable until kickoff" + (st.lockedMade > 0 ? ` · ${st.lockedMade} locked` : "");
+      canEdit = true;
+    } else {
+      status = st.lockedMade > 0 ? `${st.lockedMade} ${st.lockedMade === 1 ? "pick" : "picks"} locked in` : "No open games";
+      note = st.missed > 0 ? `${st.missed} missed this week` : "Nothing left to pick this week";
+    }
+    return { key: l.leagueId, kind: "done", l, title: l.name, meta: [pkLeagueType(l), rank].filter(Boolean).join(" · "), status, note, eliminated: st.eliminated, canEdit };
+  });
+  const upcomingCards = ov.upcoming.map(({ league: l, st }) => {
+    const sheet = st.sheet;
+    const hasGames = sheet && sheet.total > 0;
+    return {
+      key: l.leagueId, kind: "up", l, title: l.name, meta: pkLeagueType(l),
+      status: !sheet ? "Bowl slate unavailable right now" : hasGames ? `${sheet.picked} of ${sheet.total} picked` : "Pick sheet not open yet",
+      note: hasGames
+        ? (st.left > 0 ? `${st.left} bowl ${st.left === 1 ? "pick" : "picks"} open · not part of this week's count` : "Nothing open to pick right now")
+        : "Opens when bowl matchups are set",
+      left: st.left,
+    };
+  });
+  const rowsCount = Math.max(completedCards.length, upcomingCards.length, 1);
+
+  return (
+    <div className="pk pk-home">
+      <div className="pk-greet">
+        <div>
+          <h2>{firstName ? `Welcome back, ${firstName}` : "Welcome back"}</h2>
+          <p className="pk-sub">{allSet ? "Nothing needs your attention right now." : "Here's what needs your attention this week."}</p>
+        </div>
+        <div className="pk-greet-acts">
+          <button type="button" className="pk-link" onClick={() => onOpenLeagues({ subTab: "create" })}>Create League</button>
+          <button type="button" className="home-btn" onClick={() => onOpenLeagues({ subTab: "search" })}>Find Leagues</button>
+        </div>
+      </div>
+
+      <div className={"pk-layout" + (ov.games.length ? "" : " no-rail")}>
+        <div className="pk-main">
+          {allSet ? (
+            <section className="home-card pk-hero pk-allset" aria-labelledby="pk-hero-h">
+              <span className="pk-good"><PkIcon name="check" size={44} /></span>
+              <div className="pk-allset-txt">
+                <span id="pk-hero-h" className="home-eyebrow">Your Picks · {weekLabel}</span>
+                <p className="pk-count">You're All Set</p>
+                <p className="pk-sub">
+                  {ov.totals.required > 0
+                    ? `${ov.totals.made} of ${ov.totals.required} picks saved across ${ov.done.length} ${leagueWord(ov.done.length)}. You can still edit a pick until its game kicks off.`
+                    : ov.games.length ? "Every game this week has kicked off, so there is nothing left to pick." : "No games are open for picks right now."}
+                </p>
+                {ov.unknown.length > 0 && <p className="pk-sub">Pick status is unavailable for {ov.unknown.length} {leagueWord(ov.unknown.length)}.</p>}
+                {nextWeekWhen && <p className="pk-when"><PkIcon name="clock" />{getPeriodLabel(nextWeek.week)} starts {nextWeekWhen.long}</p>}
+              </div>
+            </section>
+          ) : (
+            <section className="home-card pk-hero" aria-labelledby="pk-hero-h">
+              <div className="pk-hero-top">
+                <span id="pk-hero-h" className="home-eyebrow">Your Picks · {weekLabel}</span>
+                {nextLock && <span className="pk-when"><PkIcon name="clock" />Next lock {nextLock.long}</span>}
+              </div>
+              <div className="pk-hero-body">
+                <div className="pk-hero-num">
+                  <p className="pk-count">{ov.totals.left} {ov.totals.left === 1 ? "pick" : "picks"} left</p>
+                  <div className="pk-hero-prog">
+                    <PkBar made={ov.totals.made} required={ov.totals.required} label={`${ov.totals.made} of ${ov.totals.required} picks made, ${pct} percent`} />
+                    <span>{ov.totals.made} of {ov.totals.required} made</span>
+                  </div>
+                  {contextLine && <p className="pk-sub pk-hero-ctx">{contextLine}</p>}
+                </div>
+                <div className="pk-hero-acts">
+                  <button type="button" ref={ctaRef} className="home-btn primary pk-cta"
+                    onClick={() => { trackEvent("home_cta", { cta: "continue_picks", placement: "pickem_hero" }); openLeague(heroRow.league.leagueId); }}>
+                    Continue Making Picks
+                  </button>
+                  {ov.needs.length > 1 ? (
+                    <label className="pk-start-with">
+                      <span>Start with</span>
+                      <select className="league-input" value={heroRow.league.leagueId} onChange={(e) => setHeroLeagueId(e.target.value)}>
+                        {ov.needs.map((r) => <option key={r.league.leagueId} value={r.league.leagueId}>{r.league.name} ({r.st.left} left)</option>)}
+                      </select>
+                    </label>
+                  ) : (
+                    <p className="pk-sub pk-start-one">Opens {heroRow.league.name}</p>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {!allSet && <PkLocks ov={ov} tz={tz} week={week} />}
+
+          {ov.needs.length > 0 && (
+            <section className="pk-sec" aria-labelledby="pk-needs-h">
+              <div className="pk-sec-head">
+                <h3 id="pk-needs-h">Needs Your Picks ({ov.needs.length})</h3>
+                <span className="pk-sub">Soonest lock first</span>
+              </div>
+              <div className="pk-needs">
+                {ov.needs.map(({ league: l, st }) => {
+                  const w = pkWhen(st.nextLockMs, tz);
+                  const rank = pkRankText(l);
+                  const cta = l.format === "survivor" ? "Make Pick" : st.made > 0 ? "Continue Picks" : "Make Picks";
+                  return (
+                    <article className="home-card pk-need" key={l.leagueId}>
+                      <div className="pk-need-id">
+                        <h4>{l.name}</h4>
+                        <p className="pk-sub">{[pkLeagueType(l), rank].filter(Boolean).join(" · ")}</p>
+                        {l.pendingRequests > 0 && (
+                          <button type="button" className="hd-req-badge"
+                            onClick={() => onOpenLeagues({ leagueId: l.leagueId, leagueSubTab: "requests" })}>
+                            {l.pendingRequests} waiting
+                          </button>
+                        )}
+                      </div>
+                      <div className="pk-need-prog">
+                        <div className="pk-need-prog-top">
+                          <span>{st.made} of {st.required} made</span>
+                          <PkLeft n={st.left} />
+                        </div>
+                        <PkBar made={st.made} required={st.required} />
+                        <p className="pk-when">
+                          <PkIcon name="clock" />
+                          {l.format === "survivor"
+                            ? `Locks at your team's kickoff${w ? ` · first ${w.short}` : ""}`
+                            : w ? `Locks ${w.short}` : "Lock time to be announced"}
+                          {st.missed > 0 && <em> · {st.missed} missed, locked</em>}
+                        </p>
+                      </div>
+                      <button type="button" className="home-btn primary pk-need-cta" onClick={() => openLeague(l.leagueId)}>{cta}</button>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {ov.unknown.length > 0 && (
+            <section className="pk-sec" aria-label="Leagues with no pick status">
+              {ov.unknown.map(({ league: l }) => (
+                <article className="home-card pk-need" key={l.leagueId}>
+                  <div className="pk-need-id">
+                    <h4>{l.name}</h4>
+                    <p className="pk-sub">{pkLeagueType(l)}</p>
+                  </div>
+                  <p className="pk-sub pk-need-prog">Pick status isn't available right now.</p>
+                  <button type="button" className="home-btn pk-need-cta" onClick={() => openLeague(l.leagueId)}>Open League</button>
+                </article>
+              ))}
+            </section>
+          )}
+
+          {(completedCards.length > 0 || upcomingCards.length > 0) && (
+            <section className="pk-sec" aria-label="Completed and upcoming leagues">
+              {/* One grid for both columns with equal-height rows, so a
+                  Completed card and an Upcoming card are always the same
+                  height whatever each one has to say. */}
+              <div className="pk-cu" style={{ "--pk-rows": rowsCount }}>
+                <h3 className={"pk-cu-h pk-cu-c1" + (completedCards.length ? "" : " is-empty-col")}>Completed</h3>
+                <h3 className={"pk-cu-h pk-cu-c2" + (upcomingCards.length ? "" : " is-empty-col")}>Upcoming</h3>
+                {completedCards.length === 0 && <div className="home-card pk-cu-card pk-cu-c1 is-empty"><p className="pk-sub">Leagues move here once every open pick is in.</p></div>}
+                {upcomingCards.length === 0 && <div className="home-card pk-cu-card pk-cu-c2 is-empty"><p className="pk-sub">Nothing upcoming. Bowl pools and future rounds show here.</p></div>}
+                {completedCards.map((c, i) => (
+                  <article className="home-card pk-cu-card pk-cu-c1" style={{ gridRow: i + 2 }} key={c.key}>
+                    <div className="pk-cu-top">
+                      <span className={c.eliminated ? "pk-dim" : "pk-good"}><PkIcon name="check" size={22} /></span>
+                      <h4>{c.title}</h4>
+                    </div>
+                    <p className="pk-sub">{c.meta}</p>
+                    <p className="pk-cu-status">{c.status}</p>
+                    <p className="pk-sub">{c.note}</p>
+                    <div className="pk-cu-acts">
+                      <button type="button" className="home-btn" onClick={() => openLeague(c.l.leagueId)}>{c.canEdit ? "View / Edit Picks" : "View Picks"}</button>
+                    </div>
+                  </article>
+                ))}
+                {upcomingCards.map((c, i) => (
+                  <article className="home-card pk-cu-card pk-cu-c2" style={{ gridRow: i + 2 }} key={c.key}>
+                    <div className="pk-cu-top">
+                      <span className="pk-dim"><PkIcon name="calendar" size={22} /></span>
+                      <h4>{c.title}</h4>
+                    </div>
+                    <p className="pk-sub">{c.meta}</p>
+                    <p className="pk-cu-status">{c.status}</p>
+                    <p className="pk-sub">{c.note}</p>
+                    <div className="pk-cu-acts">
+                      <button type="button" className={"home-btn" + (c.left > 0 ? " primary" : "")} onClick={() => onOpenLeagues({ leagueId: c.l.leagueId })}>
+                        {c.left > 0 ? "Make Bowl Picks" : "View League"}
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {ov.games.length > 0 && (
+          <PkLocks ov={ov} tz={tz} week={week} rail onOpenGames={onOpenGames} liveMap={liveMap} />
+        )}
+      </div>
+
+      <PkDiscover {...discoverProps} prominent={allSet} />
+
+      {totals && (
+        <section className="pk-sec" aria-labelledby="pk-perf-h">
+          <div className="pk-sec-head">
+            <h3 id="pk-perf-h">Your Season Performance</h3>
+          </div>
+          <div className="pk-kpis">
+            <div className="home-card pk-kpi">
+              <span className="home-eyebrow">Overall record</span>
+              <b>{totals.pickCount ? `${totals.correct}–${totals.incorrect}` : "—"}</b>
+              <span className="pk-sub">{totals.winPct != null ? `${Math.round(totals.winPct * 100)}% of ${totals.pickCount} graded picks` : "No picks graded yet"}</span>
+            </div>
+            <div className="home-card pk-kpi">
+              <span className="home-eyebrow">Average league rank</span>
+              <b>{totals.avgRank != null ? standingsOrdinal(Math.round(totals.avgRank)) : "—"}</b>
+              <span className="pk-sub">{totals.avgRank != null ? `Across ${totals.rankedLeagueCount} ranked ${leagueWord(totals.rankedLeagueCount)}` : "Ranks appear once a week is scored"}</span>
+            </div>
+            <div className="home-card pk-kpi">
+              <span className="home-eyebrow">Blitz follow rate</span>
+              <b>{totals.followRate != null ? `${Math.round(totals.followRate * 100)}%` : "—"}</b>
+              <span className="pk-sub">{totals.followRate != null ? `Matched Blitz Edge on ${totals.followed} of ${totals.followable} picks` : "Once a week is scored"}</span>
+            </div>
+            {leagues.filter((l) => l.format === "survivor" && l.survivor).slice(0, 1).map((l) => {
+              const all = leagues.filter((x) => x.format === "survivor" && x.survivor);
+              const alive = all.filter((x) => x.survivor.alive).length;
+              return (
+                <div className="home-card pk-kpi" key="survivor">
+                  <span className="home-eyebrow">Survivor</span>
+                  <b>{all.length === 1 ? (alive ? "Alive" : "Out") : `${alive} of ${all.length} alive`}</b>
+                  <span className="pk-sub">{all.length === 1 ? `${l.name} · ${survivorFootnote(l.survivor)}` : "Across your survivor leagues"}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <section className="pk-sec" aria-labelledby="pk-stand-h">
+        <div className="pk-sec-head">
+          <h3 id="pk-stand-h">League Standings</h3>
+        </div>
+        <div className="home-card pk-stand">
+          {leagues.map((l) => {
+            const leader = (l.leaderboard || [])[0] || null;
+            const rank = pkRankText(l);
+            return (
+              <button type="button" className="pk-stand-row" key={l.leagueId}
+                onClick={() => onOpenLeagues({ leagueId: l.leagueId, leagueSubTab: "standings" })}>
+                <span className="pk-stand-name">{l.name}</span>
+                <span className="pk-stand-you">{rank ? <>You: <b>{rank}</b></> : <span className="pk-sub">No results yet</span>}</span>
+                <span className="pk-stand-lead pk-sub">
+                  {l.format === "survivor"
+                    ? (l.survivor ? `${l.survivor.aliveCount} of ${l.memberCount} still alive` : "")
+                    : leader ? (leader.isMe ? "You're in first" : `Leader: ${leader.displayName}`) : ""}
+                </span>
+                <span className="pk-stand-go">Full standings <span aria-hidden="true">›</span></span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {hasLeft && ctaHidden && heroRow && (
+        <div className="pk-sticky" role="region" aria-label="Picks left">
+          <div className="pk-sticky-txt">
+            <b>{ov.totals.left} {ov.totals.left === 1 ? "pick" : "picks"} left</b>
+            {nextLock && <span>Locks {nextLock.short}</span>}
+          </div>
+          <button type="button" className="home-btn primary"
+            onClick={() => { trackEvent("home_cta", { cta: "continue_picks", placement: "pickem_sticky" }); openLeague(heroRow.league.leagueId); }}>
+            Continue Picks
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** "Office Pick'em Complete" - shown on a league's pick sheet the moment the
+ *  last open pick saves. Suggests the next league that still needs picks,
+ *  from a fresh read of what is actually stored, and never touches another
+ *  league's picks itself. */
+function PkLeagueComplete({ auth, league, week, tz, weekData, onOpenLeague, onGoHome, onDismiss }) {
+  const [summary, setSummary] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const now = usePkNow();
+  const ref = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await auth.authenticatedFetch(`/.netlify/functions/home-summary?week=${encodeURIComponent(week)}`);
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error("summary");
+        homeSummaryCache = { key: String(week), data: json };
+        if (!cancelled) setSummary(json);
+      } catch (e) {
+        if (!cancelled) setFailed(true);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [league.id, week]);
+
+  useEffect(() => {
+    if (ref.current && ref.current.scrollIntoView) ref.current.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, []);
+
+  // This league's own numbers come from the sheet on screen, which already
+  // holds the server-confirmed picks.
+  const isSurvivor = weekData.format === "survivor";
+  const done = (g) => g.pick && g.pick.team && (weekData.format !== "confidence" || typeof g.pick.confidence === "number");
+  const openGames = weekData.games.filter((g) => !g.locked);
+  const savedOpen = openGames.filter(done).length;
+  const lockedPicked = weekData.games.filter((g) => g.locked && g.pick && g.pick.team).length;
+  const required = isSurvivor ? (savedOpen ? 1 : 0) : openGames.length;
+
+  const ov = summary ? pkOverview(summary.leagues || [], week, now) : null;
+  const next = ov ? ov.needs.find((r) => r.league.leagueId !== league.id) || null : null;
+  const nextWhen = next ? pkWhen(next.st.nextLockMs, tz) : null;
+  const nextWeek = ov && !next ? pkNextWeekStart(week) : null;
+  const nextWeekWhen = nextWeek ? pkWhen(nextWeek.ms, tz) : null;
+
+  return (
+    <section className="home-card pk pk-complete" ref={ref} aria-labelledby="pk-complete-h" role="status">
+      <div className="pk-complete-head">
+        <span className="pk-good"><PkIcon name="check" size={44} /></span>
+        <h3 id="pk-complete-h">{league.name} Complete</h3>
+        <p className="pk-complete-n">{isSurvivor ? "Pick saved" : `${savedOpen} of ${required} picks saved`}</p>
+        <p className="pk-sub">Saved to {league.name} only.</p>
+      </div>
+      <div className="pk-complete-status">
+        <p><span className="pk-good"><PkIcon name="check" /></span><b>{savedOpen} saved</b> <span className="pk-sub">· editable until each kickoff</span></p>
+        {lockedPicked > 0 && <p><PkIcon name="lock" /><b>{lockedPicked} locked</b> <span className="pk-sub">· already kicked off</span></p>}
+      </div>
+
+      {next && (
+        <div className="pk-complete-next">
+          <span className="home-eyebrow">Up Next</span>
+          <div className="pk-complete-next-top">
+            <div>
+              <b>{next.league.name}</b>
+              <p className="pk-sub">{pkLeagueType(next.league)}</p>
+            </div>
+            <PkLeft n={next.st.left} />
+          </div>
+          {(nextWhen || next.league.format === "survivor") && (
+            <p className="pk-when"><PkIcon name="clock" />
+              {next.league.format === "survivor" ? `Locks at your team's kickoff${nextWhen ? ` · first ${nextWhen.short}` : ""}` : `Next lock ${nextWhen.short}`}
+            </p>
+          )}
+          <button type="button" className="home-btn primary pk-cta" onClick={() => onOpenLeague(next.league.leagueId)}>
+            Continue to {next.league.name}
+          </button>
+        </div>
+      )}
+      {ov && !next && (
+        <div className="pk-complete-next">
+          <span className="home-eyebrow">You're All Set</span>
+          <b>No other league needs picks</b>
+          {nextWeekWhen && <p className="pk-when"><PkIcon name="clock" />{getPeriodLabel(nextWeek.week)} starts {nextWeekWhen.long}</p>}
+        </div>
+      )}
+      {!ov && !failed && <div className="pk-skel pk-skel-row" aria-hidden="true" />}
+
+      {ov && ov.totals.required > 0 && (
+        <div className="pk-complete-all">
+          <div className="pk-need-prog-top">
+            <span>All leagues · {getPeriodLabel(week)}</span>
+            <span>{ov.totals.made} of {ov.totals.required} made</span>
+          </div>
+          <PkBar made={ov.totals.made} required={ov.totals.required} />
+          <p className="pk-sub">
+            {ov.totals.left > 0
+              ? `${ov.totals.left} left: ${ov.needs.map((r) => `${r.league.name} ${r.st.left}`).join(", ")}`
+              : "Nothing left to pick in any league"}
+          </p>
+        </div>
+      )}
+
+      <div className="pk-complete-acts">
+        <button type="button" className="home-btn" onClick={onDismiss}>Review Picks</button>
+        {onGoHome && <button type="button" className={"home-btn" + (ov && !next ? " primary" : "")} onClick={onGoHome}>Back to Home</button>}
+      </div>
+    </section>
+  );
+}
+
+/** The Leagues destination under the flag: the reader's leagues with what
+ *  each one needs, and the place to find another. Create stays the existing
+ *  wizard. */
+function PickemLeaguesPage({ auth, tz, initialTab, myLeagues, upsertLeague, bowlsEnabled, onSelectLeague, onOpenLeagueTab, onManageLeague, onCreate, onRequestLogin, autoJoinCode, autoJoinCodeError }) {
+  const week = pkCurrentWeek();
+  const [nonce, setNonce] = useState(0);
+  const summary = useHomeSummary(auth, week, nonce);
+  const now = usePkNow();
+  const [tab, setTab] = useState(initialTab === "discover" ? "discover" : "mine");
+  const leagues = (summary.data && summary.data.leagues) || [];
+  const ov = useMemo(() => pkOverview(leagues, week, now), [leagues, week, now]);
+  const count = summary.status === "ready" ? leagues.length : (myLeagues ? myLeagues.length : null);
+
+  return (
+    <div className="leagues-page leagues-page-wide pk pk-leagues">
+      <div className="pk-greet">
+        <h1 className="lgx-title">Leagues</h1>
+        <button type="button" className="home-btn" onClick={onCreate}>Create League</button>
+      </div>
+      <div className="pk-tabs" role="tablist" aria-label="Leagues">
+        <button type="button" role="tab" id="pk-tab-mine" aria-selected={tab === "mine"} aria-controls="pk-panel-mine" className={tab === "mine" ? "on" : ""} onClick={() => setTab("mine")}>
+          My Leagues{count != null ? ` (${count})` : ""}
+        </button>
+        <button type="button" role="tab" id="pk-tab-discover" aria-selected={tab === "discover"} aria-controls="pk-panel-discover" className={tab === "discover" ? "on" : ""} onClick={() => setTab("discover")}>
+          Discover
+        </button>
+      </div>
+
+      {tab === "mine" && (
+        <div role="tabpanel" id="pk-panel-mine" aria-labelledby="pk-tab-mine">
+          {summary.status === "loading" && <><div className="pk-skel pk-skel-row" /><div className="pk-skel pk-skel-row" /></>}
+          {summary.status === "error" && (
+            <div className="home-card pk-error" role="alert">
+              <b>Couldn't load your leagues.</b>
+              <button type="button" className="home-btn" onClick={() => setNonce((n) => n + 1)}>Try again</button>
+            </div>
+          )}
+          {summary.status === "ready" && leagues.length === 0 && (
+            <div className="home-card pk-error">
+              <b>You're not in a league yet.</b>
+              <p className="pk-sub">Find a public league to join, or start one and invite your group.</p>
+              <div className="pk-start-acts">
+                <button type="button" className="home-btn primary" onClick={() => setTab("discover")}>Find a League</button>
+                <button type="button" className="home-btn" onClick={onCreate}>Create a League</button>
+              </div>
+            </div>
+          )}
+          <div className="pk-mine">
+            {ov.rows.map(({ league: l, st }) => {
+              const rank = pkRankText(l);
+              const isBowl = st.kind === "bowl";
+              const due = st.known && st.left > 0;
+              const cta = isBowl ? (due ? "Make Bowl Picks" : "View League")
+                : due ? (l.format === "survivor" ? "Make Pick" : st.made > 0 ? "Continue Picks" : "Make Picks")
+                : st.known && st.required > 0 ? "View / Edit Picks" : "View Picks";
+              const w = !isBowl && due ? pkWhen(st.nextLockMs, tz) : null;
+              return (
+                <article className="home-card pk-mine-card" key={l.leagueId}>
+                  <div className="pk-mine-top">
+                    <div>
+                      <h4>{l.name}</h4>
+                      <p className="pk-sub">{[pkLeagueType(l), rank].filter(Boolean).join(" · ")}</p>
+                    </div>
+                    {due ? <PkLeft n={st.left} />
+                      : <span className="pk-mine-state">{isBowl ? "Upcoming" : !st.known ? "" : st.eliminated ? "Eliminated" : st.required > 0 ? "All saved" : "Locked"}</span>}
+                  </div>
+                  {w && <p className="pk-when"><PkIcon name="clock" />{l.format === "survivor" ? `First kickoff ${w.short}` : `Locks ${w.short}`}</p>}
+                  <div className="pk-mine-acts">
+                    <button type="button" className={"home-btn" + (due ? " primary" : "")}
+                      onClick={() => (isBowl ? onSelectLeague(l.leagueId) : onOpenLeagueTab(l.leagueId, "week"))}>{cta}</button>
+                    <button type="button" className="home-btn" onClick={() => onOpenLeagueTab(l.leagueId, "standings")}>Standings</button>
+                    {l.isOwner && (
+                      <button type="button" className="pk-link" onClick={() => onManageLeague(l.leagueId)}>
+                        Manage{l.pendingRequests > 0 ? ` (${l.pendingRequests} waiting)` : ""}
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {tab === "discover" && (
+        <div role="tabpanel" id="pk-panel-discover" aria-labelledby="pk-tab-discover">
+          <LeagueSearchSection
+            variant="cards"
+            auth={auth}
+            onRequestLogin={onRequestLogin}
+            onJoined={(league) => { upsertLeague(league); setNonce((n) => n + 1); }}
+            onViewLeague={onSelectLeague}
+            onShowMine={() => setTab("mine")}
+            myLeagues={myLeagues}
+            initialCode={autoJoinCode}
+            initialError={autoJoinCodeError}
+            bowlsEnabled={bowlsEnabled}
+            openNow={ov.openGameCount > 0}
+            weekLabel={getPeriodLabel(week)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* No League tab. Leagues are reached from the Home dashboard (My Leagues,
  * Create League, Join League), the account menu, and the /leagues route -
  * all of which still work. The tab itself was redundant with the Home
  * dashboard once that landed, and it cost a slot in a bar that has to fit
  * on a phone. LEAGUES_UI_ENABLED still gates the tab's *route*, so nothing
  * about linking to /leagues changed. */
-function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPins = null, onOpenMenu = null, menuOpen = false }) {
+function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPins = null, onOpenMenu = null, menuOpen = false, menuLabel = "Menu" }) {
   /* Each tab carries both an `img` (the illustrated brand mark) and an
    * `icon` (the emoji it replaced). The emoji is not dead code - TabBar
    * renders it for any tab without an image, and it's the one-line revert
@@ -19186,7 +20481,7 @@ function TabBar({ activeTab, onSelectTab, liveCount = 0, features = null, navPin
             <MenuGlyph open={menuOpen} />
             {features && features.bowls && bowlsInSeason() && navPins.indexOf("bowls") === -1 && !menuSeenBowls() && <span className="tab-menu-dot" />}
           </span>
-          <span className="tab-label">{menuOpen ? "Close" : "Menu"}</span>
+          <span className="tab-label">{menuOpen ? "Close" : menuLabel}</span>
         </button>
       )}
     </nav>
@@ -19217,7 +20512,7 @@ function markMenuSeenBowls() {
  * server-side, and App waits for the real answer before redirecting anyone
  * away from a flagged route. */
 const FEATURES_CACHE_KEY = "blitz:features";
-const FEATURE_NAMES = ["bowls", "mobileNav", "cfb"];
+const FEATURE_NAMES = ["bowls", "mobileNav", "cfb", "pickemHome"];
 
 function readCachedFeatures() {
   const out = {};
@@ -19357,6 +20652,11 @@ function AdminFeaturesPanel({ auth, onToast, onChanged }) {
  * to another phone. */
 const NAV_PINS_KEY = "blitz:navPins";
 const DEFAULT_NAV_PINS = ["home", "games", "picks"];
+/* With the pick'em command center on ("pickemHome" flag) Leagues is a
+ * primary destination: Home / Leagues / Games / Playbook, then More. Only
+ * the default changes - a bar someone has already arranged is left alone,
+ * and Bowls stays under More unless they pin it. */
+const PICKEM_NAV_PINS = ["home", "league", "games", "picks"];
 const NAV_PIN_MIN = 2;
 const NAV_PIN_MAX = 4;
 
@@ -19546,7 +20846,7 @@ function NavEditSheet({ features, pins, onSave, onClose }) {
           </React.Fragment>
         )}
 
-        <button type="button" className="navedit-reset" onClick={() => setDraft(DEFAULT_NAV_PINS.slice())}>
+        <button type="button" className="navedit-reset" onClick={() => setDraft((features && features.pickemHome ? PICKEM_NAV_PINS : DEFAULT_NAV_PINS).slice())}>
           Reset to Home, Games, {PLAYBOOK_TAB_LABEL}
         </button>
       </div>
@@ -25882,16 +27182,20 @@ function App() {
   /* Phone bottom bar ("mobileNav" flag). Pins live in localStorage and, when
      signed in, on the account (settings.navPins) so they follow the reader
      to another phone. The account copy wins when it loads. */
-  const [navPinsRaw, setNavPinsRaw] = useState(() => readStoredNavPins() || DEFAULT_NAV_PINS.slice());
+  const [navPinsRaw, setNavPinsRaw] = useState(() => readStoredNavPins());
+  const navBarOn = !!(features.mobileNav || features.pickemHome);
+  const navDefaultPins = features.pickemHome ? PICKEM_NAV_PINS : DEFAULT_NAV_PINS;
   const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [navEditOpen, setNavEditOpen] = useState(false);
   const navPins = useMemo(() => {
-    const clean = sanitizeNavPins(navPinsRaw, features);
+    // null = this reader has never arranged their bar, so they get the
+    // current default (which depends on the pickemHome flag).
+    const clean = sanitizeNavPins(navPinsRaw || navDefaultPins, features);
     // A pin that stopped existing (Bowls after the season) can leave the bar
     // short; top it back up from the defaults rather than show one tab.
-    DEFAULT_NAV_PINS.forEach((d) => { if (clean.length < NAV_PIN_MIN && clean.indexOf(d) === -1) clean.push(d); });
+    navDefaultPins.forEach((d) => { if (clean.length < NAV_PIN_MIN && clean.indexOf(d) === -1) clean.push(d); });
     return clean;
-  }, [navPinsRaw, features.bowls]);
+  }, [navPinsRaw, features.bowls, features.pickemHome]);
   const navPinsAdoptedForRef = useRef(null);
   function saveNavPins(next) {
     const clean = sanitizeNavPins(next, features);
@@ -26101,7 +27405,9 @@ function App() {
       // (their own leagues are on Home). Signed out it is the leagues landing
       // page, which opens on the same search. The phone's pinned Leagues tab
       // and the Menu entry keep going through "league" below.
-      goToLeaguesTab(auth.status === "in" ? { subTab: "search" } : undefined);
+      // With the command center on, signed in there is a real Leagues page
+      // (My Leagues / Discover) to land on, the same one the phone tab opens.
+      goToLeaguesTab(auth.status === "in" ? (features.pickemHome ? {} : { subTab: "search" }) : undefined);
       return;
     }
     if (tab === "league") {
@@ -27028,8 +28334,9 @@ function App() {
           onSelectTab={(t) => { setNavMenuOpen(false); selectTab(t); }}
           liveCount={liveBadgeCount}
           features={features}
-          navPins={features.mobileNav ? navPins : null}
-          onOpenMenu={features.mobileNav ? () => { markMenuSeenBowls(); setNavMenuOpen((o) => !o); trackEvent("nav_menu_open", {}); } : null}
+          navPins={navBarOn ? navPins : null}
+          menuLabel={features.pickemHome ? "More" : "Menu"}
+          onOpenMenu={navBarOn ? () => { markMenuSeenBowls(); setNavMenuOpen((o) => !o); trackEvent("nav_menu_open", {}); } : null}
           menuOpen={navMenuOpen}
         />
       </header>
@@ -27047,7 +28354,7 @@ function App() {
         />
       )}
 
-      {features.mobileNav && navMenuOpen && (
+      {navBarOn && navMenuOpen && (
         <NavMenuSheet
           features={features}
           pins={navPins}
@@ -27062,7 +28369,7 @@ function App() {
           onOpenAdmin={() => setShowAdmin(true)}
         />
       )}
-      {features.mobileNav && navEditOpen && (
+      {navBarOn && navEditOpen && (
         <NavEditSheet
           features={features}
           pins={navPins}
@@ -27072,7 +28379,16 @@ function App() {
       )}
 
       {activeTab === "home" && HOME_TAB_ENABLED && (
-        auth.status === "in" ? (
+        auth.status === "in" ? (features.pickemHome ? (
+          <PickemHome
+            auth={auth}
+            profile={profile}
+            tz={resolvedTz}
+            bowlsOn={bowlsOn}
+            onOpenLeagues={goToLeaguesTab}
+            onOpenGames={() => selectTab("games")}
+          />
+        ) : (
           <HomeDashboard
             auth={auth}
             profile={profile}
@@ -27085,7 +28401,7 @@ function App() {
             cfbOn={!!features.cfb}
             onOpenCollege={() => { if (gamesSport === "cfb") cfbNavigate({}); else setGamesSport("cfb"); }}
           />
-        ) : (
+        )) : (
           /* Sign-up in place. These used to navigate to the Leagues tab
              first, which left the sign-up modal sitting over the leagues
              landing page - a page a signed-out visitor can't do anything
@@ -27229,6 +28545,7 @@ function App() {
           bowlsEnabled={bowlsOn}
           initialSport={leagueIntent ? (leagueIntent.sport || null) : null}
           onOpenBowls={() => selectTab("bowls")}
+          pickemHome={!!features.pickemHome}
         />
       )}
 

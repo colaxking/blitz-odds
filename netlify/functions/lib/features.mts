@@ -32,6 +32,7 @@ export const FEATURE_DEFAULTS: Record<string, FeatureMode> = {
   bowls: "off",
   mobileNav: "off",
   cfb: "off",
+  pickemHome: "off",
 };
 
 export const FEATURE_LABELS: Record<string, { title: string; blurb: string }> = {
@@ -46,6 +47,10 @@ export const FEATURE_LABELS: Record<string, { title: string; blurb: string }> = 
   cfb: {
     title: "College games",
     blurb: "NFL | College switch on the Games tab: FBS slate, market odds, stat ranks, weather, live scores, team pages, alerts.",
+  },
+  pickemHome: {
+    title: "Pick'em command center",
+    blurb: "New signed-in Home (picks left, next locks, discover leagues), the Leagues page with My Leagues / Discover, Leagues in the phone bar, and the league-complete screen.",
   },
 };
 

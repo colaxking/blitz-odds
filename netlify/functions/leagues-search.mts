@@ -61,6 +61,9 @@ function toSearchResult(league: any, ownerName: string | null) {
     description: isPublic ? league.description || "" : "",
     visibility: league.visibility,
     format: league.format,
+    // "bowls" for a bowl pool, "nfl" for everything else (NFL leagues were
+    // created before the field existed and carry no sport at all).
+    sport: league.sport === "bowls" ? "bowls" : "nfl",
     memberCount: league.memberCount,
     maxMembers: league.maxMembers,
     season: league.season,
@@ -80,6 +83,7 @@ export default async (req: Request, _context: Context) => {
   const q = (url.searchParams.get("q") || "").trim().toLowerCase();
   const formatFilter = url.searchParams.get("format") || "";
   const typeFilter = url.searchParams.get("type") || ""; // "public" | "private" | ""
+  const sportFilter = url.searchParams.get("sport") || ""; // "nfl" | "bowls" | ""
   const offsetParam = parseInt(url.searchParams.get("offset") || "0", 10);
   const offset = Math.max(Number.isFinite(offsetParam) ? offsetParam : 0, 0);
   const limitParam = parseInt(url.searchParams.get("limit") || "20", 10);
@@ -104,6 +108,9 @@ export default async (req: Request, _context: Context) => {
     }
     if (formatFilter) {
       results = results.filter((l: any) => l.format === formatFilter);
+    }
+    if (sportFilter === "nfl" || sportFilter === "bowls") {
+      results = results.filter((l: any) => (l.sport === "bowls" ? "bowls" : "nfl") === sportFilter);
     }
     if (typeFilter === "public" || typeFilter === "private") {
       results = results.filter((l: any) => l.visibility === typeFilter);

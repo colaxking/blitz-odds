@@ -255,7 +255,7 @@ export default async (req: Request, _context: Context) => {
           // direct get per game per league - more requests than a single
           // list(), but every one is an exact known key, which is the only
           // read path proven to see a write immediately.
-          let weekProgress: { picked: number; total: number } | null = null;
+          let weekProgress: { picked: number; total: number; pickedGames: string[] } | null = null;
           if (week != null && weekGames.length && seasonYear != null) {
             const picks = await Promise.all(
               weekGames.map((g) =>
@@ -265,6 +265,16 @@ export default async (req: Request, _context: Context) => {
               )
             );
             const madePicks = picks.filter(Boolean).length;
+            // Which games carry a saved pick ("AWAY-HOME", the client's own
+            // game key). The command-center Home needs it to tell an open
+            // game with no pick (something to do) from one that has already
+            // locked - a count alone can't say which is which.
+            const pickedGames = weekGames
+              // A confidence pick with no points assigned yet is still
+              // unfinished, the same rule the league page's own progress
+              // ring uses (see picksComplete in picks-mine.mts).
+              .filter((_, i) => !!picks[i] && (league.format !== "confidence" || typeof (picks[i] as any).confidence === "number"))
+              .map((g) => `${g.away}-${g.home}`);
             weekProgress = league.format === "survivor"
               // Survivor is one pick per week, not one per game, so the
               // slate size is the wrong denominator - "1 / 16" on the home
@@ -275,8 +285,8 @@ export default async (req: Request, _context: Context) => {
               // and picks-mine resolve a week to a single pick: replacing a
               // survivor pick deletes the old key, and that delete can lag
               // just long enough for both to read back.
-              ? { picked: Math.min(madePicks, 1), total: 1 }
-              : { picked: madePicks, total: weekGames.length };
+              ? { picked: Math.min(madePicks, 1), total: 1, pickedGames }
+              : { picked: madePicks, total: weekGames.length, pickedGames };
           }
 
           const streak = computeWeekStreak(standings.weeks || {}, userId);

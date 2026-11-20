@@ -19786,6 +19786,17 @@ function PickemHome({ auth, profile, tz, bowlsOn, onOpenLeagues, onOpenGames }) 
     return () => io.disconnect();
   }, [hasLeft, summary.status]);
 
+  // The sticky bar is fixed above the tab bar, so while picks are owed the
+  // page itself needs that much more room at the bottom - otherwise the last
+  // lines of the site footer (outside this component) end up underneath it.
+  // Reserved whenever picks are left, not only while the bar is showing, so
+  // the page length doesn't jump as it appears.
+  useEffect(() => {
+    if (!hasLeft) return undefined;
+    document.documentElement.classList.add("pk-sticky-on");
+    return () => document.documentElement.classList.remove("pk-sticky-on");
+  }, [hasLeft]);
+
   if (summary.status === "loading") {
     return (
       <div className="pk pk-home" aria-busy="true">

@@ -6505,9 +6505,10 @@
     .pk-phone-only { display: block; }
   }
   @media (max-width: 720px) {
-    /* Room for the sticky action above the fixed tab bar, so the last
-       section is never left underneath it. */
-    .pk-home { padding-bottom: 68px; }
+    /* Room for the sticky action above the fixed tab bar: the usual 96px
+       that clears the bar (see .app above) plus the sticky bar's own height,
+       so the end of the footer is never left underneath it. */
+    html.pk-sticky-on .app { padding-bottom: calc(164px + env(safe-area-inset-bottom, 0px)); }
     .pk-greet { margin-top: 12px; }
     .pk-greet h2 { font-size: 1.3rem; }
     .pk-greet-acts { width: 100%; justify-content: space-between; }

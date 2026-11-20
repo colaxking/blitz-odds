@@ -27074,6 +27074,10 @@ function App() {
      the flags then say no, the effect below sends it back to /games. */
   const [gamesSportRaw, setGamesSportRaw] = useState(() => {
     try { if (isCfbPath(window.location.pathname)) return "cfb"; } catch (e) {}
+    // An NFL week or game URL (/games/2026/week-11/...) names its league just
+    // as a /college/ one does, so the remembered College choice doesn't apply
+    // to it. Bare /games stays "whichever you were last on".
+    try { if (/^\/games\/\d{4}\//.test(window.location.pathname)) return "nfl"; } catch (e) {}
     try { return localStorage.getItem(GAMES_SPORT_KEY) === "cfb" ? "cfb" : "nfl"; } catch (e) { return "nfl"; }
   });
   const cfbOn = !!features.cfb || (!features.loaded && gamesSportRaw === "cfb");
@@ -28567,7 +28571,16 @@ function App() {
           <div>
             <h2>NFL Football</h2>
             <ul>
-              <li><a href="/games/">NFL scores &amp; odds</a></li>
+              {/* Says NFL, so it lands on NFL: with College remembered as the
+                  Games sport, a plain /games/ link reopened the College slate. */}
+              <li><a
+                href="/games/"
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                  e.preventDefault();
+                  if (gamesSport === "cfb") setGamesSport("nfl"); else selectTab("games");
+                }}
+              >NFL scores &amp; odds</a></li>
               <li><a href={`/games/${(SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear()}/${weekSlug(getDefaultWeek())}/`}>This week's NFL picks</a></li>
               <li><a href="/teams/">NFL teams</a></li>
             </ul>

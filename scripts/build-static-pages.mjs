@@ -1355,6 +1355,67 @@ function approxKickoffMs(game, seasonYear) {
   return Date.UTC(year, mon, day, hour + (est ? 5 : 4), Number(t[2]));
 }
 
+/* ---- Mirrors of homeMarketPct / homeInsights / homeInsightText /
+ * HOME_INSIGHT_TAG / HOME_EXAMPLE_STANDINGS in src/app.jsx. Keep in step. */
+const HOME_EXAMPLE_STANDINGS = [
+  { rank: 1, name: "Jordan", record: "104-46", points: 1182 },
+  { rank: 2, name: "Priya", record: "101-49", points: 1167 },
+  { rank: 3, name: "You", record: "99-51", points: 1139, you: true },
+  { rank: 4, name: "Marcus", record: "97-53", points: 1121 },
+  { rank: 5, name: "Elena", record: "92-58", points: 1068 },
+];
+const HOME_INSIGHT_TAG = {
+  disagree: "Model and market disagree",
+  gap: "Model and market far apart",
+  tossup: "Closest call on the slate",
+  agree: "Model and market agree",
+  confident: "Most confident, no line posted",
+};
+function homeImplied(ml) {
+  const n = Number(ml);
+  if (!Number.isFinite(n) || n === 0) return null;
+  return n > 0 ? 100 / (n + 100) : -n / (-n + 100);
+}
+function homeMarketPct(r) {
+  const o = r.odds;
+  if (!o) return null;
+  const ph = homeImplied(o.moneylineHome), pa = homeImplied(o.moneylineAway);
+  if (ph == null || pa == null || ph + pa <= 0) return null;
+  const home = ph / (ph + pa);
+  return Math.round((r.pickAbbr === r.game.home ? home : 1 - home) * 100);
+}
+function buildHomeInsights(open, feat) {
+  let pool = open;
+  if (pool.filter((r) => r !== feat).length >= 3) pool = pool.filter((r) => r !== feat);
+  const cand = pool.map((r) => { const market = homeMarketPct(r); return { row: r, market, gap: market == null ? null : r.winPct - market }; });
+  const out = [];
+  const used = new Set();
+  const take = (c, kind) => { if (c && !used.has(c.row) && out.length < 3) { used.add(c.row); out.push({ ...c, kind }); } };
+  const byGap = cand.filter((c) => c.gap != null).sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap));
+  take(byGap.find((c) => c.market < 50), "disagree");
+  take(byGap.find((c) => !used.has(c.row) && c.market >= 50 && Math.abs(c.gap) >= 6), "gap");
+  take(cand.filter((c) => !used.has(c.row) && c.row.winPct <= 56).sort((a, b) => a.row.winPct - b.row.winPct)[0], "tossup");
+  take(byGap.filter((c) => !used.has(c.row) && c.market >= 50 && Math.abs(c.gap) >= 6)[0], "gap");
+  byGap.slice().reverse().forEach((c) => { if (Math.abs(c.gap) <= 4) take(c, "agree"); });
+  cand.filter((c) => c.market == null).sort((a, b) => b.row.winPct - a.row.winPct).forEach((c) => take(c, "confident"));
+  cand.slice().sort((a, b) => b.row.winPct - a.row.winPct).forEach((c) => take(c, c.market == null ? "confident" : Math.abs(c.gap) <= 4 ? "agree" : "gap"));
+  return out;
+}
+function homeInsightText(ins) {
+  const r = ins.row;
+  const pickIsHome = r.pickAbbr === r.game.home;
+  const pickNick = nickname(pickIsHome ? r.home : r.away);
+  const otherNick = nickname(pickIsHome ? r.away : r.home);
+  const homePct = Math.round(r.prediction.homeWinProbability * 100);
+  const awayPct = Math.round(r.prediction.awayWinProbability * 100);
+  const pts = ins.gap == null ? null : Math.abs(ins.gap);
+  if (ins.kind === "disagree") return `The model leans ${pickNick} at ${r.winPct}%. The moneylines make the ${otherNick} the favorite and imply ${ins.market}% for the ${pickNick}.`;
+  if (ins.kind === "gap") return `Both favor the ${pickNick}, but the model says ${r.winPct}% and the moneylines imply ${ins.market}%: ${pts} points ${ins.gap > 0 ? "higher" : "lower"}.`;
+  if (ins.kind === "tossup") return `The model has this one at ${awayPct}% to ${homePct}%, close to a coin flip${ins.market != null ? `. The moneylines imply ${ins.market}% for the ${pickNick}` : ""}.`;
+  if (ins.kind === "agree") return `The model (${r.winPct}%) and the moneylines (${ins.market}%) land within ${pts} ${pts === 1 ? "point" : "points"} of each other on the ${pickNick}.`;
+  return `The model's most confident remaining call, at ${r.winPct}%. No moneyline is posted yet to compare it with.`;
+}
+
 /** Static copy of the signed-out homepage (src/app.jsx <HomeLanding>): same
  *  section order, classes and copy, so css/app.css paints it identically
  *  before any script runs and React's first render lands on the same layout.
@@ -1370,7 +1431,9 @@ function buildHomeBodyHtml(data, period) {
     return ms == null || ms > now;
   });
   const feat = open[0] || null;
-  const picks = open.filter((r) => r !== feat).slice(0, 3);
+  const insights = buildHomeInsights(open, feat);
+  const sheet = open.slice(0, 4);
+  const slateSize = ladder.length;
   const byKickoff = period ? period.games.map((g) => open.find((r) => r.game === g)).filter(Boolean).slice(0, 4) : [];
   const hub = period ? weekHubPath(data, period) : "/games/";
   const badge = (id, size) => `<img src="/team-badges/${escapeHtml(id)}.png" alt="" width="${size}" height="${size}" loading="lazy" decoding="async" />`;
@@ -1398,6 +1461,12 @@ function buildHomeBodyHtml(data, period) {
             <div class="hl-bar-key"><span>${escapeHtml(feat.game.away)} ${p.away}%</span><span>${escapeHtml(feat.game.home)} ${p.home}%</span></div>
           </div>${line}
           <p class="hl-fine">The percentage is the Blitz Edge model's estimate of each team's chance to win. It is an estimate, not a guarantee.</p>
+          <details class="hl-explain"><summary>How Blitz Edge works</summary><ul>
+            <li><b>What the number is.</b> The model's estimate of each team's chance to win the game outright. The two percentages add up to 100.</li>
+            <li><b>What goes in.</b> Each team's league ranks in total, rushing and passing yards on offense and defense, home field, players listed out or questionable, and the forecast for outdoor games. Early in the season, last year's final ranks are blended in.</li>
+            <li><b>When it updates.</b> It recalculates as team stats, injury reports, and weather change, and it is frozen at kickoff, so a finished game shows the call as it stood before the game.</li>
+            <li><b>What it isn't.</b> A guarantee, or betting advice. It is an estimate.</li>
+          </ul></details>
           <a class="hl-more" href="${gamePagePath(data, period, feat.game)}">See the full ${escapeHtml(nickname(feat.away))}–${escapeHtml(nickname(feat.home))} analysis &rarr;</a>
         </div>`;
   }
@@ -1405,26 +1474,40 @@ function buildHomeBodyHtml(data, period) {
   const scoreCard = (r) => {
     const g = r.game;
     const side = (team, id, which) => `<span class="hs-team hs-${which}"><span class="hs-logo" aria-hidden="true">${badge(id, 30)}</span><span class="hs-name">${escapeHtml(nickname(team))} <small>${escapeHtml(id)}</small></span><span class="hs-abbr">${escapeHtml(id)}</span><span class="hs-score"></span></span>`;
-    return `          <a class="home-card hs-game is-upcoming" href="${gamePagePath(data, period, g)}" aria-label="${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}, ${escapeHtml(g.date || "")} ${escapeHtml(g.time || "")}"><span class="hs-status is-upcoming"><span class="hs-status-wide">Upcoming</span><span class="hs-status-narrow">${escapeHtml(g.time || "Scheduled")}</span></span><span class="hs-when"><span class="hs-status-wide">${escapeHtml(g.date || "")} · ${escapeHtml(g.time || "")}</span><span class="hs-status-narrow">${escapeHtml(g.date || "")}</span></span>${side(r.away, g.away, "away")}${side(r.home, g.home, "home")}<span class="hs-pick"><span class="hs-pick-lbl"><span class="hs-status-wide">Pregame model pick</span><span class="hs-status-narrow">Pregame pick</span></span><span class="hs-pick-val"><b>${escapeHtml(r.pickAbbr)} ${r.winPct}%</b></span></span><span class="hs-link" aria-hidden="true">Matchup analysis &rarr;</span></a>`;
+    return `          <a class="home-card hs-game is-upcoming" href="${gamePagePath(data, period, g)}" aria-label="${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}, ${escapeHtml(g.date || "")} ${escapeHtml(g.time || "")}"><span class="hs-status is-upcoming"><span class="hs-status-wide">Upcoming</span><span class="hs-status-narrow">${escapeHtml(g.time || "Scheduled")}</span></span><span class="hs-when"><span class="hs-status-wide">${escapeHtml(g.date || "")} · ${escapeHtml(g.time || "")}</span><span class="hs-status-narrow">${escapeHtml(g.date || "")}</span></span>${side(r.away, g.away, "away")}${side(r.home, g.home, "home")}<span class="hs-pick"><span class="hs-pick-lbl"><span class="hs-status-wide">Blitz Edge · pregame</span><span class="hs-status-narrow">Pregame pick</span></span><span class="hs-pick-val"><b>${escapeHtml(r.pickAbbr)} ${r.winPct}%</b></span></span><span class="hs-link" aria-hidden="true">Matchup analysis &rarr;</span></a>`;
   };
   const scores = byKickoff.length
     ? `        <div class="hs-grid">\n${byKickoff.map(scoreCard).join("\n")}\n        </div>`
     : `        <p class="hs-empty">Live scores load here. Browse <a href="/games/">NFL games and predictions</a> or the <a href="/historical/index.html">results archive</a>.</p>`;
 
-  const pickCard = (r) => {
-    const p = pcts(r);
+  const insightCard = (ins) => {
+    const r = ins.row;
     const g = r.game;
-    const team = (t, id, pct) => `<span class="hl-pickcard-team${r.pickAbbr === id ? " pick" : ""}">${badge(id, 32)}<span>${escapeHtml(t.name)}</span><b>${pct}%</b></span>`;
-    return `          <a class="home-card hl-pickcard" href="${gamePagePath(data, period, g)}" aria-label="${escapeHtml(r.away.name)} at ${escapeHtml(r.home.name)}: predicted winner ${escapeHtml(r.pickAbbr)}, ${r.winPct} percent"><span class="hl-pickcard-when">${escapeHtml(g.date || "")}${g.time ? ` · ${escapeHtml(g.time)}` : ""}</span>${team(r.away, g.away, p.away)}${team(r.home, g.home, p.home)}<span class="hs-pick hl-pickcard-pick"><span class="hs-pick-lbl"><img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" width="378" height="120" loading="lazy" decoding="async" /> Predicted winner</span><span class="hs-pick-val"><b>${escapeHtml(r.pickAbbr)} ${r.winPct}%</b></span></span><span class="hs-link" aria-hidden="true">Full matchup details &rarr;</span></a>`;
+    const text = homeInsightText(ins);
+    return `          <a class="home-card hl-pickcard hl-insight" href="${gamePagePath(data, period, g)}" aria-label="${escapeHtml(`${r.away.name} at ${r.home.name}. ${HOME_INSIGHT_TAG[ins.kind]}. ${text}`)}"><span class="hl-insight-tag is-${ins.kind}">${HOME_INSIGHT_TAG[ins.kind]}</span><span class="hl-insight-teams">${badge(g.away, 32)}<b>${escapeHtml(nickname(r.away))} <span>at</span> ${escapeHtml(nickname(r.home))}</b>${badge(g.home, 32)}</span><span class="hl-pickcard-when">${escapeHtml(g.date || "")}${g.time ? ` · ${escapeHtml(g.time)}` : ""}</span><span class="hl-insight-bars"><span class="hl-insight-row"><span>Model · ${escapeHtml(r.pickAbbr)}</span><span class="hl-insight-track"><span class="is-model" style="width:${r.winPct}%"></span></span><b>${r.winPct}%</b></span><span class="hl-insight-row"><span>Market · ${escapeHtml(r.pickAbbr)}</span><span class="hl-insight-track">${ins.market != null ? `<span class="is-market" style="width:${ins.market}%"></span>` : ""}</span><b>${ins.market != null ? ins.market + "%" : "n/a"}</b></span></span><span class="hl-insight-text">${escapeHtml(text)}</span><span class="hs-link" aria-hidden="true">Full matchup details &rarr;</span></a>`;
   };
-  const picksSection = picks.length ? `
+  const picksSection = insights.length ? `
       <section class="hl-sec" aria-labelledby="hl-picks">
-        <div class="hl-head"><div><h2 id="hl-picks">This Week's NFL Picks</h2><p>${label} · pregame win probabilities from the Blitz Edge model.</p></div>${data.features.cfb ? `<a class="hl-more" href="/college/">College football odds &rarr;</a>` : ""}</div>
+        <div class="hl-head"><div><h2 id="hl-picks">This Week's NFL Picks: Blitz Edge Insights</h2><p>${label} · games where the model and the betting market differ, or the model sees a toss-up.</p></div>${data.features.cfb ? `<a class="hl-more" href="/college/">College football odds &rarr;</a>` : ""}</div>
         <div class="hl-grid3">
-${picks.map(pickCard).join("\n")}
+${insights.map(insightCard).join("\n")}
         </div>
+        <p class="hl-fine hl-insight-note">Model is the Blitz Edge pregame win probability. Market is the win probability implied by the posted moneylines, with the sportsbook's margin removed. A gap between them shows where the two estimates disagree. It is a reason to look closer at a game, not a betting edge, and a high win probability on its own is not a gap.</p>
         <div class="hl-center"><a class="home-btn hl-btn-lg" href="/games/">View All NFL Games &amp; Predictions</a></div>
       </section>` : "";
+
+  const sheetRows = sheet.map((r, i) => {
+    const pickIsHome = r.pickAbbr === r.game.home;
+    return `<li><span class="hl-league-pts" aria-label="${slateSize - i} confidence points">${slateSize - i}</span>${badge(r.pickAbbr, 26)}<span class="hl-league-pick"><b>${escapeHtml(nickname(pickIsHome ? r.home : r.away))}</b><small>${pickIsHome ? "vs" : "at"} ${escapeHtml(nickname(pickIsHome ? r.away : r.home))}</small></span><span class="hl-league-pct">${r.winPct}%</span></li>`;
+  }).join("");
+  const leaguePreview = `<div class="home-card hl-league" role="group" aria-label="Example league preview">
+            <div class="hl-league-head"><div><span class="hl-league-flag">Example league</span><b>Sunday Crew</b></div><span class="hl-league-fmt"><img src="/branding/format-badge-confidence-icon.png" alt="" width="240" height="180" loading="lazy" decoding="async" />Confidence · ${label}</span></div>
+            <div class="hl-league-body">
+              <div><h3>Standings</h3><table class="hl-league-table"><thead><tr><th scope="col"><span class="sr-only">Rank</span></th><th scope="col">Player</th><th scope="col">Record</th><th scope="col">Points</th></tr></thead><tbody>${HOME_EXAMPLE_STANDINGS.map((r) => `<tr${r.you ? ` class="is-you"` : ""}><td>${r.rank}</td><th scope="row">${r.name}</th><td>${r.record}</td><td>${r.points.toLocaleString("en-US")}</td></tr>`).join("")}</tbody></table></div>
+              <div><h3>Your ${label} picks</h3>${sheet.length ? `<ul class="hl-league-picks">${sheetRows}</ul>` : `<p class="hl-fine">This week's games are under way. Picks lock at kickoff, and next week's sheet opens when the slate does.</p>`}</div>
+            </div>
+            <p class="hl-fine">An example of a confidence league. Names, records and points are made up; the matchups and win percentages are this week's real games and model picks. In a confidence pool you put your most points on the picks you trust most.</p>
+          </div>`;
 
   const faqLd = JSON.stringify({
     "@context": "https://schema.org",
@@ -1444,7 +1527,7 @@ ${picks.map(pickCard).join("\n")}
             <a class="home-btn hl-btn-lg" href="${hub}">Explore This Week's Picks</a>
             <a class="home-btn hl-btn-lg hl-btn-quiet" href="/leagues/">Join a League</a>
           </div>
-          <p class="hl-trust"><span>Free to create and join</span><span>Four pool formats</span><span>Not a sportsbook — no wagers</span></p>
+          <p class="hl-trust"><span>Free to create and join</span><span>Four pool formats</span><span>Automatic scoring &amp; standings</span></p>
         </div>${preview}
       </section>
 
@@ -1452,6 +1535,7 @@ ${picks.map(pickCard).join("\n")}
         <div class="hl-head"><div><h2 id="hs-title">Football Scores &amp; Predictions</h2><p>Follow the action and see how Blitz Odds predictions compare with game results.</p></div><a class="hl-more hs-all-top" href="/games/">View All Football Scores &rarr;</a></div>
         <div class="hs-controls"><div class="hs-seg" role="group" aria-label="Game status"><button type="button" class="on" aria-pressed="true">All</button><button type="button" aria-pressed="false">Live</button><button type="button" aria-pressed="false">Upcoming</button><button type="button" aria-pressed="false">Final</button></div><span class="hs-updated">&nbsp;</span></div>
 ${scores}
+        <p class="hl-fine hs-note">The percentage is the Blitz Edge pick made before kickoff, not a live win probability. On a final, "Picked the winner" means that pick won the game; one result does not show the percentage itself was right.</p>
         <a class="hl-more hs-all-bottom" href="/games/">View All Football Scores &rarr;</a>
       </section>
 
@@ -1464,20 +1548,24 @@ ${scores}
       </section>
 
       <section class="hl-sec" aria-labelledby="hl-how">
-        <div class="hl-head"><h2 id="hl-how">How Blitz Odds Works</h2></div>
-        <ol class="home-card hl-steps">
-          <li><span class="hl-step-n" aria-hidden="true">1</span><div><h3>Create or Join</h3><p>Start your own free pick'em league or join an existing one.</p></div></li>
-          <li><span class="hl-step-n" aria-hidden="true">2</span><div><h3>Make Your Picks</h3><p>Use Blitz Edge predictions and matchup insights to select your teams.</p></div></li>
-          <li><span class="hl-step-n" aria-hidden="true">3</span><div><h3>Track Results</h3><p>Follow game scores and league standings without manual spreadsheets.</p></div></li>
-        </ol>
+        <div class="hl-head"><div><h2 id="hl-how">How Blitz Odds Works</h2><p>Three steps, and what your league looks like once it is running.</p></div></div>
+        <div class="hl-how">
+          <ol class="home-card hl-steps">
+            <li><span class="hl-step-n" aria-hidden="true">1</span><div><h3>Create or Join</h3><p>Start your own free pick'em league or join an existing one.</p></div></li>
+            <li><span class="hl-step-n" aria-hidden="true">2</span><div><h3>Make Your Picks</h3><p>Use Blitz Edge predictions and matchup insights to select your teams.</p></div></li>
+            <li><span class="hl-step-n" aria-hidden="true">3</span><div><h3>Track Results</h3><p>Follow game scores and league standings without manual spreadsheets.</p></div></li>
+            <li class="hl-steps-cta"><a class="home-btn primary hl-btn-lg" href="/leagues/">Create a Free League</a></li>
+          </ol>
+          ${leaguePreview}
+        </div>
       </section>
 
       <section class="hl-sec" aria-labelledby="hl-why">
         <div class="hl-head"><h2 id="hl-why">Why Blitz Odds?</h2></div>
         <div class="hl-grid3 hl-why">
-          <div class="hl-why-cell is-edge"><h3>Blitz Edge Predictions</h3><p>Model-driven matchup analysis and win probabilities.</p><a class="hl-more" href="/picks/">See the Pick'em Playbook &rarr;</a></div>
-          <div class="hl-why-cell is-league"><h3>Easy League Management</h3><p>League setup, invitations, picks, scoring, and standings.</p><a class="hl-more" href="/leagues/">Browse pick'em leagues &rarr;</a></div>
-          <div class="hl-why-cell is-data"><h3>Football Insights in One Place</h3><p>${data.features.cfb ? "NFL and college football schedules, scores, predictions, and historical data." : "NFL schedules, scores, predictions, and historical data."}</p><a class="hl-more" href="/historical/index.html">Browse the results archive &rarr;</a></div>
+          <div class="hl-why-cell is-edge"><h3>Predictions on the Record</h3><p>Every Blitz Edge call is frozen at kickoff and shown next to the final score, whether it was right or wrong.</p><a class="hl-more" href="/games/">See this week's calls and results &rarr;</a></div>
+          <div class="hl-why-cell is-league"><h3>Leagues That Score Themselves</h3><p>Picks lock at kickoff, every game is graded when it ends, and the standings update on their own.</p><a class="hl-more" href="/leagues/">Browse pick'em leagues &rarr;</a></div>
+          <div class="hl-why-cell is-data"><h3>Every Season Since 2015</h3><p>Final scores and box scores for every NFL game back to 2015, searchable by season and team.</p><a class="hl-more" href="/historical/index.html">Browse the results archive &rarr;</a></div>
         </div>
       </section>
 

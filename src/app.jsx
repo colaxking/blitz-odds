@@ -17845,7 +17845,7 @@ function homeNflScoreItems(week, prevWeek, tz, liveMap) {
         sortMs: r.kickoffMs || 0, current: !isPrev,
         away: { abbr: r.away, name: teamNickname(r.awayName), full: r.awayName, score: hasScore ? score.awayScore : null, logo: <img src={`/team-badges/${r.away}.png`} alt="" width="30" height="30" loading="lazy" decoding="async" /> },
         home: { abbr: r.home, name: teamNickname(r.homeName), full: r.homeName, score: hasScore ? score.homeScore : null, logo: <img src={`/team-badges/${r.home}.png`} alt="" width="30" height="30" loading="lazy" decoding="async" /> },
-        loser, pickLabel: "Pregame model pick", pickShort: "Pregame pick",
+        loser, pickLabel: "Blitz Edge · pregame", pickShort: "Pregame pick",
         pickText: r.pick ? `${r.pick} ${r.pct}%` : null, outcome,
       });
     });
@@ -17903,7 +17903,7 @@ function HomeScoreCard({ item: it, onClick }) {
       <span className="hs-pick">
         <span className="hs-pick-lbl"><span className="hs-status-wide">{it.pickLabel}</span><span className="hs-status-narrow">{it.pickShort}</span></span>
         {it.pickText
-          ? <span className="hs-pick-val"><b>{it.pickText}</b>{it.outcome && <span className={"hs-outcome is-" + it.outcome}> · {it.outcome === "correct" ? "Correct" : "Missed"}</span>}</span>
+          ? <span className="hs-pick-val"><b>{it.pickText}</b>{it.outcome && <span className={"hs-outcome is-" + it.outcome}> · {it.outcome === "correct" ? "Picked the winner" : "Missed"}</span>}</span>
           : <span className="hs-pick-val hs-pick-none">Not available</span>}
       </span>
       <span className="hs-link" aria-hidden="true">Matchup analysis &rarr;</span>
@@ -18031,7 +18031,8 @@ function HomeScoreboard({ week, tz, cfbOn, onOpenGames, onOpenCollege, placement
     setFilterRaw(f);
     trackEvent("home_scores_filter", { filter: f, sport: activeSport });
   }
-  const FILTERS = [["all", "All"], ["live", "Live"], ["upcoming", "Upcoming"], ["final", "Final"]];
+  const liveCount = activeSport === "nfl" ? nflItems.filter(i => i.status === "live").length : 0;
+  const FILTERS = [["all", "All"], ["live", liveCount ? `Live ${liveCount}` : "Live"], ["upcoming", "Upcoming"], ["final", "Final"]];
   const allHref = activeSport === "cfb" ? "/college/" : "/games/";
   const openAll = activeSport === "cfb" ? onOpenCollege : onOpenGames;
 
@@ -18053,7 +18054,7 @@ function HomeScoreboard({ week, tz, cfbOn, onOpenGames, onOpenCollege, placement
         )}
         <div className="hs-seg" role="group" aria-label="Game status">
           {FILTERS.map(([id, label]) => (
-            <button key={id} type="button" className={filter === id ? "on" : ""} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>
+            <button key={id} type="button" className={(filter === id ? "on" : "") + (id === "live" && liveCount ? " has-live" : "")} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>
           ))}
         </div>
         <span className="hs-updated" aria-live="off">{updatedAt ? `Scores updated ${homeClockLabel(updatedAt, tz)}` : " "}</span>
@@ -18078,10 +18079,97 @@ function HomeScoreboard({ week, tz, cfbOn, onOpenGames, onOpenCollege, placement
           )}
         </p>
       )}
+      <p className="hl-fine hs-note">
+        {activeSport === "cfb"
+          ? "The percentage is the pregame market favorite's implied chance to win, not a Blitz Edge prediction and not a live probability."
+          : "The percentage is the Blitz Edge pick made before kickoff, not a live win probability."}
+        {" "}On a final, "Picked the winner" means that pick won the game; one result does not show the percentage itself was right.
+      </p>
       <a className="hl-more hs-all-bottom" href={allHref} onClick={homeNav(() => { trackEvent("home_scores_all", { sport: activeSport }); openAll(); })}>View All Football Scores &rarr;</a>
     </section>
   );
 }
+
+/** American moneyline -> implied win probability (the book's margin still in it). */
+function americanToImpliedProbability(ml) {
+  const n = Number(ml);
+  if (!Number.isFinite(n) || n === 0) return null;
+  return n > 0 ? 100 / (n + 100) : -n / (-n + 100);
+}
+
+/** What the posted moneylines say about the model's pick, as a whole-number
+ *  percentage with the sportsbook's margin removed (the two implied
+ *  probabilities are scaled to sum to 100). null without both prices. */
+function homeMarketPct(row) {
+  const o = row && row.odds;
+  if (!o) return null;
+  const ph = americanToImpliedProbability(o.moneylineHome);
+  const pa = americanToImpliedProbability(o.moneylineAway);
+  if (ph == null || pa == null || ph + pa <= 0) return null;
+  const home = ph / (ph + pa);
+  return Math.round((row.pick === row.home ? home : 1 - home) * 100);
+}
+
+/** Up to three games worth a second look, each for a different reason. This
+ *  is deliberately NOT "the three highest win probabilities" (that is the
+ *  hero's job, and a 90% favorite the market also has at 90% is no finding
+ *  at all). In order:
+ *    disagree - the model picks the side the market makes the underdog
+ *    gap      - same side, but the two numbers are far apart
+ *    tossup   - the closest call on the slate by the model's own number
+ *    agree    - model and market land within a few points (fills a slot)
+ *    confident- no line posted: the most confident call left
+ *  The model-vs-market difference is described as a gap, never an edge: it
+ *  says where two estimates differ, not which one is right. Mirrored in
+ *  buildHomeInsights() in scripts/build-static-pages.mjs. */
+function homeInsights(rows, excludeKey) {
+  let pool = rows.filter(r => !r.started && r.pick && r.pct != null);
+  if (pool.filter(r => r.key !== excludeKey).length >= 3) pool = pool.filter(r => r.key !== excludeKey);
+  const cand = pool.map(r => { const market = homeMarketPct(r); return { row: r, market, gap: market == null ? null : r.pct - market }; });
+  const out = [];
+  const used = new Set();
+  const take = (c, kind) => { if (c && !used.has(c.row.key) && out.length < 3) { used.add(c.row.key); out.push({ ...c, kind }); } };
+  const byGap = cand.filter(c => c.gap != null).sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap));
+  take(byGap.find(c => c.market < 50), "disagree");
+  take(byGap.find(c => !used.has(c.row.key) && c.market >= 50 && Math.abs(c.gap) >= 6), "gap");
+  take(cand.filter(c => !used.has(c.row.key) && c.row.pct <= 56).sort((a, b) => a.row.pct - b.row.pct)[0], "tossup");
+  take(byGap.filter(c => !used.has(c.row.key) && c.market >= 50 && Math.abs(c.gap) >= 6)[0], "gap");
+  byGap.slice().reverse().forEach(c => { if (Math.abs(c.gap) <= 4) take(c, "agree"); });
+  cand.filter(c => c.market == null).sort((a, b) => b.row.pct - a.row.pct).forEach(c => take(c, "confident"));
+  cand.slice().sort((a, b) => b.row.pct - a.row.pct).forEach(c => take(c, c.market == null ? "confident" : Math.abs(c.gap) <= 4 ? "agree" : "gap"));
+  return out;
+}
+
+const HOME_INSIGHT_TAG = {
+  disagree: "Model and market disagree",
+  gap: "Model and market far apart",
+  tossup: "Closest call on the slate",
+  agree: "Model and market agree",
+  confident: "Most confident, no line posted",
+};
+
+function homeInsightText(ins) {
+  const r = ins.row;
+  const pickNick = teamNickname(r.pick === r.home ? r.homeName : r.awayName);
+  const otherNick = teamNickname(r.pick === r.home ? r.awayName : r.homeName);
+  const pts = ins.gap == null ? null : Math.abs(ins.gap);
+  if (ins.kind === "disagree") return `The model leans ${pickNick} at ${r.pct}%. The moneylines make the ${otherNick} the favorite and imply ${ins.market}% for the ${pickNick}.`;
+  if (ins.kind === "gap") return `Both favor the ${pickNick}, but the model says ${r.pct}% and the moneylines imply ${ins.market}%: ${pts} points ${ins.gap > 0 ? "higher" : "lower"}.`;
+  if (ins.kind === "tossup") return `The model has this one at ${r.awayPct}% to ${r.homePct}%, close to a coin flip${ins.market != null ? `. The moneylines imply ${ins.market}% for the ${pickNick}` : ""}.`;
+  if (ins.kind === "agree") return `The model (${r.pct}%) and the moneylines (${ins.market}%) land within ${pts} ${pts === 1 ? "point" : "points"} of each other on the ${pickNick}.`;
+  return `The model's most confident remaining call, at ${r.pct}%. No moneyline is posted yet to compare it with.`;
+}
+
+/* The league preview in "How Blitz Odds Works". Names, records and points
+ * are an example and are labelled as one on the page; the matchups and the
+ * picks beside them are this week's real games and model picks. */
+const HOME_EXAMPLE_STANDINGS = [
+  { rank: 1, name: "Jordan", record: "104-46", points: 1182 },
+  { rank: 2, name: "Priya", record: "101-49", points: 1167 },
+  { rank: 3, name: "You", record: "99-51", points: 1139, you: true },
+  { rank: 4, name: "Marcus", record: "97-53", points: 1121 },
+  { rank: 5, name: "Elena", record: "92-58", points: 1068 },
+];
 
 /** The hero's matchup preview: the model's most confident call among games
  *  that haven't kicked off (or, once the whole slate has started, the most
@@ -18098,7 +18186,7 @@ function homeFeaturedRow(rows) {
 /** Signed-out Home. This is the document Google gets for "/": the hero
  *  headline is the page's one <h1> (the header's sr-only heading steps down
  *  to a <span> on this view - see App). */
-function HomeLanding({ onOpenGames, onOpenPlaybook, onCreateLeague, onJoinLeague, onOpenLeagues, week, sportsbookId, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
+function HomeLanding({ onOpenHowItWorks, onOpenGames, onOpenPlaybook, onCreateLeague, onJoinLeague, onOpenLeagues, week, sportsbookId, tz, cfbOn, bowlsOn, onOpenCollege, onOpenBowls }) {
   useFrozenPredictions(week);
   // Not memoized on [week, sportsbookId]: live team stats, injuries, odds and
   // weather land after first render by swapping module bindings, and a memo
@@ -18108,15 +18196,20 @@ function HomeLanding({ onOpenGames, onOpenPlaybook, onCreateLeague, onJoinLeague
   const seasonYear = (SCHEDULE_DATA && SCHEDULE_DATA.season) || new Date().getFullYear();
   const feat = homeFeaturedRow(rows);
 
-  // Featured picks: the most confident unstarted calls, minus the hero's. If
-  // this week is nearly played out, look ahead to the next one.
+  // Insights: games with something notable about them (see homeInsights),
+  // not a second list of big favorites. If this week is nearly played out,
+  // look ahead to the next one.
   let picksWeek = week;
-  let picks = rows.filter(r => !r.started && r.pick && (!feat || r.key !== feat.key)).sort((a, b) => b.pct - a.pct).slice(0, 3);
-  if (picks.length < 2) {
+  let insights = homeInsights(rows, feat ? feat.key : null);
+  if (insights.length < 2) {
     const nextWeek = homeNextWeek(week);
-    const nextRows = nextWeek != null ? homeSlateRows(nextWeek, tz, sportsbookId).filter(r => !r.started && r.pick) : [];
-    if (nextRows.length >= 2) { picks = nextRows.sort((a, b) => b.pct - a.pct).slice(0, 3); picksWeek = nextWeek; }
+    const nextInsights = nextWeek != null ? homeInsights(homeSlateRows(nextWeek, tz, sportsbookId), null) : [];
+    if (nextInsights.length >= 2) { insights = nextInsights; picksWeek = nextWeek; }
   }
+  // The league preview's example pick sheet: this week's real games and
+  // model picks, weighted the way a confidence pool would.
+  const sheet = rows.filter(r => !r.started && r.pick).sort((a, b) => b.pct - a.pct).slice(0, 4);
+  const slateSize = rows.length;
   const picksLabel = getPeriodLabel(picksWeek);
   const hubHref = `/games/${seasonYear}/${weekSlug(picksWeek)}/`;
 
@@ -18145,7 +18238,7 @@ function HomeLanding({ onOpenGames, onOpenPlaybook, onCreateLeague, onJoinLeague
             <a className="home-btn hl-btn-lg" href={hubHref} onClick={homeNav(cta("explore_picks", "hero", onOpenGames))}>Explore This Week's Picks</a>
             <a className="home-btn hl-btn-lg hl-btn-quiet" href="/leagues/" onClick={homeNav(cta("join_league", "hero", onJoinLeague))}>Join a League</a>
           </div>
-          <p className="hl-trust"><span>Free to create and join</span><span>Four pool formats</span><span>Not a sportsbook — no wagers</span></p>
+          <p className="hl-trust"><span>Free to create and join</span><span>Four pool formats</span><span>Automatic scoring &amp; standings</span></p>
         </div>
 
         {feat && (
@@ -18189,6 +18282,16 @@ function HomeLanding({ onOpenGames, onOpenPlaybook, onCreateLeague, onJoinLeague
               The percentage is the Blitz Edge model's {feat.started ? "pregame " : ""}estimate of each team's chance to win
               {feat.started ? ", frozen at kickoff" : ""}. It is an estimate, not a guarantee.
             </p>
+            <details className="hl-explain" onToggle={(e) => { if (e.currentTarget.open) trackEvent("home_edge_explain", { placement: "hero" }); }}>
+              <summary>How Blitz Edge works</summary>
+              <ul>
+                <li><b>What the number is.</b> The model's estimate of each team's chance to win the game outright. The two percentages add up to 100.</li>
+                <li><b>What goes in.</b> Each team's league ranks in total, rushing and passing yards on offense and defense, home field, players listed out or questionable, and the forecast for outdoor games. Early in the season, last year's final ranks are blended in.</li>
+                <li><b>When it updates.</b> It recalculates as team stats, injury reports, and weather change, and it is frozen at kickoff, so a finished game shows the call as it stood before the game.</li>
+                <li><b>What it isn't.</b> A guarantee, or betting advice. It is an estimate.</li>
+              </ul>
+              {onOpenHowItWorks && <button type="button" className="hl-explain-more" onClick={onOpenHowItWorks}>Read the full explanation</button>}
+            </details>
             <a className="hl-more" href={feat.href} onClick={() => trackEvent("home_featured_click", { placement: "hero", game: feat.key })}>See the full {featPickName ? `${teamNickname(feat.awayName)}–${teamNickname(feat.homeName)}` : "matchup"} analysis &rarr;</a>
           </div>
         )}
@@ -18221,33 +18324,79 @@ function HomeLanding({ onOpenGames, onOpenPlaybook, onCreateLeague, onJoinLeague
         </div>
       </section>
 
-      {/* E - how it works */}
+      {/* E - how it works, with a look at a league */}
       <section className="hl-sec" aria-labelledby="hl-how">
-        <div className="hl-head"><h2 id="hl-how">How Blitz Odds Works</h2></div>
-        <ol className="home-card hl-steps">
-          <li><span className="hl-step-n" aria-hidden="true">1</span><div><h3>Create or Join</h3><p>Start your own free pick'em league or join an existing one.</p></div></li>
-          <li><span className="hl-step-n" aria-hidden="true">2</span><div><h3>Make Your Picks</h3><p>Use Blitz Edge predictions and matchup insights to select your teams.</p></div></li>
-          <li><span className="hl-step-n" aria-hidden="true">3</span><div><h3>Track Results</h3><p>Follow game scores and league standings without manual spreadsheets.</p></div></li>
-        </ol>
+        <div className="hl-head"><div><h2 id="hl-how">How Blitz Odds Works</h2><p>Three steps, and what your league looks like once it is running.</p></div></div>
+        <div className="hl-how">
+          <ol className="home-card hl-steps">
+            <li><span className="hl-step-n" aria-hidden="true">1</span><div><h3>Create or Join</h3><p>Start your own free pick'em league or join an existing one.</p></div></li>
+            <li><span className="hl-step-n" aria-hidden="true">2</span><div><h3>Make Your Picks</h3><p>Use Blitz Edge predictions and matchup insights to select your teams.</p></div></li>
+            <li><span className="hl-step-n" aria-hidden="true">3</span><div><h3>Track Results</h3><p>Follow game scores and league standings without manual spreadsheets.</p></div></li>
+            <li className="hl-steps-cta"><button type="button" className="home-btn primary hl-btn-lg" onClick={cta("create_league", "how", onCreateLeague)}>Create a Free League</button></li>
+          </ol>
+          <div className="home-card hl-league" role="group" aria-label="Example league preview">
+            <div className="hl-league-head">
+              <div><span className="hl-league-flag">Example league</span><b>Sunday Crew</b></div>
+              <span className="hl-league-fmt"><img src={LEAGUE_FORMAT_ICON_URLS.confidence} alt="" width="240" height="180" loading="lazy" decoding="async" />Confidence · {periodLabel}</span>
+            </div>
+            <div className="hl-league-body">
+              <div>
+                <h3>Standings</h3>
+                <table className="hl-league-table">
+                  <thead><tr><th scope="col"><span className="sr-only">Rank</span></th><th scope="col">Player</th><th scope="col">Record</th><th scope="col">Points</th></tr></thead>
+                  <tbody>
+                    {HOME_EXAMPLE_STANDINGS.map(r => (
+                      <tr key={r.rank} className={r.you ? "is-you" : ""}><td>{r.rank}</td><th scope="row">{r.name}</th><td>{r.record}</td><td>{r.points.toLocaleString("en-US")}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <h3>Your {periodLabel} picks</h3>
+                {sheet.length > 0 ? (
+                  <ul className="hl-league-picks">
+                    {sheet.map((r, i) => (
+                      <li key={r.key}>
+                        <span className="hl-league-pts" aria-label={`${slateSize - i} confidence points`}>{slateSize - i}</span>
+                        <img src={`/team-badges/${r.pick}.png`} alt="" width="26" height="26" loading="lazy" decoding="async" />
+                        <span className="hl-league-pick"><b>{teamNickname(r.pick === r.home ? r.homeName : r.awayName)}</b><small>{r.pick === r.home ? "vs" : "at"} {teamNickname(r.pick === r.home ? r.awayName : r.homeName)}</small></span>
+                        <span className="hl-league-pct">{r.pct}%</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="hl-fine">This week's games are under way. Picks lock at kickoff, and next week's sheet opens when the slate does.</p>
+                )}
+              </div>
+            </div>
+            <p className="hl-fine">
+              An example of a confidence league. Names, records and points are made up; the matchups and
+              win percentages are this week's real games and model picks. In a confidence pool you put your
+              most points on the picks you trust most.
+            </p>
+          </div>
+        </div>
       </section>
 
-      {/* H - why (moved above the formats at Dan's request) */}
+      {/* H - why (above the formats at Dan's request). Its job is trust -
+          how the product behaves - where the benefit cards above say what
+          you can do with it. */}
       <section className="hl-sec" aria-labelledby="hl-why">
         <div className="hl-head"><h2 id="hl-why">Why Blitz Odds?</h2></div>
         <div className="hl-grid3 hl-why">
           <div className="hl-why-cell is-edge">
-            <h3>Blitz Edge Predictions</h3>
-            <p>Model-driven matchup analysis and win probabilities.</p>
-            <a className="hl-more" href="/picks/" onClick={homeNav(cta("playbook", "why", onOpenPlaybook))}>See the Pick'em Playbook &rarr;</a>
+            <h3>Predictions on the Record</h3>
+            <p>Every Blitz Edge call is frozen at kickoff and shown next to the final score, whether it was right or wrong.</p>
+            <a className="hl-more" href="/games/" onClick={homeNav(cta("all_games", "why", onOpenGames))}>See this week's calls and results &rarr;</a>
           </div>
           <div className="hl-why-cell is-league">
-            <h3>Easy League Management</h3>
-            <p>League setup, invitations, picks, scoring, and standings.</p>
+            <h3>Leagues That Score Themselves</h3>
+            <p>Picks lock at kickoff, every game is graded when it ends, and the standings update on their own.</p>
             <a className="hl-more" href="/leagues/" onClick={homeNav(cta("explore_leagues", "why", onOpenLeagues))}>Browse pick'em leagues &rarr;</a>
           </div>
           <div className="hl-why-cell is-data">
-            <h3>Football Insights in One Place</h3>
-            <p>{cfbOn ? "NFL and college football schedules, scores, predictions, and historical data." : "NFL schedules, scores, predictions, and historical data."}</p>
+            <h3>Every Season Since 2015</h3>
+            <p>Final scores and box scores for every NFL game back to 2015, searchable by season and team.</p>
             <a className="hl-more" href="/historical/index.html">Browse the results archive &rarr;</a>
           </div>
         </div>
@@ -18270,30 +18419,46 @@ function HomeLanding({ onOpenGames, onOpenPlaybook, onCreateLeague, onJoinLeague
         </div>
       </section>
 
-      {/* G - featured picks */}
-      {picks.length > 0 && (
+      {/* G - model insights: where the model and the market differ, or where
+          the model itself is undecided. Distinct from the hero (the single
+          most confident call) and from the scoreboard (what is on now). */}
+      {insights.length > 0 && (
         <section className="hl-sec" aria-labelledby="hl-picks">
           <div className="hl-head">
             <div>
-              <h2 id="hl-picks">This Week's NFL Picks</h2>
-              <p>{picksLabel} · pregame win probabilities from the Blitz Edge model.</p>
+              <h2 id="hl-picks">This Week's NFL Picks: Blitz Edge Insights</h2>
+              <p>{picksLabel} · games where the model and the betting market differ, or the model sees a toss-up.</p>
             </div>
             {cfbOn && <a className="hl-more" href="/college/" onClick={homeNav(() => { trackEvent("home_cta", { cta: "college", placement: "picks" }); onOpenCollege(); })}>College football odds &rarr;</a>}
           </div>
           <div className="hl-grid3">
-            {picks.map(p => (
-              <a key={p.key} className="home-card hl-pickcard" href={p.href} aria-label={`${p.awayName} at ${p.homeName}: predicted winner ${p.pick}, ${p.pct} percent`} onClick={() => trackEvent("home_featured_click", { placement: "picks", game: p.key })}>
-                <span className="hl-pickcard-when">{p.day}{p.time ? ` · ${p.time}` : ""}</span>
-                <span className={"hl-pickcard-team" + (p.pick === p.away ? " pick" : "")}><img src={`/team-badges/${p.away}.png`} alt="" width="32" height="32" loading="lazy" decoding="async" /><span>{p.awayName}</span><b>{p.awayPct}%</b></span>
-                <span className={"hl-pickcard-team" + (p.pick === p.home ? " pick" : "")}><img src={`/team-badges/${p.home}.png`} alt="" width="32" height="32" loading="lazy" decoding="async" /><span>{p.homeName}</span><b>{p.homePct}%</b></span>
-                <span className="hs-pick hl-pickcard-pick">
-                  <span className="hs-pick-lbl"><img src="/branding/blitz-edge-logo.png" alt="Blitz Edge" width="378" height="120" loading="lazy" decoding="async" /> Predicted winner</span>
-                  <span className="hs-pick-val"><b>{p.pick} {p.pct}%</b></span>
-                </span>
-                <span className="hs-link" aria-hidden="true">Full matchup details &rarr;</span>
-              </a>
-            ))}
+            {insights.map(ins => {
+              const p = ins.row;
+              return (
+                <a key={p.key} className="home-card hl-pickcard hl-insight" href={p.href} aria-label={`${p.awayName} at ${p.homeName}. ${HOME_INSIGHT_TAG[ins.kind]}. ${homeInsightText(ins)}`} onClick={() => trackEvent("home_featured_click", { placement: "insights", game: p.key, kind: ins.kind })}>
+                  <span className={"hl-insight-tag is-" + ins.kind}>{HOME_INSIGHT_TAG[ins.kind]}</span>
+                  <span className="hl-insight-teams">
+                    <img src={`/team-badges/${p.away}.png`} alt="" width="32" height="32" loading="lazy" decoding="async" />
+                    <b>{teamNickname(p.awayName)} <span>at</span> {teamNickname(p.homeName)}</b>
+                    <img src={`/team-badges/${p.home}.png`} alt="" width="32" height="32" loading="lazy" decoding="async" />
+                  </span>
+                  <span className="hl-pickcard-when">{p.day}{p.time ? ` · ${p.time}` : ""}</span>
+                  <span className="hl-insight-bars">
+                    <span className="hl-insight-row"><span>Model · {p.pick}</span><span className="hl-insight-track"><span className="is-model" style={{ width: p.pct + "%" }} /></span><b>{p.pct}%</b></span>
+                    <span className="hl-insight-row"><span>Market · {p.pick}</span><span className="hl-insight-track">{ins.market != null && <span className="is-market" style={{ width: ins.market + "%" }} />}</span><b>{ins.market != null ? ins.market + "%" : "n/a"}</b></span>
+                  </span>
+                  <span className="hl-insight-text">{homeInsightText(ins)}</span>
+                  <span className="hs-link" aria-hidden="true">Full matchup details &rarr;</span>
+                </a>
+              );
+            })}
           </div>
+          <p className="hl-fine hl-insight-note">
+            Model is the Blitz Edge pregame win probability. Market is the win probability implied by the
+            posted moneylines, with the sportsbook's margin removed. A gap between them shows where the two
+            estimates disagree. It is a reason to look closer at a game, not a betting edge, and a high win
+            probability on its own is not a gap.
+          </p>
           <div className="hl-center">
             <a className="home-btn hl-btn-lg" href="/games/" onClick={homeNav(cta("all_games", "picks", onOpenGames))}>View All NFL Games &amp; Predictions</a>
           </div>
@@ -26904,6 +27069,7 @@ function App() {
             tz={resolvedTz}
             onOpenGames={() => selectTab("games")}
             onOpenPlaybook={() => selectTab("picks")}
+            onOpenHowItWorks={() => setShowHowItWorks(true)}
             onOpenLeagues={() => goToLeaguesTab()}
             onCreateLeague={() => startLeagueSignup("create")}
             onJoinLeague={() => startLeagueSignup("search")}

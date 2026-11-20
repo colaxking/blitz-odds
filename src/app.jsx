@@ -25314,6 +25314,16 @@ function loadCfbCalendar() {
   cfbCalendarPromise = fetchCfbScoreboard(null).then((json) => {
     const board = cfbNormalizeBoard(json);
     const periods = board.periods;
+    // ESPN answered, but with no season calendar in it (a degraded or
+    // reshaped response). That is a failed load, not an empty season: with
+    // no periods there is no week to show, and caching it would leave the
+    // College view without a schedule until a reload.
+    if (!periods.length) {
+      // Drop the shared copy of that response too, so "Try again" asks ESPN
+      // afresh instead of being handed the same body for the next 8 seconds.
+      cfbScoreboardCache.delete("current");
+      throw new Error("ESPN college calendar missing");
+    }
     let currentKey = board.seasontype === 3 ? "post" : String(board.week || "");
     if (!periods.some((p) => p.key === currentKey)) {
       // Off-season or between ESPN's season types: the period whose window
@@ -25331,13 +25341,19 @@ function loadCfbCalendar() {
 function useCfbCalendar(enabled) {
   const [cal, setCal] = useState(cfbCalendarCache);
   const [error, setError] = useState(null);
+  // Bumped by retry(): a failed load used to be final until the page was
+  // reloaded, because nothing re-ran this effect.
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (cal || !enabled) return;
     let cancelled = false;
-    loadCfbCalendar().then((c) => { if (!cancelled) setCal(c); }).catch((e) => { if (!cancelled) setError(e.message || "Couldn't load the college schedule"); });
+    loadCfbCalendar()
+      .then((c) => { if (!cancelled) { setCal(c); setError(null); } })
+      .catch((e) => { if (!cancelled) setError(e.message || "Couldn't load the college schedule"); });
     return () => { cancelled = true; };
-  }, [enabled]);
-  return { calendar: cal, error };
+  }, [enabled, attempt]);
+  const retry = useCallback(() => { setError(null); setAttempt((n) => n + 1); }, []);
+  return { calendar: cal, error, retry };
 }
 
 function cfbAuthedGet(auth, url) {
@@ -26892,12 +26908,28 @@ function CfbTeamView({ teamId, favorites, onToggleFavorite, onSelectGame, onSele
 /* ---- The college side of the Games tab ----------------------------------- */
 
 function CollegeGames({ cal, route, onNavigate, favorites, onToggleFavorite, auth, tz, onGoHome, sportSwitch }) {
-  const { calendar, error } = cal;
-  if (error && !calendar) return <p className="cfb-empty">Couldn't load the college schedule right now.</p>;
+  const { calendar, error, retry } = cal;
+  // The NFL | College switch stays on screen when the schedule can't be
+  // loaded. Without it, someone with College remembered as their Games sport
+  // was left on a dead end during an ESPN outage, with no way back to NFL.
+  const unavailable = (
+    <>
+      {sportSwitch}
+      <div className="cfb-empty" role="alert">
+        <p style={{ margin: 0 }}>Couldn't load the college schedule right now. NFL games are still available.</p>
+        {typeof retry === "function" && (
+          <button type="button" className="league-btn" style={{ marginTop: 10 }} onClick={retry}>Try again</button>
+        )}
+      </div>
+    </>
+  );
+  if (error && !calendar) return unavailable;
   if (!calendar) return <>{sportSwitch}<p className="cfb-empty">Loading the college schedule…</p></>;
   const periods = calendar.periods;
   const periodKey = route.period && periods.some((p) => p.key === route.period) ? route.period : calendar.currentKey;
   const period = periods.find((p) => p.key === periodKey) || periods[0];
+  // Belt and braces: every view below reads period.key.
+  if (!period) return unavailable;
   const toWeek = () => onNavigate({ view: "week", period: route.period || null });
   const selectTeam = (teamId) => onNavigate({ view: "team", teamId, period: route.period || null });
   const selectGame = (gameId) => onNavigate({ view: "game", gameId, period: route.period || null });

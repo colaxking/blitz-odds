@@ -57,7 +57,12 @@ async function mergePlayersPayload(store: ReturnType<typeof getStore>, incoming:
     });
   }
 
-  return { ...incoming, players: mergedTeams };
+  // keyPlayers (who an injury alert treats as "key") is maintained by
+  // scripts/injury-player-sync.mjs. A writer that doesn't know about it -
+  // the weekly-update task regenerating the doc - must not erase it and
+  // quietly mute every "Key players" alert until the next sync.
+  const keyPlayers = incoming.keyPlayers ?? existing.keyPlayers;
+  return { ...incoming, players: mergedTeams, ...(keyPlayers ? { keyPlayers } : {}) };
 }
 
 // Hard guard for the "history" key. Week 1 of 2026 originally shipped as an

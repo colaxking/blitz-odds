@@ -22795,7 +22795,7 @@ const ALERT_OUTCOME_LABELS = {
   "not-followed": "Not following that game",
   "no-leagues": "Not in a league",
   "nothing-locking": "Nothing locking at that slot",
-  "below-key-threshold": "Below key-player threshold",
+  "below-key-threshold": "Not a key player",
 };
 
 /* The outcomes worth flagging in red: each one means a reader who expected

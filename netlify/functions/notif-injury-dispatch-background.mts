@@ -52,8 +52,21 @@ const SNAPSHOT_KEY = "espn-injury-snapshot";
  *  lost snapshot can't replay a fortnight of injuries at once. */
 const MAX_REPORT_AGE_MS = 36 * 60 * 60 * 1000;
 
-/** impactScore at or above which a curated player counts as "key" for the
- *  purposes of the injuries: "key" | "all" preference. */
+/** WHO COUNTS AS "KEY" for the injuries: "key" | "all" preference.
+ *
+ *  Not impactScore alone. impactScore is a prediction-model input, and every
+ *  auto-added player carries a deliberately low placeholder (position median
+ *  minus one) - so gating on it meant a team's leading receiver sat at 6 and
+ *  alerted nobody on the default setting (Jaylen Waddle, 2026-11-20).
+ *
+ *  A player is key if, in order:
+ *    1. his curated record says so outright - `key: true` / `key: false` is
+ *       the manual override and wins in both directions;
+ *    2. he's in the players doc's `keyPlayers` list, which
+ *       scripts/injury-player-sync.mjs rebuilds from ESPN's depth charts and
+ *       team leaders (the rules are in scripts/key-players.mjs);
+ *    3. his curated impactScore is 7+ - kept so a hand-rated star who isn't
+ *       a statistical leader (a shutdown corner) doesn't lose his alerts. */
 const KEY_PLAYER_IMPACT = 7;
 
 function jsonResponse(status: number, body: unknown) {
@@ -115,15 +128,28 @@ export default async (req: Request, _context: Context) => {
     // ---- Which curated players do we track, and how important? ----------
     const playersDoc: any = await siteDataStore.get("players", { type: "json" });
     const curated = new Map<string, {
-      name: string; team: string; status: InjuryState; impactScore: number;
+      name: string; team: string; status: InjuryState; impactScore: number; key: boolean | null;
     }>();
     for (const [team, list] of Object.entries<any>(playersDoc?.players || {})) {
       for (const p of list || []) {
         if (p.espnId) curated.set(String(p.espnId), {
           name: p.name, team, status: p.status, impactScore: p.impactScore || 0,
+          key: typeof p.key === "boolean" ? p.key : null,
         });
       }
     }
+    // espnId -> our team abbreviation, for every computed key player. This
+    // reaches past the curated file on purpose: a starting guard is never
+    // tracked (he isn't a model input), but his followers still want to know.
+    const keyTeam = new Map<string, string>();
+    for (const [team, ids] of Object.entries<any>(playersDoc?.keyPlayers || {})) {
+      for (const id of Array.isArray(ids) ? ids : []) keyTeam.set(String(id), team);
+    }
+    const isKey = (id: string): boolean => {
+      const ours = curated.get(id);
+      if (ours && ours.key !== null) return ours.key;
+      return keyTeam.has(id) || (!!ours && ours.impactScore >= KEY_PLAYER_IMPACT);
+    };
 
     // ---- What moved? -----------------------------------------------------
     interface Change { e: EspnInjury; from: InjuryState | null; to: InjuryState; tracked: boolean }
@@ -143,7 +169,7 @@ export default async (req: Request, _context: Context) => {
       // late. Recorded, not alerted.
       if (e.date && now.getTime() - Date.parse(e.date) > MAX_REPORT_AGE_MS) continue;
 
-      changes.push({ e, from, to: e.state, tracked: curated.has(id) });
+      changes.push({ e, from, to: e.state, tracked: curated.has(id) || isKey(id) });
     }
 
     report.changes = changes.map((c) => `${c.e.name} (${c.e.team}) ${c.from ?? "—"} → ${c.to}${c.tracked ? " [tracked]" : ""}`);
@@ -157,9 +183,9 @@ export default async (req: Request, _context: Context) => {
     }
 
     // ---- Alerts ----------------------------------------------------------
-    // Tracked players only. An untracked name has no impact score, no
-    // curated note, and no reason to believe the app's readers care - it
-    // starts alerting once injury-player-sync.mjs adds it to the file.
+    // Tracked or key players only. Anyone else is a name with no curated
+    // note and no starting job - no reason to believe the app's readers
+    // care. ("tracked" on a Change means either.)
     const alertable = changes.filter((c) => c.tracked);
     if (alertable.length) {
       const users: AlertUser[] = [];
@@ -198,10 +224,13 @@ export default async (req: Request, _context: Context) => {
       };
 
       for (const c of alertable) {
-        const ours = curated.get(c.e.id)!;
+        // A key player outside the curated file has no record of ours, so
+        // ESPN's name stands in and the key list supplies the team.
+        const ours = curated.get(c.e.id) || { name: c.e.name, team: keyTeam.get(c.e.id) || c.e.team };
         // The curated file's team, not ESPN's: a starred team follows the
         // roster the app believes in, and the two can differ after a trade.
         const team = ours.team || c.e.team;
+        const key = isKey(c.e.id);
         const worse = c.from !== null && SEVERITY[c.to] > SEVERITY[c.from];
         const detail = detailPhrase(c.e);
 
@@ -216,7 +245,7 @@ export default async (req: Request, _context: Context) => {
             if (!u.favorites.includes(team)) continue;
             const prefs = await getPrefs(u.userId);
             if (prefs.push.injuries === "off") { tally("off", logCtx); continue; }
-            if (prefs.push.injuries === "key" && ours.impactScore < KEY_PLAYER_IMPACT) { tally("below-key-threshold", logCtx); continue; }
+            if (prefs.push.injuries === "key" && !key) { tally("below-key-threshold", logCtx); continue; }
 
             // Copy reports the DESIGNATION, not the player's availability.
             // "ESPN now lists him Questionable" stays true even when the

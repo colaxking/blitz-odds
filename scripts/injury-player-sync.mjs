@@ -54,6 +54,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { firstString, leadersByCategory, keyPlayersForTeam } from "./key-players.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_PATH = path.join(REPO_ROOT, "data", "impact-players.json");
@@ -64,6 +65,9 @@ const INJURIES_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl
 const ROSTER_URL = (slug) => `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${slug}/roster`;
 const DEPTH_URL = (teamId, season) =>
   `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${season}/teams/${teamId}/depthcharts?limit=50`;
+
+const LEADERS_URL = (teamId, season) =>
+  `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${season}/types/2/teams/${teamId}/leaders?limit=50`;
 
 /** ESPN's abbreviations differ from ours in two places, and its roster
  *  endpoint wants "wsh" rather than "was". */
@@ -100,7 +104,7 @@ async function getJSON(url) {
 }
 
 /** name -> [{id, team, position}] across all 32 rosters. */
-async function buildRosterIndex(teamAbbrs, teamIds) {
+async function buildRosterIndex(teamAbbrs, teamIds, positionById = new Map()) {
   const index = new Map();
   for (const abbr of teamAbbrs) {
     const slug = ROSTER_SLUG_FIX[abbr] || abbr.toLowerCase();
@@ -111,6 +115,7 @@ async function buildRosterIndex(teamAbbrs, teamIds) {
         for (const a of group.items || []) {
           if (!a.displayName) continue;
           const entry = { id: String(a.id), team: abbr, position: a.position?.abbreviation || null };
+          positionById.set(entry.id, entry.position);
           index.set(a.displayName, [...(index.get(a.displayName) || []), entry]);
           const n = norm(a.displayName);
           index.set(`~${n}`, [...(index.get(`~${n}`) || []), entry]);
@@ -151,11 +156,12 @@ function resolveId(index, name, team, position) {
  * resolving them would be hundreds of extra requests to learn a name this
  * script already has from the injury feed.
  */
-async function fetchStarters(teamIds, season) {
+async function fetchStarters(teamIds, season, depthByTeam = new Map()) {
   const starters = new Set();
   for (const [abbr, id] of teamIds) {
     try {
       const d = await getJSON(DEPTH_URL(id, season));
+      depthByTeam.set(abbr, d);
       for (const formation of d.items || []) {
         for (const pos of Object.values(formation.positions || {})) {
           for (const a of pos.athletes || []) {
@@ -170,6 +176,42 @@ async function fetchStarters(teamIds, season) {
     }
   }
   return starters;
+}
+
+/**
+ * { TEAM: [espnId, ...] } - the players an injury alert treats as "key".
+ * The rules live in key-players.mjs; this only does the fetching.
+ *
+ * A team whose depth chart didn't load keeps whatever it had before. An
+ * ESPN hiccup must not silently empty a team's list and mute its alerts
+ * until the next run. A leaders feed that fails or is empty is fine - the
+ * rules fall back to the depth chart alone.
+ */
+async function buildKeyPlayers(teamIds, season, depthByTeam, positionById, previous) {
+  const out = {};
+  for (const [abbr, id] of teamIds) {
+    const depth = depthByTeam.get(abbr);
+    if (!depth) {
+      if (Array.isArray(previous?.[abbr])) out[abbr] = previous[abbr];
+      continue;
+    }
+    let leaders = {};
+    try {
+      leaders = leadersByCategory(await getJSON(LEADERS_URL(id, season)));
+    } catch (err) {
+      log(`  leaders fetch failed for ${abbr}: ${err.message}`);
+      // Production is half the signal. Rather than shrink the list to
+      // depth-chart-only for one run and grow it back the next, keep the
+      // previous list when there is one.
+      if (Array.isArray(previous?.[abbr]) && previous[abbr].length) { out[abbr] = previous[abbr]; continue; }
+    }
+    out[abbr] = keyPlayersForTeam(firstString(depth), leaders, (pid) => positionById.get(pid) || null);
+  }
+  // Teams ESPN gave us no id for at all (roster fetch failed) keep theirs too.
+  for (const [abbr, ids] of Object.entries(previous || {})) {
+    if (!(abbr in out) && Array.isArray(ids)) out[abbr] = ids;
+  }
+  return Object.fromEntries(Object.entries(out).sort(([a], [b]) => a.localeCompare(b)));
 }
 
 async function fetchInjuries() {
@@ -325,9 +367,11 @@ async function main() {
   const season = new Date().getUTCFullYear();
   const teamIds = new Map();
   log("Fetching ESPN rosters and injury feed...");
-  const [rosterIndex, injuries] = await Promise.all([buildRosterIndex(teams, teamIds), fetchInjuries()]);
+  const positionById = new Map();
+  const depthByTeam = new Map();
+  const [rosterIndex, injuries] = await Promise.all([buildRosterIndex(teams, teamIds, positionById), fetchInjuries()]);
   log(`Fetching depth charts for ${teamIds.size} teams...`);
-  const starters = await fetchStarters(teamIds, season);
+  const starters = await fetchStarters(teamIds, season, depthByTeam);
   log(`${starters.size} first-string players identified.`);
   const byId = new Map(all().map(([t, p]) => [p.espnId, { team: t, player: p }]));
 
@@ -405,6 +449,16 @@ async function main() {
     changes.added.push(`${e.name} (${e.team}, ${e.position}) impact ${score} [auto]`);
   }
 
+  // ---- 4. key players ----------------------------------------------------
+  // Who an injury alert treats as "key" - see key-players.mjs. Stored on the
+  // players doc (top level, ids only) so it rides the same publish to Blobs
+  // and the alert dispatcher reads it with the read it already makes.
+  const keyBefore = JSON.stringify(doc.keyPlayers || {});
+  const keyPlayers = await buildKeyPlayers(teamIds, season, depthByTeam, positionById, doc.keyPlayers);
+  const keyChanged = JSON.stringify(keyPlayers) !== keyBefore;
+  if (keyChanged) doc.keyPlayers = keyPlayers;
+  log(`${Object.values(keyPlayers).flat().length} key players across ${Object.keys(keyPlayers).length} teams${keyChanged ? " (changed)" : ""}.`);
+
   // ---- report ------------------------------------------------------------
   const total = Object.values(doc.players).flat().length;
   log(`${total} tracked players.`);
@@ -427,7 +481,7 @@ async function main() {
   if (missing.length) log(`WARNING: ${missing.length} player(s) still without an espnId: ${missing.join(", ")}`);
 
   const touched = changes.ids.length + changes.applied.length + changes.added.length
-    + changes.bootstrapped + staged.merged.length;
+    + changes.bootstrapped + staged.merged.length + (keyChanged ? 1 : 0);
   if (!touched) { log("Nothing to change."); return; }
 
   if (dryRun) { log("Dry run - nothing written."); return; }

@@ -91,6 +91,9 @@ const PREMIUM = new Set(["QB", "RB", "WR", "TE", "LT", "RT", "OT", "EDGE", "DE",
 const AUTO_IMPACT = { QB: 6, RB: 6, WR: 6, TE: 6, EDGE: 7, DE: 5, CB: 6, LT: 6, RT: 5, OT: 5, K: 4 };
 const AUTO_IMPACT_DEFAULT = 5;
 
+/** Depth-chart slots that don't make a player a starter for auto-adding. */
+const RETURN_AND_SNAP_SLOTS = new Set(["pr", "kr", "h", "ls", "p"]);
+
 const log = (m) => console.log(`${new Date().toISOString()} ${m}`);
 
 const norm = (s) => String(s || "").toLowerCase()
@@ -162,14 +165,15 @@ async function fetchStarters(teamIds, season, depthByTeam = new Map()) {
     try {
       const d = await getJSON(DEPTH_URL(id, season));
       depthByTeam.set(abbr, d);
-      for (const formation of d.items || []) {
-        for (const pos of Object.values(formation.positions || {})) {
-          for (const a of pos.athletes || []) {
-            if (a.slot !== 1) continue;
-            const m = /\/athletes\/(\d+)/.exec(a.athlete?.$ref || "");
-            if (m) starters.add(m[1]);
-          }
-        }
+      // firstString() takes the lowest `rank` within each `slot`. This used
+      // to test `slot === 1`, reading slot as depth - but slot is the
+      // position's place in the formation, so that matched every left
+      // defensive end, one WR slot's starter AND backup, and the kicker, and
+      // no starting QB, RB, TE, CB or lineman at all.
+      for (const [posKey, ids] of Object.entries(firstString(d))) {
+        // A return man or holder is first-string at a job, not a starter.
+        if (RETURN_AND_SNAP_SLOTS.has(posKey)) continue;
+        for (const pid of ids) starters.add(pid);
       }
     } catch (err) {
       log(`  depth chart fetch failed for ${abbr}: ${err.message}`);

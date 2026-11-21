@@ -667,7 +667,7 @@
       "bufferStatus": "sent"
     },
     "2026-w11-fri": {
-      "status": "scheduled",
+      "status": "sent",
       "variant": "primary",
       "bufferPostId": "6aff0173abf4ba608b77fc31",
       "text": "Chasing in your pool? Fading every favorite isn't a plan.\n\nPick one or two spots where you actually disagree with the line, and take the chalk everywhere else.\n\nblitz-odds.com",
@@ -675,7 +675,8 @@
       "imageUrl": null,
       "dueAt": "2026-11-20T14:39:00.000Z",
       "scheduledAt": "2026-11-19T14:00:30.937Z",
-      "lastCheckedAt": "2026-11-20T14:00:22.134Z"
+      "lastCheckedAt": "2026-11-20T14:00:22.134Z",
+      "bufferStatus": "sent"
     },
     "2026-w11-sat": {
       "status": "scheduled",
@@ -686,33 +687,33 @@
       "imageUrl": "https://raw.githubusercontent.com/colaxking/blitz-odds/4bbe1691c7a33e31744fba2c02b1397148f10d6e/social/img/2026-w11-sat-dcd043fc3c.png",
       "dueAt": "2026-11-21T14:56:00.000Z",
       "scheduledAt": "2026-11-20T14:00:22.134Z",
-      "lastCheckedAt": "2026-11-20T14:00:22.134Z"
+      "lastCheckedAt": "2026-11-21T14:00:23.960Z"
     },
     "2026-w11-cfb-sat": {
       "status": "scheduled",
       "variant": "primary",
       "bufferPostId": "6b00527d77e195b722084bcb",
-      "text": "Biggest college spreads with a ranked team on the field today:\n\nChattanooga at #3 Alabama — Alabama -49.5\nWofford at #25 Ole Miss — Ole Miss -49.5\nArkansas at #5 Texas — Texas -20.5\n\nAnd the closest:\nLSU at #9 Tennessee — LSU -1.5\n\nblitz-odds.com/college/games/",
-      "imageHash": "a053585c3f",
-      "imageUrl": "https://raw.githubusercontent.com/colaxking/blitz-odds/4bbe1691c7a33e31744fba2c02b1397148f10d6e/social/img/2026-w11-cfb-sat-a053585c3f.png",
+      "text": "Biggest college spreads with a ranked team on the field today:\n\nWofford at #25 Ole Miss — Ole Miss -49.5\nChattanooga at #3 Alabama — Alabama -48.5\n#11 Wake Forest at Georgia Tech — Wake Forest -21\n\nAnd the closest:\nLSU at #9 Tennessee — LSU -1.5\n\nblitz-odds.com/college/games/",
+      "imageHash": "0f9c2270c8",
+      "imageUrl": "https://raw.githubusercontent.com/colaxking/blitz-odds/a91e92a7887739d78006916822574c617a48931b/social/img/2026-w11-cfb-sat-0f9c2270c8.png",
       "dueAt": "2026-11-21T15:41:00.000Z",
       "scheduledAt": "2026-11-20T14:00:22.134Z",
-      "lastCheckedAt": "2026-11-20T14:00:22.134Z"
+      "lastCheckedAt": "2026-11-21T14:00:23.960Z",
+      "updatedAt": "2026-11-21T14:00:23.960Z"
+    },
+    "2026-w11-sun": {
+      "status": "scheduled",
+      "variant": "primary",
+      "bufferPostId": "6b01a4728bd84d5966f24cda",
+      "text": "Kickoff in a few hours. Every game card has live score, down and distance, and last play once it starts — tap the bell on any game to get a push when it goes final.\n\nblitz-odds.com",
+      "imageHash": null,
+      "imageUrl": null,
+      "dueAt": "2026-11-22T14:07:00.000Z",
+      "scheduledAt": "2026-11-21T14:00:23.960Z",
+      "lastCheckedAt": "2026-11-21T14:00:23.960Z"
     }
   },
   "runs": [
-    {
-      "at": "2026-09-22T13:00:20.608Z",
-      "dryRun": false,
-      "actions": [
-        {
-          "post": "2026-w2-mon-mnf",
-          "action": "closed",
-          "detail": "expired"
-        }
-      ],
-      "alerts": []
-    },
     {
       "at": "2026-09-23T13:00:21.447Z",
       "dryRun": false,
@@ -1970,6 +1971,38 @@
           "post": "2026-w11-cfb-sat",
           "action": "scheduled",
           "detail": "primary + image for 2026-11-21T10:41:00-05:00"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "at": "2026-11-21T14:00:23.960Z",
+      "dryRun": false,
+      "actions": [
+        {
+          "post": "2026-w11-fri",
+          "action": "closed",
+          "detail": "sent"
+        },
+        {
+          "post": "2026-w11-sat",
+          "action": "verified",
+          "detail": "primary unchanged"
+        },
+        {
+          "post": "2026-w11-cfb-sat",
+          "action": "image-rendered",
+          "detail": "social/img/2026-w11-cfb-sat-0f9c2270c8.png"
+        },
+        {
+          "post": "2026-w11-cfb-sat",
+          "action": "updated",
+          "detail": "primary; text + image changed + image"
+        },
+        {
+          "post": "2026-w11-sun",
+          "action": "scheduled",
+          "detail": "primary for 2026-11-22T09:07:00-05:00"
         }
       ],
       "alerts": []

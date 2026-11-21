@@ -25,6 +25,7 @@
        correct call reads as a Blitz Edge signal rather than a generic
        win/loss color. */
     --blitz-orange: #fd7f01;
+    --blitz-orange-rgb: 253,127,1;
     --blitz-orange-fill-text: #062b16;
     --pill-good-text: #6be3a1;
     --pill-bad-text: #ff8080;
@@ -60,6 +61,7 @@
     /* Darkened from the same brand orange to hold AA text contrast
        (~4.8:1) on a white card - the raw logo orange only clears ~2.6:1. */
     --blitz-orange: #b35900;
+    --blitz-orange-rgb: 179,89,0;
     --blitz-orange-fill-text: #ffffff;
     --pill-good-text: #1a7a43;
     --pill-bad-text: #b42318;
@@ -6331,6 +6333,19 @@
   .pk-start-one { text-align: center; }
   .pk-when { display: flex; align-items: center; gap: 6px; font-size: .875rem; font-weight: 700; color: var(--text); }
   .pk-when em { font-style: normal; font-weight: 500; color: var(--text-dim); }
+  /* Orange is the page's one "still needs you" colour: open counts, the
+     lock clock, and the edge of a card with picks due. Teal and green stay
+     for actions and for done. The standing is the other place it shows. */
+  .pk-when .pk-ico { color: var(--blitz-orange); }
+  .pk-hero-top .pk-when, .pk-need .pk-when { color: var(--blitz-orange); }
+  .pk-need .pk-when em { color: var(--text-dim); }
+  .pk-due-n { color: var(--blitz-orange); }
+  /* A short orange rule under each section heading, after the swoosh
+     under the wordmark. */
+  .pk-sec-head h3::after, .pk-cu-h::after { content: ""; display: block; width: 32px; height: 3px; margin-top: 6px;
+    border-radius: 999px; background: var(--blitz-orange); }
+  .pk-rank { color: var(--blitz-orange); font-weight: 700; }
+  .pk-need, .pk-mine-card.is-due { border-left: 3px solid var(--blitz-orange); }
   .pk-allset { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; border-color: var(--card-border); }
   .pk-allset-txt { flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px; }
   .pk-allset .pk-count { font-size: 2rem; }
@@ -6344,8 +6359,8 @@
   /* The count that still needs doing: a pill with a dot, so it reads as a
      status without leaning on orange text alone. */
   .pk-left { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
-    background: var(--surface-2); border: 1px solid var(--card-border); font-size: .82rem; font-weight: 800;
-    white-space: nowrap; color: var(--text); }
+    background: rgba(var(--blitz-orange-rgb), .14); border: 1px solid rgba(var(--blitz-orange-rgb), .5); font-size: .82rem; font-weight: 800;
+    white-space: nowrap; color: var(--blitz-orange); }
   .pk-left i { width: 8px; height: 8px; border-radius: 999px; background: var(--blitz-orange); }
 
   /* Needs Your Picks */
@@ -6373,6 +6388,7 @@
   .pk-cu-top h4 { font-size: 1.02rem; font-weight: 800; overflow-wrap: anywhere; }
   .pk-cu-status { font-size: .9rem; font-weight: 700; }
   .pk-cu-acts { margin-top: auto; padding-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .pk-cu-short { display: none; }
 
   /* Locks */
   .pk-phone-only { display: none; }
@@ -6382,7 +6398,6 @@
   .pk-rail-empty { margin-top: 10px !important; }
   .pk-rail-next { margin-top: 12px; padding: 12px; border-radius: 10px; background: var(--surface-2); }
   .pk-rail-next-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .pk-rail-next .pk-left { background: var(--card-bg); }
   .pk-rail-next .pk-link { font-size: .82rem; }
   .pk-matchup { display: flex; align-items: center; gap: 7px; width: 100%; min-height: 44px; margin-top: 6px; padding: 0;
     background: none; border: 0; border-top: 1px solid var(--card-border); color: var(--text); font-family: inherit;
@@ -6529,7 +6544,16 @@
     .pk-cu > * { grid-row: auto !important; }
     .pk-cu-h.pk-cu-c2 { order: 2; margin-top: 8px; }
     .pk-cu-card.pk-cu-c2 { order: 3; }
-    .pk-cu-card { padding: 14px 16px; }
+    /* Phone: the button sits beside the text instead of under it, so a
+       card is three lines tall and the right-hand side isn't empty. */
+    .pk-cu-card { padding: 10px 12px 10px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; row-gap: 1px; align-content: center; }
+    .pk-cu-card > * { grid-column: 1; }
+    .pk-cu-card > .pk-cu-acts { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin: 0; padding: 0; }
+    .pk-cu-acts .home-btn { padding-left: 14px; padding-right: 14px; white-space: nowrap; }
+    .pk-cu-top { gap: 8px; }
+    .pk-cu-top svg { width: 18px; height: 18px; }
+    .pk-cu-wide { display: none; }
+    .pk-cu-short { display: inline; }
     .pk-cu-card.is-empty { display: none; }
     .pk-discover { padding: 16px; }
     .pk-disc-grid { grid-template-columns: minmax(0, 1fr); }

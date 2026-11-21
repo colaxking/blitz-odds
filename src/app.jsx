@@ -15165,6 +15165,16 @@ function LeagueView({ auth, profile, onRequestLogin, tz, pendingJoin, onConsumeP
   const [autoJoinError, setAutoJoinError] = useState(null);
   const autoJoinAttemptedRef = useRef(false);
 
+  // Manage, opening a league and backing out of either all swap this whole
+  // view in place, so each one starts at the top rather than at whatever
+  // scroll position the list it was tapped from happened to be at. Skips the
+  // mount: goToLeaguesTab has already scrolled for that.
+  const viewScrollMountedRef = useRef(false);
+  useEffect(() => {
+    if (!viewScrollMountedRef.current) { viewScrollMountedRef.current = true; return; }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [managingLeagueId, selectedLeagueId]);
+
   const myUserId = auth.user && auth.user.id;
   // Pending join-request count for the Requests tab's pip. Declared up here,
   // above every early return in this component, because the Rules of Hooks
@@ -19465,6 +19475,13 @@ function PkBar({ made, required, label }) {
   );
 }
 
+/** "Straight Up · 1st of 6" with the standing picked out in the brand
+ *  orange. An eliminated survivor entry stays plain. */
+function PkMeta({ type, rank }) {
+  if (!rank) return <>{type}</>;
+  return <>{type} · <span className={rank === "Eliminated" ? undefined : "pk-rank"}>{rank}</span></>;
+}
+
 function PkLeft({ n }) {
   return <span className="pk-left"><i aria-hidden="true" />{n} left</span>;
 }
@@ -19868,17 +19885,23 @@ function PickemHome({ auth, profile, tz, bowlsOn, onOpenLeagues, onOpenGames }) 
 
   const completedCards = ov.done.map(({ league: l, st }) => {
     const rank = pkRankText(l);
-    let status, note, canEdit = false;
+    // extra / noteWide / short are for the phone layout only: the button
+    // moves beside the text with a short label, a locked count rides on the
+    // status line, and a note that only repeats the button is left out.
+    let status, note, canEdit = false, extra = null, noteWide = false;
     if (st.eliminated) { status = "Eliminated"; note = `${l.survivor ? l.survivor.aliveCount : 0} of ${l.memberCount} still alive`; }
     else if (st.required > 0) {
       status = l.format === "survivor" ? "Pick saved" : `${st.made} of ${st.required} saved`;
       note = "Editable until kickoff" + (st.lockedMade > 0 ? ` · ${st.lockedMade} locked` : "");
+      extra = st.lockedMade > 0 ? `${st.lockedMade} locked` : null;
+      noteWide = true;
       canEdit = true;
     } else {
       status = st.lockedMade > 0 ? `${st.lockedMade} ${st.lockedMade === 1 ? "pick" : "picks"} locked in` : "No open games";
       note = st.missed > 0 ? `${st.missed} missed this week` : "Nothing left to pick this week";
+      noteWide = !(st.missed > 0);
     }
-    return { key: l.leagueId, kind: "done", l, title: l.name, meta: [pkLeagueType(l), rank].filter(Boolean).join(" · "), status, note, eliminated: st.eliminated, canEdit };
+    return { key: l.leagueId, kind: "done", l, title: l.name, meta: <PkMeta type={pkLeagueType(l)} rank={rank} />, status, note, eliminated: st.eliminated, canEdit, extra, noteWide };
   });
   const upcomingCards = ov.upcoming.map(({ league: l, st }) => {
     const sheet = st.sheet;
@@ -19964,7 +19987,7 @@ function PickemHome({ auth, profile, tz, bowlsOn, onOpenLeagues, onOpenGames }) 
           {ov.needs.length > 0 && (
             <section className="pk-sec" aria-labelledby="pk-needs-h">
               <div className="pk-sec-head">
-                <h3 id="pk-needs-h">Needs Your Picks ({ov.needs.length})</h3>
+                <h3 id="pk-needs-h">Needs Your Picks <span className="pk-due-n">({ov.needs.length})</span></h3>
                 <span className="pk-sub">Soonest lock first</span>
               </div>
               <div className="pk-needs">
@@ -19976,7 +19999,7 @@ function PickemHome({ auth, profile, tz, bowlsOn, onOpenLeagues, onOpenGames }) 
                     <article className="home-card pk-need" key={l.leagueId}>
                       <div className="pk-need-id">
                         <h4>{l.name}</h4>
-                        <p className="pk-sub">{[pkLeagueType(l), rank].filter(Boolean).join(" · ")}</p>
+                        <p className="pk-sub"><PkMeta type={pkLeagueType(l)} rank={rank} /></p>
                         {l.pendingRequests > 0 && (
                           <button type="button" className="hd-req-badge"
                             onClick={() => onOpenLeagues({ leagueId: l.leagueId, leagueSubTab: "requests" })}>
@@ -20038,10 +20061,13 @@ function PickemHome({ auth, profile, tz, bowlsOn, onOpenLeagues, onOpenGames }) 
                       <h4>{c.title}</h4>
                     </div>
                     <p className="pk-sub">{c.meta}</p>
-                    <p className="pk-cu-status">{c.status}</p>
-                    <p className="pk-sub">{c.note}</p>
+                    <p className="pk-cu-status">{c.status}{c.extra && <span className="pk-cu-short"> · {c.extra}</span>}</p>
+                    <p className={"pk-sub" + (c.noteWide ? " pk-cu-wide" : "")}>{c.note}</p>
                     <div className="pk-cu-acts">
-                      <button type="button" className="home-btn" onClick={() => openLeague(c.l.leagueId)}>{c.canEdit ? "View / Edit Picks" : "View Picks"}</button>
+                      <button type="button" className="home-btn" aria-label={`${c.canEdit ? "View or edit picks" : "View picks"}: ${c.title}`} onClick={() => openLeague(c.l.leagueId)}>
+                        <span className="pk-cu-wide">{c.canEdit ? "View / Edit Picks" : "View Picks"}</span>
+                        <span className="pk-cu-short">{c.canEdit ? "Edit" : "View"}</span>
+                      </button>
                     </div>
                   </article>
                 ))}
@@ -20055,8 +20081,9 @@ function PickemHome({ auth, profile, tz, bowlsOn, onOpenLeagues, onOpenGames }) 
                     <p className="pk-cu-status">{c.status}</p>
                     <p className="pk-sub">{c.note}</p>
                     <div className="pk-cu-acts">
-                      <button type="button" className={"home-btn" + (c.left > 0 ? " primary" : "")} onClick={() => onOpenLeagues({ leagueId: c.l.leagueId })}>
-                        {c.left > 0 ? "Make Bowl Picks" : "View League"}
+                      <button type="button" className={"home-btn" + (c.left > 0 ? " primary" : "")} aria-label={`${c.left > 0 ? "Make bowl picks" : "View league"}: ${c.title}`} onClick={() => onOpenLeagues({ leagueId: c.l.leagueId })}>
+                        <span className="pk-cu-wide">{c.left > 0 ? "Make Bowl Picks" : "View League"}</span>
+                        <span className="pk-cu-short">{c.left > 0 ? "Pick" : "View"}</span>
                       </button>
                     </div>
                   </article>
@@ -20318,11 +20345,11 @@ function PickemLeaguesPage({ auth, tz, initialTab, myLeagues, upsertLeague, bowl
                 : st.known && st.required > 0 ? "View / Edit Picks" : "View Picks";
               const w = !isBowl && due ? pkWhen(st.nextLockMs, tz) : null;
               return (
-                <article className="home-card pk-mine-card" key={l.leagueId}>
+                <article className={"home-card pk-mine-card" + (due ? " is-due" : "")} key={l.leagueId}>
                   <div className="pk-mine-top">
                     <div>
                       <h4>{l.name}</h4>
-                      <p className="pk-sub">{[pkLeagueType(l), rank].filter(Boolean).join(" · ")}</p>
+                      <p className="pk-sub"><PkMeta type={pkLeagueType(l)} rank={rank} /></p>
                     </div>
                     {due ? <PkLeft n={st.left} />
                       : <span className="pk-mine-state">{isBowl ? "Upcoming" : !st.known ? "" : st.eliminated ? "Eliminated" : st.required > 0 ? "All saved" : "Locked"}</span>}
@@ -27441,6 +27468,10 @@ function App() {
     );
     setLeagueTabResetKey((k) => k + 1);
     setActiveTab("league");
+    // Same reason as selectTeam/selectGame: the page doesn't reload, so
+    // without this "Browse All Leagues" (or any other link into the leagues
+    // tab) from far down Home opens the destination scrolled that far down.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
   function selectTab(tab) {
